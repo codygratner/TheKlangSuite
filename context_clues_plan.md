@@ -31,11 +31,12 @@
 ## 🎯 Immediate Return Agenda & Status
 - **Current Objective:** Factory Execution & Roadmap Flight Orchestration
 - **Active Agenda:**
-  1. **Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7)**: ✅ COMPLETED by Klang Industries.
-  2. **Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ⏳ READY_FOR_EXECUTION on factory floor. Universal bundle assembly, installer script (`install_nkai_bundle.ps1`), and dynamic keyboard shortcuts.
-  3. **The 9-Flight N'kai Implementation Track**: Staging blueprints sequentially for sustainable Flash High factory delivery.
-  4. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` for pre-release execution.
-- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Flight 9 Ready for Execution)
+  1. **Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7)**: ✅ COMPLETED.
+  2. **Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ✅ COMPLETED. Universal bundle (`c:\Dev\nkai\bundle/`), installer script (`install_nkai_bundle.ps1`), and dynamic shortcuts HUD deployed.
+  3. **Strict Domain Division Guardrail**: Codified in `GEMINI.md` (C++ in factory, tooling in New Klang City via Flash subagents).
+  4. **Next Roadmap Flights**: Flight 4 (Universal Harness Portability 6.13) & Flight 3 (Skill Taxonomy 6.4/6.14) queued for execution.
+  5. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` for pre-release execution.
+- **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (Factory Idle 💤)
 
 ---
 

@@ -48,6 +48,11 @@
 - **No Premature Implementation**: Under no circumstances should you edit source code, run compilers, trigger builds, or execute tests for backlog items until the user explicitly directs implementation.
 - **Single Source of Truth**: The *only* valid backlog file is `docs/BACKLOG.md`. Never create rogue backlog files (`TODO.md`, `future_backlog.md`, etc.).
 
+## Strict Domain Division: Tooling Harness vs. Native Audio Factory
+- **Klang Industries (Factory Floor)**: Reserved strictly for native C++ DSP, JUCE component architecture, CMake/MSBuild targets, APVTS parameter schemas (`assets/controls/`), and real-time audio safety audits (`audiothread-guard`). Never dispatch pure HTML/CSS sidecars, documentation sweeps, or PowerShell/Python dev scripts to the C++ factory.
+- **New Klang City (Tooling Harness)**: Owns ecosystem architecture, N'kai sidecars, Python/PowerShell automation, and documentation.
+- **The Context Shield Rule**: When New Klang City executes tooling implementation, it must delegate mechanical file-writing and testing to a dedicated Flash subagent (`invoke_subagent(Model="flash")`) to prevent chat transcript bloat and protect user allowance.
+
 ## Strict VST3 Deployment Directory
 - **Program Files Only**: When deploying or copying built VST3 plugins on Windows, you must **ONLY** install to `C:\Program Files\Common Files\VST3\The Klang Farmer.vst3` and `C:\Program Files\Common Files\VST3\The Klang Planter.vst3`.
 - **Never Use AppData**: Under no circumstances should you copy, deploy, or fallback to `%LOCALAPPDATA%\Programs\Common\VST3` or any local user directories.
