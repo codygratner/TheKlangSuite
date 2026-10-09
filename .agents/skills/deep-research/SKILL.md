@@ -5,20 +5,25 @@ description: Conducts extensive, multi-domain architectural and UX research by s
 
 # 🕵️ The Deep Research Protocol
 
-**Trigger:** `/deepresearch`, `/deep-research`, "do deep research", "research the backlog", "spin up a research board"
+**Trigger:** `/deepresearch`, `/deep-research`, `/deep-research --chat`, "do deep research", "research the backlog", "spin up a research board"
 
 When the user requests a massive, multi-faceted research task (e.g., analyzing industry competitor UX, exploring embedded hardware architectures in secondary repositories, or evaluating DSP math constraints), execute the following protocol to prevent context-window bloat and deliver highly polished results.
 
-## Phase 1: Artifact & Infrastructure Initialization
-1. **The Research Hub (Dual Storage):** Immediately generate a standalone HTML/CSS/JS artifact (e.g., `ui_ux_research_board.html`) in BOTH:
-   - `<appDataDir>\brain\<conversation-id>\<name>.html` (for Antigravity side-panel webview rendering).
-   - `c:\Dev\TheKlangSuite\.agents\sidecar\<name>.html` (for local persistence).
-2. **Mandatory Artifact Link (The Ready Handshake):** Output the prominent clickable link pointing strictly to the **Artifact Directory** URI:
+## Phase 1: Mode Selection & Artifact Initialization
+1. **The `--chat` / `--text-only` Fallback Flag**:
+   - When invoked with `/deep-research --chat`, `/deep-research --text-only`, or in a headless terminal AI CLI (Claude Code CLI, Aider), skip HTML research board authoring entirely.
+   - The orchestrator dispatches the research subagents (Phase 2), but upon subagent return, synthesizes all findings, mathematical proofs, and PCDA tradeoffs directly into high-density Markdown in chat without creating HTML artifacts.
+2. **The Default Research Hub (Dual Storage & Ready Handshake)**:
+   - By default, immediately generate a standalone interactive HTML/CSS/JS research board (e.g., `<slug>_research_board.html`) in BOTH:
+     - `<appDataDir>\brain\<conversation-id>\<name>.html` (for Antigravity side-panel webview rendering).
+     - `c:\Dev\TheKlangSuite\.agents\sidecar\<name>.html` (for local persistence).
+3. **Mandatory Artifact Link (The Ready Handshake):** Output the prominent clickable link pointing strictly to the **Artifact Directory** URI:
    `👉 **[Open Research Board](file:///<appDataDir>/brain/<conversation-id>/<name>.html)**`
    *(CRITICAL: Antigravity opens workspace repository links in the code editor, but renders artifact links in the interactive side-panel Webview).*
-3. **Neo-Slate Theming:** Style the artifact using the project's standard dark theme (Slate background, JetBrains Mono, Accent Blue/Neon).
-4. **Dynamic Domain Tabs:** If the research focuses on a single topic, use a standard layout without macro-switches. If the user requests multiple distinct topics, dynamically generate a top-level JavaScript segmented toggle switch with relevant names (e.g., `[ DATABASE ]` vs `[ FRONTEND ]`) to separate concerns.
-5. **Auto-Refresh Mechanism:** Since the artifact might be open side-by-side while you research, avoid aggressive `location.reload()`. Instead, implement a manual `[✨ New Updates Available]` glowing button. (Note: Beware of `file:///` CORS blocks on `fetch()`. If polling fails, instruct the user to click the link again).
+   Pause and prompt the user: *"Please open the Research Board link above in your side panel, then reply 'ready' to proceed!"*
+4. **Neo-Slate Theming:** Style the artifact using the project's standard dark theme (Slate background, JetBrains Mono, Accent Blue/Neon).
+5. **Dynamic Domain Tabs:** If the research focuses on a single topic, use a standard layout without macro-switches. If the user requests multiple distinct topics, dynamically generate a top-level JavaScript segmented toggle switch with relevant names (e.g., `[ DATABASE ]` vs `[ FRONTEND ]`) to separate concerns.
+6. **Auto-Refresh Mechanism:** Since the artifact might be open side-by-side while you research, avoid aggressive `location.reload()`. Instead, implement a manual `[✨ New Updates Available]` glowing button. (Note: Beware of `file:///` CORS blocks on `fetch()`. If polling fails, instruct the user to click the link again).
 
 ## Phase 2: Tri-Engine Subagent Delegation (`research` [Pro], `explore` [Flash], & `contrarian` [Devil's Advocate])
 Select the subagent model engine based on the research domain to maximize reasoning quality while protecting model quota:

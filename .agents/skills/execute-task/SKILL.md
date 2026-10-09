@@ -11,9 +11,13 @@ Execute the automated factory engineering pipeline on demand for the active blue
 ---
 
 ## Operational Constraints
-- **Preserve Safety Chain:** Every phase must strictly execute:
-  `Code Changes` -> `audiothread-guard` (Real-Time Safety) -> `build-validate` (Compiler & Tests) -> `step-verify` (Checklist & Git Stage) -> `task-finish` (Final Phase).
-- **Strict Audio-Thread Rules:** Never bypass real-time safety checks when modifying DSP code.
+- **Preserve Deterministic Pipeline Chain:** Every implementation phase must strictly follow the deterministic pipeline:
+  `Code Changes` ➔ `audiothread-guard` (Real-Time Safety Audit) ➔ `build-validate` (Compiler Sanitizer & Native Tests) ➔ `step-verify` (Checklist & Git Stage) ➔ `task-finish` (Conventional Commit & Plan Archive).
+- **Domain Routing Protocol (`TARGET: [FACTORY_FLOOR | TOOLING_HARNESS]`):**
+  - **`TARGET: FACTORY_FLOOR`**: Sourced via `plan_to_build.md` ➔ `build_to_plan.md` to Klang Industries (native C++ DSP, JUCE GUI, CMake).
+  - **`TARGET: TOOLING_HARNESS`**: Sourced via `subagent_dispatch.md` ➔ `subagent_receipt.md` to Flash Builder Subagent (Python/PowerShell scripts, docs, HTML sidecars, agent skills).
+  - *Anti-Snatching Guard*: Klang Industries NEVER ingests tickets marked `TARGET: TOOLING_HARNESS`. Tooling subagents NEVER touch real-time C++ audio rendering loops.
+- **Strict Audio-Thread Rules:** Never bypass real-time safety checks (`audiothread-guard`) when modifying DSP code.
 - **Single Source of Truth:** Tasks and backlog items must originate exclusively from local workspace files (`PLAN.md` or `docs/BACKLOG.md`). Zero clipboard sniffing.
 - **Phase Boundaries:** Complete and verify one phase at a time unless `--all` is explicitly passed.
 - **Subagent Factory Delegation (`--subagent` or Research Trigger):** When invoked during an active research/triage session (or when `--subagent` is passed), `execute-task` delegates the pipeline (`Code Edits -> audiothread-guard -> build-validate -> step-verify`) to a dedicated `Factory Implementation Subagent` (`invoke_subagent(Model="flash")`) to protect main context. Escalates to `Model="pro"` on 2 strikes.

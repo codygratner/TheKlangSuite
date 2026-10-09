@@ -112,6 +112,11 @@
           "path": "docs/specs/nkai_universal_harness_portability.md",
           "title": "N'kai Universal AI Harness Portability (Topic 6.13)",
           "purpose": "Tri-mode environment detection ('extension', 'file', 'server'), zero-dependency CLI server architecture (nkai_serve.py & npx nkai serve), and terminal agent pairing protocols (Claude Code CLI, Cursor, Windsurf, Aider)."
+        },
+        {
+          "path": "docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md",
+          "title": "N'kai Skill Taxonomy & Invocation Architecture (Topics 6.4 & 6.14)",
+          "purpose": "3-layer skill hierarchy (micro-skills, macro orchestrators, interactive visual experiences), N'kai-first visual default, --chat fallback standard, and domain dispatch routing."
         }
       ]
     },

@@ -1,6 +1,6 @@
-# Implementation Plan: Flight 4 — Universal AI Harness Portability
+# Implementation Plan: Flight 3 — Skill Taxonomy & Invocation Defaults
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Flight Target:** Topic 6.13 (Universal AI Harness Portability)  
+> **Flight Target:** Topics 6.4 & 6.14 (Skill Taxonomy & Invocation Defaults)  
 > **Status:** COMPLETED ✅  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Model:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
@@ -10,60 +10,56 @@
 
 ## 🎯 Architectural Intent & Scope
 
-Flight 4 establishes universal cross-harness portability for N'kai (NKAI):
-1. **Topic 6.13 (Approved Option B — Decoupled Interface Layer):**
-   - Enables N'kai to run seamlessly across all major AI harnesses:
-     - **Google Antigravity IDE**: Offline `file:///` sidecar artifact & native Sidecar SDK UI Extension (`window.sidecar`).
-     - **Terminal CLIs (Claude Code CLI, OpenAI Codex CLI, Aider, terminal)**: Zero-dependency local dev server (`python tools/nkai_serve.py` or `npx nkai serve [file]`) that auto-launches the system browser and hot-reloads on file changes.
-     - **Desktop Editors (Cursor, Windsurf, VS Code)**: Universal split-window rendering with zero CORS breakage.
-   - Authors `docs/specs/nkai_universal_harness_portability.md` specifying the tri-mode environment detection protocol (`Extension` vs `LocalFile` vs `HttpServer`).
-   - Implements `tools/nkai_serve.py` in `c:\Dev\nkai\` and mirrors to `TheKlangSuite/tools/`.
-   - Packages `c:\Dev\nkai\package.json` and `bin/nkai.js` for lightweight `npx nkai serve` CLI execution.
-   - Updates `c:\Dev\nkai\core\sidecar.js` with the Tri-Mode Environment Adapter.
+Flight 3 standardizes the ecosystem's agent skill taxonomy and formalizes N'kai-first visual workflows:
+1. **Topic 6.4 (Approved Option C — Layered Hybrid Skills):**
+   - Preserves discrete, atomic micro-skills (`audiothread-guard`, `build-validate`, `step-verify`, `web-qa`, `audit-reorder`) for precision developer intervention.
+   - Formalizes high-level macro orchestrators (`/execute-task`, `qa`, `/check-mail`) that deterministically sequence underlying micro-skills.
+   - Authors `docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md` cataloging the layered hierarchy and lifecycle.
+2. **Topic 6.14 (Approved Option B — N'kai-First with `--chat` Fallback):**
+   - Establishes that all visual, interview, and research skills (`visual-grill-me`, `deep-research`, `post-mortem`) default to launching the interactive N'kai sidecar canvas.
+   - Formalizes the `--chat` / `--no-sidecar` escape hatch, allowing users on terminal CLIs or low-bandwidth chats to force a pure text/Markdown inline experience.
+   - Updates `SKILL.md` files in `.agents/skills/` and `c:\Dev\nkai\bundle\skills/`.
 
 ---
 
 ## 📋 Phase-by-Phase Execution Plan
 
-### Phase 1: Universal Portability Architecture Specification (Topic 6.13)
-- [x] Author `docs/specs/nkai_universal_harness_portability.md`:
-  - Define the Tri-Mode Environment Detection hierarchy (`Antigravity Extension` $\to$ `Local File:///` $\to$ `HTTP Server`).
-  - Document CLI serving architecture (local Python/Node zero-dependency HTTP server, port negotiation, MIME types, auto-browser launch).
-  - Document terminal agent pairing patterns (Claude Code CLI, Cursor, Windsurf, Aider).
+### Phase 1: Skill Taxonomy & Invocation Architecture Specification (Topics 6.4 & 6.14)
+- [x] Author `docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md`:
+  - Detail the 3-Layer Hierarchy:
+    - Layer 1: Atomic Micro-Skills (Specialized single-purpose tools: `audiothread-guard`, `build-validate`, `web-qa`, `step-verify`).
+    - Layer 2: Macro Orchestrators (Composed deterministic workflows: `/execute-task`, `qa`, `/check-mail`).
+    - Layer 3: Interactive Visual Experiences (N'kai sidecar canvases: `/grill-me`, `/deep-research`, `/postmortem`).
+  - Document the N'kai-First invocation standard and `--chat` terminal fallback flag.
 - [x] Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
 
-### Phase 2: Tri-Mode Environment Adapter in `core/sidecar.js`
-- [x] Update `c:\Dev\nkai\core\sidecar.js`:
-  - Add `NkaiEnv.detect()` returning `'extension' | 'file' | 'server'`.
-  - Add unified IPC / messaging abstraction:
-    - If `extension`: route through `window.sidecar.agent.sendMessage()`.
-    - If `file`: route through uneditable click-to-highlight prompt boxes.
-    - If `server`: support optional HTTP SSE / POST loopback for terminal CLI agents.
-- [x] Update `c:\Dev\nkai\dist\standalone-template.html` and `c:\Dev\nkai\bundle\templates\template.html`.
+### Phase 2: Update Core Visual Skills with `--chat` Fallback Standard
+- [x] Update `.agents/skills/visual-grill-me/SKILL.md`:
+  - Explicitly document default N'kai sidecar canvas generation (`file:///<artifactDir>/visual_grill_me.html`).
+  - Add `--chat` / `--text-only` flag handling: switches to interactive chat interview with option numbers.
+- [x] Update `.agents/skills/deep-research/SKILL.md`:
+  - Default to generating interactive research board (`file:///<artifactDir>/<slug>_research_board.html`).
+  - Add `--chat` flag handling: outputs summary report directly in chat.
+- [x] Update `.agents/skills/post-mortem/SKILL.md`:
+  - Default to generating interactive triage canvas with Decision Composer.
+  - Add `--chat` flag handling: executes inline terminal interview.
 
-### Phase 3: Zero-Dependency CLI Server (`tools/nkai_serve.py` & `bin/nkai.js`)
-- [x] Author `c:\Dev\nkai\tools\nkai_serve.py`:
-  - Lightweight Python standard library HTTP server (`http.server`, `threading`, `webbrowser`).
-  - Support `python tools/nkai_serve.py <html-file-or-dir> [--port 3030] [--no-browser]`.
-  - Proper MIME handling for `.html`, `.css`, `.js`, `.json`, `.svg`, `.png`, `.wav`.
-  - Mirror to `c:\Dev\TheKlangSuite\tools\nkai_serve.py`.
-- [x] Author `c:\Dev\nkai\package.json` and `c:\Dev\nkai\bin\nkai.js`:
-  - Standard npm `bin` definition pointing to a clean, zero-dependency Node.js HTTP server.
-  - Enables `npx nkai serve [path]` without global installation.
+### Phase 3: Update Macro Orchestrator (`execute-task` and `qa`) Conventions
+- [x] Update `.agents/skills/execute-task/SKILL.md`:
+  - Document the deterministic chain: `audiothread-guard` ➔ `build-validate` ➔ `step-verify` ➔ `task-finish`.
+  - Document the domain routing: C++ targets dispatch to Klang Industries; tooling targets dispatch to Flash subagent.
+- [x] Update `.agents/skills/web-qa/SKILL.md`:
+  - Clarify dispatch routing: `qa` during C++ DSP invokes `audiothread-guard` + `build-validate`; during sidecar/tooling invokes `web-qa`.
 
-### Phase 4: Bundle Synchronization & Verification
-- [x] Update `c:\Dev\nkai\bundle\tools\` with `nkai_serve.py`.
-- [x] Update `c:\Dev\nkai\bundle\templates\` with tri-mode adapted `template.html`.
-- [x] Test `python tools/nkai_serve.py --help` and validate server startup/shutdown.
-- [x] Run `python tools/audit_sidecar.py` across updated templates (100% tag balance, 0 errors).
-- [x] Run `python tools/verify_context_clues.py` to ensure link integrity.
-- [x] Commit changes cleanly across `TheKlangSuite` and `nkai`.
+### Phase 4: Synchronize to `nkai/bundle/` and Verification Gauntlet
+- [x] Synchronize updated skills to `c:\Dev\nkai\bundle\skills/` (`visual-grill-me`, `deep-research`, `post-mortem`, `web-qa`).
+- [x] Run `python tools/audit_sidecar.py` and `python tools/verify_context_clues.py`.
+- [x] Stage and commit changes cleanly in `TheKlangSuite` and `nkai` with conventional commits: `feat(skills): implement Flight 3 layered skill taxonomy and --chat fallback`.
 
 ---
 
 ## 🛡️ Verification & Acceptance Criteria
-1. `docs/specs/nkai_universal_harness_portability.md` is valid and indexed in `DOCS_CATALOG.json`.
-2. `sidecar.js` dynamically detects and adapts to `extension`, `file:///`, and `http://` runtimes.
-3. `tools/nkai_serve.py` successfully serves local HTML sidecars with proper MIME types.
-4. `package.json` and `bin/nkai.js` enable `npx nkai serve` without third-party dependencies.
-5. `audit_sidecar.py` and `verify_context_clues.py` exit with 0 errors.
+1. `docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md` is valid and indexed in `DOCS_CATALOG.json`.
+2. `visual-grill-me`, `deep-research`, and `post-mortem` specify N'kai-first default with `--chat` fallback.
+3. `c:\Dev\nkai\bundle\skills/` is 100% in sync with workspace skills.
+4. `verify_context_clues.py` exits with code 0 (100% link resolution).

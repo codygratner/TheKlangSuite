@@ -8,7 +8,14 @@ description: Audits, lints, and verifies Antigravity interactive sidecars and we
 ## Goal
 Audit, validate, and repair Antigravity interactive sidecar HTML canvases and Electron/Chromium webview applications to guarantee 100% offline functionality, seamless navigation, correct styling, and zero runtime JavaScript errors.
 
-## The 6 Webview Hazard Categories
+## Context-Aware Routing (`qa` Invocation)
+When the user triggers `qa` or `/qa`, determine the active domain context before executing:
+- **Audio / DSP / C++ Context**: If the active task, modified files, or conversation focus involves native C++ audio (`source/`, `.cpp`, `.h`, CMake targets), `qa` automatically routes to **Layer 1 Audio QA**:
+  1. `audiothread-guard` (AST and pattern scan for allocations, locks, and I/O in audio loops).
+  2. `build-validate` (Compiler sanitizer, build, and native `dsp_tests` / `gui_tests` execution).
+- **Web / Sidecar / Tooling Context**: If the active task involves `.html` canvases, `.agents/sidecar/`, N'kai tools, or webview UI, `qa` executes **`web-qa`** (running `audit_sidecar.py` and validating against the 8 Webview Hazards below).
+
+## The 8 Webview Hazard Categories
 
 1. **JavaScript String & Template Literal Escapes (Critical SyntaxError)**:
    - Pasting Windows paths like `c:\Dev\TheKlangSuite\.agents\sidecar\ui_ux...` inside JS template literals generates `\u` escapes. If not followed by 4 hex digits, JavaScript throws a fatal `SyntaxError: Invalid Unicode escape sequence`, completely halting script execution and killing all button handlers (`switchTab`, `toggleDrawer`).

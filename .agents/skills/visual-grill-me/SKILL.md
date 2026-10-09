@@ -11,10 +11,10 @@ Conduct a rigorous, interactive design interview (`/grill-me`) for UI/UX, layout
 ---
 
 ## Operational Guardrails & Architecture
-1. **Frictionless Entry, Permanent Local Link & The "Ready Handshake" (MANDATORY)**:
-   - If the user invokes `/grill-me` without specifying a mode, briefly ask if they want **Grill Lab** (live visual artifact) or **Classic Grill** (text-only).
-   - If the user invokes `/grilllab`, `/vlab`, `/vrill`, etc., enter Grill Lab immediately.
-   - **Dual-Storage Sidecar Storage**: The sidecar canvas MUST always be written to BOTH:
+1. **N'kai-First Visual Default & The "Ready Handshake" (MANDATORY)**:
+   - **Default Invocation (N'kai-First)**: By default, `/grill-me`, `/grilllab`, `/vlab`, `/vrill`, etc., automatically launch in **Grill Lab** mode, initializing the interactive sidecar canvas.
+   - **The `--chat` / `--text-only` Fallback Flag**: When invoked with `--chat`, `--text-only`, or when operating in a headless terminal AI CLI (Claude Code CLI, Aider), skip HTML sidecar generation entirely. Conduct the architectural interview directly in chat with numbered options (`[1]`, `[2]`, `[3]`) or `ask_question` modals, capturing decisions directly into `PLAN.md`.
+   - **Dual-Storage Sidecar Storage**: When running in default visual mode, the sidecar canvas MUST always be written to BOTH:
      1. `<appDataDir>\brain\<conversation-id>\visual_grill_me.html` (artifact directory for live side-panel rendering).
      2. `c:\Dev\TheKlangSuite\.agents\sidecar\visual_grill_me.html` (gitignored repo directory for persistence).
    - **Prominent Kickoff Link (MANDATORY ARTIFACT URI)**: Always output a prominent, clickable file URI link pointing to the **Artifact Directory** at the very top of the kickoff turn:
@@ -54,10 +54,11 @@ Conduct a rigorous, interactive design interview (`/grill-me`) for UI/UX, layout
 
 ## Workflow Steps
 
-### Step 1: Initialize the Visual Canvas
-1. Create `visual_grill_me_preview.html` in the conversation artifact directory.
-2. Set up the baseline chassis container matching the active product aesthetic (e.g. Anthracite `#0d1117`, JetBrains Mono font, 1px hairline borders).
-3. Present the initial state and provide the user with the clickable file URI to open in the side pane.
+### Step 1: Initialize the Visual Canvas (or Chat Fallback)
+1. **Fallback Branch (`--chat` / `--text-only`)**: If `--chat` or `--text-only` is passed, skip HTML creation entirely and proceed directly to **Step 2** using inline Markdown chat questions or `ask_question`.
+2. **Default Visual Canvas**: Create `visual_grill_me.html` in both `<appDataDir>\brain\<conversation-id>\visual_grill_me.html` and `c:\Dev\TheKlangSuite\.agents\sidecar\visual_grill_me.html`.
+3. Set up the baseline chassis container matching the active product aesthetic (e.g. Anthracite `#0d1117`, JetBrains Mono font, 1px hairline borders).
+4. Present the initial state, output the clickable artifact link, and execute the Sidecar Ready Handshake.
 
 ### Step 2: Pose Visual Questions & Iterate Mockups
 1. For each design topic (e.g., Slider Styling, Header Layout, Modulation Cables):
