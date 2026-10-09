@@ -961,8 +961,8 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 
 ### 6. Flight 6: Interactive Triage Views (Topics 6.8 & 6.11) — 🔨 ACTIVE
 *Status: 🔨 ACTIVE (In Active Workshop — Phase 3: Surfaces & Viewports)*
-- **Topic 6.8: "Ongoing Autopsy": Live Triage Feed & Filterable Scoreboard**: 🔨 ACTIVE (In Active Workshop — evaluating dedicated Slot 2 Autopsy tab providing continuous filterable feed of approved/tabled/killed decisions with direct jump links, auto-morphing into final post-mortem report).
-- **Topic 6.11: "Check the Mail" (Vault Inbox) Workflow & Sidecar Board Default**: ⏳ QUEUED (Evaluating interactive N'kai research board default for Obsidian Inbox notes unless overridden by `--chat`).
+- **Topic 6.8: "Ongoing Autopsy": Live Triage Feed & Filterable Scoreboard**: ✅ APPROVED (Option B: Dedicated Autopsy Tab w/ Filter Chips — Slot 2 header item providing a continuous, filterable stream of all active/tabled/killed decisions with direct 1-click jumps to full cards, automatically morphing into the final Post-Mortem report upon milestone completion).
+- **Topic 6.11: "Check the Mail" (Vault Inbox) Workflow & Sidecar Board Default**: 🔨 ACTIVE (In Active Workshop — evaluating whether checking the Obsidian Vault Inbox/ defaults to an interactive N'kai research board with 1 section per note, unless overridden by `--chat`).
 
 ### 7. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
