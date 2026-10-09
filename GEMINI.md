@@ -52,6 +52,11 @@
 - **Klang Industries (Factory Floor)**: Reserved strictly for native C++ DSP, JUCE component architecture, CMake/MSBuild targets, APVTS parameter schemas (`assets/controls/`), and real-time audio safety audits (`audiothread-guard`). Never dispatch pure HTML/CSS sidecars, documentation sweeps, or PowerShell/Python dev scripts to the C++ factory.
 - **New Klang City (Tooling Harness)**: Owns ecosystem architecture, N'kai sidecars, Python/PowerShell automation, and documentation.
 - **The Context Shield Rule**: When New Klang City executes tooling implementation, it must delegate mechanical file-writing and testing to a dedicated Flash subagent (`invoke_subagent(Model="flash")`) to prevent chat transcript bloat and protect user allowance.
+- **Dual-Track Communiqué Routing (Anti-Snatching Guard)**:
+  - **Factory Pipeline (C++/DSP)**: Sourced through `plan_to_build.md` ➔ `build_to_plan.md` ➔ Klang Industries (`TARGET: FACTORY_FLOOR`).
+  - **Tooling Pipeline (Web/Docs/Scripts)**: Sourced through `subagent_dispatch.md` ➔ `subagent_receipt.md` ➔ Flash Builder Subagent (`TARGET: TOOLING_HARNESS`).
+  - Under no circumstances should Klang Industries ingest tickets marked `TARGET: TOOLING_HARNESS`.
+  - Root `PLAN.md` must declare `TARGET: [FACTORY_FLOOR | TOOLING_HARNESS]` to prevent concurrent file clobbering.
 
 ## Strict VST3 Deployment Directory
 - **Program Files Only**: When deploying or copying built VST3 plugins on Windows, you must **ONLY** install to `C:\Program Files\Common Files\VST3\The Klang Farmer.vst3` and `C:\Program Files\Common Files\VST3\The Klang Planter.vst3`.
