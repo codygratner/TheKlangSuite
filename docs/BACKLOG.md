@@ -967,12 +967,25 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 *Status: ⏳ TABLED FOR v0.2.0 (Phase 3: Surfaces & Viewports)*
 - **Topic 6.5: N'kai Ergonomics: Asymmetric Chat Split & Responsive Layout**: ⏳ TABLED FOR v0.2.0 (Tabled alongside the Bidirectional Bridge `:4040` for the v0.2.0 UI Extension release, decoupling local `file:///` sidecar development from runtime bridge dependencies and eliminating premature IPC complexity).
 
-### 8. Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.6 & 6.12) — 🔨 ACTIVE
-*Status: 🔨 ACTIVE (In Active Workshop — Phase 4: Meta & Governance)*
+### 8. Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.6 & 6.12) — ✅ COMPLETED
 - **Topic 6.6: AGY Keyboard Shortcuts & Power Tools Integration**: ✅ APPROVED (Option B: Dynamic Shortcut Bar — subtly displaying core AGY shortcuts in the N'kai sidecar footer/tooltips: `Ctrl+K` Quick Prompt, `Ctrl+Shift+P` Command Palette, `Ctrl+Enter` Execute, and slash commands to reinforce developer muscle memory with zero token burn).
-- **Topic 6.12: The "All-in-One" N'kai Distribution Bundle**: 🔨 ACTIVE (In Active Workshop — evaluating whether to bundle canonical skills, templates, guardrail rules, and sidecar runner inside `nkai/bundle/` with a 1-command installer script).
+- **Topic 6.12: The "All-in-One" N'kai Distribution Bundle**: ✅ APPROVED (Option B: Monolithic All-in-One Bundle — bundle canonical skills, templates, guardrail rules, and sidecar runner inside `nkai/bundle/` with a 1-command installer script `npx nkai init` / `./install_nkai_bundle.ps1`, featuring a universal pairing core with an optional `--audio` flag for audio/C++ specifics).
 
-### 9. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
+### 9. Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15) — ✅ COMPLETED
+- **Topic 6.1: Post-Mortem Architecture: Continuous Live Triage vs Retrospective Batch**: ✅ APPROVED (Option B: Continuous In-Flight Triage — live post-mortem compilation during active research).
+- **Topic 6.2: Pros & Cons Strategy: On-Demand SOTA vs Always-Grabbed**: ✅ APPROVED (Option B: On-Demand SOTA — punchy conversational chat turns by default, with 4-Lens PCDA matrices generated strictly on demand via sidecar actions).
+- **Topic 6.15: Industry Workflow Precedents & Competitive Teardowns**: ✅ APPROVED (Option C: Hybrid File-URI + Micro-Bridge Model — zero-bundle `file:///` instant loading combined with modular bridge extension pattern).
+
+### 10. Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19) — 🔨 ACTIVE
+*Status: 🔨 ACTIVE (In Active Workshop — Phase 4: Meta & Governance)*
+- **Topic 6.3: Topic Organization Strategy: Deep-Linked Monolithic Board vs Fragmented Mini-Canvases**: ✅ APPROVED (Option B: Deep-Linked Monolithic Board — single, highly structured living research canvas with hash-anchor deep linking).
+- **Topic 6.19: Cumulative Allowance & Token Impact Ledger in Post-Mortem**: 🔨 ACTIVE (In Active Workshop — tracking and displaying estimated token burn / quota budget impact across approved features before committing to code).
+
+### 11. Flight 2: Execution Bridge & Concurrency (Topics 6.17 & 6.18) — ⏳ PARTIALLY TABLED FOR v0.2.0
+- **Topic 6.17: The Bidirectional Click-to-Agent Bridge (Zero-Copy Sidecar IPC)**: ⏳ TABLED FOR v0.2.0 (Decoupled `file:///` local sidecars from runtime localhost bridge dependencies; reserved for official Antigravity UI Extension release).
+- **Topic 6.18: Parallel Subagent Delegation for Sidecar Actions**: ⏳ QUEUED (Evaluating parallel Flash subagent delegation vs synchronous turns for sidecar action prompters).
+
+### 12. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
 - **Decision**: Tabled autonomous background loopback socket dispatch (`:4040`), programmatic clipboard manipulation (`navigator.clipboard.writeText` / `document.execCommand`), and fallback modal popups for v0.2.0.
 - **Rationale**: In Chromium / Electron webviews without explicit `clipboard-write` sandbox permissions, `file:///` URLs have `origin: "null"`, causing silent permission denials. Fallback modal popups create jarring UI interruptions and still fail to copy reliably in restricted webviews.
