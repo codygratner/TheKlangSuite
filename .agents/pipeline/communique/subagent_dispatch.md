@@ -1,19 +1,19 @@
-STATUS: IDLE
+STATUS: READY_FOR_EXECUTION
 
 # Subagent Dispatch Charter: Tooling Implementation
 > *Target Pipeline:* Dual-Track Communiqué — Tooling Pipeline (`TARGET: TOOLING_HARNESS`)  
 > *Active Branch:* `0.4.0-dev`  
 > *Orchestrator:* Antigravity Main Chat (New Klang City)  
-> *Executor:* Idle (Ready for next flight dispatch)  
+> *Executor:* Flash Builder Subagent (`invoke_subagent(Model="flash")`)  
 
 ---
 
 ## 1. Assignment Header
-- **STATUS**: `IDLE`
-- **ROLE**: `None`
+- **STATUS**: `READY_FOR_EXECUTION`
+- **ROLE**: `Flash Builder Subagent`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **TASK TYPE**: `TOOLING_IMPLEMENTATION`
-- **TASK SLUG**: `idle`
+- **TASK SLUG**: `flight-6-interactive-triage-and-inbox`
 - **ACTIVE BLUEPRINT**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **TARGET REPOSITORIES**:
   - [x] `TheKlangSuite` (`c:\Dev\TheKlangSuite`)
@@ -23,17 +23,20 @@ STATUS: IDLE
 
 ## 2. Scope & Target Files
 - **Primary Objective**:
-  1. Author `docs/specs/nkai_header_ergonomics_and_spatial_density.md` (Topics 6.9 & 6.10: Two-tier header geometry, utility cluster, hybrid compact tabs with hover tooltips) and register in `DOCS_CATALOG.json` and `SYSTEM_MAP.md`.
-  2. Update `c:\Dev\nkai\core\sidecar.css` and `sidecar.js` with `.header-tier-top`, `.header-tier-bottom`, and `.tab-compact` with hover tooltips and narrow-viewport (360px+) media queries.
-  3. Synchronize canonical templates: `c:\Dev\nkai\dist\standalone-template.html`, `c:\Dev\nkai\bundle\templates\template.html`, and `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`.
-  4. Run `python tools/audit_sidecar.py` and `python tools/verify_context_clues.py`.
-  5. Commit changes cleanly across `TheKlangSuite` and `nkai`.
+  1. Author `docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md` (Topics 6.8 & 6.11: Autopsy scoreboard, filter chips, 1-click cross-tab jump, vault mail harvester) and index in `DOCS_CATALOG.json` and `SYSTEM_MAP.md`.
+  2. Implement Ongoing Autopsy View in `c:\Dev\nkai\core\sidecar.css` and `sidecar.js` (`#tab-autopsy`, `.triage-scoreboard`, `.filter-chip`, `jumpToWorkshopCard`, `copyPostMortemReport`).
+  3. Author `tools/check_mail.py` in `c:\Dev\nkai\tools/` and `c:\Dev\TheKlangSuite\tools/` (scanning `TheKlangVault/Inbox/` with `--archive` and `--chat` fallbacks, generating `morning_mail_inbox.html`).
+  4. Synchronize canonical templates: `c:\Dev\nkai\dist\standalone-template.html`, `c:\Dev\nkai\bundle\templates\template.html`, and `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`.
+  5. Run `python tools/audit_sidecar.py` across updated templates (100% tag balance) and test `python tools/check_mail.py --help`.
+  6. Commit changes cleanly across `TheKlangSuite` and `nkai` with conventional commits: `feat(triage): implement Flight 6 interactive autopsy feed and check-mail workflow`.
 - **Target Files / Boundaries**:
-  - `docs/specs/nkai_header_ergonomics_and_spatial_density.md`
+  - `docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md`
   - `docs/DOCS_CATALOG.json`
   - `docs/SYSTEM_MAP.md`
   - `c:\Dev\nkai\core\sidecar.css`
   - `c:\Dev\nkai\core\sidecar.js`
+  - `c:\Dev\nkai\tools\check_mail.py`
+  - `c:\Dev\TheKlangSuite\tools\check_mail.py`
   - `c:\Dev\nkai\dist\standalone-template.html`
   - `c:\Dev\nkai\bundle\templates\template.html`
   - `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`
@@ -42,6 +45,7 @@ STATUS: IDLE
 ---
 
 ## 3. Mandatory Invariants & Constraints
-- **Zero Allocations & Audio Safety**: This is a tooling task; do not touch native C++ audio loops.
-- **Context Protection**: Complete all file writing and verification inside subagent context. Return only a concise 3-line receipt.
-- **Boy Scout Cleanliness**: Zero AI slop, clean CSS without hardcoded viewport glitches, 100% responsive.
+- **Zero Allocations & Audio Safety**: Tooling implementation; zero native C++ audio thread code touched.
+- **Context Protection**: Complete all file writing, script creation, and verification inside subagent context. Return only a concise 3-line receipt.
+- **Boy Scout Cleanliness**: Zero external dependencies in `check_mail.py` (standard Python library only). 100% valid HTML in generated sidecar boards.
+

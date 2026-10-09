@@ -122,6 +122,11 @@
           "path": "docs/specs/nkai_header_ergonomics_and_spatial_density.md",
           "title": "N'kai Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)",
           "purpose": "Two-tier header geometry, persistent utility cluster, hybrid compact tabs with hover tooltips, audio haptics protocol, and responsive breakpoints."
+        },
+        {
+          "path": "docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md",
+          "title": "N'kai Interactive Triage Views & Inbox Workflow (Topics 6.8 & 6.11)",
+          "purpose": "Ongoing autopsy view, filterable scoreboard, 1-click cross-tab jump mechanics, and 'Check the Mail' vault inbox harvester tooling."
         }
       ]
     },

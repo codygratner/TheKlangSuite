@@ -46,8 +46,9 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
 - [ ] **Author `TheKlangResearch/guides/anti_slop_vibe_coding_manifesto.md`**:
   - **Reading Time Target**: 2 to 3 minutes (~600 words, high-density, punchy, practical).
   - **Target Audience**: Professional software engineers and SQA practitioners who are skeptical of AI code generation and frustrated by "AI slop", hallucinations, broken whitespace, and silent regressions.
-  - **Strict Tone & Style Invariant (ZERO INTERNAL LORE)**:
-    - **100% Zero-Lore Mandate**: Strictly ZERO references to project mythology, Mayor Toad, fictional factions, inside jokes, or creative worldbuilding.
+  - **Strict Tone & Style Invariant (ZERO INTERNAL LORE & ZERO PRODUCT NAMES)**:
+    - **100% Zero-Lore & Zero-Product Mandate**: Strictly ZERO references to project mythology, Mayor Toad, fictional factions, inside jokes, or creative worldbuilding. Furthermore, strictly ZERO mentions of specific proprietary product names (no *The Klang Farmer*, *The Klang Planter*, *The Klang Suite*, *ToadTracker*, *N'kai*, or author names).
+    - **"Process, Not Products"**: The document must read as an objective, stack-agnostic software engineering methodology whitepaper. It is 100% about the *process and controls*, not about the author or specific applications.
     - **Professional Industry Standards**: Written strictly in industry-standard software engineering and SQA terminology (sandboxing, bounded context, static analysis, invariant assertions, deterministic verification gauntlets, AST codemods).
     - **No-BS Senior Engineering Voice**: Crisp, pragmatic, and respectful of experienced developers' time.
   - **Core Controls & Mechanisms to Highlight**:
