@@ -963,11 +963,16 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Topic 6.8: "Ongoing Autopsy": Live Triage Feed & Filterable Scoreboard**: ✅ APPROVED (Option B: Dedicated Autopsy Tab w/ Filter Chips — Slot 2 header item providing a continuous, filterable stream of all active/tabled/killed decisions with direct 1-click jumps to full cards, automatically morphing into the final Post-Mortem report upon milestone completion).
 - **Topic 6.11: "Check the Mail" (Vault Inbox) Workflow & Sidecar Board Default**: ✅ APPROVED (Option B: N'kai Inbox Board Default — checking the Obsidian Vault `Inbox/` defaults to generating a dedicated interactive N'kai research board with 1 section per note and triage chips, with `--chat` flag preserved for pure terminal/chat dumps).
 
-### 7. Phase 3 Capstone: N'kai Ergonomics (Topic 6.5) — 🔨 ACTIVE
-*Status: 🔨 ACTIVE (In Active Workshop — Phase 3: Surfaces & Viewports)*
-- **Topic 6.5: N'kai Ergonomics: Asymmetric Chat Split & Responsive Layout**: 🔨 ACTIVE (In Active Workshop — strictly enforcing the Asymmetric Sidecar Split: keeping agent chat responses under 3 sentences while placing 100% of verbose prose, mockups, and tables in the sidecar canvas).
+### 7. Phase 3 Capstone: N'kai Ergonomics (Topic 6.5) — ⏳ TABLED FOR v0.2.0
+*Status: ⏳ TABLED FOR v0.2.0 (Phase 3: Surfaces & Viewports)*
+- **Topic 6.5: N'kai Ergonomics: Asymmetric Chat Split & Responsive Layout**: ⏳ TABLED FOR v0.2.0 (Tabled alongside the Bidirectional Bridge `:4040` for the v0.2.0 UI Extension release, decoupling local `file:///` sidecar development from runtime bridge dependencies and eliminating premature IPC complexity).
 
-### 8. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
+### 8. Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.6 & 6.12) — 🔨 ACTIVE
+*Status: 🔨 ACTIVE (In Active Workshop — Phase 4: Meta & Governance)*
+- **Topic 6.6: AGY Keyboard Shortcuts & Power Tools Integration**: 🔨 ACTIVE (In Active Workshop — evaluating whether to systematically integrate key Antigravity IDE keyboard shortcuts and slash commands into sidecar tooltips, status hints, and developer muscle memory).
+- **Topic 6.12: The "All-in-One" N'kai Distribution Bundle**: ⏳ QUEUED (Evaluating whether to bundle canonical skills, templates, guardrail rules, and sidecar runner inside `nkai/bundle/` with a 1-command installer script).
+
+### 9. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
 - **Decision**: Tabled autonomous background loopback socket dispatch (`:4040`), programmatic clipboard manipulation (`navigator.clipboard.writeText` / `document.execCommand`), and fallback modal popups for v0.2.0.
 - **Rationale**: In Chromium / Electron webviews without explicit `clipboard-write` sandbox permissions, `file:///` URLs have `origin: "null"`, causing silent permission denials. Fallback modal popups create jarring UI interruptions and still fail to copy reliably in restricted webviews.
