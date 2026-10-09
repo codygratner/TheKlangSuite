@@ -948,6 +948,13 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 *Approval:* 6.16 Backend Persistence & State Management - Option C (Approved).
 - Truth lives in an embedded SQLite database or hybrid state model, finalized as the bedrock architecture before UI surfaces or socket streaming.
 
+### 3. Bidirectional Micro-Bridge & Autonomous Background IPC — ⏳ TABLED FOR v0.2.0
+*Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
+- **Decision**: Tabled autonomous background loopback socket dispatch (`:4040` / `action_queue.jsonl`) for v0.2.0.
+- **Rationale**: In standalone `file:///` artifact mode, external HTTP sockets cannot wake up an event-driven LLM session paused on `USER_INPUT`. Attempting background dispatch creates a dead-letter queue and broken user feedback loop.
+- **v0.1.0 Standard**: Fall back to the rock-solid, zero-dependency in-canvas progressive disclosure + honest clipboard copy handoff (`copyPromptToChat` / `copyToClipboardSilently`).
+- **v0.2.0 Path**: Fully implement bidirectional agent messaging natively when packaging N'kai as an official Antigravity UI Extension plugin using the official `window.sidecar.agent.sendMessage()` API.
+
 ---
 
 ## 🔮 Spin-Off Products & Explorations
