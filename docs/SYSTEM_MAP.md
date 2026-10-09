@@ -49,6 +49,7 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Header Ergonomics & Spatial Density](specs/nkai_header_ergonomics_and_spatial_density.md) — Two-tier header geometry, persistent utility cluster, hybrid compact tabs with hover tooltips, and audio haptics.
   - [N'kai Interactive Triage Views & Inbox Workflow](specs/nkai_interactive_triage_views_and_inbox_workflow.md) — Ongoing autopsy view, filterable scoreboard, 1-click cross-tab jump mechanics, and 'Check the Mail' vault inbox harvester.
   - [N'kai PCDA Dialectic Governance & SOTA Benchmarks](specs/nkai_pcda_governance_and_sota_benchmarks.md) — Continuous live triage contracts, 4-part PCDA dialectic standard, progressive disclosure, and SOTA competitive teardowns.
+  - [N'kai Allowance Ledger & Token Governance](specs/nkai_allowance_ledger_and_token_governance.md) — Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics, cumulative allowance ledger, and offline CLI auditor.
 
 ## 🏛️ The Four-Pillar Ecosystem
 

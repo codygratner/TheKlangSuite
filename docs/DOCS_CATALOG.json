@@ -132,6 +132,11 @@
           "path": "docs/specs/nkai_pcda_governance_and_sota_benchmarks.md",
           "title": "N'kai PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)",
           "purpose": "Continuous live triage contracts, 4-part PCDA dialectic standard (Thesis, Friction, Antithesis, Synthesis), acronym disambiguation, on-demand progressive disclosure, and SOTA competitive teardowns."
+        },
+        {
+          "path": "docs/specs/nkai_allowance_ledger_and_token_governance.md",
+          "title": "N'kai Allowance Ledger & Token Governance (Topics 6.3 & 6.19)",
+          "purpose": "Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics (Tier 1 Pro vs Tier 2 Flash vs Tier 3), cumulative allowance ledger, and offline CLI auditor."
         }
       ]
     },

@@ -61,6 +61,22 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
     7. *Deterministic Test Gauntlets*: Code is never approved on "vibes"—it must pass automated headless test runners (`dsp_tests`, `gui_tests`, `audit_sidecar.py`, `pluginval`).
   - [ ] Add executive summary link and excerpt to `TheKlangResearch/README.md` and `TheKlangVault/Research/Master_Research_Index.md`.
 
+### Task 6: 🆕 The Evergreen Workflow Cheat Sheet (`docs/WORKFLOW_CHEAT_SHEET.md`)
+- [ ] **Author `c:\Dev\TheKlangSuite\docs\WORKFLOW_CHEAT_SHEET.md`**:
+  - **Purpose**: A concise, 1-page, high-density reference sheet for human developers to instantly recall how we operate without reading through dense rules or forgetting workflow mechanics.
+  - **Key Sections**:
+    1. *The 3 Facility Spheres*: Tooling Harness (New Klang City / `TARGET: TOOLING_HARNESS`) vs. Native Audio Factory (Klang Industries / `TARGET: FACTORY_FLOOR`) vs. Central Research Hub (`TheKlangResearch`).
+    2. *Model Tiers & Thinking Budgets*: Main chat stays on Tier 2 Flash High; Pro High reserved for on-demand subagents (`research`); Flash High is King at the Factory Floor (2-strike safety net).
+    3. *The Tri-Engine Subagent Swarm*: `research` (Tier 1 Pro), `explore` (Tier 2 Flash), `contrarian` (Tier 2 Flash Devil's Advocate), and Flash Tooling Builder.
+    4. *The Communiqué Dispatch Flow*: Dual-track pipelines (`subagent_dispatch.md` for tooling vs. `plan_to_build.md` for native audio C++).
+    5. *The 5-Phase Execution Standard*: `Phase 1/5` Spec $\to$ `2/5` Core $\to$ `3/5` Tooling $\to$ `4/5` Templates $\to$ `5/5` Verification & Commits.
+    6. *N'kai Quick CLI Reference*: `python tools/nkai_serve.py`, `python tools/check_mail.py`, `python tools/pcda_format.py`, and `tools/nkai_ledger.py`.
+    7. *Strict Backlog & Milestone Governance*: Record only in `docs/BACKLOG.md` (no rogue files, no premature implementation); strict thematic milestone scoping.
+    8. *Git Branch & Commit Hygiene*: Never commit directly to `main`/`master`; conventional commits always.
+    9. *Subagent Naming & Role Reference*: Embed the `[ 🔬 Subagents: research (Pro) / explore (Flash) / contrarian (Advocate) ]` guide permanently into the cheat sheet, and retire that badge line from `GEMINI.md` routine chat footers once deployed to keep chat responses lean and uncluttered.
+  - **Maintenance Invariant**: Establish rule that whenever operational workflows change, `docs/WORKFLOW_CHEAT_SHEET.md` is updated in the same pass.
+  - [ ] Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+
 ---
 
 ## 🛡️ Acceptance Criteria

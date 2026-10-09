@@ -6,1210 +6,1500 @@
   <title>The Klang Suite - UX Research &amp; Brainstorming Hub</title>
   <style>
     :root {
-      --bg-base: #0d1117;
-      --bg-panel: #161b22;
-      --bg-card: #21262d;
-      --border: #30363d;
-      --text-main: #c9d1d9;
-      --text-muted: #8b949e;
-      --accent-blue: #58a6ff;
-      --accent-green: #3fb950;
-      --accent-red: #f85149;
-      --accent-neon: #0ff;
-      --accent-amber: #ffab70;
-      --accent-pink: #f43f5e;
-      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
-      --font-sans: 'Inter', -apple-system, sans-serif;
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      overflow-y: auto;
-      font-size: 1rem;
-      transition: font-size 0.15s ease;
-    }
-
-    /* Two-Tier Header Architecture (Topics 6.9 & 6.10) */
-    .app-header {
-      display: flex;
-      flex-direction: column;
-      background: rgba(13, 17, 23, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      padding: 0;
-      border-bottom: 1px solid var(--border);
-      width: 100%;
-      flex-shrink: 0;
-    }
-
-    .header-tier-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 8px 16px;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.4);
-      gap: 12px;
-      min-height: 38px;
-      box-sizing: border-box;
-    }
-
-    .header-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--accent-amber);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .brand-badge {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .header-utilities,
-    .header-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .haptics-btn {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      padding: 5px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease;
-    }
-    .haptics-btn:hover {
-      background: var(--bg-card);
-      border-color: var(--accent-blue);
-      color: #fff;
-    }
-    .haptics-btn.muted {
-      color: var(--text-muted);
-      opacity: 0.6;
-      border-color: var(--border);
-    }
-
-    .header-tier-bottom {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      padding: 6px 16px;
-      gap: 8px;
-      overflow-x: auto;
-      overflow-y: visible;
-      white-space: nowrap;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-      -webkit-overflow-scrolling: touch;
-      min-height: 38px;
-      box-sizing: border-box;
-    }
-
-    .header-tier-bottom::-webkit-scrollbar {
-      height: 3px;
-    }
-    .header-tier-bottom::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .header-tier-bottom::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 2px;
-    }
-
-    .header-divider-v {
-      width: 1px;
-      height: 20px;
-      background: var(--border);
-      margin: 0 4px;
-      flex-shrink: 0;
-    }
-
-    .header-modes {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .mode-btn {
-      padding: 6px 12px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: #161b22;
-      color: var(--text-muted);
-      font-weight: bold;
-      transition: all 0.2s ease;
-      border-radius: 6px;
-      white-space: nowrap;
-      text-align: center;
-      line-height: 1.3;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .mode-btn:hover {
-      background: #21262d;
-      color: var(--text-main);
-    }
-
-    .mode-btn.active {
-      background: #2d333b;
-      border-width: 2px;
-      box-shadow: 0 0 10px currentColor;
-    }
-
-    .mode-btn.workshop {
-      color: var(--accent-amber);
-      border-color: var(--accent-amber);
-    }
-
-    .mode-btn.pm {
-      color: var(--accent-red);
-      border-color: var(--accent-red);
-    }
-
-    /* Hybrid Compact Tabs (Topic 6.10) */
-    .tab-compact {
-      position: relative;
-      padding: 5px 8px;
-      min-width: 40px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--bg-panel);
-      color: var(--text-muted);
-      font-weight: 600;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: all 0.15s ease;
-      flex-shrink: 0;
-      user-select: none;
-    }
-
-    .tab-compact:hover {
-      background: var(--bg-card);
-      color: var(--text-main);
-      border-color: var(--text-muted);
-    }
-
-    .tab-compact.active {
-      background: #2d333b;
-      border-width: 2px;
-      color: var(--accent-neon);
-      border-color: var(--accent-neon);
-      box-shadow: 0 0 10px rgba(0, 255, 255, 0.25);
-    }
-
-    .tab-compact .tab-index {
-      font-size: 10px;
-      font-weight: 700;
-      opacity: 0.75;
-    }
-
-    .tab-compact .tab-icon {
-      font-size: 13px;
-      line-height: 1;
-    }
-
-    .tab-compact .tab-tooltip {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%) translateY(4px);
-      background: #1f242c;
-      color: #f0f6fc;
-      border: 1px solid var(--border);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
-      z-index: 2500;
-    }
-
-    .tab-compact:hover .tab-tooltip,
-    .tab-compact:focus-visible .tab-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .zoom-ctrl {
-      display: flex;
-      align-items: center;
-      border: 1px solid var(--border);
-      background: var(--bg-panel);
-      border-radius: 6px;
-      overflow: hidden;
-      font-size: 11px;
-    }
-
-    .zoom-btn {
-      background: none;
-      border: none;
-      color: var(--text-main);
-      padding: 5px 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.15s;
-    }
-    .zoom-btn:hover { background: var(--bg-card); }
-    .zoom-level {
-      padding: 5px 6px;
-      font-family: var(--font-mono);
-      color: var(--accent-blue);
-      font-weight: bold;
-    }
-
-    .refresh-btn {
-      background: #238636;
-      color: #fff;
-      border: 1px solid rgba(240,246,252,0.1);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 11px;
-      cursor: pointer;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      white-space: nowrap;
-    }
-    .refresh-btn:hover { background: #2ea043; }
-
-    /* Layout Container */
-    .app-container {
-      display: flex;
-      flex: 1;
-      overflow: visible;
-      flex-direction: row;
-      min-height: calc(100vh - 70px);
-    }
-
-    @media (max-width: 800px) {
-      .app-container {
-        flex-direction: column;
-        overflow-y: auto;
-      }
-      .sidebar {
-        width: 100% !important;
-        border-right: none !important;
-        border-bottom: 1px solid var(--border);
-        flex: none !important;
-        height: auto !important;
-      }
-      .main-content {
-        overflow-y: visible !important;
-      }
-    }
-
-    .mode-wrapper {
-      display: none;
-      width: 100%;
-      height: 100%;
-    }
-
-    .mode-wrapper.active {
-      display: flex;
-      flex-direction: inherit;
-    }
-
-    .sidebar {
-      width: 260px;
-      background-color: var(--bg-panel);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 20px 0;
-      overflow-y: auto;
-      flex-shrink: 0;
-    }
-
-    .sidebar h2 {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--accent-neon);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin: 0 20px 15px 20px;
-    }
-
-    .nav-item {
-      padding: 10px 20px;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-      color: var(--text-muted);
-      transition: all 0.2s ease;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .nav-item:hover {
-      background-color: rgba(255,255,255,0.05);
-      color: var(--text-main);
-    }
-
-    .nav-item.active {
-      border-left-color: var(--accent-blue);
-      background-color: var(--bg-card);
-      color: var(--text-main);
-      font-weight: bold;
-    }
-
-    .main-content {
-      flex: 1;
-      overflow-y: visible;
-      padding: 35px 40px;
-      scroll-behavior: smooth;
-    }
-
-    .section, [id^="sec-"] {
-      display: block;
-      margin-bottom: 50px;
-      max-width: 950px;
-      margin-left: auto;
-      margin-right: auto;
-      scroll-margin-top: 80px;
-    }
-
-    /* Floating Action Button */
-    #fab-action {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      z-index: 9999;
-      padding: 12px 24px;
-      border-radius: 30px;
-      background: var(--accent-amber);
-      color: #000;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-      font-weight: bold;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      cursor: pointer;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.25s ease;
-    }
-    #fab-action:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(255, 171, 112, 0.5);
-    }
-    #fab-action.ctx-mode {
-      background: #38bdf8;
-      color: #000;
-      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
-    }
-    #fab-action.ctx-mode:hover {
-      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.6);
-    }
-
-    /* Cards and Elements */
-    .card {
-      background-color: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: bold;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-    }
-    .badge.good { background-color: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
-    .badge.warn { background-color: rgba(255, 171, 112, 0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
-    .badge.bad  { background-color: rgba(248, 81, 73, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
-    .badge.info { background-color: rgba(88, 166, 255, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
-    .badge.neon { background-color: rgba(0, 255, 255, 0.15); color: var(--accent-neon); border: 1px solid var(--accent-neon); }
-
-    .font-mono-code { font-family: var(--font-mono); }
-    .hidden { display: none !important; }
-
-    /* Themed elements inside hero stage */
-    .themed-card { background-color: #12080f; }
-    .themed-inner { background-color: #0a0508; }
-    .option-card { cursor: pointer; transition: all 0.2s ease; }
-    .option-card:hover { transform: translateY(-2px); }
-
-    /* Shortcut Pill & Popover (Topic 6.6) */
-    .shortcut-container {
-      position: relative;
-      display: inline-block;
-    }
-
-    .shortcut-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .shortcut-pill:hover {
-      background: var(--bg-card);
-      border-color: var(--accent-blue);
-      color: #fff;
-    }
-
-    .shortcut-popover {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      width: 290px;
-      background: #161b22;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-      z-index: 2000;
-      padding: 12px;
-      color: var(--text-main);
-    }
-
-    .shortcut-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      font-weight: bold;
-      color: var(--accent-blue);
-      font-family: var(--font-mono);
-      margin-bottom: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .shortcut-close {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 16px;
-      line-height: 1;
-      cursor: pointer;
-      padding: 0 4px;
-    }
-
-    .shortcut-close:hover {
-      color: #fff;
-    }
-
-    .shortcut-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .shortcut-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-    }
-
-    .shortcut-row span {
-      color: var(--text-muted);
-    }
-
-    .shortcut-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 4px 0;
-    }
-
-    kbd {
-      background: #21262d;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--accent-neon);
-      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-    }
-
-    .cmd-pill {
-      background: #21262d;
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      color: var(--accent-blue);
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .cmd-pill:hover {
-      background: rgba(88, 166, 255, 0.15);
-      border-color: var(--accent-blue);
-      color: #fff;
-    }
-
-    /* ==========================================================================
-       Ongoing Autopsy View & Filterable Scoreboard (Topic 6.8)
-       ========================================================================== */
-
-    .view-autopsy {
-      width: 100%;
-      padding: 16px 20px 40px;
-      box-sizing: border-box;
-    }
-
-    .triage-scoreboard {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    }
-
-    .scoreboard-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      border: 1px solid var(--border);
-      background: var(--bg-card);
-      user-select: none;
-    }
-
-    .scoreboard-pill .pill-label {
-      opacity: 0.75;
-      font-size: 10px;
-      letter-spacing: 0.5px;
-    }
-
-    .scoreboard-pill .pill-value {
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .scoreboard-pill.pill-total {
-      color: var(--text-main);
-      border-color: var(--border);
-      background: rgba(33, 38, 45, 0.8);
-    }
-
-    .scoreboard-pill.pill-approved {
-      color: #34d399;
-      border-color: rgba(16, 185, 129, 0.4);
-      background: rgba(6, 78, 59, 0.3);
-    }
-
-    .scoreboard-pill.pill-tabled {
-      color: #fbbf24;
-      border-color: rgba(245, 158, 11, 0.4);
-      background: rgba(69, 26, 3, 0.3);
-    }
-
-    .scoreboard-pill.pill-killed {
-      color: #f87171;
-      border-color: rgba(239, 68, 68, 0.4);
-      background: rgba(69, 10, 10, 0.3);
-    }
-
-    .scoreboard-pill.pill-pending {
-      color: #94a3b8;
-      border-color: rgba(148, 163, 184, 0.3);
-      background: rgba(30, 41, 59, 0.3);
-    }
-
-    .autopsy-report-btn {
-      margin-left: auto;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: #1f2937;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-    }
-
-    .autopsy-report-btn:hover {
-      background: #374151;
-      border-color: var(--accent-blue);
-      color: #fff;
-    }
-
-    /* Filter Bar & Chips */
-    .autopsy-filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-      padding: 4px 0;
-    }
-
-    .filter-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-right: 4px;
-    }
-
-    .filter-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .filter-chip {
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--bg-panel);
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      user-select: none;
-    }
-
-    .filter-chip:hover {
-      background: var(--bg-card);
-      color: var(--text-main);
-      border-color: var(--text-muted);
-    }
-
-    .filter-chip.active {
-      background: #2d333b;
-      border-color: var(--accent-neon);
-      color: var(--accent-neon);
-      box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
-    }
-
-    /* Autopsy Feed Stream */
-    .autopsy-feed-stream {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .autopsy-feed-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 14px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      transition: all 0.2s ease;
-    }
-
-    .autopsy-feed-item:hover {
-      background: var(--bg-card);
-      border-color: rgba(88, 166, 255, 0.4);
-    }
-
-    .autopsy-feed-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-      flex: 1;
-    }
-
-    .autopsy-topic-id {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent-amber);
-      background: rgba(255, 171, 112, 0.1);
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid rgba(255, 171, 112, 0.25);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .autopsy-status-badge {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .autopsy-status-badge.badge-pending {
-      color: #94a3b8;
-      background: rgba(148, 163, 184, 0.15);
-      border: 1px solid rgba(148, 163, 184, 0.25);
-    }
-
-    .autopsy-status-badge.badge-approved {
-      color: #34d399;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .autopsy-status-badge.badge-tabled {
-      color: #fbbf24;
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-    }
-
-    .autopsy-status-badge.badge-killed {
-      color: #f87171;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .autopsy-topic-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-main);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .autopsy-feed-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    .autopsy-feed-note {
-      font-size: 11px;
-      color: var(--text-muted);
-      max-width: 220px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-style: italic;
-    }
-
-    .autopsy-jump-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 9px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--accent-blue);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-    }
-
-    .autopsy-jump-btn:hover {
-      background: rgba(88, 166, 255, 0.15);
-      border-color: var(--accent-blue);
-      color: #fff;
-    }
-
-    /* Cross-Tab Jump Pulse Animation */
-    @keyframes cardPulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.7);
-        border-color: var(--accent-blue);
-      }
-      50% {
-        box-shadow: 0 0 24px 6px rgba(88, 166, 255, 0.9);
-        border-color: #58a6ff;
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(88, 166, 255, 0);
-      }
-    }
-
-    .pulse-target {
-      animation: cardPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) 2;
-      border-color: var(--accent-blue) !important;
-    }
-
-    /* ==========================================================================
-       PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)
-       ========================================================================== */
-
-    .pcda-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 14px;
-      width: 100%;
-    }
-
-    .pcda-block {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg-panel);
-      overflow: hidden;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .pcda-block:hover {
-      border-color: rgba(88, 166, 255, 0.4);
-    }
-
-    .pcda-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: var(--bg-card);
-      cursor: pointer;
-      user-select: none;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 600;
-      border-bottom: 1px solid var(--border);
-      gap: 10px;
-    }
-
-    .pcda-header:hover {
-      background: #282e37;
-    }
-
-    .pcda-header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .pcda-header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .pcda-toggle-icon {
-      font-size: 11px;
-      color: var(--text-muted);
-      transition: transform 0.2s ease;
-    }
-
-    .pcda-copy-btn {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .pcda-copy-btn:hover {
-      background: rgba(88, 166, 255, 0.15);
-      border-color: var(--accent-blue);
-      color: #fff;
-    }
-
-    .pcda-body {
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .pcda-body.collapsed {
-      display: none;
-    }
-
-    /* Semantic Dialectic Cards */
-    .pcda-card {
-      padding: 12px 14px;
-      border-radius: 0 6px 6px 0;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .pcda-card-title {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .pcda-pro {
-      border-left: 4px solid #10b981;
-      background: rgba(16, 185, 129, 0.08);
-      color: #e6edf3;
-    }
-
-    .pcda-pro .pcda-card-title {
-      color: #34d399;
-    }
-
-    .pcda-con {
-      border-left: 4px solid #f59e0b;
-      background: rgba(245, 158, 11, 0.08);
-      color: #e6edf3;
-    }
-
-    .pcda-con .pcda-card-title {
-      color: #fbbf24;
-    }
-
-    .pcda-advocate {
-      border-left: 4px solid #f43f5e;
-      background: rgba(244, 63, 94, 0.08);
-      color: #e6edf3;
-    }
-
-    .pcda-advocate .pcda-card-title {
-      color: #fda4af;
-    }
-
-    .pcda-synthesis {
-      border-left: 4px solid #8b5cf6;
-      border-image: linear-gradient(to bottom, #6366f1, #8b5cf6) 1 100%;
-      background: rgba(139, 92, 246, 0.1);
-      color: #e6edf3;
-    }
-
-    .pcda-synthesis .pcda-card-title {
-      color: #c084fc;
-    }
-
-    .pcda-resolution-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(139, 92, 246, 0.25);
-      border: 1px solid rgba(139, 92, 246, 0.5);
-      color: #e9d5ff;
-      margin-bottom: 6px;
-    }
-
-    /* SOTA Benchmark Badge */
-    .badge-sota {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 10px;
-      background: rgba(88, 166, 255, 0.15);
-      border: 1px solid rgba(88, 166, 255, 0.4);
-      color: #58a6ff;
-      box-shadow: 0 0 8px rgba(88, 166, 255, 0.2);
-      line-height: 1.2;
-    }
-
-    /* 4-Lens Tradeoff Grid */
-    .lens-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .lens-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    .lens-card-header {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent-blue);
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    @media (max-width: 860px) {
-      .lens-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 520px) {
-      .lens-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .autopsy-feed-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .autopsy-feed-right {
-        width: 100%;
-        justify-content: space-between;
-      }
-      .autopsy-feed-note {
-        max-width: none;
-      }
-      .autopsy-report-btn {
-        margin-left: 0;
-        width: 100%;
-        justify-content: center;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .header-tier-top {
-        padding: 6px 12px;
-        gap: 8px;
-      }
-      .header-tier-bottom {
-        padding: 5px 12px;
-        gap: 6px;
-      }
-      .util-label {
-        display: none;
-      }
-      .brand-badge {
-        display: none;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .header-brand .brand-name {
-        max-width: 140px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .shortcut-pill {
-        padding: 5px 8px;
-      }
-      .shortcut-popover {
-        right: -40px;
-        width: 260px;
-      }
-    }
-
-    @media (max-width: 360px) {
-      .header-brand .brand-name {
-        display: none;
-      }
-      .header-tier-top {
-        padding: 4px 8px;
-      }
-      .header-tier-bottom {
-        padding: 4px 8px;
-        gap: 4px;
-      }
-      .zoom-btn {
-        padding: 4px 6px;
-      }
-      .zoom-level {
-        padding: 4px 4px;
-        font-size: 10px;
-      }
-    }
+          --bg-base: #0d1117;
+          --bg-panel: #161b22;
+          --bg-card: #21262d;
+          --border: #30363d;
+          --text-main: #c9d1d9;
+          --text-muted: #8b949e;
+          --accent-blue: #58a6ff;
+          --accent-green: #3fb950;
+          --accent-red: #f85149;
+          --accent-neon: #0ff;
+          --accent-amber: #ffab70;
+          --accent-pink: #f43f5e;
+          --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+          --font-sans: 'Inter', -apple-system, sans-serif;
+        }
+    
+        * { box-sizing: border-box; }
+    
+        html, body {
+          height: 100vh;
+          margin: 0;
+          padding: 0;
+          background-color: var(--bg-base);
+          color: var(--text-main);
+          font-family: var(--font-sans);
+          overflow-y: auto;
+          font-size: 1rem;
+          transition: font-size 0.15s ease;
+        }
+    
+        /* Two-Tier Header Architecture (Topics 6.9 & 6.10) */
+        .app-header {
+          display: flex;
+          flex-direction: column;
+          background: rgba(13, 17, 23, 0.95);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          padding: 0;
+          border-bottom: 1px solid var(--border);
+          width: 100%;
+          flex-shrink: 0;
+        }
+    
+        .header-tier-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          padding: 8px 16px;
+          border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+          gap: 12px;
+          min-height: 38px;
+          box-sizing: border-box;
+        }
+    
+        .header-brand {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-family: var(--font-mono);
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--accent-amber);
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+    
+        .brand-badge {
+          font-size: 10px;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          font-weight: 500;
+        }
+    
+        .header-utilities,
+        .header-controls {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+    
+        .haptics-btn {
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+          color: var(--text-main);
+          padding: 5px 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 12px;
+          line-height: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s ease;
+        }
+        .haptics-btn:hover {
+          background: var(--bg-card);
+          border-color: var(--accent-blue);
+          color: #fff;
+        }
+        .haptics-btn.muted {
+          color: var(--text-muted);
+          opacity: 0.6;
+          border-color: var(--border);
+        }
+    
+        .header-tier-bottom {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          padding: 6px 16px;
+          gap: 8px;
+          overflow-x: auto;
+          overflow-y: visible;
+          white-space: nowrap;
+          scrollbar-width: thin;
+          scrollbar-color: var(--border) transparent;
+          -webkit-overflow-scrolling: touch;
+          min-height: 38px;
+          box-sizing: border-box;
+        }
+    
+        .header-tier-bottom::-webkit-scrollbar {
+          height: 3px;
+        }
+        .header-tier-bottom::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .header-tier-bottom::-webkit-scrollbar-thumb {
+          background: var(--border);
+          border-radius: 2px;
+        }
+    
+        .header-divider-v {
+          width: 1px;
+          height: 20px;
+          background: var(--border);
+          margin: 0 4px;
+          flex-shrink: 0;
+        }
+    
+        .header-modes {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+    
+        .mode-btn {
+          padding: 6px 12px;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          cursor: pointer;
+          border: 1px solid var(--border);
+          background: #161b22;
+          color: var(--text-muted);
+          font-weight: bold;
+          transition: all 0.2s ease;
+          border-radius: 6px;
+          white-space: nowrap;
+          text-align: center;
+          line-height: 1.3;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+    
+        .mode-btn:hover {
+          background: #21262d;
+          color: var(--text-main);
+        }
+    
+        .mode-btn.active {
+          background: #2d333b;
+          border-width: 2px;
+          box-shadow: 0 0 10px currentColor;
+        }
+    
+        .mode-btn.workshop {
+          color: var(--accent-amber);
+          border-color: var(--accent-amber);
+        }
+    
+        .mode-btn.pm {
+          color: var(--accent-red);
+          border-color: var(--accent-red);
+        }
+    
+        /* Hybrid Compact Tabs (Topic 6.10) */
+        .tab-compact {
+          position: relative;
+          padding: 5px 8px;
+          min-width: 40px;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          cursor: pointer;
+          border: 1px solid var(--border);
+          background: var(--bg-panel);
+          color: var(--text-muted);
+          font-weight: 600;
+          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          transition: all 0.15s ease;
+          flex-shrink: 0;
+          user-select: none;
+        }
+    
+        .tab-compact:hover {
+          background: var(--bg-card);
+          color: var(--text-main);
+          border-color: var(--text-muted);
+        }
+    
+        .tab-compact.active {
+          background: #2d333b;
+          border-width: 2px;
+          color: var(--accent-neon);
+          border-color: var(--accent-neon);
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.25);
+        }
+    
+        .tab-compact .tab-index {
+          font-size: 10px;
+          font-weight: 700;
+          opacity: 0.75;
+        }
+    
+        .tab-compact .tab-icon {
+          font-size: 13px;
+          line-height: 1;
+        }
+    
+        .tab-compact .tab-tooltip {
+          position: absolute;
+          top: calc(100% + 6px);
+          left: 50%;
+          transform: translateX(-50%) translateY(4px);
+          background: #1f242c;
+          color: #f0f6fc;
+          border: 1px solid var(--border);
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+          z-index: 2500;
+        }
+    
+        .tab-compact:hover .tab-tooltip,
+        .tab-compact:focus-visible .tab-tooltip {
+          opacity: 1;
+          visibility: visible;
+          transform: translateX(-50%) translateY(0);
+        }
+    
+        .zoom-ctrl {
+          display: flex;
+          align-items: center;
+          border: 1px solid var(--border);
+          background: var(--bg-panel);
+          border-radius: 6px;
+          overflow: hidden;
+          font-size: 11px;
+        }
+    
+        .zoom-btn {
+          background: none;
+          border: none;
+          color: var(--text-main);
+          padding: 5px 8px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: 0.15s;
+        }
+        .zoom-btn:hover { background: var(--bg-card); }
+        .zoom-level {
+          padding: 5px 6px;
+          font-family: var(--font-mono);
+          color: var(--accent-blue);
+          font-weight: bold;
+        }
+    
+        .refresh-btn {
+          background: #238636;
+          color: #fff;
+          border: 1px solid rgba(240,246,252,0.1);
+          padding: 5px 10px;
+          border-radius: 6px;
+          font-weight: bold;
+          font-size: 11px;
+          cursor: pointer;
+          transition: 0.2s;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          white-space: nowrap;
+        }
+        .refresh-btn:hover { background: #2ea043; }
+    
+    
+        /* Layout Container */
+        .app-container {
+          display: flex;
+          flex: 1;
+          overflow: visible;
+          flex-direction: row;
+          min-height: calc(100vh - 70px);
+        }
+    
+        @media (max-width: 800px) {
+          .app-container {
+            flex-direction: column;
+            overflow-y: auto;
+          }
+          .sidebar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid var(--border);
+            flex: none !important;
+            height: auto !important;
+          }
+          .main-content {
+            overflow-y: visible !important;
+          }
+        }
+    
+        .mode-wrapper {
+          display: none;
+          width: 100%;
+          height: 100%;
+        }
+    
+        .mode-wrapper.active {
+          display: flex;
+          flex-direction: inherit;
+        }
+    
+        .sidebar {
+          width: 260px;
+          background-color: var(--bg-panel);
+          border-right: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          padding: 20px 0;
+          overflow-y: auto;
+          flex-shrink: 0;
+        }
+    
+        .sidebar h2 {
+          font-family: var(--font-mono);
+          font-size: 13px;
+          color: var(--accent-neon);
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin: 0 20px 15px 20px;
+        }
+    
+        .nav-item {
+          padding: 10px 20px;
+          cursor: pointer;
+          border-left: 3px solid transparent;
+          color: var(--text-muted);
+          transition: all 0.2s ease;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+    
+        .nav-item:hover {
+          background-color: rgba(255,255,255,0.05);
+          color: var(--text-main);
+        }
+    
+        .nav-item.active {
+          border-left-color: var(--accent-blue);
+          background-color: var(--bg-card);
+          color: var(--text-main);
+          font-weight: bold;
+        }
+    
+        .main-content {
+          flex: 1;
+          overflow-y: visible;
+          padding: 35px 40px;
+          scroll-behavior: smooth;
+        }
+    
+        .section, [id^="sec-"] {
+          display: block;
+          margin-bottom: 50px;
+          max-width: 950px;
+          margin-left: auto;
+          margin-right: auto;
+          scroll-margin-top: 80px;
+        }
+    
+        /* Floating Action Button */
+        #fab-action {
+          position: fixed;
+          bottom: 30px;
+          right: 30px;
+          z-index: 9999;
+          padding: 12px 24px;
+          border-radius: 30px;
+          background: var(--accent-amber);
+          color: #000;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+          font-weight: bold;
+          font-family: var(--font-mono);
+          font-size: 13px;
+          cursor: pointer;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.25s ease;
+        }
+        #fab-action:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(255, 171, 112, 0.5);
+        }
+        #fab-action.ctx-mode {
+          background: #38bdf8;
+          color: #000;
+          box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+        }
+        #fab-action.ctx-mode:hover {
+          box-shadow: 0 8px 24px rgba(56, 189, 248, 0.6);
+        }
+    
+        /* Cards and Elements */
+        .card {
+          background-color: var(--bg-panel);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 24px;
+          margin-bottom: 24px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .badge {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: bold;
+          font-family: var(--font-mono);
+          text-transform: uppercase;
+        }
+        .badge.good { background-color: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge.warn { background-color: rgba(255, 171, 112, 0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+        .badge.bad  { background-color: rgba(248, 81, 73, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .badge.info { background-color: rgba(88, 166, 255, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .badge.neon { background-color: rgba(0, 255, 255, 0.15); color: var(--accent-neon); border: 1px solid var(--accent-neon); }
+    
+        .font-mono-code { font-family: var(--font-mono); }
+        .hidden { display: none !important; }
+    
+        /* Themed elements inside hero stage */
+        .themed-card { background-color: #12080f; }
+        .themed-inner { background-color: #0a0508; }
+        .option-card { cursor: pointer; transition: all 0.2s ease; }
+        .option-card:hover { transform: translateY(-2px); }
+    
+        /* Shortcut Pill & Popover (Topic 6.6) */
+        .shortcut-container {
+          position: relative;
+          display: inline-block;
+        }
+    
+        .shortcut-pill {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+          color: var(--text-main);
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+    
+        .shortcut-pill:hover {
+          background: var(--bg-card);
+          border-color: var(--accent-blue);
+          color: #fff;
+        }
+    
+        .shortcut-popover {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          width: 290px;
+          background: #161b22;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+          z-index: 2000;
+          padding: 12px;
+          color: var(--text-main);
+        }
+    
+        .shortcut-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 11px;
+          font-weight: bold;
+          color: var(--accent-blue);
+          font-family: var(--font-mono);
+          margin-bottom: 8px;
+          padding-bottom: 6px;
+          border-bottom: 1px solid var(--border);
+        }
+    
+        .shortcut-close {
+          background: none;
+          border: none;
+          color: var(--text-muted);
+          font-size: 16px;
+          line-height: 1;
+          cursor: pointer;
+          padding: 0 4px;
+        }
+    
+        .shortcut-close:hover {
+          color: #fff;
+        }
+    
+        .shortcut-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+    
+        .shortcut-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 11px;
+        }
+    
+        .shortcut-row span {
+          color: var(--text-muted);
+        }
+    
+        .shortcut-divider {
+          height: 1px;
+          background: var(--border);
+          margin: 4px 0;
+        }
+    
+        kbd {
+          background: #21262d;
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          padding: 2px 6px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          color: var(--accent-neon);
+          box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+    
+        .cmd-pill {
+          background: #21262d;
+          border: 1px solid rgba(88, 166, 255, 0.3);
+          color: var(--accent-blue);
+          border-radius: 4px;
+          padding: 2px 6px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+    
+        .cmd-pill:hover {
+          background: rgba(88, 166, 255, 0.15);
+          border-color: var(--accent-blue);
+          color: #fff;
+        }
+    
+        /* ==========================================================================
+           Ongoing Autopsy View & Filterable Scoreboard (Topic 6.8)
+           ========================================================================== */
+    
+        .view-autopsy {
+          width: 100%;
+          padding: 16px 20px 40px;
+          box-sizing: border-box;
+        }
+    
+        .triage-scoreboard {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 16px;
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          margin-bottom: 16px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+    
+        .scoreboard-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 10px;
+          border-radius: 6px;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 700;
+          border: 1px solid var(--border);
+          background: var(--bg-card);
+          user-select: none;
+        }
+    
+        .scoreboard-pill .pill-label {
+          opacity: 0.75;
+          font-size: 10px;
+          letter-spacing: 0.5px;
+        }
+    
+        .scoreboard-pill .pill-value {
+          font-size: 13px;
+          font-weight: 800;
+        }
+    
+        .scoreboard-pill.pill-total {
+          color: var(--text-main);
+          border-color: var(--border);
+          background: rgba(33, 38, 45, 0.8);
+        }
+    
+        .scoreboard-pill.pill-approved {
+          color: #34d399;
+          border-color: rgba(16, 185, 129, 0.4);
+          background: rgba(6, 78, 59, 0.3);
+        }
+    
+        .scoreboard-pill.pill-tabled {
+          color: #fbbf24;
+          border-color: rgba(245, 158, 11, 0.4);
+          background: rgba(69, 26, 3, 0.3);
+        }
+    
+        .scoreboard-pill.pill-killed {
+          color: #f87171;
+          border-color: rgba(239, 68, 68, 0.4);
+          background: rgba(69, 10, 10, 0.3);
+        }
+    
+        .scoreboard-pill.pill-pending {
+          color: #94a3b8;
+          border-color: rgba(148, 163, 184, 0.3);
+          background: rgba(30, 41, 59, 0.3);
+        }
+    
+        .autopsy-report-btn {
+          margin-left: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          background: #1f2937;
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          color: var(--text-main);
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          white-space: nowrap;
+        }
+    
+        .autopsy-report-btn:hover {
+          background: #374151;
+          border-color: var(--accent-blue);
+          color: #fff;
+        }
+    
+        /* Filter Bar & Chips */
+        .autopsy-filter-bar {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 16px;
+          padding: 4px 0;
+        }
+    
+        .filter-label {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          color: var(--text-muted);
+          font-weight: 600;
+          margin-right: 4px;
+        }
+    
+        .filter-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+    
+        .filter-chip {
+          padding: 4px 10px;
+          border-radius: 6px;
+          border: 1px solid var(--border);
+          background: var(--bg-panel);
+          color: var(--text-muted);
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          user-select: none;
+        }
+    
+        .filter-chip:hover {
+          background: var(--bg-card);
+          color: var(--text-main);
+          border-color: var(--text-muted);
+        }
+    
+        .filter-chip.active {
+          background: #2d333b;
+          border-color: var(--accent-neon);
+          color: var(--accent-neon);
+          box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+        }
+    
+        /* Autopsy Feed Stream */
+        .autopsy-feed-stream {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+    
+        .autopsy-feed-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 10px 14px;
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          transition: all 0.2s ease;
+        }
+    
+        .autopsy-feed-item:hover {
+          background: var(--bg-card);
+          border-color: rgba(88, 166, 255, 0.4);
+        }
+    
+        .autopsy-feed-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+          flex: 1;
+        }
+    
+        .autopsy-topic-id {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--accent-amber);
+          background: rgba(255, 171, 112, 0.1);
+          padding: 2px 6px;
+          border-radius: 4px;
+          border: 1px solid rgba(255, 171, 112, 0.25);
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+    
+        .autopsy-status-badge {
+          font-family: var(--font-mono);
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 4px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+    
+        .autopsy-status-badge.badge-pending {
+          color: #94a3b8;
+          background: rgba(148, 163, 184, 0.15);
+          border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+    
+        .autopsy-status-badge.badge-approved {
+          color: #34d399;
+          background: rgba(16, 185, 129, 0.15);
+          border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+    
+        .autopsy-status-badge.badge-tabled {
+          color: #fbbf24;
+          background: rgba(245, 158, 11, 0.15);
+          border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+    
+        .autopsy-status-badge.badge-killed {
+          color: #f87171;
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+    
+        .autopsy-topic-title {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-main);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+    
+        .autopsy-feed-right {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
+        }
+    
+        .autopsy-feed-note {
+          font-size: 11px;
+          color: var(--text-muted);
+          max-width: 220px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-style: italic;
+        }
+    
+        .autopsy-jump-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 9px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          color: var(--accent-blue);
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          white-space: nowrap;
+        }
+    
+        .autopsy-jump-btn:hover {
+          background: rgba(88, 166, 255, 0.15);
+          border-color: var(--accent-blue);
+          color: #fff;
+        }
+    
+        /* Cross-Tab Jump Pulse Animation */
+        @keyframes cardPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.7);
+            border-color: var(--accent-blue);
+          }
+          50% {
+            box-shadow: 0 0 24px 6px rgba(88, 166, 255, 0.9);
+            border-color: #58a6ff;
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(88, 166, 255, 0);
+          }
+        }
+    
+        .pulse-target {
+          animation: cardPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) 2;
+          border-color: var(--accent-blue) !important;
+        }
+    
+        /* ==========================================================================
+           PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)
+           ========================================================================== */
+    
+        .pcda-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 14px;
+          width: 100%;
+        }
+    
+        .pcda-block {
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--bg-panel);
+          overflow: hidden;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+    
+        .pcda-block:hover {
+          border-color: rgba(88, 166, 255, 0.4);
+        }
+    
+        .pcda-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 14px;
+          background: var(--bg-card);
+          cursor: pointer;
+          user-select: none;
+          font-family: var(--font-mono);
+          font-size: 12px;
+          font-weight: 600;
+          border-bottom: 1px solid var(--border);
+          gap: 10px;
+        }
+    
+        .pcda-header:hover {
+          background: #282e37;
+        }
+    
+        .pcda-header-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+    
+        .pcda-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+    
+        .pcda-toggle-icon {
+          font-size: 11px;
+          color: var(--text-muted);
+          transition: transform 0.2s ease;
+        }
+    
+        .pcda-copy-btn {
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          font-family: var(--font-mono);
+          font-size: 11px;
+          padding: 3px 8px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+    
+        .pcda-copy-btn:hover {
+          background: rgba(88, 166, 255, 0.15);
+          border-color: var(--accent-blue);
+          color: #fff;
+        }
+    
+        .pcda-body {
+          padding: 12px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+    
+        .pcda-body.collapsed {
+          display: none;
+        }
+    
+        /* Semantic Dialectic Cards */
+        .pcda-card {
+          padding: 12px 14px;
+          border-radius: 0 6px 6px 0;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+    
+        .pcda-card-title {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+    
+        .pcda-pro {
+          border-left: 4px solid #10b981;
+          background: rgba(16, 185, 129, 0.08);
+          color: #e6edf3;
+        }
+    
+        .pcda-pro .pcda-card-title {
+          color: #34d399;
+        }
+    
+        .pcda-con {
+          border-left: 4px solid #f59e0b;
+          background: rgba(245, 158, 11, 0.08);
+          color: #e6edf3;
+        }
+    
+        .pcda-con .pcda-card-title {
+          color: #fbbf24;
+        }
+    
+        .pcda-advocate {
+          border-left: 4px solid #f43f5e;
+          background: rgba(244, 63, 94, 0.08);
+          color: #e6edf3;
+        }
+    
+        .pcda-advocate .pcda-card-title {
+          color: #fda4af;
+        }
+    
+        .pcda-synthesis {
+          border-left: 4px solid #8b5cf6;
+          border-image: linear-gradient(to bottom, #6366f1, #8b5cf6) 1 100%;
+          background: rgba(139, 92, 246, 0.1);
+          color: #e6edf3;
+        }
+    
+        .pcda-synthesis .pcda-card-title {
+          color: #c084fc;
+        }
+    
+        .pcda-resolution-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: rgba(139, 92, 246, 0.25);
+          border: 1px solid rgba(139, 92, 246, 0.5);
+          color: #e9d5ff;
+          margin-bottom: 6px;
+        }
+    
+        /* SOTA Benchmark Badge */
+        .badge-sota {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          font-weight: 600;
+          padding: 2px 7px;
+          border-radius: 10px;
+          background: rgba(88, 166, 255, 0.15);
+          border: 1px solid rgba(88, 166, 255, 0.4);
+          color: #58a6ff;
+          box-shadow: 0 0 8px rgba(88, 166, 255, 0.2);
+          line-height: 1.2;
+        }
+    
+        /* 4-Lens Tradeoff Grid */
+        .lens-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+          margin-top: 10px;
+        }
+    
+        .lens-card {
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          padding: 10px 12px;
+          font-size: 12px;
+          line-height: 1.4;
+        }
+    
+        .lens-card-header {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--accent-blue);
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+    
+        /* ==========================================================================
+           Cumulative Allowance Ledger & Deep-Link Hash Navigation (Topics 6.3 & 6.19)
+           ========================================================================== */
+    
+        /* Scroll Margin Offset for Sticky Two-Tier Header */
+        .topic-card,
+        .stage-card,
+        .autopsy-feed-item,
+        .hero-stage-panel,
+        section[id],
+        div[id^="sec-"],
+        div[id^="card-"],
+        div[id^="hero-stage-"],
+        div[id^="topic-"],
+        div[id^="t"] {
+          scroll-margin-top: 110px;
+        }
+    
+        /* Target & Anchor Pulse Highlight (Topic 6.3) */
+        :target,
+        .anchor-highlight {
+          animation: anchor-pulse 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    
+        @keyframes anchor-pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.8), 0 0 24px rgba(88, 166, 255, 0.4);
+            border-color: var(--accent-blue);
+          }
+          30% {
+            box-shadow: 0 0 0 6px rgba(88, 166, 255, 0.25), 0 0 32px rgba(88, 166, 255, 0.3);
+            border-color: var(--accent-blue);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(88, 166, 255, 0);
+          }
+        }
+    
+        /* Allowance Meter Pill (Header & Controls) */
+        .allowance-meter {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          border-radius: 6px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--text-main);
+          cursor: pointer;
+          user-select: none;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+    
+        .allowance-meter:hover {
+          border-color: var(--accent-blue);
+          background: #282e38;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+    
+        .allowance-meter .meter-icon {
+          font-size: 12px;
+        }
+    
+        .allowance-meter .meter-value {
+          font-weight: 700;
+        }
+    
+        /* Scoreboard Allowance Ledger Card */
+        .allowance-ledger-card {
+          width: 100%;
+          margin-top: 12px;
+          padding: 12px 16px;
+          background: rgba(22, 27, 34, 0.85);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          box-sizing: border-box;
+        }
+    
+        .allowance-header-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+    
+        .allowance-title-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--text-main);
+        }
+    
+        .allowance-stat-label {
+          font-size: 11px;
+          color: var(--text-muted);
+          font-weight: 500;
+        }
+    
+        .allowance-stat-val {
+          font-family: var(--font-mono);
+          font-weight: 700;
+          color: var(--text-main);
+          font-size: 12px;
+        }
+    
+        /* Semantic Threshold Badges */
+        .meter-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          transition: all 0.2s ease;
+        }
+    
+        .meter-safe {
+          color: #34d399;
+          background: rgba(6, 78, 59, 0.4);
+          border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+    
+        .meter-warning {
+          color: #fbbf24;
+          background: rgba(69, 26, 3, 0.4);
+          border: 1px solid rgba(245, 158, 11, 0.5);
+        }
+    
+        .meter-critical {
+          color: #f87171;
+          background: rgba(69, 10, 10, 0.5);
+          border: 1px solid rgba(239, 68, 68, 0.6);
+          animation: critical-pulse 2s infinite ease-in-out;
+        }
+    
+        @keyframes critical-pulse {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+          }
+          50% {
+            box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.5);
+          }
+        }
+    
+        /* Segmented Meter Track & Fill */
+        .meter-bar-track {
+          width: 100%;
+          height: 8px;
+          background: rgba(48, 54, 61, 0.6);
+          border-radius: 4px;
+          overflow: hidden;
+          display: flex;
+          position: relative;
+        }
+    
+        .meter-bar-fill {
+          height: 100%;
+          transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    
+        .meter-tier-pro,
+        .meter-segment-pro {
+          background: #a855f7;
+        }
+    
+        .meter-tier-flash,
+        .meter-segment-flash {
+          background: #38bdf8;
+        }
+    
+        .meter-tier-minimal,
+        .meter-segment-minimal {
+          background: #34d399;
+        }
+    
+        /* Meter Legend & Controls */
+        .allowance-footer-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+          font-size: 11px;
+        }
+    
+        .meter-legend {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          color: var(--text-muted);
+        }
+    
+        .meter-legend-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+    
+        .meter-legend-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+        }
+    
+        .dot-pro     { background: #a855f7; }
+        .dot-flash   { background: #38bdf8; }
+        .dot-minimal { background: #34d399; }
+    
+        .allowance-breakdown-btn {
+          background: transparent;
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          border-radius: 4px;
+          padding: 3px 8px;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          transition: all 0.15s ease;
+        }
+    
+        .allowance-breakdown-btn:hover {
+          color: var(--text-main);
+          border-color: var(--accent-blue);
+          background: var(--bg-panel);
+        }
+    
+        /* Breakdown Popover / Drawer Table */
+        .allowance-breakdown {
+          display: none;
+          margin-top: 8px;
+          padding: 10px 12px;
+          background: var(--bg-base);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          max-height: 240px;
+          overflow-y: auto;
+        }
+    
+        .allowance-breakdown.active {
+          display: block;
+          animation: fadeIn 0.2s ease;
+        }
+    
+        .allowance-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-family: var(--font-mono);
+          font-size: 10px;
+          color: var(--text-main);
+        }
+    
+        .allowance-table th {
+          text-align: left;
+          padding: 4px 8px;
+          border-bottom: 1px solid var(--border);
+          color: var(--text-muted);
+          font-weight: 600;
+        }
+    
+        .allowance-table td {
+          padding: 4px 8px;
+          border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+        }
+    
+        .allowance-table tr:hover {
+          background: rgba(88, 166, 255, 0.05);
+        }
+    
+        @media (max-width: 860px) {
+          .lens-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+    
+        @media (max-width: 520px) {
+          .lens-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+    
+        @media (max-width: 640px) {
+          .autopsy-feed-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .autopsy-feed-right {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .autopsy-feed-note {
+            max-width: none;
+          }
+          .autopsy-report-btn {
+            margin-left: 0;
+            width: 100%;
+            justify-content: center;
+          }
+        }
+    
+        @media (max-width: 640px) {
+          .header-tier-top {
+            padding: 6px 12px;
+            gap: 8px;
+          }
+          .header-tier-bottom {
+            padding: 5px 12px;
+            gap: 6px;
+          }
+          .util-label {
+            display: none;
+          }
+          .brand-badge {
+            display: none;
+          }
+        }
+    
+        @media (max-width: 480px) {
+          .header-brand .brand-name {
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .shortcut-pill {
+            padding: 5px 8px;
+          }
+          .shortcut-popover {
+            right: -40px;
+            width: 260px;
+          }
+        }
+    
+        @media (max-width: 360px) {
+          .header-brand .brand-name {
+            display: none;
+          }
+          .header-tier-top {
+            padding: 4px 8px;
+          }
+          .header-tier-bottom {
+            padding: 4px 8px;
+            gap: 4px;
+          }
+          .zoom-btn {
+            padding: 4px 6px;
+          }
+          .zoom-level {
+            padding: 4px 4px;
+            font-size: 10px;
+          }
+        }
   </style>
 </head>
 <body>
@@ -1265,6 +1555,11 @@
               </div>
             </div>
           </div>
+        </div>
+                <div class="allowance-meter" id="header-allowance-pill" onclick="switchMode('autopsy')" title="Cumulative Token Allowance: Click to view ledger">
+          <span class="meter-icon">🔋</span>
+          <span class="meter-value">~0k</span>
+          <span class="meter-badge meter-safe">SAFE</span>
         </div>
         <div class="zoom-ctrl">
           <button class="zoom-btn" onclick="changeFontSize(-1)">A-</button>
@@ -1383,10 +1678,11 @@
       <div id="hero-stage-container" class="space-y-6">
 
         <!-- HERO STAGE 1.1 -->
-        <div id="hero-stage-1.1" class="hero-stage-panel themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+        <div id="hero-stage-1.1" data-tier="tier2" class="hero-stage-panel themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <a href="#t1.1" class="anchor-link-badge text-xs px-2 py-0.5 rounded border border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] hover:border-[#58a6ff] font-mono-code transition no-underline" title="Permalink to Topic 1.1">#t1.1</a>
                 <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 1.1 &bull; CHASSIS PARADIGM</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
               </div>
@@ -1537,10 +1833,11 @@
         </div>
 
         <!-- HERO STAGE 1.2 -->
-        <div id="hero-stage-1.2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+        <div id="hero-stage-1.2" data-tier="tier2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <a href="#t1.2" class="anchor-link-badge text-xs px-2 py-0.5 rounded border border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] hover:border-[#58a6ff] font-mono-code transition no-underline" title="Permalink to Topic 1.2">#t1.2</a>
                 <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 1.2 &bull; ERGONOMICS</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
               </div>
@@ -1610,10 +1907,11 @@
         </div>
 
         <!-- HERO STAGE 1.3 -->
-        <div id="hero-stage-1.3" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+        <div id="hero-stage-1.3" data-tier="tier2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <a href="#t1.3" class="anchor-link-badge text-xs px-2 py-0.5 rounded border border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] hover:border-[#58a6ff] font-mono-code transition no-underline" title="Permalink to Topic 1.3">#t1.3</a>
                 <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 1.3 &bull; SCREEN WASTE</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
               </div>
@@ -1658,10 +1956,11 @@
         </div>
 
         <!-- HERO STAGE 2.1 -->
-        <div id="hero-stage-2.1" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+        <div id="hero-stage-2.1" data-tier="tier2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <a href="#t2.1" class="anchor-link-badge text-xs px-2 py-0.5 rounded border border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] hover:border-[#58a6ff] font-mono-code transition no-underline" title="Permalink to Topic 2.1">#t2.1</a>
                 <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 2.1 &bull; KINETIC DYNAMICS</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
               </div>
@@ -1757,10 +2056,11 @@
         </div>
 
         <!-- HERO STAGE 2.2 -->
-        <div id="hero-stage-2.2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+        <div id="hero-stage-2.2" data-tier="tier3" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <a href="#t2.2" class="anchor-link-badge text-xs px-2 py-0.5 rounded border border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] hover:border-[#58a6ff] font-mono-code transition no-underline" title="Permalink to Topic 2.2">#t2.2</a>
                 <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 2.2 &bull; GAME FEEL</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
               </div>
@@ -1859,10 +2159,11 @@
         </div>
 
         <!-- HERO STAGE 3.1 -->
-        <div id="hero-stage-3.1" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+        <div id="hero-stage-3.1" data-tier="tier1" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <a href="#t3.1" class="anchor-link-badge text-xs px-2 py-0.5 rounded border border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] hover:border-[#58a6ff] font-mono-code transition no-underline" title="Permalink to Topic 3.1">#t3.1</a>
                 <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 3.1 &bull; RHYTHM ERGONOMICS</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
               </div>
@@ -1952,10 +2253,11 @@
         </div>
 
         <!-- HERO STAGE 3.2 -->
-        <div id="hero-stage-3.2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+        <div id="hero-stage-3.2" data-tier="tier2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <a href="#t3.2" class="anchor-link-badge text-xs px-2 py-0.5 rounded border border-[#30363d] text-[#8b949e] hover:text-[#58a6ff] hover:border-[#58a6ff] font-mono-code transition no-underline" title="Permalink to Topic 3.2">#t3.2</a>
                 <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 3.2 &bull; TACTILE HAPTICS</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
               </div>
@@ -3674,6 +3976,59 @@
       <button class="autopsy-report-btn" onclick="copyPostMortemReport()" title="Copy GitHub Markdown Report to Clipboard">
         <span>📋</span> Copy Report
       </button>
+
+      <!-- Cumulative Allowance Ledger Card (Topic 6.19) -->
+      <div class="allowance-ledger-card" id="allowance-ledger-card">
+        <div class="allowance-header-row">
+          <div class="allowance-title-group">
+            <span>🔋 Cumulative Token Budget:</span>
+            <span class="allowance-stat-val" id="allowance-token-val">0 / 200,000 tokens</span>
+          </div>
+          <span class="meter-badge meter-safe" id="allowance-status-badge">SAFE 🟢</span>
+        </div>
+
+        <div class="meter-bar-track" title="Segmented allowance consumption">
+          <div class="meter-bar-fill meter-tier-pro" id="meter-bar-pro" style="width: 0%;"></div>
+          <div class="meter-bar-fill meter-tier-flash" id="meter-bar-flash" style="width: 0%;"></div>
+          <div class="meter-bar-fill meter-tier-minimal" id="meter-bar-minimal" style="width: 0%;"></div>
+        </div>
+
+        <div class="allowance-footer-row">
+          <div class="meter-legend">
+            <span class="meter-legend-item">
+              <span class="meter-legend-dot dot-pro"></span>
+              <span>Tier 1 Pro: <strong id="meter-legend-pro-val">~0k</strong></span>
+            </span>
+            <span class="meter-legend-item">
+              <span class="meter-legend-dot dot-flash"></span>
+              <span>Tier 2 Flash: <strong id="meter-legend-flash-val">~0k</strong></span>
+            </span>
+            <span class="meter-legend-item">
+              <span class="meter-legend-dot dot-minimal"></span>
+              <span>Tier 3 Low: <strong id="meter-legend-minimal-val">~0k</strong></span>
+            </span>
+          </div>
+          <button class="allowance-breakdown-btn" onclick="toggleAllowanceBreakdown()" title="Toggle itemized token breakdown">
+            <span>📊</span> Token Ledger
+          </button>
+        </div>
+
+        <div class="allowance-breakdown" id="allowance-breakdown-drawer">
+          <table class="allowance-table">
+            <thead>
+              <tr>
+                <th style="width: 15%;">Topic</th>
+                <th style="width: 45%;">Title</th>
+                <th style="width: 20%;">Tier</th>
+                <th style="width: 20%; text-align: right;">Cost (Running)</th>
+              </tr>
+            </thead>
+            <tbody id="allowance-breakdown-tbody">
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:12px;">No approved tasks yet. Assign verdicts to tally token budget.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <div class="autopsy-filter-bar">
@@ -3688,7 +4043,7 @@
     </div>
 
     <div class="autopsy-feed-stream" id="autopsy-feed-stream">
-      <div class="autopsy-feed-item" id="autopsy-item-1.1" data-topic-id="1.1" data-status="pending">
+      <div class="autopsy-feed-item" id="autopsy-item-1.1" data-topic-id="1.1" data-tier="tier2" data-status="pending">
         <div class="autopsy-feed-left">
           <span class="autopsy-topic-id">ITEM 1.1</span>
           <span class="autopsy-status-badge badge-pending">⚪ PENDING</span>
@@ -3702,7 +4057,7 @@
         </div>
       </div>
 
-      <div class="autopsy-feed-item" id="autopsy-item-1.2" data-topic-id="1.2" data-status="pending">
+      <div class="autopsy-feed-item" id="autopsy-item-1.2" data-topic-id="1.2" data-tier="tier2" data-status="pending">
         <div class="autopsy-feed-left">
           <span class="autopsy-topic-id">ITEM 1.2</span>
           <span class="autopsy-status-badge badge-pending">⚪ PENDING</span>
@@ -3716,7 +4071,7 @@
         </div>
       </div>
 
-      <div class="autopsy-feed-item" id="autopsy-item-1.3" data-topic-id="1.3" data-status="pending">
+      <div class="autopsy-feed-item" id="autopsy-item-1.3" data-topic-id="1.3" data-tier="tier2" data-status="pending">
         <div class="autopsy-feed-left">
           <span class="autopsy-topic-id">ITEM 1.3</span>
           <span class="autopsy-status-badge badge-pending">⚪ PENDING</span>
@@ -3730,7 +4085,7 @@
         </div>
       </div>
 
-      <div class="autopsy-feed-item" id="autopsy-item-2.1" data-topic-id="2.1" data-status="pending">
+      <div class="autopsy-feed-item" id="autopsy-item-2.1" data-topic-id="2.1" data-tier="tier2" data-status="pending">
         <div class="autopsy-feed-left">
           <span class="autopsy-topic-id">ITEM 2.1</span>
           <span class="autopsy-status-badge badge-pending">⚪ PENDING</span>
@@ -3744,7 +4099,7 @@
         </div>
       </div>
 
-      <div class="autopsy-feed-item" id="autopsy-item-2.2" data-topic-id="2.2" data-status="pending">
+      <div class="autopsy-feed-item" id="autopsy-item-2.2" data-topic-id="2.2" data-tier="tier3" data-status="pending">
         <div class="autopsy-feed-left">
           <span class="autopsy-topic-id">ITEM 2.2</span>
           <span class="autopsy-status-badge badge-pending">⚪ PENDING</span>
@@ -3758,7 +4113,7 @@
         </div>
       </div>
 
-      <div class="autopsy-feed-item" id="autopsy-item-3.1" data-topic-id="3.1" data-status="pending">
+      <div class="autopsy-feed-item" id="autopsy-item-3.1" data-topic-id="3.1" data-tier="tier1" data-status="pending">
         <div class="autopsy-feed-left">
           <span class="autopsy-topic-id">ITEM 3.1</span>
           <span class="autopsy-status-badge badge-pending">⚪ PENDING</span>
@@ -3772,7 +4127,7 @@
         </div>
       </div>
 
-      <div class="autopsy-feed-item" id="autopsy-item-3.2" data-topic-id="3.2" data-status="pending">
+      <div class="autopsy-feed-item" id="autopsy-item-3.2" data-topic-id="3.2" data-tier="tier2" data-status="pending">
         <div class="autopsy-feed-left">
           <span class="autopsy-topic-id">ITEM 3.2</span>
           <span class="autopsy-status-badge badge-pending">⚪ PENDING</span>
@@ -3838,997 +4193,1224 @@
 
   <script>
     let currentMode = 'workshop';
-    let currentHeroId = '1.1';
-
-    const triageData = {
-      '1.1': { title: 'Monolithic Titanium Faceplate', verdict: null, note: '' },
-      '1.2': { title: 'Hybrid 6-8 Desktop / TBD Banking', verdict: null, note: '' },
-      '1.3': { title: 'Reclaiming Screen Real Estate', verdict: null, note: '' },
-      '2.1': { title: '45° Flow-Traced Signal Paths', verdict: null, note: '' },
-      '2.2': { title: 'Teenage Engineering Vector Glyphs', verdict: null, note: '' },
-      '3.1': { title: 'Vertical Arcade Rhythm Fader Strip', verdict: null, note: '' },
-      '3.2': { title: 'Tactile Magnetic Snap Detents', verdict: null, note: '' }
-    };
-
-    function switchMode(mode) {
-      if (typeof playHaptic === 'function') playHaptic('tab');
-      currentMode = mode;
-      document.querySelectorAll('.mode-wrapper').forEach(w => w.classList.remove('active'));
-      document.querySelectorAll('.mode-btn, .tab-compact').forEach(b => b.classList.remove('active'));
-
-      const normalized = mode.startsWith('tab-') ? mode.substring(4) : mode;
-      const target = document.getElementById(normalized + '-mode') || document.getElementById('tab-' + normalized) || document.getElementById(mode);
-      const btn = document.getElementById('btn-' + normalized) || document.getElementById('tab-btn-' + normalized) || document.getElementById('btn-' + mode);
-      if (target) target.classList.add('active');
-      if (btn) btn.classList.add('active');
-
-      if ((normalized === 'autopsy' || mode === 'autopsy') && typeof updateAutopsyScoreboard === 'function') {
-        updateAutopsyScoreboard();
-      }
-
-      updateFab();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function switchTab(tabId) {
-      switchMode(tabId);
-    }
-
-    function updateFab() {
-      const fab = document.getElementById('fab-action');
-      const fabText = document.getElementById('fab-text');
-      const fabIcon = document.getElementById('fab-icon');
-      if (!fab) return;
-
-      if (currentMode === 'workshop') {
-        fab.classList.add('ctx-mode');
-        fabIcon.textContent = '🔍';
-        fabText.textContent = 'See in Context';
-      } else {
-        fab.classList.remove('ctx-mode');
-        fabIcon.textContent = '🔙';
-        fabText.textContent = 'Back to Workshop';
-      }
-    }
-
-    function handleFabClick() {
-      if (currentMode === 'workshop') {
-        const contextMap = {
-          '1.1': { mode: 'layouts', section: 'sec-monolithic' },
-          '1.2': { mode: 'layouts', section: 'sec-monolithic' },
-          '1.3': { mode: 'layouts', section: 'sec-monolithic' },
-          '2.1': { mode: 'layouts', section: 'sec-traces' },
-          '2.2': { mode: 'layouts', section: 'sec-glyphs' },
-          '3.1': { mode: 'layouts', section: 'sec-faders' },
-          '3.2': { mode: 'layouts', section: 'sec-faders' }
+        let currentHeroId = '1.1';
+    
+        const triageData = {
+          '1.1': { title: 'Monolithic Titanium Faceplate', verdict: null, note: '', tier: 'tier2' },
+          '1.2': { title: 'Hybrid 6-8 Desktop / TBD Banking', verdict: null, note: '', tier: 'tier2' },
+          '1.3': { title: 'Reclaiming Screen Real Estate', verdict: null, note: '', tier: 'tier2' },
+          '2.1': { title: '45° Flow-Traced Signal Paths', verdict: null, note: '', tier: 'tier2' },
+          '2.2': { title: 'Teenage Engineering Vector Glyphs', verdict: null, note: '', tier: 'tier3' },
+          '3.1': { title: 'Vertical Arcade Rhythm Fader Strip', verdict: null, note: '', tier: 'tier1' },
+          '3.2': { title: 'Tactile Magnetic Snap Detents', verdict: null, note: '', tier: 'tier2' }
         };
-        const target = contextMap[currentHeroId] || { mode: 'layouts', section: 'sec-monolithic' };
-        goToContext(target.mode, target.section);
-      } else {
-        switchMode('workshop');
-      }
-    }
-
-    function goToContext(modeId, sectionId) {
-      switchMode(modeId);
-      setTimeout(() => {
-        showSection(modeId, sectionId);
-      }, 50);
-    }
-
-    function showHeroItem(itemId) {
-      currentHeroId = itemId;
-      document.querySelectorAll('.hero-stage-panel').forEach(p => p.classList.add('hidden'));
-      document.querySelectorAll('#workshop-mode .nav-item').forEach(b => b.classList.remove('active'));
-
-      const target = document.getElementById('hero-stage-' + itemId);
-      if (target) target.classList.remove('hidden');
-
-      const navItem = document.getElementById('nav-item-' + itemId);
-      if (navItem) navItem.classList.add('active');
-
-      updateFab();
-    }
-
-    function showSection(modeId, sectionId) {
-      if (!sectionId) {
-        sectionId = modeId;
-        modeId = currentMode;
-      }
-      const modeWrapper = document.getElementById(modeId + '-mode');
-      if (modeWrapper) {
-        modeWrapper.querySelectorAll('.nav-item').forEach(n => {
-          n.classList.remove('active');
-          const oc = n.getAttribute('onclick') || '';
-          if (oc.includes(sectionId)) {
-            n.classList.add('active');
+    
+        function switchMode(mode) {
+          if (typeof playHaptic === 'function') playHaptic('tab');
+          currentMode = mode;
+          document.querySelectorAll('.mode-wrapper').forEach(w => w.classList.remove('active'));
+          document.querySelectorAll('.mode-btn, .tab-compact').forEach(b => b.classList.remove('active'));
+    
+          const normalized = mode.startsWith('tab-') ? mode.substring(4) : mode;
+          const target = document.getElementById(normalized + '-mode') || document.getElementById('tab-' + normalized) || document.getElementById(mode);
+          const btn = document.getElementById('btn-' + normalized) || document.getElementById('tab-btn-' + normalized) || document.getElementById('btn-' + mode);
+          if (target) target.classList.add('active');
+          if (btn) btn.classList.add('active');
+    
+          if ((normalized === 'autopsy' || mode === 'autopsy') && typeof updateAutopsyScoreboard === 'function') {
+            updateAutopsyScoreboard();
           }
-        });
-      }
-      const target = document.getElementById(sectionId);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-
-    function showDspSection(id) { showSection('dsp', id); }
-    function showBlueSection(id) { showSection('blue', id); }
-    function showTbdSection(id) { showSection('tbd', id); }
-    function showPmSection(id) { showSection('pm', id); }
-
-    function setVerdict(itemId, verdict, note) {
-      if (!triageData[itemId]) return;
-      triageData[itemId].verdict = verdict;
-      triageData[itemId].note = note;
-
-      const b = document.getElementById('badge-' + itemId);
-      if (b) {
-        b.textContent = verdict;
-        b.className = 'badge ' + (verdict === 'APPROVE' ? 'good' : (verdict === 'TABLE' ? 'warn' : 'bad'));
-      }
-
-      ['APPROVE', 'TABLE', 'KILL'].forEach(v => {
-        const card = document.getElementById(`card-${itemId}-${v}`);
-        if (card) {
-          if (v === verdict) {
-            card.style.outline = '2px solid ' + (v === 'APPROVE' ? '#10b981' : (v === 'TABLE' ? '#f59e0b' : '#ef4444'));
-            card.style.transform = 'scale(1.02)';
+    
+          updateFab();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    
+        function switchTab(tabId) {
+          switchMode(tabId);
+        }
+    
+        function updateFab() {
+          const fab = document.getElementById('fab-action');
+          const fabText = document.getElementById('fab-text');
+          const fabIcon = document.getElementById('fab-icon');
+          if (!fab) return;
+    
+          if (currentMode === 'workshop') {
+            fab.classList.add('ctx-mode');
+            fabIcon.textContent = '🔍';
+            fabText.textContent = 'See in Context';
           } else {
-            card.style.outline = 'none';
-            card.style.transform = 'scale(1)';
+            fab.classList.remove('ctx-mode');
+            fabIcon.textContent = '🔙';
+            fabText.textContent = 'Back to Workshop';
           }
         }
-      });
-
-      updateComposer();
-      updateScorecard();
-      updateAutopsyScoreboard();
-    }
-
-    function updateComposer() {
-      const lines = ['# POST-MORTEM TRIAGE VERDICTS\n'];
-      let count = 0;
-      for (const [id, data] of Object.entries(triageData)) {
-        if (data.verdict) {
-          count++;
-          lines.push(`- Item ${id} (${data.title}): [ ${data.verdict} ] - ${data.note}`);
-        }
-      }
-      const ta = document.getElementById('triage-output');
-      if (ta) {
-        if (count === 0) {
-          ta.value = "Click any option card above to assign verdicts, or type freely in chat!";
-        } else {
-          ta.value = lines.join('\n');
-        }
-      }
-    }
-
-    function updateScorecard() {
-      let app = 0, tab = 0, kil = 0;
-      for (const k in triageData) {
-        if (triageData[k].verdict === 'APPROVE') app++;
-        else if (triageData[k].verdict === 'TABLE') tab++;
-        else if (triageData[k].verdict === 'KILL') kil++;
-      }
-      const sa = document.getElementById('score-approved');
-      const st = document.getElementById('score-tabled');
-      const sk = document.getElementById('score-killed');
-      if (sa) sa.textContent = `✅ Approved: ${app}`;
-      if (st) st.textContent = `⏳ Tabled: ${tab}`;
-      if (sk) sk.textContent = `💀 Killed: ${kil}`;
-    }
-
-    function copyVerdictsToClipboard() {
-      const ta = document.getElementById('triage-output');
-      if (!ta) return;
-      if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
-        window.NkaiEnv.dispatchAction(ta.value);
-      } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(ta.value).catch(() => {});
-      }
-      const btn = document.querySelector('button[onclick="copyVerdictsToClipboard()"]');
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<span>✅ Copied!</span>';
-        setTimeout(() => { btn.innerHTML = orig; }, 2000);
-      }
-    }
-
-    /* ==========================================================================
-       Ongoing Autopsy View & Filterable Scoreboard Logic (Topic 6.8)
-       ========================================================================== */
-
-    let currentAutopsyFilter = 'all';
-
-    function updateAutopsyScoreboard() {
-      let app = 0, tab = 0, kil = 0, pen = 0;
-      for (const [id, data] of Object.entries(triageData)) {
-        const v = data.verdict;
-        if (v === 'APPROVE') app++;
-        else if (v === 'TABLE') tab++;
-        else if (v === 'KILL') kil++;
-        else pen++;
-
-        // Sync individual feed item in DOM
-        const item = document.getElementById('autopsy-item-' + id);
-        if (item) {
-          const status = v ? v.toLowerCase() : 'pending';
-          item.setAttribute('data-status', status);
-
-          const badge = item.querySelector('.autopsy-status-badge');
-          if (badge) {
-            badge.className = 'autopsy-status-badge badge-' + status;
-            if (v === 'APPROVE') badge.textContent = '✅ APPROVED';
-            else if (v === 'TABLE') badge.textContent = '⏳ TABLED';
-            else if (v === 'KILL') badge.textContent = '💀 KILLED';
-            else badge.textContent = '⚪ PENDING';
-          }
-
-          const noteEl = document.getElementById('autopsy-note-' + id);
-          if (noteEl) {
-            noteEl.textContent = data.note || (v ? `Verdict: ${v}` : 'Awaiting verdict...');
+    
+        function handleFabClick() {
+          if (currentMode === 'workshop') {
+            const contextMap = {
+              '1.1': { mode: 'layouts', section: 'sec-monolithic' },
+              '1.2': { mode: 'layouts', section: 'sec-monolithic' },
+              '1.3': { mode: 'layouts', section: 'sec-monolithic' },
+              '2.1': { mode: 'layouts', section: 'sec-traces' },
+              '2.2': { mode: 'layouts', section: 'sec-glyphs' },
+              '3.1': { mode: 'layouts', section: 'sec-faders' },
+              '3.2': { mode: 'layouts', section: 'sec-faders' }
+            };
+            const target = contextMap[currentHeroId] || { mode: 'layouts', section: 'sec-monolithic' };
+            goToContext(target.mode, target.section);
+          } else {
+            switchMode('workshop');
           }
         }
-      }
-
-      const total = Object.keys(triageData).length;
-
-      // Update Scoreboard Pills
-      const elTotal = document.getElementById('autopsy-count-total');
-      const elApp = document.getElementById('autopsy-count-approved');
-      const elTab = document.getElementById('autopsy-count-tabled');
-      const elKil = document.getElementById('autopsy-count-killed');
-      const elPen = document.getElementById('autopsy-count-pending');
-      if (elTotal) elTotal.textContent = total;
-      if (elApp) elApp.textContent = app;
-      if (elTab) elTab.textContent = tab;
-      if (elKil) elKil.textContent = kil;
-      if (elPen) elPen.textContent = pen;
-
-      // Update Filter Chip Counts
-      const chipAll = document.getElementById('chip-count-all');
-      const chipApp = document.getElementById('chip-count-approved');
-      const chipTab = document.getElementById('chip-count-tabled');
-      const chipKil = document.getElementById('chip-count-killed');
-      const chipPen = document.getElementById('chip-count-pending');
-      if (chipAll) chipAll.textContent = total;
-      if (chipApp) chipApp.textContent = app;
-      if (chipTab) chipTab.textContent = tab;
-      if (chipKil) chipKil.textContent = kil;
-      if (chipPen) chipPen.textContent = pen;
-    }
-
-    function filterAutopsyFeed(status) {
-      if (typeof playHaptic === 'function') playHaptic('click');
-      currentAutopsyFilter = status;
-
-      document.querySelectorAll('.filter-chip').forEach(c => {
-        if (c.getAttribute('data-filter') === status) {
-          c.classList.add('active');
-        } else {
-          c.classList.remove('active');
-        }
-      });
-
-      const items = document.querySelectorAll('.autopsy-feed-item');
-      items.forEach(item => {
-        const itemStatus = item.getAttribute('data-status');
-        if (status === 'all' || itemStatus === status) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    }
-
-    function jumpToWorkshopCard(topicId) {
-      if (typeof playHaptic === 'function') playHaptic('click');
-      switchMode('workshop');
-
-      if (typeof showHeroItem === 'function') {
-        showHeroItem(topicId);
-      }
-
-      setTimeout(() => {
-        const target = document.getElementById('hero-stage-' + topicId) || document.getElementById('card-' + topicId) || document.getElementById(topicId);
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          target.classList.remove('pulse-target');
-          void target.offsetWidth; // trigger reflow
-          target.classList.add('pulse-target');
+    
+        function goToContext(modeId, sectionId) {
+          switchMode(modeId);
           setTimeout(() => {
-            target.classList.remove('pulse-target');
-          }, 3600);
+            showSection(modeId, sectionId);
+          }, 50);
         }
-      }, 100);
-    }
-
-    function copyPostMortemReport() {
-      let app = 0, tab = 0, kil = 0, pen = 0;
-      const approvedList = [];
-      const tabledList = [];
-      const killedList = [];
-      const pendingList = [];
-
-      for (const [id, data] of Object.entries(triageData)) {
-        if (data.verdict === 'APPROVE') {
-          app++;
-          approvedList.push(`- **Item ${id} (${data.title}):** ${data.note || 'Approved for implementation'}`);
-        } else if (data.verdict === 'TABLE') {
-          tab++;
-          tabledList.push(`- **Item ${id} (${data.title}):** ${data.note || 'Tabled for future R&D'}`);
-        } else if (data.verdict === 'KILL') {
-          kil++;
-          killedList.push(`- **Item ${id} (${data.title}):** ${data.note || 'Rejected / Moved to Graveyard'}`);
-        } else {
-          pen++;
-          pendingList.push(`- **Item ${id} (${data.title}):** Awaiting decision`);
+    
+        function showHeroItem(itemId) {
+          currentHeroId = itemId;
+          document.querySelectorAll('.hero-stage-panel').forEach(p => p.classList.add('hidden'));
+          document.querySelectorAll('#workshop-mode .nav-item').forEach(b => b.classList.remove('active'));
+    
+          const target = document.getElementById('hero-stage-' + itemId);
+          if (target) target.classList.remove('hidden');
+    
+          const navItem = document.getElementById('nav-item-' + itemId);
+          if (navItem) navItem.classList.add('active');
+    
+          updateFab();
         }
-      }
-
-      const total = Object.keys(triageData).length;
-      const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-      const report = [
-        `# 📋 POST-MORTEM & TRIAGE VERDICT REPORT`,
-        `Generated: ${now} | Suite: The Klang Suite / N'kai`,
-        ``,
-        `## 📊 Triage Scoreboard`,
-        `- **Total Topics:** ${total}`,
-        `- **✅ Approved:** ${app}`,
-        `- **⏳ Tabled:** ${tab}`,
-        `- **💀 Killed:** ${kil}`,
-        `- **⚪ Pending:** ${pen}`,
-        ``,
-        `## ✅ Approved for Backlog (${app})`,
-        approvedList.length ? approvedList.join('\n') : `_None approved yet._`,
-        ``,
-        `## ⏳ Tabled for Future R&D (${tab})`,
-        tabledList.length ? tabledList.join('\n') : `_None tabled._`,
-        ``,
-        `## 💀 Strategy Graveyard (${kil})`,
-        killedList.length ? killedList.join('\n') : `_None rejected._`,
-        ``,
-        `## ⚪ Pending Decisions (${pen})`,
-        pendingList.length ? pendingList.join('\n') : `_All topics triaged!_`,
-        ``
-      ].join('\n');
-
-      if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
-        window.NkaiEnv.dispatchAction(report);
-      } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(report).catch(() => {});
-      }
-
-      const btn = document.querySelector('.autopsy-report-btn');
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<span>✅ Copied!</span>';
-        setTimeout(() => { btn.innerHTML = orig; }, 2000);
-      }
-    }
-
-    let zoomLevel = 100;
-    function changeFontSize(delta) {
-      zoomLevel = Math.max(75, Math.min(140, zoomLevel + (delta * 5)));
-      document.body.style.fontSize = (zoomLevel / 100) + 'rem';
-      const el = document.getElementById('font-zoom-level');
-      if (el) el.textContent = zoomLevel + '%';
-      localStorage.setItem('sidecar_font_zoom', zoomLevel);
-    }
-    const savedZoom = localStorage.getItem('sidecar_font_zoom');
-    if (savedZoom) {
-      zoomLevel = parseInt(savedZoom, 10);
-      document.body.style.fontSize = (zoomLevel / 100) + 'rem';
-      const el = document.getElementById('font-zoom-level');
-      if (el) el.textContent = zoomLevel + '%';
-    }
-
-    /* Simulators */
-    function toggleFaceplate(mode) {
-      const d = document.getElementById('sim-faceplate-display');
-      const bCards = document.getElementById('sim-btn-cards');
-      const bMono = document.getElementById('sim-btn-mono');
-      if (!d) return;
-
-      if (mode === 'cards') {
-        bCards.style.borderColor = '#f43f5e';
-        bCards.style.backgroundColor = '#270811';
-        bCards.style.color = '#fda4af';
-        bMono.style.borderColor = '#2d1b28';
-        bMono.style.backgroundColor = '#140e16';
-        bMono.style.color = '#94a3b8';
-
-        d.innerHTML = `
-          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-family: monospace; font-size: 10px;">
-            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Core<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Env<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Filter<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 2 Core<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 2 Filter<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
-            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Master Out<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
-          </div>
-          <p style="color: #f87171; font-size: 11px; margin-top: 10px; text-align: center; font-family: monospace;">⚠️ 4 out of 10 cards (40%) are dead gray slots. Circuits split unnaturally across card borders.</p>
-        `;
-      } else {
-        bMono.style.borderColor = '#f43f5e';
-        bMono.style.backgroundColor = '#270811';
-        bMono.style.color = '#fda4af';
-        bCards.style.borderColor = '#2d1b28';
-        bCards.style.backgroundColor = '#140e16';
-        bCards.style.color = '#94a3b8';
-
-        d.innerHTML = `
-          <div style="background: #111620; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; display: flex; gap: 10px; font-family: monospace; font-size: 10px;">
-            <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
-              <strong style="color: #38bdf8;">// 01 UNIFIED FM CORE</strong>
-              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Carrier • Ratio • Mod Depth • Mod Ratio • Feedback • Shape</div>
-            </div>
-            <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
-              <strong style="color: #f43f5e;">// 02 DUAL FILTER &amp; DRIVE</strong>
-              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Cutoff • Resonance • Acid Bite • Drive • Slope • Mix</div>
-            </div>
-            <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
-              <strong style="color: #eab308;">// 03 TRANSIENT &amp; PUNCH</strong>
-              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Attack • Curve • Seismic Spike • Click Amount</div>
-            </div>
-            <div style="width: 100px; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; text-align: center;">
-              <strong style="color: #3fb950;">// SUM</strong>
-              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">4x Faders</div>
-            </div>
-          </div>
-          <p style="color: #34d399; font-size: 11px; margin-top: 10px; text-align: center; font-family: monospace;">✨ Zero blank cards. 100% purposeful surface area with milled hairline grooves between circuits.</p>
-        `;
-      }
-    }
-
-    function toggleTbdView(view) {
-      const d = document.getElementById('sim-tbd-display');
-      const bDesk = document.getElementById('sim-btn-desk');
-      const bHw = document.getElementById('sim-btn-hw');
-      if (!d) return;
-
-      if (view === 'desktop') {
-        bDesk.style.borderColor = '#f43f5e';
-        bDesk.style.backgroundColor = '#270811';
-        bDesk.style.color = '#fda4af';
-        bHw.style.borderColor = '#2d1b28';
-        bHw.style.backgroundColor = '#140e16';
-        bHw.style.color = '#94a3b8';
-
-        d.innerHTML = `
-          <div style="font-family: monospace; font-size: 11px;">
-            <strong style="color: #fff;">Desktop UI: Unified FM Core (6 Knobs in 1 Bay)</strong>
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; text-align: center;">
-              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Carrier Shape</div>
-              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Coarse Ratio</div>
-              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Depth</div>
-              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Shape</div>
-              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Ratio</div>
-              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Feedback</div>
-            </div>
-            <p style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Sound designer tweaks Carrier and Modulator simultaneously on desktop without paging.</p>
-          </div>
-        `;
-      } else {
-        bHw.style.borderColor = '#f43f5e';
-        bHw.style.backgroundColor = '#270811';
-        bHw.style.color = '#fda4af';
-        bDesk.style.borderColor = '#2d1b28';
-        bDesk.style.backgroundColor = '#140e16';
-        bDesk.style.color = '#94a3b8';
-
-        d.innerHTML = `
-          <div style="font-family: monospace; font-size: 11px;">
-            <strong style="color: #34d399;">TBD-16 Hardware: Firmware Auto-Chunks JSON into Banked Quads</strong>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
-              <div class="card" style="padding: 8px; margin: 0; border-color: #059669; background: #06201a;">
-                <span class="badge good" style="margin-bottom: 4px;">Page 1A: Carrier Bank</span>
-                <div style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">E1: Shape • E2: Coarse • E3: Mod Depth • E4: Mod Shape</div>
-              </div>
-              <div class="card" style="padding: 8px; margin: 0; border-color: #059669; background: #06201a;">
-                <span class="badge good" style="margin-bottom: 4px;">Page 1B: Modulator Bank</span>
-                <div style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">E1: Mod Ratio • E2: Feedback • E3: [Empty] • E4: [Empty]</div>
-              </div>
-            </div>
-            <p style="color: #a7f3d0; font-size: 10px; margin-top: 8px;">Zero C++ rewriting needed: hardware engine auto-pages JSON groups with deterministic [A/B] toggling.</p>
-          </div>
-        `;
-      }
-    }
-
-    function triggerTracesPulse() {
-      const trace1 = document.getElementById('circuit-trace-audio');
-      const trace2 = document.getElementById('circuit-trace-mod');
-      if (trace1) {
-        trace1.style.filter = 'drop-shadow(0 0 10px #38bdf8)';
-        trace1.setAttribute('stroke-width', '4');
-        setTimeout(() => {
-          trace1.style.filter = 'none';
-          trace1.setAttribute('stroke-width', '2');
-        }, 300);
-      }
-      if (trace2) {
-        trace2.style.filter = 'drop-shadow(0 0 10px #f43f5e)';
-        trace2.setAttribute('stroke-width', '4');
-        setTimeout(() => {
-          trace2.style.filter = 'none';
-          trace2.setAttribute('stroke-width', '2');
-        }, 400);
-      }
-    }
-
-    function updatePolarRose(k) {
-      const path = document.getElementById('svg-polar-rose');
-      const label = document.getElementById('label-rose-val');
-      if (label) label.textContent = k;
-      if (!path) return;
-
-      const points = [];
-      const numPts = 100;
-      const rScale = 35;
-      const cx = 50, cy = 50;
-
-      for (let i = 0; i <= numPts; i++) {
-        const theta = (i / numPts) * 2 * Math.PI;
-        const r = Math.cos(k * theta) * rScale;
-        const x = cx + r * Math.cos(theta);
-        const y = cy + r * Math.sin(theta);
-        points.push(`${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`);
-      }
-      points.push('Z');
-      path.setAttribute('d', points.join(' '));
-    }
-
-    function updateAcidJaw(q) {
-      const path = document.getElementById('svg-acid-jaw');
-      const label = document.getElementById('label-jaw-val');
-      if (label) label.textContent = q + '%';
-      if (!path) return;
-
-      const peakY = 80 - (q / 100) * 65;
-      const d = `M 10 70 Q 50 70 58 ${peakY + 10} Q 60 ${peakY} 62 ${peakY + 10} Q 70 75 110 75`;
-      path.setAttribute('d', d);
-    }
-
-    function updatePunchSpike(attack) {
-      const path = document.getElementById('svg-punch-spike');
-      const label = document.getElementById('label-spike-val');
-      if (label) label.textContent = attack + ' ms';
-      if (!path) return;
-
-      const attackX = 10 + (attack / 30) * 40;
-      const d = `M 10 80 L ${attackX.toFixed(1)} 15 Q ${attackX + 20} 30 110 80`;
-      path.setAttribute('d', d);
-    }
-
-    function toggleFaderBank(bank) {
-      const bL = document.getElementById('btn-bank-levels');
-      const bD = document.getElementById('btn-bank-decays');
-      if (!bL || !bD) return;
-
-      if (bank === 'levels') {
-        bL.style.borderColor = '#10b981';
-        bL.style.backgroundColor = '#06201a';
-        bL.style.color = '#34d399';
-        bD.style.borderColor = '#2d1b28';
-        bD.style.backgroundColor = '#140e16';
-        bD.style.color = '#94a3b8';
-        document.getElementById('readout-v1').textContent = '-3.2 dB';
-        document.getElementById('readout-v2').textContent = '-6.0 dB';
-        document.getElementById('readout-v3').textContent = '-1.5 dB';
-        document.getElementById('readout-v4').textContent = '-8.4 dB';
-      } else {
-        bD.style.borderColor = '#10b981';
-        bD.style.backgroundColor = '#06201a';
-        bD.style.color = '#34d399';
-        bL.style.borderColor = '#2d1b28';
-        bL.style.backgroundColor = '#140e16';
-        bL.style.color = '#94a3b8';
-        document.getElementById('readout-v1').textContent = '420 ms';
-        document.getElementById('readout-v2').textContent = '180 ms';
-        document.getElementById('readout-v3').textContent = '45 ms';
-        document.getElementById('readout-v4').textContent = '850 ms';
-      }
-    }
-
-    function handleDetentSlider(rawVal) {
-      let val = parseFloat(rawVal);
-      const hud = document.getElementById('hud-detent-bracket');
-      let snapped = false;
-
-      [1.0, 2.0, 3.0, 4.0].forEach(snap => {
-        if (Math.abs(val - snap) <= 0.07) {
-          val = snap;
-          snapped = true;
-        }
-      });
-
-      if (hud) {
-        if (snapped) {
-          hud.textContent = `Detent: [ ${val.toFixed(3)}x SNAP ]`;
-          hud.style.borderColor = '#059669';
-          hud.style.backgroundColor = '#064e3b';
-          hud.style.color = '#a7f3d0';
-        } else {
-          hud.textContent = `Ratio: [ ${val.toFixed(3)}x ]`;
-          hud.style.borderColor = '#2d1b28';
-          hud.style.backgroundColor = '#1e1320';
-          hud.style.color = '#cbd5e1';
-        }
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      toggleFaceplate('monolithic');
-      toggleTbdView('desktop');
-      updatePolarRose(3);
-      updateAcidJaw(75);
-      updatePunchSpike(2.5);
-      updateComposer();
-      updateScorecard();
-      switchMode('workshop');
-      showHeroItem('1.1');
-    });
-
-    /* Dynamic Keyboard Shortcuts Helper (Topic 6.6) */
-    function toggleShortcuts() {
-      const popover = document.getElementById('shortcut-popover');
-      if (!popover) return;
-      const isHidden = popover.style.display === 'none' || !popover.style.display;
-      popover.style.display = isHidden ? 'block' : 'none';
-    }
-
-    function copyShortcutText(text) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).catch(() => {});
-      }
-    }
-
-    // Close shortcut popover when clicking outside
-    document.addEventListener('click', (event) => {
-      const popover = document.getElementById('shortcut-popover');
-      const btn = document.getElementById('btn-shortcuts');
-      if (!popover || !btn) return;
-      if (!popover.contains(event.target) && !btn.contains(event.target)) {
-        popover.style.display = 'none';
-      }
-    });
-
-    /* Visual HUD Toast Notification */
-    function showToast(message) {
-      let toast = document.getElementById('nkai-toast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'nkai-toast';
-        toast.style.position = 'fixed';
-        toast.style.bottom = '20px';
-        toast.style.right = '20px';
-        toast.style.background = '#161b22';
-        toast.style.color = '#38bdf8';
-        toast.style.border = '1px solid #38bdf8';
-        toast.style.padding = '8px 16px';
-        toast.style.borderRadius = '6px';
-        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
-        toast.style.fontFamily = 'monospace';
-        toast.style.fontSize = '12px';
-        toast.style.zIndex = '99999';
-        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        toast.style.pointerEvents = 'none';
-        document.body.appendChild(toast);
-      }
-      toast.textContent = message;
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateY(0)';
-      clearTimeout(toast._timeout);
-      toast._timeout = setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(10px)';
-      }, 2500);
-    }
-
-    /* N'kai Universal Tri-Mode Environment Adapter (Topic 6.13) */
-    window.NkaiEnv = {
-      detect: function() {
-        if (typeof window !== 'undefined' && window.sidecar && typeof window.sidecar.agent?.sendMessage === 'function') {
-          return 'extension';
-        }
-        if (typeof window !== 'undefined' && window.location) {
-          if (window.location.protocol === 'file:') return 'file';
-          if (window.location.protocol === 'http:' || window.location.protocol === 'https:') return 'server';
-        }
-        return 'file';
-      },
-
-      getMode: function() {
-        return this.detect();
-      },
-
-      isExtension: function() {
-        return this.detect() === 'extension';
-      },
-
-      isFile: function() {
-        return this.detect() === 'file';
-      },
-
-      isServer: function() {
-        return this.detect() === 'server';
-      },
-
-      dispatchAction: function(actionPayload) {
-        const env = this.detect();
-        const text = typeof actionPayload === 'string' ? actionPayload : JSON.stringify(actionPayload, null, 2);
-
-        // Mode 1: Antigravity IDE UI Extension
-        if (env === 'extension') {
-          try {
-            window.sidecar.agent.sendMessage(text);
-            showToast('Dispatched message directly to Agent!');
-            return true;
-          } catch (err) {
-            console.warn('[NkaiEnv] Extension dispatch failed, falling back to clipboard:', err);
+    
+        function showSection(modeId, sectionId) {
+          if (!sectionId) {
+            sectionId = modeId;
+            modeId = currentMode;
+          }
+          const modeWrapper = document.getElementById(modeId + '-mode');
+          if (modeWrapper) {
+            modeWrapper.querySelectorAll('.nav-item').forEach(n => {
+              n.classList.remove('active');
+              const oc = n.getAttribute('onclick') || '';
+              if (oc.includes(sectionId)) {
+                n.classList.add('active');
+              }
+            });
+          }
+          const target = document.getElementById(sectionId);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }
-
-        // Mode 2: Local HTTP Server (CLI Harness)
-        if (env === 'server' && typeof fetch === 'function') {
-          fetch('/api/dispatch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: actionPayload, timestamp: Date.now() })
-          }).then(res => {
-            if (res.ok) {
-              showToast('Dispatched to local CLI server & copied to clipboard!');
+    
+        function showDspSection(id) { showSection('dsp', id); }
+        function showBlueSection(id) { showSection('blue', id); }
+        function showTbdSection(id) { showSection('tbd', id); }
+        function showPmSection(id) { showSection('pm', id); }
+    
+        function setVerdict(itemId, verdict, note) {
+          if (!triageData[itemId]) return;
+          triageData[itemId].verdict = verdict;
+          triageData[itemId].note = note;
+    
+          const b = document.getElementById('badge-' + itemId);
+          if (b) {
+            b.textContent = verdict;
+            b.className = 'badge ' + (verdict === 'APPROVE' ? 'good' : (verdict === 'TABLE' ? 'warn' : 'bad'));
+          }
+    
+          ['APPROVE', 'TABLE', 'KILL'].forEach(v => {
+            const card = document.getElementById(`card-${itemId}-${v}`);
+            if (card) {
+              if (v === verdict) {
+                card.style.outline = '2px solid ' + (v === 'APPROVE' ? '#10b981' : (v === 'TABLE' ? '#f59e0b' : '#ef4444'));
+                card.style.transform = 'scale(1.02)';
+              } else {
+                card.style.outline = 'none';
+                card.style.transform = 'scale(1)';
+              }
             }
-          }).catch(() => {
-            // Fallback silently if /api/dispatch not captured
+          });
+    
+          updateComposer();
+          updateScorecard();
+          updateAutopsyScoreboard();
+          updateAllowanceLedger();
+        }
+    
+        function updateComposer() {
+          const lines = ['# POST-MORTEM TRIAGE VERDICTS\n'];
+          let count = 0;
+          for (const [id, data] of Object.entries(triageData)) {
+            if (data.verdict) {
+              count++;
+              lines.push(`- Item ${id} (${data.title}): [ ${data.verdict} ] - ${data.note}`);
+            }
+          }
+          const ta = document.getElementById('triage-output');
+          if (ta) {
+            if (count === 0) {
+              ta.value = "Click any option card above to assign verdicts, or type freely in chat!";
+            } else {
+              ta.value = lines.join('\n');
+            }
+          }
+        }
+    
+        function updateScorecard() {
+          let app = 0, tab = 0, kil = 0;
+          for (const k in triageData) {
+            if (triageData[k].verdict === 'APPROVE') app++;
+            else if (triageData[k].verdict === 'TABLE') tab++;
+            else if (triageData[k].verdict === 'KILL') kil++;
+          }
+          const sa = document.getElementById('score-approved');
+          const st = document.getElementById('score-tabled');
+          const sk = document.getElementById('score-killed');
+          if (sa) sa.textContent = `✅ Approved: ${app}`;
+          if (st) st.textContent = `⏳ Tabled: ${tab}`;
+          if (sk) sk.textContent = `💀 Killed: ${kil}`;
+        }
+    
+        function copyVerdictsToClipboard() {
+          const ta = document.getElementById('triage-output');
+          if (!ta) return;
+          if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
+            window.NkaiEnv.dispatchAction(ta.value);
+          } else if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(ta.value).catch(() => {});
+          }
+          const btn = document.querySelector('button[onclick="copyVerdictsToClipboard()"]');
+          if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<span>✅ Copied!</span>';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+          }
+        }
+    
+        /* ==========================================================================
+           Ongoing Autopsy View & Filterable Scoreboard Logic (Topic 6.8)
+           ========================================================================== */
+    
+        let currentAutopsyFilter = 'all';
+    
+        function updateAutopsyScoreboard() {
+          let app = 0, tab = 0, kil = 0, pen = 0;
+          for (const [id, data] of Object.entries(triageData)) {
+            const v = data.verdict;
+            if (v === 'APPROVE') app++;
+            else if (v === 'TABLE') tab++;
+            else if (v === 'KILL') kil++;
+            else pen++;
+    
+            // Sync individual feed item in DOM
+            const item = document.getElementById('autopsy-item-' + id);
+            if (item) {
+              const status = v ? v.toLowerCase() : 'pending';
+              item.setAttribute('data-status', status);
+    
+              const badge = item.querySelector('.autopsy-status-badge');
+              if (badge) {
+                badge.className = 'autopsy-status-badge badge-' + status;
+                if (v === 'APPROVE') badge.textContent = '✅ APPROVED';
+                else if (v === 'TABLE') badge.textContent = '⏳ TABLED';
+                else if (v === 'KILL') badge.textContent = '💀 KILLED';
+                else badge.textContent = '⚪ PENDING';
+              }
+    
+              const noteEl = document.getElementById('autopsy-note-' + id);
+              if (noteEl) {
+                noteEl.textContent = data.note || (v ? `Verdict: ${v}` : 'Awaiting verdict...');
+              }
+            }
+          }
+    
+          const total = Object.keys(triageData).length;
+    
+          // Update Scoreboard Pills
+          const elTotal = document.getElementById('autopsy-count-total');
+          const elApp = document.getElementById('autopsy-count-approved');
+          const elTab = document.getElementById('autopsy-count-tabled');
+          const elKil = document.getElementById('autopsy-count-killed');
+          const elPen = document.getElementById('autopsy-count-pending');
+          if (elTotal) elTotal.textContent = total;
+          if (elApp) elApp.textContent = app;
+          if (elTab) elTab.textContent = tab;
+          if (elKil) elKil.textContent = kil;
+          if (elPen) elPen.textContent = pen;
+    
+          // Update Filter Chip Counts
+          const chipAll = document.getElementById('chip-count-all');
+          const chipApp = document.getElementById('chip-count-approved');
+          const chipTab = document.getElementById('chip-count-tabled');
+          const chipKil = document.getElementById('chip-count-killed');
+          const chipPen = document.getElementById('chip-count-pending');
+          if (chipAll) chipAll.textContent = total;
+          if (chipApp) chipApp.textContent = app;
+          if (chipTab) chipTab.textContent = tab;
+          if (chipKil) chipKil.textContent = kil;
+          if (chipPen) chipPen.textContent = pen;
+        }
+    
+        function filterAutopsyFeed(status) {
+          if (typeof playHaptic === 'function') playHaptic('click');
+          currentAutopsyFilter = status;
+    
+          document.querySelectorAll('.filter-chip').forEach(c => {
+            if (c.getAttribute('data-filter') === status) {
+              c.classList.add('active');
+            } else {
+              c.classList.remove('active');
+            }
+          });
+    
+          const items = document.querySelectorAll('.autopsy-feed-item');
+          items.forEach(item => {
+            const itemStatus = item.getAttribute('data-status');
+            if (status === 'all' || itemStatus === status) {
+              item.style.display = 'flex';
+            } else {
+              item.style.display = 'none';
+            }
           });
         }
-
-        // Mode 3: Local File (file:///) / Default Fallback
-        return this.copyToClipboard(text);
-      },
-
-      copyToClipboard: function(payload) {
-        const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(() => {
-            showToast('Copied to clipboard for CLI terminal!');
-          }).catch(() => {
-            this.fallbackHighlight(text);
+    
+        function jumpToWorkshopCard(topicId) {
+          if (typeof playHaptic === 'function') playHaptic('click');
+          switchMode('workshop');
+    
+          if (typeof showHeroItem === 'function') {
+            showHeroItem(topicId);
+          }
+    
+          setTimeout(() => {
+            const target = document.getElementById('hero-stage-' + topicId) || document.getElementById('card-' + topicId) || document.getElementById(topicId);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              target.classList.remove('pulse-target');
+              void target.offsetWidth; // trigger reflow
+              target.classList.add('pulse-target');
+              setTimeout(() => {
+                target.classList.remove('pulse-target');
+              }, 3600);
+            }
+          }, 100);
+        }
+    
+        function copyPostMortemReport() {
+          let app = 0, tab = 0, kil = 0, pen = 0;
+          const approvedList = [];
+          const tabledList = [];
+          const killedList = [];
+          const pendingList = [];
+    
+          for (const [id, data] of Object.entries(triageData)) {
+            if (data.verdict === 'APPROVE') {
+              app++;
+              approvedList.push(`- **Item ${id} (${data.title}):** ${data.note || 'Approved for implementation'}`);
+            } else if (data.verdict === 'TABLE') {
+              tab++;
+              tabledList.push(`- **Item ${id} (${data.title}):** ${data.note || 'Tabled for future R&D'}`);
+            } else if (data.verdict === 'KILL') {
+              kil++;
+              killedList.push(`- **Item ${id} (${data.title}):** ${data.note || 'Rejected / Moved to Graveyard'}`);
+            } else {
+              pen++;
+              pendingList.push(`- **Item ${id} (${data.title}):** Awaiting decision`);
+            }
+          }
+    
+          const total = Object.keys(triageData).length;
+          const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    
+          const report = [
+            `# 📋 POST-MORTEM & TRIAGE VERDICT REPORT`,
+            `Generated: ${now} | Suite: The Klang Suite / N'kai`,
+            ``,
+            `## 📊 Triage Scoreboard`,
+            `- **Total Topics:** ${total}`,
+            `- **✅ Approved:** ${app}`,
+            `- **⏳ Tabled:** ${tab}`,
+            `- **💀 Killed:** ${kil}`,
+            `- **⚪ Pending:** ${pen}`,
+            ``,
+            `## ✅ Approved for Backlog (${app})`,
+            approvedList.length ? approvedList.join('\n') : `_None approved yet._`,
+            ``,
+            `## ⏳ Tabled for Future R&D (${tab})`,
+            tabledList.length ? tabledList.join('\n') : `_None tabled._`,
+            ``,
+            `## 💀 Strategy Graveyard (${kil})`,
+            killedList.length ? killedList.join('\n') : `_None rejected._`,
+            ``,
+            `## ⚪ Pending Decisions (${pen})`,
+            pendingList.length ? pendingList.join('\n') : `_All topics triaged!_`,
+            ``
+          ].join('\n');
+    
+          if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
+            window.NkaiEnv.dispatchAction(report);
+          } else if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(report).catch(() => {});
+          }
+    
+          const btn = document.querySelector('.autopsy-report-btn');
+          if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<span>✅ Copied!</span>';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+          }
+        }
+    
+        let zoomLevel = 100;
+        function changeFontSize(delta) {
+          zoomLevel = Math.max(75, Math.min(140, zoomLevel + (delta * 5)));
+          document.body.style.fontSize = (zoomLevel / 100) + 'rem';
+          const el = document.getElementById('font-zoom-level');
+          if (el) el.textContent = zoomLevel + '%';
+          localStorage.setItem('sidecar_font_zoom', zoomLevel);
+        }
+        const savedZoom = localStorage.getItem('sidecar_font_zoom');
+        if (savedZoom) {
+          zoomLevel = parseInt(savedZoom, 10);
+          document.body.style.fontSize = (zoomLevel / 100) + 'rem';
+          const el = document.getElementById('font-zoom-level');
+          if (el) el.textContent = zoomLevel + '%';
+        }
+    
+        /* Simulators */
+        function toggleFaceplate(mode) {
+          const d = document.getElementById('sim-faceplate-display');
+          const bCards = document.getElementById('sim-btn-cards');
+          const bMono = document.getElementById('sim-btn-mono');
+          if (!d) return;
+    
+          if (mode === 'cards') {
+            bCards.style.borderColor = '#f43f5e';
+            bCards.style.backgroundColor = '#270811';
+            bCards.style.color = '#fda4af';
+            bMono.style.borderColor = '#2d1b28';
+            bMono.style.backgroundColor = '#140e16';
+            bMono.style.color = '#94a3b8';
+    
+            d.innerHTML = `
+              <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-family: monospace; font-size: 10px;">
+                <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Core<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Env<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Filter<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 2 Core<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 2 Filter<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+                <div class="card" style="padding: 10px; margin: 0; text-align: center;">Master Out<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+              </div>
+              <p style="color: #f87171; font-size: 11px; margin-top: 10px; text-align: center; font-family: monospace;">⚠️ 4 out of 10 cards (40%) are dead gray slots. Circuits split unnaturally across card borders.</p>
+            `;
+          } else {
+            bMono.style.borderColor = '#f43f5e';
+            bMono.style.backgroundColor = '#270811';
+            bMono.style.color = '#fda4af';
+            bCards.style.borderColor = '#2d1b28';
+            bCards.style.backgroundColor = '#140e16';
+            bCards.style.color = '#94a3b8';
+    
+            d.innerHTML = `
+              <div style="background: #111620; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; display: flex; gap: 10px; font-family: monospace; font-size: 10px;">
+                <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+                  <strong style="color: #38bdf8;">// 01 UNIFIED FM CORE</strong>
+                  <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Carrier • Ratio • Mod Depth • Mod Ratio • Feedback • Shape</div>
+                </div>
+                <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+                  <strong style="color: #f43f5e;">// 02 DUAL FILTER &amp; DRIVE</strong>
+                  <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Cutoff • Resonance • Acid Bite • Drive • Slope • Mix</div>
+                </div>
+                <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+                  <strong style="color: #eab308;">// 03 TRANSIENT &amp; PUNCH</strong>
+                  <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Attack • Curve • Seismic Spike • Click Amount</div>
+                </div>
+                <div style="width: 100px; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; text-align: center;">
+                  <strong style="color: #3fb950;">// SUM</strong>
+                  <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">4x Faders</div>
+                </div>
+              </div>
+              <p style="color: #34d399; font-size: 11px; margin-top: 10px; text-align: center; font-family: monospace;">✨ Zero blank cards. 100% purposeful surface area with milled hairline grooves between circuits.</p>
+            `;
+          }
+        }
+    
+        function toggleTbdView(view) {
+          const d = document.getElementById('sim-tbd-display');
+          const bDesk = document.getElementById('sim-btn-desk');
+          const bHw = document.getElementById('sim-btn-hw');
+          if (!d) return;
+    
+          if (view === 'desktop') {
+            bDesk.style.borderColor = '#f43f5e';
+            bDesk.style.backgroundColor = '#270811';
+            bDesk.style.color = '#fda4af';
+            bHw.style.borderColor = '#2d1b28';
+            bHw.style.backgroundColor = '#140e16';
+            bHw.style.color = '#94a3b8';
+    
+            d.innerHTML = `
+              <div style="font-family: monospace; font-size: 11px;">
+                <strong style="color: #fff;">Desktop UI: Unified FM Core (6 Knobs in 1 Bay)</strong>
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; text-align: center;">
+                  <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Carrier Shape</div>
+                  <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Coarse Ratio</div>
+                  <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Depth</div>
+                  <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Shape</div>
+                  <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Ratio</div>
+                  <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Feedback</div>
+                </div>
+                <p style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Sound designer tweaks Carrier and Modulator simultaneously on desktop without paging.</p>
+              </div>
+            `;
+          } else {
+            bHw.style.borderColor = '#f43f5e';
+            bHw.style.backgroundColor = '#270811';
+            bHw.style.color = '#fda4af';
+            bDesk.style.borderColor = '#2d1b28';
+            bDesk.style.backgroundColor = '#140e16';
+            bDesk.style.color = '#94a3b8';
+    
+            d.innerHTML = `
+              <div style="font-family: monospace; font-size: 11px;">
+                <strong style="color: #34d399;">TBD-16 Hardware: Firmware Auto-Chunks JSON into Banked Quads</strong>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                  <div class="card" style="padding: 8px; margin: 0; border-color: #059669; background: #06201a;">
+                    <span class="badge good" style="margin-bottom: 4px;">Page 1A: Carrier Bank</span>
+                    <div style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">E1: Shape • E2: Coarse • E3: Mod Depth • E4: Mod Shape</div>
+                  </div>
+                  <div class="card" style="padding: 8px; margin: 0; border-color: #059669; background: #06201a;">
+                    <span class="badge good" style="margin-bottom: 4px;">Page 1B: Modulator Bank</span>
+                    <div style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">E1: Mod Ratio • E2: Feedback • E3: [Empty] • E4: [Empty]</div>
+                  </div>
+                </div>
+                <p style="color: #a7f3d0; font-size: 10px; margin-top: 8px;">Zero C++ rewriting needed: hardware engine auto-pages JSON groups with deterministic [A/B] toggling.</p>
+              </div>
+            `;
+          }
+        }
+    
+        function triggerTracesPulse() {
+          const trace1 = document.getElementById('circuit-trace-audio');
+          const trace2 = document.getElementById('circuit-trace-mod');
+          if (trace1) {
+            trace1.style.filter = 'drop-shadow(0 0 10px #38bdf8)';
+            trace1.setAttribute('stroke-width', '4');
+            setTimeout(() => {
+              trace1.style.filter = 'none';
+              trace1.setAttribute('stroke-width', '2');
+            }, 300);
+          }
+          if (trace2) {
+            trace2.style.filter = 'drop-shadow(0 0 10px #f43f5e)';
+            trace2.setAttribute('stroke-width', '4');
+            setTimeout(() => {
+              trace2.style.filter = 'none';
+              trace2.setAttribute('stroke-width', '2');
+            }, 400);
+          }
+        }
+    
+        function updatePolarRose(k) {
+          const path = document.getElementById('svg-polar-rose');
+          const label = document.getElementById('label-rose-val');
+          if (label) label.textContent = k;
+          if (!path) return;
+    
+          const points = [];
+          const numPts = 100;
+          const rScale = 35;
+          const cx = 50, cy = 50;
+    
+          for (let i = 0; i <= numPts; i++) {
+            const theta = (i / numPts) * 2 * Math.PI;
+            const r = Math.cos(k * theta) * rScale;
+            const x = cx + r * Math.cos(theta);
+            const y = cy + r * Math.sin(theta);
+            points.push(`${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`);
+          }
+          points.push('Z');
+          path.setAttribute('d', points.join(' '));
+        }
+    
+        function updateAcidJaw(q) {
+          const path = document.getElementById('svg-acid-jaw');
+          const label = document.getElementById('label-jaw-val');
+          if (label) label.textContent = q + '%';
+          if (!path) return;
+    
+          const peakY = 80 - (q / 100) * 65;
+          const d = `M 10 70 Q 50 70 58 ${peakY + 10} Q 60 ${peakY} 62 ${peakY + 10} Q 70 75 110 75`;
+          path.setAttribute('d', d);
+        }
+    
+        function updatePunchSpike(attack) {
+          const path = document.getElementById('svg-punch-spike');
+          const label = document.getElementById('label-spike-val');
+          if (label) label.textContent = attack + ' ms';
+          if (!path) return;
+    
+          const attackX = 10 + (attack / 30) * 40;
+          const d = `M 10 80 L ${attackX.toFixed(1)} 15 Q ${attackX + 20} 30 110 80`;
+          path.setAttribute('d', d);
+        }
+    
+        function toggleFaderBank(bank) {
+          const bL = document.getElementById('btn-bank-levels');
+          const bD = document.getElementById('btn-bank-decays');
+          if (!bL || !bD) return;
+    
+          if (bank === 'levels') {
+            bL.style.borderColor = '#10b981';
+            bL.style.backgroundColor = '#06201a';
+            bL.style.color = '#34d399';
+            bD.style.borderColor = '#2d1b28';
+            bD.style.backgroundColor = '#140e16';
+            bD.style.color = '#94a3b8';
+            document.getElementById('readout-v1').textContent = '-3.2 dB';
+            document.getElementById('readout-v2').textContent = '-6.0 dB';
+            document.getElementById('readout-v3').textContent = '-1.5 dB';
+            document.getElementById('readout-v4').textContent = '-8.4 dB';
+          } else {
+            bD.style.borderColor = '#10b981';
+            bD.style.backgroundColor = '#06201a';
+            bD.style.color = '#34d399';
+            bL.style.borderColor = '#2d1b28';
+            bL.style.backgroundColor = '#140e16';
+            bL.style.color = '#94a3b8';
+            document.getElementById('readout-v1').textContent = '420 ms';
+            document.getElementById('readout-v2').textContent = '180 ms';
+            document.getElementById('readout-v3').textContent = '45 ms';
+            document.getElementById('readout-v4').textContent = '850 ms';
+          }
+        }
+    
+        function handleDetentSlider(rawVal) {
+          let val = parseFloat(rawVal);
+          const hud = document.getElementById('hud-detent-bracket');
+          let snapped = false;
+    
+          [1.0, 2.0, 3.0, 4.0].forEach(snap => {
+            if (Math.abs(val - snap) <= 0.07) {
+              val = snap;
+              snapped = true;
+            }
           });
-          return true;
+    
+          if (hud) {
+            if (snapped) {
+              hud.textContent = `Detent: [ ${val.toFixed(3)}x SNAP ]`;
+              hud.style.borderColor = '#059669';
+              hud.style.backgroundColor = '#064e3b';
+              hud.style.color = '#a7f3d0';
+            } else {
+              hud.textContent = `Ratio: [ ${val.toFixed(3)}x ]`;
+              hud.style.borderColor = '#2d1b28';
+              hud.style.backgroundColor = '#1e1320';
+              hud.style.color = '#cbd5e1';
+            }
+          }
         }
-        return this.fallbackHighlight(text);
-      },
-
-      fallbackHighlight: function(text) {
-        const ta = document.getElementById('triage-output') || document.querySelector('textarea.prompt-box');
-        if (ta) {
-          ta.value = text;
-          ta.focus();
-          ta.select();
-          showToast('Selected text in prompt box!');
-          return true;
-        }
-        return false;
-      }
-    };
-
-    /* Audio Haptics Protocol (Topics 6.9 & 6.10) */
-    let audioMuted = false;
-    let hapticAudioCtx = null;
-
-    function initAudioHaptics() {
-      const saved = localStorage.getItem('nkai_audio_muted');
-      if (saved !== null) {
-        audioMuted = (saved === 'true');
-      }
-      updateHapticsUI();
-    }
-
-    function updateHapticsUI() {
-      const btn = document.getElementById('btn-haptics');
-      const icon = document.getElementById('haptics-icon');
-      if (!icon) return;
-      if (!audioMuted) {
-        icon.textContent = '🔊';
-        if (btn) {
-          btn.classList.remove('muted');
-          btn.title = 'Audio Haptics: ON (Click to mute)';
-          btn.setAttribute('aria-label', 'Audio Haptics On');
-        }
-      } else {
-        icon.textContent = '🔇';
-        if (btn) {
-          btn.classList.add('muted');
-          btn.title = 'Audio Haptics: MUTED (Click to unmute)';
-          btn.setAttribute('aria-label', 'Audio Haptics Muted');
-        }
-      }
-    }
-
-    function toggleAudioHaptics() {
-      audioMuted = !audioMuted;
-      localStorage.setItem('nkai_audio_muted', audioMuted ? 'true' : 'false');
-      updateHapticsUI();
-      if (!audioMuted) {
-        playHaptic('action');
-        showToast('🔊 Audio Haptics Unmuted');
-      } else {
-        showToast('🔇 Audio Haptics Muted');
-      }
-    }
-
-    function playHaptic(type) {
-      if (audioMuted) return;
-      try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        if (!hapticAudioCtx) {
-          hapticAudioCtx = new AudioContextClass();
-        }
-        if (hapticAudioCtx.state === 'suspended') {
-          hapticAudioCtx.resume();
-        }
-        const t = hapticAudioCtx.currentTime;
-        const osc = hapticAudioCtx.createOscillator();
-        const gain = hapticAudioCtx.createGain();
-
-        if (type === 'tab' || type === 'switch') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(440, t);
-          osc.frequency.exponentialRampToValueAtTime(880, t + 0.04);
-          gain.gain.setValueAtTime(0.04, t);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
-          osc.connect(gain);
-          gain.connect(hapticAudioCtx.destination);
-          osc.start(t);
-          osc.stop(t + 0.04);
-        } else if (type === 'action') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(587.33, t);
-          osc.frequency.exponentialRampToValueAtTime(880, t + 0.06);
-          gain.gain.setValueAtTime(0.05, t);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-          osc.connect(gain);
-          gain.connect(hapticAudioCtx.destination);
-          osc.start(t);
-          osc.stop(t + 0.06);
-        } else {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(800, t);
-          osc.frequency.exponentialRampToValueAtTime(400, t + 0.02);
-          gain.gain.setValueAtTime(0.03, t);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
-          osc.connect(gain);
-          gain.connect(hapticAudioCtx.destination);
-          osc.start(t);
-          osc.stop(t + 0.02);
-        }
-      } catch (e) {
-        // Degrade silently if Web Audio restricted by sandbox
-      }
-    }
-
-    function playHapticTick() {
-      playHaptic('tick');
-    }
-
-    /* ==========================================================================
-       PCDA Dialectic Governance & Extraction Controllers (Topics 6.1, 6.2 & 6.15)
-       ========================================================================== */
-
-    function togglePcdaBlock(blockId) {
-      playHapticTick();
-      const block = document.getElementById(blockId);
-      const icon = document.getElementById(blockId + '-icon');
-      if (!block) return;
-
-      const isCollapsed = block.classList.contains('collapsed') || block.style.display === 'none';
-      if (isCollapsed) {
-        block.classList.remove('collapsed');
-        block.style.display = 'block';
-        if (icon) icon.textContent = '▼';
-      } else {
-        block.classList.add('collapsed');
-        block.style.display = 'none';
-        if (icon) icon.textContent = '▶';
-      }
-    }
-
-    function copyPcdaMarkdown(topicId) {
-      playHapticTick();
-      const container = document.getElementById('pcda-' + topicId) || document.getElementById('pcda-block-' + topicId) || document.getElementById(topicId);
-      if (!container) return;
-
-      const topicTitle = container.getAttribute('data-topic-title') || ('Topic ' + topicId);
-      const proEl = container.querySelector('.pcda-pro');
-      const conEl = container.querySelector('.pcda-con');
-      const advEl = container.querySelector('.pcda-advocate');
-      const synEl = container.querySelector('.pcda-synthesis');
-
-      const cleanText = (el) => {
-        if (!el) return '';
-        const clone = el.cloneNode(true);
-        const titleEl = clone.querySelector('.pcda-card-title, .pcda-resolution-badge');
-        if (titleEl) titleEl.remove();
-        return clone.innerText.trim();
-      };
-
-      const proText = cleanText(proEl);
-      const conText = cleanText(conEl);
-      const advText = cleanText(advEl);
-      const synText = cleanText(synEl);
-
-      const md = [
-        `### ⚖️ PCDA Dialectic Review: ${topicTitle}`,
-        ``,
-        `#### 1. Pros [Thesis]`,
-        proText || '_No affirmative advantages recorded._',
-        ``,
-        `#### 2. Cons [Thesis Friction]`,
-        conText || '_No implementation costs recorded._',
-        ``,
-        `#### 3. Devil\'s Advocate [Antithesis]`,
-        advText || '_No structural failure modes recorded._',
-        ``,
-        `#### 4. The 80/20 Resolution [Synthesis]`,
-        synText || '_No resolution recorded._',
-        ``
-      ].join('\n');
-
-      if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
-        window.NkaiEnv.dispatchAction(md);
-      } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(md).then(() => {
-          showToast('⚖️ PCDA Markdown copied to clipboard!');
-        }).catch(() => {
-          showToast('⚖️ PCDA copied (fallback)!');
+    
+        window.addEventListener('DOMContentLoaded', () => {
+          toggleFaceplate('monolithic');
+          toggleTbdView('desktop');
+          updatePolarRose(3);
+          updateAcidJaw(75);
+          updatePunchSpike(2.5);
+          updateComposer();
+          updateScorecard();
+          switchMode('workshop');
+          showHeroItem('1.1');
         });
-      } else {
-        showToast('⚖️ PCDA extracted!');
-      }
-
-      const btn = container.querySelector('.pcda-copy-btn');
-      if (btn) {
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<span>✅ Copied!</span>';
-        setTimeout(() => { btn.innerHTML = orig; }, 2000);
-      }
-    }
-
-    /* Cache-Busting Reload (Topic 6.9 & Web QA) */
-    function forceReloadCanvas() {
-      try {
-        const url = new URL(window.location.href);
-        url.searchParams.set('t', Date.now().toString());
-        window.location.href = url.toString();
-      } catch (e) {
-        window.location.href = window.location.pathname + '?t=' + Date.now();
-      }
-    }
-
-    function initNkaiCore() {
-      initAudioHaptics();
-      if (typeof updateAutopsyScoreboard === 'function') {
-        updateAutopsyScoreboard();
-      }
-    }
-
-    if (typeof document !== 'undefined') {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initNkaiCore);
-      } else {
-        initNkaiCore();
-      }
-    }
+    
+        /* Dynamic Keyboard Shortcuts Helper (Topic 6.6) */
+        function toggleShortcuts() {
+          const popover = document.getElementById('shortcut-popover');
+          if (!popover) return;
+          const isHidden = popover.style.display === 'none' || !popover.style.display;
+          popover.style.display = isHidden ? 'block' : 'none';
+        }
+    
+        function copyShortcutText(text) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+              showToast(`Copied ${text} to clipboard!`);
+            }).catch(() => {});
+          }
+        }
+    
+        // Close shortcut popover when clicking outside
+        document.addEventListener('click', (event) => {
+          const popover = document.getElementById('shortcut-popover');
+          const btn = document.getElementById('btn-shortcuts');
+          if (!popover || !btn) return;
+          if (!popover.contains(event.target) && !btn.contains(event.target)) {
+            popover.style.display = 'none';
+          }
+        });
+    
+        /* Visual HUD Toast Notification */
+        function showToast(message) {
+          let toast = document.getElementById('nkai-toast');
+          if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'nkai-toast';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.background = '#161b22';
+            toast.style.color = '#38bdf8';
+            toast.style.border = '1px solid #38bdf8';
+            toast.style.padding = '8px 16px';
+            toast.style.borderRadius = '6px';
+            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+            toast.style.fontFamily = 'monospace';
+            toast.style.fontSize = '12px';
+            toast.style.zIndex = '99999';
+            toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            toast.style.pointerEvents = 'none';
+            document.body.appendChild(toast);
+          }
+          toast.textContent = message;
+          toast.style.opacity = '1';
+          toast.style.transform = 'translateY(0)';
+          clearTimeout(toast._timeout);
+          toast._timeout = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+          }, 2500);
+        }
+    
+        /* N'kai Universal Tri-Mode Environment Adapter (Topic 6.13) */
+        window.NkaiEnv = {
+          detect: function() {
+            if (typeof window !== 'undefined' && window.sidecar && typeof window.sidecar.agent?.sendMessage === 'function') {
+              return 'extension';
+            }
+            if (typeof window !== 'undefined' && window.location) {
+              if (window.location.protocol === 'file:') return 'file';
+              if (window.location.protocol === 'http:' || window.location.protocol === 'https:') return 'server';
+            }
+            return 'file';
+          },
+    
+          getMode: function() {
+            return this.detect();
+          },
+    
+          isExtension: function() {
+            return this.detect() === 'extension';
+          },
+    
+          isFile: function() {
+            return this.detect() === 'file';
+          },
+    
+          isServer: function() {
+            return this.detect() === 'server';
+          },
+    
+          dispatchAction: function(actionPayload) {
+            const env = this.detect();
+            const text = typeof actionPayload === 'string' ? actionPayload : JSON.stringify(actionPayload, null, 2);
+    
+            // Mode 1: Antigravity IDE UI Extension
+            if (env === 'extension') {
+              try {
+                window.sidecar.agent.sendMessage(text);
+                showToast('Dispatched message directly to Agent!');
+                return true;
+              } catch (err) {
+                console.warn('[NkaiEnv] Extension dispatch failed, falling back to clipboard:', err);
+              }
+            }
+    
+            // Mode 2: Local HTTP Server (CLI Harness)
+            if (env === 'server' && typeof fetch === 'function') {
+              fetch('/api/dispatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: actionPayload, timestamp: Date.now() })
+              }).then(res => {
+                if (res.ok) {
+                  showToast('Dispatched to local CLI server & copied to clipboard!');
+                }
+              }).catch(() => {
+                // Fallback silently if /api/dispatch not captured
+              });
+            }
+    
+            // Mode 3: Local File (file:///) / Default Fallback
+            return this.copyToClipboard(text);
+          },
+    
+          copyToClipboard: function(payload) {
+            const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard for CLI terminal!');
+              }).catch(() => {
+                this.fallbackHighlight(text);
+              });
+              return true;
+            }
+            return this.fallbackHighlight(text);
+          },
+    
+          fallbackHighlight: function(text) {
+            const ta = document.getElementById('triage-output') || document.querySelector('textarea.prompt-box');
+            if (ta) {
+              ta.value = text;
+              ta.focus();
+              ta.select();
+              showToast('Selected text in prompt box!');
+              return true;
+            }
+            return false;
+          }
+        };
+    
+        /* Audio Haptics Protocol (Topics 6.9 & 6.10) */
+        let audioMuted = false;
+        let hapticAudioCtx = null;
+    
+        function initAudioHaptics() {
+          const saved = localStorage.getItem('nkai_audio_muted');
+          if (saved !== null) {
+            audioMuted = (saved === 'true');
+          }
+          updateHapticsUI();
+        }
+    
+        function updateHapticsUI() {
+          const btn = document.getElementById('btn-haptics');
+          const icon = document.getElementById('haptics-icon');
+          if (!icon) return;
+          if (!audioMuted) {
+            icon.textContent = '🔊';
+            if (btn) {
+              btn.classList.remove('muted');
+              btn.title = 'Audio Haptics: ON (Click to mute)';
+              btn.setAttribute('aria-label', 'Audio Haptics On');
+            }
+          } else {
+            icon.textContent = '🔇';
+            if (btn) {
+              btn.classList.add('muted');
+              btn.title = 'Audio Haptics: MUTED (Click to unmute)';
+              btn.setAttribute('aria-label', 'Audio Haptics Muted');
+            }
+          }
+        }
+    
+        function toggleAudioHaptics() {
+          audioMuted = !audioMuted;
+          localStorage.setItem('nkai_audio_muted', audioMuted ? 'true' : 'false');
+          updateHapticsUI();
+          if (!audioMuted) {
+            playHaptic('action');
+            showToast('🔊 Audio Haptics Unmuted');
+          } else {
+            showToast('🔇 Audio Haptics Muted');
+          }
+        }
+    
+        function playHaptic(type) {
+          if (audioMuted) return;
+          try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            if (!hapticAudioCtx) {
+              hapticAudioCtx = new AudioContextClass();
+            }
+            if (hapticAudioCtx.state === 'suspended') {
+              hapticAudioCtx.resume();
+            }
+            const t = hapticAudioCtx.currentTime;
+            const osc = hapticAudioCtx.createOscillator();
+            const gain = hapticAudioCtx.createGain();
+    
+            if (type === 'tab' || type === 'switch') {
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(440, t);
+              osc.frequency.exponentialRampToValueAtTime(880, t + 0.04);
+              gain.gain.setValueAtTime(0.04, t);
+              gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+              osc.connect(gain);
+              gain.connect(hapticAudioCtx.destination);
+              osc.start(t);
+              osc.stop(t + 0.04);
+            } else if (type === 'action') {
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(587.33, t);
+              osc.frequency.exponentialRampToValueAtTime(880, t + 0.06);
+              gain.gain.setValueAtTime(0.05, t);
+              gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+              osc.connect(gain);
+              gain.connect(hapticAudioCtx.destination);
+              osc.start(t);
+              osc.stop(t + 0.06);
+            } else {
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(800, t);
+              osc.frequency.exponentialRampToValueAtTime(400, t + 0.02);
+              gain.gain.setValueAtTime(0.03, t);
+              gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+              osc.connect(gain);
+              gain.connect(hapticAudioCtx.destination);
+              osc.start(t);
+              osc.stop(t + 0.02);
+            }
+          } catch (e) {
+            // Degrade silently if Web Audio restricted by sandbox
+          }
+        }
+    
+        function playHapticTick() {
+          playHaptic('tick');
+        }
+    
+        /* ==========================================================================
+           PCDA Dialectic Governance & Extraction Controllers (Topics 6.1, 6.2 & 6.15)
+           ========================================================================== */
+    
+        function togglePcdaBlock(blockId) {
+          playHapticTick();
+          const block = document.getElementById(blockId);
+          const icon = document.getElementById(blockId + '-icon');
+          if (!block) return;
+    
+          const isCollapsed = block.classList.contains('collapsed') || block.style.display === 'none';
+          if (isCollapsed) {
+            block.classList.remove('collapsed');
+            block.style.display = 'block';
+            if (icon) icon.textContent = '▼';
+          } else {
+            block.classList.add('collapsed');
+            block.style.display = 'none';
+            if (icon) icon.textContent = '▶';
+          }
+        }
+    
+        function copyPcdaMarkdown(topicId) {
+          playHapticTick();
+          const container = document.getElementById('pcda-' + topicId) || document.getElementById('pcda-block-' + topicId) || document.getElementById(topicId);
+          if (!container) return;
+    
+          const topicTitle = container.getAttribute('data-topic-title') || ('Topic ' + topicId);
+          const proEl = container.querySelector('.pcda-pro');
+          const conEl = container.querySelector('.pcda-con');
+          const advEl = container.querySelector('.pcda-advocate');
+          const synEl = container.querySelector('.pcda-synthesis');
+    
+          const cleanText = (el) => {
+            if (!el) return '';
+            const clone = el.cloneNode(true);
+            const titleEl = clone.querySelector('.pcda-card-title, .pcda-resolution-badge');
+            if (titleEl) titleEl.remove();
+            return clone.innerText.trim();
+          };
+    
+          const proText = cleanText(proEl);
+          const conText = cleanText(conEl);
+          const advText = cleanText(advEl);
+          const synText = cleanText(synEl);
+    
+          const md = [
+            `### ⚖️ PCDA Dialectic Review: ${topicTitle}`,
+            ``,
+            `#### 1. Pros [Thesis]`,
+            proText || '_No affirmative advantages recorded._',
+            ``,
+            `#### 2. Cons [Thesis Friction]`,
+            conText || '_No implementation costs recorded._',
+            ``,
+            `#### 3. Devil\'s Advocate [Antithesis]`,
+            advText || '_No structural failure modes recorded._',
+            ``,
+            `#### 4. The 80/20 Resolution [Synthesis]`,
+            synText || '_No resolution recorded._',
+            ``
+          ].join('\n');
+    
+          if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
+            window.NkaiEnv.dispatchAction(md);
+          } else if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(md).then(() => {
+              showToast('⚖️ PCDA Markdown copied to clipboard!');
+            }).catch(() => {
+              showToast('⚖️ PCDA copied (fallback)!');
+            });
+          } else {
+            showToast('⚖️ PCDA extracted!');
+          }
+    
+          const btn = container.querySelector('.pcda-copy-btn');
+          if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<span>✅ Copied!</span>';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+          }
+        }
+    
+        /* ==========================================================================
+           Cumulative Allowance Ledger & Token Governance Controllers (Topic 6.19)
+           ========================================================================== */
+    
+        const TIER_TOKEN_COSTS = {
+          tier1: 40000,
+          tier2: 10000,
+          tier3: 2000
+        };
+    
+        function getItemTier(itemId, data) {
+          if (data && data.tier && TIER_TOKEN_COSTS[data.tier]) {
+            return data.tier;
+          }
+          // Check DOM element data-tier
+          const el = document.getElementById('hero-stage-' + itemId) ||
+                     document.getElementById('card-' + itemId) ||
+                     document.getElementById('autopsy-item-' + itemId) ||
+                     document.getElementById(itemId);
+          if (el) {
+            const domTier = el.getAttribute('data-tier');
+            if (domTier && TIER_TOKEN_COSTS[domTier]) return domTier;
+          }
+          // Heuristic fallback
+          const title = (data && data.title ? data.title : '').toLowerCase();
+          if (/dsp|differential|saturation|concurrency|threading|polyphon|filter|fader/.test(title)) {
+            return 'tier1';
+          }
+          if (/glyph|schema|doc|chore|catalog|json|tweak/.test(title)) {
+            return 'tier3';
+          }
+          return 'tier2';
+        }
+    
+        function updateAllowanceLedger() {
+          let tokensPro = 0;
+          let tokensFlash = 0;
+          let tokensMinimal = 0;
+          let approvedCount = 0;
+          const breakdownItems = [];
+    
+          for (const [id, data] of Object.entries(triageData)) {
+            if (data.verdict === 'APPROVE') {
+              approvedCount++;
+              const tier = getItemTier(id, data);
+              const cost = TIER_TOKEN_COSTS[tier] || 10000;
+    
+              if (tier === 'tier1') tokensPro += cost;
+              else if (tier === 'tier3') tokensMinimal += cost;
+              else tokensFlash += cost;
+    
+              breakdownItems.push({
+                id: id,
+                title: data.title,
+                tier: tier,
+                tierLabel: tier === 'tier1' ? 'Tier 1 Pro' : (tier === 'tier3' ? 'Tier 3 Low' : 'Tier 2 Flash'),
+                cost: cost
+              });
+            }
+          }
+    
+          const totalTokens = tokensPro + tokensFlash + tokensMinimal;
+          const maxBudget = 200000;
+          const safeBudget = 100000;
+    
+          // Determine Health Band
+          let band = 'safe';
+          let bandLabel = 'SAFE 🟢';
+          if (totalTokens > maxBudget) {
+            band = 'critical';
+            bandLabel = 'CRITICAL 🔴';
+          } else if (totalTokens > safeBudget) {
+            band = 'warning';
+            bandLabel = 'WARNING 🟡';
+          }
+    
+          // Update Header Allowance Pill
+          const headerPill = document.getElementById('header-allowance-pill');
+          if (headerPill) {
+            const formattedK = totalTokens > 0 ? (totalTokens >= 1000 ? Math.round(totalTokens / 1000) + 'k' : totalTokens) : '0k';
+            headerPill.innerHTML = `<span class="meter-icon">🔋</span> <span class="meter-value">~${formattedK}</span> <span class="meter-badge meter-${band}">${band.toUpperCase()}</span>`;
+            headerPill.setAttribute('title', `Cumulative approved tokens: ${totalTokens.toLocaleString()} tokens (${approvedCount} tasks)\nClick to view ledger`);
+          }
+    
+          // Update Scoreboard Elements
+          const valEl = document.getElementById('allowance-token-val');
+          if (valEl) {
+            valEl.textContent = `${totalTokens.toLocaleString()} / ${maxBudget.toLocaleString()} tokens`;
+          }
+    
+          const badgeEl = document.getElementById('allowance-status-badge');
+          if (badgeEl) {
+            badgeEl.className = `meter-badge meter-${band}`;
+            badgeEl.textContent = bandLabel;
+          }
+    
+          // Segment bars (relative to max scale)
+          const scaleBase = Math.max(maxBudget, totalTokens);
+          const barPro = document.getElementById('meter-bar-pro');
+          const barFlash = document.getElementById('meter-bar-flash');
+          const barMinimal = document.getElementById('meter-bar-minimal');
+    
+          if (barPro) barPro.style.width = `${(tokensPro / scaleBase * 100).toFixed(1)}%`;
+          if (barFlash) barFlash.style.width = `${(tokensFlash / scaleBase * 100).toFixed(1)}%`;
+          if (barMinimal) barMinimal.style.width = `${(tokensMinimal / scaleBase * 100).toFixed(1)}%`;
+    
+          // Legend Token Counts
+          const legPro = document.getElementById('meter-legend-pro-val');
+          const legFlash = document.getElementById('meter-legend-flash-val');
+          const legMinimal = document.getElementById('meter-legend-minimal-val');
+          if (legPro) legPro.textContent = `~${(tokensPro / 1000).toFixed(0)}k`;
+          if (legFlash) legFlash.textContent = `~${(tokensFlash / 1000).toFixed(0)}k`;
+          if (legMinimal) legMinimal.textContent = `~${(tokensMinimal / 1000).toFixed(0)}k`;
+    
+          // Update Breakdown Table
+          const tbody = document.getElementById('allowance-breakdown-tbody');
+          if (tbody) {
+            if (breakdownItems.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:12px;">No approved tasks yet. Assign verdicts to tally token budget.</td></tr>`;
+            } else {
+              let runningSum = 0;
+              tbody.innerHTML = breakdownItems.map(item => {
+                runningSum += item.cost;
+                return `<tr>
+                  <td><strong>${item.id}</strong></td>
+                  <td>${item.title}</td>
+                  <td><span class="badge tier-badge ${item.tier === 'tier1' ? 'tier-1' : (item.tier === 'tier3' ? 'tier-3' : 'tier-2')}">${item.tierLabel}</span></td>
+                  <td style="text-align:right;">${item.cost.toLocaleString()} (${runningSum.toLocaleString()})</td>
+                </tr>`;
+              }).join('');
+            }
+          }
+        }
+    
+        function toggleAllowanceBreakdown() {
+          if (typeof playHapticTick === 'function') playHapticTick();
+          const el = document.getElementById('allowance-breakdown-drawer');
+          if (el) {
+            el.classList.toggle('active');
+          }
+        }
+    
+        /* ==========================================================================
+           Deep-Linked Monolithic Board URL Router (Topic 6.3)
+           ========================================================================== */
+    
+        function handleHashNavigation() {
+          const rawHash = window.location.hash;
+          if (!rawHash || rawHash.length <= 1) return;
+    
+          const cleanHash = rawHash.substring(1).trim();
+          const knownModes = ['workshop', 'layouts', 'dsp', 'blue', 'tbd', 'pm', 'autopsy'];
+    
+          // 1. Direct Mode / Tab Hash
+          if (knownModes.includes(cleanHash) || cleanHash.startsWith('tab-')) {
+            const mode = cleanHash.startsWith('tab-') ? cleanHash.substring(4) : cleanHash;
+            switchMode(mode);
+            return;
+          }
+    
+          // 2. Element Anchor Hash (#t1.1, #1.1, #card-1.1, #hero-stage-1.1, #sec-monolithic)
+          const targetCandidates = [
+            cleanHash,
+            'card-' + cleanHash,
+            'hero-stage-' + cleanHash,
+            'autopsy-item-' + cleanHash,
+            'topic-' + cleanHash,
+            cleanHash.startsWith('t') ? cleanHash.substring(1) : null,
+            cleanHash.startsWith('t') ? 'card-' + cleanHash.substring(1) : null,
+            cleanHash.startsWith('t') ? 'hero-stage-' + cleanHash.substring(1) : null
+          ].filter(Boolean);
+    
+          let targetEl = null;
+          for (const id of targetCandidates) {
+            const el = document.getElementById(id);
+            if (el) {
+              targetEl = el;
+              break;
+            }
+          }
+    
+          if (targetEl) {
+            // Find which mode/tab contains targetEl
+            const parentMode = targetEl.closest('.mode-wrapper');
+            if (parentMode && parentMode.id) {
+              const modeId = parentMode.id.replace(/-mode$/, '');
+              if (modeId !== currentMode) {
+                switchMode(modeId);
+              }
+            }
+    
+            // If in workshop mode, also activate corresponding hero stage
+            const topicIdMatch = targetEl.id.match(/^(?:hero-stage-|card-|autopsy-item-|topic-)?([0-9]+\.[0-9]+)/);
+            if (topicIdMatch && typeof showHeroItem === 'function' && currentMode === 'workshop') {
+              showHeroItem(topicIdMatch[1]);
+            }
+    
+            // Smooth scroll and pulse
+            setTimeout(() => {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              targetEl.classList.remove('anchor-highlight');
+              void targetEl.offsetWidth; // trigger reflow
+              targetEl.classList.add('anchor-highlight');
+              setTimeout(() => {
+                targetEl.classList.remove('anchor-highlight');
+              }, 2400);
+    
+              if (typeof playHapticTick === 'function') playHapticTick();
+            }, 60);
+          }
+        }
+    
+        function navigateToTopic(topicId) {
+          window.location.hash = '#t' + topicId;
+          handleHashNavigation();
+        }
+    
+        /* Cache-Busting Reload (Topic 6.9 & Web QA) */
+        function forceReloadCanvas() {
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('t', Date.now().toString());
+            window.location.href = url.toString();
+          } catch (e) {
+            window.location.href = window.location.pathname + '?t=' + Date.now();
+          }
+        }
+    
+        function initNkaiCore() {
+          initAudioHaptics();
+          if (typeof updateAutopsyScoreboard === 'function') {
+            updateAutopsyScoreboard();
+          }
+          if (typeof updateAllowanceLedger === 'function') {
+            updateAllowanceLedger();
+          }
+          if (typeof window !== 'undefined') {
+            window.addEventListener('hashchange', handleHashNavigation);
+            setTimeout(handleHashNavigation, 80);
+          }
+        }
+    
+        if (typeof document !== 'undefined') {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initNkaiCore);
+          } else {
+            initNkaiCore();
+          }
+        }
   </script>
 </body>
 </html>
