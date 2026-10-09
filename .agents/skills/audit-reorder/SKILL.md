@@ -53,6 +53,12 @@ The Pro Architect applies strict systems engineering rules:
 2. **Cumulative Token Allowance Ledger**:
    - Classifies each node into **Tier 1 (Pro High)**, **Tier 2 (Flash High)**, or **Tier 3 (Flash Low)**.
    - Calculates the cumulative allowance footprint and highlights quota preservation metrics.
+3. **The Linear Flightpath Rule (Sequential Implementation Progression)**:
+   - To eliminate developer confusion and cognitive friction, the synthesized execution itinerary MUST index flights as a clean, sequential integer progression: `Flight 1`, `Flight 2`, `Flight 3`... matching the exact execution order.
+   - **Decouple Identity from Sequence**:
+     - Underlying Topic IDs and slugs remain permanent and immutable (e.g. `Topic 6.12 (Distribution Bundle)` remains tagged as `6.12` so historical research links, HTML anchors, and packages never break).
+     - Flight Numbers (`Flight 1`, `Flight 2`...) strictly represent the **execution runway sequence**.
+     - When priorities evolve or flights are pulled forward, re-index the flight numbers sequentially without mutating the underlying topic IDs.
 
 ---
 

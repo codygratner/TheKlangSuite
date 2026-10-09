@@ -80,7 +80,11 @@ If the user needs to stop the triage session, step away, or halt the post-mortem
 Once the triage interview is complete, immediately update the official project documentation:
 1. **Update `docs/BACKLOG.md`:** Inject the `[ ✅ APPROVE ]` items into their correct milestones and append the `[ 🕰️ TABLE ]` items to the bottom future section.
 2. **Update the Graveyard:** If the target was an HTML research board, update its Strategy Graveyard section with the `[ 💀 KILL ]` items. If it was a general project review, document the kills in `docs/history/DEV_HISTORY.md`.
-3. **Commit to Git:** Stage and commit the backlog changes with a conventional commit (e.g., `docs: post-mortem triage for TBD-16 research`).
+3. **The Linear Flightpath Rule (Sequential Implementation Progression)**:
+   - When injecting approved triage items into active execution milestones in `docs/BACKLOG.md` or staging an execution plan:
+     - The skill MUST sequence the implementation flights into a clean, consecutive integer progression (`Flight 1`, `Flight 2`, `Flight 3`...) matching the intended execution order on the runway.
+     - Immutable Topic IDs and Slugs remain permanent in parentheses (e.g. `Topic 6.12`, `Topic 6.16`) to preserve permanent citations, research board anchors, and avoid link rot.
+4. **Commit to Git:** Stage and commit the backlog changes with a conventional commit (e.g., `docs: post-mortem triage for TBD-16 research`).
 
 ## Phase 4: Sign-Off & Intelligent Deep Docs Gate
 

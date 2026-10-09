@@ -942,46 +942,46 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Phase 1: Foundations (State & IPC)** $ightarrow$ F1 (Canonical State: 6.16+6.7) & F2 (Execution Bridge: 6.17+6.18)
 - **Phase 2: Orchestration (Skills & Portability)** $ightarrow$ F3 (Skill Taxonomy: 6.4+6.14) & F4 (Harness Portability: 6.13)
 - **Phase 3: Topology & Ergonomics (UI/UX)** $ightarrow$ F5 (Header & Tab Density: 6.9+6.10) & F6 (Triage Views: 6.8+6.11)
-- **Phase 4: Meta & Governance** $ightarrow$ F7 (PCDA Governance: 6.1+6.2+6.15), F8 (Token Ledger: 6.19+6.3), & F9 (Distribution: 6.12+6.6)
+- **Phase 4: Meta & Governance** $\rightarrow$ F7 (PCDA Governance: 6.1+6.2+6.15), F8 (Token Ledger: 6.19+6.3), & F9 (Bridge & Concurrency: 6.17+6.18)
 
-### 2. Flight 1: Canonical State & Factory Handoff — ✅ COMPLETED
+### 2. Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7) — ✅ COMPLETED
 - **Topic 6.16: Backend Persistence & State Management Architecture**: ✅ APPROVED (Option C: Hybrid Markdown Frontmatter + Client-Side LocalStorage + JSON Catalog). Bedrock state architecture finalized with zero heavy binary dependencies and clean Git diffs.
 - **Topic 6.7: Context Clues Architecture & Factory Handshake Gate**: ✅ APPROVED (Option B: Structured Context Clues — dedicated context clues files seeded with canonical links to `DOCS_CATALOG.json` and `SYSTEM_MAP.md`).
 
-### 3. Flight 4: Universal AI Harness Portability (Topic 6.13) — ✅ COMPLETED
-- **Topic 6.13: Universal AI Harness Portability**: ✅ APPROVED (Option B: Standalone File + Localhost Adapter — zero-dependency standalone HTML `file:///` for IDE webviews and lightweight `npx nkai serve` for terminal CLIs).
+### 3. Flight 2: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6) — ✅ COMPLETED
+- **Topic 6.12: The "All-in-One" N'kai Distribution Bundle**: ✅ APPROVED (Option B: Monolithic All-in-One Bundle — bundle canonical skills, templates, guardrail rules, and sidecar runner inside `nkai/bundle/` with a 1-command installer script `npx nkai init` / `./install_nkai_bundle.ps1`, featuring a universal pairing core with an optional `--audio` flag for audio/C++ specifics).
+- **Topic 6.6: AGY Keyboard Shortcuts & Power Tools Integration**: ✅ APPROVED (Option B: Dynamic Shortcut Bar — subtly displaying core AGY shortcuts in the N'kai sidecar footer/tooltips: `Ctrl+K` Quick Prompt, `Ctrl+Shift+P` Command Palette, `Ctrl+Enter` Execute, and slash commands to reinforce developer muscle memory with zero token burn).
 
-### 4. Flight 3: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14) — ✅ COMPLETED
+### 4. Flight 3: Universal AI Harness Portability (Topic 6.13) — ✅ COMPLETED
+- **Topic 6.13: Universal AI Harness Portability**: ✅ APPROVED (Option B: Decoupled Interface Layer — zero-dependency standalone HTML `file:///` for IDE webviews and lightweight `npx nkai serve` / `tools/nkai_serve.py` for terminal CLIs).
+
+### 5. Flight 4: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14) — ✅ COMPLETED
 - **Topic 6.4: Agent Skills Organization: Micro-Skills vs. Macro-Suites**: ✅ APPROVED (Option C: Layered Hybrid — atomic micro-skills serve as the composable underlying engine while unified macro-commands like `/execute-task` and `qa` chain them deterministically with zero loss of granularity and minimal token burn).
 - **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: ✅ APPROVED (Option B: N'kai-First with `--chat` fallback — all visual/interview skills like `/grill-me`, `/deep-research`, and `/postmortem` default to generating the rich N'kai sidecar canvas automatically, with `--chat` or "in chat" providing an instant, clean terminal/chat escape hatch).
 
-### 5. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — ✅ COMPLETED
+### 6. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — ⏳ QUEUED
 - **Topic 6.9: Header Layout & Utility Ergonomics**: ✅ APPROVED (Option B: Two-Tier Header w/ Bridge Status LED & Utility Cluster — top bar hosts brand and persistent utility cluster with live bridge LED, roadmap/sessions drawer toggles, font zoom, sound haptics, and refresh; bottom bar hosts dedicated view tabs).
 - **Topic 6.10: Tab Header Density & Spatial Conservation**: ✅ APPROVED (Option B: Hybrid Compact w/ Hover Tooltips — primary operational modes named like Workshop and Autopsy, while category tabs condense to `1 🗺️`, `2 📦`, `3 🚀` with instant full-text tooltips on hover, saving 40–60px of vertical header space in narrow IDE panels).
 
-### 6. Flight 6: Interactive Triage Views (Topics 6.8 & 6.11) — ✅ COMPLETED
+### 7. Flight 6: Interactive Triage Views (Topics 6.8 & 6.11) — ⏳ QUEUED
 - **Topic 6.8: "Ongoing Autopsy": Live Triage Feed & Filterable Scoreboard**: ✅ APPROVED (Option B: Dedicated Autopsy Tab w/ Filter Chips — Slot 2 header item providing a continuous, filterable stream of all active/tabled/killed decisions with direct 1-click jumps to full cards, automatically morphing into the final Post-Mortem report upon milestone completion).
 - **Topic 6.11: "Check the Mail" (Vault Inbox) Workflow & Sidecar Board Default**: ✅ APPROVED (Option B: N'kai Inbox Board Default — checking the Obsidian Vault `Inbox/` defaults to generating a dedicated interactive N'kai research board with 1 section per note and triage chips, with `--chat` flag preserved for pure terminal/chat dumps).
 
-### 7. Phase 3 Capstone: N'kai Ergonomics (Topic 6.5) — ⏳ TABLED FOR v0.2.0
+### 8. Phase 3 Capstone: N'kai Ergonomics (Topic 6.5) — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED FOR v0.2.0 (Phase 3: Surfaces & Viewports)*
 - **Topic 6.5: N'kai Ergonomics: Asymmetric Chat Split & Responsive Layout**: ⏳ TABLED FOR v0.2.0 (Tabled alongside the Bidirectional Bridge `:4040` for the v0.2.0 UI Extension release, decoupling local `file:///` sidecar development from runtime bridge dependencies and eliminating premature IPC complexity).
 
-### 8. Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.6 & 6.12) — ✅ COMPLETED
-- **Topic 6.6: AGY Keyboard Shortcuts & Power Tools Integration**: ✅ APPROVED (Option B: Dynamic Shortcut Bar — subtly displaying core AGY shortcuts in the N'kai sidecar footer/tooltips: `Ctrl+K` Quick Prompt, `Ctrl+Shift+P` Command Palette, `Ctrl+Enter` Execute, and slash commands to reinforce developer muscle memory with zero token burn).
-- **Topic 6.12: The "All-in-One" N'kai Distribution Bundle**: ✅ APPROVED (Option B: Monolithic All-in-One Bundle — bundle canonical skills, templates, guardrail rules, and sidecar runner inside `nkai/bundle/` with a 1-command installer script `npx nkai init` / `./install_nkai_bundle.ps1`, featuring a universal pairing core with an optional `--audio` flag for audio/C++ specifics).
-
-### 9. Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15) — ✅ COMPLETED
+### 9. Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15) — ⏳ QUEUED
 - **Topic 6.1: Post-Mortem Architecture: Continuous Live Triage vs Retrospective Batch**: ✅ APPROVED (Option B: Continuous In-Flight Triage — live post-mortem compilation during active research).
 - **Topic 6.2: Pros & Cons Strategy: On-Demand SOTA vs Always-Grabbed**: ✅ APPROVED (Option B: On-Demand SOTA — punchy conversational chat turns by default, with 4-Lens PCDA matrices generated strictly on demand via sidecar actions).
 - **Topic 6.15: Industry Workflow Precedents & Competitive Teardowns**: ✅ APPROVED (Option C: Hybrid File-URI + Micro-Bridge Model — zero-bundle `file:///` instant loading combined with modular bridge extension pattern).
 
-### 10. Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19) — ✅ COMPLETED
+### 10. Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19) — ⏳ QUEUED
 - **Topic 6.3: Topic Organization Strategy: Deep-Linked Monolithic Board vs Fragmented Mini-Canvases**: ✅ APPROVED (Option B: Deep-Linked Monolithic Board — single, highly structured living research canvas with hash-anchor deep linking).
 - **Topic 6.19: Cumulative Allowance & Token Impact Ledger in Post-Mortem**: ✅ APPROVED (Option C: Live Cumulative Cost Meter & Budget Ledger — interactive meter and ledger in the Post-Mortem & Workshop header showing total estimated token burn across all approved items, broken down by Tier 1 Pro High vs Tier 2 Flash High vs Tier 3 Minimal, with proactive budget warnings before code execution begins).
 
-### 11. Flight 2: Execution Bridge & Concurrency (Topics 6.17 & 6.18) — ✅ COMPLETED
-*Status: ✅ COMPLETED (Final Audit Flight Resolved!)*
+### 11. Flight 9: Execution Bridge & Concurrency (Topics 6.17 & 6.18) — ⏳ TABLED FOR v0.2.0
+*Status: ⏳ TABLED FOR v0.2.0*
 - **Topic 6.17: The Bidirectional Click-to-Agent Bridge (Zero-Copy Sidecar IPC)**: ⏳ TABLED FOR v0.2.0 (Decoupled `file:///` local sidecars from runtime localhost bridge dependencies; reserved for official Antigravity UI Extension release).
 - **Topic 6.18: Parallel Subagent Delegation for Sidecar Actions**: ✅ APPROVED (Option B: Dedicated Parallel Flash Subagents — background `invoke_subagent(Model="flash")` executes asynchronously, writes results to the sidecar canvas or `.agents/sidecar/`, and alerts user when ready, zero main chat stall, minimal quota impact).
 

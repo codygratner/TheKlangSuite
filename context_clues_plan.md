@@ -32,11 +32,12 @@
 - **Current Objective:** Factory Execution & Roadmap Flight Orchestration
 - **Active Agenda:**
   1. **Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7)**: ✅ COMPLETED.
-  2. **Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ✅ COMPLETED.
-  3. **Flight 4: Universal AI Harness Portability (Topic 6.13)**: ✅ COMPLETED. Tri-mode environment adapter (`extension`, `file`, `server`), zero-dependency CLI server (`nkai_serve.py`), and `package.json` / `bin/nkai.js` deployed.
-  4. **Strict Domain Division & Dual-Track Routing**: Codified in `GEMINI.md` and verified in live execution.
-  5. **Next Roadmap Flight**: Flight 3 (Skill Taxonomy & Invocation Defaults 6.4/6.14) or Test Drive with Morning Mail Docket (10 topics).
-  6. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`.
+  2. **Flight 2: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ✅ COMPLETED. Universal bundle (`c:\Dev\nkai\bundle/`), installer script (`install_nkai_bundle.ps1`), and dynamic shortcuts HUD.
+  3. **Flight 3: Universal AI Harness Portability (Topic 6.13)**: ✅ COMPLETED. Tri-mode environment adapter (`extension`, `file`, `server`), zero-dependency CLI server (`nkai_serve.py`), and `package.json` / `bin/nkai.js`.
+  4. **Flight 4: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14)**: ✅ COMPLETED. 3-Layer Hierarchy spec, N'kai-first visual defaults, and `--chat` terminal fallback.
+  5. **Linear Flightpath Rule Codified**: Decoupled immutable topic IDs from sequential runway flight numbers (1, 2, 3...) in `audit-reorder` and `post-mortem`.
+  6. **Next Options**: Flight 5 (Header Ergonomics & Density 6.9/6.10) or Test Drive with Morning Mail Docket (10 topics).
+  7. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`.
 - **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
 
 ---
