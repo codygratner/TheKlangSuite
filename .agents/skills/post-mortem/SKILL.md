@@ -81,5 +81,20 @@ Once the triage interview is complete, immediately update the official project d
 2. **Update the Graveyard:** If the target was an HTML research board, update its Strategy Graveyard section with the `[ 💀 KILL ]` items. If it was a general project review, document the kills in `docs/history/DEV_HISTORY.md`.
 3. **Commit to Git:** Stage and commit the backlog changes with a conventional commit (e.g., `docs: post-mortem triage for TBD-16 research`).
 
-## Phase 4: Sign-Off
-Conclude the post-mortem by outputting a clean Markdown summary table of the verdicts and reminding the user to trigger `/clear` if the context window is getting heavy before jumping into factory execution.
+## Phase 4: Sign-Off & Intelligent Deep Docs Gate
+
+Conclude the post-mortem by outputting a clean Markdown summary table of the verdicts and evaluating whether a cross-repo deep documentation synchronization is justified:
+
+### The Zero-Subagent 3-Gate Heuristic
+To balance token allowance against institutional memory without spawning wasteful meta-subagents, the orchestrator evaluates three instant, deterministic local conditions from memory:
+1. **Pending Souls in Staging**: Are there unharvested raw files in `.agents/pipeline/staging/souls/` or un-ingested receipts in `.agents/pipeline/communique/subagent_receipt.md`?
+2. **Cross-Pillar Scope**: Did the approved triage items touch $>1$ repository (e.g. contracts impacting `ToadTracker`, `nkai`, or `TheKlangResearch`)?
+3. **Milestone Capstone**: Did this post-mortem conclude an entire flight phase (e.g. Phase 1 Foundations) or close out an official version milestone?
+
+### Dynamic Decision Sign-Off:
+- **If $\ge 1$ Threshold is MET**: The orchestrator proactively surfaces the recommendation with explicit rationale:
+  > *“💡 Post-Mortem Recommendation: [N] unharvested souls staged + cross-pillar architecture approved. Recommended: Run `/update-docs --deep` now before clearing context.”*
+  Offer the user a fast confirmation to trigger the Five-Pillar Gauntlet.
+- **If NO Thresholds are MET (Routine/Single-Pillar Triage)**: Suppress the recommendation to protect token allowance:
+  > *“✓ Post-Mortem Complete: Changes are strictly local to TKS. Skipping deep docs update to conserve token allowance. Ready for `/clear` or factory execution.”*
+
