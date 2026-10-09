@@ -1,6 +1,6 @@
 # Implementation Plan: Flight 9 — Distribution Packaging & Key Ergonomics
 > **Flight Target:** Topics 6.12 & 6.6 (Phase 4: Packaging & Key Ergonomics)  
-> **Status:** READY_FOR_EXECUTION ⏳  
+> **Status:** COMPLETED ✅  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Model:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
 > **Authority:** New Klang City (Ivory Tower) ➔ Klang Industries (Factory Floor)  
@@ -23,16 +23,16 @@ Flight 9 packages N'kai into a portable, production-grade distribution bundle an
 ## 📋 Phase-by-Phase Execution Plan
 
 ### Phase 1: Distribution Bundle Architecture Specification (Topic 6.12)
-- [ ] Author `docs/specs/nkai_distribution_bundle_architecture.md`:
+- [x] Author `docs/specs/nkai_distribution_bundle_architecture.md`:
   - Define bundle directory topology (`bundle/skills/`, `bundle/templates/`, `bundle/rules/`, `bundle/tools/`).
   - Document the Universal Pairing Core vs Audio Add-on separation (`-Audio` switch).
   - Document the single-command deployment contract (`./install_nkai_bundle.ps1 -TargetDir <path> [-Audio]`).
   - Document the Git-ignore boundary (`.agents/sidecar/*.html` ignored, `!template.html` preserved).
-- [ ] Register the new spec in `docs/DOCS_CATALOG.json` under `specifications`.
-- [ ] Add direct link in `docs/SYSTEM_MAP.md` under Section 7 (Design Specs).
+- [x] Register the new spec in `docs/DOCS_CATALOG.json` under `specifications`.
+- [x] Add direct link in `docs/SYSTEM_MAP.md` under Section 7 (Design Specs).
 
 ### Phase 2: Assemble Canonical `nkai/bundle/` Core & Audio Add-on
-- [ ] Create `c:\Dev\nkai\bundle\` structure:
+- [x] Create `c:\Dev\nkai\bundle\` structure:
   - `bundle/templates/`:
     - Seed `bundle/templates/template.html` from `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`.
     - Seed `bundle/templates/context_clues_template.md` from `c:\Dev\TheKlangSuite\docs\templates\context_clues_template.md`.
@@ -45,7 +45,7 @@ Flight 9 packages N'kai into a portable, production-grade distribution bundle an
     - Copy `audit_sidecar.py` and `verify_context_clues.py`.
 
 ### Phase 3: Universal Installer Script (`install_nkai_bundle.ps1`)
-- [ ] Author `c:\Dev\nkai\install_nkai_bundle.ps1`:
+- [x] Author `c:\Dev\nkai\install_nkai_bundle.ps1`:
   - Support `-TargetDir <string>` (defaults to `$PWD`).
   - Support `[switch]$Audio` (installs audio guardrail rules when specified).
   - Support `[switch]$DryRun` (previews actions without modifying disk).
@@ -53,10 +53,10 @@ Flight 9 packages N'kai into a portable, production-grade distribution bundle an
   - Copy skills, templates, tools, and applicable rules.
   - Automatically verify/update target `.gitignore` to protect sidecar artifacts.
   - Output high-density visual pass report.
-- [ ] Provide convenience copy in `c:\Dev\TheKlangSuite\tools\install_nkai_bundle.ps1`.
+- [x] Provide convenience copy in `c:\Dev\TheKlangSuite\tools\install_nkai_bundle.ps1`.
 
 ### Phase 4: Dynamic AGY Keyboard Shortcuts Bar & Power Tool Prompters (Topic 6.6)
-- [ ] Update `c:\Dev\nkai\core\sidecar.css` and `c:\Dev\nkai\core\sidecar.js`:
+- [x] Update `c:\Dev\nkai\core\sidecar.css` and `c:\Dev\nkai\core\sidecar.js`:
   - Add styles for `.shortcut-pill` and `.shortcut-popover`.
   - Provide toggleable shortcut helper HUD:
     - `Ctrl+K`: Quick Chat / Focus
@@ -64,17 +64,17 @@ Flight 9 packages N'kai into a portable, production-grade distribution bundle an
     - `Ctrl+Enter`: Submit Prompt
     - `/plan`, `/grill-me`, `/execute-task`, `/postmortem`
   - Ensure zero collision with narrow IDE viewports (360px+).
-- [ ] Synchronize shortcut helper markup to:
+- [x] Synchronize shortcut helper markup to:
   - `c:\Dev\nkai\dist\standalone-template.html`
   - `c:\Dev\nkai\bundle\templates\template.html`
   - `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`
 
 ### Phase 5: Automated Verification & Ecosystem Gauntlet
-- [ ] Run `python tools/audit_sidecar.py` on all updated HTML templates to assert 100% tag balance and 0 syntax errors.
-- [ ] Run `python tools/verify_context_clues.py` to assert 100% link resolution.
-- [ ] Test `install_nkai_bundle.ps1 -TargetDir <scratchDir> -Audio` on a test directory to assert perfect installation.
-- [ ] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1` to recompile vault indices.
-- [ ] Stage and commit changes with conventional commits: `feat(distribution): implement Flight 9 all-in-one bundle and dynamic shortcuts`.
+- [x] Run `python tools/audit_sidecar.py` on all updated HTML templates to assert 100% tag balance and 0 syntax errors.
+- [x] Run `python tools/verify_context_clues.py` to assert 100% link resolution.
+- [x] Test `install_nkai_bundle.ps1 -TargetDir <scratchDir> -Audio` on a test directory to assert perfect installation.
+- [x] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1` to recompile vault indices.
+- [x] Stage and commit changes with conventional commits: `feat(distribution): implement Flight 9 all-in-one bundle and dynamic shortcuts`.
 
 ---
 

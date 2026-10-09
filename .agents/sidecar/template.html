@@ -1,0 +1,3310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>The Klang Suite - UX Research &amp; Brainstorming Hub</title>
+  <style>
+    :root {
+      --bg-base: #0d1117;
+      --bg-panel: #161b22;
+      --bg-card: #21262d;
+      --border: #30363d;
+      --text-main: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+      --accent-neon: #0ff;
+      --accent-amber: #ffab70;
+      --accent-pink: #f43f5e;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      overflow-y: auto;
+      font-size: 1rem;
+      transition: font-size 0.15s ease;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(13, 17, 23, 0.95);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      width: 100%;
+      height: auto;
+      min-height: 60px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+
+    .header-modes {
+      display: flex;
+      flex: 1;
+      gap: 8px;
+      margin-right: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mode-btn {
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #161b22;
+      color: var(--text-muted);
+      font-weight: bold;
+      transition: all 0.2s ease;
+      border-radius: 6px;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .mode-btn:hover {
+      background: #21262d;
+      color: var(--text-main);
+    }
+
+    .mode-btn.active {
+      background: #2d333b;
+      border-width: 2px;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .mode-btn.workshop {
+      color: var(--accent-amber);
+      border-color: var(--accent-amber);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .zoom-ctrl {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 11px;
+    }
+
+    .zoom-btn {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      padding: 6px 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.15s;
+    }
+    .zoom-btn:hover { background: var(--bg-card); }
+    .zoom-level {
+      padding: 6px 8px;
+      font-family: var(--font-mono);
+      color: var(--accent-blue);
+      font-weight: bold;
+    }
+
+    .refresh-btn {
+      background: #238636;
+      color: #fff;
+      border: 1px solid rgba(240,246,252,0.1);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .refresh-btn:hover { background: #2ea043; }
+
+    /* Layout Container */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: visible;
+      flex-direction: row;
+      min-height: calc(100vh - 70px);
+    }
+
+    @media (max-width: 800px) {
+      .app-container {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .sidebar {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border);
+        flex: none !important;
+        height: auto !important;
+      }
+      .main-content {
+        overflow-y: visible !important;
+      }
+    }
+
+    .mode-wrapper {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    .mode-wrapper.active {
+      display: flex;
+      flex-direction: inherit;
+    }
+
+    .sidebar {
+      width: 260px;
+      background-color: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar h2 {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent-neon);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 20px 15px 20px;
+    }
+
+    .nav-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-item:hover {
+      background-color: rgba(255,255,255,0.05);
+      color: var(--text-main);
+    }
+
+    .nav-item.active {
+      border-left-color: var(--accent-blue);
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      font-weight: bold;
+    }
+
+    .main-content {
+      flex: 1;
+      overflow-y: visible;
+      padding: 35px 40px;
+      scroll-behavior: smooth;
+    }
+
+    .section, [id^="sec-"] {
+      display: block;
+      margin-bottom: 50px;
+      max-width: 950px;
+      margin-left: auto;
+      margin-right: auto;
+      scroll-margin-top: 80px;
+    }
+
+    /* Floating Action Button */
+    #fab-action {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 9999;
+      padding: 12px 24px;
+      border-radius: 30px;
+      background: var(--accent-amber);
+      color: #000;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+      font-weight: bold;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      cursor: pointer;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+    #fab-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 171, 112, 0.5);
+    }
+    #fab-action.ctx-mode {
+      background: #38bdf8;
+      color: #000;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    }
+    #fab-action.ctx-mode:hover {
+      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.6);
+    }
+
+    /* Cards and Elements */
+    .card {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+    .badge.good { background-color: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+    .badge.warn { background-color: rgba(255, 171, 112, 0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+    .badge.bad  { background-color: rgba(248, 81, 73, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
+    .badge.info { background-color: rgba(88, 166, 255, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+    .badge.neon { background-color: rgba(0, 255, 255, 0.15); color: var(--accent-neon); border: 1px solid var(--accent-neon); }
+
+    .font-mono-code { font-family: var(--font-mono); }
+    .hidden { display: none !important; }
+
+    /* Themed elements inside hero stage */
+    .themed-card { background-color: #12080f; }
+    .themed-inner { background-color: #0a0508; }
+    .option-card { cursor: pointer; transition: all 0.2s ease; }
+    .option-card:hover { transform: translateY(-2px); }
+
+    /* Shortcut Pill & Popover (Topic 6.6) */
+    .shortcut-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .shortcut-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .shortcut-pill:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .shortcut-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 290px;
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      z-index: 2000;
+      padding: 12px;
+      color: var(--text-main);
+    }
+
+    .shortcut-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .shortcut-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .shortcut-close:hover {
+      color: #fff;
+    }
+
+    .shortcut-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .shortcut-row span {
+      color: var(--text-muted);
+    }
+
+    .shortcut-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    kbd {
+      background: #21262d;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-neon);
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    .cmd-pill {
+      background: #21262d;
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--accent-blue);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .cmd-pill:hover {
+      background: rgba(88, 166, 255, 0.15);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    @media (max-width: 480px) {
+      .shortcut-popover {
+        right: -40px;
+        width: 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <div class="header-modes">
+      <button class="mode-btn active workshop" id="btn-workshop" onclick="switchMode('workshop')">
+        <span>🛠️</span> ACTIVE WORKSHOP
+      </button>
+      <button class="mode-btn" id="btn-layouts" onclick="switchMode('layouts')" style="color: var(--accent-pink);">
+        <span>📐</span> LAYOUT TOPOLOGIES
+      </button>
+      <button class="mode-btn" id="btn-ui" onclick="switchMode('ui')" style="color: var(--accent-blue);">
+        <span>🎨</span> UI / UX DESIGN
+      </button>
+      <button class="mode-btn" id="btn-dsp" onclick="switchMode('dsp')" style="color: var(--accent-green);">
+        <span>🎛️</span> DSP ARCHITECTURE
+      </button>
+      <button class="mode-btn" id="btn-blue" onclick="switchMode('blue')" style="color: var(--accent-neon);">
+        <span>🌌</span> BLUE SKY THINKING
+      </button>
+      <button class="mode-btn" id="btn-tbd" onclick="switchMode('tbd')" style="color: #a3e635;">
+        <span>📦</span> TBD-16 ECOSYSTEM
+      </button>
+      <button class="mode-btn" id="btn-pm" onclick="switchMode('pm')" style="color: var(--accent-red);">
+        <span>📋</span> FULL POST-MORTEM &amp; TRIAGE SLATES
+      </button>
+    </div>
+
+    <div class="header-controls">
+      <div class="shortcut-container">
+        <button class="shortcut-pill" id="btn-shortcuts" onclick="toggleShortcuts()" title="Antigravity Keybindings &amp; Power Commands">
+          <span>⌨️</span> Shortcuts
+        </button>
+        <div class="shortcut-popover" id="shortcut-popover" style="display: none;">
+          <div class="shortcut-header">
+            <span>⚡ Antigravity Shortcuts</span>
+            <button class="shortcut-close" onclick="toggleShortcuts()">×</button>
+          </div>
+          <div class="shortcut-grid">
+            <div class="shortcut-row">
+              <kbd>Ctrl+K</kbd>
+              <span>Quick Chat / Focus</span>
+            </div>
+            <div class="shortcut-row">
+              <kbd>Ctrl+Shift+P</kbd>
+              <span>Command Palette</span>
+            </div>
+            <div class="shortcut-row">
+              <kbd>Ctrl+Enter</kbd>
+              <span>Submit Prompt</span>
+            </div>
+            <div class="shortcut-divider"></div>
+            <div class="shortcut-row">
+              <span class="cmd-pill" onclick="copyShortcutText('/plan')">/plan</span>
+              <span>Architectural Plan</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="cmd-pill" onclick="copyShortcutText('/grill-me')">/grill-me</span>
+              <span>Interactive Alignment</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="cmd-pill" onclick="copyShortcutText('/execute-task')">/execute-task</span>
+              <span>Factory Task Pipeline</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="cmd-pill" onclick="copyShortcutText('/postmortem')">/postmortem</span>
+              <span>Triage &amp; Post-Mortem Lab</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="zoom-ctrl">
+        <button class="zoom-btn" onclick="changeFontSize(-1)">A-</button>
+        <span class="zoom-level" id="font-zoom-level">100%</span>
+        <button class="zoom-btn" onclick="changeFontSize(1)">A+</button>
+      </div>
+      <button class="refresh-btn" onclick="location.reload()">
+        <span>🔄</span> Force Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="app-container">
+<div class="mode-wrapper active" id="workshop-mode">
+      <div class="sidebar">
+        <h2 style="color: var(--accent-amber);">🛠️ Active Lab Triage</h2>
+        <div class="nav-item active" id="nav-item-1.1" onclick="showHeroItem('1.1')">
+          <span>1.1 Milled Faceplate</span>
+          <span class="badge" id="badge-1.1">PENDING</span>
+        </div>
+        <div class="nav-item" id="nav-item-1.2" onclick="showHeroItem('1.2')">
+          <span>1.2 Hybrid 6-8 Banking</span>
+          <span class="badge" id="badge-1.2">PENDING</span>
+        </div>
+        <div class="nav-item" id="nav-item-1.3" onclick="showHeroItem('1.3')">
+          <span>1.3 Reclaim Waste</span>
+          <span class="badge" id="badge-1.3">PENDING</span>
+        </div>
+        <div class="nav-item" id="nav-item-2.1" onclick="showHeroItem('2.1')">
+          <span>2.1 45° Signal Traces</span>
+          <span class="badge" id="badge-2.1">PENDING</span>
+        </div>
+        <div class="nav-item" id="nav-item-2.2" onclick="showHeroItem('2.2')">
+          <span>2.2 TE Vector Glyphs</span>
+          <span class="badge" id="badge-2.2">PENDING</span>
+        </div>
+        <div class="nav-item" id="nav-item-3.1" onclick="showHeroItem('3.1')">
+          <span>3.1 Vertical Rhythm Strip</span>
+          <span class="badge" id="badge-3.1">PENDING</span>
+        </div>
+        <div class="nav-item" id="nav-item-3.2" onclick="showHeroItem('3.2')">
+          <span>3.2 Magnetic Detents</span>
+          <span class="badge" id="badge-3.2">PENDING</span>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="section active">
+          
+          <!-- Scorecard Banner -->
+          <div class="card" style="border-left: 4px solid var(--accent-amber); background: #17110c;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h1 style="color: var(--accent-amber); margin: 0; font-size: 20px; border-bottom: none; padding: 0;">
+                  🛠️ Suite UI/UX Architecture Post-Mortem Lab
+                </h1>
+                <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;">
+                  Methodical, interactive triage across all 7 architectural breakthroughs.
+                </p>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <span class="badge good" id="score-approved" style="padding: 6px 12px; font-weight: bold;">✅ Approved: 0</span>
+                <span class="badge warn" id="score-tabled" style="padding: 6px 12px; font-weight: bold;">⏳ Tabled: 0</span>
+                <span class="badge bad" id="score-killed" style="padding: 6px 12px; font-weight: bold;">💀 Killed: 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Stage HTML Content -->
+          
+      <div id="hero-stage-container" class="space-y-6">
+
+        <!-- HERO STAGE 1.1 -->
+        <div id="hero-stage-1.1" class="hero-stage-panel themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 1.1 &bull; CHASSIS PARADIGM</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
+              </div>
+              <h3 class="text-lg font-bold text-white">Monolithic Sculpted Titanium Faceplate vs. Modular Cards</h3>
+            </div>
+            <button onclick="handleFabClick()" class="px-3 py-1.5 rounded-lg bg-[#270811] hover:bg-[#3d0d1b] text-[#fda4af] border border-[#f43f5e]/40 text-xs font-mono-code font-bold transition flex items-center gap-1.5">
+              <span>🔍 See in Context (Tab 8)</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-[#94a3b8] leading-relaxed">
+            De-boxes the main synthesis engine (Voice 1, Voice 2, Transients, Output) from disjointed 2x5 cards into a seamless matte titanium surface with milled 1px hairline relief channels, laser-etched headers (<code class="text-white">// 01 CARRIER CORE</code>), and zero wasted space. Modular cards are strictly preserved for drag-and-drop Effects and Modulation tiles.
+          </p>
+
+          <!-- Interactive Simulator: Faceplate Comparison -->
+          <div class="themed-inner rounded-xl p-5 border border-[#2d1b28] bg-[#0a0508] space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono-code font-bold text-[#f472b6] uppercase flex items-center gap-2">
+                <span>🎛️ Interactive Faceplate Simulator</span>
+              </span>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleFaceplate('cards')" id="sim-btn-cards" class="px-3 py-1 rounded text-xs font-mono-code border border-[#2d1b28] bg-[#140e16] text-[#94a3b8]">
+                  Legacy 2x5 Cards
+                </button>
+                <button onclick="toggleFaceplate('monolithic')" id="sim-btn-mono" class="px-3 py-1 rounded text-xs font-mono-code border border-[#f43f5e] bg-[#270811] text-[#fda4af] font-bold">
+                  Monolithic Sculpted Slate
+                </button>
+              </div>
+            </div>
+
+            <!-- Visual Canvas / Mockup -->
+            <div id="sim-faceplate-display" class="p-4 rounded-xl border border-[#2d1b28] bg-[#0e121a] transition-all duration-300">
+              <!-- Will be updated by toggleFaceplate -->
+            </div>
+          </div>
+
+          <!-- Selectable Option Cards -->
+          <div class="space-y-2">
+            <span class="text-xs font-mono-code font-bold text-white uppercase tracking-wider">Select Verdict for Item 1.1:</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div onclick="setVerdict('1.1', 'APPROVE', 'Adopt Monolithic Faceplate for main synth; cards strictly for FX/Mod')" id="card-1.1-APPROVE" class="option-card p-4 rounded-xl border border-[#059669]/40 bg-[#06201a] text-left transition space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#34d399] font-mono-code">✅ APPROVE</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code">Schedule v0.4.1</span>
+                </div>
+                <h4 class="text-xs font-bold text-white">Adopt Monolithic Sculpted Faceplate</h4>
+                <p class="text-[11px] text-[#94a3b8]">Unified titanium slate for main synth pages, hairline milled channels, 0.3% CPU blit, cards strictly for FX/Mod.</p>
+              </div>
+              <div onclick="setVerdict('1.1', 'TABLE', 'Keep 2x5 cards everywhere for now; defer faceplate overhaul')" id="card-1.1-TABLE" class="option-card p-4 rounded-xl border border-[#d97706]/40 bg-[#24170a] text-left transition space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#fbbf24] font-mono-code">⏳ TABLE</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fde68a] font-mono-code">Future R&amp;D</span>
+                </div>
+                <h4 class="text-xs font-bold text-white">Keep Cards Everywhere</h4>
+                <p class="text-[11px] text-[#94a3b8]">Defer monolithic faceplate to future milestone; keep 2x5 rectangular card grid across all pages.</p>
+              </div>
+              <div onclick="setVerdict('1.1', 'KILL', 'Reject faceplate overhaul; card layout is permanent identity')" id="card-1.1-KILL" class="option-card p-4 rounded-xl border border-[#dc2626]/40 bg-[#260b0d] text-left transition space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#f87171] font-mono-code">💀 KILL</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#450a0a] text-[#fca5a5] font-mono-code">Graveyard</span>
+                </div>
+                <h4 class="text-xs font-bold text-white">Permanently Reject Faceplate</h4>
+                <p class="text-[11px] text-[#94a3b8]">Declare rectangular 4-knob cards as the permanent suite identity; kill monolithic faceplate.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO STAGE 1.2 -->
+        <div id="hero-stage-1.2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 1.2 &bull; ERGONOMICS</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
+              </div>
+              <h3 class="text-lg font-bold text-white">Hybrid Banking Architecture: 6–8 Controls per Desktop Section</h3>
+            </div>
+            <button onclick="handleFabClick()" class="px-3 py-1.5 rounded-lg bg-[#270811] hover:bg-[#3d0d1b] text-[#fda4af] border border-[#f43f5e]/40 text-xs font-mono-code font-bold transition flex items-center gap-1.5">
+              <span>🔍 See in Context (Tab 8)</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-[#94a3b8] leading-relaxed">
+            Breaks the strict 4-control desktop limit for coupled circuits. Unifies Carrier &amp; Modulator into a 6-knob FM Core (<code class="text-white">Shape</code>, <code class="text-white">Ratio</code>, <code class="text-white">Feedback</code>, <code class="text-white">Mod Depth</code>, <code class="text-white">Mod Shape</code>, <code class="text-white">Mod Ratio</code>) and Filter &amp; Drive into a 6-knob section. The TBD-16 firmware consumes the exact same JSON schema and auto-chunks into deterministic 4-knob hardware pages (<code class="text-white">Page XA</code> / <code class="text-white">Page XB</code>).
+          </p>
+
+          <!-- Interactive Simulator: Hardware Auto-Chunking -->
+          <div class="themed-inner rounded-xl p-5 border border-[#2d1b28] bg-[#0a0508] space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono-code font-bold text-[#f472b6] uppercase flex items-center gap-2">
+                <span>🔄 Desktop vs TBD-16 Auto-Chunking Simulator</span>
+              </span>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleTbdView('desktop')" id="sim-btn-desk" class="px-3 py-1 rounded text-xs font-mono-code border border-[#f43f5e] bg-[#270811] text-[#fda4af] font-bold">
+                  Desktop Plugin (6 Knobs)
+                </button>
+                <button onclick="toggleTbdView('hardware')" id="sim-btn-hw" class="px-3 py-1 rounded text-xs font-mono-code border border-[#2d1b28] bg-[#140e16] text-[#94a3b8]">
+                  TBD-16 Hardware (Banked Quads)
+                </button>
+              </div>
+            </div>
+
+            <!-- Visual Canvas -->
+            <div id="sim-tbd-display" class="p-4 rounded-xl border border-[#2d1b28] bg-[#0e121a]">
+              <!-- Dynamically rendered by toggleTbdView -->
+            </div>
+          </div>
+
+          <!-- Selectable Option Cards -->
+          <div class="space-y-2">
+            <span class="text-xs font-mono-code font-bold text-white uppercase tracking-wider">Select Verdict for Item 1.2:</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div onclick="setVerdict('1.2', 'APPROVE', 'Adopt Hybrid Banking: 6–8 controls on desktop, auto-chunked quads for TBD-16')" id="card-1.2-APPROVE" class="option-card p-4 rounded-xl border border-[#059669]/40 bg-[#06201a] text-left transition space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#34d399] font-mono-code">✅ APPROVE</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code">Schedule v0.4.1</span>
+                </div>
+                <h4 class="text-xs font-bold text-white">Hybrid Banking (6–8 Knobs)</h4>
+                <p class="text-[11px] text-[#94a3b8]">Desktop shows coupled circuits together; hardware firmware consumes JSON and auto-chunks into 4-encoder pages.</p>
+              </div>
+              <div onclick="setVerdict('1.2', 'TABLE', 'Keep strict 4-control limit everywhere for now')" id="card-1.2-TABLE" class="option-card p-4 rounded-xl border border-[#d97706]/40 bg-[#24170a] text-left transition space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#fbbf24] font-mono-code">⏳ TABLE</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fde68a] font-mono-code">Future R&amp;D</span>
+                </div>
+                <h4 class="text-xs font-bold text-white">Strict 4-Knob Monolith</h4>
+                <p class="text-[11px] text-[#94a3b8]">Keep desktop artificially restricted to 4 controls per card to mirror hardware 1:1.</p>
+              </div>
+              <div onclick="setVerdict('1.2', 'KILL', 'Permanently lock all modules to exactly 4 controls')" id="card-1.2-KILL" class="option-card p-4 rounded-xl border border-[#dc2626]/40 bg-[#260b0d] text-left transition space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#f87171] font-mono-code">💀 KILL</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#450a0a] text-[#fca5a5] font-mono-code">Graveyard</span>
+                </div>
+                <h4 class="text-xs font-bold text-white">Kill Hybrid Banking</h4>
+                <p class="text-[11px] text-[#94a3b8]">Never allow more than 4 controls in any section under any circumstance.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO STAGE 1.3 -->
+        <div id="hero-stage-1.3" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 1.3 &bull; SCREEN WASTE</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
+              </div>
+              <h3 class="text-lg font-bold text-white">Eliminating 37.5% Screen Waste &amp; Reclaiming Real Estate</h3>
+            </div>
+            <button onclick="handleFabClick()" class="px-3 py-1.5 rounded-lg bg-[#270811] hover:bg-[#3d0d1b] text-[#fda4af] border border-[#f43f5e]/40 text-xs font-mono-code font-bold transition flex items-center gap-1.5">
+              <span>🔍 See in Context (Tab 8)</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-[#94a3b8] leading-relaxed">
+            Eliminates the dead blank rectangular plates across the 2x5 grid. The reclaimed screen space is converted into expanded visualizers: large kinetic waveform displays, envelope attack curves, and high-resolution metering bars.
+          </p>
+
+          <!-- Selectable Option Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div onclick="setVerdict('1.3', 'APPROVE', 'Reclaim 37.5% screen waste into waveform visualizers and faders')" id="card-1.3-APPROVE" class="option-card p-4 rounded-xl border border-[#059669]/40 bg-[#06201a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#34d399] font-mono-code">✅ APPROVE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code">Schedule v0.4.1</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Reclaim Screen Area</h4>
+              <p class="text-[11px] text-[#94a3b8]">Give recovered space back to live visualizers, large meters, and vertical decay faders.</p>
+            </div>
+            <div onclick="setVerdict('1.3', 'TABLE', 'Keep blank plates for future module slots')" id="card-1.3-TABLE" class="option-card p-4 rounded-xl border border-[#d97706]/40 bg-[#24170a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#fbbf24] font-mono-code">⏳ TABLE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fde68a] font-mono-code">Future R&amp;D</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Keep Blank Slots</h4>
+              <p class="text-[11px] text-[#94a3b8]">Leave blank placeholder cards for user customization in v0.5.0.</p>
+            </div>
+            <div onclick="setVerdict('1.3', 'KILL', 'Reject real estate overhaul')" id="card-1.3-KILL" class="option-card p-4 rounded-xl border border-[#dc2626]/40 bg-[#260b0d] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#f87171] font-mono-code">💀 KILL</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#450a0a] text-[#fca5a5] font-mono-code">Graveyard</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Reject Reclaim</h4>
+              <p class="text-[11px] text-[#94a3b8]">Preserve static empty plates as intentional negative space.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO STAGE 2.1 -->
+        <div id="hero-stage-2.1" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 2.1 &bull; KINETIC DYNAMICS</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
+              </div>
+              <h3 class="text-lg font-bold text-white">Flow-Traced 45° PCB Bus Lines with Isolated Gutter Repainting</h3>
+            </div>
+            <button onclick="handleFabClick()" class="px-3 py-1.5 rounded-lg bg-[#270811] hover:bg-[#3d0d1b] text-[#fda4af] border border-[#f43f5e]/40 text-xs font-mono-code font-bold transition flex items-center gap-1.5">
+              <span>🔍 See in Context (Tab 8)</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-[#94a3b8] leading-relaxed">
+            Connects stages visually from left-to-right (Carrier ➔ Modulator ➔ Filter ➔ Output) with 45° chamfered glowing vector bus traces. Audio-reactive pulses run at 30 Hz strictly inside clear gutters with isolated dirty-rect repainting (<code class="text-[#38bdf8]">traceBounds.expanded(4)</code>), resulting in zero knob repaints and 0% CPU overhead.
+          </p>
+
+          <!-- Interactive Simulator: Signal Flow Pulse -->
+          <div class="themed-inner rounded-xl p-5 border border-[#2d1b28] bg-[#0a0508] space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono-code font-bold text-[#f472b6] uppercase flex items-center gap-2">
+                <span>s Interactive 45° Bus Trace Pulse Simulator</span>
+              </span>
+              <button onclick="triggerTracePulse()" id="btn-trigger-pulse" class="px-4 py-1.5 rounded-lg bg-[#e11d48] hover:bg-[#be123c] text-white text-xs font-mono-code font-bold transition flex items-center gap-1.5 shadow-lg">
+                <span>⚡ Trigger Audio Impulse!</span>
+              </button>
+            </div>
+
+            <!-- SVG Circuit Trace -->
+            <div class="p-6 rounded-xl border border-[#2d1b28] bg-[#0b0e14] relative overflow-hidden flex flex-col items-center">
+              <svg width="680" height="90" viewBox="0 0 680 90" class="w-full">
+                <!-- Base Trace Line -->
+                <path d="M 40 45 L 180 45 L 210 25 L 340 25 L 370 65 L 500 65 L 530 45 L 640 45" fill="none" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+                <!-- Pulse Glow Path -->
+                <path id="svg-pulse-path" d="M 40 45 L 180 45 L 210 25 L 340 25 L 370 65 L 500 65 L 530 45 L 640 45" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-dasharray="80 600" stroke-dashoffset="680" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; filter: drop-shadow(0 0 8px #38bdf8);"/>
+                
+                <!-- Circuit Stage Nodes -->
+                <g transform="translate(40, 45)">
+                  <circle r="14" fill="#161b22" stroke="#38bdf8" stroke-width="2"/>
+                  <text y="4" text-anchor="middle" font-size="9" fill="#e2e8f0" font-family="monospace">CAR</text>
+                </g>
+                <g transform="translate(180, 45)">
+                  <circle r="14" fill="#161b22" stroke="#38bdf8" stroke-width="2"/>
+                  <text y="4" text-anchor="middle" font-size="9" fill="#e2e8f0" font-family="monospace">MOD</text>
+                </g>
+                <g transform="translate(340, 25)">
+                  <circle r="14" fill="#161b22" stroke="#f43f5e" stroke-width="2"/>
+                  <text y="4" text-anchor="middle" font-size="9" fill="#e2e8f0" font-family="monospace">VCF</text>
+                </g>
+                <g transform="translate(500, 65)">
+                  <circle r="14" fill="#161b22" stroke="#eab308" stroke-width="2"/>
+                  <text y="4" text-anchor="middle" font-size="9" fill="#e2e8f0" font-family="monospace">DRV</text>
+                </g>
+                <g transform="translate(640, 45)">
+                  <circle r="14" fill="#161b22" stroke="#3fb950" stroke-width="2"/>
+                  <text y="4" text-anchor="middle" font-size="9" fill="#e2e8f0" font-family="monospace">OUT</text>
+                </g>
+              </svg>
+              <div class="flex items-center justify-between w-full mt-2 text-[10px] font-mono-code text-[#64748b]">
+                <span>Carrier Osc</span>
+                <span>FM Modulator</span>
+                <span>Dual ZDF SVF</span>
+                <span>Analog Drive</span>
+                <span>Main Summing</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selectable Option Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div onclick="setVerdict('2.1', 'APPROVE', 'Implement 45° PCB Bus Lines with isolated gutter repainting')" id="card-2.1-APPROVE" class="option-card p-4 rounded-xl border border-[#059669]/40 bg-[#06201a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#34d399] font-mono-code">✅ APPROVE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code">Schedule v0.4.1</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Implement 45° Signal Traces</h4>
+              <p class="text-[11px] text-[#94a3b8]">Dynamic audio bus lines with isolated dirty-rect repaints at 30 Hz (0% knob overhead).</p>
+            </div>
+            <div onclick="setVerdict('2.1', 'TABLE', 'Static non-animated lines for now')" id="card-2.1-TABLE" class="option-card p-4 rounded-xl border border-[#d97706]/40 bg-[#24170a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#fbbf24] font-mono-code">⏳ TABLE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fde68a] font-mono-code">Future R&amp;D</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Static Lines Only</h4>
+              <p class="text-[11px] text-[#94a3b8]">Draw subtle static vector paths without dynamic audio-reactive pulsing.</p>
+            </div>
+            <div onclick="setVerdict('2.1', 'KILL', 'Reject bus lines; keep modules visually isolated')" id="card-2.1-KILL" class="option-card p-4 rounded-xl border border-[#dc2626]/40 bg-[#260b0d] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#f87171] font-mono-code">💀 KILL</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#450a0a] text-[#fca5a5] font-mono-code">Graveyard</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Reject Bus Lines</h4>
+              <p class="text-[11px] text-[#94a3b8]">Do not render any signal connecting lines between sections.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO STAGE 2.2 -->
+        <div id="hero-stage-2.2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 2.2 &bull; GAME FEEL</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
+              </div>
+              <h3 class="text-lg font-bold text-white">Teenage Engineering Procedural Vector Micro-Visualizers</h3>
+            </div>
+            <button onclick="handleFabClick()" class="px-3 py-1.5 rounded-lg bg-[#270811] hover:bg-[#3d0d1b] text-[#fda4af] border border-[#f43f5e]/40 text-xs font-mono-code font-bold transition flex items-center gap-1.5">
+              <span>🔍 See in Context (Tab 8)</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-[#94a3b8] leading-relaxed">
+            Zero-allocation procedural vector glyphs embedded in stage headers: <strong>FM Polar Rose</strong> (harmonic ratio petals), <strong>Resonant Acid Jaw</strong> (ZDF filter peak morph), and <strong>Punch Seismic Spike</strong> (pitch envelope transient attack).
+          </p>
+
+          <!-- Interactive Simulator: Vector Glyphs -->
+          <div class="themed-inner rounded-xl p-5 border border-[#2d1b28] bg-[#0a0508] space-y-4">
+            <span class="text-xs font-mono-code font-bold text-[#f472b6] uppercase flex items-center gap-2">
+              <span>🎮 Interactive Procedural Glyph Visualizers</span>
+            </span>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Glyph 1: Polar Rose -->
+              <div class="p-4 rounded-xl border border-[#2d1b28] bg-[#0e121a] flex flex-col items-center space-y-3">
+                <span class="text-[11px] font-mono-code text-[#38bdf8] font-bold">FM POLAR ROSE</span>
+                <svg width="100" height="100" viewBox="0 0 100 100" class="overflow-visible">
+                  <path id="svg-polar-rose" d="M 50 50" fill="none" stroke="#38bdf8" stroke-width="2"/>
+                </svg>
+                <div class="w-full space-y-1">
+                  <div class="flex justify-between text-[10px] font-mono-code text-[#64748b]">
+                    <span>Harmonic Ratio:</span>
+                    <span id="label-rose-val" class="text-white font-bold">3.00x</span>
+                  </div>
+                  <input type="range" min="1" max="8" step="0.5" value="3" oninput="updatePolarRose(this.value)" class="w-full accent-[#38bdf8]">
+                </div>
+              </div>
+
+              <!-- Glyph 2: Acid Jaw -->
+              <div class="p-4 rounded-xl border border-[#2d1b28] bg-[#0e121a] flex flex-col items-center space-y-3">
+                <span class="text-[11px] font-mono-code text-[#f43f5e] font-bold">RESONANT ACID JAW</span>
+                <svg width="120" height="100" viewBox="0 0 120 100" class="overflow-visible">
+                  <path id="svg-acid-jaw" d="M 10 70 Q 60 20 110 80" fill="none" stroke="#f43f5e" stroke-width="2.5"/>
+                </svg>
+                <div class="w-full space-y-1">
+                  <div class="flex justify-between text-[10px] font-mono-code text-[#64748b]">
+                    <span>Resonance Q:</span>
+                    <span id="label-jaw-val" class="text-white font-bold">75%</span>
+                  </div>
+                  <input type="range" min="10" max="95" step="1" value="75" oninput="updateAcidJaw(this.value)" class="w-full accent-[#f43f5e]">
+                </div>
+              </div>
+
+              <!-- Glyph 3: Punch Spike -->
+              <div class="p-4 rounded-xl border border-[#2d1b28] bg-[#0e121a] flex flex-col items-center space-y-3">
+                <span class="text-[11px] font-mono-code text-[#eab308] font-bold">PUNCH SEISMIC SPIKE</span>
+                <svg width="120" height="100" viewBox="0 0 120 100" class="overflow-visible">
+                  <path id="svg-punch-spike" d="M 10 80 L 30 15 L 110 80" fill="none" stroke="#eab308" stroke-width="2.5"/>
+                </svg>
+                <div class="w-full space-y-1">
+                  <div class="flex justify-between text-[10px] font-mono-code text-[#64748b]">
+                    <span>Attack Speed:</span>
+                    <span id="label-spike-val" class="text-white font-bold">2.5 ms</span>
+                  </div>
+                  <input type="range" min="0.5" max="30" step="0.5" value="2.5" oninput="updatePunchSpike(this.value)" class="w-full accent-[#eab308]">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selectable Option Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div onclick="setVerdict('2.2', 'APPROVE', 'Implement zero-allocation vector glyphs (Rose, Acid Jaw, Spike)')" id="card-2.2-APPROVE" class="option-card p-4 rounded-xl border border-[#059669]/40 bg-[#06201a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#34d399] font-mono-code">✅ APPROVE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code">Schedule v0.4.1</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Implement TE Vector Glyphs</h4>
+              <p class="text-[11px] text-[#94a3b8]">Playful, zero-allocation micro-visualizers providing instant game feel.</p>
+            </div>
+            <div onclick="setVerdict('2.2', 'TABLE', 'Standard dials for now; add glyphs in v0.5.0 polish')" id="card-2.2-TABLE" class="option-card p-4 rounded-xl border border-[#d97706]/40 bg-[#24170a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#fbbf24] font-mono-code">⏳ TABLE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fde68a] font-mono-code">Future R&amp;D</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Table to v0.5.0</h4>
+              <p class="text-[11px] text-[#94a3b8]">Keep standard rotary dials for v0.4.1; add procedural glyphs during polish phase.</p>
+            </div>
+            <div onclick="setVerdict('2.2', 'KILL', 'Reject glyphs; keep utilitarian UI')" id="card-2.2-KILL" class="option-card p-4 rounded-xl border border-[#dc2626]/40 bg-[#260b0d] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#f87171] font-mono-code">💀 KILL</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#450a0a] text-[#fca5a5] font-mono-code">Graveyard</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Reject Vector Glyphs</h4>
+              <p class="text-[11px] text-[#94a3b8]">Reject playful visualizers as unnecessary visual noise.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO STAGE 3.1 -->
+        <div id="hero-stage-3.1" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 3.1 &bull; RHYTHM ERGONOMICS</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
+              </div>
+              <h3 class="text-lg font-bold text-white">Rightmost Dedicated Rhythm &amp; Summing Strip (Vertical Arcade Faders)</h3>
+            </div>
+            <button onclick="handleFabClick()" class="px-3 py-1.5 rounded-lg bg-[#270811] hover:bg-[#3d0d1b] text-[#fda4af] border border-[#f43f5e]/40 text-xs font-mono-code font-bold transition flex items-center gap-1.5">
+              <span>🔍 See in Context (Tab 8)</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-[#94a3b8] leading-relaxed">
+            4 vertical arcade faders for voice levels (<code class="text-white">V1</code>, <code class="text-white">V2</code>, <code class="text-white">Noise</code>, <code class="text-white">Ring</code>) + secondary bank for voice decay profiling, providing instant preattentive kit tightness scanning (Roland TR-8S style).
+          </p>
+
+          <!-- Interactive Simulator: Vertical Faders -->
+          <div class="themed-inner rounded-xl p-5 border border-[#2d1b28] bg-[#0a0508] space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono-code font-bold text-[#f472b6] uppercase flex items-center gap-2">
+                <span>🎚️ Interactive Rhythm Fader Strip Simulator</span>
+              </span>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleFaderBank('level')" id="btn-fader-level" class="px-3 py-1 rounded text-xs font-mono-code border border-[#f43f5e] bg-[#270811] text-[#fda4af] font-bold">
+                  Level Bank (dB)
+                </button>
+                <button onclick="toggleFaderBank('decay')" id="btn-fader-decay" class="px-3 py-1 rounded text-xs font-mono-code border border-[#2d1b28] bg-[#140e16] text-[#94a3b8]">
+                  Decay Profile (ms)
+                </button>
+              </div>
+            </div>
+
+            <!-- Faders Area -->
+            <div class="p-6 rounded-xl border border-[#2d1b28] bg-[#0b0e14] flex justify-center gap-10">
+              <!-- Fader 1 -->
+              <div class="flex flex-col items-center space-y-2">
+                <span class="text-[11px] font-mono-code text-[#38bdf8] font-bold">V1 TONE</span>
+                <input type="range" orient="vertical" min="0" max="100" value="80" oninput="updateFaderVal('v1', this.value)" class="h-36 w-6 appearance-none bg-[#1e293b] rounded-lg accent-[#38bdf8] cursor-pointer" style="writing-mode: bt-lr; -webkit-appearance: slider-vertical;">
+                <span id="readout-v1" class="text-[10px] font-mono-code text-white">-2.5 dB</span>
+              </div>
+              <!-- Fader 2 -->
+              <div class="flex flex-col items-center space-y-2">
+                <span class="text-[11px] font-mono-code text-[#a78bfa] font-bold">V2 NOISE</span>
+                <input type="range" orient="vertical" min="0" max="100" value="65" oninput="updateFaderVal('v2', this.value)" class="h-36 w-6 appearance-none bg-[#1e293b] rounded-lg accent-[#a78bfa] cursor-pointer" style="writing-mode: bt-lr; -webkit-appearance: slider-vertical;">
+                <span id="readout-v2" class="text-[10px] font-mono-code text-white">-6.0 dB</span>
+              </div>
+              <!-- Fader 3 -->
+              <div class="flex flex-col items-center space-y-2">
+                <span class="text-[11px] font-mono-code text-[#34d399] font-bold">TRANSIENT</span>
+                <input type="range" orient="vertical" min="0" max="100" value="90" oninput="updateFaderVal('v3', this.value)" class="h-36 w-6 appearance-none bg-[#1e293b] rounded-lg accent-[#34d399] cursor-pointer" style="writing-mode: bt-lr; -webkit-appearance: slider-vertical;">
+                <span id="readout-v3" class="text-[10px] font-mono-code text-white">-0.8 dB</span>
+              </div>
+              <!-- Fader 4 -->
+              <div class="flex flex-col items-center space-y-2">
+                <span class="text-[11px] font-mono-code text-[#fbbf24] font-bold">RING / SUB</span>
+                <input type="range" orient="vertical" min="0" max="100" value="45" oninput="updateFaderVal('v4', this.value)" class="h-36 w-6 appearance-none bg-[#1e293b] rounded-lg accent-[#fbbf24] cursor-pointer" style="writing-mode: bt-lr; -webkit-appearance: slider-vertical;">
+                <span id="readout-v4" class="text-[10px] font-mono-code text-white">-12.0 dB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selectable Option Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div onclick="setVerdict('3.1', 'APPROVE', 'Implement 4 vertical arcade faders with Level/Decay bank switching')" id="card-3.1-APPROVE" class="option-card p-4 rounded-xl border border-[#059669]/40 bg-[#06201a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#34d399] font-mono-code">✅ APPROVE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code">Schedule v0.4.1</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Implement Rhythm Fader Strip</h4>
+              <p class="text-[11px] text-[#94a3b8]">Vertical arcade faders with Level/Decay banking for preattentive rhythm mixing.</p>
+            </div>
+            <div onclick="setVerdict('3.1', 'TABLE', 'Keep horizontal mixer sliders for now')" id="card-3.1-TABLE" class="option-card p-4 rounded-xl border border-[#d97706]/40 bg-[#24170a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#fbbf24] font-mono-code">⏳ TABLE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fde68a] font-mono-code">Future R&amp;D</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Keep Horizontal Sliders</h4>
+              <p class="text-[11px] text-[#94a3b8]">Maintain horizontal slider bars inside mixer cards for now.</p>
+            </div>
+            <div onclick="setVerdict('3.1', 'KILL', 'Reject vertical fader strip')" id="card-3.1-KILL" class="option-card p-4 rounded-xl border border-[#dc2626]/40 bg-[#260b0d] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#f87171] font-mono-code">💀 KILL</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#450a0a] text-[#fca5a5] font-mono-code">Graveyard</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Reject Vertical Strip</h4>
+              <p class="text-[11px] text-[#94a3b8]">Reject vertical arcade faders; use standard rotary knobs everywhere.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO STAGE 3.2 -->
+        <div id="hero-stage-3.2" class="hero-stage-panel hidden themed-card rounded-2xl p-6 space-y-6 border border-[#f43f5e]/40 bg-[#12080f] shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#2d1b28] pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2.5 py-0.5 rounded bg-[#1e1320] text-[#f472b6] font-mono-code font-bold">ITEM 3.2 &bull; TACTILE HAPTICS</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-[#059669]/20 text-[#34d399] font-mono-code font-bold border border-[#059669]/30">RECOMMENDED</span>
+              </div>
+              <h3 class="text-lg font-bold text-white">Visual Haptics, Magnetic Detents &amp; Breakaway Snapping</h3>
+            </div>
+            <button onclick="handleFabClick()" class="px-3 py-1.5 rounded-lg bg-[#270811] hover:bg-[#3d0d1b] text-[#fda4af] border border-[#f43f5e]/40 text-xs font-mono-code font-bold transition flex items-center gap-1.5">
+              <span>🔍 See in Context (Tab 8)</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-[#94a3b8] leading-relaxed">
+            &plusmn;1.8% magnetic snap zones around musical harmonic ratios (1:1, 1:2, 1:3, 1:4) with 4px breakaway force, HUD bracket indicator (<code class="text-white">[ 2.000x ]</code>), and 1-frame haptic flash.
+          </p>
+
+          <!-- Interactive Simulator: Magnetic Detents -->
+          <div class="themed-inner rounded-xl p-5 border border-[#2d1b28] bg-[#0a0508] space-y-4">
+            <span class="text-xs font-mono-code font-bold text-[#f472b6] uppercase flex items-center gap-2">
+              <span>🧲 Interactive Magnetic Detent Simulator</span>
+            </span>
+
+            <div class="p-6 rounded-xl border border-[#2d1b28] bg-[#0b0e14] space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-mono-code text-[#94a3b8]">Drag Ratio Slider across 1.0x, 2.0x, 3.0x, 4.0x:</span>
+                <span id="hud-detent-bracket" class="px-3 py-1 rounded bg-[#1e1320] text-[#cbd5e1] font-mono-code text-xs font-bold border border-[#2d1b28] transition">
+                  Ratio: [ 1.000x ]
+                </span>
+              </div>
+
+              <input type="range" id="detent-slider" min="0.5" max="4.5" step="0.01" value="1.0" oninput="handleDetentSlider(this.value)" class="w-full h-3 bg-[#1e293b] rounded-lg accent-[#f43f5e] cursor-pointer">
+              
+              <div class="flex justify-between text-[10px] font-mono-code text-[#64748b] px-1">
+                <span>0.5x</span>
+                <span class="text-[#38bdf8] font-bold">1.0x (Snap)</span>
+                <span class="text-[#38bdf8] font-bold">2.0x (Snap)</span>
+                <span class="text-[#38bdf8] font-bold">3.0x (Snap)</span>
+                <span class="text-[#38bdf8] font-bold">4.0x (Snap)</span>
+                <span>4.5x</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selectable Option Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div onclick="setVerdict('3.2', 'APPROVE', 'Implement magnetic snap zones, HUD bracket flash, and haptic reset')" id="card-3.2-APPROVE" class="option-card p-4 rounded-xl border border-[#059669]/40 bg-[#06201a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#34d399] font-mono-code">✅ APPROVE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code">Schedule v0.4.1</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Implement Magnetic Detents</h4>
+              <p class="text-[11px] text-[#94a3b8]">Magnetic snapping around musical harmonic ratios with breakaway force and HUD flash.</p>
+            </div>
+            <div onclick="setVerdict('3.2', 'TABLE', 'Standard continuous dragging without detents for now')" id="card-3.2-TABLE" class="option-card p-4 rounded-xl border border-[#d97706]/40 bg-[#24170a] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#fbbf24] font-mono-code">⏳ TABLE</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fde68a] font-mono-code">Future R&amp;D</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Continuous Dragging</h4>
+              <p class="text-[11px] text-[#94a3b8]">Keep continuous linear dragging without magnetic detent snapping.</p>
+            </div>
+            <div onclick="setVerdict('3.2', 'KILL', 'Reject detent snapping')" id="card-3.2-KILL" class="option-card p-4 rounded-xl border border-[#dc2626]/40 bg-[#260b0d] text-left transition space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#f87171] font-mono-code">💀 KILL</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-[#450a0a] text-[#fca5a5] font-mono-code">Graveyard</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Reject Detents</h4>
+              <p class="text-[11px] text-[#94a3b8]">Reject tactile snapping entirely.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Triage Matrix of all 7 Items -->
+      <div class="themed-card rounded-2xl p-6 space-y-4 border border-[#2d1b28] bg-[#140e16]">
+        <div class="flex items-center justify-between border-b border-[#2d1b28] pb-3">
+          <span class="text-xs font-bold text-white font-mono-code uppercase tracking-wider">
+            📋 Full Triage Matrix (Quick Review &amp; Direct Assign)
+          </span>
+          <span class="text-[11px] text-[#94a3b8]">Click any button below to quickly flip verdicts</span>
+        </div>
+
+        <div class="space-y-3" id="quick-matrix-container">
+          <!-- Will be rendered with all 7 items -->
+        </div>
+      </div>
+
+      <!-- Sticky Decision Composer -->
+      <div class="themed-card rounded-xl p-5 space-y-4 border border-[#f43f5e]/40 bg-[#12080d] sticky bottom-4 shadow-2xl z-40">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-white uppercase tracking-wider font-mono-code flex items-center gap-2">
+            <span>s Interactive Triage Composer</span>
+          </span>
+          <button onclick="copyVerdictsToClipboard()" id="composer-copy-btn" class="px-4 py-2 rounded-lg bg-[#e11d48] hover:bg-[#be123c] text-white font-bold text-xs transition flex items-center gap-1.5 shadow-lg">
+            <span>📋 Copy Verdicts to Clipboard</span>
+          </button>
+        </div>
+        <textarea id="triage-output" rows="7" readonly class="w-full bg-[#0a0507] border border-[#2d1b28] rounded-lg p-3 text-xs font-mono-code text-[#cbd5e1] resize-none leading-relaxed"></textarea>
+        <p class="text-[11px] text-[#94a3b8] italic">
+          💡 Click any option card or pill above to assign verdicts, then click <strong>Copy Verdicts to Clipboard</strong> to paste into chat!
+        </p>
+      </div>
+
+    </div>
+
+    
+
+        </div>
+      </div>
+    
+
+    <!-- ================= MODE 2: LAYOUT TOPOLOGIES ================= -->
+
+<div class="mode-wrapper" id="layouts-mode">
+      <div class="sidebar">
+        <h2 style="color: var(--accent-pink);">Layout Topologies</h2>
+        <div class="nav-item active" onclick="showSection('layouts', 'sec-monolithic')">1. Monolithic Faceplate</div>
+        <div class="nav-item" onclick="showSection('layouts', 'sec-traces')">2. Flow Traces &amp; Gutters</div>
+        <div class="nav-item" onclick="showSection('layouts', 'sec-glyphs')">3. TE Vector Glyphs</div>
+        <div class="nav-item" onclick="showSection('layouts', 'sec-faders')">4. Rhythm Fader Strip</div>
+        <div class="nav-item" onclick="showSection('layouts', 'sec-blueprint')">5. C++ Architecture Blueprint</div>
+      </div>
+      <div class="main-content">
+        <div class="section active" id="sec-monolithic">
+          
+      
+      <!-- Overview Card -->
+      <div class="themed-card rounded-xl p-5 space-y-3 border-l-4 border-l-[#a855f7]">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            📐 Layout Topologies: Grid vs. Flow vs. Hero Deck
+          </h2>
+          <span class="text-xs px-2.5 py-0.5 rounded bg-[#3b0764] text-[#c084fc] border border-[#6b21a8] font-mono-code font-bold">ERGONOMICS EXPLORATION</span>
+        </div>
+        <p class="text-xs text-[#94a3b8] leading-relaxed">
+          The central architectural question for The Klang Suite's UI evolution: <strong>Is the uniform 2x5 / 2x4 card grid optimal, or does it create visual monotony and obscure the signal path?</strong> Below is an exploration of 4 alternative layout paradigms, analyzing how they balance musician intuition, desktop screen space, and 1:1 hardware parity with the dadamachines TBD-16.
+        </p>
+      </div>
+
+      <!-- Comparative Topologies Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <!-- Topology 1: Uniform Modular Grid -->
+        <div class="themed-card rounded-xl p-5 space-y-3 border border-[#1f293d]">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-[#60a5fa] flex items-center gap-2">
+              <span>1️⃣ Uniform Modular Grid</span>
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-[#172554] text-[#93c5fd] font-mono-code font-semibold">CURRENT BASELINE</span>
+          </div>
+          <p class="text-xs text-[#94a3b8]">
+            Identical rectangular cards arranged in a strict 2x4 (8 slots) or 2x5 (10 slots) grid. Every card has exactly 4 horizontal meter sliders.
+          </p>
+
+          <!-- Mini Wireframe -->
+          <div class="p-3 bg-[#0d121c] rounded-lg border border-[#1f293d] space-y-1.5 font-mono-code text-[10px]">
+            <div class="grid grid-cols-4 gap-1 text-center text-[#64748b]">
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 1</div>
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 2</div>
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 3</div>
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 4</div>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-center text-[#64748b]">
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 5</div>
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 6</div>
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 7</div>
+              <div class="p-1.5 bg-[#161b22] border border-[#283141] rounded text-[#38bdf8]">Card 8</div>
+            </div>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>Flawless TBD-16 Parity:</strong> Maps 1:1 to embedded hardware pages (OLED display + 4 rotary encoders).</span>
+            </div>
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>Drag-and-Drop Reordering:</strong> Cards can be rearranged cleanly like eurorack modules.</span>
+            </div>
+            <div class="text-[#ef4444] flex items-start gap-1.5">
+              <span>✗</span>
+              <span><strong>"Wall of Sliders" Monotony:</strong> Every parameter looks identical in visual priority. A subtle utility looks just as large as the primary FM oscillator.</span>
+            </div>
+            <div class="text-[#ef4444] flex items-start gap-1.5">
+              <span>✗</span>
+              <span><strong>Zero Signal Flow Direction:</strong> Musician must mentally reconstruct where audio flows.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Topology 2: The Left-to-Right Signal Pipeline -->
+        <div class="themed-card rounded-xl p-5 space-y-3 border border-[#1f293d]">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-[#10b981] flex items-center gap-2">
+              <span>2️⃣ Left-to-Right Signal Pipeline</span>
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-[#064e3b] text-[#a7f3d0] font-mono-code font-semibold">CHANNEL STRIP</span>
+          </div>
+          <p class="text-xs text-[#94a3b8]">
+            Audio flows strictly left-to-right across 3 visual pods: <strong>Sound Generation</strong> &rarr; <strong>Timbre &amp; Filtering</strong> &rarr; <strong>Output &amp; Limiting</strong>, connected by subtle directional arrows.
+          </p>
+
+          <!-- Mini Wireframe -->
+          <div class="p-3 bg-[#0d121c] rounded-lg border border-[#1f293d] space-y-1.5 font-mono-code text-[10px]">
+            <div class="grid grid-cols-12 gap-1 text-center">
+              <div class="col-span-4 p-2 bg-[#0c1f2d] border border-[#0284c7]/40 rounded text-[#38bdf8]">
+                <div class="font-bold text-[9px] text-[#7dd3fc]">POD 1: GENERATORS</div>
+                <div class="text-[8px] text-[#94a3b8]">Carrier 1 & Mod 1</div>
+              </div>
+              <div class="col-span-1 flex items-center justify-center text-[#64748b] text-sm">&rarr;</div>
+              <div class="col-span-4 p-2 bg-[#1e1035] border border-[#9333ea]/40 rounded text-[#c084fc]">
+                <div class="font-bold text-[9px] text-[#d8b4fe]">POD 2: TIMBRE</div>
+                <div class="text-[8px] text-[#94a3b8]">Pitch Env & Filter</div>
+              </div>
+              <div class="col-span-1 flex items-center justify-center text-[#64748b] text-sm">&rarr;</div>
+              <div class="col-span-2 p-2 bg-[#2d1b0c] border border-[#d97706]/40 rounded text-[#fbbf24]">
+                <div class="font-bold text-[9px] text-[#fde68a]">OUTPUT</div>
+                <div class="text-[8px] text-[#94a3b8]">Amp/Limit</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>Instant Mental Model:</strong> Musicians immediately understand what feeds into what. Zero cognitive friction.</span>
+            </div>
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>Natural Pod Colors:</strong> Pods have distinct ambient chassis glows (Cyan = Oscillators, Purple = Filters, Amber = Output).</span>
+            </div>
+            <div class="text-[#ef4444] flex items-start gap-1.5">
+              <span>✗</span>
+              <span><strong>Rigid Ordering:</strong> Less flexible for arbitrary drag-and-drop rearrangement since flow is strictly directional.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Topology 3: The Asymmetric Hero Deck -->
+        <div class="themed-card rounded-xl p-5 space-y-3 border border-[#1f293d]">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-[#f59e0b] flex items-center gap-2">
+              <span>3️⃣ Asymmetric Hero Deck</span>
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-[#451a03] text-[#fcd34d] font-mono-code font-semibold">MODERN FLAGSHIP</span>
+          </div>
+          <p class="text-xs text-[#94a3b8]">
+            Used by <strong>Vital, Serum, and Pigments</strong>. The top 45% is dedicated to an expressive <em>Hero Sound Generator</em>, flanked by compact processing cards below and the modulation strip at the bottom.
+          </p>
+
+          <!-- Mini Wireframe -->
+          <div class="p-3 bg-[#0d121c] rounded-lg border border-[#1f293d] space-y-1.5 font-mono-code text-[10px]">
+            <div class="p-2.5 bg-[#0f2438] border border-[#0284c7] rounded text-center text-[#38bdf8]">
+              <div class="font-bold text-[10px] text-[#7dd3fc]">⭐ HERO SOUND ENGINE (Dual Oscillators &amp; Wave Visualizer)</div>
+              <div class="text-[8px] text-[#94a3b8]">Interactive Harmonic Morphing &amp; Real-time Waveform Display</div>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-center text-[8px]">
+              <div class="p-1 bg-[#161b22] border border-[#283141] rounded text-[#cbd5e1]">Filter 1</div>
+              <div class="p-1 bg-[#161b22] border border-[#283141] rounded text-[#cbd5e1]">Drive</div>
+              <div class="p-1 bg-[#161b22] border border-[#283141] rounded text-[#cbd5e1]">Amp Env</div>
+              <div class="p-1 bg-[#161b22] border border-[#283141] rounded text-[#cbd5e1]">Master EQ</div>
+            </div>
+            <div class="p-1 bg-[#131124] border border-[#6366f1]/40 rounded text-center text-[8px] text-[#a5b4fc]">
+              Lower Modulator Dock Strip (16 Tiles)
+            </div>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>Maximum Visual Excitement:</strong> Directs 80% of visual focus to the primary tonal generators. Eliminates boring spreadsheet feel.</span>
+            </div>
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>Clear Hierarchy:</strong> Big things are visually big; utility cards stay lean.</span>
+            </div>
+            <div class="text-[#ef4444] flex items-start gap-1.5">
+              <span>✗</span>
+              <span><strong>Desktop vs Hardware Divergence:</strong> Hero section requires custom desktop component; doesn't map 1:1 to identical 4-knob TBD-16 pages.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Topology 4: The Dual-Voice Split -->
+        <div class="themed-card rounded-xl p-5 space-y-3 border border-[#1f293d]">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-[#c084fc] flex items-center gap-2">
+              <span>4️⃣ Dual-Voice Split (Drum Voice Specialist)</span>
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-[#3b0764] text-[#e9d5ff] font-mono-code font-semibold">ZERO-TAB DRUM VOICE</span>
+          </div>
+          <p class="text-xs text-[#94a3b8]">
+            Tailored specifically for <strong>The Klang Farmer's dual-voice architecture</strong>. Voice 1 occupies the top horizontal row, Voice 2 occupies the bottom row, and Output/Mixer occupies the right column.
+          </p>
+
+          <!-- Mini Wireframe -->
+          <div class="p-3 bg-[#0d121c] rounded-lg border border-[#1f293d] space-y-1.5 font-mono-code text-[10px]">
+            <div class="grid grid-cols-12 gap-1 text-center">
+              <div class="col-span-10 grid grid-cols-5 gap-1">
+                <div class="p-1.5 bg-[#082f49] border border-[#0284c7] rounded text-[8px] text-[#7dd3fc]">Carrier 1</div>
+                <div class="p-1.5 bg-[#082f49] border border-[#0284c7] rounded text-[8px] text-[#7dd3fc]">Mod 1</div>
+                <div class="p-1.5 bg-[#082f49] border border-[#0284c7] rounded text-[8px] text-[#7dd3fc]">PitchEnv 1</div>
+                <div class="p-1.5 bg-[#082f49] border border-[#0284c7] rounded text-[8px] text-[#7dd3fc]">Filter 1</div>
+                <div class="p-1.5 bg-[#082f49] border border-[#0284c7] rounded text-[8px] text-[#7dd3fc]">FilterEnv 1</div>
+              </div>
+              <div class="col-span-2 row-span-2 p-3 bg-[#2d1b0c] border border-[#d97706] rounded flex flex-col justify-center items-center text-[8px] text-[#fbbf24]">
+                <div class="font-bold text-[9px]">MIXER &amp; MASTER</div>
+                <div class="text-[7px] text-[#94a3b8]">Transients + Output</div>
+              </div>
+              <div class="col-span-10 grid grid-cols-5 gap-1">
+                <div class="p-1.5 bg-[#31102b] border border-[#ec4899] rounded text-[8px] text-[#f472b6]">Carrier 2</div>
+                <div class="p-1.5 bg-[#31102b] border border-[#ec4899] rounded text-[8px] text-[#f472b6]">Mod 2</div>
+                <div class="p-1.5 bg-[#31102b] border border-[#ec4899] rounded text-[8px] text-[#f472b6]">PitchEnv 2</div>
+                <div class="p-1.5 bg-[#31102b] border border-[#ec4899] rounded text-[8px] text-[#f472b6]">Filter 2</div>
+                <div class="p-1.5 bg-[#31102b] border border-[#ec4899] rounded text-[8px] text-[#f472b6]">FilterEnv 2</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>ZERO Page Swapping:</strong> You see Voice 1 and Voice 2 simultaneously on one screen. Compare frequencies and envelopes in real time.</span>
+            </div>
+            <div class="text-[#10b981] flex items-start gap-1.5">
+              <span>✓</span>
+              <span><strong>True Drum Synthesis Ergonomics:</strong> Perfect for balancing the sub-kick body (Voice 1) with the click/punch layer (Voice 2).</span>
+            </div>
+            <div class="text-[#ef4444] flex items-start gap-1.5">
+              <span>✗</span>
+              <span><strong>High Horizontal Density:</strong> 5 columns in a single row require a window width &ge; 1080px to prevent control cramping.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Synthesis & Concrete Recommendation -->
+      <div class="themed-card rounded-xl p-5 space-y-4 border border-[#3b82f6]/40 bg-[#0f172a]/60">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          💡 The Recommended Golden Path: The "Grouped Pod Pipeline" (Hybrid 1 + 2)
+        </h3>
+        <p class="text-xs text-[#cbd5e1] leading-relaxed">
+          How do we solve the "wall of sliders" without breaking our 4-control JSON schemas and TBD-16 hardware mapping? <strong>We adopt the Grouped Pod Pipeline:</strong>
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div class="p-3 bg-[#0d1624] border border-[#1e3a8a] rounded-lg space-y-1.5">
+            <div class="font-bold text-[#60a5fa] flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#3b82f6]"></span>
+              <span>Pod 1: Oscillator Core</span>
+            </div>
+            <p class="text-[#94a3b8] text-[11px]">
+              Carrier and Modulator cards sit on a deep cyan underlay plate with an integrated mini-harmonic scope header. Instantly flags sound generation.
+            </p>
+          </div>
+
+          <div class="p-3 bg-[#181128] border border-[#581c87] rounded-lg space-y-1.5">
+            <div class="font-bold text-[#c084fc] flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#a855f7]"></span>
+              <span>Pod 2: Timbre &amp; Modulation</span>
+            </div>
+            <p class="text-[#94a3b8] text-[11px]">
+              Pitch Envelope, Filter, and Filter Envelope sit on a deep violet plate with animated envelope curve badges.
+            </p>
+          </div>
+
+          <div class="p-3 bg-[#24170d] border border-[#78350f] rounded-lg space-y-1.5">
+            <div class="font-bold text-[#fbbf24] flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+              <span>Pod 3: Summing &amp; Dynamics</span>
+            </div>
+            <p class="text-[#94a3b8] text-[11px]">
+              Mixer, Transient Shaper, and Limiter on an amber plate. Signals travel with subtle chevron arrows (&rarr;) between pods.
+            </p>
+          </div>
+        </div>
+
+        <p class="text-xs text-[#94a3b8] italic">
+          This preserves 100% of our existing C++ cards and APVTS bindings, keeps the TBD-16 4-encoder parity intact, but transforms the visual experience from a "sterile spreadsheet grid" into a tactile, flowing synth console!
+        </p>
+      <!-- Beyond Cards: Visual Languages for Main Pages vs Modular FX/Mod -->
+      <div class="themed-card rounded-xl p-5 space-y-5 border-l-4 border-l-[#ec4899] bg-[#121622]">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              🎨 Visual Languages Beyond Cards: Main Synth Pages vs. Modular FX/Mod
+            </h3>
+            <p class="text-xs text-[#94a3b8] mt-1">
+              <strong>The Core Principle:</strong> Visual form follows functional reality. The sound engine is fixed; FX and modulations are reconfigurable.
+            </p>
+          </div>
+          <span class="text-xs px-2.5 py-0.5 rounded bg-[#831843] text-[#fbcfe8] font-mono-code font-bold">PARADIGM SPLIT</span>
+        </div>
+
+        <!-- The Contrast Matrix -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-3.5 bg-[#0f172a] rounded-lg border border-[#3b82f6]/40 space-y-2">
+            <div class="font-bold text-[#60a5fa] flex items-center gap-2">
+              <span>🎛️ Main Synthesis Pages (Voice 1, Voice 2, Transients, Output)</span>
+            </div>
+            <p class="text-[#cbd5e1] text-[11px] leading-relaxed">
+              <strong>Functional Reality:</strong> The signal path is <em>fixed and directional</em>. An oscillator feeds a filter, which feeds an amplifier. It is NOT drag-and-drop.
+            </p>
+            <p class="text-[#94a3b8] text-[11px] leading-relaxed">
+              <strong>Why Cards Fail Here:</strong> Forcing fixed signal paths into isolated, floating rectangular cards makes the instrument feel like an unsorted box of spare parts rather than an acoustic engine.
+            </p>
+            <div class="text-[#38bdf8] font-semibold text-[11px]">
+              &rarr; Solution: Unified Sculpted Console / Milled Instrument Chassis
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-[#1e1026] rounded-lg border border-[#d946ef]/40 space-y-2">
+            <div class="font-bold text-[#f472b6] flex items-center gap-2">
+              <span>🧩 FX Rack &amp; Modulation Dock (Pre/Post FX, Mod Matrix, Strip)</span>
+            </div>
+            <p class="text-[#cbd5e1] text-[11px] leading-relaxed">
+              <strong>Functional Reality:</strong> The signal path is <em>dynamic, reconfigurable, and arbitrary</em>. Slots can be reordered; mod sources are patched via cables.
+            </p>
+            <p class="text-[#94a3b8] text-[11px] leading-relaxed">
+              <strong>Why Cards Excel Here:</strong> Cards, tiles, and pedal boxes are the <em>ideal physical metaphor</em> because musicians intuitively understand dragging, swapping, and patching separate units.
+            </p>
+            <div class="text-[#f472b6] font-semibold text-[11px]">
+              &rarr; Solution: Keep Modular Drag-and-Drop Eurorack Cards &amp; Tiles!
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Alternative Visual Languages for Main Pages -->
+        <h4 class="text-sm font-bold text-white pt-2 border-t border-[#1f293d] flex items-center gap-2">
+          <span>✨ 4 Alternative Visual Languages for the Main Synthesis Engine</span>
+        </h4>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <!-- Language 1: Monolithic Sculpted Faceplate -->
+          <div class="p-4 bg-[#0a0f18] rounded-xl border border-[#1f293d] space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-xs">A. Monolithic Sculpted Faceplate</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-[#1e293b] text-[#94a3b8] font-mono-code">ELEKTRON / TX-6 STYLE</span>
+            </div>
+            <p class="text-xs text-[#94a3b8] leading-relaxed">
+              A single contiguous titanium faceplate. Sections are demarcated not by rounded boxes, but by <strong>precision milled hairline grooves, laser-etched micro-headers (<code class="text-[#38bdf8]">// 01 CARRIER</code>), and subtle recessed lighting wells</strong>.
+            </p>
+            <!-- Visual Mockup -->
+            <div class="p-3 bg-[#111722] rounded-lg border border-[#232f42] space-y-2 font-mono-code text-[10px]">
+              <div class="flex justify-between items-center text-[#64748b] border-b border-[#232f42] pb-1">
+                <span class="text-[#38bdf8] font-bold">// 01 CARRIER CORE</span>
+                <span>TRACK: MIDI</span>
+              </div>
+              <div class="grid grid-cols-4 gap-2 text-center text-[#cbd5e1] pt-1">
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">PITCH</div>
+                  <div class="text-[#38bdf8] font-bold">48 Hz</div>
+                </div>
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">SHAPE</div>
+                  <div class="text-[#38bdf8] font-bold">SINE</div>
+                </div>
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">DEPTH</div>
+                  <div class="text-[#38bdf8] font-bold">100%</div>
+                </div>
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">FM RATIO</div>
+                  <div class="text-[#38bdf8] font-bold">2.00</div>
+                </div>
+              </div>
+              <div class="flex justify-between items-center text-[#64748b] border-b border-[#232f42] pb-1 pt-2">
+                <span class="text-[#c084fc] font-bold">// 02 TIMBRE &amp; FILTER</span>
+                <span>SLOPE: 24dB</span>
+              </div>
+              <div class="grid grid-cols-4 gap-2 text-center text-[#cbd5e1] pt-1">
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">CUTOFF</div>
+                  <div class="text-[#c084fc] font-bold">1.2 kHz</div>
+                </div>
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">RESONANCE</div>
+                  <div class="text-[#c084fc] font-bold">64%</div>
+                </div>
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">DRIVE</div>
+                  <div class="text-[#c084fc] font-bold">+6 dB</div>
+                </div>
+                <div class="p-1 bg-[#0a0f18] rounded border border-[#1f293d]">
+                  <div class="text-[8px] text-[#64748b]">ENV DECAY</div>
+                  <div class="text-[#c084fc] font-bold">120 ms</div>
+                </div>
+              </div>
+            </div>
+            <div class="text-[11px] text-[#10b981]">
+              <strong>Advantage:</strong> Feels like an ultra-high-end physical synth desktop console. Zero visual clutter; 100% focus on sound.
+            </div>
+          </div>
+
+          <!-- Language 2: Flow-Traced Semi-Modular Console -->
+          <div class="p-4 bg-[#0a0f18] rounded-xl border border-[#1f293d] space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-xs">B. Flow-Traced Circuit Console</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-[#1e293b] text-[#94a3b8] font-mono-code">BUCHLA / 0-COAST STYLE</span>
+            </div>
+            <p class="text-xs text-[#94a3b8] leading-relaxed">
+              Printed circuit vector traces etched directly into the slate background. Audio and control voltages visibly travel along <strong>glowing vector bus paths</strong> connecting Carrier &rarr; Modulator &rarr; Filter &rarr; Amp.
+            </p>
+            <!-- Visual Mockup -->
+            <div class="p-3 bg-[#0d141e] rounded-lg border border-[#1b3047] space-y-2 font-mono-code text-[10px]">
+              <div class="flex items-center justify-between">
+                <div class="p-1.5 px-3 bg-[#082f49] border border-[#0284c7] rounded text-[#7dd3fc] font-bold">
+                  OSCILLATOR
+                </div>
+                <div class="flex-1 h-[2px] bg-gradient-to-r from-[#0284c7] via-[#a855f7] to-[#ec4899] relative">
+                  <div class="absolute right-1/2 -top-1.5 w-3 h-3 rounded-full bg-[#38bdf8] animate-ping opacity-75"></div>
+                </div>
+                <div class="p-1.5 px-3 bg-[#3b0764] border border-[#9333ea] rounded text-[#e9d5ff] font-bold">
+                  VCF / DRIVE
+                </div>
+                <div class="flex-1 h-[2px] bg-[#ec4899]"></div>
+                <div class="p-1.5 px-3 bg-[#451a03] border border-[#d97706] rounded text-[#fde68a] font-bold">
+                  AMP / VCA
+                </div>
+              </div>
+              <div class="text-[9px] text-[#64748b] text-center pt-1">
+                Audio and modulation busses pulse dynamically with signal energy.
+              </div>
+            </div>
+            <div class="text-[11px] text-[#10b981]">
+              <strong>Advantage:</strong> Eliminates all guesswork. Even beginner sound designers immediately understand how parameters affect the signal flow.
+            </div>
+          </div>
+
+          <!-- Language 3: Graphic Bay Hero Surface -->
+          <div class="p-4 bg-[#0a0f18] rounded-xl border border-[#1f293d] space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-xs">C. Graphic Bay Hero Surface</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-[#1e293b] text-[#94a3b8] font-mono-code">OP-XY / TEENAGE ENG. STYLE</span>
+            </div>
+            <p class="text-xs text-[#94a3b8] leading-relaxed">
+              Inspired by Teenage Engineering OP-1/OP-XY. Each stage has an expressive <strong>animated graphic glyph</strong> (a morphing harmonic prism for the oscillator, a responsive resonant curve for the filter, an explosive impulse shape for pitch env).
+            </p>
+            <!-- Visual Mockup -->
+            <div class="p-3 bg-[#13111c] rounded-lg border border-[#2d2242] space-y-2 font-mono-code text-[10px]">
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="p-2 bg-[#0c1a2e] border border-[#1e3a8a] rounded space-y-1">
+                  <div class="text-[8px] text-[#60a5fa] font-bold">HARMONIC PRISM</div>
+                  <div class="h-8 flex items-center justify-center text-lg text-[#38bdf8]">▲◆●</div>
+                  <div class="text-[8px] text-[#94a3b8]">Carrier 1 (FM)</div>
+                </div>
+                <div class="p-2 bg-[#25102e] border border-[#701a75] rounded space-y-1">
+                  <div class="text-[8px] text-[#f472b6] font-bold">RESONANT BITE</div>
+                  <div class="h-8 flex items-center justify-center text-lg text-[#f472b6]">⌒∿</div>
+                  <div class="text-[8px] text-[#94a3b8]">Dual ZDF VCF</div>
+                </div>
+                <div class="p-2 bg-[#2e1d0d] border border-[#78350f] rounded space-y-1">
+                  <div class="text-[8px] text-[#fbbf24] font-bold">PUNCH IMPACT</div>
+                  <div class="h-8 flex items-center justify-center text-lg text-[#fbbf24]">s︎</div>
+                  <div class="text-[8px] text-[#94a3b8]">Pitch Attack Env</div>
+                </div>
+              </div>
+            </div>
+            <div class="text-[11px] text-[#10b981]">
+              <strong>Advantage:</strong> Supreme "Game Feel" and delight. Makes drum sound design feel tactile, playful, and addictive.
+            </div>
+          </div>
+
+          <!-- Language 4: Recessed Arcade Fader Deck -->
+          <div class="p-4 bg-[#0a0f18] rounded-xl border border-[#1f293d] space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-xs">D. Recessed Arcade Fader Deck</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-[#1e293b] text-[#94a3b8] font-mono-code">ROLAND TR-8S / DFAM STYLE</span>
+            </div>
+            <p class="text-xs text-[#94a3b8] leading-relaxed">
+              Converts all parameters into <strong>tactile vertical fader slots</strong> grouped in functional banks (Pitch, Timbre, Envelope, Output) with illuminated backlit wells.
+            </p>
+            <!-- Visual Mockup -->
+            <div class="p-3 bg-[#0d121c] rounded-lg border border-[#1f293d] space-y-1.5 font-mono-code text-[10px]">
+              <div class="grid grid-cols-8 gap-1.5 h-16 items-end bg-[#070a10] p-2 rounded border border-[#161f30]">
+                <div class="bg-[#38bdf8] h-[70%] rounded-t text-center text-[7px] text-black font-bold">P1</div>
+                <div class="bg-[#38bdf8] h-[40%] rounded-t text-center text-[7px] text-black font-bold">SH</div>
+                <div class="bg-[#38bdf8] h-[90%] rounded-t text-center text-[7px] text-black font-bold">DP</div>
+                <div class="bg-[#38bdf8] h-[25%] rounded-t text-center text-[7px] text-black font-bold">RT</div>
+                <div class="bg-[#c084fc] h-[85%] rounded-t text-center text-[7px] text-black font-bold">CT</div>
+                <div class="bg-[#c084fc] h-[60%] rounded-t text-center text-[7px] text-black font-bold">RS</div>
+                <div class="bg-[#fbbf24] h-[30%] rounded-t text-center text-[7px] text-black font-bold">DC</div>
+                <div class="bg-[#fbbf24] h-[100%] rounded-t text-center text-[7px] text-black font-bold">LV</div>
+              </div>
+              <div class="text-[8px] text-[#64748b] text-center">
+                At-a-glance vertical envelope shape and mix level recognition.
+              </div>
+            </div>
+            <div class="text-[11px] text-[#10b981]">
+              <strong>Advantage:</strong> Exceptional rhythm-programming ergonomics. You can assess an entire drum sound's decay profile in 0.5 seconds.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- JUCE C++ Architecture Integration -->
+        <div class="p-4 bg-[#0d1424] rounded-xl border border-[#1d4ed8]/40 space-y-2 text-xs">
+          <div class="font-bold text-[#60a5fa] flex items-center gap-2">
+            <span>⚙️ JUCE Architecture &amp; C++ Implementation</span>
+          </div>
+          <p class="text-[#cbd5e1] leading-relaxed">
+            How do we implement this without breaking our data schemas or TBD-16 hardware mapping?
+          </p>
+          <ul class="list-disc pl-5 space-y-1 text-[#94a3b8] text-[11px]">
+            <li><strong>Main Synth Pages:</strong> <code class="text-white">MainSynthesisChassisComponent</code> draws a single contiguous slate faceplate with milled groove lines and vector bus paths via <code class="text-[#93c5fd]">paint()</code>. Sliders sit directly on the chassis without individual card wrappers.</li>
+            <li><strong>Effects &amp; Mod Pages:</strong> Continue using <code class="text-white">ModuleCardComponent</code> with <code class="text-[#93c5fd]">juce::DragAndDropContainer</code>, providing reorderable slots and drop targets.</li>
+            <li><strong>TBD-16 Hardware Parity:</strong> 100% preserved! The embedded OLED firmware still addresses blocks in 4-parameter pages. Only the desktop rendering surface evolves from "floating cards" to an "integrated instrument console."</li>
+          </ul>
+        <!-- Mission 1 Findings: The Hybrid Hardware/Software Banking Architecture -->
+        <div class="themed-card rounded-xl p-5 space-y-4 border-l-4 border-l-[#10b981] bg-[#0c161c]">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                🛰️ Mission 1 Harvest: "Spatial Proximity on Desktop, Deterministic Banking on Hardware"
+              </h3>
+              <p class="text-xs text-[#94a3b8] mt-1">
+                Deep benchmark findings from Elektron Overbridge, Arturia MiniFreak V, and Korg opsix native.
+              </p>
+            </div>
+            <span class="text-xs px-2.5 py-0.5 rounded bg-[#064e3b] text-[#6ee7b7] font-mono-code font-bold">RESEARCH HARVEST</span>
+          </div>
+
+          <!-- The Core Hybrid Axiom -->
+          <div class="p-3 bg-[#06201a] border border-[#059669]/40 rounded-lg text-xs space-y-1.5">
+            <strong class="text-[#34d399] flex items-center gap-1.5">
+              <span>💡 The Universal Hybrid Axiom: "Hardware has Encoders; Desktop has Pixels."</span>
+            </strong>
+            <p class="text-[#cbd5e1] text-[11px] leading-relaxed">
+              No successful hybrid instrument restricts its desktop plugin to the 4/8-knob enclosure limits of its microcontroller. Desktop UIs must optimize for <strong>visual adjacency across coupled circuits</strong> (e.g. Cutoff directly next to Envelope Depth). The embedded hardware firmware consumes the exact same data model, but paginates the 6–8 controls into deterministic <strong>Bank A (Knobs 1–4)</strong> and <strong>Bank B (Knobs 5–8)</strong> toggled with a single encoder push.
+            </p>
+          </div>
+
+          <!-- The 3 Big Wins -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3 bg-[#111c24] rounded-lg border border-[#1f293d] space-y-1">
+              <div class="font-bold text-[#38bdf8]">1. Unified FM Core</div>
+              <p class="text-[11px] text-[#94a3b8]">
+                Carrier 1 and Modulator 1 combined into a cohesive double-width cockpit. Adjusting FM ratio, depth, and pitch envelope requires zero jumping across card borders.
+              </p>
+            </div>
+            <div class="p-3 bg-[#111c24] rounded-lg border border-[#1f293d] space-y-1">
+              <div class="font-bold text-[#c084fc]">2. Unified Filter &amp; Dynamics</div>
+              <p class="text-[11px] text-[#94a3b8]">
+                Filter Core (Type, Slope, Cutoff, Res) sits in Col 1; Filter Dynamics (Env Depth, Decay, Slope, Drive) sits in Col 2. Instant visual coupling of resonant sweeps.
+              </p>
+            </div>
+            <div class="p-3 bg-[#111c24] rounded-lg border border-[#1f293d] space-y-1">
+              <div class="font-bold text-[#fbbf24]">3. Reclaim 37.5% Dead Space</div>
+              <p class="text-[11px] text-[#94a3b8]">
+                Eliminates the 3 dead metal blanking plates on Transients and Amp pages! Adds dedicated Noise Generators, Multi-Burst Claps, and Console Saturation.
+              </p>
+            </div>
+          </div>
+
+          <!-- Data-Driven Schema Contract -->
+          <div class="p-3.5 bg-[#0a0f18] rounded-lg border border-[#1e293b] space-y-2 font-mono-code text-[11px]">
+            <div class="text-[#64748b] flex justify-between">
+              <span class="text-[#60a5fa] font-bold">assets/layouts/tkf_layout.json ("groups" specification)</span>
+              <span>100% Backward Compatible</span>
+            </div>
+            <pre class="text-[#94a3b8] text-[10px] overflow-x-auto leading-relaxed"><code>"Filter 1": {
+  "desktop_layout": "grid_2x4",
+  "groups": [
+    {
+      "bank_title": "FLTR CORE",
+      "parameters": [ "filter1_type", "filter1_slope", "filter1_cutoff", "filter1_resonance" ]
+    },
+    {
+      "bank_title": "FLTR ENV",
+      "parameters": [ "filterenv1_slope", "filterenv1_depth", "filterenv1_decay", "filterenv1_postdrive" ]
+    }
+  ]
+}</code></pre>
+          </div>
+
+          <!-- Interactive Bridge Comparison -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div class="p-3 bg-[#0d1624] border border-[#1d4ed8]/40 rounded-lg space-y-1.5">
+              <div class="font-bold text-[#60a5fa]">🖥️ Desktop Plugin View (1040x740)</div>
+              <p class="text-[11px] text-[#cbd5e1]">
+                Flattens Bank A + Bank B into a single 2x4 card. 8 controls visible simultaneously with zero pagination buttons or page swapping.
+              </p>
+            </div>
+            <div class="p-3 bg-[#1f162b] border border-[#a855f7]/40 rounded-lg space-y-1.5">
+              <div class="font-bold text-[#c084fc]">📟 dadamachines TBD-16 Hardware View</div>
+              <p class="text-[11px] text-[#cbd5e1]">
+                Auto-generates Page 07A (<code class="text-white">FLTR CORE</code>) and Page 07B (<code class="text-white">FLTR ENV</code>). Toggled instantaneously with an encoder click.
+              </p>
+            </div>
+          </div>
+        <!-- Mission 2 Findings: Monolithic Sculpted Faceplates & Flow Traces -->
+        <div class="themed-card rounded-xl p-5 space-y-4 border-l-4 border-l-[#38bdf8] bg-[#0c131d]" id="sec-traces">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                ⚡ Mission 2 Harvest: Monolithic Sculpted Faceplates &amp; Flow-Traced Circuit Paths
+              </h3>
+              <p class="text-xs text-[#94a3b8] mt-1">
+                Visual engineering blueprints from Teenage Engineering TX-6, Elektron Machinedrum, and Make Noise 0-Coast.
+              </p>
+            </div>
+            <span class="text-xs px-2.5 py-0.5 rounded bg-[#0369a1] text-[#bae6fd] font-mono-code font-bold">VISUAL ENGINEERING</span>
+          </div>
+
+          <!-- 3 Visual Pillars -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            
+            <div class="p-3.5 bg-[#09111c] rounded-lg border border-[#1f293d] space-y-2">
+              <div class="font-bold text-[#38bdf8] flex items-center gap-1.5">
+                <span>1. Dual-Stroke Milled Channels</span>
+              </div>
+              <p class="text-[11px] text-[#94a3b8] leading-relaxed">
+                De-boxes modules using optical relief pairs: 1px deep shadow (<code class="text-white">#05070a</code>) above a 1px specular catch-light (<code class="text-white">0x18ffffff</code>). Knobs sit in a recessed bay (<code class="text-white">#161b22</code>) 1mm into the plate with countersunk rotary wells.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-[#09111c] rounded-lg border border-[#1f293d] space-y-2">
+              <div class="font-bold text-[#10b981] flex items-center gap-1.5">
+                <span>2. 45° Chamfered Signal Bus</span>
+              </div>
+              <p class="text-[11px] text-[#94a3b8] leading-relaxed">
+                PCB microstrip traces route Left-to-Right: Carrier &rarr; Mod FM &rarr; Filter &rarr; Output. Rest state is ghosted copper; audio triggers ignite a 3-pass multi-bloom glow (<span class="text-[#38bdf8]">Cyan Audio</span> / <span class="text-[#f59e0b]">Amber Modulation</span>) with travelling photon pulses.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-[#09111c] rounded-lg border border-[#1f293d] space-y-2">
+              <div class="font-bold text-[#f59e0b] flex items-center gap-1.5">
+                <span>3. Zero-Overhead Dirty Rects</span>
+              </div>
+              <p class="text-[11px] text-[#94a3b8] leading-relaxed">
+                Background metal is cached to an offscreen <code class="text-white">juce::Image</code> (blitted in O(1) time at <strong>0.3% CPU</strong>). Traces route strictly through 18px clear gutters, repainting only <code class="text-white">traceBounds.expanded(4)</code> &mdash; skipping all 20+ knobs!
+              </p>
+            </div>
+
+          </div>
+
+          <!-- The Architectural Dualism -->
+          <div class="p-3 bg-[#081826] border border-[#0284c7]/40 rounded-lg text-xs space-y-2">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span class="text-[#7dd3fc]">🏛️ The Instrument vs. Outboard Rack Dualism</span>
+              <span class="text-[10px] text-[#94a3b8] font-mono-code">CLEAN SEPARATION OF CONCERNS</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+              <div class="p-2 bg-[#0d1b2a] rounded border border-[#1e3a8a]/40">
+                <span class="font-bold text-[#60a5fa]">Monolithic Sculpted Faceplates:</span>
+                <span class="text-[#94a3b8]"> Voice 1, Voice 2, Transients, Output. (Fixed acoustic pipeline &rarr; seamless titanium instrument console).</span>
+              </div>
+              <div class="p-2 bg-[#1c1024] rounded border border-[#701a75]/40">
+                <span class="font-bold text-[#f472b6]">Modular Outboard Studio Racks:</span>
+                <span class="text-[#94a3b8]"> Effects (10 drag-and-drop slots), Modulations (Matrix table &amp; dock strip). (Reconfigurable &rarr; modular cards &amp; tiles).</span>
+              </div>
+            </div>
+          </div>
+        <!-- Mission 3 Findings: Teenage Engineering Game Feel & Vertical Arcade Faders -->
+        <div class="themed-card rounded-xl p-5 space-y-4 border-l-4 border-l-[#f59e0b] bg-[#14120e]" id="sec-glyphs">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                🎮 Mission 3 Harvest: Teenage Engineering "Game Feel" &amp; Vertical Rhythm Faders
+              </h3>
+              <p class="text-xs text-[#94a3b8] mt-1">
+                Visual haptics, procedural micro-visualizers, and drum machine rhythm balance ergonomics (TR-8S / DFAM).
+              </p>
+            </div>
+            <span class="text-xs px-2.5 py-0.5 rounded bg-[#78350f] text-[#fde68a] font-mono-code font-bold">GAME FEEL &amp; ERGONOMICS</span>
+          </div>
+
+          <!-- 3 Micro-Visualizers -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            
+            <div class="p-3.5 bg-[#1c160c] rounded-lg border border-[#2e2312] space-y-2">
+              <div class="font-bold text-[#38bdf8] flex items-center justify-between">
+                <span>1. FM Harmonic Morph</span>
+                <span class="text-[10px] font-mono-code text-[#7dd3fc]">POLAR ROSE</span>
+              </div>
+              <p class="text-[11px] text-[#94a3b8] leading-relaxed">
+                Polar Lissajous rose ($r = R_0 + A\cos(N\theta)$). Integer ratios form symmetrical flower petals; detuned ratios twist into asymmetrical warped polygons. Depth pulls petals into razor-sharp perimeter blades.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-[#1c160c] rounded-lg border border-[#2e2312] space-y-2">
+              <div class="font-bold text-[#c084fc] flex items-center justify-between">
+                <span>2. Resonant Bite Apex</span>
+                <span class="text-[10px] font-mono-code text-[#d8b4fe]">ACID JAW</span>
+              </div>
+              <p class="text-[11px] text-[#94a3b8] leading-relaxed">
+                Cutoff sets the knee position; slope controls the skirt angle (45°/75°/cliff). Increasing Q pinches the apex into a needle, radiating 2–3 concentric ringing whisker arcs during self-oscillation. Flashes on trigger!
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-[#1c160c] rounded-lg border border-[#2e2312] space-y-2">
+              <div class="font-bold text-[#fbbf24] flex items-center justify-between">
+                <span>3. Punch Impulse Spike</span>
+                <span class="text-[10px] font-mono-code text-[#fde68a]">SEISMIC ATTACK</span>
+              </div>
+              <p class="text-[11px] text-[#94a3b8] leading-relaxed">
+                Hyper-concave exponential pitch attack needle for transient punch. Upon audio trigger hit, emits an expanding 1px circular shockwave ring that fades over 60 ms for visceral visual impact.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Zero-Allocation Performance & Rhythm Ergonomics -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            
+            <div class="p-3.5 bg-[#17130a] rounded-lg border border-[#2e2312] space-y-2" id="sec-faders">
+              <div class="font-bold text-white flex items-center gap-1.5">
+                <span class="text-[#f59e0b]">s Zero-Allocation JUCE Architecture</span>
+              </div>
+              <p class="text-[11px] text-[#cbd5e1] leading-relaxed">
+                <code class="text-[#fde68a]">cachedGlyphPath.preallocateSpace(64)</code> reserves memory once at construction. Vertex math runs on stack-allocated <code class="text-white">std::array&lt;Point&lt;float&gt;, 36&gt;</code>. Decoupled 30 Hz timer performs scalar epsilon comparisons, dropping CPU cost to near-zero when dials are idle.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-[#17130a] rounded-lg border border-[#2e2312] space-y-2" id="sec-faders">
+              <div class="font-bold text-white flex items-center gap-1.5">
+                <span class="text-[#38bdf8]">🎚️ TR-8S Rhythm Fader Strip</span>
+              </div>
+              <p class="text-[11px] text-[#cbd5e1] leading-relaxed">
+                Vertical faders strictly outperform knobs for <strong>Envelope Decays</strong> (creates an instant visual histogram of kit tightness) and <strong>Channel Mix Levels</strong> (10ms scan). Rightmost bay features 4 vertical faders for voice levels + secondary bank for voice decay profiling!
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Visual Haptics -->
+          <div class="p-3 bg-[#1c1409] border border-[#d97706]/40 rounded-lg text-xs space-y-1.5">
+            <div class="font-bold text-[#fbbf24] flex items-center justify-between">
+              <span>🧲 Visual Haptics &amp; Magnetic Detents</span>
+              <span class="text-[10px] text-[#94a3b8] font-mono-code">SUBTLE TACTILE FEEDBACK</span>
+            </div>
+            <p class="text-[11px] text-[#cbd5e1] leading-relaxed">
+              When dragging near musical intervals (semitones, octave ratios), a $\pm 1.8\%$ capture zone with 4px breakaway force magnetically snaps into place with a 1-frame cyan glow pulse, a high-contrast HUD flash (<code class="text-white">Ratio: [ 2.000x ]</code>), and a 1-pixel damped elastic settle bounce.
+            </p>
+          </div>
+
+        <!-- Mission 4 Capstone: Master C++ Architectural Blueprint & Data Schema -->
+        <div class="themed-card rounded-xl p-5 space-y-5 border-l-4 border-l-[#8b5cf6] bg-[#100d1e]" id="sec-blueprint">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                🏛️ Mission 4 Capstone: Master C++ Architectural Blueprint &amp; Data Schema
+              </h3>
+              <p class="text-xs text-[#94a3b8] mt-1">
+                Tier 1 Pro High architectural synthesis: drop-in C++ component headers, JSON schemas, and test assertions.
+              </p>
+            </div>
+            <span class="text-xs px-2.5 py-0.5 rounded bg-[#4c1d95] text-[#d8b4fe] font-mono-code font-bold">PRO HIGH SYNTHESIS</span>
+          </div>
+
+          <!-- 4 Core C++ Components -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold text-[#c084fc] uppercase tracking-wider">1. Core C++ Component Architecture</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              
+              <div class="p-3 bg-[#18132b] rounded-lg border border-[#3b2d64] space-y-1.5 font-mono-code">
+                <div class="text-[#a78bfa] font-bold text-[11px]">MonolithicFaceplateComponent</div>
+                <p class="text-[10px] text-[#94a3b8] font-sans">
+                  Manages offscreen <code class="text-white">juce::Image cachedChassis</code>. Draws 1px dual-stroke relief channels, recessed bays, and laser text. Blits in $O(1)$ time at <strong>0.3% CPU</strong>.
+                </p>
+                <div class="text-[9px] text-[#cbd5e1] bg-[#0c0917] p-1.5 rounded">
+                  <code>void invalidateChassisRegion(juce::Rectangle&lt;int&gt;);</code>
+                </div>
+              </div>
+
+              <div class="p-3 bg-[#18132b] rounded-lg border border-[#3b2d64] space-y-1.5 font-mono-code">
+                <div class="text-[#38bdf8] font-bold text-[11px]">SignalTraceOverlayComponent</div>
+                <p class="text-[10px] text-[#94a3b8] font-sans">
+                  Renders 45° chamfered PCB signal lines with 3-pass multi-bloom. Updates at 30 Hz strictly invalidating <code class="text-white">traceBounds.expanded(4)</code> through 18px clear gutters.
+                </p>
+                <div class="text-[9px] text-[#cbd5e1] bg-[#0c0917] p-1.5 rounded">
+                  <code>void updateSignalIntensity(const Identifier&amp;, float);</code>
+                </div>
+              </div>
+
+              <div class="p-3 bg-[#18132b] rounded-lg border border-[#3b2d64] space-y-1.5 font-mono-code">
+                <div class="text-[#f59e0b] font-bold text-[11px]">ExpressiveGlyphComponent</div>
+                <p class="text-[10px] text-[#94a3b8] font-sans">
+                  Zero-allocation procedural glyphs (<code class="text-white">FMPolarRose</code>, <code class="text-white">ResonantAcidJaw</code>, <code class="text-white">PunchSeismicSpike</code>). Pre-allocated path, stack vertices, 30 Hz scalar epsilon dirty checks.
+                </p>
+                <div class="text-[9px] text-[#cbd5e1] bg-[#0c0917] p-1.5 rounded">
+                  <code>void updateParameters(float mod1, float mod2);</code>
+                </div>
+              </div>
+
+              <div class="p-3 bg-[#18132b] rounded-lg border border-[#3b2d64] space-y-1.5 font-mono-code">
+                <div class="text-[#10b981] font-bold text-[11px]">RhythmSummingStripComponent</div>
+                <p class="text-[10px] text-[#94a3b8] font-sans">
+                  4 vertical arcade faders for voice levels (<code class="text-white">V1</code>, <code class="text-white">V2</code>, <code class="text-white">Noise</code>, <code class="text-white">Ring</code>) + secondary bank for voice decay profiling (TR-8S style).
+                </p>
+                <div class="text-[9px] text-[#cbd5e1] bg-[#0c0917] p-1.5 rounded">
+                  <code>void setViewBank(bool isDecayBank);</code>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- JSON Schema & Hardware Pagination -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            
+            <div class="space-y-2">
+              <h4 class="text-xs font-bold text-[#c084fc] uppercase tracking-wider">2. Data-Driven Schema Contract</h4>
+              <div class="p-3 bg-[#0a0814] rounded-lg border border-[#2d224e] font-mono-code text-[10px] overflow-x-auto">
+                <pre class="text-[#cbd5e1]"><code>"voice_1": {
+  "type": "MonolithicVoice",
+  "groups": [
+    {
+      "groupId": "fm_core",
+      "label": "FM CORE",
+      "parameters": [
+        "v1_carrier_pitch", "v1_carrier_shape",
+        "v1_fm_ratio",      "v1_fm_depth",
+        "v1_fm_feedback",   "v1_fm_env_mod",
+        "v1_carrier_phase", "v1_mod_tune"
+      ]
+    },
+    {
+      "groupId": "filter_dynamics",
+      "label": "FILTER & DYNAMICS",
+      "parameters": [
+        "v1_cutoff",      "v1_resonance",
+        "v1_filter_type", "v1_filter_slope",
+        "v1_env_depth",   "v1_env_decay",
+        "v1_env_slope",   "v1_drive"
+      ]
+    },
+    {
+      "groupId": "rhythm_strip",
+      "label": "RHYTHM SUMMING",
+      "banks": {
+        "bank_A": [ "v1_lvl", "v2_lvl", "noise_lvl", "ring_lvl" ],
+        "bank_B": [ "v1_dcy", "v2_dcy", "noise_dcy", "accent" ]
+      }
+    }
+  ]
+}</code></pre>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <h4 class="text-xs font-bold text-[#c084fc] uppercase tracking-wider">3. TBD-16 Hardware Pagination Algorithm</h4>
+              <div class="p-3 bg-[#0a0814] rounded-lg border border-[#2d224e] space-y-2 text-[11px] text-[#cbd5e1]">
+                <p>
+                  <strong>Deterministic Chunking:</strong> The hardware firmware parser chunks every group's parameter array into quads of 4:
+                </p>
+                <ul class="list-disc pl-4 space-y-1 text-[#94a3b8] text-[10px]">
+                  <li><code class="text-white">Chunk 0 (Params 0-3)</code> &rarr; Page <strong class="text-[#a78bfa]">V1_FMCORE_A</strong> (Encoders 1..4)</li>
+                  <li><code class="text-white">Chunk 1 (Params 4-7)</code> &rarr; Page <strong class="text-[#a78bfa]">V1_FMCORE_B</strong> (Encoders 1..4)</li>
+                  <li><code class="text-white">rhythm_strip</code> &rarr; Encoders bind to <strong class="text-[#10b981]">Bank A (Levels)</strong>, push toggles to <strong class="text-[#fbbf24]">Bank B (Decays)</strong></li>
+                </ul>
+                <div class="p-2 bg-[#17112b] rounded border border-[#4c1d95] text-[10px] text-[#e9d5ff]">
+                  <strong>Zero Code Duplication:</strong> The exact same JSON file dictates the rich 8-control desktop layout AND the 4-knob hardware pages!
+                </div>
+              </div>
+
+              <h4 class="text-xs font-bold text-[#c084fc] uppercase tracking-wider pt-1">4. Reflection &amp; Safety Gauntlet</h4>
+              <ul class="list-disc pl-4 space-y-1 text-[#94a3b8] text-[10px]">
+                <li><strong class="text-white">100% Parameter Reflection:</strong> <code class="text-[#d8b4fe]">gui_tests.cpp</code> asserts all registered APVTS parameters exist in the JSON groups.</li>
+                <li><strong class="text-white">Zero Full-Window Repaints:</strong> Invalidation bounds asserted to be &lt; 10% of total window area.</li>
+                <li><strong class="text-white">Zero Heap Allocations:</strong> <code class="text-[#d8b4fe]">SystemStats::getNumAllocations()</code> asserts 0 allocations over 30 timer iterations.</li>
+              </ul>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODE 3: UI / UX DESIGN ================= -->
+
+<div class="mode-wrapper" id="ui-mode">
+<div class="sidebar">
+<h2>BAR-B-Q&amp;A Prep</h2>
+<div class="nav-item active" onclick="showSection('competitors')">1. Industry Research</div>
+<div class="nav-item" onclick="showSection('noise-eng')">2. Noise Engineering</div>
+<div class="nav-item" onclick="showSection('d6-random')">3. Controlled D6 Randomization</div>
+<div class="nav-item" onclick="showSection('klang-solutions')">4. Multi-Mode UX Stubs</div>
+<div class="nav-item" onclick="showSection('samples-export')">5. Wav/Sample UX Stubs</div>
+<div class="nav-item" onclick="showSection('hardware')">6. Hardware: TKC, TKM &amp; TKB</div>
+<div class="nav-item" onclick="showSection('graveyard')">7. Negative Architecture</div>
+<div class="nav-item" onclick="showSection('mod-matrix')">8. Mod Matrix UX</div>
+<div class="nav-item" onclick="showSection('theme-engine')">9. Theming Engine</div>
+<div class="nav-item" onclick="showSection('unconsidered')">10. The Unconsidered UI</div>
+<div class="nav-item" onclick="showSection('ui-advanced')">11. Advanced UX &amp; A11y</div>
+<div class="nav-item" onclick="showSection('ui-browser')">12. The Patch Browser</div>
+</div>
+<div class="main-content">
+<div class="section active" id="competitors">
+<h1>Industry Research: The Heavy Hitters</h1>
+<p>Analyzing the UX/UI paradigms of industry-leading complex plugins.</p>
+<div class="card">
+<h3 class="card-title">Arturia Pigments &amp; Vital <span class="badge good">Gold Standard UI</span></h3>
+<ul>
+<li><strong>Drag-and-Drop Modulation:</strong> Grab an LFO and drop it on a knob. A color-coded ring appears showing exact modulation depth.</li>
+<li><strong>Takeaway:</strong> Color-coded visual feedback is mandatory for the Modulation Matrix.</li>
+</ul>
+</div>
+<div class="card">
+<h3 class="card-title">Kilohearts Phase Plant <span class="badge good">Mod System</span></h3>
+<ul>
+<li><strong>The Canvas Approach:</strong> Infinite chaining of generators. Highly flexible.</li>
+<li><strong>The Downside:</strong> Patches look vastly different, increasing cognitive load.</li>
+<li><strong>Takeaway:</strong> Our fixed grid solves cognitive load, while retaining flexibility through multi-mode popovers.</li>
+</ul>
+</div>
+</div><div class="section" id="noise-eng">
+<h1>Noise Engineering: Austere Functionality</h1>
+<p>Ruina, Manis, Basimilus... brutalist, yet highly revered by sound designers.</p>
+<div class="card">
+<h3 class="card-title">What Makes Them Special?</h3>
+<ul>
+<li><strong>Macro-Level Mapping:</strong> A single knob (like 'Morph' or 'Harm') rarely does just one thing. It sweeps through complex, tuned algorithms under the hood.</li>
+<li><strong>Algorithm Switches over Menus:</strong> Tactile toggle switches that fundamentally alter the entire DSP architecture of the module.</li>
+</ul>
+</div>
+</div><div class="section" id="d6-random">
+<h1>The D6 Randomization Engine</h1>
+<p>Randomization in sound design is often too chaotic to be useful. The Klang Suite uses a hierarchical "D6 Vector Dice" paradigm to provide controlled chaos.</p>
+<div class="card">
+<h3 class="card-title">Granular Hierarchical Scopes</h3>
+<ul>
+<li><strong>Global (Header) D6:</strong> Randomizes the entire preset across all cards (respecting locked modules).</li>
+<li><strong>Page-Level D6:</strong> E.g., next to the [MODULATION] tab. Randomizes all LFOs, Envelopes, and Mod Matrix routing.</li>
+<li><strong>Module-Level D6:</strong> Randomizes only the 4 controls of a specific card.</li>
+</ul>
+</div>
+<div class="mockup-container">
+<div class="klang-card">
+<div class="klang-card-header">
+<span>LFO 1</span>
+<span class="dice-btn" title="Randomize LFO 1">⚄</span>
+</div>
+<div class="klang-card-body">
+<div class="knob-container"><div class="knob"></div><span class="knob-label">RATE</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">SHAPE</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">PHASE</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">SMOOTH</span></div>
+</div>
+</div>
+</div>
+</div><div class="section" id="klang-solutions">
+<h1>Multi-Mode FX (The Mega Module)</h1>
+<div class="mockup-container">
+<div class="klang-card">
+<div class="klang-card-header">
+<span>DRIVE</span>
+<span style="color: var(--accent-neon); cursor:pointer;">[ TUBE ] ▾</span>
+</div>
+<div class="klang-card-body">
+<div class="knob-container"><div class="knob"></div><span class="knob-label">AMOUNT</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">TONE</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">SYMMETRY</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">MIX</span></div>
+</div>
+</div>
+</div>
+</div><div class="section" id="samples-export">
+<h1>Samples &amp; WAV Export UX Stubs</h1>
+<div class="card">
+<h3 class="card-title">Dual Sample Players &amp; Render</h3>
+<p>A unified card combining waveform visualization with macro controls.</p>
+</div>
+<div class="mockup-container">
+<div class="klang-card-wide">
+<div class="klang-card-header">
+<span>SAMPLE 1</span>
+<div>
+<span class="dice-btn" style="margin-right: 10px;">⚄</span>
+<span style="color: var(--accent-neon); cursor:pointer;">[ KICK_909.WAV ] ▾</span>
+</div>
+</div>
+<div class="klang-card-body" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+<div class="waveform-display" style="grid-column: 1 / span 4; height: 60px;">
+<div class="wave-line"></div>
+<div class="wave-markers"></div>
+</div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">PITCH</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">START</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">END</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">FILTER</span></div>
+</div>
+</div>
+</div>
+</div><div class="section" id="hardware">
+<h1>Hardware Form-Factors &amp; Tracker Targets</h1>
+<div class="card">
+<h3 class="card-title">The Klang Mill (TKM) - 1x6 Pedalboard</h3>
+<p>Instead of an 8-card grid, TKM enforces a strict 1x6 horizontal layout (like a Guitar Pedalboard).</p>
+</div>
+<div class="card">
+<h3 class="card-title">The Klang Cultivator (TKC) - Modulation Rack</h3>
+<p>A standalone VST strictly for generating complex CV/MIDI CC. Using the LFO, Envelope, and Macro cards from TKF, but routing out to DAW parameters or external hardware.</p>
+</div>
+<div class="card">
+<h3 class="card-title">The Klang Box (TKB) / ToadTracker &amp; TBD-16 <span class="badge good">Subagent Verified</span></h3>
+<p>The TBD-16 hardware utilizes a 240x240 1-bit monochrome OLED display, <strong>4 Push-Rotary Encoders</strong>, and a 16-button step grid. <strong>This maps perfectly to our 4-Control Card Architecture!</strong></p>
+<ul>
+<li><strong>1:1 Mapping:</strong> 1 Card = 1 OLED Page. The 4 software knobs map directly to the 4 physical encoders.</li>
+<li><strong>Navigation:</strong> The 16 tactile step buttons act as "Direct Jump" keys to specific modules.</li>
+<li><strong>Push Encoders (Alt-Click):</strong> Pushing an encoder resets the parameter.</li>
+</ul>
+<div class="mockup-container">
+<!-- OLED Hardware Mockup -->
+<div style="width: 240px; height: 240px; background: #000; border: 4px solid #333; border-radius: 8px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+<div style="color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 16px; border-bottom: 2px solid #fff; padding-bottom: 5px;">[FX1] MEGA-DRIVE</div>
+<div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+<div style="display: flex; align-items: center; justify-content: space-between;"><span style="color:#fff; font-family: monospace; font-size:12px; width:40px;">AMT</span><div style="flex:1; height: 8px; border: 1px solid #fff;"><div style="width: 80%; height: 100%; background: #fff;"></div></div></div>
+<div style="display: flex; align-items: center; justify-content: space-between;"><span style="color:#fff; font-family: monospace; font-size:12px; width:40px;">TONE</span><div style="flex:1; height: 8px; border: 1px solid #fff;"><div style="width: 45%; height: 100%; background: #fff;"></div></div></div>
+<div style="display: flex; align-items: center; justify-content: space-between;"><span style="color:#fff; font-family: monospace; font-size:12px; width:40px;">FOLD</span><div style="flex:1; height: 8px; border: 1px solid #fff;"><div style="width: 15%; height: 100%; background: #fff;"></div></div></div>
+<div style="display: flex; align-items: center; justify-content: space-between;"><span style="color:#fff; font-family: monospace; font-size:12px; width:40px;">MIX</span><div style="flex:1; height: 8px; border: 1px solid #fff;"><div style="width: 50%; height: 100%; background: #fff;"></div></div></div>
+</div>
+<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+<div style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #555; background: #222;"></div>
+<div style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #555; background: #222;"></div>
+<div style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #555; background: #222;"></div>
+<div style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #555; background: #222;"></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="section" id="graveyard">
+<h1>The Strategy Graveyard (Negative Architecture)</h1>
+<div class="card" style="border-left: 3px solid var(--accent-red);">
+<h3 class="card-title">🚫 UVI Falcon Spreadsheet Trees</h3>
+<p><strong>The Trap:</strong> Exposing every DSP parameter in a massive tree.</p>
+<p><strong>Why we reject it:</strong> We enforce the 4-control surface limit. Advanced routing happens in the Mod Matrix.</p>
+</div>
+</div><div class="section" id="mod-matrix">
+<h1>Modulation Matrix &amp; Routing UX</h1>
+<p>How do we map complex routing without breaking the 4-control limit?</p>
+<div class="card">
+<h3 class="card-title">Target-Based Injection (Opt+Click)</h3>
+<ul>
+<li><strong>The Workflow:</strong> The user holds Option and clicks ANY knob (e.g., Filter Cutoff).</li>
+<li><strong>The Popover:</strong> The 4-control card temporarily flips to "Modulation Injection Mode".</li>
+<li><strong>The 4 Knobs:</strong> The knobs instantly become Depth controls for: [LFO 1], [LFO 2], [ENV 1], [ENV 2].</li>
+<li><strong>Visuals:</strong> A glowing, color-coded ring (e.g., green for LFO, orange for ENV) wraps around the original knob to show modulation depth.</li>
+</ul>
+<style>
+                            .flip-container {
+                                perspective: 1000px;
+                                margin: 20px auto;
+                                width: 340px;
+                                height: 200px;
+                            }
+                            .flip-card-inner {
+                                position: relative;
+                                width: 100%;
+                                height: 100%;
+                                text-align: center;
+                                transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+                                transform-style: preserve-3d;
+                            }
+                            .flip-container.flipped .flip-card-inner {
+                                transform: rotateY(180deg);
+                            }
+                            .flip-card-front, .flip-card-back {
+                                position: absolute;
+                                width: 100%;
+                                height: 100%;
+                                backface-visibility: hidden;
+                                border-radius: 8px;
+                                border: 1px solid var(--border);
+                                background: var(--bg-card);
+                                display: flex;
+                                flex-direction: column;
+                            }
+                            .flip-card-back {
+                                transform: rotateY(180deg);
+                                border-color: var(--accent-neon);
+                                background: #1a2332; /* Slight blue tint */
+                            }
+                            .fc-header {
+                                padding: 8px;
+                                font-size: 12px;
+                                border-bottom: 1px solid var(--border);
+                                display: flex;
+                                justify-content: space-between;
+                                color: var(--text-muted);
+                            }
+                            .fc-body {
+                                display: flex;
+                                justify-content: space-around;
+                                align-items: center;
+                                flex-grow: 1;
+                                padding: 10px;
+                            }
+                            .fc-knob-wrapper {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                gap: 8px;
+                                cursor: pointer;
+                            }
+                            .fc-knob {
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                border: 2px solid var(--text-muted);
+                                position: relative;
+                            }
+                            .fc-knob::after {
+                                content: '';
+                                position: absolute;
+                                top: 4px;
+                                left: 50%;
+                                width: 2px;
+                                height: 12px;
+                                background: var(--text-main);
+                                transform: translateX(-50%);
+                            }
+                            .fc-knob.active { border-color: var(--accent-neon); }
+                            .fc-knob.active::after { background: var(--accent-neon); }
+                            
+                            .fc-knob.mod-lfo { border: 2px dashed #4ade80; } /* Green dashed */
+                            .fc-knob.mod-env { border: 2px solid #fb923c; } /* Orange solid */
+                            
+                            .fc-label { font-size: 10px; font-weight: bold; }
+                            .instruction-btn {
+                                display: block;
+                                margin: 0 auto 20px auto;
+                                padding: 8px 16px;
+                                background: var(--accent-neon);
+                                color: #000;
+                                border: none;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-weight: bold;
+                            }
+                            .instruction-btn:hover { opacity: 0.8; }
+                        </style>
+<button class="instruction-btn" onclick="document.getElementById('mockup-flip').classList.toggle('flipped')">
+                            Simulate Alt+Click on CUTOFF
+                        </button>
+<div class="flip-container" id="mockup-flip">
+<div class="flip-card-inner">
+<!-- FRONT: STANDARD MODULE -->
+<div class="flip-card-front">
+<div class="fc-header">
+<span>ZDF FILTER</span>
+<span>[ MODULE ]</span>
+</div>
+<div class="fc-body">
+<div class="fc-knob-wrapper" onclick="document.getElementById('mockup-flip').classList.add('flipped')">
+<div class="fc-knob active"></div>
+<span class="fc-label" style="color: var(--accent-neon);">CUTOFF</span>
+</div>
+<div class="fc-knob-wrapper">
+<div class="fc-knob"></div>
+<span class="fc-label">RESO</span>
+</div>
+<div class="fc-knob-wrapper">
+<div class="fc-knob"></div>
+<span class="fc-label">ENV AMT</span>
+</div>
+<div class="fc-knob-wrapper">
+<div class="fc-knob"></div>
+<span class="fc-label">DRIVE</span>
+</div>
+</div>
+</div>
+<!-- BACK: MODULATION INJECTION -->
+<div class="flip-card-back">
+<div class="fc-header" style="border-bottom-color: var(--accent-neon);">
+<span style="color: var(--accent-neon);">MOD INJECTION: CUTOFF</span>
+<span onclick="event.stopPropagation(); document.getElementById('mockup-flip').classList.remove('flipped')" style="cursor:pointer;">✖ CLOSE</span>
+</div>
+<div class="fc-body">
+<div class="fc-knob-wrapper">
+<div class="fc-knob mod-lfo"></div>
+<span class="fc-label" style="color: #4ade80;">LFO 1</span>
+</div>
+<div class="fc-knob-wrapper">
+<div class="fc-knob mod-lfo"></div>
+<span class="fc-label" style="color: #4ade80;">LFO 2</span>
+</div>
+<div class="fc-knob-wrapper">
+<div class="fc-knob mod-env"></div>
+<span class="fc-label" style="color: #fb923c;">ENV 1</span>
+</div>
+<div class="fc-knob-wrapper">
+<div class="fc-knob mod-env"></div>
+<span class="fc-label" style="color: #fb923c;">ENV 2</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="section" id="theme-engine">
+<h1>Theming &amp; Visual Engine</h1>
+<p>Optimizing JUCE UI performance while keeping things gorgeous.</p>
+<div class="card" style="border-color: var(--accent-amber);">
+<h3 class="card-title">JSON Palettes &amp; Pre-Rendered Glassmorphism</h3>
+<ul>
+<li><strong>The Concept:</strong> Instead of heavy real-time CSS/JUCE DropShadows and blur rendering which eat CPU, we pre-render the "glass" chassis in Figma/Photoshop as a `.png`.</li>
+<li><strong>Data-Driven:</strong> The actual text, knob accents, and data are driven purely by a <code>theme.json</code> file holding hex codes for <code>--accent-neon</code>, <code>--bg-card</code>, etc.</li>
+<li><strong>Performance:</strong> This drops GUI rendering overhead to near zero on the CPU, allowing the ESP32-P4 to focus entirely on DSP math.</li>
+</ul>
+<div style="margin-top: 20px; padding: 15px; background: #161b22; border: 1px solid var(--accent-amber); border-radius: 8px;">
+<code style="color: #a5d6ff;">
+                            {<br/>
+                              "theme_name": "Neo Slate",<br/>
+                              "colors": {<br/>
+                                "accent": "#4ade80",<br/>
+                                "bg_card": "#0d1117",<br/>
+                                "text_main": "#e6edf3"<br/>
+                              },<br/>
+                              "assets": {<br/>
+                                "chassis_bg": "assets/img/chassis_glass.png"<br/>
+                              }<br/>
+                            }
+                            </code>
+</div>
+</div>
+</div><div class="section" id="unconsidered">
+<h1>Industry Research: The Unconsidered</h1>
+<p>Evaluating highly successful UI paradigms from plugins outside the standard wavetable synth sphere.</p>
+<div class="card">
+<h3 class="card-title">Valhalla DSP <span class="badge good">Typography-First Minimalism</span></h3>
+<ul>
+<li><strong>The Paradigm:</strong> Valhalla completely rejects 3D rendered knobs and skeuomorphism. Their plugins are purely 2D vector shapes with massive, highly readable typography.</li>
+<li><strong>The Lesson:</strong> Don't force users to squint at a tiny number below a photorealistic knob. We should prioritize huge font readouts that temporarily replace the knob graphic while it's being turned.</li>
+</ul>
+</div>
+<div class="card">
+<h3 class="card-title">Output (Portal / Thermal) <span class="badge good">The Giant Macro</span></h3>
+<ul>
+<li><strong>The Paradigm:</strong> While they have deep sub-menus, the entire UI is dominated by a massive, central X/Y macro pad that controls dozens of parameters simultaneously.</li>
+<li><strong>The Lesson:</strong> The Klang Suite needs a dedicated "Performance Page" where the 4 hardware encoders are mapped to massive, central Macros (e.g., TENSION, WASH, CHAOS, DRIVE) rather than granular DSP values.</li>
+</ul>
+</div>
+<div class="card">
+<h3 class="card-title">Elektron Overbridge <span class="badge good">Hardware-to-VST</span></h3>
+<ul>
+<li><strong>The Paradigm:</strong> Elektron creates hardware grooveboxes (Digitakt), but their Overbridge VST maps that hardware perfectly to a screen.</li>
+<li><strong>The Lesson:</strong> They use <strong>Parameter Locks</strong>. If we hold a step on the TBD-16's 16-button grid, the 4 screen knobs should temporarily glow red. Any changes made are locked *only* to that sequencer step. This gives us per-step automation without a DAW!</li>
+</ul>
+</div>
+<div class="card">
+<h3 class="card-title">FabFilter (Pro-Q 3 / Volcano) <span class="badge good">Contextual Hover UX</span></h3>
+<ul>
+<li><strong>The Paradigm:</strong> There are no static knobs. UI elements only appear when you hover over the exact node or frequency band you want to edit.</li>
+<li><strong>The Conflict:</strong> This is amazing for mice, but terrible for hardware encoders which require static, predictable mappings.</li>
+<li><strong>The Compromise:</strong> We keep static knobs for the encoders, but use FabFilter's philosophy for the <strong>Visualizers</strong>. Spectrograms and waveforms should sit *behind* the knobs to maximize screen real estate.</li>
+</ul>
+</div>
+</div><div class="section" id="ui-advanced">
+<h1>Advanced UX &amp; Accessibility (A11y)</h1>
+<p>Pushing the boundaries of interface design beyond just making it look "cool".</p>
+<div class="card">
+<h3 class="card-title">Shape-Based Modulation (Colorblind Safe)</h3>
+<ul>
+<li><strong>The Problem:</strong> Relying purely on color (Green for LFO, Red for Envelope) completely locks out colorblind users from quickly reading the Mod Matrix.</li>
+<li><strong>The Paradigm:</strong> We couple color with distinct geometry. LFO modulation rings are dashed/dotted lines. Envelope modulation rings are solid bars. Macro modulation uses small triangular tick marks.</li>
+</ul>
+</div>
+<div class="card">
+<h3 class="card-title">A/B/C/D Snapshot Morphing</h3>
+<ul>
+<li><strong>The Paradigm:</strong> Standard "Undo" is linear. Sound design is non-linear. We provide 4 quick-save "Snapshot" slots in the header.</li>
+<li><strong>The Twist:</strong> You don't just click between them. An X/Y pad allows you to morph parameter values between all four snapshots simultaneously to discover happy accidents.</li>
+</ul>
+</div>
+</div><div class="section" id="ui-browser">
+<h1>The Patch Browser &amp; Tagging</h1>
+<div class="card">
+<h3 class="card-title">Splice-Style Tagging</h3>
+<ul>
+<li><strong>The Problem:</strong> Traditional folder-based preset navigation (Bank -&gt; Category -&gt; Patch) is dead. It's too slow.</li>
+<li><strong>The Paradigm:</strong> A global search bar with instant SQLite-backed tag filtering (e.g., `#bass`, `#aggressive`, `#generative`).</li>
+<li><strong>Visual Audio Preview:</strong> Hovering over a preset in the VST browser plays a tiny cached `.ogg` preview of the sound *before* the DSP engine even loads the JSON parameters, ensuring lightning-fast auditioning.</li>
+</ul>
+</div>
+</div></div>
+</div>
+<!-- ================= POST-MORTEM MODE ================= -->
+<div class="mode-wrapper" 
+
+    <!-- ================= MODE 4: DSP ARCHITECTURE ================= -->
+</div>
+
+<div class="mode-wrapper" id="dsp-mode">
+<div class="sidebar">
+<h2>DSP Architecture</h2>
+<div class="nav-item active" onclick="showDspSection('dsp-core')">1. The Rock Solid Core</div>
+<div class="nav-item" onclick="showDspSection('dsp-wavetable')">2. Wavetable Engine</div>
+<div class="nav-item" onclick="showDspSection('dsp-juno')">3. Alpha Juno / Sub Oscs</div>
+<div class="nav-item" onclick="showDspSection('dsp-chaos')">4. West-Coast Chaos / Drive</div>
+<div class="nav-item" onclick="showDspSection('dsp-filters')">5. Advanced Filter DSP</div>
+<div class="nav-item" onclick="showDspSection('dsp-render')">6. Direct-to-Sample Pipeline</div>
+<div class="nav-item" onclick="showDspSection('dsp-oversampling')">7. Oversampling &amp; Anti-Aliasing</div>
+<div class="nav-item" onclick="showDspSection('dsp-cz')">8. Casio Phase Distortion</div>
+<div class="nav-item" onclick="showDspSection('dsp-envelopes')">9. Analog RC Envelopes</div>
+<div class="nav-item" onclick="showDspSection('dsp-tuning')">10. Microtonality (MTS-ESP)</div>
+</div>
+<div class="main-content">
+<div class="section" id="dsp-oversampling">
+<h1>Oversampling &amp; Anti-Aliasing</h1>
+<div class="card">
+<h3 class="card-title">Polyphase Half-Band Filters</h3>
+<p>We solved oscillator aliasing with MIP mapping, but what about non-linear distortion (Drive/Wavefolding)?</p>
+<ul>
+<li><strong>The Problem:</strong> Passing a high note through a wavefolder generates harmonics that instantly wrap around Nyquist and ruin the sound.</li>
+<li><strong>The Solution:</strong> 2x or 4x Oversampling inside the distortion module.</li>
+<li><strong>The Math:</strong> We use Polyphase IIR or FIR Half-Band filters to upsample, run the `tanh()` drive, and downsample. These specific filters are mathematically optimized to drop 50% of the calculations (since half the coefficients are zero), saving massive CPU on the ESP32-P4.</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-cz">
+<h1>Casio CZ Phase Distortion</h1>
+<div class="card">
+<h3 class="card-title">A Cheaper Alternative to FM</h3>
+<ul>
+<li><strong>The Concept:</strong> True Frequency Modulation (Yamaha DX7) requires calculating multiple sine waves interacting. Casio's Phase Distortion (PD) only uses a single sine wave, but warps the *read pointer* (the phase) to create jagged saws and resonant squares.</li>
+<li><strong>Hardware Win:</strong> PD requires virtually zero CPU because it's just basic linear interpolation on the phase accumulator. Perfect for 16-voice polyphony on an embedded chip!</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-envelopes">
+<h1>Analog RC Envelope Modeling</h1>
+<div class="card">
+<h3 class="card-title">The Physics of "Punch"</h3>
+<ul>
+<li><strong>The Problem:</strong> Standard digital ADSRs use linear math. They sound "clicky" and lifeless.</li>
+<li><strong>The Concept:</strong> Real analog synths use capacitors that charge and discharge. This creates exponential curves that approach targets but never mathematically reach zero.</li>
+<li><strong>The DSP:</strong> We use a 1-pole recursive lowpass filter on a step signal. The "Punch" comes from tuning the Attack to be slightly convex and the Decay to be strictly exponential.</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-tuning">
+<h1>Microtonality (MTS-ESP)</h1>
+<div class="card">
+<h3 class="card-title">Breaking 12-TET</h3>
+<ul>
+<li><strong>The Concept:</strong> The standard `440.0 * pow(2.0, (note - 69) / 12.0)` locks the synth into Western 12-tone equal temperament.</li>
+<li><strong>The Standard:</strong> Implementing ODDSound's MTS-ESP API allows the synth to instantly receive non-Western scales (Arabic maqams, Just Intonation) directly from the DAW or master tuning plugins.</li>
+<li><strong>Hardware Mapping:</strong> The TBD-16 sequencer will need a visual way to represent notes that fall "between" the standard piano keys.</li>
+</ul>
+</div>
+</div><div class="section active" id="dsp-core">
+<h1>The Rock Solid Core</h1>
+<p>Ensuring absolute stability across desktop (macOS/Windows) and embedded targets (ToadTracker/TBD-16).</p>
+<div class="card">
+<h3 class="card-title">Memory &amp; Concurrency <span class="badge good">Locked Down</span></h3>
+<ul>
+<li><strong>No Runtime Allocation:</strong> `prepareToPlay()` allocates all voices and delay lines. Zero `new` or `malloc` in the audio thread.</li>
+<li><strong>SPSC Queues:</strong> 100% lock-free parameter updates. The UI pushes 32-bit float atomic changes to the audio thread via a ring buffer to prevent denormal/NaN bursts.</li>
+<li><strong>FastMath.h:</strong> All standard CRT transcendentals (`sin`, `pow`, `tanh`) are replaced with polynomial approximations. Mandatory for the ESP32-P4 (400MHz).</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-wavetable">
+<h1>Wavetable Architecture</h1>
+<div class="card">
+<h3 class="card-title">Anti-Aliasing Strategies (MIP Mapping)</h3>
+<p>Playing a wavetable at high pitches causes brutal digital aliasing if the harmonics exceed the Nyquist frequency (24kHz at 48kHz sample rate).</p>
+<ul>
+<li><strong>The Solution:</strong> MIP-mapped tables. When a user imports a WAV, we generate 10 versions of the table, progressively filtering out high harmonics. The oscillator interpolates between tables based on the pitch.</li>
+<li><strong>Hardware Limit:</strong> MIP-mapped tables consume RAM. On desktop, this is negligible. On TBD-16 (PSRAM), we may need to dynamically downsample to 8-bit.</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-juno">
+<h1>Alpha Juno (The Hoover Engine)</h1>
+<p>The Roland Alpha Juno is famous for its unique oscillator states that combine pulse-width modulation (PWM) with sawtooth waves.</p>
+<div class="card">
+<h3 class="card-title">DSP Implementation</h3>
+<ul>
+<li><strong>Base Phasor:</strong> A single, high-resolution, band-limited phasor (BLIT or PolyBLEP) running at audio rate.</li>
+<li><strong>Saw-PWM:</strong> We take the saw wave and subtract a phase-shifted version of itself to create the iconic Juno "PWM Saw".</li>
+<li><strong>Sub-Oscillator:</strong> A cheap divide-by-2 counter on the phasor frequency generates a perfect square wave one octave down. Requires near-zero CPU.</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-chaos">
+<h1>West-Coast Chaos &amp; Drive</h1>
+<p>Adding more esoteric synthesis methods that fit easily into the 4-control Mega Modules.</p>
+<div class="card">
+<h3 class="card-title">Buchla-Style Wavefolding</h3>
+<ul>
+<li><strong>The Math:</strong> Instead of clipping a signal when it exceeds 1.0 (like Tanh), a wavefolder uses `sin()` to wrap the signal back down, creating intensely complex harmonics.</li>
+<li><strong>The Code:</strong> `y = sin(x * fold_depth) * symmetry_offset;` (Using FastMath, this is incredibly cheap!).</li>
+</ul>
+</div>
+<div class="card">
+<h3 class="card-title">Karplus-Strong (Bonus Idea!)</h3>
+<ul>
+<li><strong>Concept:</strong> Physical modeling of strings and membranes. </li>
+<li><strong>The Math:</strong> Excite a short delay line with a burst of white noise, and feed it back through a simple low-pass filter. The delay time determines the pitch.</li>
+<li><strong>Hardware Advantage:</strong> Karplus-Strong is famously one of the most CPU-efficient ways to synthesize realistic plucks. Perfect for embedded hardware!</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-filters">
+<h1>Advanced Filter DSP</h1>
+<div class="card">
+<h3 class="card-title">Zero-Delay Feedback (ZDF)</h3>
+<p>Standard digital filters "cramp" near the Nyquist frequency and suffer from 1-sample delays in the feedback loop, destroying the analog sound.</p>
+<ul>
+<li><strong>The Topology:</strong> We use Topology-Preserving Transform (TPT) filters evaluated via the Trapezoidal Rule.</li>
+<li><strong>Non-Linearity:</strong> To emulate Moog ladders and MS-20 screamers, we inject a non-linear saturation `tanh()` directly into the feedback path.</li>
+<li><strong>Hardware Optimization:</strong> A true `tanh()` is too slow for the ESP32-P4. We use our `FastMath::pade_tanh()` to retain the aggressive saturation at a fraction of the CPU cost.</li>
+</ul>
+</div>
+</div><div class="section" id="dsp-render">
+<h1>The "Direct-to-Sample" Pipeline</h1>
+<p>Offline WAV rendering directly inside the plugin thread.</p>
+<div class="card">
+<h3 class="card-title">The Offline Renderer</h3>
+<ul>
+<li><strong>The Threat:</strong> Calling `processBlock` offline on the UI thread will freeze the DAW. Calling it on the Audio Thread will cause a dropout.</li>
+<li><strong>The Architecture:</strong> We spin up a low-priority background thread specifically for offline rendering. It allocates its own standalone instance of the DSP graph, disconnected from the audio outputs.</li>
+<li><strong>The Output:</strong> It rapidly calculates audio (usually taking &lt; 100ms), writes to a `.wav` file in the system Temp folder using `juce::WavAudioFormat`.</li>
+<li><strong>The UX Handoff:</strong> A `juce::DragAndDropContainer` is exposed to the UI. The user clicks a "WAV" icon and drags it directly into Ableton/Logic's arrangement view.</li>
+</ul>
+</div>
+</div></div>
+</div>
+
+<div class="mode-wrapper" id="blue-mode">
+<div class="sidebar">
+<h2 style="color: var(--accent-amber);">Blue Sky Thinking</h2>
+<div class="nav-item active" onclick="showBlueSection('blue-neural')">1. Edge ML Saturation</div>
+<div class="nav-item" onclick="showBlueSection('blue-euclidean')">2. Euclidean Macros</div>
+<div class="nav-item" onclick="showBlueSection('blue-modal')">3. Modal Resonators</div>
+<div class="nav-item" onclick="showBlueSection('blue-spatial')">4. Binaural HRTF FX</div>
+<div class="nav-item" onclick="showBlueSection('blue-granular')">5. Granular Synthesis</div>
+<div class="nav-item" onclick="showBlueSection('blue-automata')">6. Cellular Automata</div>
+<div class="nav-item" onclick="showBlueSection('ml-macros')">Local ML Macro Suggester</div></div>
+<div class="main-content">
+<div class="section active" id="blue-neural">
+<h1 style="color: var(--accent-amber);">Edge ML Saturation (RTNeural)</h1>
+<p>Can we use Machine Learning on the embedded hardware instead of algorithmic DSP?</p>
+<div class="card" style="border-color: var(--accent-amber);">
+<h3 class="card-title">Neural Net VSTs on ESP32-P4</h3>
+<ul>
+<li><strong>The Concept:</strong> Instead of writing complex C++ to emulate a Moog ladder filter, we train a tiny Long Short-Term Memory (LSTM) neural network on real analog hardware and run the model inference live.</li>
+<li><strong>The Tech:</strong> `RTNeural` is a lightweight C++ inferencing engine optimized for SIMD.</li>
+<li><strong>The Constraint:</strong> Running ML inference per-sample for 16 polyphonic voices will completely melt the 400MHz ESP32-P4.</li>
+<li><strong>The Compromise:</strong> We restrict Neural Saturation to the <strong>Master Bus (TKM Pedalboard)</strong> or enforce a strict Monophonic mode when the Neural card is loaded.</li>
+</ul>
+</div>
+</div><div class="section" id="blue-euclidean">
+<h1 style="color: var(--accent-amber);">Procedural Euclidean Sequencing</h1>
+<p>Moving beyond D6 random parameter generation into generative music composition.</p>
+<div class="card">
+<h3 class="card-title">The "Klang-Brain" Module</h3>
+<ul>
+<li><strong>The Workflow:</strong> A sequencer module that doesn't use a piano roll. It uses Euclidean mathematics to distribute beats evenly across a timeline.</li>
+<li><strong>The 4 Knobs:</strong> Perfect for our UI limits: <strong>[STEPS]</strong>, <strong>[HITS]</strong>, <strong>[OFFSET]</strong>, and <strong>[CHAOS]</strong> (probability).</li>
+<li><strong>Hardware Synergy:</strong> On the TBD-16, the 16 tactile grid buttons instantly reflect the generated Euclidean sequence, allowing real-time generative performance without a screen.</li>
+</ul>
+<div class="mockup-container">
+<div class="klang-card" style="border-color: var(--accent-amber);">
+<div class="klang-card-header" style="color: var(--accent-amber);">
+<span>EUCLIDEAN</span>
+<span>[ NOTE ] ▾</span>
+</div>
+<div class="klang-card-body">
+<div class="knob-container"><div class="knob"></div><span class="knob-label">STEPS</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">HITS</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">OFFSET</span></div>
+<div class="knob-container"><div class="knob"></div><span class="knob-label">CHAOS</span></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="section" id="blue-modal">
+<h1 style="color: var(--accent-amber);">Modal Resonators (Physical Modeling)</h1>
+<p>Turning acoustic physics into a synth module.</p>
+<div class="card">
+<h3 class="card-title">Synthesizing Glass, Metal, and Strings</h3>
+<ul>
+<li><strong>The Concept:</strong> Inspired by Mutable Instruments *Rings*. Instead of a standard oscillator, we shoot a tiny click of white noise into a bank of 64 highly-tuned bandpass filters.</li>
+<li><strong>The Sound:</strong> It rings out like a struck bell, a plucked string, or a blown tube.</li>
+<li><strong>The 4 Knobs:</strong> <strong>[STRUCTURE]</strong> (inharmonicity), <strong>[BRIGHTNESS]</strong> (filter cutoff), <strong>[DAMPING]</strong> (decay time), and <strong>[POSITION]</strong> (where the virtual object is struck).</li>
+<li><strong>Why it fits:</strong> It distills insanely complex physical modeling mathematics into 4 highly tactile, fun parameters that guarantee a "sweet spot" anywhere you turn them.</li>
+</ul>
+</div>
+</div><div class="section" id="blue-spatial">
+<h1 style="color: var(--accent-amber);">Binaural HRTF Panning</h1>
+<p>Beyond stereo widening.</p>
+<div class="card">
+<h3 class="card-title">True 3D Spatial Audio</h3>
+<ul>
+<li><strong>The Concept:</strong> Instead of panning left/right by changing volume, we use Head-Related Transfer Functions (HRTFs) to filter the audio based on how human ears perceive sounds in 3D space.</li>
+<li><strong>The Result:</strong> Sounds appear to physically rotate *around* the listener's head, above them, and behind them (requires headphones).</li>
+<li><strong>The Implementation:</strong> A Mega-FX card where the knobs control Azimuth, Elevation, Distance, and Room Size.</li>
+</ul>
+</div>
+</div><div class="section" id="blue-granular">
+<h1 style="color: var(--accent-amber);">Granular Cloud Synthesis</h1>
+<div class="card" style="border-color: var(--accent-amber);">
+<h3 class="card-title">Particle Audio</h3>
+<ul>
+<li><strong>The Concept:</strong> Slicing audio samples into 10-millisecond "grains" and spraying them across the stereo field like mist.</li>
+<li><strong>The 4 Knobs:</strong> <strong>[POSITION]</strong> (where to read the sample), <strong>[DENSITY]</strong> (how many grains per second), <strong>[SIZE]</strong> (length of each grain), and <strong>[SPRAY]</strong> (random pitch/pan jitter).</li>
+<li><strong>The Processing Cost:</strong> Extreme. Requires tracking 50-100 micro-voices per actual note. Would definitely require the "Mono with Tails" architecture to even stand a chance on the ESP32-P4.</li>
+</ul>
+</div>
+</div><div class="section" id="blue-automata">
+<h1 style="color: var(--accent-amber);">Cellular Automata Sequencing</h1>
+<div class="card" style="border-color: var(--accent-amber);">
+<h3 class="card-title">Conway's Game of Life for MIDI</h3>
+<ul>
+<li><strong>The Concept:</strong> A generative sequencer based on cellular biology. A grid of "cells" lives, dies, or spawns based on how many neighbors it has.</li>
+<li><strong>The Music:</strong> As the grid evolves on screen, cells that hit the edges of the grid trigger MIDI notes. The result is constantly evolving, organic rhythms that never truly repeat.</li>
+<li><strong>Visual Output:</strong> The 240x240 OLED screen on the TBD-16 would just render the Game of Life pixels simulating in real-time.</li>
+</ul>
+</div>
+</div><div class="section" id="ml-macros">
+<h1>Local ML Macro Suggester</h1>
+<p>Utilizing local machine learning in the standalone editor to auto-map complex presets.</p>
+<div class="card" style="border-color: var(--accent-neon);">
+<h3 class="card-title">The "Smart Map" Feature</h3>
+<ul>
+<li>Parses the synthesizer's underlying preset schema and DSP graph.</li>
+<li>Uses a local, lightweight neural net (not cloud AI) to suggest the 8 best macroscopic controls.</li>
+<li>Saves CPU by running exclusively in the Standalone Editor, totally bypassed in the DAW VST.</li>
+</ul>
+</div>
+</div></div>
+</div>
+<!-- ================= DSP MODE ================= -->
+<div class="mode-wrapper" 
+
+    <!-- ================= MODE 6: TBD-16 ECOSYSTEM ================= -->
+</div>
+
+<div class="mode-wrapper" id="tbd-mode">
+<div class="sidebar">
+<h2 style="color: var(--accent-green);">TBD-16 &amp; ToadTracker</h2>
+<div class="nav-item active" onclick="showTbdSection('tbd-arch')">1. Tri-Core Architecture</div>
+<div class="nav-item" onclick="showTbdSection('tbd-tks')">2. TKS Integration (DSP)</div>
+<div class="nav-item" onclick="showTbdSection('tbd-tracker')">3. ToadTracker Synergy</div>
+<div class="nav-item" onclick="showTbdSection('tbd-wifi')">4. Wireless Cloud Sync</div>
+</div>
+<div class="main-content">
+<div class="section active" id="tbd-arch">
+<h1 style="color: var(--accent-green);">TBD-16 Tri-Core Architecture</h1>
+<p>Web research confirmed the exact specifications for the dadamachines TBD-16 hardware.</p>
+<div class="card" style="border-color: var(--accent-green);">
+<h3 class="card-title">The Hardware Specs</h3>
+<ul>
+<li><strong>Audio DSP (ESP32-P4):</strong> Dedicated exclusively to real-time audio computation. This is where The Klang Suite (TKS) DSP engine will run.</li>
+<li><strong>UI &amp; Sequencing (RP2350B):</strong> Handles the 16-button grid, the 4 endless push-encoders, the OLED display, and all MIDI event parsing.</li>
+<li><strong>Connectivity (ESP32-C6):</strong> Handles WiFi and Ableton Link synchronization.</li>
+</ul>
+</div>
+</div><div class="section" id="tbd-tks">
+<h1 style="color: var(--accent-green);">TKS DSP Integration (Blue Sky)</h1>
+<div class="card" style="border-color: var(--accent-green);">
+<h3 class="card-title">Porting The Klang Suite to TBD-16</h3>
+<ul>
+<li><strong>The Challenge:</strong> The ESP32-P4 is powerful (400MHz, SIMD), but standard C++ JUCE plugins will not cross-compile cleanly to bare-metal embedded ESP-IDF environments.</li>
+<li><strong>The Solution:</strong> We must aggressively decouple the TKS `processBlock` and `TbdAudio::FastMath` into a pure, headless `C++20` static library. No `juce::String`, no `juce::AudioBuffer`, just raw float arrays.</li>
+<li><strong>Polyphony:</strong> As previously established, strict "Mono-with-Tails" voice allocation is mandatory here to keep the ESP32-P4 from stalling during heavy modulation.</li>
+</ul>
+</div>
+</div><div class="section" id="tbd-tracker">
+<h1 style="color: var(--accent-green);">ToadTracker Synergy (Blue Sky)</h1>
+<p>How the TBD-16 interacts with ToadTracker workflows.</p>
+<div class="card" style="border-color: var(--accent-green);">
+<h3 class="card-title">Headless Sequencing &amp; Parameter Locks</h3>
+<ul>
+<li><strong>The UX Paradigm:</strong> ToadTracker can sequence TKS parameters via MIDI CC. But on the hardware, the RP2350B intercepts encoder turns while a step is held.</li>
+<li><strong>Visual Feedback:</strong> When a user parameter-locks a TKS knob on the TBD-16 hardware, ToadTracker's UI on the desktop should instantly highlight that step value in the tracker grid (e.g., column `04 6A`).</li>
+<li><strong>The Groovebox Workflow:</strong> The TBD-16 can run 16 tracks. If we use TKS as the sound engine for Track 1, the RP2350B just sends rapid-fire struct updates via SPI to the ESP32-P4 to update the synth parameters per-step.</li>
+</ul>
+</div>
+</div><div class="section" id="tbd-wifi">
+<h1 style="color: var(--accent-green);">Wireless Patch Sync (ESP32-C6)</h1>
+<div class="card" style="border-color: var(--accent-green);">
+<h3 class="card-title">The Connected Synth</h3>
+<ul>
+<li><strong>The Hardware:</strong> The dadamachines TBD-16 has a dedicated ESP32-C6 chip for WiFi and Bluetooth.</li>
+<li><strong>The Workflow:</strong> No USB cables required to load presets. When you hit "Save" on The Klang Suite desktop VST, the JSON parameter payload is silently broadcast over the local UDP network.</li>
+<li><strong>Instant Hardware Update:</strong> If the TBD-16 is on the same WiFi network, it catches the UDP packet, updates its PSRAM, and instantly plays the new sound. Designing sounds on the PC while playing them on the hardware becomes entirely seamless.</li>
+</ul>
+</div>
+</div></div>
+</div>
+<!-- ================= BLUE SKY MODE ================= -->
+<div class="mode-wrapper" 
+
+    <!-- ================= MODE 7: 📋 FULL POST-MORTEM & TRIAGE SLATES ================= -->
+</div>
+
+<div class="mode-wrapper" id="pm-mode">
+<div class="sidebar">
+<h2 style="color: var(--accent-red);">Triage Results</h2>
+<div class="nav-item active" onclick="showPmSection('pm-approved')">✅ Approved (Backlog)</div>
+<div class="nav-item" onclick="showPmSection('pm-tabled')">🕰️ Tabled (Future)</div>
+<div class="nav-item" onclick="showPmSection('pm-killed')">💀 Strategy Graveyard</div>
+</div>
+<div class="main-content">
+<div class="section active" id="pm-approved">
+<h1 style="color: var(--accent-red);">✅ Approved for Production</h1>
+<p>Concepts formally validated and scheduled for engineering via <code>docs/BACKLOG.md</code>.</p>
+<div class="card" id="approved-list" style="border-color: var(--accent-red);">
+<ul>
+<li><strong>Mod Matrix Target-Injection (Alt+Click Flip Cards):</strong> Promoted to Milestone v0.5.0.</li>
+<li><strong>Strict Theming Engine (Data-Driven JSON &amp; Pre-Rendered Glassmorphism):</strong> Promoted to Milestone v0.7.0.</li>
+<li><strong>Giant Macro Page (Play Mode):</strong> Promoted to Milestone v0.6.0 (includes persistent default view toggle).</li><li><strong>A11y Geometric Shapes:</strong> Promoted to Milestone v0.7.0 (Geometric visual alphabet for modulation).</li><li><strong>Universal Design (A11y):</strong> Pure Keyboard Nav (v0.6.0), High-Contrast WCAG Palettes (v0.7.0), and Hardened Tooltips (v0.7.0) approved.</li><li><strong>Fullscreen Patch Browser:</strong> Promoted to Milestone v0.6.0 (Includes embedded macros so presets remain playable).</li><li><strong>Local ML Macro Suggester:</strong> Promoted to Milestone v1.2.0 'The Smart Editor Update' (Post-1.0).</li></ul>
+</div>
+<h4 style="color: var(--accent-amber); margin-top: 20px;">Batch 2: DSP Architecture</h4><ul><li><strong>The FastMath &amp; SPSC Core:</strong> Promoted to v0.3.3 Hardening Gauntlet (deep research to be triggered at implementation).</li><li><strong>Polyphase Half-Band Filters:</strong> Promoted to v0.5.0. Added 'Lo-Fi / Raw' bypass toggle to intentionally induce aliasing.</li><li><strong>Pitch-Tracked Oversampling:</strong> Promoted to v0.6.0. An 8x offline/pro-desktop rendering mode for pristine harmonic fold-over.</li><li><strong>Wavetable MIP-Mapping:</strong> Promoted to v0.5.0 for Desktop. Hardware PSRAM implementation is Tabled pending physical testing.</li><li><strong>Casio CZ Phase Distortion:</strong> Promoted to Milestone v0.5.0 'The Sound &amp; Chaos Update'. Ultra-low CPU synthesis mode.</li><li><strong>Alpha Juno Hoover Engine:</strong> Promoted to Milestone v0.5.0. Single-voice Saw-PWM + phase-locked sub-oscillator.</li><li><strong>Alpha Juno Dual-Stage VCF (IR3R05):</strong> Promoted to Milestone v0.5.0 'The Sound &amp; Chaos Update'. Cascaded 2-pole ZDF SVFs with zero bass drop.</li><li><strong>Buchla Wavefolding + Pre-APF:</strong> Promoted to Milestone v0.5.0. Mathematical sine wavefolding paired with an All-Pass Filter for formant sweeps.</li><li><strong>Octatrack Comb Filter / Resonator:</strong> Promoted to Milestone v0.5.0. Tight, punchy monophonic Karplus-Strong basslines with dual Osc/FX mode.</li><li><strong>Envelope Slope FastMath Optimization:</strong> Promoted to Milestone v0.5.0. Retains identical continuous slope curve while replacing CRT std::pow with FastMath.</li><li><strong>Microtonality (MTS-ESP &amp; Scala):</strong> Promoted to Milestone v0.6.0 'The Pro Workflow Update' (Desktop Only). Hardware box strictly exempt.</li></ul><h4 style="color: var(--accent-green); margin-top: 20px;">Batch 3: TBD-16 Hardware Box</h4><ul><li><strong>Headless C++20 DSP Core (`libtks_dsp`):</strong> Promoted to Milestone v1.1.0. Audit confirmed DSP is ALREADY 100% decoupled from JUCE. Monophonic on hardware.</li><li><strong>4-Encoder 128x64 OLED Card Layout:</strong> Promoted to Milestone v1.1.0. Verified via official dadamachines specs (128x64 OLED, 4 encoders, 30 RGB buttons).</li><li><strong>128x64 OLED 4-Quadrant Card Layout:</strong> Promoted to Milestone v1.1.0. 1:1 hardware mapping to the 4 physical endless push-encoders.</li><li><strong>ToadTracker Synergy &amp; P-Locks:</strong> Promoted to Milestone v1.1.0. Elektron-style hold-step + twist-encoder P-locking via SPI DMA telemetry.</li><li><strong>Wireless Patch Sync &amp; Ableton Link:</strong> Promoted to Milestone v1.1.0. Cable-free UDP preset broadcasting &amp; native Ableton Link sync via ESP32-C6.</li></ul><h4 style="color: var(--accent-amber); margin-top: 20px;">Batch 4: Blue Sky Explorations</h4><ul>
+<li><strong>The "Klang-Brain" Generative Sequencing &amp; Modulation Engine:</strong> Promoted to TKR-1 (as primary rhythm engine) &amp; TKF (as multi-lane stepped &amp; continuous modulation engine). 5 selectable engines: Fugue Counterpoint, Matriceal Polymeter, Stage Pulses &amp; Accumulators, Turing Machine LFSR, and <strong>Audio Damage Axon-style Leaky Integrate-and-Fire Neural Networks</strong> (7 neurons mapped 1:1 to TKR-1 voices). Features both Continuous DAW Sync and <strong>DSI Pro 2 Triggered / Key-Advance Mode</strong> (advancing 1 step per key strike).</li>
+<li><strong>Spatial Audio Mega-Module (Haas Delay &amp; Binaural HRTF 3D Panning):</strong> Promoted to Milestone v0.5.0 (FX #18). Unified 4-control mega-block with auto-preselection from the 5-column browser.</li>
+<li><strong>The Mist Granular Particle Cloud &amp; Freeze (FX #29):</strong> Promoted to Milestone v0.5.0. Real-time circular buffer particle scrambler &amp; buffer freeze; classified as Tier 3 Master/Send effect (Stephen King particulate tribute).</li>
+<li><strong>FX Routing Taxonomy &amp; Micro-Benchmark Gauntlet (Item 2.5):</strong> Promoted to Milestone v0.5.0. 3-tier routing matrix (Universal Poly, Pre-FX Strict Mono, Master/Send) backed by automated CPU benchmarks.</li>
+<li><strong>Comprehensive FOSS/POSS Attribution &amp; Licensing Ledger (Item 10):</strong> Promoted to Milestone v0.6.0. Codified into <code>docs/THIRD_PARTY_LICENSES.md</code> and the in-app Settings/About modal with clickable links crediting Émilie Gillet, Jatin Chowdhury, Vadim Zavalishin, Will Pirkle, Sean Costello, Nigel Redmon, Tom Whitwell, and dadamachines.</li>
+</ul></div><div class="section" id="pm-tabled">
+<h1 style="color: var(--accent-red);">🕰️ Tabled for Future R&amp;D</h1>
+<p>Strong concepts requiring further prototyping before entering the main production pipeline.</p>
+<div class="card" id="tabled-list" style="border-color: var(--accent-red);">
+<p><em>Triage interview in progress. Awaiting executive verdicts...</em></p>
+<ul><li><strong>Valhalla Minimalism (2D Vector Flat):</strong> Tabled as an optional 'Eco Mode' for the v0.7.0 UI Polish milestone to avoid scope creep.</li><li><strong>Wavetable MIP-Mapping (TBD-16 Hardware):</strong> Tabled to v2.0 (or pending physical PSRAM tests). Fall back to cheaper interpolation for hardware v1.0.</li><li><strong>Edge ML Saturation (RTNeural):</strong> Tabled to Post-1.0 (Milestone v1.2.0+). High CPU cost per voice; best suited for single-instance master bus or dedicated AI sound design.</li><li><strong>Modal Resonators (Physical Bells &amp; Bars):</strong> Held off / Tabled for future R&amp;D. Keep v0.5.0/v0.6.0 tightly focused on core FM and tuned comb filters.</li><li><strong>Conway's Game of Life &amp; Esoteric Generative Engines:</strong> Tabled for a dedicated Deep Research Lab session upon active kickoff of the TKR-1 development milestone.</li></ul></div>
+</div><div class="section" id="pm-killed">
+<h1 style="color: var(--accent-red);">💀 The Strategy Graveyard</h1>
+<p>Concepts formally rejected. Rationale is preserved to prevent repeating historical mistakes.</p>
+<div class="card" id="killed-list" style="border-color: var(--accent-red);">
+<ul>
+<li><strong>UVI Falcon Spreadsheet Trees:</strong> Deep parameter menus kill playability. We enforce the 4-control surface limit.</li>
+</ul>
+</div>
+</div></div>
+</div>
+
+
+   <!-- Closes .app-container -->
+
+  <!-- Floating Action Button -->
+  <button id="fab-action" onclick="handleFabClick()">
+    <span id="fab-icon">🔍</span> <span id="fab-text">See in Context</span>
+  </button>
+
+
+  </div> <!-- Closes .app-container -->
+
+  <!-- Floating Action Button -->
+  <button id="fab-action" onclick="handleFabClick()">
+    <span id="fab-icon">🔍</span> <span id="fab-text">See in Context</span>
+  </button>
+
+  <script>
+    let currentMode = 'workshop';
+    let currentHeroId = '1.1';
+
+    const triageData = {
+      '1.1': { title: 'Monolithic Titanium Faceplate', verdict: null, note: '' },
+      '1.2': { title: 'Hybrid 6-8 Desktop / TBD Banking', verdict: null, note: '' },
+      '1.3': { title: 'Reclaiming Screen Real Estate', verdict: null, note: '' },
+      '2.1': { title: '45° Flow-Traced Signal Paths', verdict: null, note: '' },
+      '2.2': { title: 'Teenage Engineering Vector Glyphs', verdict: null, note: '' },
+      '3.1': { title: 'Vertical Arcade Rhythm Fader Strip', verdict: null, note: '' },
+      '3.2': { title: 'Tactile Magnetic Snap Detents', verdict: null, note: '' }
+    };
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-wrapper').forEach(w => w.classList.remove('active'));
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+
+      const target = document.getElementById(mode + '-mode');
+      const btn = document.getElementById('btn-' + mode);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+
+      updateFab();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateFab() {
+      const fab = document.getElementById('fab-action');
+      const fabText = document.getElementById('fab-text');
+      const fabIcon = document.getElementById('fab-icon');
+      if (!fab) return;
+
+      if (currentMode === 'workshop') {
+        fab.classList.add('ctx-mode');
+        fabIcon.textContent = '🔍';
+        fabText.textContent = 'See in Context';
+      } else {
+        fab.classList.remove('ctx-mode');
+        fabIcon.textContent = '🔙';
+        fabText.textContent = 'Back to Workshop';
+      }
+    }
+
+    function handleFabClick() {
+      if (currentMode === 'workshop') {
+        const contextMap = {
+          '1.1': { mode: 'layouts', section: 'sec-monolithic' },
+          '1.2': { mode: 'layouts', section: 'sec-monolithic' },
+          '1.3': { mode: 'layouts', section: 'sec-monolithic' },
+          '2.1': { mode: 'layouts', section: 'sec-traces' },
+          '2.2': { mode: 'layouts', section: 'sec-glyphs' },
+          '3.1': { mode: 'layouts', section: 'sec-faders' },
+          '3.2': { mode: 'layouts', section: 'sec-faders' }
+        };
+        const target = contextMap[currentHeroId] || { mode: 'layouts', section: 'sec-monolithic' };
+        goToContext(target.mode, target.section);
+      } else {
+        switchMode('workshop');
+      }
+    }
+
+    function goToContext(modeId, sectionId) {
+      switchMode(modeId);
+      setTimeout(() => {
+        showSection(modeId, sectionId);
+      }, 50);
+    }
+
+    function showHeroItem(itemId) {
+      currentHeroId = itemId;
+      document.querySelectorAll('.hero-stage-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('#workshop-mode .nav-item').forEach(b => b.classList.remove('active'));
+
+      const target = document.getElementById('hero-stage-' + itemId);
+      if (target) target.classList.remove('hidden');
+
+      const navItem = document.getElementById('nav-item-' + itemId);
+      if (navItem) navItem.classList.add('active');
+
+      updateFab();
+    }
+
+    function showSection(modeId, sectionId) {
+      if (!sectionId) {
+        sectionId = modeId;
+        modeId = currentMode;
+      }
+      const modeWrapper = document.getElementById(modeId + '-mode');
+      if (modeWrapper) {
+        modeWrapper.querySelectorAll('.nav-item').forEach(n => {
+          n.classList.remove('active');
+          const oc = n.getAttribute('onclick') || '';
+          if (oc.includes(sectionId)) {
+            n.classList.add('active');
+          }
+        });
+      }
+      const target = document.getElementById(sectionId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function showDspSection(id) { showSection('dsp', id); }
+    function showBlueSection(id) { showSection('blue', id); }
+    function showTbdSection(id) { showSection('tbd', id); }
+    function showPmSection(id) { showSection('pm', id); }
+
+    function setVerdict(itemId, verdict, note) {
+      if (!triageData[itemId]) return;
+      triageData[itemId].verdict = verdict;
+      triageData[itemId].note = note;
+
+      const b = document.getElementById('badge-' + itemId);
+      if (b) {
+        b.textContent = verdict;
+        b.className = 'badge ' + (verdict === 'APPROVE' ? 'good' : (verdict === 'TABLE' ? 'warn' : 'bad'));
+      }
+
+      ['APPROVE', 'TABLE', 'KILL'].forEach(v => {
+        const card = document.getElementById(`card-${itemId}-${v}`);
+        if (card) {
+          if (v === verdict) {
+            card.style.outline = '2px solid ' + (v === 'APPROVE' ? '#10b981' : (v === 'TABLE' ? '#f59e0b' : '#ef4444'));
+            card.style.transform = 'scale(1.02)';
+          } else {
+            card.style.outline = 'none';
+            card.style.transform = 'scale(1)';
+          }
+        }
+      });
+
+      updateComposer();
+      updateScorecard();
+    }
+
+    function updateComposer() {
+      const lines = ['# POST-MORTEM TRIAGE VERDICTS\n'];
+      let count = 0;
+      for (const [id, data] of Object.entries(triageData)) {
+        if (data.verdict) {
+          count++;
+          lines.push(`- Item ${id} (${data.title}): [ ${data.verdict} ] - ${data.note}`);
+        }
+      }
+      const ta = document.getElementById('triage-output');
+      if (ta) {
+        if (count === 0) {
+          ta.value = "Click any option card above to assign verdicts, or type freely in chat!";
+        } else {
+          ta.value = lines.join('\n');
+        }
+      }
+    }
+
+    function updateScorecard() {
+      let app = 0, tab = 0, kil = 0;
+      for (const k in triageData) {
+        if (triageData[k].verdict === 'APPROVE') app++;
+        else if (triageData[k].verdict === 'TABLE') tab++;
+        else if (triageData[k].verdict === 'KILL') kil++;
+      }
+      const sa = document.getElementById('score-approved');
+      const st = document.getElementById('score-tabled');
+      const sk = document.getElementById('score-killed');
+      if (sa) sa.textContent = `✅ Approved: ${app}`;
+      if (st) st.textContent = `⏳ Tabled: ${tab}`;
+      if (sk) sk.textContent = `💀 Killed: ${kil}`;
+    }
+
+    function copyVerdictsToClipboard() {
+      const ta = document.getElementById('triage-output');
+      if (!ta) return;
+      navigator.clipboard.writeText(ta.value).then(() => {
+        const btn = document.querySelector('button[onclick="copyVerdictsToClipboard()"]');
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = '<span>✅ Copied!</span>';
+          setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        }
+      });
+    }
+
+    let zoomLevel = 100;
+    function changeFontSize(delta) {
+      zoomLevel = Math.max(75, Math.min(140, zoomLevel + (delta * 5)));
+      document.body.style.fontSize = (zoomLevel / 100) + 'rem';
+      const el = document.getElementById('font-zoom-level');
+      if (el) el.textContent = zoomLevel + '%';
+      localStorage.setItem('sidecar_font_zoom', zoomLevel);
+    }
+    const savedZoom = localStorage.getItem('sidecar_font_zoom');
+    if (savedZoom) {
+      zoomLevel = parseInt(savedZoom, 10);
+      document.body.style.fontSize = (zoomLevel / 100) + 'rem';
+      const el = document.getElementById('font-zoom-level');
+      if (el) el.textContent = zoomLevel + '%';
+    }
+
+    /* Simulators */
+    function toggleFaceplate(mode) {
+      const d = document.getElementById('sim-faceplate-display');
+      const bCards = document.getElementById('sim-btn-cards');
+      const bMono = document.getElementById('sim-btn-mono');
+      if (!d) return;
+
+      if (mode === 'cards') {
+        bCards.style.borderColor = '#f43f5e';
+        bCards.style.backgroundColor = '#270811';
+        bCards.style.color = '#fda4af';
+        bMono.style.borderColor = '#2d1b28';
+        bMono.style.backgroundColor = '#140e16';
+        bMono.style.color = '#94a3b8';
+
+        d.innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-family: monospace; font-size: 10px;">
+            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Core<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Env<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 1 Filter<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 2 Core<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Voice 2 Filter<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center; border-style: dashed; opacity: 0.4;">[ EMPTY ]</div>
+            <div class="card" style="padding: 10px; margin: 0; text-align: center;">Master Out<br><span style="color: #64748b; font-size: 9px;">4 Knobs</span></div>
+          </div>
+          <p style="color: #f87171; font-size: 11px; margin-top: 10px; text-align: center; font-family: monospace;">⚠️ 4 out of 10 cards (40%) are dead gray slots. Circuits split unnaturally across card borders.</p>
+        `;
+      } else {
+        bMono.style.borderColor = '#f43f5e';
+        bMono.style.backgroundColor = '#270811';
+        bMono.style.color = '#fda4af';
+        bCards.style.borderColor = '#2d1b28';
+        bCards.style.backgroundColor = '#140e16';
+        bCards.style.color = '#94a3b8';
+
+        d.innerHTML = `
+          <div style="background: #111620; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; display: flex; gap: 10px; font-family: monospace; font-size: 10px;">
+            <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+              <strong style="color: #38bdf8;">// 01 UNIFIED FM CORE</strong>
+              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Carrier • Ratio • Mod Depth • Mod Ratio • Feedback • Shape</div>
+            </div>
+            <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+              <strong style="color: #f43f5e;">// 02 DUAL FILTER &amp; DRIVE</strong>
+              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Cutoff • Resonance • Acid Bite • Drive • Slope • Mix</div>
+            </div>
+            <div style="flex: 1; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b;">
+              <strong style="color: #eab308;">// 03 TRANSIENT &amp; PUNCH</strong>
+              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">Attack • Curve • Seismic Spike • Click Amount</div>
+            </div>
+            <div style="width: 100px; background: #0a0d13; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; text-align: center;">
+              <strong style="color: #3fb950;">// SUM</strong>
+              <div style="color: #94a3b8; font-size: 9px; margin-top: 4px;">4x Faders</div>
+            </div>
+          </div>
+          <p style="color: #34d399; font-size: 11px; margin-top: 10px; text-align: center; font-family: monospace;">✨ Zero blank cards. 100% purposeful surface area with milled hairline grooves between circuits.</p>
+        `;
+      }
+    }
+
+    function toggleTbdView(view) {
+      const d = document.getElementById('sim-tbd-display');
+      const bDesk = document.getElementById('sim-btn-desk');
+      const bHw = document.getElementById('sim-btn-hw');
+      if (!d) return;
+
+      if (view === 'desktop') {
+        bDesk.style.borderColor = '#f43f5e';
+        bDesk.style.backgroundColor = '#270811';
+        bDesk.style.color = '#fda4af';
+        bHw.style.borderColor = '#2d1b28';
+        bHw.style.backgroundColor = '#140e16';
+        bHw.style.color = '#94a3b8';
+
+        d.innerHTML = `
+          <div style="font-family: monospace; font-size: 11px;">
+            <strong style="color: #fff;">Desktop UI: Unified FM Core (6 Knobs in 1 Bay)</strong>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; text-align: center;">
+              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Carrier Shape</div>
+              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Coarse Ratio</div>
+              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Depth</div>
+              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Shape</div>
+              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Mod Ratio</div>
+              <div class="card" style="padding: 8px; margin: 0; color: #38bdf8; border-color: #38bdf8;">Feedback</div>
+            </div>
+            <p style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Sound designer tweaks Carrier and Modulator simultaneously on desktop without paging.</p>
+          </div>
+        `;
+      } else {
+        bHw.style.borderColor = '#f43f5e';
+        bHw.style.backgroundColor = '#270811';
+        bHw.style.color = '#fda4af';
+        bDesk.style.borderColor = '#2d1b28';
+        bDesk.style.backgroundColor = '#140e16';
+        bDesk.style.color = '#94a3b8';
+
+        d.innerHTML = `
+          <div style="font-family: monospace; font-size: 11px;">
+            <strong style="color: #34d399;">TBD-16 Hardware: Firmware Auto-Chunks JSON into Banked Quads</strong>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+              <div class="card" style="padding: 8px; margin: 0; border-color: #059669; background: #06201a;">
+                <span class="badge good" style="margin-bottom: 4px;">Page 1A: Carrier Bank</span>
+                <div style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">E1: Shape • E2: Coarse • E3: Mod Depth • E4: Mod Shape</div>
+              </div>
+              <div class="card" style="padding: 8px; margin: 0; border-color: #059669; background: #06201a;">
+                <span class="badge good" style="margin-bottom: 4px;">Page 1B: Modulator Bank</span>
+                <div style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">E1: Mod Ratio • E2: Feedback • E3: [Empty] • E4: [Empty]</div>
+              </div>
+            </div>
+            <p style="color: #a7f3d0; font-size: 10px; margin-top: 8px;">Zero C++ rewriting needed: hardware engine auto-pages JSON groups with deterministic [A/B] toggling.</p>
+          </div>
+        `;
+      }
+    }
+
+    function triggerTracesPulse() {
+      const trace1 = document.getElementById('circuit-trace-audio');
+      const trace2 = document.getElementById('circuit-trace-mod');
+      if (trace1) {
+        trace1.style.filter = 'drop-shadow(0 0 10px #38bdf8)';
+        trace1.setAttribute('stroke-width', '4');
+        setTimeout(() => {
+          trace1.style.filter = 'none';
+          trace1.setAttribute('stroke-width', '2');
+        }, 300);
+      }
+      if (trace2) {
+        trace2.style.filter = 'drop-shadow(0 0 10px #f43f5e)';
+        trace2.setAttribute('stroke-width', '4');
+        setTimeout(() => {
+          trace2.style.filter = 'none';
+          trace2.setAttribute('stroke-width', '2');
+        }, 400);
+      }
+    }
+
+    function updatePolarRose(k) {
+      const path = document.getElementById('svg-polar-rose');
+      const label = document.getElementById('label-rose-val');
+      if (label) label.textContent = k;
+      if (!path) return;
+
+      const points = [];
+      const numPts = 100;
+      const rScale = 35;
+      const cx = 50, cy = 50;
+
+      for (let i = 0; i <= numPts; i++) {
+        const theta = (i / numPts) * 2 * Math.PI;
+        const r = Math.cos(k * theta) * rScale;
+        const x = cx + r * Math.cos(theta);
+        const y = cy + r * Math.sin(theta);
+        points.push(`${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`);
+      }
+      points.push('Z');
+      path.setAttribute('d', points.join(' '));
+    }
+
+    function updateAcidJaw(q) {
+      const path = document.getElementById('svg-acid-jaw');
+      const label = document.getElementById('label-jaw-val');
+      if (label) label.textContent = q + '%';
+      if (!path) return;
+
+      const peakY = 80 - (q / 100) * 65;
+      const d = `M 10 70 Q 50 70 58 ${peakY + 10} Q 60 ${peakY} 62 ${peakY + 10} Q 70 75 110 75`;
+      path.setAttribute('d', d);
+    }
+
+    function updatePunchSpike(attack) {
+      const path = document.getElementById('svg-punch-spike');
+      const label = document.getElementById('label-spike-val');
+      if (label) label.textContent = attack + ' ms';
+      if (!path) return;
+
+      const attackX = 10 + (attack / 30) * 40;
+      const d = `M 10 80 L ${attackX.toFixed(1)} 15 Q ${attackX + 20} 30 110 80`;
+      path.setAttribute('d', d);
+    }
+
+    function toggleFaderBank(bank) {
+      const bL = document.getElementById('btn-bank-levels');
+      const bD = document.getElementById('btn-bank-decays');
+      if (!bL || !bD) return;
+
+      if (bank === 'levels') {
+        bL.style.borderColor = '#10b981';
+        bL.style.backgroundColor = '#06201a';
+        bL.style.color = '#34d399';
+        bD.style.borderColor = '#2d1b28';
+        bD.style.backgroundColor = '#140e16';
+        bD.style.color = '#94a3b8';
+        document.getElementById('readout-v1').textContent = '-3.2 dB';
+        document.getElementById('readout-v2').textContent = '-6.0 dB';
+        document.getElementById('readout-v3').textContent = '-1.5 dB';
+        document.getElementById('readout-v4').textContent = '-8.4 dB';
+      } else {
+        bD.style.borderColor = '#10b981';
+        bD.style.backgroundColor = '#06201a';
+        bD.style.color = '#34d399';
+        bL.style.borderColor = '#2d1b28';
+        bL.style.backgroundColor = '#140e16';
+        bL.style.color = '#94a3b8';
+        document.getElementById('readout-v1').textContent = '420 ms';
+        document.getElementById('readout-v2').textContent = '180 ms';
+        document.getElementById('readout-v3').textContent = '45 ms';
+        document.getElementById('readout-v4').textContent = '850 ms';
+      }
+    }
+
+    function handleDetentSlider(rawVal) {
+      let val = parseFloat(rawVal);
+      const hud = document.getElementById('hud-detent-bracket');
+      let snapped = false;
+
+      [1.0, 2.0, 3.0, 4.0].forEach(snap => {
+        if (Math.abs(val - snap) <= 0.07) {
+          val = snap;
+          snapped = true;
+        }
+      });
+
+      if (hud) {
+        if (snapped) {
+          hud.textContent = `Detent: [ ${val.toFixed(3)}x SNAP ]`;
+          hud.style.borderColor = '#059669';
+          hud.style.backgroundColor = '#064e3b';
+          hud.style.color = '#a7f3d0';
+        } else {
+          hud.textContent = `Ratio: [ ${val.toFixed(3)}x ]`;
+          hud.style.borderColor = '#2d1b28';
+          hud.style.backgroundColor = '#1e1320';
+          hud.style.color = '#cbd5e1';
+        }
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      toggleFaceplate('monolithic');
+      toggleTbdView('desktop');
+      updatePolarRose(3);
+      updateAcidJaw(75);
+      updatePunchSpike(2.5);
+      updateComposer();
+      updateScorecard();
+      switchMode('workshop');
+      showHeroItem('1.1');
+    });
+
+    /* Dynamic Keyboard Shortcuts Helper (Topic 6.6) */
+    function toggleShortcuts() {
+      const popover = document.getElementById('shortcut-popover');
+      if (!popover) return;
+      const isHidden = popover.style.display === 'none' || !popover.style.display;
+      popover.style.display = isHidden ? 'block' : 'none';
+    }
+
+    function copyShortcutText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+      }
+    }
+
+    // Close shortcut popover when clicking outside
+    document.addEventListener('click', (event) => {
+      const popover = document.getElementById('shortcut-popover');
+      const btn = document.getElementById('btn-shortcuts');
+      if (!popover || !btn) return;
+      if (!popover.contains(event.target) && !btn.contains(event.target)) {
+        popover.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -22,14 +22,15 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** Factory Execution of Flight 1 — Canonical State & Factory Handoff (Topics 6.16 & 6.7)
-- **Execution State:** `IN_PROGRESS` (Phase 2)
+- **Current Objective:** Factory Execution of Flight 9 — Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)
+- **Execution State:** `IN_PROGRESS` (Phase 1)
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **Factory Phase Status**:
-  1. [x] **Phase 1: Canonical State Architecture Contract (Topic 6.16)** — Authored `docs/specs/nkai_canonical_state_architecture.md`, registered in `DOCS_CATALOG.json` and `SYSTEM_MAP.md`.
-  2. [x] **Phase 2: Context Clues Universal Template & File Harmonization (Topic 6.7)** — Authored template, harmonized `context_clues_*.md`.
-  3. [ ] **Phase 3: Automated Verification Tooling** — Author `tools/verify_context_clues.py` and assert 100% link resolution.
-  4. [ ] **Phase 4: Field Guide Documentation & Ecosystem Gauntlet** — Record Factory Handshake Gate in field guide, run vault sync, and commit.
+  1. [ ] **Phase 1: Distribution Bundle Architecture Specification (Topic 6.12)** — Author `docs/specs/nkai_distribution_bundle_architecture.md`, register in catalogs.
+  2. [ ] **Phase 2: Assemble Canonical `nkai/bundle/` Core & Audio Add-on** — Core skills, templates, rules, and tools.
+  3. [ ] **Phase 3: Universal Installer Script (`install_nkai_bundle.ps1`)** — Author installer with `-TargetDir` and `-Audio` switches.
+  4. [ ] **Phase 4: Dynamic AGY Keyboard Shortcuts Bar & Power Tool Prompters (Topic 6.6)** — Integrate helper HUD.
+  5. [ ] **Phase 5: Automated Verification & Ecosystem Gauntlet** — Audit sidecars, verify context clues, test install, sync vault.
 
 ---
 

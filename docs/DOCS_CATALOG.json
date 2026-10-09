@@ -102,6 +102,11 @@
           "path": "docs/specs/nkai_canonical_state_architecture.md",
           "title": "N'kai Canonical State & Persistence Architecture (Topic 6.16)",
           "purpose": "3-tier hybrid persistence model (Markdown frontmatter, JSON session packages, browser localStorage), zero-binary database invariant, and offline file:/// compliance."
+        },
+        {
+          "path": "docs/specs/nkai_distribution_bundle_architecture.md",
+          "title": "N'kai Distribution Bundle & Deployment Architecture (Topic 6.12)",
+          "purpose": "Monolithic all-in-one distribution bundle topology, universal pairing core, optional audio guardrails add-on, and automated installer contract."
         }
       ]
     },

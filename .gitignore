@@ -48,8 +48,11 @@ docs/lore/*
 test_screenshots/
 test_artifacts/
 
-# Local Agent Sidecar & Preview Canvas (Fixed Local Path)
-.agents/sidecar/
+# Local Agent Sidecar & Preview Canvas (Topic 6.12)
+.agents/sidecar/*.html
+!.agents/sidecar/template.html
+.agents/sidecar/*.json
+.agents/sidecar/packages/
 .agents/pipeline/inbox/
 .agents/pipeline/staging/
 

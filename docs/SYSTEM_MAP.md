@@ -43,6 +43,7 @@ This is the central directory for all high-level documentation, rules, and histo
   - [SQA Hardening & Automation](specs/sqa_automation_hardening.md) — Test harnesses, timeouts, and fuzz testing.
   - [WAV / SF2 Multi-Sample Export](specs/wav_sf2_export.md) — Direct DAW drag-and-drop audio export.
   - [N'kai Canonical State & Persistence Architecture](specs/nkai_canonical_state_architecture.md) — 3-tier persistence model, zero-binary database invariant, and offline sidecar contract.
+  - [N'kai Distribution Bundle & Deployment Architecture](specs/nkai_distribution_bundle_architecture.md) — Monolithic all-in-one bundle topology, universal pairing core, optional audio add-on, and automated installer.
 
 ## 🏛️ The Four-Pillar Ecosystem
 
