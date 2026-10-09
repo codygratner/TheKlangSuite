@@ -944,11 +944,15 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Phase 3: Topology & Ergonomics (UI/UX)** $ightarrow$ F5 (Header & Tab Density: 6.9+6.10) & F6 (Triage Views: 6.8+6.11)
 - **Phase 4: Meta & Governance** $ightarrow$ F7 (PCDA Governance: 6.1+6.2+6.15), F8 (Token Ledger: 6.19+6.3), & F9 (Distribution: 6.12+6.6)
 
-### 2. Flight 1: Canonical State & Factory Handoff — 🔨 ACTIVE
+### 2. Flight 1: Canonical State & Factory Handoff — ✅ COMPLETED
 - **Topic 6.16: Backend Persistence & State Management Architecture**: ✅ APPROVED (Option C: Hybrid Markdown Frontmatter + Client-Side LocalStorage + JSON Catalog). Bedrock state architecture finalized with zero heavy binary dependencies and clean Git diffs.
-- **Topic 6.7: Context Clues Architecture & Factory Handshake Gate**: 🔨 ACTIVE / PENDING (Option B: Structured Context Clues recommended — dedicated context clues files seeded with canonical links to `DOCS_CATALOG.json` and `SYSTEM_MAP.md`).
+- **Topic 6.7: Context Clues Architecture & Factory Handshake Gate**: ✅ APPROVED (Option B: Structured Context Clues — dedicated context clues files seeded with canonical links to `DOCS_CATALOG.json` and `SYSTEM_MAP.md`).
 
-### 3. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
+### 3. Flight 4: Universal AI Harness Portability (Topic 6.13) — 🔨 ACTIVE
+*Status: 🔨 ACTIVE (In Active Workshop)*
+- **Topic 6.13: Universal AI Harness Portability**: Evaluating cross-harness compatibility across Claude Code CLI, OpenAI Codex / ChatGPT developer harnesses, Cursor, Windsurf, and Antigravity. Option B (Standalone File + Localhost Adapter) recommended to ensure zero vendor lock-in.
+
+### 4. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
 - **Decision**: Tabled autonomous background loopback socket dispatch (`:4040`), programmatic clipboard manipulation (`navigator.clipboard.writeText` / `document.execCommand`), and fallback modal popups for v0.2.0.
 - **Rationale**: In Chromium / Electron webviews without explicit `clipboard-write` sandbox permissions, `file:///` URLs have `origin: "null"`, causing silent permission denials. Fallback modal popups create jarring UI interruptions and still fail to copy reliably in restricted webviews.
