@@ -948,12 +948,12 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 *Approval:* 6.16 Backend Persistence & State Management - Option C (Approved).
 - Truth lives in an embedded SQLite database or hybrid state model, finalized as the bedrock architecture before UI surfaces or socket streaming.
 
-### 3. Bidirectional Micro-Bridge & Autonomous Background IPC — ⏳ TABLED FOR v0.2.0
+### 3. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
-- **Decision**: Tabled autonomous background loopback socket dispatch (`:4040` / `action_queue.jsonl`) for v0.2.0.
-- **Rationale**: In standalone `file:///` artifact mode, external HTTP sockets cannot wake up an event-driven LLM session paused on `USER_INPUT`. Attempting background dispatch creates a dead-letter queue and broken user feedback loop.
-- **v0.1.0 Standard**: Fall back to the rock-solid, zero-dependency in-canvas progressive disclosure + honest clipboard copy handoff (`copyPromptToChat` / `copyToClipboardSilently`).
-- **v0.2.0 Path**: Fully implement bidirectional agent messaging natively when packaging N'kai as an official Antigravity UI Extension plugin using the official `window.sidecar.agent.sendMessage()` API.
+- **Decision**: Tabled autonomous background loopback socket dispatch (`:4040`), programmatic clipboard manipulation (`navigator.clipboard.writeText` / `document.execCommand`), and fallback modal popups for v0.2.0.
+- **Rationale**: In Chromium / Electron webviews without explicit `clipboard-write` sandbox permissions, `file:///` URLs have `origin: "null"`, causing silent permission denials. Fallback modal popups create jarring UI interruptions and still fail to copy reliably in restricted webviews.
+- **v0.1.0 Standard**: Standardized on **uneditable (readonly) click-to-highlight text boxes** directly embedded on every card (`#ws-prompt-input` and `#audit-prompt-input-${tid}`). The user clicks or double-clicks once to select/highlight all text, then manually copies (`Ctrl+C`) and pastes into chat (`Ctrl+V`). Zero modal popups, zero sandbox permission issues, zero silent failures.
+- **v0.2.0 Path**: Fully implement bidirectional agent messaging (`window.sidecar.agent.sendMessage()`) and native clipboard APIs when packaging N'kai as an official Antigravity UI Extension plugin.
 
 ---
 
