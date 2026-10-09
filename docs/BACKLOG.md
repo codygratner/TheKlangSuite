@@ -955,12 +955,16 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Topic 6.4: Agent Skills Organization: Micro-Skills vs. Macro-Suites**: ✅ APPROVED (Option C: Layered Hybrid — atomic micro-skills serve as the composable underlying engine while unified macro-commands like `/execute-task` and `qa` chain them deterministically with zero loss of granularity and minimal token burn).
 - **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: ✅ APPROVED (Option B: N'kai-First with `--chat` fallback — all visual/interview skills like `/grill-me`, `/deep-research`, and `/postmortem` default to generating the rich N'kai sidecar canvas automatically, with `--chat` or "in chat" providing an instant, clean terminal/chat escape hatch).
 
-### 5. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — 🔨 ACTIVE
-*Status: 🔨 ACTIVE (In Active Workshop — Phase 3: Surfaces & Viewports)*
+### 5. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — ✅ COMPLETED
 - **Topic 6.9: Header Layout & Utility Ergonomics**: ✅ APPROVED (Option B: Two-Tier Header w/ Bridge Status LED & Utility Cluster — top bar hosts brand and persistent utility cluster with live bridge LED, roadmap/sessions drawer toggles, font zoom, sound haptics, and refresh; bottom bar hosts dedicated view tabs).
-- **Topic 6.10: Tab Header Density & Spatial Conservation**: 🔨 ACTIVE (In Active Workshop — evaluating compact emoji + section numbers vs full text labels for narrow 380px–480px IDE side panels).
+- **Topic 6.10: Tab Header Density & Spatial Conservation**: ✅ APPROVED (Option B: Hybrid Compact w/ Hover Tooltips — primary operational modes named like Workshop and Autopsy, while category tabs condense to `1 🗺️`, `2 📦`, `3 🚀` with instant full-text tooltips on hover, saving 40–60px of vertical header space in narrow IDE panels).
 
-### 5. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
+### 6. Flight 6: Interactive Triage Views (Topics 6.8 & 6.11) — 🔨 ACTIVE
+*Status: 🔨 ACTIVE (In Active Workshop — Phase 3: Surfaces & Viewports)*
+- **Topic 6.8: "Ongoing Autopsy": Live Triage Feed & Filterable Scoreboard**: 🔨 ACTIVE (In Active Workshop — evaluating dedicated Slot 2 Autopsy tab providing continuous filterable feed of approved/tabled/killed decisions with direct jump links, auto-morphing into final post-mortem report).
+- **Topic 6.11: "Check the Mail" (Vault Inbox) Workflow & Sidecar Board Default**: ⏳ QUEUED (Evaluating interactive N'kai research board default for Obsidian Inbox notes unless overridden by `--chat`).
+
+### 7. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
 - **Decision**: Tabled autonomous background loopback socket dispatch (`:4040`), programmatic clipboard manipulation (`navigator.clipboard.writeText` / `document.execCommand`), and fallback modal popups for v0.2.0.
 - **Rationale**: In Chromium / Electron webviews without explicit `clipboard-write` sandbox permissions, `file:///` URLs have `origin: "null"`, causing silent permission denials. Fallback modal popups create jarring UI interruptions and still fail to copy reliably in restricted webviews.
