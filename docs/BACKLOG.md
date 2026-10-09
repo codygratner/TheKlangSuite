@@ -953,8 +953,8 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 
 ### 4. Flight 3: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14) — 🔨 ACTIVE
 *Status: 🔨 ACTIVE (In Active Workshop)*
-- **Topic 6.4: Agent Skills Organization: Micro-Skills vs. Macro-Suites**: Evaluating whether to maintain 16 micro-skills, 4 macro-suites, or a layered hybrid. Option C (Layered Hybrid) recommended to keep atomic composability while simplifying high-level user commands.
-- **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: ⏳ QUEUED (Option B: N'kai-First with `--chat` fallback recommended).
+- **Topic 6.4: Agent Skills Organization: Micro-Skills vs. Macro-Suites**: ✅ APPROVED (Option C: Layered Hybrid — atomic micro-skills serve as the composable underlying engine while unified macro-commands like `/execute-task` and `qa` chain them deterministically with zero loss of granularity and minimal token burn).
+- **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: 🔨 ACTIVE (In Active Workshop — evaluating whether skills like `/grill-me`, `/deep-research`, and `/post-mortem` default to generating rich N'kai sidecars with a `--chat` flag for pure terminal/chat fallback).
 
 ### 5. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
