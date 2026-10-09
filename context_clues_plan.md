@@ -40,8 +40,8 @@
   7. **Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)**: ✅ COMPLETED. Spec indexed, semantic `.pcda-*` cards & `.lens-grid` deployed, `tools/pcda_format.py` CLI delivered.
   8. **Next Options**:
      - **Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19)**.
-     - **Take the N'kai Test Drive Now**: Run `python tools/check_mail.py` or launch the interactive board with the **11-card Morning Mail Docket**!
-  9. **Morning Mail Docket**: 11 active cards prepared in `morning_mail_topics.md` (and 5 resolved topics archived).
+     - **Take the N'kai Test Drive Now**: Run `python tools/check_mail.py` or launch the interactive board with the **12-card Morning Mail Docket**!
+  9. **Morning Mail Docket**: 12 active cards prepared in `morning_mail_topics.md` (and 5 resolved topics archived).
   10. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` (including 2-3 minute Anti-Slop Manifesto with strict Zero-Lore & Zero-Product Mandate, and N'kai Visual Project Management Cockpit narrative).
 - **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
 
