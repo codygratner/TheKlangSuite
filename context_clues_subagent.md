@@ -1,49 +1,82 @@
-# Subagent Quick-Reference Index & Context Clues
+# Context Clues: Subagent Quick-Reference Index
 
-> **Step 0 Bootstrapping**: Subagents waking up from `invoke_subagent` must index this document on Turn 1 to orient on project taxonomy, ecosystem pillars, and core invariants without prompt bloat.
-
----
-
-## 🔬 Subagent Roles & Operating Modes
-- **`research` (`Model="pro"` / Tier 1 Sprint)**: Deep DSP differential equations, non-linear saturation proofs, lock-free ring-buffer concurrency, and complex multi-file architectural synthesis.
-- **`explore` (`Model="flash"` / Tier 2 Marathon)**: Broad UI/UX competitive benchmarking, community sentiment analysis (Reddit/KVR/Gearspace), preset browser taxonomy, and responsive layout sweeps.
-- **`contrarian` (`Model="flash"` / Tier 2 Advocate)**: The Devil's Advocate; stress-tests proposals, identifies hidden architectural traps, dependency bloat, and derives the pragmatic 80/20 middle ground.
+> **Step 0 Bootstrapping**: Subagents waking up from `invoke_subagent` MUST read this document on Turn 1 to orient on active SemVer, task status, architectural memory, canonical taxonomy, and inviolable guardrails without prompt bloat.
 
 ---
 
-## 🏛️ The Four Ecosystem Pillars (Links)
-1. **The Klang Suite (Desktop Audio Plugins - VST3/AU)**: [`c:\Dev\TheKlangSuite`](file:///c:/Dev/TheKlangSuite)
-2. **ToadTracker (16-Step Embedded Hardware Tracker)**: [`c:\Dev\ToadTracker`](file:///c:/Dev/ToadTracker)
-3. **N'kai (Asymmetric Sidecar Framework & Triage Lab)**: [`c:\Dev\nkai`](file:///c:/Dev/nkai)
-4. **The Klang Research & Obsidian Vault**: [`C:\Dev\Research`](file:///C:/Dev/Research) & [`C:\Dev\TheKlangVault`](file:///C:/Dev/TheKlangVault)
+## 📌 Active SemVer, Branch State & Roadmap Sidecar Deep Links
+- **Current Git Branch:** `0.4.0-dev`
+- **Ecosystem SemVer Matrix:**
+  - `The Klang Suite (TKS)`: `v0.4.0-dev`
+  - `ToadTracker (TT)`: `v0.1.0`
+  - `N'kai (NK)`: `v0.1.0`
+  - `The Klang Research (TKR)`: `v0.1.0`
+- **Roadmap Sidecar Deep Links**:
+  - [The Klang Suite v0.4.0 Roadmap](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tks-v0.4.0)
+  - [ToadTracker v0.1.0 Milestone](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tt-v0.1.0)
+  - [N'kai v0.1.0 Sidecar Framework](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#nk-v0.1.0)
+  - [The Klang Research Central Hub](https://github.com/codygratner/TheKlangResearch)
+- **Active Working Milestone:** `v0.4.0 "The Interface & Experience Update"` (🔨 In Factory Execution)
 
 ---
 
-## 📖 Canonical Taxonomy & Architecture References (Links)
-- **Official Architectural Glossary**: [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md)
-  - *Taxonomy*: *Cards* (UI containers), *Modules* (DSP units), *Sliders* (meter bars), *Knobs* (rotary controls).
-  - *Acronyms*: `TKS` (Suite), `TKF` (Farmer), `TKP` (Planter), `TKM` (Mill), `TKR` (R1), `TKB` (Hardware Box), `TKG` (Klang-Brain).
-  - *Review Frameworks*: `PCDA` (**P**ros, **C**ons, **D**evil's **A**dvocate), Hegelian Dialectic (**Thesis** $\rightarrow$ **Devil's Advocate [Antithesis]** $\rightarrow$ **The 80/20 Resolution [Synthesis]**).
-- **Master Documentation Catalog**: [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) (100% indexed spec inventory).
-- **System Architecture Map**: [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md)
+## 🎯 Immediate Return Agenda & Status
+- **Current Objective:** Subagent Task Execution & Orientation
+- **Operating Modes & Role Definitions**:
+  - **`research` (`Model="pro"` / Tier 1 Sprint)**: Deep DSP differential equations, non-linear saturation proofs, lock-free ring-buffer concurrency, and complex multi-file architectural synthesis.
+  - **`explore` (`Model="flash"` / Tier 2 Marathon)**: Broad UI/UX competitive benchmarking, community sentiment analysis (Reddit/KVR/Gearspace), preset browser taxonomy, and responsive layout sweeps.
+  - **`contrarian` (`Model="flash"` / Tier 2 Advocate)**: The Devil's Advocate; stress-tests proposals, identifies hidden architectural traps, dependency bloat, and derives the pragmatic 80/20 middle ground.
+  - **`factory implementation` (`Model="flash"` / Tier 2)**: Autonomous file modification, test execution, and compiler fix loops delegated from main chat.
+- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+
+---
+
+## 🧠 Architectural Memory & "Unforgettables"
+1. **Model Advisory & Quota Economics**:
+   - Subagents run autonomously and return concise receipts to the parent agent.
+   - Sprints default to `Model="flash"` unless deep DSP mathematics or concurrency proofs strictly demand `Model="pro"`.
+2. **Data-Driven Separation of Concerns**:
+   - Parameters strictly in `assets/controls/*.json`.
+   - Layout strictly in `assets/layouts/*.json`.
+   - Themes strictly in `assets/themes/*.json`.
+   - Text strictly in `assets/text/*.json`.
+3. **State & Persistence Standards (Topic 6.16)**:
+   - Zero embedded binary databases (zero SQLite, zero LevelDB, zero RocksDB).
+   - 3-Tier State: Frontmatter Markdown $\rightarrow$ Deterministic JSON session packages $\rightarrow$ Browser `localStorage`.
+4. **Synthesis Engine Invariants**:
+   - Continuous `_slope` controls exist natively on all envelopes (`ampenv_slope`, `filterenv_slope`).
+   - Hardware Target: dadamachines TBD-16 (ESP32-P4 @ 400MHz, PSRAM budget).
+
+---
+
+## 📖 Canonical Taxonomy, Product Lineup & Essential Spec Links
+- **Master Documentation Catalog**: [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) (100% indexed documentation ledger).
+- **System Architecture Map**: [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md) (central ecosystem index).
+- **Architectural Taxonomy & Glossary**: [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md)
+  - *Cards* = UI containers, *Modules* = DSP units, *Sliders* = meter bars, *Knobs* = rotary controls.
+  - Acronym Registry: `TKS` (Suite), `TKF` (Farmer), `TKP` (Planter), `TKM` (Mill), `TKB` (Box/Hardware), `TKR` (R1), `TKC` (Cultivator).
 - **Product Intent Matrix**: [`docs/architecture/product_lineup.md`](file:///c:/Dev/TheKlangSuite/docs/architecture/product_lineup.md) ("Stay in Your Lane" drift guardrail).
+- **Universal Project Backlog**: [`docs/BACKLOG.md`](file:///c:/Dev/TheKlangSuite/docs/BACKLOG.md)
+- **Active Technical Specs**:
+  - [N'kai Canonical State & Persistence Architecture](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_canonical_state_architecture.md)
+  - [The Klang R1 Modular Drum Synthesizer](file:///c:/Dev/TheKlangSuite/docs/specs/spinoffs/the_klang_r1.md)
+  - [The Klang Mill Pedalboard Multi-FX](file:///c:/Dev/TheKlangSuite/docs/specs/spinoffs/the_klang_mill.md)
+  - [TBD-16 Klang Seed Hardware Integration](file:///c:/Dev/TheKlangSuite/docs/specs/tbd16_klang_seed_effects.md)
 
 ---
 
-## ⚡ Core Invariants & Access Policies
-- **Real-Time Audio Thread (CRITICAL)**: Zero allocations (`new`/`malloc`/`vector::push_back`), zero locks (`std::mutex`), zero I/O (`DBG`/`printf`) in `processBlock`. SIMD `FastMath` over CRT.
-- **Data-Driven Separation**: DSP parameters in `assets/controls/*.json`, structural layout in `assets/layouts/*.json`, styling in `assets/themes/*.json`, copy in `assets/text/*.json`.
-- **Web Access Invariant**: Subagents are pre-authorized for `search_web` and `read_url_content` by default. If charter specifies `--no-web` or "offline", research is strictly restricted to local files and documentation.
-
----
-
-## 🛠️ Subagent Implementation Delegation Protocol (The 20-Line / 1-File Rule)
-- **Role**: `Factory Implementation Subagent` (`Model="flash"` default / Tier 2)
-- **Scope**: When the user requests implementation during an active research or triage session, tasks are delegated to subagents to shield the main chat context from file diffs and compiler noise.
-- **Triage Threshold**:
-  - *< 20 lines, 1 file*: Execute directly in main chat (instant, zero startup overhead).
-  - *> 20 lines, multi-file, or running builds/tests*: Delegate to Flash subagent (`invoke_subagent(Model="flash")`).
-  - *Deep DSP / Lock-Free Math*: Delegate to Pro subagent (`invoke_subagent(Model="pro")`).
-- **2-Strike Escalation**: If a Flash implementation subagent fails 2 compilation/test attempts or gets stuck, it hard-pauses and escalates to a Pro subagent.
-- **Completion Receipt**: Subagents return only a concise diff summary, verification status, and git state to the parent agent.
-
+## ⚡ Audio Thread / Workflow Invariants & Handshake Gates
+1. **Real-Time Audio Thread Invariants (CRITICAL)**:
+   - **Zero Allocations**: Never call `new`, `malloc`, `free`, or resize dynamic containers (`std::vector::push_back`, `juce::Array::add`) in `processBlock()`, `processStereo()`, or per-sample render loops. Pre-allocate in `prepareToPlay()`.
+   - **Zero Locks**: Never acquire `std::mutex`, `juce::CriticalSection`, or wait on thread synchronization primitives in the audio path.
+   - **Zero Blocking I/O**: Never call filesystem operations, network APIs, or logging/console output (`std::cout`, `printf`, `DBG()`, `juce::Logger`) on the audio thread.
+   - **SIMD & Fast Math**: Prefer `TbdAudio::FastMath` over standard CRT transcendentals (`std::pow`, `std::sin`, `std::tanh`) in hot audio loops.
+2. **Web Access Policy & The `--no-web` Override**:
+   - Subagents are pre-authorized to use `search_web` and `read_url_content` by default.
+   - If the prompt specifies `--no-web` or `--offline`, strictly restrict research to local workspace files and `TheKlangResearch`.
+3. **Subagent Delegation Protocol (The 20-Line / 1-File Rule)**:
+   - *< 20 lines, 1 file*: Execute directly in-chat (Tier 2 Flash active).
+   - *> 20 lines, multi-file, or running builds/tests*: Delegate to Flash subagent (`invoke_subagent(Model="flash")`).
+   - *2-Strike Factory Escalation*: If a subagent fails 2 compilation/test attempts, pause and escalate to Pro (`Model="pro"`).
+4. **Completion Receipt Format**:
+   - Subagents return only a concise diff summary, verification status, and git state to the parent agent upon completion.

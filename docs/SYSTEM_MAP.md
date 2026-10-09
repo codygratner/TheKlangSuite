@@ -42,6 +42,7 @@ This is the central directory for all high-level documentation, rules, and histo
   - [Voice Articulation & Gated Bass](specs/gated_bass_glide.md) — Noise Engineering gate-hold, glide, and envelope overrides.
   - [SQA Hardening & Automation](specs/sqa_automation_hardening.md) — Test harnesses, timeouts, and fuzz testing.
   - [WAV / SF2 Multi-Sample Export](specs/wav_sf2_export.md) — Direct DAW drag-and-drop audio export.
+  - [N'kai Canonical State & Persistence Architecture](specs/nkai_canonical_state_architecture.md) — 3-tier persistence model, zero-binary database invariant, and offline sidecar contract.
 
 ## 🏛️ The Four-Pillar Ecosystem
 
