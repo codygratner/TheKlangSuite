@@ -36,9 +36,12 @@
   3. **Flight 3: Universal AI Harness Portability (Topic 6.13)**: ✅ COMPLETED. Tri-mode environment adapter (`extension`, `file`, `server`), zero-dependency CLI server (`nkai_serve.py`), and `package.json` / `bin/nkai.js`.
   4. **Flight 4: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14)**: ✅ COMPLETED. 3-Layer Hierarchy spec, N'kai-first visual defaults, and `--chat` terminal fallback.
   5. **Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)**: ✅ COMPLETED. Two-tier header geometry, persistent utility cluster (`A-`/`100%`/`A+`, `🔊`, `🔄`, `[ ⌨️ Shortcuts ]`), hybrid compact category tabs (`1 🗺️`, `2 📦`...), and Web Audio click haptics.
-  6. **Next Flight**: **Flight 6: Interactive Triage Views (Topics 6.8 & 6.11)** — Ongoing Autopsy feed in Slot 2 + Check the Mail (Vault Inbox) workflow and board default.
-  7. **Morning Mail Docket**: 13 rich cards prepared in `morning_mail_topics.md` for post-flight test drive.
-  8. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` (including 2-3 minute Anti-Slop Manifesto with strict Zero-Lore Mandate).
+  6. **Flight 6: Interactive Triage Views (Topics 6.8 & 6.11)**: ✅ COMPLETED. Ongoing Autopsy View (`#tab-autopsy`) live in Slot 2 with dynamic scoreboard, filter chips, 1-click jump with pulse highlight, and zero-dependency `tools/check_mail.py` vault harvester.
+  7. **Next Options**:
+     - **Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)** [or Flight 8 Cumulative Cost Meter].
+     - **Take the N'kai Test Drive Now**: Run `python tools/check_mail.py` or launch the interactive board with the rejiggered 9-card Morning Mail Docket!
+  8. **Morning Mail Docket**: 9 active cards prepared in `morning_mail_topics.md` (and 5 resolved topics archived).
+  9. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` (including 2-3 minute Anti-Slop Manifesto with strict Zero-Lore & Zero-Product Mandate).
 - **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
 
 ---

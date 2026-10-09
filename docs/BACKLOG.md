@@ -963,7 +963,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Topic 6.9: Header Layout & Utility Ergonomics**: ✅ APPROVED (Option B: Two-Tier Header w/ Bridge Status LED & Utility Cluster — top bar hosts brand and persistent utility cluster with live bridge LED, roadmap/sessions drawer toggles, font zoom, sound haptics, and refresh; bottom bar hosts dedicated view tabs).
 - **Topic 6.10: Tab Header Density & Spatial Conservation**: ✅ APPROVED (Option B: Hybrid Compact w/ Hover Tooltips — primary operational modes named like Workshop and Autopsy, while category tabs condense to `1 🗺️`, `2 📦`, `3 🚀` with instant full-text tooltips on hover, saving 40–60px of vertical header space in narrow IDE panels).
 
-### 7. Flight 6: Interactive Triage Views (Topics 6.8 & 6.11) — ⏳ QUEUED
+### 7. Flight 6: Interactive Triage Views (Topics 6.8 & 6.11) — ✅ COMPLETED
 - **Topic 6.8: "Ongoing Autopsy": Live Triage Feed & Filterable Scoreboard**: ✅ APPROVED (Option B: Dedicated Autopsy Tab w/ Filter Chips — Slot 2 header item providing a continuous, filterable stream of all active/tabled/killed decisions with direct 1-click jumps to full cards, automatically morphing into the final Post-Mortem report upon milestone completion).
 - **Topic 6.11: "Check the Mail" (Vault Inbox) Workflow & Sidecar Board Default**: ✅ APPROVED (Option B: N'kai Inbox Board Default — checking the Obsidian Vault `Inbox/` defaults to generating a dedicated interactive N'kai research board with 1 section per note and triage chips, with `--chat` flag preserved for pure terminal/chat dumps).
 
