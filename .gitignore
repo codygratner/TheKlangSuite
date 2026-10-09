@@ -52,6 +52,7 @@ test_artifacts/
 .agents/sidecar/*.html
 !.agents/sidecar/template.html
 .agents/sidecar/*.json
+.agents/sidecar/*.md
 .agents/sidecar/packages/
 .agents/pipeline/inbox/
 .agents/pipeline/staging/
