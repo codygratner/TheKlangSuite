@@ -937,7 +937,7 @@ Deploy headless Linux LV2 / CLAP plugins onto the open-source Zynthian hardware 
 *Focus: Asymmetric Sidecar Framework, Visual Grill Lab, and Triage Workspace.*
 
 ### 1. The 9-Flight Consolidated Itinerary
-*Status: 🔨 ACTIVE (Phase 1)*
+*Status: 🏆 COMPLETED (100% Consensus Reached: 17 Approved, 2 Tabled for v0.2.0, 0 Killed, 0 Pending)*
 Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights across 4 phases:
 - **Phase 1: Foundations (State & IPC)** $ightarrow$ F1 (Canonical State: 6.16+6.7) & F2 (Execution Bridge: 6.17+6.18)
 - **Phase 2: Orchestration (Skills & Portability)** $ightarrow$ F3 (Skill Taxonomy: 6.4+6.14) & F4 (Harness Portability: 6.13)
@@ -980,10 +980,10 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Topic 6.3: Topic Organization Strategy: Deep-Linked Monolithic Board vs Fragmented Mini-Canvases**: ✅ APPROVED (Option B: Deep-Linked Monolithic Board — single, highly structured living research canvas with hash-anchor deep linking).
 - **Topic 6.19: Cumulative Allowance & Token Impact Ledger in Post-Mortem**: ✅ APPROVED (Option C: Live Cumulative Cost Meter & Budget Ledger — interactive meter and ledger in the Post-Mortem & Workshop header showing total estimated token burn across all approved items, broken down by Tier 1 Pro High vs Tier 2 Flash High vs Tier 3 Minimal, with proactive budget warnings before code execution begins).
 
-### 11. Flight 2: Execution Bridge & Concurrency (Topics 6.17 & 6.18) — 🔨 ACTIVE (Final Audit Topic)
-*Status: 🔨 ACTIVE (In Active Workshop — Final Remaining Audit Topic!)*
+### 11. Flight 2: Execution Bridge & Concurrency (Topics 6.17 & 6.18) — ✅ COMPLETED
+*Status: ✅ COMPLETED (Final Audit Flight Resolved!)*
 - **Topic 6.17: The Bidirectional Click-to-Agent Bridge (Zero-Copy Sidecar IPC)**: ⏳ TABLED FOR v0.2.0 (Decoupled `file:///` local sidecars from runtime localhost bridge dependencies; reserved for official Antigravity UI Extension release).
-- **Topic 6.18: Parallel Subagent Delegation for Sidecar Actions**: 🔨 ACTIVE (In Active Workshop — evaluating dedicated parallel Flash subagents vs synchronous turns for sidecar action prompters).
+- **Topic 6.18: Parallel Subagent Delegation for Sidecar Actions**: ✅ APPROVED (Option B: Dedicated Parallel Flash Subagents — background `invoke_subagent(Model="flash")` executes asynchronously, writes results to the sidecar canvas or `.agents/sidecar/`, and alerts user when ready, zero main chat stall, minimal quota impact).
 
 ### 12. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
