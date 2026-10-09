@@ -951,10 +951,14 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 ### 3. Flight 4: Universal AI Harness Portability (Topic 6.13) — ✅ COMPLETED
 - **Topic 6.13: Universal AI Harness Portability**: ✅ APPROVED (Option B: Standalone File + Localhost Adapter — zero-dependency standalone HTML `file:///` for IDE webviews and lightweight `npx nkai serve` for terminal CLIs).
 
-### 4. Flight 3: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14) — 🔨 ACTIVE
-*Status: 🔨 ACTIVE (In Active Workshop)*
+### 4. Flight 3: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14) — ✅ COMPLETED
 - **Topic 6.4: Agent Skills Organization: Micro-Skills vs. Macro-Suites**: ✅ APPROVED (Option C: Layered Hybrid — atomic micro-skills serve as the composable underlying engine while unified macro-commands like `/execute-task` and `qa` chain them deterministically with zero loss of granularity and minimal token burn).
-- **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: 🔨 ACTIVE (In Active Workshop — evaluating whether skills like `/grill-me`, `/deep-research`, and `/post-mortem` default to generating rich N'kai sidecars with a `--chat` flag for pure terminal/chat fallback).
+- **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: ✅ APPROVED (Option B: N'kai-First with `--chat` fallback — all visual/interview skills like `/grill-me`, `/deep-research`, and `/postmortem` default to generating the rich N'kai sidecar canvas automatically, with `--chat` or "in chat" providing an instant, clean terminal/chat escape hatch).
+
+### 5. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — 🔨 ACTIVE
+*Status: 🔨 ACTIVE (In Active Workshop — Phase 3: Surfaces & Viewports)*
+- **Topic 6.9: Header Layout & Utility Ergonomics**: 🔨 ACTIVE (Evaluating whether utility tools live in a persistent two-tier header utility cluster with slide-over utility drawers vs embedding them inside the left sidebar navigation).
+- **Topic 6.10: Tab Header Density & Spatial Conservation**: ⏳ QUEUED (Evaluating compact emoji + section numbers vs full text labels for narrow 380px–480px IDE side panels).
 
 ### 5. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
