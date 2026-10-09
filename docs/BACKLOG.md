@@ -969,8 +969,8 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 
 ### 8. Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.6 & 6.12) — 🔨 ACTIVE
 *Status: 🔨 ACTIVE (In Active Workshop — Phase 4: Meta & Governance)*
-- **Topic 6.6: AGY Keyboard Shortcuts & Power Tools Integration**: 🔨 ACTIVE (In Active Workshop — evaluating whether to systematically integrate key Antigravity IDE keyboard shortcuts and slash commands into sidecar tooltips, status hints, and developer muscle memory).
-- **Topic 6.12: The "All-in-One" N'kai Distribution Bundle**: ⏳ QUEUED (Evaluating whether to bundle canonical skills, templates, guardrail rules, and sidecar runner inside `nkai/bundle/` with a 1-command installer script).
+- **Topic 6.6: AGY Keyboard Shortcuts & Power Tools Integration**: ✅ APPROVED (Option B: Dynamic Shortcut Bar — subtly displaying core AGY shortcuts in the N'kai sidecar footer/tooltips: `Ctrl+K` Quick Prompt, `Ctrl+Shift+P` Command Palette, `Ctrl+Enter` Execute, and slash commands to reinforce developer muscle memory with zero token burn).
+- **Topic 6.12: The "All-in-One" N'kai Distribution Bundle**: 🔨 ACTIVE (In Active Workshop — evaluating whether to bundle canonical skills, templates, guardrail rules, and sidecar runner inside `nkai/bundle/` with a 1-command installer script).
 
 ### 9. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
