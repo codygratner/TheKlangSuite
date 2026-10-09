@@ -46,6 +46,7 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Distribution Bundle & Deployment Architecture](specs/nkai_distribution_bundle_architecture.md) — Monolithic all-in-one bundle topology, universal pairing core, optional audio add-on, and automated installer.
   - [N'kai Universal AI Harness Portability](specs/nkai_universal_harness_portability.md) — Tri-mode environment detection, zero-dependency CLI server (`nkai_serve.py`), and terminal agent pairing patterns.
   - [N'kai Skill Taxonomy & Invocation Architecture](specs/nkai_skill_taxonomy_and_invocation_architecture.md) — 3-layer skill hierarchy, N'kai-first visual default, `--chat` fallback standard, and domain dispatch routing.
+  - [N'kai Header Ergonomics & Spatial Density](specs/nkai_header_ergonomics_and_spatial_density.md) — Two-tier header geometry, persistent utility cluster, hybrid compact tabs with hover tooltips, and audio haptics.
 
 ## 🏛️ The Four-Pillar Ecosystem
 

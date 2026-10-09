@@ -1,4 +1,4 @@
-STATUS: COMPLETED
+STATUS: READY_FOR_EXECUTION
 
 # Subagent Dispatch Charter: Tooling Implementation
 > *Target Pipeline:* Dual-Track Communiqué — Tooling Pipeline (`TARGET: TOOLING_HARNESS`)  
@@ -9,11 +9,11 @@ STATUS: COMPLETED
 ---
 
 ## 1. Assignment Header
-- **STATUS**: `COMPLETED`
+- **STATUS**: `READY_FOR_EXECUTION`
 - **ROLE**: `Flash Builder Subagent`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **TASK TYPE**: `TOOLING_IMPLEMENTATION`
-- **TASK SLUG**: `flight-3-skill-taxonomy-and-defaults`
+- **TASK SLUG**: `flight-5-header-ergonomics-and-density`
 - **ACTIVE BLUEPRINT**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **TARGET REPOSITORIES**:
   - [x] `TheKlangSuite` (`c:\Dev\TheKlangSuite`)
@@ -23,22 +23,20 @@ STATUS: COMPLETED
 
 ## 2. Scope & Target Files
 - **Primary Objective**:
-  1. Author `docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md` (3-layer hierarchy: atomic micro-skills, macro orchestrators, interactive visual experiences + `--chat` fallback) and register in `DOCS_CATALOG.json` and `SYSTEM_MAP.md`.
-  2. Update visual skills (`visual-grill-me`, `deep-research`, `post-mortem`) in `.agents/skills/` to codify N'kai-first default canvas creation and document `--chat` / `--text-only` fallback.
-  3. Update macro skills (`execute-task`, `web-qa`) with domain routing and toolchain sequencing.
-  4. Synchronize updated skills to `c:\Dev\nkai\bundle\skills/`.
-  5. Validate with `audit_sidecar.py` and `verify_context_clues.py`.
-  6. Commit changes cleanly across `TheKlangSuite` and `nkai`.
+  1. Author `docs/specs/nkai_header_ergonomics_and_spatial_density.md` (Topics 6.9 & 6.10: Two-tier header geometry, utility cluster, hybrid compact tabs with hover tooltips) and register in `DOCS_CATALOG.json` and `SYSTEM_MAP.md`.
+  2. Update `c:\Dev\nkai\core\sidecar.css` and `sidecar.js` with `.header-tier-top`, `.header-tier-bottom`, and `.tab-compact` with hover tooltips and narrow-viewport (360px+) media queries.
+  3. Synchronize canonical templates: `c:\Dev\nkai\dist\standalone-template.html`, `c:\Dev\nkai\bundle\templates\template.html`, and `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`.
+  4. Run `python tools/audit_sidecar.py` and `python tools/verify_context_clues.py`.
+  5. Commit changes cleanly across `TheKlangSuite` and `nkai`.
 - **Target Files / Boundaries**:
-  - `docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md`
+  - `docs/specs/nkai_header_ergonomics_and_spatial_density.md`
   - `docs/DOCS_CATALOG.json`
   - `docs/SYSTEM_MAP.md`
-  - `.agents/skills/visual-grill-me/SKILL.md`
-  - `.agents/skills/deep-research/SKILL.md`
-  - `.agents/skills/post-mortem/SKILL.md`
-  - `.agents/skills/execute-task/SKILL.md`
-  - `.agents/skills/web-qa/SKILL.md`
-  - `c:\Dev\nkai\bundle\skills/`
+  - `c:\Dev\nkai\core\sidecar.css`
+  - `c:\Dev\nkai\core\sidecar.js`
+  - `c:\Dev\nkai\dist\standalone-template.html`
+  - `c:\Dev\nkai\bundle\templates\template.html`
+  - `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`
   - `.agents/pipeline/communique/subagent_receipt.md`
 
 ---
@@ -46,4 +44,4 @@ STATUS: COMPLETED
 ## 3. Mandatory Invariants & Constraints
 - **Zero Allocations & Audio Safety**: This is a tooling task; do not touch native C++ audio loops.
 - **Context Protection**: Complete all file writing and verification inside subagent context. Return only a concise 3-line receipt.
-- **Boy Scout Cleanliness**: Zero AI slop, clean formatting, accurate relative paths.
+- **Boy Scout Cleanliness**: Zero AI slop, clean CSS without hardcoded viewport glitches, 100% responsive.

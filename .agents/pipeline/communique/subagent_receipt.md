@@ -1,6 +1,6 @@
 STATUS: COMPLETED
 
-# Subagent Execution Receipt: Flight 3 — Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14)
+# Subagent Execution Receipt: Flight 5 — Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)
 > *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake  
 > *Active Branch:* `0.4.0-dev`  
 > *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)
@@ -10,57 +10,55 @@ STATUS: COMPLETED
 ## 1. Execution Header
 - **STATUS**: `COMPLETED`
 - **ROLE EXECUTED**: `Flash Builder Subagent`
-- **TASK SLUG**: `flight-3-skill-taxonomy-and-defaults` (Topics 6.4 & 6.14)
-- **CONVERSATION ID**: `dbd4f59f-bf86-4feb-9536-50531a89c1b8`
-- **COMPLETED AT**: `2026-10-09T21:26:00Z`
+- **TASK SLUG**: `flight-5-header-ergonomics-and-density` (Topics 6.9 & 6.10)
+- **CONVERSATION ID**: `7e7d8e23-f6f4-402f-9aff-9e3feb244c21`
+- **COMPLETED AT**: `2026-10-09T21:55:00Z`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 
 ---
 
 ## 2. Summary of Work Done
 - **Phase 1 (Specification & Cataloging)**:
-  - Authored comprehensive architecture spec [`docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md) detailing the 3-Layer Hierarchy (Layer 1: Atomic Micro-Skills, Layer 2: Macro Orchestrators, Layer 3: Interactive Visual Experiences), the N'kai-First visual default standard, the `--chat` / `--text-only` fallback standard, and domain communiqué routing.
-  - Formally indexed the specification in [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) under `technical_specs` and in [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md) under Section 7.
-- **Phase 2 (Update Core Visual Skills with `--chat` Fallback)**:
-  - Updated [`.agents/skills/visual-grill-me/SKILL.md`](file:///c:/Dev/TheKlangSuite/.agents/skills/visual-grill-me/SKILL.md): formalized N'kai-first default canvas creation (`visual_grill_me.html`), Sidecar Ready Handshake, and `--chat` / `--text-only` fallback branch.
-  - Updated [`.agents/skills/deep-research/SKILL.md`](file:///c:/Dev/TheKlangSuite/.agents/skills/deep-research/SKILL.md): formalized default interactive research board generation and `--chat` fallback mode to synthesize findings directly in chat without writing HTML.
-  - Updated [`.agents/skills/post-mortem/SKILL.md`](file:///c:/Dev/TheKlangSuite/.agents/skills/post-mortem/SKILL.md): documented default interactive triage canvas with Decision Composer and added explicit `--chat` / `--text-only` fallback mode for inline conversational triage.
-- **Phase 3 (Update Macro Orchestrators)**:
-  - Updated [`.agents/skills/execute-task/SKILL.md`](file:///c:/Dev/TheKlangSuite/.agents/skills/execute-task/SKILL.md): clarified deterministic pipeline chain (`Code Edits` ➔ `audiothread-guard` ➔ `build-validate` ➔ `step-verify` ➔ `task-finish`) and domain routing (`TARGET: FACTORY_FLOOR` vs `TARGET: TOOLING_HARNESS`).
-  - Updated [`.agents/skills/web-qa/SKILL.md`](file:///c:/Dev/TheKlangSuite/.agents/skills/web-qa/SKILL.md): formalized context-aware routing when invoked via `qa` (native C++ audio routes to `audiothread-guard` + `build-validate`; sidecar/tooling routes to `web-qa`).
-- **Phase 4 (Bundle Synchronization & Verification Gauntlet)**:
-  - Synchronized updated `SKILL.md` files to `c:\Dev\nkai\bundle\skills/` (`visual-grill-me`, `deep-research`, `post-mortem`, `web-qa`).
-  - Verified `python tools/audit_sidecar.py` across sidecar templates in both `TheKlangSuite` and `nkai` (0 critical errors).
-  - Verified `python tools/verify_context_clues.py` in `TheKlangSuite` (4/4 files passed, 51/51 local links resolved, 0 broken links).
+  - Authored comprehensive architecture spec [`docs/specs/nkai_header_ergonomics_and_spatial_density.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_header_ergonomics_and_spatial_density.md) detailing the Two-Tier Header geometry, Top Tier utility cluster (`A-`/`100%`/`A+`, `🔊`, `🔄`, `[ ⌨️ Shortcuts ]`), Bottom Tier horizontal navigation rail, Hybrid Compact Tab standard (`.tab-compact` with index badge and emoji glyph), accessible dual-layer tooltips (`title` attribute + `.tab-tooltip`), Web Audio click haptics protocol (`🔊` / `🔇` with persistent `nkai_audio_muted` localStorage), and responsive breakpoints down to 320px.
+  - Formally indexed the specification in [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) under `technical_specs` and in [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md) under Section 7 (Design Specs).
+- **Phase 2 (Core CSS & JS in `nkai/core`)**:
+  - Updated `c:\Dev\nkai\core\sidecar.css`: implemented `.header-tier-top` and `.header-tier-bottom` with glassmorphic backdrop-filter blurring, `.header-brand`, `.brand-badge`, `.haptics-btn`, `.tab-compact` with `.tab-tooltip`, and responsive media queries down to 320px width.
+  - Updated `c:\Dev\nkai\core\sidecar.js`: enhanced `switchMode` and added `switchTab` to smoothly toggle `.active` state on compact tabs and mode buttons, implemented Web Audio synthesis haptics protocol (`initAudioHaptics`, `toggleAudioHaptics`, `playHaptic`), and added cache-busting `forceReloadCanvas()`.
+- **Phase 3 (Template Synchronization)**:
+  - Synchronized `c:\Dev\nkai\dist\standalone-template.html` with Two-Tier layout, compact category tabs (`1 📐` ... `5 📦`), audio haptics, and `forceReloadCanvas()`.
+  - Synchronized `c:\Dev\nkai\bundle\templates\template.html` with identical canonical production updates.
+  - Synchronized `c:\Dev\TheKlangSuite\.agents\sidecar\template.html` with Two-Tier header and compact category tabs.
+  - Synchronized `c:\Dev\TheKlangSuite\.agents\sidecar\roadmap_sidecar.html` with Two-Tier layout and `forceReloadCanvas()`.
+- **Phase 4 (Verification Gauntlet & Closeout)**:
+  - Validated all 4 updated sidecar templates against `tools/audit_sidecar.py`: 100% PERFECT PASS (0 errors, 0 warnings across all templates).
+  - Validated `python tools/verify_context_clues.py`: 4/4 files passed, 51/51 local links resolved successfully.
+  - Marked all phases in `PLAN.md` completed.
 
 ---
 
 ## 3. Modified & Created Files
 - **TheKlangSuite**:
-  - `docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md` (Created)
+  - `docs/specs/nkai_header_ergonomics_and_spatial_density.md` (Created)
   - `docs/DOCS_CATALOG.json` (Modified)
   - `docs/SYSTEM_MAP.md` (Modified)
-  - `.agents/skills/visual-grill-me/SKILL.md` (Modified)
-  - `.agents/skills/deep-research/SKILL.md` (Modified)
-  - `.agents/skills/post-mortem/SKILL.md` (Modified)
-  - `.agents/skills/execute-task/SKILL.md` (Modified)
-  - `.agents/skills/web-qa/SKILL.md` (Modified)
+  - `.agents/sidecar/template.html` (Modified)
+  - `.agents/sidecar/roadmap_sidecar.html` (Modified)
   - `PLAN.md` (Modified - Completed)
   - `.agents/pipeline/communique/subagent_receipt.md` (Modified)
 - **nkai**:
-  - `bundle/skills/visual-grill-me/SKILL.md` (Modified)
-  - `bundle/skills/deep-research/SKILL.md` (Modified)
-  - `bundle/skills/post-mortem/SKILL.md` (Modified)
-  - `bundle/skills/web-qa/SKILL.md` (Modified)
+  - `core/sidecar.css` (Modified)
+  - `core/sidecar.js` (Modified)
+  - `dist/standalone-template.html` (Modified)
+  - `bundle/templates/template.html` (Modified)
 
 ---
 
 ## 4. Verification & Safety Audits
-- **Web QA Linter**: `audit_sidecar.py` passed with 0 critical errors across templates.
-- **Context Clues Validator**: `verify_context_clues.py` passed 4/4 files, 51/51 local links resolved, 0 broken links.
-- **Audio Thread Safety**: Zero audio rendering or DSP code touched; 100% real-time safe tooling task.
+- **Web QA Linter**: `audit_sidecar.py` scored `PERFECT PASS` across all 4 sidecar templates.
+- **Context Clues Validator**: `verify_context_clues.py` scored 100% compliant across all files and links.
+- **Audio Thread Safety**: Tooling implementation; zero native C++ audio thread code touched.
 
 ---
 
 ## 5. Next Recommended Action for Orchestrator
-- Flight 3 is complete. Ready for orchestrator review and next scheduled roadmap flight.
+- Flight 5 is complete. Two-Tier Header and Compact Tabs are fully deployed and verified. Ready for orchestrator review.

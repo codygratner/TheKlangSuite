@@ -36,32 +36,129 @@
       transition: font-size 0.15s ease;
     }
 
+    /* Two-Tier Header Architecture (Topics 6.9 & 6.10) */
     .app-header {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       background: rgba(13, 17, 23, 0.95);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       position: sticky;
       top: 0;
       z-index: 1000;
-      padding: 10px 20px;
+      padding: 0;
       border-bottom: 1px solid var(--border);
       width: 100%;
-      height: auto;
-      min-height: 60px;
-      flex-wrap: wrap;
       flex-shrink: 0;
-      gap: 10px;
+    }
+
+    .header-tier-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+      gap: 12px;
+      min-height: 38px;
+      box-sizing: border-box;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-amber);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-utilities,
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .haptics-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 5px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .haptics-btn:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+    .haptics-btn.muted {
+      color: var(--text-muted);
+      opacity: 0.6;
+      border-color: var(--border);
+    }
+
+    .header-tier-bottom {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 6px 16px;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: visible;
+      white-space: nowrap;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      -webkit-overflow-scrolling: touch;
+      min-height: 38px;
+      box-sizing: border-box;
+    }
+
+    .header-tier-bottom::-webkit-scrollbar {
+      height: 3px;
+    }
+    .header-tier-bottom::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .header-tier-bottom::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .header-divider-v {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 4px;
+      flex-shrink: 0;
     }
 
     .header-modes {
       display: flex;
-      flex: 1;
-      gap: 8px;
-      margin-right: 15px;
-      flex-wrap: wrap;
       align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
     .mode-btn {
@@ -75,13 +172,14 @@
       font-weight: bold;
       transition: all 0.2s ease;
       border-radius: 6px;
-      white-space: normal;
+      white-space: nowrap;
       text-align: center;
       line-height: 1.3;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      flex-shrink: 0;
     }
 
     .mode-btn:hover {
@@ -100,11 +198,84 @@
       border-color: var(--accent-amber);
     }
 
-    .header-controls {
-      display: flex;
+    .mode-btn.pm {
+      color: var(--accent-red);
+      border-color: var(--accent-red);
+    }
+
+    /* Hybrid Compact Tabs (Topic 6.10) */
+    .tab-compact {
+      position: relative;
+      padding: 5px 8px;
+      min-width: 40px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text-muted);
+      font-weight: 600;
+      border-radius: 6px;
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
       flex-shrink: 0;
+      user-select: none;
+    }
+
+    .tab-compact:hover {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border-color: var(--text-muted);
+    }
+
+    .tab-compact.active {
+      background: #2d333b;
+      border-width: 2px;
+      color: var(--accent-neon);
+      border-color: var(--accent-neon);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.25);
+    }
+
+    .tab-compact .tab-index {
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0.75;
+    }
+
+    .tab-compact .tab-icon {
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .tab-compact .tab-tooltip {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background: #1f242c;
+      color: #f0f6fc;
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+      z-index: 2500;
+    }
+
+    .tab-compact:hover .tab-tooltip,
+    .tab-compact:focus-visible .tab-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
     }
 
     .zoom-ctrl {
@@ -121,14 +292,14 @@
       background: none;
       border: none;
       color: var(--text-main);
-      padding: 6px 10px;
+      padding: 5px 8px;
       cursor: pointer;
       font-weight: bold;
       transition: 0.15s;
     }
     .zoom-btn:hover { background: var(--bg-card); }
     .zoom-level {
-      padding: 6px 8px;
+      padding: 5px 6px;
       font-family: var(--font-mono);
       color: var(--accent-blue);
       font-weight: bold;
@@ -138,15 +309,16 @@
       background: #238636;
       color: #fff;
       border: 1px solid rgba(240,246,252,0.1);
-      padding: 8px 14px;
+      padding: 5px 10px;
       border-radius: 6px;
       font-weight: bold;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
       transition: 0.2s;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      white-space: nowrap;
     }
     .refresh-btn:hover { background: #2ea043; }
 
@@ -436,95 +608,164 @@
       color: #fff;
     }
 
+    @media (max-width: 640px) {
+      .header-tier-top {
+        padding: 6px 12px;
+        gap: 8px;
+      }
+      .header-tier-bottom {
+        padding: 5px 12px;
+        gap: 6px;
+      }
+      .util-label {
+        display: none;
+      }
+      .brand-badge {
+        display: none;
+      }
+    }
+
     @media (max-width: 480px) {
+      .header-brand .brand-name {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .shortcut-pill {
+        padding: 5px 8px;
+      }
       .shortcut-popover {
         right: -40px;
         width: 260px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .header-brand .brand-name {
+        display: none;
+      }
+      .header-tier-top {
+        padding: 4px 8px;
+      }
+      .header-tier-bottom {
+        padding: 4px 8px;
+        gap: 4px;
+      }
+      .zoom-btn {
+        padding: 4px 6px;
+      }
+      .zoom-level {
+        padding: 4px 4px;
+        font-size: 10px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- App Header -->
-  <div class="app-header">
-    <div class="header-modes">
-      <button class="mode-btn active workshop" id="btn-workshop" onclick="switchMode('workshop')">
-        <span>🛠️</span> ACTIVE WORKSHOP
-      </button>
-      <button class="mode-btn" id="btn-layouts" onclick="switchMode('layouts')" style="color: var(--accent-pink);">
-        <span>📐</span> LAYOUT TOPOLOGIES
-      </button>
-      <button class="mode-btn" id="btn-ui" onclick="switchMode('ui')" style="color: var(--accent-blue);">
-        <span>🎨</span> UI / UX DESIGN
-      </button>
-      <button class="mode-btn" id="btn-dsp" onclick="switchMode('dsp')" style="color: var(--accent-green);">
-        <span>🎛️</span> DSP ARCHITECTURE
-      </button>
-      <button class="mode-btn" id="btn-blue" onclick="switchMode('blue')" style="color: var(--accent-neon);">
-        <span>🌌</span> BLUE SKY THINKING
-      </button>
-      <button class="mode-btn" id="btn-tbd" onclick="switchMode('tbd')" style="color: #a3e635;">
-        <span>📦</span> TBD-16 ECOSYSTEM
-      </button>
-      <button class="mode-btn" id="btn-pm" onclick="switchMode('pm')" style="color: var(--accent-red);">
-        <span>📋</span> FULL POST-MORTEM &amp; TRIAGE SLATES
-      </button>
-    </div>
+  <!-- App Header (Topics 6.9 & 6.10 Two-Tier Header) -->
+  <header class="app-header">
+    <div class="header-tier-top">
+      <div class="header-brand">
+        <span class="brand-logo">🔬</span>
+        <span class="brand-name">The Klang Suite Research Hub</span>
+        <span class="brand-badge">v0.4.0</span>
+      </div>
 
-    <div class="header-controls">
-      <div class="shortcut-container">
-        <button class="shortcut-pill" id="btn-shortcuts" onclick="toggleShortcuts()" title="Antigravity Keybindings &amp; Power Commands">
-          <span>⌨️</span> Shortcuts
-        </button>
-        <div class="shortcut-popover" id="shortcut-popover" style="display: none;">
-          <div class="shortcut-header">
-            <span>⚡ Antigravity Shortcuts</span>
-            <button class="shortcut-close" onclick="toggleShortcuts()">×</button>
-          </div>
-          <div class="shortcut-grid">
-            <div class="shortcut-row">
-              <kbd>Ctrl+K</kbd>
-              <span>Quick Chat / Focus</span>
+      <div class="header-utilities">
+        <div class="shortcut-container">
+          <button class="shortcut-pill" id="btn-shortcuts" onclick="toggleShortcuts()" title="Antigravity Keybindings &amp; Power Commands">
+            <span>⌨️</span> <span class="util-label">Shortcuts</span>
+          </button>
+          <div class="shortcut-popover" id="shortcut-popover" style="display: none;">
+            <div class="shortcut-header">
+              <span>⚡ Antigravity Shortcuts</span>
+              <button class="shortcut-close" onclick="toggleShortcuts()">×</button>
             </div>
-            <div class="shortcut-row">
-              <kbd>Ctrl+Shift+P</kbd>
-              <span>Command Palette</span>
-            </div>
-            <div class="shortcut-row">
-              <kbd>Ctrl+Enter</kbd>
-              <span>Submit Prompt</span>
-            </div>
-            <div class="shortcut-divider"></div>
-            <div class="shortcut-row">
-              <span class="cmd-pill" onclick="copyShortcutText('/plan')">/plan</span>
-              <span>Architectural Plan</span>
-            </div>
-            <div class="shortcut-row">
-              <span class="cmd-pill" onclick="copyShortcutText('/grill-me')">/grill-me</span>
-              <span>Interactive Alignment</span>
-            </div>
-            <div class="shortcut-row">
-              <span class="cmd-pill" onclick="copyShortcutText('/execute-task')">/execute-task</span>
-              <span>Factory Task Pipeline</span>
-            </div>
-            <div class="shortcut-row">
-              <span class="cmd-pill" onclick="copyShortcutText('/postmortem')">/postmortem</span>
-              <span>Triage &amp; Post-Mortem Lab</span>
+            <div class="shortcut-grid">
+              <div class="shortcut-row">
+                <kbd>Ctrl+K</kbd>
+                <span>Quick Chat / Focus</span>
+              </div>
+              <div class="shortcut-row">
+                <kbd>Ctrl+Shift+P</kbd>
+                <span>Command Palette</span>
+              </div>
+              <div class="shortcut-row">
+                <kbd>Ctrl+Enter</kbd>
+                <span>Submit Prompt</span>
+              </div>
+              <div class="shortcut-divider"></div>
+              <div class="shortcut-row">
+                <span class="cmd-pill" onclick="copyShortcutText('/plan')">/plan</span>
+                <span>Architectural Plan</span>
+              </div>
+              <div class="shortcut-row">
+                <span class="cmd-pill" onclick="copyShortcutText('/grill-me')">/grill-me</span>
+                <span>Interactive Alignment</span>
+              </div>
+              <div class="shortcut-row">
+                <span class="cmd-pill" onclick="copyShortcutText('/execute-task')">/execute-task</span>
+                <span>Factory Task Pipeline</span>
+              </div>
+              <div class="shortcut-row">
+                <span class="cmd-pill" onclick="copyShortcutText('/postmortem')">/postmortem</span>
+                <span>Triage &amp; Post-Mortem Lab</span>
+              </div>
             </div>
           </div>
         </div>
+        <div class="zoom-ctrl">
+          <button class="zoom-btn" onclick="changeFontSize(-1)">A-</button>
+          <span class="zoom-level" id="font-zoom-level">100%</span>
+          <button class="zoom-btn" onclick="changeFontSize(1)">A+</button>
+        </div>
+        <button class="haptics-btn" id="btn-haptics" onclick="toggleAudioHaptics()" title="Audio Haptics (Sound Feedback)" aria-label="Audio Haptics">
+          <span id="haptics-icon">🔊</span>
+        </button>
+        <button class="refresh-btn" onclick="forceReloadCanvas()" title="Force Refresh Canvas">
+          <span>🔄</span> <span class="util-label">Force Refresh</span>
+        </button>
       </div>
-      <div class="zoom-ctrl">
-        <button class="zoom-btn" onclick="changeFontSize(-1)">A-</button>
-        <span class="zoom-level" id="font-zoom-level">100%</span>
-        <button class="zoom-btn" onclick="changeFontSize(1)">A+</button>
-      </div>
-      <button class="refresh-btn" onclick="location.reload()">
-        <span>🔄</span> Force Refresh
+    </div>
+
+    <div class="header-tier-bottom">
+      <button class="mode-btn active workshop" id="btn-workshop" onclick="switchMode('workshop')">
+        <span>🛠️</span> WORKSHOP
+      </button>
+      <button class="mode-btn pm" id="btn-pm" onclick="switchMode('pm')" style="color: var(--accent-red);">
+        <span>⚖️</span> POST-MORTEM
+      </button>
+
+      <div class="header-divider-v"></div>
+
+      <button class="mode-btn tab-compact" id="btn-layouts" onclick="switchMode('layouts')" title="1 📐 Layout Topologies" style="color: var(--accent-pink);">
+        <span class="tab-index">1</span>
+        <span class="tab-icon">📐</span>
+        <span class="tab-tooltip">1 📐 Layout Topologies</span>
+      </button>
+      <button class="mode-btn tab-compact" id="btn-ui" onclick="switchMode('ui')" title="2 🎨 UI / UX Design" style="color: var(--accent-blue);">
+        <span class="tab-index">2</span>
+        <span class="tab-icon">🎨</span>
+        <span class="tab-tooltip">2 🎨 UI / UX Design</span>
+      </button>
+      <button class="mode-btn tab-compact" id="btn-dsp" onclick="switchMode('dsp')" title="3 🎛️ DSP Architecture" style="color: var(--accent-green);">
+        <span class="tab-index">3</span>
+        <span class="tab-icon">🎛️</span>
+        <span class="tab-tooltip">3 🎛️ DSP Architecture</span>
+      </button>
+      <button class="mode-btn tab-compact" id="btn-blue" onclick="switchMode('blue')" title="4 🌌 Blue Sky Thinking" style="color: var(--accent-neon);">
+        <span class="tab-index">4</span>
+        <span class="tab-icon">🌌</span>
+        <span class="tab-tooltip">4 🌌 Blue Sky Thinking</span>
+      </button>
+      <button class="mode-btn tab-compact" id="btn-tbd" onclick="switchMode('tbd')" title="5 📦 TBD-16 Ecosystem" style="color: #a3e635;">
+        <span class="tab-index">5</span>
+        <span class="tab-icon">📦</span>
+        <span class="tab-tooltip">5 📦 TBD-16 Ecosystem</span>
       </button>
     </div>
-  </div>
+  </header>
 
   <!-- Main Container -->
   <div class="app-container">
@@ -2815,14 +3056,6 @@
 </div>
 
 
-   <!-- Closes .app-container -->
-
-  <!-- Floating Action Button -->
-  <button id="fab-action" onclick="handleFabClick()">
-    <span id="fab-icon">🔍</span> <span id="fab-text">See in Context</span>
-  </button>
-
-
   </div> <!-- Closes .app-container -->
 
   <!-- Floating Action Button -->
@@ -2845,9 +3078,10 @@
     };
 
     function switchMode(mode) {
+      if (typeof playHaptic === 'function') playHaptic('tab');
       currentMode = mode;
       document.querySelectorAll('.mode-wrapper').forEach(w => w.classList.remove('active'));
-      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mode-btn, .tab-compact').forEach(b => b.classList.remove('active'));
 
       const target = document.getElementById(mode + '-mode');
       const btn = document.getElementById('btn-' + mode);
@@ -2856,6 +3090,10 @@
 
       updateFab();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchTab(tabId) {
+      switchMode(tabId);
     }
 
     function updateFab() {
@@ -3429,6 +3667,121 @@
         return false;
       }
     };
+
+    /* Audio Haptics Protocol (Topics 6.9 & 6.10) */
+    let audioMuted = false;
+    let hapticAudioCtx = null;
+
+    function initAudioHaptics() {
+      const saved = localStorage.getItem('nkai_audio_muted');
+      if (saved !== null) {
+        audioMuted = (saved === 'true');
+      }
+      updateHapticsUI();
+    }
+
+    function updateHapticsUI() {
+      const btn = document.getElementById('btn-haptics');
+      const icon = document.getElementById('haptics-icon');
+      if (!icon) return;
+      if (!audioMuted) {
+        icon.textContent = '🔊';
+        if (btn) {
+          btn.classList.remove('muted');
+          btn.title = 'Audio Haptics: ON (Click to mute)';
+          btn.setAttribute('aria-label', 'Audio Haptics On');
+        }
+      } else {
+        icon.textContent = '🔇';
+        if (btn) {
+          btn.classList.add('muted');
+          btn.title = 'Audio Haptics: MUTED (Click to unmute)';
+          btn.setAttribute('aria-label', 'Audio Haptics Muted');
+        }
+      }
+    }
+
+    function toggleAudioHaptics() {
+      audioMuted = !audioMuted;
+      localStorage.setItem('nkai_audio_muted', audioMuted ? 'true' : 'false');
+      updateHapticsUI();
+      if (!audioMuted) {
+        playHaptic('action');
+        showToast('🔊 Audio Haptics Unmuted');
+      } else {
+        showToast('🔇 Audio Haptics Muted');
+      }
+    }
+
+    function playHaptic(type) {
+      if (audioMuted) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!hapticAudioCtx) {
+          hapticAudioCtx = new AudioContextClass();
+        }
+        if (hapticAudioCtx.state === 'suspended') {
+          hapticAudioCtx.resume();
+        }
+        const t = hapticAudioCtx.currentTime;
+        const osc = hapticAudioCtx.createOscillator();
+        const gain = hapticAudioCtx.createGain();
+
+        if (type === 'tab' || type === 'switch') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, t);
+          osc.frequency.exponentialRampToValueAtTime(880, t + 0.04);
+          gain.gain.setValueAtTime(0.04, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+          osc.connect(gain);
+          gain.connect(hapticAudioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.04);
+        } else if (type === 'action') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, t);
+          osc.frequency.exponentialRampToValueAtTime(880, t + 0.06);
+          gain.gain.setValueAtTime(0.05, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+          osc.connect(gain);
+          gain.connect(hapticAudioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.06);
+        } else {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, t);
+          osc.frequency.exponentialRampToValueAtTime(400, t + 0.02);
+          gain.gain.setValueAtTime(0.03, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+          osc.connect(gain);
+          gain.connect(hapticAudioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.02);
+        }
+      } catch (e) {
+        // Degrade silently if Web Audio restricted by sandbox
+      }
+    }
+
+    /* Cache-Busting Reload (Topic 6.9 & Web QA) */
+    function forceReloadCanvas() {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('t', Date.now().toString());
+        window.location.href = url.toString();
+      } catch (e) {
+        window.location.href = window.location.pathname + '?t=' + Date.now();
+      }
+    }
+
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAudioHaptics);
+      } else {
+        initAudioHaptics();
+      }
+    }
   </script>
 </body>
 </html>

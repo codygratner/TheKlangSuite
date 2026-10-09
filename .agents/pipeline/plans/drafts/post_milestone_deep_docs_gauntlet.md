@@ -42,6 +42,24 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
 - [ ] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1`.
 - [ ] Verify `TheKlangVault/Research/Master_Research_Index.md` compiles cleanly with 0 errors.
 
+### Task 5: 🆕 The "Anti-Slop" Vibe-Coding Executive Summary (2-to-3 Minute Manifesto)
+- [ ] **Author `TheKlangResearch/guides/anti_slop_vibe_coding_manifesto.md`**:
+  - **Reading Time Target**: 2 to 3 minutes (~600 words, high-density, punchy, practical).
+  - **Target Audience**: Professional software engineers and SQA practitioners who are skeptical of AI code generation and frustrated by "AI slop", hallucinations, broken whitespace, and silent regressions.
+  - **Strict Tone & Style Invariant (ZERO INTERNAL LORE)**:
+    - **100% Zero-Lore Mandate**: Strictly ZERO references to project mythology, Mayor Toad, fictional factions, inside jokes, or creative worldbuilding.
+    - **Professional Industry Standards**: Written strictly in industry-standard software engineering and SQA terminology (sandboxing, bounded context, static analysis, invariant assertions, deterministic verification gauntlets, AST codemods).
+    - **No-BS Senior Engineering Voice**: Crisp, pragmatic, and respectful of experienced developers' time.
+  - **Core Controls & Mechanisms to Highlight**:
+    1. *The Context Shield & Flash/Pro Subagent Slicing*: Keeping main reasoning conversations lean while delegating messy mechanical diffs to ephemeral subagents.
+    2. *Strict Domain Division & Facility Gates*: Tooling and dev scripts never clobber production runtime code.
+    3. *Granular Blueprinting (Pro Plans, Flash Builds)*: High-reasoning plans provide exact method signatures, test assertion lines, and contracts, eliminating "creative hallucinations" during build.
+    4. *Strict Architectural Invariants & Automated Auditing*: Real-time safety guards (zero allocations, zero locks, zero blocking I/O) enforced by static analysis tools (`audiothread-guard`) before code lands.
+    5. *The Boy Scout Rule & Ruthless Deletion*: Zero tolerance for dead code, commented-out blocks, or messy indentation. Modern C++20 / clean architecture only.
+    6. *PCDA & The Adversarial Contrarian*: Deploying dedicated Devil's Advocate subagents to attack proposals and stress-test failure modes before implementation.
+    7. *Deterministic Test Gauntlets*: Code is never approved on "vibes"—it must pass automated headless test runners (`dsp_tests`, `gui_tests`, `audit_sidecar.py`, `pluginval`).
+  - [ ] Add executive summary link and excerpt to `TheKlangResearch/README.md` and `TheKlangVault/Research/Master_Research_Index.md`.
+
 ---
 
 ## 🛡️ Acceptance Criteria
