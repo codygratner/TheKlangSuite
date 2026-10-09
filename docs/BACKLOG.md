@@ -1080,6 +1080,15 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 
 ---
 
+### 8. Post-Milestone Deep Docs & Field Guides Separation Gauntlet — ⏳ QUEUED
+*Detailed Plan: [`.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`](../.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md)*
+*Goal: Execute during the post-milestone `/update-docs --deep` pass to decouple universal AI pair-programming lore from domain-specific C++ audio DSP engineering.*
+- **Decouple `vibe_coding_field_guide.md`**: Strip out audio-specific C++ and JUCE parameter code blocks; elevate into the 100% stack-agnostic Manifesto for autonomous AI pair-programming across any tech stack.
+- **Elevate `audio_dsp_field_guide.md`**: Expand from 33-line stub into the definitive real-time C++ audio and DSP engineering manual (audio thread invariants, SIMD Padé FastMath, filter topologies, anti-aliasing, and headless testing suites).
+- **Five-Pillar Link Audit**: Recompile Vault Master Index (`tools/sync_obsidian_vault.ps1`) and verify 100% link integrity across all 5 ecosystem repositories.
+
+---
+
 ## 📁 Completed & Archived Milestones
 All completed tasks, architectural decisions, and release summaries are archived in:
 👉 **[`docs/BACKLOG_ARCHIVE.md`](history/BACKLOG_ARCHIVE.md)**  
