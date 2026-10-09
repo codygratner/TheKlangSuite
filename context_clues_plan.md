@@ -38,12 +38,14 @@
   5. **Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)**: ✅ COMPLETED. Two-tier header geometry, persistent utility cluster (`A-`/`100%`/`A+`, `🔊`, `🔄`, `[ ⌨️ Shortcuts ]`), hybrid compact category tabs (`1 🗺️`, `2 📦`...), and Web Audio click haptics.
   6. **Flight 6: Interactive Triage Views (Topics 6.8 & 6.11)**: ✅ COMPLETED. Ongoing Autopsy View (`#tab-autopsy`) live in Slot 2 with dynamic scoreboard, filter chips, 1-click jump with pulse highlight, and zero-dependency `tools/check_mail.py` vault harvester.
   7. **Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)**: ✅ COMPLETED. Spec indexed, semantic `.pcda-*` cards & `.lens-grid` deployed, `tools/pcda_format.py` CLI delivered.
-  8. **Next Options**:
-     - **Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19)**.
-     - **Take the N'kai Test Drive Now**: Run `python tools/check_mail.py` or launch the interactive board with the **12-card Morning Mail Docket**!
-  9. **Morning Mail Docket**: 12 active cards prepared in `morning_mail_topics.md` (and 5 resolved topics archived).
-  10. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` (including 2-3 minute Anti-Slop Manifesto with strict Zero-Lore & Zero-Product Mandate, and N'kai Visual Project Management Cockpit narrative).
-- **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
+  8. **Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19)**: ✅ COMPLETED. Dynamic allowance meter, token heuristics spec, hash-anchor routing, and `tools/nkai_ledger.py` CLI delivered.
+  9. **🏆 The 8-Flight Runway is 100% COMPLETE!**
+  10. **Immediate Roadmap Sequence**:
+     - **Step 1**: Subagent Soul Harvest & Inbox Reset.
+     - **Step 2**: Simple Docs Update (`/update-docs` - incremental sync).
+     - **Step 3**: The Experimental Test Flight (`python tools/check_mail.py` with **12-card Morning Mail Docket**).
+     - **Step 4**: Full Deep Docs Gauntlet (`/update-docs --deep` - authoring Anti-Slop Manifesto, Workflow Cheat Sheet, decoupling field guides).
+- **Active Blueprint:** All 8 runway flights archived in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
 
 ---
 

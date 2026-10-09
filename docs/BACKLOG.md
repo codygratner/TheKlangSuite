@@ -973,12 +973,12 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 *Status: ⏳ TABLED FOR v0.2.0 (Phase 3: Surfaces & Viewports)*
 - **Topic 6.5: N'kai Ergonomics: Asymmetric Chat Split & Responsive Layout**: ⏳ TABLED FOR v0.2.0 (Tabled alongside the Bidirectional Bridge `:4040` for the v0.2.0 UI Extension release, decoupling local `file:///` sidecar development from runtime bridge dependencies and eliminating premature IPC complexity).
 
-### 9. Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15) — ⏳ QUEUED
+### 9. Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15) — ✅ COMPLETED
 - **Topic 6.1: Post-Mortem Architecture: Continuous Live Triage vs Retrospective Batch**: ✅ APPROVED (Option B: Continuous In-Flight Triage — live post-mortem compilation during active research).
 - **Topic 6.2: Pros & Cons Strategy: On-Demand SOTA vs Always-Grabbed**: ✅ APPROVED (Option B: On-Demand SOTA — punchy conversational chat turns by default, with 4-Lens PCDA matrices generated strictly on demand via sidecar actions).
 - **Topic 6.15: Industry Workflow Precedents & Competitive Teardowns**: ✅ APPROVED (Option C: Hybrid File-URI + Micro-Bridge Model — zero-bundle `file:///` instant loading combined with modular bridge extension pattern).
 
-### 10. Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19) — ⏳ QUEUED
+### 10. Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19) — ✅ COMPLETED
 - **Topic 6.3: Topic Organization Strategy: Deep-Linked Monolithic Board vs Fragmented Mini-Canvases**: ✅ APPROVED (Option B: Deep-Linked Monolithic Board — single, highly structured living research canvas with hash-anchor deep linking).
 - **Topic 6.19: Cumulative Allowance & Token Impact Ledger in Post-Mortem**: ✅ APPROVED (Option C: Live Cumulative Cost Meter & Budget Ledger — interactive meter and ledger in the Post-Mortem & Workshop header showing total estimated token burn across all approved items, broken down by Tier 1 Pro High vs Tier 2 Flash High vs Tier 3 Minimal, with proactive budget warnings before code execution begins).
 
