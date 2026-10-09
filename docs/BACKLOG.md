@@ -957,8 +957,8 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 
 ### 5. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — 🔨 ACTIVE
 *Status: 🔨 ACTIVE (In Active Workshop — Phase 3: Surfaces & Viewports)*
-- **Topic 6.9: Header Layout & Utility Ergonomics**: 🔨 ACTIVE (Evaluating whether utility tools live in a persistent two-tier header utility cluster with slide-over utility drawers vs embedding them inside the left sidebar navigation).
-- **Topic 6.10: Tab Header Density & Spatial Conservation**: ⏳ QUEUED (Evaluating compact emoji + section numbers vs full text labels for narrow 380px–480px IDE side panels).
+- **Topic 6.9: Header Layout & Utility Ergonomics**: ✅ APPROVED (Option B: Two-Tier Header w/ Bridge Status LED & Utility Cluster — top bar hosts brand and persistent utility cluster with live bridge LED, roadmap/sessions drawer toggles, font zoom, sound haptics, and refresh; bottom bar hosts dedicated view tabs).
+- **Topic 6.10: Tab Header Density & Spatial Conservation**: 🔨 ACTIVE (In Active Workshop — evaluating compact emoji + section numbers vs full text labels for narrow 380px–480px IDE side panels).
 
 ### 5. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
