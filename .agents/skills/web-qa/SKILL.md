@@ -45,6 +45,10 @@ Audit, validate, and repair Antigravity interactive sidecar HTML canvases and El
    - Localized status containers on inactive/hidden tabs (e.g. `#audio-toast`) remain invisible to the user, creating the false impression of an action failure or bridge stall.
    - *Invariant*: Notification toasts MUST render in a persistent floating HUD container (`position: fixed; bottom: 24px; right: 24px; z-index: 99999`), loopback HTTP servers must return `Access-Control-Allow-Private-Network: true` on `OPTIONS`, and subagents must stage a receipt in `.agents/pipeline/communique/subagent_receipt.md` when overcoming novel platform traps.
 
+8. **The Phantom Bridge & Dead-Letter Loopback Fallacy**:
+   - In `file:///` artifact mode, an external HTTP loopback socket (`127.0.0.1:4040`) writing to disk cannot wake up an event-driven LLM session paused on `USER_INPUT`. Claiming "Sent to Agent!" creates a broken feedback loop where the user waits indefinitely for a sleeping agent.
+   - *Invariant*: Data belongs in the canvas; actions belong in the clipboard. Informational queries (`[ ⚖️ Pros/Cons ]`, `[ 🔬 Research ]`) MUST expand via in-canvas progressive disclosure accordions. Prompts requiring LLM generation MUST honestly copy to clipboard and flash `📋 Copied! Paste in Chat`.
+
 ---
 
 ## Operational Constraints & Access Policies
