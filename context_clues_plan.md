@@ -35,9 +35,10 @@
   2. **Flight 2: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ✅ COMPLETED. Universal bundle (`c:\Dev\nkai\bundle/`), installer script (`install_nkai_bundle.ps1`), and dynamic shortcuts HUD.
   3. **Flight 3: Universal AI Harness Portability (Topic 6.13)**: ✅ COMPLETED. Tri-mode environment adapter (`extension`, `file`, `server`), zero-dependency CLI server (`nkai_serve.py`), and `package.json` / `bin/nkai.js`.
   4. **Flight 4: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14)**: ✅ COMPLETED. 3-Layer Hierarchy spec, N'kai-first visual defaults, and `--chat` terminal fallback.
-  5. **Linear Flightpath Rule Codified**: Decoupled immutable topic IDs from sequential runway flight numbers (1, 2, 3...) in `audit-reorder` and `post-mortem`.
-  6. **Next Options**: Flight 5 (Header Ergonomics & Density 6.9/6.10) or Test Drive with Morning Mail Docket (10 topics).
-  7. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`.
+  5. **Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)**: ✅ COMPLETED. Two-tier header geometry, persistent utility cluster (`A-`/`100%`/`A+`, `🔊`, `🔄`, `[ ⌨️ Shortcuts ]`), hybrid compact category tabs (`1 🗺️`, `2 📦`...), and Web Audio click haptics.
+  6. **Next Flight**: **Flight 6: Interactive Triage Views (Topics 6.8 & 6.11)** — Ongoing Autopsy feed in Slot 2 + Check the Mail (Vault Inbox) workflow and board default.
+  7. **Morning Mail Docket**: 13 rich cards prepared in `morning_mail_topics.md` for post-flight test drive.
+  8. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` (including 2-3 minute Anti-Slop Manifesto with strict Zero-Lore Mandate).
 - **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
 
 ---

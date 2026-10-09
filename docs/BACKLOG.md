@@ -959,7 +959,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Topic 6.4: Agent Skills Organization: Micro-Skills vs. Macro-Suites**: ✅ APPROVED (Option C: Layered Hybrid — atomic micro-skills serve as the composable underlying engine while unified macro-commands like `/execute-task` and `qa` chain them deterministically with zero loss of granularity and minimal token burn).
 - **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: ✅ APPROVED (Option B: N'kai-First with `--chat` fallback — all visual/interview skills like `/grill-me`, `/deep-research`, and `/postmortem` default to generating the rich N'kai sidecar canvas automatically, with `--chat` or "in chat" providing an instant, clean terminal/chat escape hatch).
 
-### 6. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — ⏳ QUEUED
+### 6. Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10) — ✅ COMPLETED
 - **Topic 6.9: Header Layout & Utility Ergonomics**: ✅ APPROVED (Option B: Two-Tier Header w/ Bridge Status LED & Utility Cluster — top bar hosts brand and persistent utility cluster with live bridge LED, roadmap/sessions drawer toggles, font zoom, sound haptics, and refresh; bottom bar hosts dedicated view tabs).
 - **Topic 6.10: Tab Header Density & Spatial Conservation**: ✅ APPROVED (Option B: Hybrid Compact w/ Hover Tooltips — primary operational modes named like Workshop and Autopsy, while category tabs condense to `1 🗺️`, `2 📦`, `3 🚀` with instant full-text tooltips on hover, saving 40–60px of vertical header space in narrow IDE panels).
 

@@ -1,19 +1,19 @@
-STATUS: READY_FOR_EXECUTION
+STATUS: IDLE
 
 # Subagent Dispatch Charter: Tooling Implementation
 > *Target Pipeline:* Dual-Track Communiqué — Tooling Pipeline (`TARGET: TOOLING_HARNESS`)  
 > *Active Branch:* `0.4.0-dev`  
 > *Orchestrator:* Antigravity Main Chat (New Klang City)  
-> *Executor:* Flash Builder Subagent (`invoke_subagent(Model="flash")`)  
+> *Executor:* Idle (Ready for next flight dispatch)  
 
 ---
 
 ## 1. Assignment Header
-- **STATUS**: `READY_FOR_EXECUTION`
-- **ROLE**: `Flash Builder Subagent`
+- **STATUS**: `IDLE`
+- **ROLE**: `None`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **TASK TYPE**: `TOOLING_IMPLEMENTATION`
-- **TASK SLUG**: `flight-5-header-ergonomics-and-density`
+- **TASK SLUG**: `idle`
 - **ACTIVE BLUEPRINT**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **TARGET REPOSITORIES**:
   - [x] `TheKlangSuite` (`c:\Dev\TheKlangSuite`)
