@@ -948,11 +948,15 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Topic 6.16: Backend Persistence & State Management Architecture**: ✅ APPROVED (Option C: Hybrid Markdown Frontmatter + Client-Side LocalStorage + JSON Catalog). Bedrock state architecture finalized with zero heavy binary dependencies and clean Git diffs.
 - **Topic 6.7: Context Clues Architecture & Factory Handshake Gate**: ✅ APPROVED (Option B: Structured Context Clues — dedicated context clues files seeded with canonical links to `DOCS_CATALOG.json` and `SYSTEM_MAP.md`).
 
-### 3. Flight 4: Universal AI Harness Portability (Topic 6.13) — 🔨 ACTIVE
-*Status: 🔨 ACTIVE (In Active Workshop)*
-- **Topic 6.13: Universal AI Harness Portability**: Evaluating cross-harness compatibility across Claude Code CLI, OpenAI Codex / ChatGPT developer harnesses, Cursor, Windsurf, and Antigravity. Option B (Standalone File + Localhost Adapter) recommended to ensure zero vendor lock-in.
+### 3. Flight 4: Universal AI Harness Portability (Topic 6.13) — ✅ COMPLETED
+- **Topic 6.13: Universal AI Harness Portability**: ✅ APPROVED (Option B: Standalone File + Localhost Adapter — zero-dependency standalone HTML `file:///` for IDE webviews and lightweight `npx nkai serve` for terminal CLIs).
 
-### 4. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
+### 4. Flight 3: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14) — 🔨 ACTIVE
+*Status: 🔨 ACTIVE (In Active Workshop)*
+- **Topic 6.4: Agent Skills Organization: Micro-Skills vs. Macro-Suites**: Evaluating whether to maintain 16 micro-skills, 4 macro-suites, or a layered hybrid. Option C (Layered Hybrid) recommended to keep atomic composability while simplifying high-level user commands.
+- **Topic 6.14: N'kai-First Skill Default & --chat Fallback Flag**: ⏳ QUEUED (Option B: N'kai-First with `--chat` fallback recommended).
+
+### 5. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
 - **Decision**: Tabled autonomous background loopback socket dispatch (`:4040`), programmatic clipboard manipulation (`navigator.clipboard.writeText` / `document.execCommand`), and fallback modal popups for v0.2.0.
 - **Rationale**: In Chromium / Electron webviews without explicit `clipboard-write` sandbox permissions, `file:///` URLs have `origin: "null"`, causing silent permission denials. Fallback modal popups create jarring UI interruptions and still fail to copy reliably in restricted webviews.
