@@ -26,7 +26,7 @@ if sys.stdout.encoding != 'utf-8':
         pass
 
 DEFAULT_PORT = 4040
-WORKSPACE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "TheKlangSuite"))
+WORKSPACE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ACTION_QUEUE_DIR = os.path.join(WORKSPACE_ROOT, ".agents", "pipeline", "inbox")
 ACTION_QUEUE_FILE = os.path.join(ACTION_QUEUE_DIR, "action_queue.jsonl")
 LATEST_ACTION_FILE = os.path.join(ACTION_QUEUE_DIR, "latest_action.json")
@@ -36,25 +36,32 @@ class ReusableThreadingServer(socketserver.ThreadingTCPServer):
     daemon_threads = True
 
 class NkaiBridgeHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
     def _send_cors_headers(self):
         origin = self.headers.get("Origin", "*")
-        self.send_header("Access-Control-Allow-Origin", origin if origin else "*")
+        if not origin or origin == "null":
+            origin = "*"
+        self.send_header("Access-Control-Allow-Origin", origin)
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+        req_headers = self.headers.get("Access-Control-Request-Headers", "")
+        allowed_headers = "Content-Type, Authorization, X-Requested-With, Access-Control-Request-Private-Network"
+        if req_headers:
+            allowed_headers += f", {req_headers}"
+        self.send_header("Access-Control-Allow-Headers", allowed_headers)
         self.send_header("Access-Control-Allow-Private-Network", "true")
         self.send_header("Access-Control-Max-Age", "86400")
+        self.send_header("Connection", "close")
+        self.close_connection = True
 
     def do_OPTIONS(self):
         self.send_response(204)
         self._send_cors_headers()
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     def do_GET(self):
         if self.path == "/api/status" or self.path == "/":
-            self.send_response(200)
-            self._send_cors_headers()
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
             resp = {
                 "status": "online",
                 "bridge": "nkai-micro-bridge-v1.1",
@@ -62,12 +69,14 @@ class NkaiBridgeHandler(BaseHTTPRequestHandler):
                 "time": time.time(),
                 "queue_file": ACTION_QUEUE_FILE
             }
-            self.wfile.write(json.dumps(resp, indent=2).encode("utf-8"))
-        elif self.path == "/api/actions":
+            body = json.dumps(resp, indent=2).encode("utf-8")
             self.send_response(200)
             self._send_cors_headers()
             self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
             self.end_headers()
+            self.wfile.write(body)
+        elif self.path == "/api/actions":
             actions = []
             if os.path.exists(ACTION_QUEUE_FILE):
                 with open(ACTION_QUEUE_FILE, "r", encoding="utf-8") as f:
@@ -78,10 +87,17 @@ class NkaiBridgeHandler(BaseHTTPRequestHandler):
                                 actions.append(json.loads(line))
                             except Exception:
                                 pass
-            self.wfile.write(json.dumps({"actions": actions[-50:]}).encode("utf-8"))
+            body = json.dumps({"actions": actions[-50:]}).encode("utf-8")
+            self.send_response(200)
+            self._send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
         else:
             self.send_response(404)
             self._send_cors_headers()
+            self.send_header("Content-Length", "0")
             self.end_headers()
 
     def do_POST(self):
@@ -91,11 +107,13 @@ class NkaiBridgeHandler(BaseHTTPRequestHandler):
             try:
                 data = json.loads(body.decode("utf-8"))
             except Exception as e:
+                err_body = json.dumps({"error": f"Invalid JSON: {e}"}).encode("utf-8")
                 self.send_response(400)
                 self._send_cors_headers()
                 self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(err_body)))
                 self.end_headers()
-                self.wfile.write(json.dumps({"error": f"Invalid JSON: {e}"}).encode("utf-8"))
+                self.wfile.write(err_body)
                 return
 
             action_entry = {
@@ -118,19 +136,23 @@ class NkaiBridgeHandler(BaseHTTPRequestHandler):
 
             print(f"[Nkai Bridge] [ACTION] Dispatched: {action_entry['action']} (Topic: {action_entry['topicId']}, Verdict: {action_entry['verdict']})", flush=True)
 
-            self.send_response(200)
-            self._send_cors_headers()
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({
+            resp_data = json.dumps({
                 "success": True,
                 "message": "Action received and dispatched to agent queue",
                 "action": action_entry
-            }).encode("utf-8"))
+            }).encode("utf-8")
+            self.send_response(200)
+            self._send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(resp_data)))
+            self.end_headers()
+            self.wfile.write(resp_data)
         else:
             self.send_response(404)
             self._send_cors_headers()
+            self.send_header("Content-Length", "0")
             self.end_headers()
+
 
     def log_message(self, format, *args):
         # Concise logging
