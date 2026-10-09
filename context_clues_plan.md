@@ -32,11 +32,12 @@
 - **Current Objective:** Factory Execution & Roadmap Flight Orchestration
 - **Active Agenda:**
   1. **Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7)**: ✅ COMPLETED.
-  2. **Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ✅ COMPLETED. Universal bundle (`c:\Dev\nkai\bundle/`), installer script (`install_nkai_bundle.ps1`), and dynamic shortcuts HUD deployed.
-  3. **Strict Domain Division Guardrail**: Codified in `GEMINI.md` (C++ in factory, tooling in New Klang City via Flash subagents).
-  4. **Next Roadmap Flights**: Flight 4 (Universal Harness Portability 6.13) & Flight 3 (Skill Taxonomy 6.4/6.14) queued for execution.
-  5. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` for pre-release execution.
-- **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (Factory Idle 💤)
+  2. **Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ✅ COMPLETED.
+  3. **Flight 4: Universal AI Harness Portability (Topic 6.13)**: ✅ COMPLETED. Tri-mode environment adapter (`extension`, `file`, `server`), zero-dependency CLI server (`nkai_serve.py`), and `package.json` / `bin/nkai.js` deployed.
+  4. **Strict Domain Division & Dual-Track Routing**: Codified in `GEMINI.md` and verified in live execution.
+  5. **Next Roadmap Flight**: Flight 3 (Skill Taxonomy & Invocation Defaults 6.4/6.14) or Test Drive with Morning Mail Docket (10 topics).
+  6. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`.
+- **Active Blueprint:** Staged in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
 
 ---
 
