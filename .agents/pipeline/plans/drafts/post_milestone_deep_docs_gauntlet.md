@@ -77,10 +77,20 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
   - **Maintenance Invariant**: Establish rule that whenever operational workflows change, `docs/WORKFLOW_CHEAT_SHEET.md` is updated in the same pass.
   - [ ] Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
 
+### Task 7: 🆕 Tri-State Model Advisory Architecture (Topic 4 & GEMINI.md Streamline)
+- [ ] **Update `GEMINI.md` ("Strict Model Advisory Protocol & Anti-Spam Gate")**:
+  - Replace the legacy multi-line kickoff warning banner with the **Tri-State Model Advisory Architecture**:
+    - **State 0 (95% Happy Path)**: Permanent Flash 3.8 High orchestrator daily driver. Routine turns, phase advances, and plan kickoffs run without multi-line advisory blocks or dropdown-check pauses, displaying only an ambient single-line footer badge (`[ ⚡ Engine: Flash High | Pro Subagents on Demand ]`).
+    - **State 1 (Internal Guardrail - No Direct DSP)**: The Flash orchestrator is strictly forbidden from writing differential equations, non-linear saturation curves, SIMD DSP loops, or lock-free atomics directly in-session; it MUST delegate Tier 1 math tasks to `invoke_subagent(Model="pro")`.
+    - **State 2 (Emergency Tripwire)**: A loud blocking advisory banner and hard-pause in chat text is strictly reserved for true emergency escalations: 2-Strike Factory Build Failures, Milestone Capstone Sanity Gates, and Release Gauntlets (`/cut-release`).
+  - Delete legacy 5-minute downgrade timer rules.
+  - Synchronize updated guidelines across documentation catalogs and cheat sheets.
+
 ---
 
 ## 🛡️ Acceptance Criteria
 1. `vibe_coding_field_guide.md` contains zero JUCE or C++ audio thread code blocks (100% stack-agnostic).
 2. `audio_dsp_field_guide.md` contains comprehensive, deep C++ audio engineering invariants.
-3. 100% of touched markdown links resolve cleanly.
-4. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.
+3. `GEMINI.md` implements the Tri-State Model Advisory Architecture, eliminating banner fatigue while preserving critical audio invariants and the 2-strike escalation tripwire.
+4. 100% of touched markdown links resolve cleanly.
+5. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.

@@ -1113,6 +1113,15 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 
 ---
 
+### 9. Tri-State Model Advisory Architecture (Topic 4) — ⏳ QUEUED
+*Goal: Streamline model selection protocol in `GEMINI.md` to eliminate banner fatigue and interactive pauses during routine turns while strictly maintaining safety tripwires for audio DSP and factory build failures.*
+- **State 0 (95% Happy Path)**: Permanent Flash 3.8 High orchestrator daily driver. Routine turns, phase advances, and plan kickoffs run without multi-line advisory blocks or dropdown-check pauses, displaying only an ambient single-line footer badge (`[ ⚡ Engine: Flash High | Pro Subagents on Demand ]`).
+- **State 1 (Internal Guardrail - No Direct DSP)**: The Flash orchestrator is strictly forbidden from writing differential equations, non-linear saturation curves, SIMD DSP loops, or lock-free atomics directly in-session; it MUST delegate Tier 1 math tasks to `invoke_subagent(Model="pro")`.
+- **State 2 (Emergency Tripwire)**: A loud blocking advisory banner and hard-pause in chat text is strictly reserved for true emergency escalations: 2-Strike Factory Build Failures, Milestone Capstone Sanity Gates, and Release Gauntlets (`/cut-release`).
+- **Sourced from**: Topic 4 Deep Research & Contrarian Synthesis ([`TheKlangResearch`](https://github.com/codygratner/TheKlangResearch)).
+
+---
+
 ## 📁 Completed & Archived Milestones
 All completed tasks, architectural decisions, and release summaries are archived in:
 👉 **[`docs/BACKLOG_ARCHIVE.md`](history/BACKLOG_ARCHIVE.md)**  
