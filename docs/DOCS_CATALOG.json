@@ -127,6 +127,11 @@
           "path": "docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md",
           "title": "N'kai Interactive Triage Views & Inbox Workflow (Topics 6.8 & 6.11)",
           "purpose": "Ongoing autopsy view, filterable scoreboard, 1-click cross-tab jump mechanics, and 'Check the Mail' vault inbox harvester tooling."
+        },
+        {
+          "path": "docs/specs/nkai_pcda_governance_and_sota_benchmarks.md",
+          "title": "N'kai PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)",
+          "purpose": "Continuous live triage contracts, 4-part PCDA dialectic standard (Thesis, Friction, Antithesis, Synthesis), acronym disambiguation, on-demand progressive disclosure, and SOTA competitive teardowns."
         }
       ]
     },

@@ -909,6 +909,236 @@
       border-color: var(--accent-blue) !important;
     }
 
+    /* ==========================================================================
+       PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)
+       ========================================================================== */
+
+    .pcda-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+      width: 100%;
+    }
+
+    .pcda-block {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-panel);
+      overflow: hidden;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .pcda-block:hover {
+      border-color: rgba(88, 166, 255, 0.4);
+    }
+
+    .pcda-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--bg-card);
+      cursor: pointer;
+      user-select: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .pcda-header:hover {
+      background: #282e37;
+    }
+
+    .pcda-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pcda-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .pcda-toggle-icon {
+      font-size: 11px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .pcda-copy-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pcda-copy-btn:hover {
+      background: rgba(88, 166, 255, 0.15);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .pcda-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pcda-body.collapsed {
+      display: none;
+    }
+
+    /* Semantic Dialectic Cards */
+    .pcda-card {
+      padding: 12px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .pcda-card-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pcda-pro {
+      border-left: 4px solid #10b981;
+      background: rgba(16, 185, 129, 0.08);
+      color: #e6edf3;
+    }
+
+    .pcda-pro .pcda-card-title {
+      color: #34d399;
+    }
+
+    .pcda-con {
+      border-left: 4px solid #f59e0b;
+      background: rgba(245, 158, 11, 0.08);
+      color: #e6edf3;
+    }
+
+    .pcda-con .pcda-card-title {
+      color: #fbbf24;
+    }
+
+    .pcda-advocate {
+      border-left: 4px solid #f43f5e;
+      background: rgba(244, 63, 94, 0.08);
+      color: #e6edf3;
+    }
+
+    .pcda-advocate .pcda-card-title {
+      color: #fda4af;
+    }
+
+    .pcda-synthesis {
+      border-left: 4px solid #8b5cf6;
+      border-image: linear-gradient(to bottom, #6366f1, #8b5cf6) 1 100%;
+      background: rgba(139, 92, 246, 0.1);
+      color: #e6edf3;
+    }
+
+    .pcda-synthesis .pcda-card-title {
+      color: #c084fc;
+    }
+
+    .pcda-resolution-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(139, 92, 246, 0.25);
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      color: #e9d5ff;
+      margin-bottom: 6px;
+    }
+
+    /* SOTA Benchmark Badge */
+    .badge-sota {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: rgba(88, 166, 255, 0.15);
+      border: 1px solid rgba(88, 166, 255, 0.4);
+      color: #58a6ff;
+      box-shadow: 0 0 8px rgba(88, 166, 255, 0.2);
+      line-height: 1.2;
+    }
+
+    /* 4-Lens Tradeoff Grid */
+    .lens-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .lens-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .lens-card-header {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-blue);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @media (max-width: 860px) {
+      .lens-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .lens-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 640px) {
       .autopsy-feed-item {
         flex-direction: column;
@@ -1222,6 +1452,87 @@
                 <p class="text-[11px] text-[#94a3b8]">Declare rectangular 4-knob cards as the permanent suite identity; kill monolithic faceplate.</p>
               </div>
             </div>
+
+            <!-- Standardized PCDA Dialectic Review & 4-Lens Grid (Flight 7/8 Topics 6.1, 6.2 & 6.15) -->
+            <div class="pcda-container" id="pcda-1.1" data-topic-id="1.1" data-topic-title="Monolithic Titanium Faceplate">
+              <div class="pcda-block" id="pcda-block-1.1">
+                <div class="pcda-header" onclick="togglePcdaBlock('pcda-body-1.1')">
+                  <div class="pcda-header-left">
+                    <span class="pcda-toggle-icon" id="pcda-body-1.1-icon">▼</span>
+                    <span>⚖️ PCDA Dialectic Review &amp; 4-Lens Matrix</span>
+                    <span class="badge-sota">SOTA Precedent</span>
+                  </div>
+                  <div class="pcda-header-actions">
+                    <button class="pcda-copy-btn" onclick="event.stopPropagation(); copyPcdaMarkdown('1.1')" title="Copy clean GitHub Markdown to clipboard">
+                      <span>📋</span> Copy PCDA
+                    </button>
+                  </div>
+                </div>
+                <div class="pcda-body" id="pcda-body-1.1">
+                  <!-- 4-Lens Evaluation Grid -->
+                  <div class="lens-grid">
+                    <div class="lens-card">
+                      <div class="lens-card-header"><span>🌍</span> 1. Ergonomics</div>
+                      <div>High spatial density; continuous eyes-on synthesis without artificial boundaries or pagination.</div>
+                    </div>
+                    <div class="lens-card">
+                      <div class="lens-card-header"><span>🎛️</span> 2. Audio Industry</div>
+                      <div>Vital, FabFilter, Elektron: monolithic chassis with hairline milled circuit separation are industry standards.</div>
+                    </div>
+                    <div class="lens-card">
+                      <div class="lens-card-header"><span>🏛️</span> 3. Wider SOTA</div>
+                      <div>Anthropic Artifacts &amp; Playwright UI: dense purpose-built surface beats generic tiled grids.</div>
+                    </div>
+                    <div class="lens-card">
+                      <div class="lens-card-header"><span>🏆</span> 4. Best Practices</div>
+                      <div>Boy Scout rule: eliminates empty placeholder slots (40% waste) and simplifies layout hierarchy.</div>
+                    </div>
+                  </div>
+
+                  <!-- Semantic Dialectic Cards -->
+                  <div class="pcda-card pcda-pro">
+                    <div class="pcda-card-title"><span>✅</span> 1. Pros [Thesis]</div>
+                    <div class="pcda-card-content">
+                      <ul>
+                        <li>Eliminates 40% empty slot waste in core synthesis area.</li>
+                        <li>Unifies coupled circuits (Carrier + Modulator) under a single visual gaze.</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="pcda-card pcda-con">
+                    <div class="pcda-card-title"><span>⚠️</span> 2. Cons [Thesis Friction]</div>
+                    <div class="pcda-card-content">
+                      <ul>
+                        <li>Requires new JSON layout schema supporting non-uniform section dimensions.</li>
+                        <li>Different visual treatment between Core Synth (monolith) and Modulation/FX (modular cards).</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="pcda-card pcda-advocate">
+                    <div class="pcda-card-title"><span>👹</span> 3. Devil's Advocate [Antithesis]</div>
+                    <div class="pcda-card-content">
+                      <ul>
+                        <li>Harder to rearrange core synthesis modules via drag-and-drop if fixed in a monolithic chassis.</li>
+                        <li>Risk of breaking 1:1 mental model with TBD-16 4-knob hardware layout if not clearly banked.</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="pcda-card pcda-synthesis">
+                    <div class="pcda-card-title">
+                      <span class="pcda-resolution-badge">🎯 80/20 RESOLUTION</span>
+                      <span>4. The 80/20 Resolution [Synthesis]</span>
+                    </div>
+                    <div class="pcda-card-content">
+                      <p>Adopt monolithic sculpted titanium faceplate for the fixed core engine (Voice 1, Voice 2, Transients, Master Out) with milled hairline grooves between circuits, while retaining modular cards strictly for dynamic FX and modulation routing.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -4403,6 +4714,93 @@
         }
       } catch (e) {
         // Degrade silently if Web Audio restricted by sandbox
+      }
+    }
+
+    function playHapticTick() {
+      playHaptic('tick');
+    }
+
+    /* ==========================================================================
+       PCDA Dialectic Governance & Extraction Controllers (Topics 6.1, 6.2 & 6.15)
+       ========================================================================== */
+
+    function togglePcdaBlock(blockId) {
+      playHapticTick();
+      const block = document.getElementById(blockId);
+      const icon = document.getElementById(blockId + '-icon');
+      if (!block) return;
+
+      const isCollapsed = block.classList.contains('collapsed') || block.style.display === 'none';
+      if (isCollapsed) {
+        block.classList.remove('collapsed');
+        block.style.display = 'block';
+        if (icon) icon.textContent = '▼';
+      } else {
+        block.classList.add('collapsed');
+        block.style.display = 'none';
+        if (icon) icon.textContent = '▶';
+      }
+    }
+
+    function copyPcdaMarkdown(topicId) {
+      playHapticTick();
+      const container = document.getElementById('pcda-' + topicId) || document.getElementById('pcda-block-' + topicId) || document.getElementById(topicId);
+      if (!container) return;
+
+      const topicTitle = container.getAttribute('data-topic-title') || ('Topic ' + topicId);
+      const proEl = container.querySelector('.pcda-pro');
+      const conEl = container.querySelector('.pcda-con');
+      const advEl = container.querySelector('.pcda-advocate');
+      const synEl = container.querySelector('.pcda-synthesis');
+
+      const cleanText = (el) => {
+        if (!el) return '';
+        const clone = el.cloneNode(true);
+        const titleEl = clone.querySelector('.pcda-card-title, .pcda-resolution-badge');
+        if (titleEl) titleEl.remove();
+        return clone.innerText.trim();
+      };
+
+      const proText = cleanText(proEl);
+      const conText = cleanText(conEl);
+      const advText = cleanText(advEl);
+      const synText = cleanText(synEl);
+
+      const md = [
+        `### ⚖️ PCDA Dialectic Review: ${topicTitle}`,
+        ``,
+        `#### 1. Pros [Thesis]`,
+        proText || '_No affirmative advantages recorded._',
+        ``,
+        `#### 2. Cons [Thesis Friction]`,
+        conText || '_No implementation costs recorded._',
+        ``,
+        `#### 3. Devil\'s Advocate [Antithesis]`,
+        advText || '_No structural failure modes recorded._',
+        ``,
+        `#### 4. The 80/20 Resolution [Synthesis]`,
+        synText || '_No resolution recorded._',
+        ``
+      ].join('\n');
+
+      if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
+        window.NkaiEnv.dispatchAction(md);
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(md).then(() => {
+          showToast('⚖️ PCDA Markdown copied to clipboard!');
+        }).catch(() => {
+          showToast('⚖️ PCDA copied (fallback)!');
+        });
+      } else {
+        showToast('⚖️ PCDA extracted!');
+      }
+
+      const btn = container.querySelector('.pcda-copy-btn');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span>✅ Copied!</span>';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
       }
     }
 

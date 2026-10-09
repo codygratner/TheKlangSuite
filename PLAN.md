@@ -1,6 +1,6 @@
-# Implementation Plan: Flight 6 — Interactive Triage Views & Inbox Workflow
+# Implementation Plan: Flight 7/8 — PCDA Dialectic Governance & SOTA Benchmarks
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Flight Target:** Topics 6.8 & 6.11 (Ongoing Autopsy Feed & Check the Mail Workflow)  
+> **Flight Target:** Flight 7/8 (Topics 6.1, 6.2 & 6.15: Continuous Triage, On-Demand PCDA, SOTA Benchmarks)  
 > **Status:** COMPLETED ✅  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Model:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
@@ -10,70 +10,71 @@
 
 ## 🎯 Architectural Intent & Scope
 
-Flight 6 delivers the interactive triage surfaces and mail ingestion workflows for N'kai:
-1. **Topic 6.8 (Approved Option B — "Ongoing Autopsy": Live Triage Feed & Scoreboard):**
-   - Implements the dedicated Autopsy view (`#tab-autopsy` / `.view-autopsy`) positioned in Slot 2 of the navigation rail:
-     - **Triage Scoreboard**: High-contrast summary bar displaying Total Topics, Approved (`[N APPROVED]`), Tabled (`[N TABLED]`), Killed (`[N KILLED]`), and Pending (`[N PENDING]`).
-     - **Filter Chips**: Real-time JavaScript filtering (`[All]`, `[Approved]`, `[Tabled]`, `[Killed]`, `[Pending]`).
-     - **Triage Feed Stream**: Compact row cards displaying Topic ID, Title, Status badge, and a 1-click `[ 🔍 Jump to Workshop Card ]` button that switches view to `#tab-workshop`, scrolls smoothly to the target card, and flashes an accent pulse.
-     - **Report Serializer**: `[ 📋 Copy Post-Mortem Report ]` action that compiles the active verdicts into clean, GitHub-flavored Markdown ready for clipboard or disk.
-2. **Topic 6.11 (Approved Option B — "Check the Mail" Workflow & Sidecar Board Default):**
-   - Authors `tools/check_mail.py` in `TheKlangSuite` and `nkai`:
-     - Discovers and parses Markdown notes in `C:\Dev\TheKlangVault\Inbox\` (with `--archive` and local `docs/inbox/` fallbacks).
-     - Generates an interactive N'kai triage board (`morning_mail_inbox.html`) presenting notes as interactive triage cards with action chips (`[ 📥 Add to Backlog ]`, `[ 🔬 Move to Research ]`, `[ 🪦 Reject / Graveyard ]`, `[ ⚖️ Request PCDA ]`).
-     - Supports `--chat` / `--text-only` flag to dump a clean markdown list in terminal without opening HTML.
-3. **Formal Specification & Registration**:
-   - Authors `docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md` formalizing data contracts, scoreboard state machines, and inbox triage schemas.
+Flight 7/8 codifies and standardizes the PCDA Dialectic Review Framework, On-Demand SOTA Progressive Disclosure, and Competitive Industry Benchmarks across N'kai:
+1. **Topic 6.1 (Approved Option B — Continuous Live Triage Architecture):**
+   - Establishes the real-time verdict streaming contract: decisions are committed continuously throughout a session rather than batched at the very end.
+   - Integrates with the Autopsy Scoreboard and live verdict state machines.
+2. **Topic 6.2 (Approved Option B — On-Demand SOTA Progressive Disclosure & PCDA Triad):**
+   - Standardizes the 4-part Hegelian Dialectic Triad across all tooling and sidecars:
+     - **Pros [Thesis]**: Affirmative benefits, developer velocity, immediate value.
+     - **Cons [Thesis Friction]**: Direct implementation cost, surface friction, known tradeoffs.
+     - **Devil's Advocate [Antithesis]**: Structural failure modes, worst-case maintenance debt, token bloat traps.
+     - **The 80/20 Resolution [Synthesis]**: The pragmatic architecture capturing 80% of value with 20% complexity.
+   - Discloses tradeoffs strictly on-demand (via `[ ⚖️ Request Pros & Cons ]` or `[ ⚖️ PCDA ]`) while keeping chat responses ultra-terse (1–3 sentences).
+3. **Topic 6.15 (Approved Option B — SOTA Precedents & Competitive Teardowns):**
+   - Documents and integrates competitive benchmarks against Anthropic Claude Artifacts, Playwright UI, Vitest UI, Cursor Composer, and WebAssembly sidecars.
+   - Introduces `.badge-sota` indicators and standard 4-Lens tradeoff grids (Ergonomics, Audio Industry, SOTA, Best Practices).
+4. **Formal Specification & Registrations**:
+   - Authors `docs/specs/nkai_pcda_governance_and_sota_benchmarks.md`.
    - Registers in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
 
 ---
 
 ## 📋 Phase-by-Phase Execution Plan
 
-### Phase 1: Specification & Catalog Registration (Topics 6.8 & 6.11)
-- [x] Author `docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md`:
-  - Document the Autopsy scoreboard data model and DOM filter event contracts.
-  - Document the 1-click cross-tab jump mechanics and visual pulse animation.
-  - Document `tools/check_mail.py` CLI interface, note parsing heuristics, and board generator template.
+### Phase 1/5: Specification & Catalog Registration
+- [x] Author `docs/specs/nkai_pcda_governance_and_sota_benchmarks.md`:
+  - Document the Continuous Live Triage lifecycle and session persistence contracts.
+  - Document the 4-part PCDA dialectic standard (Thesis, Friction, Antithesis, Synthesis) and acronym disambiguation (PCDA vs PCA).
+  - Document the On-Demand SOTA progressive disclosure protocol.
+  - Document the SOTA precedent teardown matrix (Claude Artifacts, Playwright/Vitest UI, Cursor Composer).
 - [x] Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
 
-### Phase 2: Ongoing Autopsy View & Filterable Scoreboard in `nkai/core`
+### Phase 2/5: Core N'kai PCDA & Benchmark Components (`sidecar.css` & `sidecar.js`)
 - [x] In `c:\Dev\nkai\core\sidecar.css`:
-  - Style the Scoreboard banner (`.triage-scoreboard`, metric pills with semantic colors).
-  - Style the filter chips (`.filter-chip`, `.filter-chip.active`).
-  - Style the compact autopsy feed rows (`.autopsy-feed-item`, status badges).
-  - Add `@keyframes cardPulse` for the cross-tab jump target focus.
+  - Implement `.pcda-container`, `.pcda-block`, and semantic dialectic cards:
+    - `.pcda-pro` (emerald left-border and subtle tinted background).
+    - `.pcda-con` (amber left-border and subtle tinted background).
+    - `.pcda-advocate` (rose left-border, bold devil's advocate styling).
+    - `.pcda-synthesis` (purple/indigo gradient border, high-contrast resolution badge).
+  - Implement `.badge-sota` and `.lens-grid` (responsive 4-lens tradeoff matrix).
 - [x] In `c:\Dev\nkai\core\sidecar.js`:
-  - Implement `updateAutopsyScoreboard()` to dynamically count and render current verdicts.
-  - Implement `filterAutopsyFeed(status)` for instantaneous DOM filtering.
-  - Implement `jumpToWorkshopCard(topicId)` to switch tabs, scroll target into view, and apply `.pulse-target`.
-  - Implement `copyPostMortemReport()` to serialize the scorecard into Markdown and copy to clipboard.
+  - Standardize `togglePcdaBlock(blockId)` accordion controller with haptic tick triggers.
+  - Add helper `copyPcdaMarkdown(topicId)` to extract clean GitHub-flavored PCDA Markdown to clipboard.
 
-### Phase 3: Zero-Dependency "Check the Mail" Harvester (`tools/check_mail.py`)
-- [x] Author `c:\Dev\nkai\tools\check_mail.py` (and mirror to `c:\Dev\TheKlangSuite\tools\check_mail.py`):
-  - Standard library only (`os`, `sys`, `pathlib`, `argparse`, `re`, `json`, `webbrowser`).
-  - Scans `C:\Dev\TheKlangVault\Inbox\` (default) or `--dir <path>` or `--archive`.
-  - Extracts title, creation date, and body content from `.md` files.
-  - Generates standalone interactive HTML triage board (`.agents/sidecar/morning_mail_inbox.html`).
-  - Supports `--chat` / `--text-only` flag to output a clean markdown summary in console.
-  - Supports auto-opening browser unless `--no-browser` is passed.
+### Phase 3/5: Zero-Dependency PCDA Formatter & Validator Tool (`tools/pcda_format.py`)
+- [x] Author `c:\Dev\nkai\tools\pcda_format.py` (and mirror to `c:\Dev\TheKlangSuite\tools\pcda_format.py`):
+  - Standard Python library only (`os`, `sys`, `pathlib`, `argparse`, `re`, `json`).
+  - Supports `--validate <file.md>`: verifies all 4 PCDA components exist in topic sections.
+  - Supports `--to-html <file.md>`: converts Markdown PCDA sections into standalone, drop-in N'kai HTML snippets.
+  - Supports `--chat <file.md>`: formats PCDA sections into terse, chat-friendly summaries.
 
-### Phase 4: Canonical Template Synchronization
-- [x] Update `c:\Dev\nkai\dist\standalone-template.html` with `#tab-autopsy` markup and scoreboard skeleton.
+### Phase 4/5: Canonical Template Synchronization
+- [x] Update `c:\Dev\nkai\dist\standalone-template.html` with standardized PCDA structure and CSS classes.
 - [x] Update `c:\Dev\nkai\bundle\templates\template.html` with identical markup.
 - [x] Update `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`.
 
-### Phase 5: Verification Gauntlet & Closeout
+### Phase 5/5: Verification Gauntlet & Commits
 - [x] Run `python tools/audit_sidecar.py` across updated templates (100% tag balance, zero syntax errors).
-- [x] Test `python tools/check_mail.py --help` and verify `--chat` dry run on `C:\Dev\TheKlangVault\Inbox\Archive`.
+- [x] Test `python tools/pcda_format.py --help` and execute a validation test run.
 - [x] Run `python tools/verify_context_clues.py` in `c:\Dev\TheKlangSuite`.
-- [x] Commit changes cleanly across `TheKlangSuite` and `nkai` with conventional commits: `feat(triage): implement Flight 6 interactive autopsy feed and check-mail workflow`.
+- [x] Commit changes cleanly across `TheKlangSuite` and `nkai` with conventional commits: `feat(pcda): implement Flight 7 PCDA dialectic governance and SOTA benchmarks`.
 
 ---
 
 ## 🛡️ Verification & Acceptance Criteria
-1. `docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md` is valid and indexed.
-2. `#tab-autopsy` renders with live scoreboard counts and instant filter chips.
-3. Clicking `[ 🔍 Jump ]` in Autopsy switches to Workshop and pulses the target card.
-4. `tools/check_mail.py` runs cleanly with zero third-party dependencies, correctly parsing vault notes and generating valid HTML boards or `--chat` summaries.
-5. `audit_sidecar.py` and `verify_context_clues.py` pass 100%.
+1. `docs/specs/nkai_pcda_governance_and_sota_benchmarks.md` is valid and indexed in catalog/system map.
+2. N'kai templates feature clean, standardized PCDA accordion components with semantic color coding.
+3. `tools/pcda_format.py` runs with zero dependencies, validating and converting PCDA blocks accurately.
+4. `audit_sidecar.py` and `verify_context_clues.py` pass 100% with zero errors.
+5. All commits follow conventional commit standards.

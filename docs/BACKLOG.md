@@ -35,6 +35,8 @@
 - [v1.0.0 "The General Availability Launch"](#-milestone-v100-the-general-availability-launch)
 - [v1.1.0 "The Klang Box Hardware Universe (Post-1.0)"](#-milestone-v110-the-klang-box-hardware-universe-post-10)
 - [N'kai (NKAI) Asymmetric Sidecar Framework](#-nkai-nkai-asymmetric-sidecar-framework)
+  - [N'kai v0.2.0 Milestone (UI Extension & Native Bridge)](#13-nkai-v020-milestone-the-ui-extension--native-bridge-update---planned)
+  - [N'kai v0.3.0 Milestone (Mobile Companion & Touch Ergonomics)](#14-nkai-v030-milestone-the-mobile-companion--touch-ergonomics-update---planned)
 - [Spin-Off Products & Explorations](#-spin-off-products--explorations)
 
 ---
@@ -991,6 +993,28 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Rationale**: In Chromium / Electron webviews without explicit `clipboard-write` sandbox permissions, `file:///` URLs have `origin: "null"`, causing silent permission denials. Fallback modal popups create jarring UI interruptions and still fail to copy reliably in restricted webviews.
 - **v0.1.0 Standard**: Standardized on **uneditable (readonly) click-to-highlight text boxes** directly embedded on every card (`#ws-prompt-input` and `#audit-prompt-input-${tid}`). The user clicks or double-clicks once to select/highlight all text, then manually copies (`Ctrl+C`) and pastes into chat (`Ctrl+V`). Zero modal popups, zero sandbox permission issues, zero silent failures.
 - **v0.2.0 Path**: Fully implement bidirectional agent messaging (`window.sidecar.agent.sendMessage()`) and native clipboard APIs when packaging N'kai as an official Antigravity UI Extension plugin.
+
+### 13. N'kai v0.2.0 Milestone ("The UI Extension & Native Bridge Update") — ⏳ PLANNED
+*Goal: Integrate N'kai directly into Google Antigravity as an official UI Extension with a true native bidirectional IPC bridge and clipboard engine.*
+- **Official Antigravity UI Extension Packaging**:
+  - Package N'kai as an official Antigravity UI Extension plugin using the built-in Sidecar SDK (`window.sidecar.agent.sendMessage()`).
+  - Register extension panel in IDE auxiliary side pane with status icons.
+- **Native IPC Bridge & Direct Agent Dispatch**:
+  - True zero-copy bidirectional agent messaging (`window.sidecar.agent.sendMessage()`), replacing the temporary uneditable click-to-highlight boxes with direct, 1-click agent action dispatch.
+  - Native clipboard write and host IDE event integration, eliminating all `file:///` sandbox restrictions and origin null CORS barriers.
+  - Native host audio triggers for physical hardware clicks and approval chimes.
+- **Preserved Decoupled Offline Mode**:
+  - Maintain 100% standalone offline `file:///` fallback and CLI runner parity for non-Antigravity environments.
+
+### 14. N'kai v0.3.0 Milestone ("The Mobile Companion & Touch Ergonomics Update") — ⏳ PLANNED
+*Goal: Evolve N'kai from a desktop IDE sidecar into a multi-device, interactive AI pair-programming companion with mobile ergonomics and zero-config LAN pairing.*
+- **Mobile Formatting & Touch Ergonomics**:
+  - **Phone-Optimized Layouts**: Responsive breakpoints down to 320px–390px (iPhone & Android mobile viewports).
+  - **Touch Target Ergonomics**: Minimum 44px tap targets for all interactive elements (`[ APPROVE ]`, `[ TABLE ]`, `[ KILL ]`, tab pills, filter chips) preventing accidental mis-taps.
+  - **Bottom-Sheet & Thumb Navigation**: Sticky bottom action bar / drawer for one-handed mobile triage, scorecard review, and prompt copying while holding the phone.
+  - **Touch-Scroll Optimization**: Smooth hardware-accelerated momentum scrolling (`-webkit-overflow-scrolling: touch`), overscroll boundary containment, and sticky top headers.
+- **Mobile Testing & LAN Pairing**:
+  - Zero-config mobile pairing via `python tools/nkai_serve.py --host 0.0.0.0` or `npx nkai serve --host 0.0.0.0` (with local network IP output and optional terminal QR code) to instantly load and test N'kai triage sessions on phone over local Wi-Fi from the studio or the couch!
 
 ---
 
