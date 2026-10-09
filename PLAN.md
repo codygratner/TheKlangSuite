@@ -1,86 +1,69 @@
-# Implementation Plan: Flight 9 — Distribution Packaging & Key Ergonomics
-> **Flight Target:** Topics 6.12 & 6.6 (Phase 4: Packaging & Key Ergonomics)  
+# Implementation Plan: Flight 4 — Universal AI Harness Portability
+> **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
+> **Flight Target:** Topic 6.13 (Universal AI Harness Portability)  
 > **Status:** COMPLETED ✅  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Model:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Authority:** New Klang City (Ivory Tower) ➔ Klang Industries (Factory Floor)  
+> **Execution Strategy:** Delegated to Tier 2 Flash Builder Subagent via `subagent_dispatch.md`  
 
 ---
 
 ## 🎯 Architectural Intent & Scope
 
-Flight 9 packages N'kai into a portable, production-grade distribution bundle and integrates key developer ergonomics into the sidecar interface:
-1. **Topic 6.12 (Approved Option B — Monolithic All-in-One Bundle):**
-   - Assembles `c:\Dev\nkai\bundle\` containing the canonical pairing core: standardized skills (`visual-grill-me`, `deep-research`, `post-mortem`, `web-qa`), templates (`template.html`, `context_clues_template.md`), guidelines, and verification tools.
-   - Author `install_nkai_bundle.ps1` to enable 1-command installation into any target project (`TheKlangSuite`, `ToadTracker`, or any external repo), featuring a universal pairing core with an optional `-Audio` flag for audio thread guardrails.
-   - Authors `docs/specs/nkai_distribution_bundle_architecture.md` formalizing the bundle structure and lifecycle.
-2. **Topic 6.6 (Approved Option B — Dynamic Shortcut Bar & Power Tools):**
-   - Updates the canonical sidecar templates (`c:\Dev\nkai\dist\standalone-template.html`, `c:\Dev\nkai\bundle\templates\template.html`, and `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`).
-   - Implements a subtle, non-intrusive Dynamic Shortcut Helper (`[ ⌨️ Shortcuts ]`) highlighting Antigravity developer shortcuts (`Ctrl+K`, `Ctrl+Shift+P`, `Ctrl+Enter`) and core slash commands (`/plan`, `/grill-me`, `/execute-task`, `/postmortem`) to build muscle memory without chat token burn.
+Flight 4 establishes universal cross-harness portability for N'kai (NKAI):
+1. **Topic 6.13 (Approved Option B — Decoupled Interface Layer):**
+   - Enables N'kai to run seamlessly across all major AI harnesses:
+     - **Google Antigravity IDE**: Offline `file:///` sidecar artifact & native Sidecar SDK UI Extension (`window.sidecar`).
+     - **Terminal CLIs (Claude Code CLI, OpenAI Codex CLI, Aider, terminal)**: Zero-dependency local dev server (`python tools/nkai_serve.py` or `npx nkai serve [file]`) that auto-launches the system browser and hot-reloads on file changes.
+     - **Desktop Editors (Cursor, Windsurf, VS Code)**: Universal split-window rendering with zero CORS breakage.
+   - Authors `docs/specs/nkai_universal_harness_portability.md` specifying the tri-mode environment detection protocol (`Extension` vs `LocalFile` vs `HttpServer`).
+   - Implements `tools/nkai_serve.py` in `c:\Dev\nkai\` and mirrors to `TheKlangSuite/tools/`.
+   - Packages `c:\Dev\nkai\package.json` and `bin/nkai.js` for lightweight `npx nkai serve` CLI execution.
+   - Updates `c:\Dev\nkai\core\sidecar.js` with the Tri-Mode Environment Adapter.
 
 ---
 
 ## 📋 Phase-by-Phase Execution Plan
 
-### Phase 1: Distribution Bundle Architecture Specification (Topic 6.12)
-- [x] Author `docs/specs/nkai_distribution_bundle_architecture.md`:
-  - Define bundle directory topology (`bundle/skills/`, `bundle/templates/`, `bundle/rules/`, `bundle/tools/`).
-  - Document the Universal Pairing Core vs Audio Add-on separation (`-Audio` switch).
-  - Document the single-command deployment contract (`./install_nkai_bundle.ps1 -TargetDir <path> [-Audio]`).
-  - Document the Git-ignore boundary (`.agents/sidecar/*.html` ignored, `!template.html` preserved).
-- [x] Register the new spec in `docs/DOCS_CATALOG.json` under `specifications`.
-- [x] Add direct link in `docs/SYSTEM_MAP.md` under Section 7 (Design Specs).
+### Phase 1: Universal Portability Architecture Specification (Topic 6.13)
+- [x] Author `docs/specs/nkai_universal_harness_portability.md`:
+  - Define the Tri-Mode Environment Detection hierarchy (`Antigravity Extension` $\to$ `Local File:///` $\to$ `HTTP Server`).
+  - Document CLI serving architecture (local Python/Node zero-dependency HTTP server, port negotiation, MIME types, auto-browser launch).
+  - Document terminal agent pairing patterns (Claude Code CLI, Cursor, Windsurf, Aider).
+- [x] Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
 
-### Phase 2: Assemble Canonical `nkai/bundle/` Core & Audio Add-on
-- [x] Create `c:\Dev\nkai\bundle\` structure:
-  - `bundle/templates/`:
-    - Seed `bundle/templates/template.html` from `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`.
-    - Seed `bundle/templates/context_clues_template.md` from `c:\Dev\TheKlangSuite\docs\templates\context_clues_template.md`.
-  - `bundle/skills/`:
-    - Copy canonical skills: `visual-grill-me`, `deep-research`, `post-mortem`, `web-qa`.
-  - `bundle/rules/`:
-    - Author `bundle/rules/nkai_guidelines.md` (Asymmetric Sidecar Split, Sidecar Ready Handshake, uneditable click-to-highlight prompt standard, 2-line footer).
-    - Author `bundle/rules/audio_guardrails_addon.md` (Audio thread invariants: zero dynamic allocation, zero locks, zero blocking I/O, SIMD FastMath).
-  - `bundle/tools/`:
-    - Copy `audit_sidecar.py` and `verify_context_clues.py`.
+### Phase 2: Tri-Mode Environment Adapter in `core/sidecar.js`
+- [x] Update `c:\Dev\nkai\core\sidecar.js`:
+  - Add `NkaiEnv.detect()` returning `'extension' | 'file' | 'server'`.
+  - Add unified IPC / messaging abstraction:
+    - If `extension`: route through `window.sidecar.agent.sendMessage()`.
+    - If `file`: route through uneditable click-to-highlight prompt boxes.
+    - If `server`: support optional HTTP SSE / POST loopback for terminal CLI agents.
+- [x] Update `c:\Dev\nkai\dist\standalone-template.html` and `c:\Dev\nkai\bundle\templates\template.html`.
 
-### Phase 3: Universal Installer Script (`install_nkai_bundle.ps1`)
-- [x] Author `c:\Dev\nkai\install_nkai_bundle.ps1`:
-  - Support `-TargetDir <string>` (defaults to `$PWD`).
-  - Support `[switch]$Audio` (installs audio guardrail rules when specified).
-  - Support `[switch]$DryRun` (previews actions without modifying disk).
-  - Automate directory creation (`.agents/skills/`, `.agents/sidecar/`, `docs/templates/`, `tools/`).
-  - Copy skills, templates, tools, and applicable rules.
-  - Automatically verify/update target `.gitignore` to protect sidecar artifacts.
-  - Output high-density visual pass report.
-- [x] Provide convenience copy in `c:\Dev\TheKlangSuite\tools\install_nkai_bundle.ps1`.
+### Phase 3: Zero-Dependency CLI Server (`tools/nkai_serve.py` & `bin/nkai.js`)
+- [x] Author `c:\Dev\nkai\tools\nkai_serve.py`:
+  - Lightweight Python standard library HTTP server (`http.server`, `threading`, `webbrowser`).
+  - Support `python tools/nkai_serve.py <html-file-or-dir> [--port 3030] [--no-browser]`.
+  - Proper MIME handling for `.html`, `.css`, `.js`, `.json`, `.svg`, `.png`, `.wav`.
+  - Mirror to `c:\Dev\TheKlangSuite\tools\nkai_serve.py`.
+- [x] Author `c:\Dev\nkai\package.json` and `c:\Dev\nkai\bin\nkai.js`:
+  - Standard npm `bin` definition pointing to a clean, zero-dependency Node.js HTTP server.
+  - Enables `npx nkai serve [path]` without global installation.
 
-### Phase 4: Dynamic AGY Keyboard Shortcuts Bar & Power Tool Prompters (Topic 6.6)
-- [x] Update `c:\Dev\nkai\core\sidecar.css` and `c:\Dev\nkai\core\sidecar.js`:
-  - Add styles for `.shortcut-pill` and `.shortcut-popover`.
-  - Provide toggleable shortcut helper HUD:
-    - `Ctrl+K`: Quick Chat / Focus
-    - `Ctrl+Shift+P`: Command Palette
-    - `Ctrl+Enter`: Submit Prompt
-    - `/plan`, `/grill-me`, `/execute-task`, `/postmortem`
-  - Ensure zero collision with narrow IDE viewports (360px+).
-- [x] Synchronize shortcut helper markup to:
-  - `c:\Dev\nkai\dist\standalone-template.html`
-  - `c:\Dev\nkai\bundle\templates\template.html`
-  - `c:\Dev\TheKlangSuite\.agents\sidecar\template.html`
-
-### Phase 5: Automated Verification & Ecosystem Gauntlet
-- [x] Run `python tools/audit_sidecar.py` on all updated HTML templates to assert 100% tag balance and 0 syntax errors.
-- [x] Run `python tools/verify_context_clues.py` to assert 100% link resolution.
-- [x] Test `install_nkai_bundle.ps1 -TargetDir <scratchDir> -Audio` on a test directory to assert perfect installation.
-- [x] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1` to recompile vault indices.
-- [x] Stage and commit changes with conventional commits: `feat(distribution): implement Flight 9 all-in-one bundle and dynamic shortcuts`.
+### Phase 4: Bundle Synchronization & Verification
+- [x] Update `c:\Dev\nkai\bundle\tools\` with `nkai_serve.py`.
+- [x] Update `c:\Dev\nkai\bundle\templates\` with tri-mode adapted `template.html`.
+- [x] Test `python tools/nkai_serve.py --help` and validate server startup/shutdown.
+- [x] Run `python tools/audit_sidecar.py` across updated templates (100% tag balance, 0 errors).
+- [x] Run `python tools/verify_context_clues.py` to ensure link integrity.
+- [x] Commit changes cleanly across `TheKlangSuite` and `nkai`.
 
 ---
 
 ## 🛡️ Verification & Acceptance Criteria
-1. `c:\Dev\nkai\bundle\` contains complete, canonical `skills/`, `templates/`, `rules/`, and `tools/`.
-2. `install_nkai_bundle.ps1` successfully deploys bundle to target directory with exit code 0.
-3. `-Audio` flag selectively installs audio guardrails without polluting non-audio projects.
-4. `template.html` features working Dynamic Shortcut helper (`[ ⌨️ Shortcuts ]`).
-5. `audit_sidecar.py` and `verify_context_clues.py` pass cleanly.
+1. `docs/specs/nkai_universal_harness_portability.md` is valid and indexed in `DOCS_CATALOG.json`.
+2. `sidecar.js` dynamically detects and adapts to `extension`, `file:///`, and `http://` runtimes.
+3. `tools/nkai_serve.py` successfully serves local HTML sidecars with proper MIME types.
+4. `package.json` and `bin/nkai.js` enable `npx nkai serve` without third-party dependencies.
+5. `audit_sidecar.py` and `verify_context_clues.py` exit with 0 errors.

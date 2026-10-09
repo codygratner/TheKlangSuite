@@ -107,6 +107,11 @@
           "path": "docs/specs/nkai_distribution_bundle_architecture.md",
           "title": "N'kai Distribution Bundle & Deployment Architecture (Topic 6.12)",
           "purpose": "Monolithic all-in-one distribution bundle topology, universal pairing core, optional audio guardrails add-on, and automated installer contract."
+        },
+        {
+          "path": "docs/specs/nkai_universal_harness_portability.md",
+          "title": "N'kai Universal AI Harness Portability (Topic 6.13)",
+          "purpose": "Tri-mode environment detection ('extension', 'file', 'server'), zero-dependency CLI server architecture (nkai_serve.py & npx nkai serve), and terminal agent pairing protocols (Claude Code CLI, Cursor, Windsurf, Aider)."
         }
       ]
     },

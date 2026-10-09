@@ -3005,14 +3005,17 @@
     function copyVerdictsToClipboard() {
       const ta = document.getElementById('triage-output');
       if (!ta) return;
-      navigator.clipboard.writeText(ta.value).then(() => {
-        const btn = document.querySelector('button[onclick="copyVerdictsToClipboard()"]');
-        if (btn) {
-          const orig = btn.innerHTML;
-          btn.innerHTML = '<span>✅ Copied!</span>';
-          setTimeout(() => { btn.innerHTML = orig; }, 2000);
-        }
-      });
+      if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
+        window.NkaiEnv.dispatchAction(ta.value);
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).catch(() => {});
+      }
+      const btn = document.querySelector('button[onclick="copyVerdictsToClipboard()"]');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span>✅ Copied!</span>';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      }
     }
 
     let zoomLevel = 100;
@@ -3305,6 +3308,127 @@
         popover.style.display = 'none';
       }
     });
+
+    /* Visual HUD Toast Notification */
+    function showToast(message) {
+      let toast = document.getElementById('nkai-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'nkai-toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.background = '#161b22';
+        toast.style.color = '#38bdf8';
+        toast.style.border = '1px solid #38bdf8';
+        toast.style.padding = '8px 16px';
+        toast.style.borderRadius = '6px';
+        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+        toast.style.fontFamily = 'monospace';
+        toast.style.fontSize = '12px';
+        toast.style.zIndex = '99999';
+        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        toast.style.pointerEvents = 'none';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+      }, 2500);
+    }
+
+    /* N'kai Universal Tri-Mode Environment Adapter (Topic 6.13) */
+    window.NkaiEnv = {
+      detect: function() {
+        if (typeof window !== 'undefined' && window.sidecar && typeof window.sidecar.agent?.sendMessage === 'function') {
+          return 'extension';
+        }
+        if (typeof window !== 'undefined' && window.location) {
+          if (window.location.protocol === 'file:') return 'file';
+          if (window.location.protocol === 'http:' || window.location.protocol === 'https:') return 'server';
+        }
+        return 'file';
+      },
+
+      getMode: function() {
+        return this.detect();
+      },
+
+      isExtension: function() {
+        return this.detect() === 'extension';
+      },
+
+      isFile: function() {
+        return this.detect() === 'file';
+      },
+
+      isServer: function() {
+        return this.detect() === 'server';
+      },
+
+      dispatchAction: function(actionPayload) {
+        const env = this.detect();
+        const text = typeof actionPayload === 'string' ? actionPayload : JSON.stringify(actionPayload, null, 2);
+
+        // Mode 1: Antigravity IDE UI Extension
+        if (env === 'extension') {
+          try {
+            window.sidecar.agent.sendMessage(text);
+            showToast('Dispatched message directly to Agent!');
+            return true;
+          } catch (err) {
+            console.warn('[NkaiEnv] Extension dispatch failed, falling back to clipboard:', err);
+          }
+        }
+
+        // Mode 2: Local HTTP Server (CLI Harness)
+        if (env === 'server' && typeof fetch === 'function') {
+          fetch('/api/dispatch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: actionPayload, timestamp: Date.now() })
+          }).then(res => {
+            if (res.ok) {
+              showToast('Dispatched to local CLI server & copied to clipboard!');
+            }
+          }).catch(() => {
+            // Fallback silently if /api/dispatch not captured
+          });
+        }
+
+        // Mode 3: Local File (file:///) / Default Fallback
+        return this.copyToClipboard(text);
+      },
+
+      copyToClipboard: function(payload) {
+        const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('Copied to clipboard for CLI terminal!');
+          }).catch(() => {
+            this.fallbackHighlight(text);
+          });
+          return true;
+        }
+        return this.fallbackHighlight(text);
+      },
+
+      fallbackHighlight: function(text) {
+        const ta = document.getElementById('triage-output') || document.querySelector('textarea.prompt-box');
+        if (ta) {
+          ta.value = text;
+          ta.focus();
+          ta.select();
+          showToast('Selected text in prompt box!');
+          return true;
+        }
+        return false;
+      }
+    };
   </script>
 </body>
 </html>

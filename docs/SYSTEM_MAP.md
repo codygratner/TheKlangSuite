@@ -44,6 +44,7 @@ This is the central directory for all high-level documentation, rules, and histo
   - [WAV / SF2 Multi-Sample Export](specs/wav_sf2_export.md) — Direct DAW drag-and-drop audio export.
   - [N'kai Canonical State & Persistence Architecture](specs/nkai_canonical_state_architecture.md) — 3-tier persistence model, zero-binary database invariant, and offline sidecar contract.
   - [N'kai Distribution Bundle & Deployment Architecture](specs/nkai_distribution_bundle_architecture.md) — Monolithic all-in-one bundle topology, universal pairing core, optional audio add-on, and automated installer.
+  - [N'kai Universal AI Harness Portability](specs/nkai_universal_harness_portability.md) — Tri-mode environment detection, zero-dependency CLI server (`nkai_serve.py`), and terminal agent pairing patterns.
 
 ## 🏛️ The Four-Pillar Ecosystem
 
