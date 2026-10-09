@@ -944,9 +944,9 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Phase 3: Topology & Ergonomics (UI/UX)** $ightarrow$ F5 (Header & Tab Density: 6.9+6.10) & F6 (Triage Views: 6.8+6.11)
 - **Phase 4: Meta & Governance** $ightarrow$ F7 (PCDA Governance: 6.1+6.2+6.15), F8 (Token Ledger: 6.19+6.3), & F9 (Distribution: 6.12+6.6)
 
-### 2. Flight 1: Canonical State & Factory Handoff — ✅ COMPLETED
-*Approval:* 6.16 Backend Persistence & State Management - Option C (Approved).
-- Truth lives in an embedded SQLite database or hybrid state model, finalized as the bedrock architecture before UI surfaces or socket streaming.
+### 2. Flight 1: Canonical State & Factory Handoff — 🔨 ACTIVE
+- **Topic 6.16: Backend Persistence & State Management Architecture**: ✅ APPROVED (Option C: Hybrid Markdown Frontmatter + Client-Side LocalStorage + JSON Catalog). Bedrock state architecture finalized with zero heavy binary dependencies and clean Git diffs.
+- **Topic 6.7: Context Clues Architecture & Factory Handshake Gate**: 🔨 ACTIVE / PENDING (Option B: Structured Context Clues recommended — dedicated context clues files seeded with canonical links to `DOCS_CATALOG.json` and `SYSTEM_MAP.md`).
 
 ### 3. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
