@@ -1,21 +1,22 @@
-STATUS: COMPLETED
+STATUS: READY_FOR_EXECUTION
 ARCHIVED_PLAN: .agents/pipeline/plans/completed/2026-10-09_flight1_canonical_state_and_factory_handoff.md
 
 # Dispatch from the Ivory Tower (New Klang City)
-> *Status:* COMPLETED ✅ (Concluded by Klang Industries: 2026-10-09)  
-> *Target Assignment:* Flight 1 — Canonical State & Factory Handoff (Topics 6.16 & 6.7)  
+> *Status:* READY_FOR_EXECUTION ⏳ (Dispatched: 2026-10-09)  
+> *Target Assignment:* Flight 9 — Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)  
 > *Active Blueprint:* [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)  
 > *Recommended Model Tier:* Tier 2 (Gemini 3.8 Flash High) — 🟢 SUSTAINABLE  
 
 ## Summary of Assignment
-1. **Phase 1: Canonical State Architecture Contract (Topic 6.16)**
-   - Author `docs/specs/nkai_canonical_state_architecture.md`.
+1. **Phase 1: Distribution Bundle Architecture Specification (Topic 6.12)**
+   - Author `docs/specs/nkai_distribution_bundle_architecture.md`.
    - Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-2. **Phase 2: Context Clues Universal Template & File Harmonization (Topic 6.7)**
-   - Author `docs/templates/context_clues_template.md`.
-   - Harmonize `context_clues_plan.md`, `context_clues_build.md`, and `context_clues_subagent.md`.
-3. **Phase 3: Automated Verification Tooling (`verify_context_clues.py`)**
-   - Author and validate `tools/verify_context_clues.py`.
-4. **Phase 4: Field Guide Documentation & Ecosystem Gauntlet**
-   - Record in `docs/history/vibe_coding_field_guide.md`.
-   - Run `tools/sync_obsidian_vault.ps1` and verify clean git state.
+2. **Phase 2: Assemble Canonical `nkai/bundle/` Core & Audio Add-on**
+   - Assemble `c:\Dev\nkai\bundle/` with canonical `skills/`, `templates/`, `rules/`, and `tools/`.
+3. **Phase 3: Universal Installer Script (`install_nkai_bundle.ps1`)**
+   - Author `c:\Dev\nkai\install_nkai_bundle.ps1` with `-TargetDir` and optional `-Audio` switch.
+   - Mirror convenience copy to `TheKlangSuite/tools/install_nkai_bundle.ps1`.
+4. **Phase 4: Dynamic AGY Keyboard Shortcuts Bar & Power Tool Prompters (Topic 6.6)**
+   - Integrate `[ ⌨️ Shortcuts ]` helper HUD into `sidecar.css`/`sidecar.js` and canonical templates.
+5. **Phase 5: Automated Verification & Ecosystem Gauntlet**
+   - Verify with `audit_sidecar.py`, `verify_context_clues.py`, dry-run installation test, and `sync_obsidian_vault.ps1`.

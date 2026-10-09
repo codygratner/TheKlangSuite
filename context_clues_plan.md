@@ -31,13 +31,11 @@
 ## 🎯 Immediate Return Agenda & Status
 - **Current Objective:** Factory Execution & Roadmap Flight Orchestration
 - **Active Agenda:**
-  1. **Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7)**: Active on the factory floor (Klang Industries). Complete spec, template, and verification tooling.
-  2. **The 9-Flight N'kai Blueprint Preparation**: Once Flight 1 is complete, stage drafts for subsequent flights:
-     - *Flight 4: Universal AI Harness Portability (Topic 6.13)* — Standalone HTML + Localhost Adapter.
-     - *Flight 3: Skill Taxonomy & Defaults (Topics 6.4 & 6.14)* — Layered Hybrid skills + N'kai-first with `--chat` fallback.
-     - *Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)* — Two-tier header + compact tabs.
-  3. **Layouts & Ergonomics Post-Mortem Package**: Preserved in [triage package](file:///c:/Dev/TheKlangSuite/.agents/sidecar/packages/2026-10-08_layouts_and_ergonomics_triage_package.json) ready for resumption.
-- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Flight 1 Execution)
+  1. **Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7)**: ✅ COMPLETED by Klang Industries.
+  2. **Flight 9: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ⏳ READY_FOR_EXECUTION on factory floor. Universal bundle assembly, installer script (`install_nkai_bundle.ps1`), and dynamic keyboard shortcuts.
+  3. **The 9-Flight N'kai Implementation Track**: Staging blueprints sequentially for sustainable Flash High factory delivery.
+  4. **Post-Milestone Deep Docs Gauntlet**: Staged in `.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md` for pre-release execution.
+- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Flight 9 Ready for Execution)
 
 ---
 
