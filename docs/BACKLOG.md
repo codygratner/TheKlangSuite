@@ -976,14 +976,14 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Topic 6.2: Pros & Cons Strategy: On-Demand SOTA vs Always-Grabbed**: ✅ APPROVED (Option B: On-Demand SOTA — punchy conversational chat turns by default, with 4-Lens PCDA matrices generated strictly on demand via sidecar actions).
 - **Topic 6.15: Industry Workflow Precedents & Competitive Teardowns**: ✅ APPROVED (Option C: Hybrid File-URI + Micro-Bridge Model — zero-bundle `file:///` instant loading combined with modular bridge extension pattern).
 
-### 10. Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19) — 🔨 ACTIVE
-*Status: 🔨 ACTIVE (In Active Workshop — Phase 4: Meta & Governance)*
+### 10. Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19) — ✅ COMPLETED
 - **Topic 6.3: Topic Organization Strategy: Deep-Linked Monolithic Board vs Fragmented Mini-Canvases**: ✅ APPROVED (Option B: Deep-Linked Monolithic Board — single, highly structured living research canvas with hash-anchor deep linking).
-- **Topic 6.19: Cumulative Allowance & Token Impact Ledger in Post-Mortem**: 🔨 ACTIVE (In Active Workshop — tracking and displaying estimated token burn / quota budget impact across approved features before committing to code).
+- **Topic 6.19: Cumulative Allowance & Token Impact Ledger in Post-Mortem**: ✅ APPROVED (Option C: Live Cumulative Cost Meter & Budget Ledger — interactive meter and ledger in the Post-Mortem & Workshop header showing total estimated token burn across all approved items, broken down by Tier 1 Pro High vs Tier 2 Flash High vs Tier 3 Minimal, with proactive budget warnings before code execution begins).
 
-### 11. Flight 2: Execution Bridge & Concurrency (Topics 6.17 & 6.18) — ⏳ PARTIALLY TABLED FOR v0.2.0
+### 11. Flight 2: Execution Bridge & Concurrency (Topics 6.17 & 6.18) — 🔨 ACTIVE (Final Audit Topic)
+*Status: 🔨 ACTIVE (In Active Workshop — Final Remaining Audit Topic!)*
 - **Topic 6.17: The Bidirectional Click-to-Agent Bridge (Zero-Copy Sidecar IPC)**: ⏳ TABLED FOR v0.2.0 (Decoupled `file:///` local sidecars from runtime localhost bridge dependencies; reserved for official Antigravity UI Extension release).
-- **Topic 6.18: Parallel Subagent Delegation for Sidecar Actions**: ⏳ QUEUED (Evaluating parallel Flash subagent delegation vs synchronous turns for sidecar action prompters).
+- **Topic 6.18: Parallel Subagent Delegation for Sidecar Actions**: 🔨 ACTIVE (In Active Workshop — evaluating dedicated parallel Flash subagents vs synchronous turns for sidecar action prompters).
 
 ### 12. Bidirectional Micro-Bridge, Programmatic Clipboard & Modal Popups — ⏳ TABLED FOR v0.2.0
 *Status: ⏳ TABLED (Post-v0.1.0 / v0.2.0 Plugin Release)*
