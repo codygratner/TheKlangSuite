@@ -114,3 +114,22 @@ To prevent identity collisions across codebases, logging tags (`TKS_LOG`), asset
 | **`Topological Rejigger Intercept`** | Dependency Gate | Dynamic dependency-checking logic that flags when a high-priority (`P0`) note depends on an unbuilt prerequisite. | Suggestion chip rendered on Mailbag cards: `[ 🔄 Slot into Topological Order ]` vs `[ ⚡ Keep at Top ]`. |
 | **`Plans Queue`** | Agent Orchestration | A persistent queue managing multi-plan staging, execution sequences, and active execution pointer. | `.agents/pipeline/plans/queue.json`, coordinating plan transitions from `drafts/` to root `PLAN.md` to `completed/`. |
 | **`Stateless Atomic Rollback`** | Fault Recovery | A multi-tier rollback mechanism restoring previous states via immutable pre-transaction receipts. | Implemented in `check_mail.py --rollback`, `audit_reorder.py --rollback`, and `clean-plan --rollback`. |
+
+---
+
+## 8. Aviation Metaphors & Execution Terminology (Flight Plans, Runways & Test Flights)
+
+To replace confusing corporate Agile jargon (*Sprints*, *Epics*, *Story Points*) with intuitive, spatial engineering concepts, The Klang Suite employs an aerospace flight-deck metaphor across all planning, triage, and building pipelines:
+
+| Aviation Term | Engineering Equivalent | Definition & Purpose | The Klang Suite Protocol |
+| :--- | :--- | :--- | :--- |
+| **`Flight`** 🛫 | Incremental Step | A single discrete, bounded implementation phase or milestone increment (e.g. `Flight 1` through `Flight 8`). | Decoupled from topic ID; represents the linear integer execution order (`Flight N`). |
+| **`Flight Plan`** 📋 | Implementation Plan | The synthesized, topologically ordered blueprint detailing exact dependencies, schemas, code diffs, and verification steps. | Formatted strictly in root `PLAN.md` (or staged in `.agents/pipeline/plans/drafts/`). |
+| **`Runway`** 🛫 | Prerequisite Sequence | The foundational sequence of infrastructure flights required before a major feature can take off safely without crash landing. | e.g. The 8-Flight N'kai Runway establishing IPC, schemas, and headers before building views. |
+| **`Test Flight` / `Test-Drive`** 🧪 | Verification Run | Taking an interactive sidecar, UI harness, or new tool out for a spin using realistic data packages before full production deployment. | e.g. The 12-Topic Test-Drive Docket loaded into `morning_mail_inbox.html`. |
+| **`Docket`** 📑 | Pre-Flight Queue | The curated queue of active topics, notes, or feature proposals staged and ready for review in an interactive triage lab. | Sourced from `morning_mail_topics.md` and parsed into the Mailbag canvas. |
+| **`Holding Pattern`** ⏳ | Staged Buffer | Keeping draft plans or brainstorms parked in a clean holding state without mutating the active flight deck. | Stored in `.agents/pipeline/plans/drafts/` until the factory is idle and allowance is refreshed. |
+| **`Re-sequence / Rejigger`** 🔄 | Topological Sorting | Auditing and re-ordering flights based on strict prerequisite dependencies so foundations precede surfaces. | Executed via `/audit-reorder`, `/rejigger`, or the `[ 🔄 Re-sequence Flights ]` sidecar button. |
+| **`Wheels Up`** 🚀 | Kickoff Execution | The formal transition of an approved Flight Plan into active factory implementation (`STATUS: IN_PROGRESS`). | Triggered by user saying "proceed" or running `/execute-task`. |
+| **`Touchdown`** 🛬 | Task Completion | Concluding an active flight plan, passing all acceptance tests, committing cleanly, and archiving the plan. | Executed via `/task-finish` or `task-finish` skill. |
+

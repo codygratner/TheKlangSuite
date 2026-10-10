@@ -1,0 +1,101 @@
+# ⚡ The Klang Suite: Master Workflow & Architecture Cheat Sheet
+
+> **Single-Page Developer Reference Card**: The essential mental model, acronyms, aviation metaphors, and toolchain commands across The Klang Suite ecosystem.
+
+---
+
+## 🏛️ The Five Ecosystem Pillars
+
+| Pillar | Workspace Path | Role & Technology | Repository Scope |
+| :--- | :--- | :--- | :--- |
+| **`TheKlangSuite`** | `c:\Dev\TheKlangSuite` | Desktop Audio Plugin Suite (C++20, JUCE 9.0.3, VST3/AU) | Native Audio Factory Floor |
+| **`ToadTracker`** | `c:\Dev\ToadTracker` | Embedded Hardware Tracker & Groovebox Engine (C++20, HAL) | Hardware Firmware & Embedded DSP |
+| **`nkai`** | `c:\Dev\nkai` | Asymmetric Sidecar Framework & Interactive Triage Lab | Webview UI & CLI Harness Tools |
+| **`TheKlangResearch`** | `C:\Dev\Research` | Eternal DSP Mathematics, Central RFCs & Soul Harvests | Public Knowledge & Whitepapers |
+| **`TheKlangVault`** | `C:\Dev\TheKlangVault` | Private Studio Hub, Raw Notes Mailbox & Pydantic Pipelines | Private Obsidian Vault (Git-backed) |
+
+---
+
+## 🎛️ Product Acronym Registry (`TK<X>`)
+
+*Every plugin, application, and hardware module has an immutable 3-letter acronym:*
+
+* **`TKS`** — **The Klang Suite** *(Umbrella project, shared libraries, and `TKS_LOG` logging tags)*
+* **`TKF`** — **The Klang Farmer** *(Dual-FM percussion and bass synthesizer)*
+* **`TKP`** — **The Klang Planter** *(Multi-layer percussive sound machine)*
+* **`TKM`** — **The Klang Mill** *(1x6 modular multi-effects pedalboard rack)*
+* **`TKB`** — **The Klang Box** *(Embedded hardware synth: Daisy Seed / Teensy 4.1 / dadamachines TBD-16)*
+* **`TKR`** — **The Klang R1** *(7-voice Electribe ER-1 tribute rhythm synthesizer)*
+* **`TKC`** — **The Klang Cultivator** *(Standalone MIDI CC / CV / MPE modulation generator rack)*
+* **`TKE`** — **The Klang Editor** *(Standalone JUCE JSON schema & curve inspection app)*
+
+---
+
+## 🛫 The Aviation Flight-Deck Metaphor
+
+*Replacing corporate Agile jargon with spatial, intuitive engineering concepts:*
+
+```
+  [ Docket ] ──> [ Holding Pattern ] ──> [ Flight Plan ] ──> [ Runway ] ──> [ Wheels Up ] ──> [ Touchdown ]
+  (Pre-flight)    (Staged Drafts)         (Active PLAN.md)    (Prerequisites) (Execution)       (Archived)
+```
+
+* **`Flight` 🛫**: A single discrete, bounded implementation step or milestone increment (`Flight N`).
+* **`Flight Plan` 📋**: The synthesized, topologically ordered implementation plan (`PLAN.md`).
+* **`Runway` 🛫**: The prerequisite sequence of foundational flights built before a major system can launch.
+* **`Test Flight` / `Test-Drive` 🧪**: Taking an interactive sidecar or tool out for a spin using realistic data.
+* **`Docket` 📑**: The curated queue of active topics/notes pre-flighted and ready for triage review.
+* **`Holding Pattern` ⏳**: Staging draft plans in `.agents/pipeline/plans/drafts/` until the factory is idle.
+* **`Re-sequence / Rejigger` 🔄**: Topological dependency sorting ensuring foundations precede surfaces.
+* **`Wheels Up` 🚀**: Formally starting implementation on an approved flight plan (`STATUS: IN_PROGRESS`).
+* **`Touchdown` 🛬**: Passing all tests, verifying acceptance criteria, committing cleanly, and archiving.
+
+---
+
+## 🛠️ Essential Slash Commands & Micro-Skills
+
+| Trigger Command | Skill / Role | What It Does |
+| :--- | :--- | :--- |
+| **`/mailbag`** | `check-mail` | Scans Obsidian Mailbox, updates `mail_queue.json`, and renders interactive sidecar triage lab. |
+| **`/audit-reorder`** | `audit-reorder` | Synthesizes and topologically rejiggers active audit/triage flights (2-Pass Convergence Gate). |
+| **`/plan`** | Planning Gate | Drafts a structured implementation plan (staged to `.agents/pipeline/plans/drafts/`). |
+| **`/grill-me`** | `visual-grill-me` | Conducts interactive design interview paired with live side-panel HTML visual mockup. |
+| **`/read-plan`** | Ingestor | Ingests active `PLAN.md`, verifies model tier, transitions dispatch signal to `IN_PROGRESS`. |
+| **`/execute-task`** | Factory Pipeline | Autonomous factory loop: Edits $\to$ `audiothread-guard` $\to$ `build-validate` $\to$ `step-verify`. |
+| **`/step-verify`** | Gatekeeper | Audits code against phase acceptance criteria, updates checklist checkmarks, stages commits. |
+| **`/task-finish`** | Closeout | Validates full checklist completion, conventional git commit, archives `PLAN.md` to `completed/`. |
+| **`/rollback-plan`** | Plan Queue | Instantly restores previous `PLAN.md` state from `.agents/pipeline/plans/snapshots/` in 5ms. |
+| **`/clean-plan`** | Hygiene | Purges temporary planning artifacts (`context_snapshot*.md`) and archives finished plans. |
+| **`/build-validate`** | Compiler Suite | Headless CMake compilation, error filtering, and test execution (`dsp_tests`, `pluginval`). |
+| **`/audiothread-guard`**| Audio Safety | Strict AST/regex audit checking audio path for heap allocations, mutexes, and blocking I/O. |
+| **`/web-qa`** | Sidecar QA | Audits interactive sidecars in Headless Chrome for DOM balance, JS errors, and audio sandbox. |
+| **`/update-docs`** | Sync Gauntlet | Reconciles Backlog, Catalog, Dev History, System Map, and mirrors Obsidian Vault. |
+
+---
+
+## 🧠 Model Tiers & Quota Economics
+
+*The Orchestrator Invariant: Main chat session stays permanently on Tier 2 Flash High.*
+
+* **Tier 1 (Pro High)**: Reserved strictly for deep DSP differential equations, non-linear saturation proofs, lock-free ring-buffer concurrency, and complex multi-file architectural synthesis.
+* **Tier 2 (Flash High)** *(Universal Daily Driver)*: Standard JUCE UI components, APVTS bindings, unit test expansions, and standard phase execution.
+* **Tier 3 (Flash Low/Medium)**: Mechanical find-and-replace, documentation updates, git commits, and JSON schemas.
+* **The "Orchestrator + Subagents" Rule**: Main chat never burns Pro allowance; delegates heavy math to on-demand Pro subagents (`invoke_subagent(Model="pro")`).
+
+---
+
+## ⚡ Audio Thread Invariants (CRITICAL)
+
+* **Zero Allocations**: Never call `new`, `malloc`, `free`, or resize containers (`push_back`, `Array::add`) in `processBlock()`. Pre-allocate in `prepareToPlay()`.
+* **Zero Locks**: Never acquire a `std::mutex`, `std::lock_guard`, or `CriticalSection` in the audio thread. Use lock-free atomics (`std::atomic`) or bounded FIFOs.
+* **Zero Blocking I/O**: Never call filesystem, network, or console output (`std::cout`, `DBG()`, `printf`) in the audio path.
+* **FastMath**: Prefer `TbdAudio::FastMath` over standard CRT transcendentals (`std::sin`, `std::pow`, `std::tanh`).
+
+---
+
+## 🛡️ Obsidian Vault & Sync Guardrails
+
+* **Independent Git Repository**: `TheKlangVault` is an initialized, Git-tracked private hub.
+* **App Ignores**: Defined in `TheKlangVault/.obsidian/app.json` (`userIgnoreFilters` excludes `.git/`, `tools/`, `*.py`, `*.pyc`).
+* **Obsidian Sync Invariant**: Obsidian Sync natively ignores all dotfiles (`.git/`, `.gitignore`, `.venv/`, `.agents/`). Git will never trigger sync panic loops.
+* **Agent Ownership**: Agents automatically maintain `.gitignore` and `app.json` whenever creating tools or staging files.

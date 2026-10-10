@@ -33,6 +33,11 @@
           "purpose": "Quick-navigation index linking core documentation, history, specs, and pipeline queues."
         },
         {
+          "path": "docs/CHEAT_SHEET.md",
+          "title": "Master Workflow & Architecture Cheat Sheet",
+          "purpose": "Single-page reference card for ecosystem pillars, acronyms, flight-deck metaphors, slash commands, and audio invariants."
+        },
+        {
           "path": "docs/README.md",
           "title": "Documentation Directory Guide",
           "purpose": "Overview of the docs directory layout and contribution protocols."
