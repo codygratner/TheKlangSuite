@@ -50,6 +50,7 @@
    - `TheKlangVault` is an independent Git repository housing the Mailbox, studio notes, and Pydantic data models.
    - Obsidian App ignores (search, graph, quick switcher) are defined in `TheKlangVault/.obsidian/app.json` (`userIgnoreFilters`).
    - Obsidian Sync natively ignores all dotfiles (`.git/`, `.gitignore`, `.venv/`, `.agents/`). Never place raw Python tools directly in root notes; keep scripts in `tools/` and excluded from sync.
+   - **Automated Agent Ownership**: Agents permanently own and proactively maintain both `TheKlangVault/.gitignore` and `.obsidian/app.json` whenever adding new directories, tools, or data caches. The user never needs to touch these manually.
 
 ---
 
