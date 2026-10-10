@@ -46,6 +46,10 @@
 4. **Synthesis Engine Invariants**:
    - Continuous `_slope` controls exist natively on all envelopes (`ampenv_slope`, `filterenv_slope`).
    - Hardware Target: dadamachines TBD-16 (ESP32-P4 @ 400MHz, PSRAM budget).
+5. **Obsidian Vault & Sync Guardrails**:
+   - `TheKlangVault` is an independent Git repository housing the Mailbox, studio notes, and Pydantic data models.
+   - Obsidian App ignores (search, graph, quick switcher) are defined in `TheKlangVault/.obsidian/app.json` (`userIgnoreFilters`).
+   - Obsidian Sync natively ignores all dotfiles (`.git/`, `.gitignore`, `.venv/`, `.agents/`). Never place raw Python tools directly in root notes; keep scripts in `tools/` and excluded from sync.
 
 ---
 
