@@ -51,11 +51,13 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Interactive Triage Views & Inbox Workflow](specs/nkai_interactive_triage_views_and_inbox_workflow.md) — Ongoing autopsy view, filterable scoreboard, 1-click cross-tab jump mechanics, and 'Check the Mail' vault inbox harvester.
   - [N'kai PCDA Dialectic Governance & SOTA Benchmarks](specs/nkai_pcda_governance_and_sota_benchmarks.md) — Continuous live triage contracts, 4-part PCDA dialectic standard, progressive disclosure, and SOTA competitive teardowns.
   - [N'kai Allowance Ledger & Token Governance](specs/nkai_allowance_ledger_and_token_governance.md) — Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics, cumulative allowance ledger, and offline CLI auditor.
+  - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
-## 🏛️ The Four-Pillar Ecosystem
+## 🏛️ The Five-Pillar Ecosystem
 
-The Klang ecosystem consists of four interconnected repositories:
+The Klang ecosystem consists of five interconnected repositories:
 - **The Klang Suite** (`c:\Dev\TheKlangSuite`): Polyphonic synthesizers and VST3 plugins.
 - **ToadTracker** (`c:\Dev\ToadTracker`): 16-step embedded hardware groovebox.
 - **N'kai** (`c:\Dev\nkai`): Asymmetric sidecar framework & interactive triage lab ([github.com/codygratner/nkai](https://github.com/codygratner/nkai)).
 - **The Klang Research** (`c:\Dev\Research`): Centralized research repository, exploratory canvases, and soul harvests ([github.com/codygratner/TheKlangResearch](https://github.com/codygratner/TheKlangResearch)).
+- **The Klang Vault** (`C:\Dev\TheKlangVault`): Private Studio Hub, raw thoughts mailbox, and Pydantic data pipelines.

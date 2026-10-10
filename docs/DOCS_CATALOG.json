@@ -71,6 +71,11 @@
           "path": "docs/specs/spinoffs/the_klang_r1.md",
           "title": "The Klang R1 (TKR-1) Spec",
           "purpose": "Specification for the 7-voice spin-off modular drum synthesizer and sequencer."
+        },
+        {
+          "path": "docs/architecture/the_klang_vault_studio_hub.md",
+          "title": "The Klang Vault: Private Studio Hub & Architecture",
+          "purpose": "Decoupling studio communications, raw thoughts, and Pydantic data pipelines from native audio code."
         }
       ]
     },

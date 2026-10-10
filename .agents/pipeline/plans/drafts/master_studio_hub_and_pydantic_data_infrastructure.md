@@ -157,14 +157,12 @@ class PresetPayload(BaseModel):
 - [ ] Update `.agents/skills/clean-plan/SKILL.md` to automatically invoke `plan_queue.py promote_next` upon archiving a completed plan.
 - [ ] Register `/rollback-plan` shortcut in Antigravity skill definitions.
 
-### Phase 2: The Klang Vault Private Studio Hub & Sync Hardening
-- [ ] Verify `C:\Dev\TheKlangVault\.gitignore` (protecting `.obsidian/workspace.json`, `.obsidian/cache/`, `.trash/`).
-- [ ] Commit initial baseline in `TheKlangVault` Git repository.
-- [ ] Author `docs/architecture/the_klang_vault_studio_hub.md` detailing the multi-repo separation:
-  - `TheKlangSuite`: Native C++ DSP & JUCE 9 factory.
-  - `TheKlangVault`: Private Studio Hub, Mailbox, and Pydantic data pipelines.
-  - `TheKlangResearch`: Public RFCs, DSP math, and subagent soul harvests.
-- [ ] Register sync safety rules in `docs/GLOSSARY.md` and `context_clues_subagent.md`.
+### Phase 2: The Klang Vault Private Studio Hub & Sync Hardening — ✅ COMPLETED
+- [x] Verify `C:\Dev\TheKlangVault\.gitignore` (protecting `.obsidian/workspace.json`, `.obsidian/cache/`, `.trash/`).
+- [x] Configure `C:\Dev\TheKlangVault\.obsidian\app.json` with `userIgnoreFilters` (excluding `.git/`, `tools/`, `*.py`, `*.pyc`).
+- [x] Initialize Git repository and commit initial baseline in `TheKlangVault` (`525f070`).
+- [x] Author `docs/architecture/the_klang_vault_studio_hub.md` detailing multi-repo separation.
+- [x] Register sync safety rules and automated agent ownership in `docs/GLOSSARY.md`, `context_clues_subagent.md`, `docs/CHEAT_SHEET.md`, `docs/DOCS_CATALOG.json`, and `docs/SYSTEM_MAP.md`.
 
 ### Phase 3: Global Pydantic Setup & Persistent Mailbag Session
 - [ ] Run `pip install pydantic` into global Python.
