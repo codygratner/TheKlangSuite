@@ -50,6 +50,12 @@
 * **`Wheels Up` 🚀**: Formally starting implementation on an approved flight plan (`STATUS: IN_PROGRESS`).
 * **`Touchdown` 🛬**: Passing all tests, verifying acceptance criteria, committing cleanly, and archiving.
 
+### Operatic Flight Stages (Acts & Flight Tiers)
+* **Act I: Ground Control & Taxiway (Early Flights)** 🛫: Queues, zonal READMEs, git hardening, environment provisioning.
+* **Act II: Ascent & Cruising Altitude (Main Flights)** ✈️: Operational data engines, Pydantic validation, linters, local APIs.
+* **Act III: High-Altitude Reconnaissance & Gauntlet (Late Flights)** 🛰️: Field guide decoupling, universal manifestos, soul harvests.
+* **Act IV: Final Approach & Touchdown (Pre-Release Capstone)** 🛬: Release verification gauntlet, catalog sync, SemVer tagging.
+
 ---
 
 ## 🛠️ Essential Slash Commands & Micro-Skills
@@ -99,3 +105,19 @@
 * **App Ignores**: Defined in `TheKlangVault/.obsidian/app.json` (`userIgnoreFilters` excludes `.git/`, `tools/`, `*.py`, `*.pyc`).
 * **Obsidian Sync Invariant**: Obsidian Sync natively ignores all dotfiles (`.git/`, `.gitignore`, `.venv/`, `.agents/`). Git will never trigger sync panic loops.
 * **Agent Ownership**: Agents automatically maintain `.gitignore` and `app.json` whenever creating tools or staging files.
+
+---
+
+## 🏗️ Architectural Zonal Boundaries (The 3-Zone Standard)
+
+* **Zone 1: Native Audio DSP (`Source/dsp/README.md`)**: Real-time safety, zero allocations in `processBlock()`, zero locks, zero blocking I/O, SIMD `FastMath`.
+* **Zone 2: Data Schemas & Assets (`assets/README.md`)**: 4-layer parameter separation (`controls/`, `layouts/`, `themes/`, `text/`), normalized ranges $[0.0, 1.0]$.
+* **Zone 3: Tooling Harness (`tools/README.md`)**: Dev scripts, sidecars, zero external runtime dependencies (Python standard library only, UTF-8 stdlib).
+* **Anti-Pattern Guard**: Strictly NO per-folder blackbox files. Follow the 3-Zone boundary to prevent README cemeteries and token bloat.
+
+---
+
+## 📜 Permanent Documentation Invariant
+
+* **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) in the exact same commit pass.
+

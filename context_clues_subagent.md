@@ -51,6 +51,13 @@
    - Obsidian App ignores (search, graph, quick switcher) are defined in `TheKlangVault/.obsidian/app.json` (`userIgnoreFilters`).
    - Obsidian Sync natively ignores all dotfiles (`.git/`, `.gitignore`, `.venv/`, `.agents/`). Never place raw Python tools directly in root notes; keep scripts in `tools/` and excluded from sync.
    - **Automated Agent Ownership**: Agents permanently own and proactively maintain both `TheKlangVault/.gitignore` and `.obsidian/app.json` whenever adding new directories, tools, or data caches. The user never needs to touch these manually.
+6. **The 3-Zone Architectural Standard**:
+   - Zone 1: `Source/dsp/README.md` (Audio thread invariants, zero allocations, FastMath, no locks).
+   - Zone 2: `assets/README.md` (4-layer data separation, APVTS contracts, $[0.0, 1.0]$ normalized ranges).
+   - Zone 3: `tools/README.md` (Tooling harness, zero-dependency Python stdlib, UTF-8 stdlib).
+   - Strict Anti-Pattern: Never scatter rogue blackboxes per subfolder; respect the 3-zone boundaries.
+7. **Permanent Documentation Invariant**:
+   - Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or guardrails change, agents MUST proactively update both `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md` in the exact same commit pass.
 
 ---
 
@@ -60,6 +67,7 @@
 - **Architectural Taxonomy & Glossary**: [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md)
   - *Cards* = UI containers, *Modules* = DSP units, *Sliders* = meter bars, *Knobs* = rotary controls.
   - Acronym Registry: `TKS` (Suite), `TKF` (Farmer), `TKP` (Planter), `TKM` (Mill), `TKB` (Box/Hardware), `TKR` (R1), `TKC` (Cultivator).
+- **Master Workflow & Architecture Cheat Sheet**: [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) (single-page developer reference card).
 - **Product Intent Matrix**: [`docs/architecture/product_lineup.md`](file:///c:/Dev/TheKlangSuite/docs/architecture/product_lineup.md) ("Stay in Your Lane" drift guardrail).
 - **Universal Project Backlog**: [`docs/BACKLOG.md`](file:///c:/Dev/TheKlangSuite/docs/BACKLOG.md)
 - **Active Technical Specs**:

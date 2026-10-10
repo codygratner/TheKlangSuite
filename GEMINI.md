@@ -72,6 +72,10 @@
   4. `assets/text/*.json`: Parameter descriptions, choice tooltips, and localized UI copy (`strings.json`).
 - **Architectural Taxonomy**: Adhere strictly to `docs/GLOSSARY.md` (*Cards* = UI containers, *Modules* = DSP units, *Sliders* = meter bars, *Knobs* = rotary controls). Consult the glossary on-demand whenever planning new features or resolving naming ambiguities.
 
+## Permanent Documentation Invariant (Glossary & Cheat Sheet Sync)
+- **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) in the exact same commit pass.
+- **The 3-Zone Architectural Standard**: Follow the 3-Zone README standard (`Source/dsp/README.md`, `assets/README.md`, `tools/README.md`). Never create rogue per-folder blackboxes.
+
 ## Strict Planning Guardrails
 - **No Spontaneous Implementation**: When planning commands (`/plan`, `/read-plan`, `/execute-task`) are invoked, NEVER automatically start writing C++ code, compiling, or modifying source files.
 - **Mandatory Confirmation**: Always stop, summarize the loaded plan, and explicitly ask the user for permission to begin implementation.

@@ -133,3 +133,39 @@ To replace confusing corporate Agile jargon (*Sprints*, *Epics*, *Story Points*)
 | **`Wheels Up`** 🚀 | Kickoff Execution | The formal transition of an approved Flight Plan into active factory implementation (`STATUS: IN_PROGRESS`). | Triggered by user saying "proceed" or running `/execute-task`. |
 | **`Touchdown`** 🛬 | Task Completion | Concluding an active flight plan, passing all acceptance tests, committing cleanly, and archiving the plan. | Executed via `/task-finish` or `task-finish` skill. |
 
+### The Operatic Flight-Stage Taxonomy (Acts & Flight Tiers)
+
+When complex, multi-milestone initiatives are blueprinted, flight plans are structured operatically into **Acts** divided into discrete **Scenes (Flights)** across four altitude stages:
+
+1. **Act I: Ground Control & Taxiway (Early Flights)** 🛫:
+   - Foundational runway preparation, multi-plan queues, zonal boundaries, git baseline setup, and environment verification.
+   - Clears the flight deck before any heavy code or data pipelines take off.
+2. **Act II: Ascent & Cruising Altitude (Main Flights)** ✈️:
+   - Core operational engines, Pydantic data pipelines, linters, and APIs running at full cruising altitude and speed.
+   - Heavy data lifting, real-time validations, and interactive triage workflows.
+3. **Act III: High-Altitude Reconnaissance & The Gauntlet (Late Flights)** 🛰️:
+   - Comprehensive cross-repo synchronization, field guide decoupling (Universal Vibe-Coding Manifesto vs. Real-Time C++ Audio DSP Bible), and subagent soul harvesting.
+   - Ensures zero institutional knowledge or architectural breakthroughs are lost across sessions.
+4. **Act IV: Final Approach & Touchdown (Pre-Release Capstone)** 🛬:
+   - Pre-release verification gauntlet, catalog registration, SemVer tagging, and test-drive docket review before formal deployment.
+
+---
+
+## 9. Architectural Zonal Boundaries (The 3-Zone README Standard)
+
+To eliminate token bloat, maintenance rot, and synchronization drift caused by placing blackbox files in every subfolder (the "README Cemetery" anti-pattern), The Klang Suite enforces the **3-Zone Architectural Standard**:
+
+| Zone | Primary Boundary | Directory Root | Core Invariants & Governance |
+| :--- | :--- | :--- | :--- |
+| **Zone 1: Native Audio DSP** | Audio Thread & DSP Engine | `Source/dsp/README.md` | Strict real-time safety: zero heap allocations in `processBlock()`, zero mutex locks, zero blocking I/O, SIMD `FastMath`, thread-safe SPSC ring buffers. |
+| **Zone 2: Data Schemas & Assets** | 4-Layer Parameter Contracts | `assets/README.md` | Strict data separation: `controls/` (APVTS bounds), `layouts/` (UI geometry), `themes/` (visuals), `text/` (strings). Normalized $[0.0, 1.0]$ ranges. |
+| **Zone 3: Tooling Harness** | Dev Scripts & Sidecars | `tools/README.md` | Tooling isolation: Zero external dependencies in Python scripts (standard library only, UTF-8 stdlib), Node CLI wrappers, and clean bridge servers. |
+
+---
+
+## 10. Permanent Documentation Invariant (Glossary & Cheat Sheet Sync)
+
+* **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) in the exact same commit pass.
+* **Secondary Directory Pointers**: Core directories point back to the centralized Glossary and Cheat Sheet rather than authoring rogue, fragmented dictionaries.
+
+

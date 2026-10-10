@@ -1,63 +1,80 @@
-# Implementation Plan: Multi-Plan Queue, Vault Studio Hub, Pydantic Infrastructure & TKPL
+# 🎭 The Grand Operatic Flight Plan: Symphony of New Klang City
+## Multi-Plan Queue, Vault Studio Hub, Pydantic Engines & Deep Docs Gauntlet
 
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Topic Target:** Multi-Plan Queue, Topic 6.11 (Mailbag & Studio Hub), Topic 6.16 (Data Persistence), TKPL & Local FastAPI Bridge  
-> **Status:** READY_FOR_EXECUTION (Awaiting Weekly Allowance Refresh Kickoff) ⏳  
+> **Dramatis Personae & Execution Fleet:** Tier 2 Flash Builder Subagent (via `subagent_dispatch.md`) + Tier 1 Pro On-Demand Math/Taxonomy Specialists  
+> **Status:** READY_FOR_EXECUTION (Awaiting Kickoff Confirmation) ⏳  
 > **Target Branch:** `0.4.0-dev`  
-> **Recommended Model:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Execution Strategy:** Delegated to Tier 2 Flash Builder Subagent via `subagent_dispatch.md` once weekly allowance refreshes  
+> **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
+> **Altitude & Stage:** 4 Operatic Acts across 16 Sequenced Flights (Early Flights $\to$ Main Flights $\to$ Late Flights $\to$ Touchdown)  
 
 ---
 
-## 🎯 Architectural Intent & PCDA Synthesis
-
-### The Core Vision
-This master implementation plan establishes an enterprise-grade, multi-repository tooling and data infrastructure for The Klang Suite ecosystem, solving five foundational needs:
-1. **The Multi-Plan Queue & Rollback Engine**: Implemented *first*, creating an automated, stateful queue (`.agents/pipeline/plans/queue.json`) and 0-token rollback mechanism so plans can be queued, tracked, and reverted safely without risk of accidental clobbering.
-2. **The Klang Vault as a Private Studio Hub**: Establishes `TheKlangVault` as an independent, private Git-tracked studio repository (`git init` + `.gitignore` protecting Obsidian sync cache) housing interoffice communication, raw mobile thoughts, and triage state away from the C++ audio factory.
-3. **Global Pydantic Data Infrastructure**: Leverages a global Python install (`pip install pydantic`) to eliminate virtualenv friction, providing runtime data validation, automatic JSON schema generation, and workplace-ready muscle memory.
-4. **TKPL (The Klang Preset Linter)**: A standalone Pydantic CLI validating `assets/presets/*.json` against APVTS parameter contracts and DSP ranges.
-5. **N'kai Local FastAPI Sidecar Bridge (`localhost:8000`)**: A high-performance, lightweight microservice bridge replacing the temporary loopback server with production-grade FastAPI endpoints and Pydantic request models.
-
----
-
-### PCDA Dialectic Breakdown
+## 🎼 The PCDA Dialectic Overture
 
 ```
-                    ┌──────────────────────────────────────────────┐
-                    │ THESIS (Pros)                                │
-                    │ - First-class Multi-Plan Queue management    │
-                    │ - C++ repo stays 100% pure audio code        │
-                    │ - Zero venv friction via global Pydantic     │
-                    │ - High-value workplace resume talking points │
-                    └──────────────────────┬───────────────────────┘
-                                           │
-                                           ▼
-                    ┌──────────────────────────────────────────────┐
-                    │ THESIS FRICTION (Cons)                       │
-                    │ - 3 new Pydantic touchpoints (Mail, TKPL, API)│
-                    │ - Multi-repo workspace context coordination  │
-                    └──────────────────────┬───────────────────────┘
-                                           │
-                                           ▼
-                    ┌──────────────────────────────────────────────┐
-                    │ ANTITHESIS (Devil's Advocate)                │
-                    │ - "Over-engineering the studio tooling"      │
-                    │ - Procrastinating on v0.4.0 C++ UI release   │
-                    └──────────────────────┬───────────────────────┘
-                                           │
-                                           ▼
-                    ┌──────────────────────────────────────────────┐
-                    │ SYNTHESIS (The 80/20 Resolution)             │
-                    │ - Build Multi-Plan Queue FIRST to govern all │
-                    │ - Global pip install pydantic (0 setup lag)  │
-                    │ - Clean separation: TKS (C++) vs TKV (Python)│
-                    └──────────────────────────────────────────────┘
+                    ┌────────────────────────────────────────────────────────┐
+                    │ THESIS [Pros] (Early Velocity & Structure)              │
+                    │ - Multi-Plan Queue prevents plan clobbering & loss     │
+                    │ - Zonal READMEs stop token bloat & README cemeteries   │
+                    │ - Global Pydantic eliminates virtualenv friction       │
+                    │ - Field guide decoupling establishes world-class docs  │
+                    │ - Workplace-relevant resume & technical talking points │
+                    └───────────────────────────┬────────────────────────────┘
+                                                │
+                                                ▼
+                    ┌────────────────────────────────────────────────────────┐
+                    │ THESIS FRICTION [Cons] (Surface Overhead)              │
+                    │ - Multi-repository choreography (TKS, TKV, TKR, NKAI)   │
+                    │ - 4 distinct new tooling touchpoints (Queue, Mail, API)│
+                    │ - 16 flights requiring disciplined execution           │
+                    └───────────────────────────┬────────────────────────────┘
+                                                │
+                                                ▼
+                    ┌────────────────────────────────────────────────────────┐
+                    │ ANTITHESIS [Devil's Advocate] (The Distraction Trap)   │
+                    │ - "Building infinite dev infrastructure instead of     │
+                    │   finishing the C++ synthesizer UI release"            │
+                    │ - Risk of tool-maintenance creep exhausting allowance  │
+                    └───────────────────────────┬────────────────────────────┘
+                                                │
+                                                ▼
+                    ┌────────────────────────────────────────────────────────┐
+                    │ SYNTHESIS [The 80/20 Operatic Resolution]              │
+                    │ - Plugin development is strictly "FOR ME" (zero rush)  │
+                    │ - Build the Multi-Plan Queue FIRST to govern the queue │
+                    │ - Standard library & global Pydantic (0 setup lag)     │
+                    │ - Decoupled Acts: execute flight-by-flight safely       │
+                    └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📑 Data Contracts & Schemas
+## 🏛️ The Operatic Flight-Stage Architecture
+
+```
+  ┌─────────────────────────────────────────────────────────────────────────────────────────┐
+  │                                    FLIGHT ALTITUDE MAP                                  │
+  ├─────────────────────────────────────────────────────────────────────────────────────────┤
+  │                                                                                         │
+  │   ACT I: Ground Control & Taxiway (Early Flights 1-4)                                   │
+  │   [Queue Engine] ──> [Vault Git Sync] ──> [Zonal READMEs] ──> [Global Pydantic]        │
+  │                                                                                         │
+  │   ACT II: Ascent & Cruising Altitude (Main Flights 5-8)                                 │
+  │   [Mailbag Pydantic] ──> [TKPL Preset Linter] ──> [FastAPI Bridge] ──> [Context Box]   │
+  │                                                                                         │
+  │   ACT III: High-Altitude Reconnaissance & Gauntlet (Late Flights 9-13)                  │
+  │   [Field Guides Decoupled] ──> [Anti-Slop Manifesto] ──> [Cheat Sheet] ──> [Vault Sync] │
+  │                                                                                         │
+  │   ACT IV: Final Approach & Touchdown (Capstone Flights 14-16)                           │
+  │   [System Map Refresh] ──> [Acceptance Gauntlet] ──> [Wheels Down / Tag v0.4.0]         │
+  │                                                                                         │
+  └─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📜 Contractual Data Schemas
 
 ### 1. Multi-Plan Queue Schema (`.agents/pipeline/plans/queue.json`)
 ```json
@@ -70,28 +87,19 @@ This master implementation plan establishes an enterprise-grade, multi-repositor
   "queue": [
     {
       "id": "plan-001",
-      "title": "Multi-Plan Queue, Vault Studio Hub & Pydantic Infrastructure",
+      "title": "Grand Operatic Flight Plan: Symphony of New Klang City",
       "plan_file": "PLAN.md",
       "target": "TOOLING_HARNESS",
       "status": "IN_PROGRESS",
       "priority": "P0",
       "created_at": "2026-10-10T18:00:00Z"
-    },
-    {
-      "id": "plan-002",
-      "title": "Post-Milestone Deep Docs & Field Guides Separation Gauntlet",
-      "plan_file": ".agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md",
-      "target": "TOOLING_HARNESS",
-      "status": "QUEUED",
-      "priority": "P1",
-      "created_at": "2026-10-09T18:00:00Z"
     }
   ],
   "history": []
 }
 ```
 
-### 2. Pydantic Mail Queue Model (`mail_queue.json`)
+### 2. Pydantic Mail Queue Model (`TheKlangVault/tools/models.py`)
 ```python
 from enum import Enum
 from pydantic import BaseModel, Field
@@ -146,48 +154,66 @@ class PresetPayload(BaseModel):
 
 ---
 
-## 📋 Phase-by-Phase Execution Plan
+## 🎭 The Libretto: Operatic Phase-by-Phase Flight Itinerary
 
-### Phase 1: Persistent Multi-Plan Queue & Plan Rollback Engine
-- [ ] Initialize `.agents/pipeline/plans/queue.json` with active plan tracking schema.
-- [ ] Implement `tools/plan_queue.py` (and mirror to `nkai`):
+### 🛫 ACT I: GROUND CONTROL & TAXIWAY (Early Flights / Pre-Flight Infrastructure)
+
+#### Scene 1 (Flight 1): The Multi-Plan Queue & Rollback Engine
+- [ ] Author `.agents/pipeline/plans/queue.json` initialized with active plan pointer schema.
+- [ ] Author `tools/plan_queue.py` (and mirror to `nkai/tools/`):
   - `add_plan(plan_path, priority, target)`: Appends draft plan to `queue.json`.
   - `promote_next()`: Snapshots active `PLAN.md` to `.agents/pipeline/plans/snapshots/PLAN_PREV.md`, promotes next queued draft to root `PLAN.md`, and advances execution pointer.
   - `rollback()`: Restores `.agents/pipeline/plans/snapshots/PLAN_PREV.md` to `PLAN.md` in 5ms with zero token burn.
 - [ ] Update `.agents/skills/clean-plan/SKILL.md` to automatically invoke `plan_queue.py promote_next` upon archiving a completed plan.
 - [ ] Register `/rollback-plan` shortcut in Antigravity skill definitions.
 
-### Phase 2: The Klang Vault Private Studio Hub & Sync Hardening — ✅ COMPLETED
+#### Scene 2 (Flight 2): The Klang Vault Private Studio Hub & Sync Hardening — ✅ COMPLETED
 - [x] Verify `C:\Dev\TheKlangVault\.gitignore` (protecting `.obsidian/workspace.json`, `.obsidian/cache/`, `.trash/`).
 - [x] Configure `C:\Dev\TheKlangVault\.obsidian\app.json` with `userIgnoreFilters` (excluding `.git/`, `tools/`, `*.py`, `*.pyc`).
 - [x] Initialize Git repository and commit initial baseline in `TheKlangVault` (`525f070`).
 - [x] Author `docs/architecture/the_klang_vault_studio_hub.md` detailing multi-repo separation.
 - [x] Register sync safety rules and automated agent ownership in `docs/GLOSSARY.md`, `context_clues_subagent.md`, `docs/CHEAT_SHEET.md`, `docs/DOCS_CATALOG.json`, and `docs/SYSTEM_MAP.md`.
 
-### Phase 3: Global Pydantic Setup & Persistent Mailbag Session
-- [ ] Run `pip install pydantic` into global Python.
-- [ ] Author `TheKlangVault/tools/models.py` (or `tools/mail_models.py`):
-  - Defines `MailItem`, `MailQueue`, `TriageStatus`, and `TransactionReceipt`.
-- [ ] Refactor `tools/check_mail.py` to use Pydantic for validation and serialization:
-  - Enforce reverse-chronological sorting for `P0` notes.
-  - Generate `.agents/pipeline/mailbag/mail_queue.json` ledger.
-  - Implement atomic transaction receipts (`.agents/pipeline/staging/mail_tx_latest.json`) and `--rollback`.
+#### Scene 3 (Flight 3): The Architectural Zonal Boundary Standard (The 3-Zone READMEs)
+- [ ] Author `Source/dsp/README.md` (Zone 1: Native Audio DSP):
+  - Real-time audio thread invariants, zero allocations in `processBlock()`, zero locks, zero blocking I/O, SIMD `FastMath`, thread-safe lock-free SPSC ring buffers.
+- [ ] Author `assets/README.md` (Zone 2: Data Schemas & Assets):
+  - 4-layer parameter separation of concerns (`controls/`, `layouts/`, `themes/`, `text/`), normalized ranges $[0.0, 1.0]$, APVTS parameter contracts.
+- [ ] Author `tools/README.md` (Zone 3: Tooling Harness):
+  - Tooling isolation: Zero external dependencies in Python scripts (standard library only, UTF-8 stdlib), Node CLI wrappers, and clean bridge servers.
+- [ ] Codify the anti-pattern prohibition against scattering rogue per-folder blackboxes.
+
+#### Scene 4 (Flight 4): Global Pydantic Environment Provisioning
+- [ ] Execute `pip install pydantic` in global Python.
+- [ ] Verify global installation: `python -c "import pydantic; print(pydantic.__version__)"`.
+- [ ] Validate zero-venv execution from both `TheKlangSuite` and `TheKlangVault` command lines.
+
+---
+
+### ✈️ ACT II: ASCENT & CRUISING ALTITUDE (Main Flights / Core Engine & Triage)
+
+#### Scene 1 (Flight 5): Persistent Mailbag Session & Pydantic Validation
+- [ ] Author `TheKlangVault/tools/models.py`:
+  - Implements `MailItem`, `MailQueue`, `TriageStatus`, `PriorityLevel`, and `TransactionReceipt`.
+- [ ] Refactor `tools/check_mail.py` to use Pydantic models for validation and serialization:
+  - Enforces reverse-chronological sorting for `P0` notes.
+  - Generates `.agents/pipeline/mailbag/mail_queue.json` ledger.
+  - Implements atomic transaction receipts (`.agents/pipeline/staging/mail_tx_latest.json`) and `--rollback`.
 - [ ] Update `morning_mail_inbox.html` with topological warning suggestion chips for dependent `P0` notes.
 
-### Phase 4: TKPL — The Klang Preset Linter CLI
-- [ ] Run `pip install pydantic` verification.
+#### Scene 2 (Flight 6): TKPL — The Klang Preset Linter CLI
 - [ ] Author `tools/preset_audit.py` (TKPL):
-  - Validates all JSON files in `assets/presets/` against `PresetPayload` model.
-  - Validates that parameter IDs exist in `assets/controls/master_control_schema.json`.
+  - Validates all JSON files in `assets/presets/` against `PresetPayload` Pydantic model.
+  - Validates parameter IDs exist in `assets/controls/master_control_schema.json`.
   - Asserts normalized parameter floats reside strictly in $[0.0, 1.0]$.
   - CLI commands: `--lint`, `--fix-metadata`, `--export-schema`.
 - [ ] Generate `assets/presets/$schema/preset.schema.json` via Pydantic `.model_json_schema()`.
 
-### Phase 5: N'kai Local FastAPI Sidecar Bridge (`localhost:8000`)
-- [ ] Run `pip install fastapi uvicorn` into global Python.
+#### Scene 3 (Flight 7): N'kai Local FastAPI Sidecar Bridge (`localhost:8000`)
+- [ ] Install FastAPI globally: `pip install fastapi uvicorn`.
 - [ ] Author `tools/nkai_api.py`:
-  - 80-line lightweight FastAPI server running locally on `http://127.0.0.1:8000`.
-  - Pydantic endpoints:
+  - Clean, lightweight FastAPI server running locally on `http://127.0.0.1:8000`.
+  - Endpoints:
     - `GET /health`: Returns bridge status and active workspace.
     - `GET /api/mail`: Returns validated `MailQueue`.
     - `POST /api/action`: Dispatches validated `TriageAction` (`backlog`, `research`, `graveyard`, `pcda`).
@@ -195,33 +221,98 @@ class PresetPayload(BaseModel):
 - [ ] Add CORS headers allowing requests from `file:///` and `http://localhost:*`.
 - [ ] Update N'kai sidecars to detect `:8000` FastAPI bridge with zero-latency HTTP responses.
 
-### Phase 6: Rolling Blackbox Context Compaction & Institutional Memory (Topic #7)
+#### Scene 4 (Flight 8): Rolling Blackbox Context Compaction & Institutional Memory (Topic #7)
 - [ ] Formalize Context Compaction Tripwires in `GEMINI.md`:
   - Enforce automated `/refresh-context` when active chat transcript approaches compaction thresholds.
   - Automate updating `context_clues_subagent.md` and `docs/history/DEV_HISTORY.md` before compacting.
 
-### Phase 7: Catalog Registration & Verification Gauntlet
-- [ ] Register new specs in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-- [ ] Run `python tools/preset_audit.py --lint`.
-- [ ] Run `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`.
-- [ ] Run `python tools/verify_context_clues.py`.
-- [ ] Commit all changes cleanly with conventional commits.
+---
+
+### 🛰️ ACT III: HIGH-ALTITUDE RECONNAISSANCE & THE GAUNTLET (Late Flights / Deep Docs)
+
+#### Scene 1 (Flight 9): Field Guide Separation of Concerns (Universal vs. Audio DSP)
+- [ ] **`TheKlangResearch/guides/vibe_coding_field_guide.md` (Universal Vibe-Coding Manifesto)**:
+  - Strip out audio-specific C++ parameter blocks, JUCE audio thread invariants, and sample-rate math.
+  - Generalize into a 100% stack-agnostic manual for autonomous AI pair-programming (Python, Rust, TypeScript, C++, web, embedded).
+  - Emphasize: Dual-Chat division of labor (Ivory Tower vs Factory Floor), Model Tier economics, Asymmetric Sidecar Split, Tri-Engine subagent swarms (`explore`, `contrarian`, `research`), Strategy Graveyards, Negative Architecture, and bounded sprints vs runaway loops.
+- [ ] **`TheKlangResearch/guides/audio_dsp_field_guide.md` (Real-Time C++ & Audio DSP Bible)**:
+  - Elevate from current stub into comprehensive, definitive manual for modern AI-assisted audio development.
+  - Ingest all audio invariants: Zero allocations in `processBlock`, zero locks, zero blocking I/O, lock-free SPSC FIFOs, atomics for audio-to-UI telemetry.
+  - Document SIMD `FastMath` Padé approximations, rational polynomial waveshapers, and cycle budgets.
+  - Ingest filter topologies (SVF, ZDF, Ladder, Comb/Karplus-Strong) and anti-aliasing protocols (PolyBLEP, Half-Band FIR/IIR upsampling, MIP-mapped wavetables).
+  - Codify modern C++20 standards for audio (RAII, zero raw ownership, JUCE 9.0.3 timer hygiene).
+  - Document headless testing harness patterns (`dsp_tests`, `gui_tests`, dynamic reflection, `pluginval`).
+- [ ] **Local Pointers Synchronization**:
+  - Update `c:\Dev\TheKlangSuite\docs\history\vibe_coding_field_guide.md` and `audio_dsp_field_guide.md` to reflect updated domain split.
+
+#### Scene 2 (Flight 10): The "Anti-Slop" Vibe-Coding Executive Summary (2-to-3 Minute Whitepaper)
+- [ ] **Author `TheKlangResearch/guides/anti_slop_vibe_coding_manifesto.md`**:
+  - **Reading Time Target**: 2 to 3 minutes (~600 words, high-density, punchy, practical).
+  - **Target Audience**: Professional software engineers and SQA practitioners skeptical of AI code generation and frustrated by "AI slop", hallucinations, broken whitespace, and silent regressions.
+  - **Strict Tone & Style Invariant (ZERO INTERNAL LORE & ZERO PRODUCT NAMES)**:
+    - **100% Zero-Lore & Zero-Product Mandate**: Strictly ZERO references to project mythology, Mayor Toad, fictional factions, inside jokes, or creative worldbuilding. Furthermore, strictly ZERO mentions of specific proprietary product names (no *The Klang Farmer*, *The Klang Planter*, *The Klang Suite*, *ToadTracker*, *N'kai*, or author names).
+    - **"Process, Not Products"**: Objective, stack-agnostic software engineering methodology whitepaper.
+    - **Professional Industry Standards**: Written strictly in industry-standard software engineering and SQA terminology (sandboxing, bounded context, static analysis, invariant assertions, deterministic verification gauntlets, AST codemods).
+  - **Core Controls Highlighted**:
+    1. Context Shield & Flash/Pro Subagent Slicing.
+    2. Strict Domain Division & Facility Gates.
+    3. Granular Blueprinting (Pro Plans, Flash Builds).
+    4. Strict Architectural Invariants & Automated Auditing (`audiothread-guard`).
+    5. The Boy Scout Rule & Ruthless Deletion.
+    6. PCDA & The Adversarial Contrarian.
+    7. Deterministic Test Gauntlets.
+  - Index link in `TheKlangResearch/README.md` and `TheKlangVault/Research/Master_Research_Index.md`.
+
+#### Scene 3 (Flight 11): Evergreen Workflow Cheat Sheet & Tri-State Model Advisory
+- [ ] **Author `c:\Dev\TheKlangSuite\docs\WORKFLOW_CHEAT_SHEET.md`**:
+  - Concise, 1-page high-density reference sheet for human developers.
+  - Facility Spheres, Model Tiers, Subagent Swarm roles, Communiqué flow, 5-Phase standard, N'kai CLI reference.
+- [ ] **Update `GEMINI.md` ("Strict Model Advisory Protocol & Anti-Spam Gate")**:
+  - Implement **Tri-State Model Advisory Architecture**:
+    - **State 0 (95% Happy Path)**: Permanent Flash 3.8 High orchestrator daily driver. Routine turns, phase advances, and plan kickoffs run without multi-line advisory blocks, displaying only an ambient single-line footer badge (`[ ⚡ Engine: Flash High | Pro Subagents on Demand ]`).
+    - **State 1 (Internal Guardrail - No Direct DSP)**: Flash orchestrator is strictly forbidden from writing differential equations, non-linear saturation curves, SIMD DSP loops, or lock-free atomics directly in-session; it MUST delegate Tier 1 math tasks to `invoke_subagent(Model="pro")`.
+    - **State 2 (Emergency Tripwire)**: A loud blocking advisory banner and hard-pause in chat text is strictly reserved for true emergency escalations: 2-Strike Factory Build Failures, Milestone Capstone Sanity Gates, and Release Gauntlets (`/cut-release`).
+  - Delete legacy 5-minute downgrade timer rules.
+  - Synchronize across documentation catalogs and cheat sheets.
+
+#### Scene 4 (Flight 12): Subagent Soul Harvest & Autopsy Ingestion
+- [ ] Sweep `.agents/pipeline/staging/souls/` for any new staged soul harvests.
+- [ ] Verify `TheKlangResearch/qa_autopsies/` contains all verified post-mortems.
+- [ ] Reset `.agents/pipeline/communique/subagent_receipt.md` to `STATUS: IDLE`.
+
+#### Scene 5 (Flight 13): Five-Pillar Hyperlink Integrity Gauntlet & Central Vault Recompilation
+- [ ] Programmatic verification across all markdown documents in `TheKlangSuite`, `ToadTracker`, `nkai`, `TheKlangResearch`, and `TheKlangVault`.
+- [ ] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1`.
+- [ ] Verify `TheKlangVault/Research/Master_Research_Index.md` compiles cleanly with 0 errors.
 
 ---
 
-## 🧪 Verification & Acceptance Gauntlet
+### 🛬 ACT IV: FINAL APPROACH & TOUCHDOWN (Pre-Release Capstone)
 
-1. **Multi-Plan Queue Test**:
-   - Queue a test plan `tools/plan_queue.py add-plan test.md`.
-   - Promote next plan and verify `PLAN.md` updates.
-   - Run `tools/plan_queue.py rollback` and assert original `PLAN.md` is restored in 5ms.
-2. **Pydantic Validation Test**:
-   - Inject an invalid field or type into `mail_queue.json`.
-   - Run `python tools/check_mail.py`.
-   - Assert Pydantic catches and logs a structured `ValidationError`.
-3. **TKPL Preset Linting Test**:
-   - Run `python tools/preset_audit.py --lint`.
-   - Assert all factory presets pass schema validation.
-4. **FastAPI Bridge Test**:
-   - Start `python tools/nkai_api.py` and test `GET http://127.0.0.1:8000/health`.
-   - Assert HTTP 200 with valid JSON response.
+#### Scene 1 (Flight 14): Catalog Registration & Ecosystem System Map Synchronization
+- [ ] Register all new specs, guides, and tools in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+- [ ] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
+
+#### Scene 2 (Flight 15): The Full Acceptance Gauntlet
+- [ ] **Multi-Plan Queue Test**:
+  - Queue test plan via `python tools/plan_queue.py add-plan test.md`.
+  - Promote next plan and verify `PLAN.md` updates.
+  - Run `python tools/plan_queue.py rollback` and assert original `PLAN.md` is restored in 5ms.
+- [ ] **Pydantic Validation Test**:
+  - Inject invalid type into `mail_queue.json`.
+  - Run `python tools/check_mail.py`.
+  - Assert Pydantic logs structured `ValidationError`.
+- [ ] **TKPL Preset Linting Test**:
+  - Run `python tools/preset_audit.py --lint`.
+  - Assert all presets pass schema validation.
+- [ ] **FastAPI Bridge Test**:
+  - Start `python tools/nkai_api.py` and query `GET http://127.0.0.1:8000/health`.
+  - Assert HTTP 200 with valid JSON response.
+- [ ] **Context Clues Verification**:
+  - Run `python tools/verify_context_clues.py`.
+  - Assert 100% pass rate.
+
+#### Scene 3 (Flight 16): Grand Touchdown & v0.4.0 Test-Drive Docket Review
+- [ ] Commit all changes cleanly with conventional commits across affected repositories.
+- [ ] Push clean commits to `TheKlangResearch` and `TheKlangVault`.
+- [ ] Present comprehensive Operatic Touchdown report in chat with interactive test-drive docket.
