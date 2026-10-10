@@ -257,6 +257,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     archive_count = len(notes)
     total_count = docket_count + archive_count
 
+    archive_tab_title = "Vault Archive" if "archive" in str(inbox_dir).lower() else "Active Mailbox"
+    archive_tab_icon = "📦" if "archive" in str(inbox_dir).lower() else "📬"
+
     docket_json = json.dumps(docket_items, ensure_ascii=False)
     notes_json = json.dumps(notes, ensure_ascii=False)
 
@@ -988,7 +991,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         <span>🌟</span> Test-Drive Docket ({docket_count})
       </button>
       <button class="tab-compact" id="tab-btn-archive" onclick="switchView('archive')">
-        <span>📦</span> Vault Archive ({archive_count})
+        <span>{archive_tab_icon}</span> {archive_tab_title} ({archive_count})
       </button>
     </div>
 
@@ -1337,6 +1340,16 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(html_content, encoding="utf-8")
+
+    # Mirror to Antigravity Artifact directory for interactive IDE side-panel rendering
+    artifact_dir = Path(r"C:\Users\codyg\.gemini\antigravity\brain\9241988e-1227-466e-a0a5-446d61a69d77")
+    if artifact_dir.exists():
+        try:
+            artifact_file = artifact_dir / out_path.name
+            artifact_file.write_text(html_content, encoding="utf-8")
+        except Exception as e:
+            pass
+
     return out_path
 
 
