@@ -144,9 +144,9 @@
 - **On-Demand Deep Dive Research Prompter**: When the user requests external validation or clicks `[ 🔬 Research Pros & Cons Online ]`, the agent leverages pre-authorized web access to sweep developer forums, bug tracks, and upstream documentation, returning concrete industry citations.
 
 ## Multi-Repo SemVer Footer Tracking & Deep-Linked Roadmap
-- Chat responses during active research/planning sessions must include the SemVer status badge and the subagent badge on separate lines to avoid awkward word-wrapping:
-  `[ 🏷️ [TKS: v0.4.0-dev](file:///<artifactDir>/roadmap_sidecar.html#tks-v0.4.0) | [TT: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#tt-v0.1.0) | [NK: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#nk-v0.1.0) | [TKR: v0.1.0](https://github.com/codygratner/TheKlangResearch) ]`
-  `[ 🔬 Subagents: research (Pro) / explore (Flash) / contrarian (Advocate) ]`
+- Chat responses during active research/planning sessions must include the SemVer status badge and the subagent badge on separate lines without wrapping links in backticks (to allow clean clickable rendering and prevent mangled wrapping):
+  🏷️ [TKS: v0.4.0-dev](file:///<artifactDir>/roadmap_sidecar.html#tks-v0.4.0) · [TT: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#tt-v0.1.0) · [NK: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#nk-v0.1.0) · [TKR: v0.1.0](https://github.com/codygratner/TheKlangResearch)
+  🔬 `Subagents: research (Pro) / explore (Flash) / contrarian (Advocate)`
 
 ## The Centralized Research Hub (`TheKlangResearch`) & Hybrid 80/20 Standard
 - **The Four Pillars**:

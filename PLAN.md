@@ -6,7 +6,9 @@
 > **Status:** READY_FOR_EXECUTION (Awaiting Kickoff Confirmation) ⏳  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Altitude & Stage:** 4 Operatic Acts across 16 Sequenced Flights (Early Flights $\to$ Main Flights $\to$ Late Flights $\to$ Touchdown)  
+> **Altitude & Stage:** 4 Operatic Acts across 16 Flat Sequenced Flights (Early Flights $\to$ Main Flights $\to$ Late Flights $\to$ Touchdown)  
+> **Cognitive Model:** The Tasting Menu + Airport Departure Board (Sequential integers 1..16; ambient atmospheric altitude acts; 100% human cognitive offloading to AI)  
+> **Boundary Box:** Strict 1-Week Tooling Sprint (guaranteeing we return to pure C++ synthesizer DSP immediately upon touchdown)  
 
 ---
 
@@ -14,7 +16,8 @@
 
 ```
                     ┌────────────────────────────────────────────────────────┐
-                    │ THESIS [Pros] (Early Velocity & Structure)              │
+                    │ THESIS [Pros] (Total Human Cognitive Offloading)       │
+                    │ - AI manages the 16-step roadmap; human tastes sound   │
                     │ - Multi-Plan Queue prevents plan clobbering & loss     │
                     │ - Zonal READMEs stop token bloat & README cemeteries   │
                     │ - Global Pydantic eliminates virtualenv friction       │
@@ -27,7 +30,7 @@
                     │ THESIS FRICTION [Cons] (Surface Overhead)              │
                     │ - Multi-repository choreography (TKS, TKV, TKR, NKAI)   │
                     │ - 4 distinct new tooling touchpoints (Queue, Mail, API)│
-                    │ - 16 flights requiring disciplined execution           │
+                    │ - Upfront visual planning takes ~2 hours before build  │
                     └───────────────────────────┬────────────────────────────┘
                                                 │
                                                 ▼
@@ -35,16 +38,17 @@
                     │ ANTITHESIS [Devil's Advocate] (The Distraction Trap)   │
                     │ - "Building infinite dev infrastructure instead of     │
                     │   finishing the C++ synthesizer UI release"            │
-                    │ - Risk of tool-maintenance creep exhausting allowance  │
+                    │ - The 3-Month Framework Odyssey risk                   │
                     └───────────────────────────┬────────────────────────────┘
                                                 │
                                                 ▼
                     ┌────────────────────────────────────────────────────────┐
                     │ SYNTHESIS [The 80/20 Operatic Resolution]              │
+                    │ - Strict 1-Week Box: locked down upon Flight 16 landing│
                     │ - Plugin development is strictly "FOR ME" (zero rush)  │
-                    │ - Build the Multi-Plan Queue FIRST to govern the queue │
-                    │ - Standard library & global Pydantic (0 setup lag)     │
-                    │ - Decoupled Acts: execute flight-by-flight safely       │
+                    │ - Upfront N'kai planning kills the non-linear trap     │
+                    │ - Stateless Atomic Rollbacks provide 5ms reversibility │
+                    │ - Event-driven glossary sync (only on terminology shift)│
                     └────────────────────────────────────────────────────────┘
 ```
 
@@ -57,16 +61,16 @@
   │                                    FLIGHT ALTITUDE MAP                                  │
   ├─────────────────────────────────────────────────────────────────────────────────────────┤
   │                                                                                         │
-  │   ACT I: Ground Control & Taxiway (Early Flights 1-4)                                   │
+  │   ACT I: Ground Control & Taxiway (Early Flights 1–4)                                   │
   │   [Queue Engine] ──> [Vault Git Sync] ──> [Zonal READMEs] ──> [Global Pydantic]        │
   │                                                                                         │
-  │   ACT II: Ascent & Cruising Altitude (Main Flights 5-8)                                 │
+  │   ACT II: Ascent & Cruising Altitude (Main Flights 5–8)                                 │
   │   [Mailbag Pydantic] ──> [TKPL Preset Linter] ──> [FastAPI Bridge] ──> [Context Box]   │
   │                                                                                         │
-  │   ACT III: High-Altitude Reconnaissance & Gauntlet (Late Flights 9-13)                  │
+  │   ACT III: High-Altitude Reconnaissance & Gauntlet (Late Flights 9–13)                  │
   │   [Field Guides Decoupled] ──> [Anti-Slop Manifesto] ──> [Cheat Sheet] ──> [Vault Sync] │
   │                                                                                         │
-  │   ACT IV: Final Approach & Touchdown (Capstone Flights 14-16)                           │
+  │   ACT IV: Final Approach & Touchdown (Capstone Flights 14–16)                           │
   │   [System Map Refresh] ──> [Acceptance Gauntlet] ──> [Wheels Down / Tag v0.4.0]         │
   │                                                                                         │
   └─────────────────────────────────────────────────────────────────────────────────────────┘
@@ -158,7 +162,7 @@ class PresetPayload(BaseModel):
 
 ### 🛫 ACT I: GROUND CONTROL & TAXIWAY (Early Flights / Pre-Flight Infrastructure)
 
-#### Scene 1 (Flight 1): The Multi-Plan Queue & Rollback Engine
+#### Scene 1 (Flight 1): The Multi-Plan Queue & Stateless Atomic Rollback Engine
 - [ ] Author `.agents/pipeline/plans/queue.json` initialized with active plan pointer schema.
 - [ ] Author `tools/plan_queue.py` (and mirror to `nkai/tools/`):
   - `add_plan(plan_path, priority, target)`: Appends draft plan to `queue.json`.
@@ -265,8 +269,10 @@ class PresetPayload(BaseModel):
 
 #### Scene 3 (Flight 11): Evergreen Workflow Cheat Sheet & Tri-State Model Advisory
 - [ ] **Author `c:\Dev\TheKlangSuite\docs\WORKFLOW_CHEAT_SHEET.md`**:
+  - Distill staged soul harvest `.agents/pipeline/staging/souls/2026-10-10_soul_operatic_flights_pcda.md`.
   - Concise, 1-page high-density reference sheet for human developers.
   - Facility Spheres, Model Tiers, Subagent Swarm roles, Communiqué flow, 5-Phase standard, N'kai CLI reference.
+  - Codify the **Event-Driven Glossary Invariant**: `GLOSSARY.md` and `CHEAT_SHEET.md` are updated *only* upon explicit terminology or workflow shifts, never on routine commits.
 - [ ] **Update `GEMINI.md` ("Strict Model Advisory Protocol & Anti-Spam Gate")**:
   - Implement **Tri-State Model Advisory Architecture**:
     - **State 0 (95% Happy Path)**: Permanent Flash 3.8 High orchestrator daily driver. Routine turns, phase advances, and plan kickoffs run without multi-line advisory blocks, displaying only an ambient single-line footer badge (`[ ⚡ Engine: Flash High | Pro Subagents on Demand ]`).
@@ -276,7 +282,7 @@ class PresetPayload(BaseModel):
   - Synchronize across documentation catalogs and cheat sheets.
 
 #### Scene 4 (Flight 12): Subagent Soul Harvest & Autopsy Ingestion
-- [ ] Sweep `.agents/pipeline/staging/souls/` for any new staged soul harvests.
+- [ ] Ingest `.agents/pipeline/staging/souls/2026-10-10_soul_operatic_flights_pcda.md` into `TheKlangResearch/subagents/`.
 - [ ] Verify `TheKlangResearch/qa_autopsies/` contains all verified post-mortems.
 - [ ] Reset `.agents/pipeline/communique/subagent_receipt.md` to `STATUS: IDLE`.
 
