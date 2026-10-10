@@ -101,3 +101,16 @@ To prevent identity collisions across codebases, logging tags (`TKS_LOG`), asset
 > 2. **Cons [Thesis Friction]**: Known drawbacks, implementation effort, and direct costs.
 > 3. **Devil's Advocate [Antithesis]**: Structural failure modes, hidden maintenance debts, and historical production disasters.
 > 4. **The 80/20 Resolution [Synthesis]**: The recommended pragmatic architecture extracting maximum value with minimum complexity.
+
+---
+
+## 7. Note Triage, Workflows & Queue Management (The Mailbox vs. The Mailbag)
+
+| Term | Domain | Definition & Purpose | The Klang Suite Implementation |
+| :--- | :--- | :--- | :--- |
+| **`Mailbox`** 📮 | Physical Storage | The physical Obsidian directory where raw, unorganized quick notes are dumped from mobile or desktop. | `TheKlangVault/Inbox/` (and archived to `TheKlangVault/Inbox/Archive/`). |
+| **`Mailbag`** 🎒 | Interactive Session | The persistent N'kai interactive triage session board and historical ledger. | `morning_mail_inbox.html` & `.agents/pipeline/mailbag/mail_queue.json`. |
+| **`Persistent Mailbag Queue`** | Session Ledger | A decoupled state ledger tracking note triage statuses, priority levels, and metadata independently of physical file movements. | `.agents/pipeline/mailbag/mail_queue.json`, ensuring archiving in Obsidian does not wipe active sidecar state. |
+| **`Topological Rejigger Intercept`** | Dependency Gate | Dynamic dependency-checking logic that flags when a high-priority (`P0`) note depends on an unbuilt prerequisite. | Suggestion chip rendered on Mailbag cards: `[ 🔄 Slot into Topological Order ]` vs `[ ⚡ Keep at Top ]`. |
+| **`Plans Queue`** | Agent Orchestration | A persistent queue managing multi-plan staging, execution sequences, and active execution pointer. | `.agents/pipeline/plans/queue.json`, coordinating plan transitions from `drafts/` to root `PLAN.md` to `completed/`. |
+| **`Stateless Atomic Rollback`** | Fault Recovery | A multi-tier rollback mechanism restoring previous states via immutable pre-transaction receipts. | Implemented in `check_mail.py --rollback`, `audit_reorder.py --rollback`, and `clean-plan --rollback`. |
