@@ -55,6 +55,13 @@ If `PLAN.md` exists at the project root:
      powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1 -ArchiveNotes "<note_name>"
      ```
 
+3. **Promote Next Queued Plan (Optional / Pipeline Next):**
+   - If a multi-plan queue is active in `.agents/pipeline/plans/queue.json`, the user or agent can automatically advance the queue to promote the next queued draft into `PLAN.md`:
+     ```powershell
+     python tools/plan_queue.py promote-next
+     ```
+   - This snapshots `PLAN.md` to `.agents/pipeline/plans/snapshots/PLAN_PREV.md`, advances the execution pointer in `queue.json`, and loads the next blueprint into root `PLAN.md`.
+
 ### 4. Output Cleanliness Report
 Display a concise summary:
 

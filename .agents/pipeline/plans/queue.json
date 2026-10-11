@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "active_plan": "PLAN.md",
+  "active_target": "TOOLING_HARNESS",
+  "execution_pointer": 0,
+  "queue": [
+    {
+      "id": "plan-001",
+      "title": "The Grand Operatic Flight Plan: Symphony of New Klang City",
+      "plan_file": "PLAN.md",
+      "target": "TOOLING_HARNESS",
+      "status": "IN_PROGRESS",
+      "priority": "P0",
+      "created_at": "2026-10-10T18:00:00Z"
+    },
+    {
+      "id": "plan-002",
+      "title": "Mayor Toad's Sidecar Embezzlement: N'kai v0.2.0 Native Extension & v0.3.0 Mobile Companion",
+      "plan_file": ".agents/pipeline/plans/drafts/nkai_v020_ui_extension_heist.md",
+      "target": "TOOLING_HARNESS",
+      "status": "QUEUED",
+      "priority": "P1",
+      "created_at": "2026-10-10T19:00:00Z"
+    },
+    {
+      "id": "plan-003",
+      "title": "Milestone v0.4.1: The Complete Control Surface & UI Shells",
+      "plan_file": ".agents/pipeline/plans/drafts/2026-10-08_v041_ui_shells.md",
+      "target": "FACTORY_FLOOR",
+      "status": "QUEUED",
+      "priority": "P2",
+      "created_at": "2026-10-08T14:00:00Z"
+    },
+    {
+      "id": "plan-004",
+      "title": "Milestone v0.5.0: The Klang Hub & UI Architecture Overhaul",
+      "plan_file": ".agents/pipeline/plans/drafts/v0.5.0_visual_harness_architecture.md",
+      "target": "FACTORY_FLOOR",
+      "status": "QUEUED",
+      "priority": "P3",
+      "created_at": "2026-10-08T07:00:00Z"
+    }
+  ],
+  "history": [
+    {
+      "timestamp": "2026-10-11T01:15:16Z",
+      "action": "promote_next",
+      "from_id": "plan-001",
+      "to_id": "plan-002",
+      "title": "Mayor Toad's Sidecar Embezzlement: N'kai v0.2.0 Native Extension & v0.3.0 Mobile Companion",
+      "target": "TOOLING_HARNESS"
+    },
+    {
+      "timestamp": "2026-10-11T01:15:30Z",
+      "action": "rollback",
+      "from_id": "plan-002",
+      "to_id": "plan-001",
+      "title": "The Grand Operatic Flight Plan: Symphony of New Klang City"
+    }
+  ]
+}

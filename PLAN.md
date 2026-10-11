@@ -162,14 +162,14 @@ class PresetPayload(BaseModel):
 
 ### 🛫 ACT I: GROUND CONTROL & TAXIWAY (Early Flights / Pre-Flight Infrastructure)
 
-#### Scene 1 (Flight 1): The Multi-Plan Queue & Stateless Atomic Rollback Engine
-- [ ] Author `.agents/pipeline/plans/queue.json` initialized with active plan pointer schema.
-- [ ] Author `tools/plan_queue.py` (and mirror to `nkai/tools/`):
+#### Scene 1 (Flight 1): The Multi-Plan Queue & Stateless Atomic Rollback Engine — ✅ COMPLETED
+- [x] Author `.agents/pipeline/plans/queue.json` initialized with active plan pointer schema.
+- [x] Author `tools/plan_queue.py` (and mirror to `nkai/tools/`):
   - `add_plan(plan_path, priority, target)`: Appends draft plan to `queue.json`.
   - `promote_next()`: Snapshots active `PLAN.md` to `.agents/pipeline/plans/snapshots/PLAN_PREV.md`, promotes next queued draft to root `PLAN.md`, and advances execution pointer.
   - `rollback()`: Restores `.agents/pipeline/plans/snapshots/PLAN_PREV.md` to `PLAN.md` in 5ms with zero token burn.
-- [ ] Update `.agents/skills/clean-plan/SKILL.md` to automatically invoke `plan_queue.py promote_next` upon archiving a completed plan.
-- [ ] Register `/rollback-plan` shortcut in Antigravity skill definitions.
+- [x] Update `.agents/skills/clean-plan/SKILL.md` to automatically invoke `plan_queue.py promote_next` upon archiving a completed plan.
+- [x] Register `/rollback-plan` shortcut in Antigravity skill definitions.
 
 #### Scene 2 (Flight 2): The Klang Vault Private Studio Hub & Sync Hardening — ✅ COMPLETED
 - [x] Verify `C:\Dev\TheKlangVault\.gitignore` (protecting `.obsidian/workspace.json`, `.obsidian/cache/`, `.trash/`).
