@@ -5,8 +5,16 @@
   "notes": "Structural overlay for the mailbag. Each card absorbs raw notes listed in `sources` (matched by item id, then title). Live triage state stays in mail_queue.json; `status` here is the initial state only. Raw notes not referenced by any card render as unsorted cards after the ranked list.",
   "cards": [
     {
-      "id": "rj-01", "rank": 1, "priority": "P0", "status": "PENDING", "tier": "tier3",
-      "pillars": ["NK", "AGY", "TKS"],
+      "id": "rj-01",
+      "rank": 1,
+      "priority": "P0",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "NK",
+        "AGY",
+        "TKS"
+      ],
       "title": "Confirm-to-Close: 14 notes already shipped",
       "summary": "One-click inbox reduction. Each note below is already answered by shipped work or an existing doc; approve to close all 14 at once, or pull any one back out.",
       "angles": [
@@ -25,242 +33,793 @@
         "2026-10-09 Morning Mail Batch Docket -> superseded by this rejigger"
       ],
       "next_action": "Approve to mark all 14 COMPLETED.",
-      "sources": ["Pydantic", "Planter Rebuild", "Pros And Cons", "Deep Research Subagents", "Deep Research", "Nkai", "Research and Field Guides", "Vibe-Coding Journey", "backlog formatting", "Inbox archive", "Micro and Macro Skills", "next paste", "The Klang Suite", "2026-10-09_Morning_Mail_Batch_Docket"]
+      "sources": [
+        "Pydantic",
+        "Planter Rebuild",
+        "Pros And Cons",
+        "Deep Research Subagents",
+        "Deep Research",
+        "Nkai",
+        "Research and Field Guides",
+        "Vibe-Coding Journey",
+        "backlog formatting",
+        "Inbox archive",
+        "Micro and Macro Skills",
+        "next paste",
+        "The Klang Suite",
+        "2026-10-09_Morning_Mail_Batch_Docket"
+      ]
     },
     {
-      "id": "rj-02", "rank": 2, "priority": "P0", "status": "PENDING", "tier": "tier3",
-      "pillars": ["AGY", "NK", "TKS"],
+      "id": "rj-02",
+      "rank": 2,
+      "priority": "P0",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "NK",
+        "TKS"
+      ],
       "title": "Universal UTF-8 Invariant (quick win)",
       "summary": "Promoted P1 -> P0. Windows cp1252 crashes hit every tooling session (three times today alone). Tiny fix, removes daily friction for everything downstream.",
-      "angles": ["sys.stdout/stderr.reconfigure(encoding='utf-8') in every tools/*.py entrypoint", "PYTHONUTF8=1 in harness wrappers", "One-line rule in GEMINI.md"],
+      "angles": [
+        "sys.stdout/stderr.reconfigure(encoding='utf-8') in every tools/*.py entrypoint",
+        "PYTHONUTF8=1 in harness wrappers",
+        "One-line rule in GEMINI.md"
+      ],
       "next_action": "Dispatch to Flash builder: sweep tools/ + nkai/tools, add rule.",
-      "sources": ["docket-18"]
+      "sources": [
+        "docket-18"
+      ]
     },
     {
-      "id": "rj-03", "rank": 3, "priority": "P0", "status": "PENDING", "tier": "tier2",
-      "pillars": ["NK", "AGY"],
+      "id": "rj-03",
+      "rank": 3,
+      "priority": "P0",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
       "title": "QA Sandbox Board + Sandbox/Production Mode",
       "summary": "Merged: the sandbox test board IS the 80/20 answer to 'do we need dev/qa/prod?'. Build the chassis before the pistons: every later N'kai UI card gets validated here first.",
-      "angles": ["Mock cards (Tsathoggua statue) whose buttons only echo [QA_TEST_MOCK] to chat", "ENVIRONMENT: SANDBOX | PRODUCTION switch instead of multi-server envs", "Tom's dev/cert/prod note maps to git branches + this switch", "Deterministic element IDs for headless checks"],
+      "angles": [
+        "Mock cards (Tsathoggua statue) whose buttons only echo [QA_TEST_MOCK] to chat",
+        "ENVIRONMENT: SANDBOX | PRODUCTION switch instead of multi-server envs",
+        "Tom's dev/cert/prod note maps to git branches + this switch",
+        "Deterministic element IDs for headless checks"
+      ],
       "next_action": "Approve -> plan as N'kai tooling flight.",
-      "depends_on": ["rj-02"],
-      "sources": ["docket-16", "docket-17", "SQA meeting with Tom about vibe coding QA"]
+      "depends_on": [
+        "rj-02"
+      ],
+      "sources": [
+        "docket-16",
+        "docket-17",
+        "SQA meeting with Tom about vibe coding QA"
+      ]
     },
     {
-      "id": "rj-04", "rank": 4, "priority": "P0", "status": "PENDING", "tier": "tier2",
-      "pillars": ["NK"],
+      "id": "rj-04",
+      "rank": 4,
+      "priority": "P0",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
       "title": "Unified Master Template + Schema-Driven Boards",
       "summary": "Merged: 'best of both UIs' plus 'should N'kai be data-driven like TKS?'. Answer: yes, lightly. Pydantic models already define the data; add one board-schema JSON so new board types need zero HTML edits.",
-      "angles": ["Keep: hero stage, in-canvas 4-lens accordions, native IPC buttons, two-rail filters", "Cut: localhost bridges, buried toasts, fake 'sent' claims", "Guard against over-engineering: one schema file, not a framework"],
+      "angles": [
+        "Keep: hero stage, in-canvas 4-lens accordions, native IPC buttons, two-rail filters",
+        "Cut: localhost bridges, buried toasts, fake 'sent' claims",
+        "Guard against over-engineering: one schema file, not a framework"
+      ],
       "next_action": "Approve -> design pass in grill lab, validate on rj-03 sandbox.",
-      "depends_on": ["rj-03"],
-      "sources": ["docket-15", "how stupid is it to make nkai's backend data driven like TKS"]
+      "depends_on": [
+        "rj-03"
+      ],
+      "sources": [
+        "docket-15",
+        "how stupid is it to make nkai's backend data driven like TKS"
+      ]
     },
     {
-      "id": "rj-05", "rank": 5, "priority": "P0", "status": "PENDING", "tier": "tier2",
-      "pillars": ["NK"],
+      "id": "rj-05",
+      "rank": 5,
+      "priority": "P0",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
       "title": "Multi-Board Hub & Session Manager",
       "summary": "Merged: board directory, 'archived boards need their own space', and the old 'session manager to reopen unfinished sessions' wish. One switcher: active boards on top, read-only archive below.",
-      "angles": ["Active vs archived sections", "Cache-busting so stale boards never show", "Sandbox board (rj-03) becomes the second board that proves the switcher"],
+      "angles": [
+        "Active vs archived sections",
+        "Cache-busting so stale boards never show",
+        "Sandbox board (rj-03) becomes the second board that proves the switcher"
+      ],
       "next_action": "Approve -> build after rj-04 template lands.",
-      "depends_on": ["rj-04"],
-      "sources": ["docket-14", "archived nkai boards probably need their own space", "Nkai"]
+      "depends_on": [
+        "rj-04"
+      ],
+      "sources": [
+        "docket-14",
+        "archived nkai boards probably need their own space",
+        "Nkai"
+      ]
     },
     {
-      "id": "rj-06", "rank": 6, "priority": "P1", "status": "PENDING", "tier": "tier3",
-      "pillars": ["AGY", "NK"],
+      "id": "rj-06",
+      "rank": 6,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "NK"
+      ],
       "title": "Trust, But Verify: Pre-Flight Grounding Rule",
       "summary": "Before adopting a premise (JUCE 8 vs 9, 'Pro 3.8 is Argon'), check local files first, then the web. Small rule, high value: it would have caught both whoopsies.",
-      "angles": ["Local check: CMakeLists, GEMINI.md, version headers", "Web check for model/vendor claims", "Polite one-line reality check before answering"],
+      "angles": [
+        "Local check: CMakeLists, GEMINI.md, version headers",
+        "Web check for model/vendor claims",
+        "Polite one-line reality check before answering"
+      ],
       "next_action": "Approve -> add rule to GEMINI.md + GLOSSARY/CHEAT_SHEET.",
-      "sources": ["docket-19"]
+      "sources": [
+        "docket-19"
+      ]
     },
     {
-      "id": "rj-07", "rank": 7, "priority": "P1", "status": "PENDING", "tier": "tier2",
-      "pillars": ["NK", "AGY"],
+      "id": "rj-07",
+      "rank": 7,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
       "title": "Mailbag Intake v2: Overflow, Quick Notes & Tabled Topics",
       "summary": "Merged everything about how items ENTER the mailbag: long rambles get an overflow queue so throwaway-line ideas (like the FX/osc list) are not lost; filename-only quick notes; agent-tabled topics go to their own folder with an explicit 'tabling this' callout; add-at-position-X from chat.",
-      "angles": ["Overflow queue only for rambles with more than 3 topics", "Split cards link one shared original note instead of copying it", "Inbox/Tabled/ folder for agent-authored notes (like the Nkai*.md files in Inbox)", "Verify filename-only notes in the rj-03 sandbox", "/mail-add with position splice"],
+      "angles": [
+        "Overflow queue only for rambles with more than 3 topics",
+        "Split cards link one shared original note instead of copying it",
+        "Inbox/Tabled/ folder for agent-authored notes (like the Nkai*.md files in Inbox)",
+        "Verify filename-only notes in the rj-03 sandbox",
+        "/mail-add with position splice"
+      ],
       "next_action": "Approve -> plan as one tooling flight.",
-      "sources": ["Ramble Engine", "docket-7", "Those Nkai Files in the Inbox", "archived nkai boards probably need their own space", "Inbox archive"]
+      "sources": [
+        "Ramble Engine",
+        "docket-7",
+        "Those Nkai Files in the Inbox",
+        "archived nkai boards probably need their own space",
+        "Inbox archive"
+      ]
     },
     {
-      "id": "rj-08", "rank": 8, "priority": "P1", "status": "PENDING", "tier": "tier2",
-      "pillars": ["NK"],
+      "id": "rj-08",
+      "rank": 8,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
       "title": "Chat-Minimal Surfaces: Fullscreen, Second Monitor & Response Drawer",
       "summary": "Merged: fullscreen sidecar plus second-monitor ideas. Full board in a browser tab (nkai_serve.py), a compact HUD in the IDE pane, and a per-card drawer showing formatted agent replies so the chat can stay closed. Same drawer pattern carries to mobile.",
-      "angles": ["Note: the plugin pane only runs inside Antigravity; the browser tab uses the server mode", "HUD candidates: current topic, QA diagnostics, allowance", "Response drawer = mobile-ready pattern"],
+      "angles": [
+        "Note: the plugin pane only runs inside Antigravity; the browser tab uses the server mode",
+        "HUD candidates: current topic, QA diagnostics, allowance",
+        "Response drawer = mobile-ready pattern"
+      ],
       "next_action": "Approve -> design after rj-04 template.",
-      "depends_on": ["rj-04"],
-      "sources": ["Fullscreen Sidecar", "Second Monitor and Other Uses for the Nkai Sidecar Integration"]
+      "depends_on": [
+        "rj-04"
+      ],
+      "sources": [
+        "Fullscreen Sidecar",
+        "Second Monitor and Other Uses for the Nkai Sidecar Integration"
+      ]
     },
     {
-      "id": "rj-09", "rank": 9, "priority": "P1", "status": "PENDING", "tier": "tier3",
-      "pillars": ["AGY", "NK", "TKS", "TT"],
+      "id": "rj-09",
+      "rank": 9,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "NK",
+        "TKS",
+        "TT"
+      ],
       "title": "North Star Focus Doc + Status Footer",
       "summary": "Merged: your priority list (N'kai solid -> TKS 0.5.0-dev -> Toad PoC) plus the semver footer idea. One living FOCUS doc, a footer line like 'Focus: N'kai hardening | TKS-0.4.0 TT-0.1.0 NK-0.2.0', and a gentle back-on-track nudge after side quests.",
-      "angles": ["Bouncing between 3 projects is fine solo if one is 'current' at a time", "Nudge, not a gate: one sentence after research detours", "Footer replaces remembering versions"],
+      "angles": [
+        "Bouncing between 3 projects is fine solo if one is 'current' at a time",
+        "Nudge, not a gate: one sentence after research detours",
+        "Footer replaces remembering versions"
+      ],
       "next_action": "Approve -> write docs/FOCUS.md + footer rule.",
-      "sources": ["Priorities", "Multiple Repos"]
+      "sources": [
+        "Priorities",
+        "Multiple Repos"
+      ]
     },
     {
-      "id": "rj-10", "rank": 10, "priority": "P1", "status": "PENDING", "tier": "tier3",
-      "pillars": ["AGY", "TKS", "TBD-16"],
+      "id": "rj-10",
+      "rank": 10,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "TKS",
+        "TBD-16"
+      ],
       "title": "Lightning Round: 4 one-line decisions",
       "summary": "Small questions bundled so they clear in one sitting.",
-      "angles": ["Context Clues lore -> suggest yes, cap at 2-3 lines (negligible tokens)", "git update -> run winget upgrade Git.Git now (BACKLOG section 14)", "Wiki-link docs rewrite -> suggest no; the Obsidian mirror already gives wiki navigation", "TBD-16 reference links -> file into a reference doc for the TBD-16 pillar"],
+      "angles": [
+        "Context Clues lore -> suggest yes, cap at 2-3 lines (negligible tokens)",
+        "git update -> run winget upgrade Git.Git now (BACKLOG section 14)",
+        "Wiki-link docs rewrite -> suggest no; the Obsidian mirror already gives wiki navigation",
+        "TBD-16 reference links -> file into a reference doc for the TBD-16 pillar"
+      ],
       "next_action": "Answer each with yes/no in chat.",
-      "sources": ["Context Clues", "git update", "Reorganize docs and make it all wiki linked", "TBD-16"]
+      "sources": [
+        "Context Clues",
+        "git update",
+        "Reorganize docs and make it all wiki linked",
+        "TBD-16"
+      ]
     },
     {
-      "id": "rj-11", "rank": 11, "priority": "P1", "status": "PENDING", "tier": "tier1",
-      "pillars": ["AGY", "TKS", "TT", "NK"],
+      "id": "rj-11",
+      "rank": 11,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier1",
+      "pillars": [
+        "AGY",
+        "TKS",
+        "TT",
+        "NK"
+      ],
       "title": "Audit Cadence + Opus Deep Audit with Checkpoints",
       "summary": "Merged: 'how often should we audit code and skills?' plus the Opus cross-repo audit. Proposed cadence: light audit at every milestone tag, deep Opus audit once per minor version. Each run checkpoints per repo so a quota cutoff resumes cleanly.",
-      "angles": ["More often now (early setup), taper later", "audit_checkpoint.json per repo", "Findings land on a N'kai board (needs rj-05)"],
+      "angles": [
+        "More often now (early setup), taper later",
+        "audit_checkpoint.json per repo",
+        "Findings land on a N'kai board (needs rj-05)"
+      ],
       "next_action": "Approve -> schedule first deep audit after N'kai P0s.",
-      "depends_on": ["rj-02", "rj-05"],
-      "sources": ["docket-20", "how often should we be doing code reviews", "Micro and Macro Skills"]
+      "depends_on": [
+        "rj-02",
+        "rj-05"
+      ],
+      "sources": [
+        "docket-20",
+        "how often should we be doing code reviews",
+        "Micro and Macro Skills"
+      ]
     },
     {
-      "id": "rj-12", "rank": 12, "priority": "P1", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TKS"],
+      "id": "rj-12",
+      "rank": 12,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
       "title": "Finish SQA Automation Hardening (Tom's spec)",
       "summary": "Split out of Tom's meeting notes: the C++ test side (5 min suite / 30 s test timeouts, failure screenshots in their own folder, failures-first reports) is drafted in sqa_automation_hardening.md but still DRAFTING. Factory-floor work.",
-      "angles": ["TARGET: FACTORY_FLOOR", "Spec: docs/specs/sqa_automation_hardening.md"],
+      "angles": [
+        "TARGET: FACTORY_FLOOR",
+        "Spec: docs/specs/sqa_automation_hardening.md"
+      ],
       "next_action": "Approve -> promote spec to PLAN when the factory is idle.",
-      "sources": ["SQA meeting with Tom about vibe coding QA"]
+      "sources": [
+        "SQA meeting with Tom about vibe coding QA"
+      ]
     },
     {
-      "id": "rj-13", "rank": 13, "priority": "P1", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TT"],
+      "id": "rj-13",
+      "rank": 13,
+      "priority": "P1",
+      "status": "APPROVED",
+      "tier": "tier2",
+      "pillars": [
+        "TT"
+      ],
       "title": "ToadTracker Platform Fork: Steam-Deck-first PCDA",
       "summary": "Merged Steam Deck + 'Tracktion for Reference'. Steam Deck is already a target in TRACKER_SPEC; the open question is Linux plugin hosting and a Renoise-style export path. Tracktion stays a read-only OS-interface reference only; ToadCore remains pure C++20 (Tracktion backend already killed in docket-8).",
-      "angles": ["Linux VST3/LV2 hosting on SteamOS", "Renoise-ish export for desktop round-trips", "Clone Tracktion read-only for OS/device glue patterns, never link it"],
+      "angles": [
+        "Linux VST3/LV2 hosting on SteamOS",
+        "Renoise-ish export for desktop round-trips",
+        "Clone Tracktion read-only for OS/device glue patterns, never link it"
+      ],
       "next_action": "Run a PCDA on Steam-Deck-first vs desktop-first.",
-      "sources": ["The Toad on Stam Deck", "Tracktion for Reference"]
+      "sources": [
+        "The Toad on Stam Deck",
+        "Tracktion for Reference"
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Steam Deck prioritized as primary platform. SNES baseline controls + SDL3 direct input, safe resume halt, built-in TKS synth voices (no VST hosting), Renoise .xrns export. Spec committed to ToadTracker."
     },
     {
-      "id": "rj-14", "rank": 14, "priority": "P1", "status": "PENDING", "tier": "tier1",
-      "pillars": ["TKS"],
+      "id": "rj-14",
+      "rank": 14,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier1",
+      "pillars": [
+        "TKS"
+      ],
       "title": "Modulation System Overhaul",
       "summary": "SnapHeap-style envelopes/LFOs/random, Hydra meta-modulation, and a scrollable mod matrix. Flagship candidate for v0.5.0; BACKLOG already holds mod matrix/Hydra stubs to merge into.",
-      "angles": ["Meta-mod (mod of mod) via Hydra", "Scrollable matrix vs per-card mod lanes", "Tier 1: voice-level mod routing is DSP-heavy"],
+      "angles": [
+        "Meta-mod (mod of mod) via Hydra",
+        "Scrollable matrix vs per-card mod lanes",
+        "Tier 1: voice-level mod routing is DSP-heavy"
+      ],
       "next_action": "Approve -> fold into v0.5.0 BACKLOG section.",
-      "sources": ["Modulations UX"]
+      "sources": [
+        "Modulations UX"
+      ]
     },
     {
-      "id": "rj-15", "rank": 15, "priority": "P1", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TKS"],
+      "id": "rj-15",
+      "rank": 15,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
       "title": "FX Rack 2.0",
       "summary": "Merged FX rack ideas: mega modules with 4 macros plus a popover for deep params, drive/thickener unification (Faturator / Mega Drive already in BACKLOG), drag-and-drop slot reordering instead of picker swaps, with the limiter pinned to stage 5 and the pre-amp gain fixed in place.",
-      "angles": ["Fixed: post-amp limiter (slot 5), pre-amp gain", "FX picker drops modules pre-set to a mode", "Per-effect presets (links rj-16)"],
+      "angles": [
+        "Fixed: post-amp limiter (slot 5), pre-amp gain",
+        "FX picker drops modules pre-set to a mode",
+        "Per-effect presets (links rj-16)"
+      ],
       "next_action": "Approve -> merge into BACKLOG FX section for v0.4.x/v0.5.0.",
-      "sources": ["docket-11", "FX UX Ideas", "Future ideas while I fall asleep"]
+      "sources": [
+        "docket-11",
+        "FX UX Ideas",
+        "Future ideas while I fall asleep"
+      ]
     },
     {
-      "id": "rj-16", "rank": 16, "priority": "P1", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TKS"],
+      "id": "rj-16",
+      "rank": 16,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
       "title": "Component Presets & Morphing",
       "summary": "Per-card/per-effect presets plus preset morphing between snapshots. Shares the 'Future ideas while I fall asleep' note with rj-15.",
-      "angles": ["Component preset JSON layered under full-patch presets", "Morph = parameter interpolation, needs smoothing on the audio thread"],
+      "angles": [
+        "Component preset JSON layered under full-patch presets",
+        "Morph = parameter interpolation, needs smoothing on the audio thread"
+      ],
       "next_action": "Approve -> BACKLOG; schedule after FX Rack 2.0 slot model lands.",
-      "depends_on": ["rj-15"],
-      "sources": ["docket-10", "Future ideas while I fall asleep"]
+      "depends_on": [
+        "rj-15"
+      ],
+      "sources": [
+        "docket-10",
+        "Future ideas while I fall asleep"
+      ]
     },
     {
-      "id": "rj-17", "rank": 17, "priority": "P2", "status": "PENDING", "tier": "tier2",
-      "pillars": ["NK", "AGY"],
+      "id": "rj-17",
+      "rank": 17,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
       "title": "Mailbag Triage v2: attention tags + session routing",
       "summary": "Pillar filters already shipped. What remains: !IMPORTANT / !BLOATED / !INCOMPLETE attention tags on notes, and routing a card straight into a grill-lab / deep-research / research-assistant session.",
-      "angles": ["Tags parsed from note body, rendered as chips", "!BLOATED auto-suggests a split (like this rejigger)", "Session routing = prefilled prompt per variant"],
+      "angles": [
+        "Tags parsed from note body, rendered as chips",
+        "!BLOATED auto-suggests a split (like this rejigger)",
+        "Session routing = prefilled prompt per variant"
+      ],
       "next_action": "Approve -> BACKLOG section 13 (N'kai).",
-      "sources": ["Mailbag Feature (and a nkai ramble)"]
+      "sources": [
+        "Mailbag Feature (and a nkai ramble)"
+      ]
     },
     {
-      "id": "rj-18", "rank": 18, "priority": "P2", "status": "PENDING", "tier": "tier3",
-      "pillars": ["NK"],
+      "id": "rj-18",
+      "rank": 18,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "NK"
+      ],
       "title": "Moonshot Shelf & Personal Parking Lot",
       "summary": "Merged five out-of-scope notes (Tracktion musings, N'kai scope creep, firmware hacking, Obsidian manager app, Obsidian plugins). Recommendation: no new app. A Vault Personal/ folder plus a Moonshots.md list with Dataview queries keeps them captured without scope creep.",
-      "angles": ["Moonshots.md = one line per idea + link", "Dataview for the index, zero code", "Obsidian manager app -> graveyard unless MCP need appears"],
+      "angles": [
+        "Moonshots.md = one line per idea + link",
+        "Dataview for the index, zero code",
+        "Obsidian manager app -> graveyard unless MCP need appears"
+      ],
       "next_action": "Approve -> create Vault Moonshots.md and move these notes' summaries there.",
-      "sources": ["Tracktion", "Nkai Scope Creep", "Firmware Hacking", "Obsidian Manager App", "Obsidian Plugins"]
+      "sources": [
+        "Tracktion",
+        "Nkai Scope Creep",
+        "Firmware Hacking",
+        "Obsidian Manager App",
+        "Obsidian Plugins"
+      ]
     },
     {
-      "id": "rj-19", "rank": 19, "priority": "P2", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TKS"],
+      "id": "rj-19",
+      "rank": 19,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
       "title": "Aesthetic Direction & Typography",
       "summary": "Merged the VST UI tips video and the unified FX/Mod card look. Bespoke card chrome, open-licensed fonts, and a text-truncation test suite. Targets v0.7 polish.",
-      "angles": ["Open fonts only (OFL)", "Truncation suite in gui_tests", "Cards stay cards, but share one visual grammar"],
+      "angles": [
+        "Open fonts only (OFL)",
+        "Truncation suite in gui_tests",
+        "Cards stay cards, but share one visual grammar"
+      ],
       "next_action": "Approve -> BACKLOG v0.7 UI polish.",
-      "sources": ["VST UI Tips Video", "FX and Mod Cards"]
+      "sources": [
+        "VST UI Tips Video",
+        "FX and Mod Cards"
+      ]
     },
     {
-      "id": "rj-20", "rank": 20, "priority": "P2", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TKS"],
+      "id": "rj-20",
+      "rank": 20,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
       "title": "Planter Bass Mode & Phase Smear",
       "summary": "Planter variant where the 2-op FM becomes dual-osc for bass/percussion, plus phase smear 2nd/4th order switch questions. Phase smear is already in BACKLOG; bass mode is new. Target v0.5.5.",
-      "angles": ["Bass mode as a Planter engine switch, not a new plugin", "Phase smear: test 8x 2nd-order vs 4x 4th-order by ear first"],
+      "angles": [
+        "Bass mode as a Planter engine switch, not a new plugin",
+        "Phase smear: test 8x 2nd-order vs 4x 4th-order by ear first"
+      ],
       "next_action": "Approve -> add bass mode next to phase smear in BACKLOG.",
-      "sources": ["Bass mode!", "Phase Smear Idea"]
+      "sources": [
+        "Bass mode!",
+        "Phase Smear Idea"
+      ]
     },
     {
-      "id": "rj-21", "rank": 21, "priority": "P2", "status": "PENDING", "tier": "tier1",
-      "pillars": ["TKS"],
+      "id": "rj-21",
+      "rank": 21,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier1",
+      "pillars": [
+        "TKS"
+      ],
       "title": "CyDrums Structure Mapping",
       "summary": "From the synth discord: feed a manual to the agent and map the drum machine's structure. Research spike before any DSP.",
-      "angles": ["Manual-to-schema extraction", "Tier 1 if it reaches voice architecture"],
+      "angles": [
+        "Manual-to-schema extraction",
+        "Tier 1 if it reaches voice architecture"
+      ],
       "next_action": "Approve -> research spike via explore subagent.",
-      "sources": ["docket-12"]
+      "sources": [
+        "docket-12"
+      ]
     },
     {
-      "id": "rj-22", "rank": 22, "priority": "P2", "status": "PENDING", "tier": "tier2",
-      "pillars": ["NK"],
+      "id": "rj-22",
+      "rank": 22,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
       "title": "DA Engine Stress Test: Ardour -> Tracktion blind scenario",
       "summary": "Run the devil's-advocate engine blind on your friend's Ardour-to-Tracktion DAW decision and compare against what he actually did. Doubles as a demo you can show him.",
-      "angles": ["Blind = no hint of his outcome", "Scores the PCDA engine against a real decision"],
+      "angles": [
+        "Blind = no hint of his outcome",
+        "Scores the PCDA engine against a real decision"
+      ],
       "next_action": "Approve -> run after docket-3 lands.",
-      "depends_on": ["docket-3"],
-      "sources": ["Research Demo"]
+      "depends_on": [
+        "docket-3"
+      ],
+      "sources": [
+        "Research Demo"
+      ]
     },
     {
-      "id": "rj-23", "rank": 23, "priority": "P2", "status": "PENDING", "tier": "tier2",
-      "pillars": ["AGY"],
+      "id": "rj-23",
+      "rank": 23,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "AGY"
+      ],
       "title": "Remote Antigravity Access",
       "summary": "Check status/usage and launch the daemon from your phone. Options: Tailscale + SSH (zero code) vs a tiny authenticated status daemon.",
-      "angles": ["Tailscale + SSH first (80/20)", "Daemon only if a phone UI is really needed"],
+      "angles": [
+        "Tailscale + SSH first (80/20)",
+        "Daemon only if a phone UI is really needed"
+      ],
       "next_action": "Approve -> try Tailscale + SSH.",
-      "sources": ["Remote Antigravity"]
+      "sources": [
+        "Remote Antigravity"
+      ]
     },
     {
-      "id": "rj-24", "rank": 24, "priority": "P3", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TT", "NK"],
+      "id": "rj-24",
+      "rank": 24,
+      "priority": "P3",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TT",
+        "NK"
+      ],
       "title": "M8 Telemetry Bridge & Second-Monitor Sidecar",
       "summary": "Merged ToadTracker vs M8 web bridge with second-monitor uses for the N'kai sidecar (dashboards, ramble overflow queue).",
-      "angles": ["M8 headless display protocol as reference", "Second monitor = always-on board", "Tabled from rj-08: compact HUD (current topic, QA diagnostics, allowance) once a second monitor exists"],
+      "angles": [
+        "M8 headless display protocol as reference",
+        "Second monitor = always-on board",
+        "Tabled from rj-08: compact HUD (current topic, QA diagnostics, allowance) once a second monitor exists"
+      ],
       "next_action": "Table until ToadTracker makes sound.",
-      "sources": ["docket-9", "Second Monitor and Other Uses for the Nkai Sidecar Integration"]
+      "sources": [
+        "docket-9",
+        "Second Monitor and Other Uses for the Nkai Sidecar Integration"
+      ]
     },
     {
-      "id": "rj-25", "rank": 25, "priority": "P3", "status": "PENDING", "tier": "tier2",
-      "pillars": ["TKS"],
+      "id": "rj-25",
+      "rank": 25,
+      "priority": "P3",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
       "title": "Meeblip SE Port feasibility",
       "summary": "Port the open-source Meeblip SE engine to a plugin. Looks straightforward, but the license must be checked first (firmware vs hardware licenses differ).",
-      "angles": ["License check gates everything", "8-bit character worth preserving"],
+      "angles": [
+        "License check gates everything",
+        "8-bit character worth preserving"
+      ],
       "next_action": "Verify the license, then decide.",
-      "sources": ["Meeblip SE Engine"]
+      "sources": [
+        "Meeblip SE Engine"
+      ]
     },
-    {"id": "docket-1", "rank": 101, "priority": "P2", "status": "COMPLETED", "tier": "tier2", "pillars": ["NK"], "title": "docket-1", "summary": "Completed.", "angles": [], "next_action": "None.", "sources": ["docket-1"]},
-    {"id": "docket-6", "rank": 102, "priority": "P2", "status": "COMPLETED", "tier": "tier2", "pillars": ["NK"], "title": "Streamlined Mailbag Ingestion & Dynamic Positioning", "summary": "Completed.", "angles": [], "next_action": "None.", "sources": ["docket-6"]},
-    {"id": "docket-13", "rank": 103, "priority": "P2", "status": "COMPLETED", "tier": "tier2", "pillars": ["NK"], "title": "docket-13", "summary": "Completed.", "angles": [], "next_action": "None.", "sources": ["docket-13"]},
-    {"id": "Opus 5.5", "rank": 104, "priority": "P2", "status": "COMPLETED", "tier": "tier3", "pillars": ["AGY"], "title": "Opus 5.5", "summary": "Completed.", "angles": [], "next_action": "None.", "sources": ["Opus 5.5"]},
-    {"id": "Anti-Slop in Open Source", "rank": 105, "priority": "P2", "status": "COMPLETED", "tier": "tier2", "pillars": ["AGY"], "title": "Anti-Slop in Open Source", "summary": "Completed.", "angles": [], "next_action": "None.", "sources": ["Anti-Slop in Open Source"]},
-    {"id": "Mailbag Queue", "rank": 106, "priority": "P2", "status": "COMPLETED", "tier": "tier2", "pillars": ["NK"], "title": "Mailbag Queue", "summary": "Completed.", "angles": [], "next_action": "None.", "sources": ["Mailbag Queue"]},
-    {"id": "Response from my SQA Friend", "rank": 107, "priority": "P0", "status": "COMPLETED", "tier": "tier2", "pillars": ["TKS"], "title": "Response from my SQA Friend", "summary": "Completed: Pistons vs Chassis section added to the vibe coding field guide.", "angles": [], "next_action": "None.", "sources": ["Response from my SQA Friend"]},
-    {"id": "docket-2", "rank": 111, "priority": "P2", "status": "BACKLOG", "tier": "tier2", "pillars": ["NK"], "title": "docket-2", "summary": "In BACKLOG.", "angles": [], "next_action": "None.", "sources": ["docket-2"]},
-    {"id": "docket-3", "rank": 112, "priority": "P2", "status": "BACKLOG", "tier": "tier2", "pillars": ["NK"], "title": "docket-3", "summary": "In BACKLOG.", "angles": [], "next_action": "None.", "sources": ["docket-3"]},
-    {"id": "docket-4", "rank": 113, "priority": "P2", "status": "BACKLOG", "tier": "tier2", "pillars": ["NK"], "title": "docket-4", "summary": "In BACKLOG.", "angles": [], "next_action": "None.", "sources": ["docket-4"]},
-    {"id": "docket-5", "rank": 121, "priority": "P2", "status": "GRAVEYARD", "tier": "tier2", "pillars": ["NK"], "title": "docket-5", "summary": "Graveyard.", "angles": [], "next_action": "None.", "sources": ["docket-5"]},
-    {"id": "docket-8", "rank": 122, "priority": "P2", "status": "GRAVEYARD", "tier": "tier2", "pillars": ["TT"], "title": "Tracktion Engine Backend Evaluation for ToadTracker", "summary": "Killed: Tracktion is a linear DAW engine; ToadCore stays pure C++20.", "angles": [], "next_action": "None.", "sources": ["docket-8"]}
+    {
+      "id": "docket-1",
+      "rank": 101,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-1",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-1"
+      ]
+    },
+    {
+      "id": "docket-6",
+      "rank": 102,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Streamlined Mailbag Ingestion & Dynamic Positioning",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-6"
+      ]
+    },
+    {
+      "id": "docket-13",
+      "rank": 103,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-13",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-13"
+      ]
+    },
+    {
+      "id": "Opus 5.5",
+      "rank": 104,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "AGY"
+      ],
+      "title": "Opus 5.5",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Opus 5.5"
+      ]
+    },
+    {
+      "id": "Anti-Slop in Open Source",
+      "rank": 105,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "AGY"
+      ],
+      "title": "Anti-Slop in Open Source",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Anti-Slop in Open Source"
+      ]
+    },
+    {
+      "id": "Mailbag Queue",
+      "rank": 106,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Mailbag Queue",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Mailbag Queue"
+      ]
+    },
+    {
+      "id": "Response from my SQA Friend",
+      "rank": 107,
+      "priority": "P0",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Response from my SQA Friend",
+      "summary": "Completed: Pistons vs Chassis section added to the vibe coding field guide.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Response from my SQA Friend"
+      ]
+    },
+    {
+      "id": "docket-2",
+      "rank": 111,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-2",
+      "summary": "In BACKLOG.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-2"
+      ]
+    },
+    {
+      "id": "docket-3",
+      "rank": 112,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-3",
+      "summary": "In BACKLOG.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-3"
+      ]
+    },
+    {
+      "id": "docket-4",
+      "rank": 113,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-4",
+      "summary": "In BACKLOG.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-4"
+      ]
+    },
+    {
+      "id": "docket-5",
+      "rank": 121,
+      "priority": "P2",
+      "status": "GRAVEYARD",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-5",
+      "summary": "Graveyard.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-5"
+      ]
+    },
+    {
+      "id": "docket-8",
+      "rank": 122,
+      "priority": "P2",
+      "status": "GRAVEYARD",
+      "tier": "tier2",
+      "pillars": [
+        "TT"
+      ],
+      "title": "Tracktion Engine Backend Evaluation for ToadTracker",
+      "summary": "Killed: Tracktion is a linear DAW engine; ToadCore stays pure C++20.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-8"
+      ]
+    }
   ]
 }
