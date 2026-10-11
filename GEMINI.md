@@ -9,32 +9,38 @@
 ## Strict Model Advisory Protocol & Anti-Spam Gate
 - **Display Only on Kickoff / First Presentation**: The Model Advisory block MUST ONLY be shown when an agent initially presents a new architectural plan or prepares to execute Phase 1 of a task before the user says "proceed". Do NOT repeat or spam the banner on routine conversational turns or within the same tier.
   > 🧠 **MODEL ADVISORY: Tier [1 | 2 | 3]**
-  > - **Recommended Setting**: [Gemini 3.1 Pro (Thinking: High) | Gemini 3.8 Flash (Thinking: High) | Gemini 3.8 Flash (Low/Medium)]
+  > - **Recommended Setting**: [Claude 5.5 Opus (Thinking: High) / Gemini 4 Argon (upon GA) | Gemini 3.8 Flash (Thinking: High) | Gemini 3.8 Flash (Low/Medium)]
   > - **Quota Impact**: [⚠️ HIGH IMPACT | 🟢 SUSTAINABLE | ⚡ MINIMAL]
   > - **Active Model Check**: Please verify your model dropdown in the IDE footer matches this tier before proceeding!
 
 - **Complexity Tiers**:
   | Tier | Scope | Recommended Model | Quota Impact |
   | :--- | :--- | :--- | :--- |
-  | **Tier 1 (High Reasoning / Critical DSP)** | Differential equations, non-linear saturation, polyphonic voice allocation, SIMD FastMath, lock-free concurrency, deep architecture. | Gemini 3.1 Pro (Thinking: High) | ⚠️ HIGH IMPACT (Reserve strictly for deep math/DSP/architecture) |
+  | **Tier 1 (High Reasoning / Critical DSP)** | Differential equations, non-linear saturation, polyphonic voice allocation, SIMD FastMath, lock-free concurrency, deep architecture. | Claude 5.5 Opus (Thinking: High) *(or Gemini 4 Argon upon GA)* | ⚠️ HIGH IMPACT (Reserve strictly for deep math/DSP/architecture) |
   | **Tier 2 (Balanced Engineering & UI)** *(Universal Default)* | Standard JUCE UI components, modal dialogs, APVTS bindings, expanding `gui_tests` or `dsp_tests`, standard phase execution. | Gemini 3.8 Flash (Thinking: High) | 🟢 SUSTAINABLE (Fast, highly capable daily driver) |
   | **Tier 3 (Rapid Iteration & Data)** | JSON schemas in `assets/`, documentation/backlog updates, git operations, mechanical find-and-replace, CMake tweaks. | Gemini 3.8 Flash (Thinking: Low/Medium) | ⚡ MINIMAL (Near-zero burn rate) |
 
-- **Tier Transition & Verification Rules**:
-  - **Flash 3.8 High is the Universal Default**: All planning in New Klang City and building in Klang Industries defaults to Tier 2. Tier 1 Pro High is strictly an on-demand escalation for heavy DSP math or concurrency.
-  - **Granular Blueprinting (Pro Plans, Flash Builds)**: When Tier 1 Pro High architects a plan, it MUST decompose `PLAN.md` into exact drop-in method signatures, JSON keys, and test assertion lines so Klang Industries executes immediately on Tier 2 (Flash High).
-  - **2-Strike Factory Escalation**: Klang Industries has up to 2 attempts to resolve a compilation or test failure on Tier 2. If still failing, it hard-pauses, recommends a Tier 1 upgrade, and waits for user confirmation.
+- **Tier Transition, Targeted DSP Swap & Verification Rules**:
+  - **Flash 3.8 High is the Universal Default**: All planning in New Klang City and building in Klang Industries defaults to Tier 2. Tier 1 (Opus 5.5 High) is strictly an on-demand escalation for heavy DSP math, complex concurrency, or 2-strike factory escalations.
+  - **The Targeted Opus DSP Swap Protocol**: The user remains in Gemini 3.8 Flash High for 95% of daily engineering. When entering a heavy DSP phase or 2-strike factory escalation, the agent emits the `🧠 MODEL ADVISORY: Tier 1` banner prompting the user to manually swap to `Claude 5.5 Opus (Thinking: High)` in the IDE footer.
+  - **Mandatory Downgrade Chime (`🟢 TASK CONCLUDED`)**: To prevent the "Forgetful Downgrade Trap" (burning expensive Opus allowance on routine chores), the agent MUST emit a prominent completion banner immediately upon completing a Tier 1 phase or during `task-finish`:
+    > 🟢 **MODEL ADVISORY: Tier 1 Concluded — Safe to Downgrade**
+    > - **Recommended Setting**: Gemini 3.8 Flash (Thinking: High)
+    > - **Allowance Protection**: Please swap back to Flash in your IDE footer to preserve Opus quota for future DSP!
+  - **Gemini 4 Argon GA Reconvene Trigger**: As of October 2026, Gemini 4 Argon is restricted to the Fairwind Program with no public GA date. When Argon achieves public General Availability in the IDE dropdown, immediately reconvene to benchmark Argon vs. Opus 5.5 High on C++ DSP to determine the primary Tier 1 engine.
+  - **Granular Blueprinting (Pro/Opus Plans, Flash Builds)**: When Tier 1 architects a plan, it MUST decompose `PLAN.md` into exact drop-in method signatures, JSON keys, and test assertion lines so Klang Industries executes immediately on Tier 2 (Flash High).
+  - **2-Strike Factory Escalation**: Klang Industries has up to 2 attempts to resolve a compilation or test failure on Tier 2. If still failing, it hard-pauses, recommends a Tier 1 upgrade to Opus 5.5 High, and waits for user confirmation.
   - **Tier Upgrade**: Display banner and **hard-pause** for explicit user "proceed". Never auto-proceed into a higher tier.
   - **1-Level Downgrade (Tier 1 ➔ 2, Tier 2 ➔ 3)**: Display banner, schedule a 5-minute grace timer (`schedule(DurationSeconds=300)`), and pause in chat. If timer expires without reply, auto-proceed on existing tier.
   - **2-Level Downgrade (Tier 1 ➔ 3)**: Display banner and **hard-pause indefinitely** without timer to protect critical Pro quota.
   - **Matched Tier Auto-Proceed**: If active model matches or exceeds the recommended tier, output subtle badge `✓ Model Verified: <Model> (<Thinking>) matches Tier <N>` and proceed immediately.
-  - **The "Flash Orchestrator + Pro Subagent" Engine**: The main chat session stays permanently on Tier 2 Flash 3.8 High (sustainable daily driver). For heavy DSP differential equations, non-linear saturation proofs, or complex multi-file architectural synthesis, the agent autonomously delegates to on-demand Pro subagents (`invoke_subagent(Model="pro")`), slashing Pro quota burn by ~90% and keeping the main chat transcript lean. Manually switching the IDE footer dropdown to Pro High is strictly an escalation fallback if a factory build fails 2 strikes or for milestone capstone synthesis.
+  - **The "Flash Orchestrator + Subagent" Engine**: The main chat session stays permanently on Tier 2 Flash 3.8 High (sustainable daily driver). For targeted background deep dives, the agent autonomously delegates to on-demand subagents (`invoke_subagent`), slashing quota burn and keeping the main chat transcript lean. Manually switching the IDE footer dropdown to Opus 5.5 High is strictly reserved for the Targeted DSP Swap Protocol or 2-strike factory escalations.
   - **Subagent Policy & Naming Convention (`research` vs `explore` vs `contrarian`)**:
     - **`research` (`Model="pro"`)**: Targeted Tier 1 Sprint mode reserved strictly for high-reasoning tasks (DSP differential equations, non-linear saturation proofs, lock-free concurrency proofs, and complex multi-file architectural synthesis).
     - **`explore` (`Model="flash"`)**: Autonomous Tier 2 Marathon mode for broad, goal-oriented sweeps (UI/UX layout explorations, community sentiment analysis across Reddit/KVR/Gearspace, preset browser taxonomy, and broad competitive benchmarking).
     - **`contrarian` (`Model="flash"`)**: The Devil's Advocate adversarial mode paired with exploratory sprints to stress-test proposals, expose edge-case failure modes, and derive the pragmatic 80/20 middle ground.
     - **Subagent Pre-Authorized Web Access & The `--no-web` Override**: By default, research, explore, and web-qa subagents are pre-authorized to use web access tools (`search_web`, `read_url_content`) to query upstream browser standards, developer forums, and competitor architectures without interactive prompts. Appending `--no-web` or `--offline` strictly enforces an air-gapped run restricted to local workspace docs and `TheKlangResearch`.
-    - **Session Footer Link**: Chat responses during active sessions must include the clickable N'kai board launcher in the footer: `[ 📬 Open N'kai Board ](sidecar://nkai/panel/)` (replacing legacy subagent text to provide 1-click side pane access).
+  - **Session Footer Link**: Chat responses during active sessions must include the clickable N'kai board launcher in the footer: `[ 📬 Open N'kai Board ](sidecar://nkai/panel/)` (replacing legacy subagent text to provide 1-click side pane access).
 
 ## Target Toolchain & Standards
 - **C++ Standard**: C++20 (`CMAKE_CXX_STANDARD 20`).

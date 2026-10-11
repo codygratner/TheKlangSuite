@@ -83,10 +83,13 @@
 
 *The Orchestrator Invariant: Main chat session stays permanently on Tier 2 Flash High.*
 
-* **Tier 1 (Pro High)**: Reserved strictly for deep DSP differential equations, non-linear saturation proofs, lock-free ring-buffer concurrency, and complex multi-file architectural synthesis.
+* **Tier 1 (High Reasoning / Critical DSP)**: `Claude 5.5 Opus (Thinking: High)` *(or Gemini 4 Argon upon GA)*. Reserved strictly for deep DSP differential equations, non-linear saturation proofs, lock-free ring-buffer concurrency, and 2-strike factory escalations.
 * **Tier 2 (Flash High)** *(Universal Daily Driver)*: Standard JUCE UI components, APVTS bindings, unit test expansions, and standard phase execution.
 * **Tier 3 (Flash Low/Medium)**: Mechanical find-and-replace, documentation updates, git commits, and JSON schemas.
-* **The "Orchestrator + Subagents" Rule**: Main chat never burns Pro allowance; delegates heavy math to on-demand Pro subagents (`invoke_subagent(Model="pro")`).
+* **The Targeted Opus DSP Swap Protocol**: Main chat stays on Gemini 3.8 Flash High for 95% of daily engineering. When kicking off heavy DSP or on a 2-strike factory escalation, the agent emits `🧠 MODEL ADVISORY: Tier 1` prompting the user to manually swap to Claude 5.5 Opus High in the IDE footer.
+* **Mandatory Downgrade Chime (`🟢 TASK CONCLUDED`)**: Upon completing a Tier 1 phase or during `task-finish`, the agent MUST emit a prominent reminder prompting the user to swap back to Gemini 3.8 Flash High, immunizing against the "Forgetful Downgrade Trap" and preserving Opus allowance.
+* **Gemini 4 Argon GA Reconvene Trigger**: When Gemini 4 Argon reaches public General Availability in the IDE dropdown, immediately reconvene to benchmark Argon vs. Opus 5.5 High on C++ DSP to determine the primary Tier 1 engine.
+* **The "Orchestrator + Subagents" Rule**: Main chat never burns premium allowance unnecessarily; delegates background deep dives to on-demand subagents (`invoke_subagent`).
 * **The Subagent Swarm**:
   * `research` (`Model="pro"`): Targeted Tier 1 Sprint for deep DSP differential equations, non-linear saturation proofs, and multi-file architectural synthesis.
   * `explore` (`Model="flash"`): Autonomous Tier 2 Marathon for broad UI/UX surveys, community sentiment, and competitive benchmarking.
