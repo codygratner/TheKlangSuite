@@ -284,10 +284,10 @@ class PresetPayload(BaseModel):
   - Concise, 1-page high-density reference sheet for human developers.
   - Facility Spheres, Model Tiers, Subagent Swarm roles, Communiqué flow, 5-Phase standard, N'kai CLI reference.
 
-#### Scene 5 (Flight 13): Five-Pillar Hyperlink Integrity Gauntlet & Central Vault Recompilation
-- [ ] Programmatic verification across all markdown documents in `TheKlangSuite`, `ToadTracker`, `nkai`, `TheKlangResearch`, and `TheKlangVault`.
-- [ ] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1`.
-- [ ] Verify `TheKlangVault/Research/Master_Research_Index.md` compiles cleanly with 0 errors.
+#### Scene 5 (Flight 13): Five-Pillar Hyperlink Integrity Gauntlet & Central Vault Recompilation — ✅ COMPLETED
+- [x] Programmatic verification across all markdown documents in `TheKlangSuite`, `ToadTracker`, `nkai`, `TheKlangResearch`, and `TheKlangVault`.
+- [x] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1`.
+- [x] Verify `TheKlangVault/Research/Master_Research_Index.md` compiles cleanly with 0 errors.
 
 
 ---
