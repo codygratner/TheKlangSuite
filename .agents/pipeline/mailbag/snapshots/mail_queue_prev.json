@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:40:16.852035",
+  "last_scanned": "2026-10-11T14:12:01.781191",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -442,7 +442,7 @@
       "title": "ToadTracker Platform Fork: Steam-Deck-first PCDA",
       "created_at": "2026-10-11",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [
         "merged:2"
       ],

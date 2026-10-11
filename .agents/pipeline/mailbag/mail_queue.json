@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T14:12:01.781191",
+  "last_scanned": "2026-10-11T14:16:04.587672",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -475,7 +475,7 @@
       "title": "Modulation System Overhaul",
       "created_at": "2026-10-07",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "TABLED",
       "tags": [],
       "target_pillars": [
         "TKS"

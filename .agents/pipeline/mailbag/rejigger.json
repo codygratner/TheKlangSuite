@@ -357,7 +357,7 @@
       "id": "rj-14",
       "rank": 14,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "TABLED",
       "tier": "tier1",
       "pillars": [
         "TKS"
@@ -372,7 +372,9 @@
       "next_action": "Approve -> fold into v0.5.0 BACKLOG section.",
       "sources": [
         "Modulations UX"
-      ]
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Deferred for dedicated deep research and plan drafting when returning to active TKS coding (prior to v0.5.0 DSP execution)."
     },
     {
       "id": "rj-15",
