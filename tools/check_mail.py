@@ -1042,6 +1042,8 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
   <script src="/preload.js"></script>
   <style>
     :root {{
+      --background: #090d13;
+      --foreground: #cbd5e1;
       --bg-base: #090d13;
       --bg-panel: #111620;
       --bg-card: #18202c;
@@ -1065,10 +1067,15 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       min-height: 100vh;
       margin: 0;
       padding: 0;
-      background-color: var(--bg-base);
-      color: var(--text-main);
+      background: var(--bg-base, #090d13) !important;
+      background-color: var(--bg-base, #090d13) !important;
+      color: var(--text-main, #cbd5e1) !important;
       font-family: var(--font-sans);
       font-size: 1rem;
+    }}
+
+    .inbox-container {{
+      background: var(--bg-base, #090d13) !important;
     }}
 
     /* ==========================================================================
@@ -2273,13 +2280,25 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       pill.title = `Cumulative approved tokens: ${{total.toLocaleString()}} / 200,000 budget`;
     }}
 
+    function forceDarkBody() {{
+      if (document.body) {{
+        document.body.style.setProperty('background', '#090d13', 'important');
+        document.body.style.setProperty('background-color', '#090d13', 'important');
+        document.body.style.setProperty('color', '#cbd5e1', 'important');
+      }}
+      document.documentElement.style.setProperty('--background', '#090d13');
+      document.documentElement.style.setProperty('--foreground', '#cbd5e1');
+    }}
+
     function initMailboard() {{
+      forceDarkBody();
       initAudioHaptics();
       initLocalStorageSync();
       updateScoreboardUI();
       handleSearch();
     }}
 
+    forceDarkBody();
     if (document.readyState === 'loading') {{
       document.addEventListener('DOMContentLoaded', initMailboard);
     }} else {{
@@ -2399,6 +2418,9 @@ def main():
 
     inbox_dir = resolve_inbox_directory(args.dir, scan_archive=args.archive)
     notes = scan_inbox(inbox_dir)
+    # If root inbox is empty and not actively archiving, load Archive notes for Tab 2 viewing
+    if not notes and (inbox_dir / "Archive").exists() and not args.archive:
+        notes = scan_inbox(inbox_dir / "Archive")
 
     # Locate curated docket
     docket_path = None
