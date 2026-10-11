@@ -561,26 +561,34 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
 def update_archive_index(archive_dir: Path):
     """
     Generates a master markdown index (INDEX.md / README.md) of all notes in Archive/
-    with clickable links, dates, and priorities for rapid lookup.
+    with clickable links, dates, priorities, and ecosystem pillars for rapid O(1) lookup.
     """
     md_files = sorted(archive_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
+    real_files = [f for f in md_files if f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD"]]
     lines = [
         "# 🗄️ Obsidian Inbox Archive Index",
         "> Automatically maintained by N'kai Harvester (`tools/check_mail.py`).",
-        f"> **Total Archived Notes:** {len(md_files) - 2 if len(md_files) >= 2 else len(md_files)} | **Last Updated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        f"> **Total Archived Notes:** {len(real_files)} | **Last Updated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
         "",
-        "| Note Title | Captured Date | Priority | File Link |",
-        "| :--- | :--- | :--- | :--- |",
+        "| Note Title | Captured Date | Priority | Pillar | File Link |",
+        "| :--- | :--- | :--- | :--- | :--- |",
     ]
-    for f in md_files:
-        if f.name.upper() in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD"]:
-            continue
+    for f in real_files:
         meta = extract_note_metadata(f)
         if meta:
             title = meta.get("title") or f.stem
             date_str = meta.get("date") or ""
             pri = meta.get("priority") or "P2"
-            lines.append(f"| **{title}** | `{date_str}` | `{pri}` | [{f.name}]({f.name}) |")
+            pillars = meta.get("target_pillars") or ["TKS"]
+            pillar_badges = []
+            for p in pillars[:2]:
+                m = PILLAR_METADATA.get(p.upper(), {})
+                emoji = m.get("emoji", "🏷️")
+                pillar_badges.append(f"{emoji} {p.upper()}")
+            if len(pillars) > 2:
+                pillar_badges.append(f"+{len(pillars) - 2}")
+            pillar_str = " ".join(pillar_badges)
+            lines.append(f"| **{title}** | `{date_str}` | `{pri}` | {pillar_str} | [{f.name}]({f.name}) |")
 
     content = "\n".join(lines) + "\n"
     (archive_dir / "INDEX.md").write_text(content, encoding="utf-8")
@@ -616,7 +624,9 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
                     clean_title = note.get("title") or src.stem
                     note_date = note.get("date") or datetime.date.today().strftime("%Y-%m-%d")
                     note_pri = note.get("priority") or "P2"
-                    frontmatter = f"---\ntitle: \"{clean_title}\"\ndate: \"{note_date}\"\npriority: \"{note_pri}\"\ntags: [\"inbox\", \"raw-ramble\"]\nstatus: \"untriaged\"\n---\n\n"
+                    note_pillars = note.get("target_pillars") or infer_pillars(clean_title, note.get("tags", []), text_content)
+                    pil_json = json.dumps(note_pillars)
+                    frontmatter = f"---\ntitle: \"{clean_title}\"\ndate: \"{note_date}\"\npriority: \"{note_pri}\"\ntags: [\"inbox\", \"raw-ramble\"]\npillars: {pil_json}\nstatus: \"untriaged\"\n---\n\n"
                     src.write_text(frontmatter + text_content, encoding="utf-8")
 
                 shutil.move(str(src), str(dst))
@@ -2533,6 +2543,14 @@ def main():
     # Execute physical archival if requested and not already scanning Archive
     if args.archive_inbox and not args.archive:
         archive_harvested_notes(inbox_dir, notes, Path(args.receipt), queue, queue_file)
+
+    # Always maintain lean, zero-token Archive/INDEX.md if Archive directory exists (Option A)
+    target_archive = inbox_dir if "archive" in inbox_dir.name.lower() else (inbox_dir / "Archive")
+    if target_archive.exists():
+        try:
+            update_archive_index(target_archive)
+        except Exception as e:
+            pass
 
     if args.chat:
         summary_md = render_chat_summary(inbox_dir, notes, docket_items)

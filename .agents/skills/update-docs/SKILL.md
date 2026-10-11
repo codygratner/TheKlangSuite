@@ -104,6 +104,10 @@ To eliminate active coding friction while preventing the "knowledge cemetery" tr
 2. **Technical Specs & Catalogs**:
    - Update architecture specs in `docs/specs/*.md` to reflect verified C++ parameter schemas, APVTS contracts, and HAL topologies.
    - Reconcile `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md` with newly created tools and specs.
+3. **Archived Vault Notes Asynchronous Enrichment (Option A Standard)**:
+   - Sweeps `TheKlangVault/Inbox/Archive/` for notes triaged since the last pass (reading `mail_queue.json` and `mail_tx_latest.json`).
+   - For triaged notes, appends the standard resolution footer (`## 🚦 N'kai Triage Resolution` with Status, Date, Pillar, Backlog link, and PCDA summary).
+   - Recompiles `TheKlangVault/Inbox/Archive/INDEX.md` via `python tools/check_mail.py` to ensure all status badges and pillars are 100% synchronized at zero token cost.
 
 #### Stage 3: High-Altitude Field Guides & Pedagogical Synthesis (ALWAYS LAST)
 1. **The "Field Guides Always Last" Rationale**:

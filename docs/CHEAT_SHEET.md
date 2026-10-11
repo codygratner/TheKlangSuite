@@ -154,6 +154,15 @@
   4. Validate links via `python tools/verify_context_clues.py`.
 * **The 0-Turn Cold Boot Invariant**: Boot fresh sessions cold from `context_clues_*.md` in exactly **0 turns** without asking orientation questions.
 
+---
+
+## 🗄️ Obsidian Archive Index & Asynchronous Enrichment Standard
+
+* **Mechanical Lean Index**: `TheKlangVault/Inbox/Archive/INDEX.md` maintained deterministically by `tools/check_mail.py` (0 tokens). Table format: `Title`, `Date`, `Priority`, `Pillar`, `Link` (<200 lines).
+* **Zero Live Note Rewriting (Curator's Trap Defense)**: Never edit raw archived notes mid-session or during live triage; record verdicts in `mail_queue.json` in <5ms.
+* **Deferred Note Enrichment**: Batch back-propagation of resolution footers (status badges, pillar crosslinks, PCDA summaries) into archived notes strictly under `/update-docs --deep` via Flash subagents.
+* **Single Source of Truth**: `docs/BACKLOG.md` is canonical; `TheKlangVault/Inbox/Archive/` is historical provenance.
+
 
 
 

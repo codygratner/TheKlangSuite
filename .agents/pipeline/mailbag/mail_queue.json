@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T11:07:28.655479",
+  "last_scanned": "2026-10-11T11:15:27.217764",
   "total_items": 68,
   "p0_count": 9,
   "items": [
@@ -980,7 +980,7 @@
       "title": "Platform & Ecosystem Pillar Badges on Cards (P2)",
       "created_at": "2026-10-09",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tags": [],
       "target_pillars": [
         "NK",

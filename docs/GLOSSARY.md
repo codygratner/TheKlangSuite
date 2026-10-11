@@ -198,6 +198,8 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
   3. *Context Clues Hardening*: Update role-specific context clues index (`context_clues_plan.md`, `context_clues_build.md`, or `context_clues_subagent.md`) with active flights, branches, targets, and uncommitted files.
   4. *Link Integrity Gate*: Execute `python tools/verify_context_clues.py` to ensure 100% link resolution.
 * **The 0-Turn Cold Boot Invariant**: Following `/clear` or starting a fresh session, reading `context_clues_*.md` allows the agent to boot in **0 turns**, seamlessly resuming the active task without asking redundant orientation questions ("What should we work on?").
+* **Obsidian Vault Archive Index & Asynchronous Enrichment Standard**: The knowledge management pattern where `TheKlangVault/Inbox/Archive/INDEX.md` is maintained mechanically by zero-token Python automation (`tools/check_mail.py`), paired with zero-rewrite live triage and deferred batch enrichment under `/update-docs --deep`.
+* **The Curator's Trap**: The agentic failure mode of pausing active engineering/triage sessions to re-read, rewrite, and format raw historical notes one-by-one in real-time, burning expensive LLM tokens instead of deferring to zero-cost mechanical tools or async batch sweeps.
 
 
 
