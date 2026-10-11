@@ -230,6 +230,15 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
   `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
   providing ambient system orientation across multi-repo solo vibe-coding sessions.
 
+---
+
+## 18. The Universal UTF-8 Invariant (Mailbag `rj-02`)
+
+* **Universal UTF-8 Invariant**: The ecosystem standard requiring every Python CLI entrypoint in `tools/` and `nkai/tools/` to explicitly configure `sys.stdout.reconfigure(encoding='utf-8')` and `sys.stderr.reconfigure(encoding='utf-8')`, and every file read/write operation to pass `encoding='utf-8'`. This eliminates Windows `cp1252` encoding crashes on emojis, mathematical symbols, and Unicode box-drawing characters.
+* **The `verify_utf8` Auditor (`tools/verify_utf8.py`)**: The automated AST-based linter that scans all ecosystem Python scripts, detects missing stream reconfigurations or unencoded I/O calls, and enforces 100% compliance across `TheKlangSuite`, `nkai`, and `bundle/`.
+* **The PowerShell 5.1 BOM-less Decoding Trap**: The Windows terminal quirk where default PowerShell 5.1 `Get-Content` renders BOM-less UTF-8 files using ANSI/`cp1252`, causing visual artifact confusion even when files are perfectly clean on disk. Resolved by verifying raw bytes or inspecting with Python/UTF-8 editors.
+
+
 
 
 

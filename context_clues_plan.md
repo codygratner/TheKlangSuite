@@ -30,14 +30,15 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** **Flight 0 (North Star Focus Doc `rj-09`) COMPLETED ✅**. Next objective: **Flight 18: Universal UTF-8 Invariant (`rj-02`)**.
+- **Current Objective:** **Flight 18 (Universal UTF-8 Invariant `rj-02`) COMPLETED ✅**. Next objective: **Flight 16+17: QA Sandbox Board & Sandbox/Production Mode (`rj-03`)**.
 - **Board & Data**:
   - Mailbag triage 100% complete (Inbox Zero).
   - Living North Star anchor active: [`docs/FOCUS.md`](file:///c:/Dev/TheKlangSuite/docs/FOCUS.md).
+  - Universal UTF-8 Invariant 100% compliant across 42 Python files (`tools/verify_utf8.py --all --strict`).
   - Ambient status footer line standardized: `Focus: N'kai hardening | TKS-0.4.0 · TT-0.1.0 · NK-0.2.0 · TR-Active`.
 - **DAW Dilemma Status**: Blind DA stress test & parallel Flash vs. Pro benchmark complete. Opus 5.5 run deferred until rolling 5-hour allowance resets. Task 9 (No-BS DAW Engine Memo) queued in [`.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md).
 - **Model State**: Active chat on **Gemini 3.8 Flash (High)**. Opus 5.5 in 5-hour allowance cooldown.
-- **Immediate Next Command**: Execute **Flight 18: Universal UTF-8 Invariant (`rj-02`)** — author `tools/verify_utf8.py` to audit and enforce explicit `encoding="utf-8"` across all repo scripts.
+- **Immediate Next Command**: Execute **Flight 16+17: QA Sandbox Board & Sandbox/Production Mode (`rj-03`)** — implement fixture board (Tsathoggua mocks, echo-only buttons, deterministic IDs) and `--sandbox` runtime switch per staged plan [`.agents/pipeline/plans/drafts/nkai_qa_sandbox_board.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/plans/drafts/nkai_qa_sandbox_board.md).
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
 
 

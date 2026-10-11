@@ -9,6 +9,13 @@ import os
 import re
 import json
 import datetime
+import sys
+
+# Configure UTF-8 streams for Windows console compatibility (Universal UTF-8 Invariant)
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
 
 REPOS = {
     "tks": {

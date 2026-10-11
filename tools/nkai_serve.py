@@ -21,6 +21,12 @@ import webbrowser
 from pathlib import Path
 from urllib.parse import unquote
 
+# Configure UTF-8 streams for Windows console compatibility (Universal UTF-8 Invariant)
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
+
 # Register canonical MIME types
 CUSTOM_MIME_TYPES = {
     ".html": "text/html; charset=utf-8",

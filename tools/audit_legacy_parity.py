@@ -12,6 +12,12 @@ import json
 import subprocess
 from pathlib import Path
 
+# Configure UTF-8 streams for Windows console compatibility (Universal UTF-8 Invariant)
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = REPO_ROOT / "docs" / "parity_audit"
 SNAPSHOTS_DIR = OUTPUT_DIR / "snapshots"

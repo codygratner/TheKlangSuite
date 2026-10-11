@@ -35,6 +35,11 @@ $RepoRoot = (Resolve-Path "$PSScriptRoot\..").Path
 $RepoDocs = Join-Path $RepoRoot "docs"
 $RepoInbox = Join-Path $RepoDocs "inbox"
 
+# Universal UTF-8 Invariant (Flight 18)
+$env:PYTHONUTF8 = "1"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 $VaultInbox = Join-Path $VaultPath "Inbox"
 $VaultDocs = Join-Path $VaultPath "Docs"
 $VaultTelemetry = Join-Path $VaultPath "Telemetry"

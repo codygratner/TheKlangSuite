@@ -317,16 +317,13 @@ def synthesize_card_fields(
 def parse_ramble_file(file_path: Path) -> RambleExtractionResult:
     """Parses a markdown ramble note and decomposes it into RambleCards."""
     try:
-        content = file_path.read_text(encoding="utf-8")
+        content = file_path.read_text(encoding="utf-8", errors="replace")
     except Exception:
-        try:
-            content = file_path.read_text(encoding="latin-1")
-        except Exception:
-            return RambleExtractionResult(
-                source_file=str(file_path),
-                total_ideas=0,
-                cards=[],
-            )
+        return RambleExtractionResult(
+            source_file=str(file_path),
+            total_ideas=0,
+            cards=[],
+        )
 
     # 1. Parse and strip YAML frontmatter
     fm_match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)

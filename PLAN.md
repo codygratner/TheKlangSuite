@@ -1,57 +1,76 @@
-# 🧭 Flight 0: North Star Focus Doc & Ambient Status Footer (`rj-09`)
+# 🔤 Flight 18: Universal UTF-8 Invariant (`rj-02`)
 
-> **ID:** plan-007  
+> **ID:** plan-008  
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Topic Target:** Mailbag Card `rj-09` / Section 15 ("Priorities" + "Multiple Repos")  
+> **Topic Target:** Mailbag Card `rj-02` / BACKLOG Section 15 ("Universal UTF-8 Invariant")  
 > **Status:** COMPLETED ✅  
-> **Priority:** P0 (Top Priority — First Flight After Mailbag Triage)  
+> **Priority:** P0 (Top Priority — Quick Win)  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: Low/Medium) — ⚡ MINIMAL  
-> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\Priorities.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Priorities.md) & [`C:\Dev\TheKlangVault\Inbox\Archive\Multiple Repos.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Multiple%20Repos.md)  
+> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\docket-18.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/docket-18.md)  
 
 ---
 
 ## 🎯 Architectural Intent & Storyline
 
-In the N'kai Morning Mailbag triage, Card `rj-09` identified that bouncing across three separate repositories (`TheKlangSuite`, `ToadTracker`, `nkai`) plus research (`TheKlangResearch`) and notes (`TheKlangVault`) is highly productive for a solo developer, provided exactly **one repository has active focus at any given moment**.
+On Windows, Python defaults to the system ANSI code page (`cp1252` / `Windows-1252`) for standard console output and unadorned `open()` file I/O. Throughout our ecosystem sessions, emojis (🎙️, 🧠, 🧭, 📦, ⚡), box-drawing characters, and mathematical symbols have caused repeated `UnicodeEncodeError: 'charmap' codec can't encode character` crashes.
 
-Without an explicit living North Star:
-1. Context switches risk "amnesia drift" where sidequests bleed into unrelated milestones.
-2. Remembering versions across 4 pillars creates cognitive friction.
-3. Chat footers become cluttered with multiple disclaimers, links, and banners.
+Additionally, Windows PowerShell 5.1's default `Get-Content` can misinterpret BOM-less UTF-8, creating visual artifact confusion even when files are clean on disk.
 
-**Flight 0** delivers:
-1. `docs/FOCUS.md`: A concise, living anchor declaring the active mission, the 4-pillar priority order (`N'kai solid` $\to$ `TKS 0.5.0-dev` $\to$ `Toad PoC`), and strict Negative Architecture (what we are *not* doing right now).
-2. The Gentle Nudge Protocol: A 1-sentence non-blocking re-centering note after research detours (a nudge, never a gate).
-3. The Unified Ambient Status Footer: A clean, 1-line footer replacing cognitive overhead with real-time clarity.
+**Flight 18** establishes an unbreakable, automated **Universal UTF-8 Invariant**:
+1. **Linter & Enforcement CLI (`tools/verify_utf8.py`)**: An automated scanner auditing all `.py` files across `TheKlangSuite` and `nkai` for stdout/stderr reconfiguration and explicit `encoding="utf-8"` on all file I/O.
+2. **Ecosystem Script Sweep**: Ensuring 100% of Python tools configure UTF-8 output streams and declare `encoding="utf-8"` on every file read/write.
+3. **PowerShell Harness Invariant**: Setting `$env:PYTHONUTF8 = "1"` and `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` in deployment and test scripts.
+4. **Permanent Guardrail**: Codifying the invariant in `GEMINI.md`, `docs/GLOSSARY.md`, and `docs/CHEAT_SHEET.md`.
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Phase 1: Author `docs/FOCUS.md` (The Living North Star)
-- [x] Author `docs/FOCUS.md`:
-  - Active Mission & Current Phase.
-  - The Priority Sequence: `1. N'kai Solidification` $\to$ `2. TKS v0.4.0 Release / v0.5.0-dev Sound & Chaos` $\to$ `3. ToadTracker PoC on Steam Deck / Desktop`.
-  - The Four Pillars Matrix: Status, active branch, target milestone.
-  - Negative Architecture: Explicitly documented boundaries (No mobile v0.3.0 before v0.2.0 is hardened; no DAW engine rewriting; no premature DSP before UI shell v0.4.1; no speculative moonshots).
-  - The Gentle Re-Centering Nudge rule.
+### Phase 1: Author Automated UTF-8 Audit Tool (`tools/verify_utf8.py`)
+- [x] Author `c:\Dev\TheKlangSuite\tools\verify_utf8.py`:
+  - Scans Python files across specified directories (`tools/`, `nkai/tools/`).
+  - AST / regex inspection:
+    1. Checks entrypoint files for `sys.stdout.reconfigure(encoding='utf-8')` / `sys.stderr.reconfigure(encoding='utf-8')`.
+    2. Checks all `open(...)`, `Path.read_text(...)`, and `Path.write_text(...)` calls to ensure `encoding="utf-8"` is specified.
+  - Supports `--fix` flag to automatically inject UTF-8 stdout reconfiguration where missing.
+  - Supports `--strict` flag to fail with non-zero exit code if violations exist.
+- [x] Mirror `tools/verify_utf8.py` to `c:\Dev\nkai\tools\verify_utf8.py` and `c:\Dev\nkai\bundle\tools\verify_utf8.py`.
 
-### Phase 2: Ambient Status Footer Line (`GEMINI.md`)
-- [x] Update `GEMINI.md` under "Strict Model Advisory Protocol & Anti-Spam Gate":
-  - Standardize the single-line ambient status footer format:
-    `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
-  - Codify dynamic board link rule: Append `· [ 📬 Open N'kai Board ](sidecar://nkai/panel/)` only when an N'kai board session is active; omit on routine engineering turns to keep transcripts clean.
-  - Codify the Gentle Re-Centering Nudge for post-research transitions.
+### Phase 2: Sweep & Harden All Python Tools
+- [x] Run `python tools/verify_utf8.py` across `c:\Dev\TheKlangSuite\tools` and fix any unconfigured or unencoded file operations:
+  - `audit_audiothread.py`
+  - `audit_legacy_parity.py`
+  - `audit_sidecar.py`
+  - `check_mail.py`
+  - `install_nkai_plugin.py`
+  - `models.py`
+  - `nkai_api.py`
+  - `nkai_bridge.py`
+  - `nkai_ledger.py`
+  - `nkai_serve.py`
+  - `pcda_format.py`
+  - `plan_queue.py`
+  - `preset_audit.py`
+  - `ramble_ingest.py`
+  - `sync_roadmap_sidecar.py`
+  - `test_nkai_api.py`
+  - `verify_context_clues.py`
+- [x] Run `python tools/verify_utf8.py` across `c:\Dev\nkai\tools` and fix any unconfigured scripts.
+- [x] Run `verify_utf8.py --strict` across both repos to assert 100% clean pass.
 
-### Phase 3: Synchronize Canonical Documentation Invariants
-- [x] Synchronize `docs/GLOSSARY.md` (Section 17: North Star & Focus Protocol).
-- [x] Synchronize `docs/CHEAT_SHEET.md` (Footer & Focus reference).
-- [x] Register `docs/FOCUS.md` in `docs/DOCS_CATALOG.json` under `core_governance`.
-- [x] Register `docs/FOCUS.md` in `docs/SYSTEM_MAP.md` under Section 1 (Architecture & System Overview).
+### Phase 3: Update PowerShell Harnesses & Wrapper Scripts
+- [x] Ensure `tools/sync_obsidian_vault.ps1`, `install_nkai_bundle.ps1`, and relevant runner scripts declare `$env:PYTHONUTF8 = "1"` and `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`.
 
-### Phase 4: Verification, Queue Sync & Multi-Repo Commits
-- [x] Run `python tools/verify_context_clues.py` (assert 100% link resolution).
-- [x] Update `docs/BACKLOG.md`: Mark Flight 0 as `[x] COMPLETED`.
-- [x] Update `context_clues_plan.md` to reflect Flight 0 completion.
-- [x] Commit changes cleanly in `TheKlangSuite`.
+### Phase 4: Codify Guardrails & Synchronize Invariants
+- [x] Update `GEMINI.md`: Add "Universal UTF-8 Invariant" rule under Agent Guidelines.
+- [x] Synchronize `docs/GLOSSARY.md` (Section 18: Universal UTF-8 Invariant).
+- [x] Synchronize `docs/CHEAT_SHEET.md`.
+- [x] Register `tools/verify_utf8.py` in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+
+### Phase 5: Verification, Backlog Closeout & Multi-Repo Commits
+- [x] Run `python tools/verify_utf8.py --strict` (confirm 100% pass across all repos).
+- [x] Run `python tools/verify_context_clues.py` (confirm 100% link resolution).
+- [x] Update `docs/BACKLOG.md`: Mark Flight 18 as `[x] COMPLETED`.
+- [x] Update `context_clues_plan.md` to point to Flight 16+17 (QA Sandbox Board).
+- [x] Commit changes cleanly in `TheKlangSuite` and `nkai`.

@@ -54,6 +54,12 @@
 - **Timer Hygiene**: Always call `stopTimer()` as the first line of destructors in all `juce::Timer` subclasses to prevent `#1696` unload crashes.
 - **macOS Deployment Target**: Set `CMAKE_OSX_DEPLOYMENT_TARGET="11.0"` and `CMAKE_OSX_ARCHITECTURES="arm64;x86_64"` before `project()` in `CMakeLists.txt`.
 - **Linux Portability**: Use `-static-libstdc++ -static-libgcc` and set `VST3_AUTO_MANIFEST FALSE`.
+- **Universal UTF-8 Invariant (CRITICAL FOR WINDOWS)**:
+  - **Console Streams**: Every Python entrypoint in `tools/` and `nkai/tools/` MUST explicitly call `if hasattr(sys.stdout, 'reconfigure'): sys.stdout.reconfigure(encoding='utf-8')` and `if hasattr(sys.stderr, 'reconfigure'): sys.stderr.reconfigure(encoding='utf-8')` to prevent Windows `cp1252` crashes on emojis and box-drawing symbols.
+  - **Explicit File I/O**: Every text file read/write (`open()`, `Path.read_text()`, `Path.write_text()`) MUST explicitly pass `encoding='utf-8'`. Never rely on platform defaults.
+  - **Safe Decoding**: When parsing untrusted or external files, pass `encoding='utf-8', errors='replace'`. NEVER fall back to `latin-1` (which silently produces mojibake).
+  - **PowerShell Verification Trap**: Never trust Windows PowerShell 5.1's `Get-Content` terminal rendering of BOM-less UTF-8; verify raw bytes or inspect via Python.
+  - **Automated Audit**: Run `python tools/verify_utf8.py --strict` to assert 100% compliance across all scripts.
 
 ## Strict TODO & Backlog Handling
 - **Record Only, Do Not Implement**: When the user mentions items "for the todo", "on the backlog", "for later", or lists future features/fixes, you must **ONLY** document them into `docs/BACKLOG.md`.

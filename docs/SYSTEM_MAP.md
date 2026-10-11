@@ -66,6 +66,7 @@ This is the central directory for all high-level documentation, rules, and histo
 - [nkai_ledger.py](../tools/nkai_ledger.py) — N'kai allowance meter and token consumption estimator.
 - [nkai_serve.py](../tools/nkai_serve.py) — Zero-dependency local HTTP server for interactive sidecars.
 - [verify_context_clues.py](../tools/verify_context_clues.py) — Markdown hyperlink integrity auditor.
+- [verify_utf8.py](../tools/verify_utf8.py) — Universal UTF-8 Invariant auditor and CLI stream enforcer.
 - [master_control_schema.json](../assets/controls/master_control_schema.json) — Master DSP parameter schema across all 8 modules (202 parameters).
 - [preset.schema.json](../assets/presets/$schema/preset.schema.json) — Universal preset JSON schema generated from Pydantic `PresetPayload`.
 

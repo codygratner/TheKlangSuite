@@ -89,12 +89,9 @@ def resolve_inbox_directory(dir_override=None, scan_archive=False):
 def extract_note_metadata(file_path: Path):
     """Parses frontmatter, title, date, excerpt, and raw body from a Markdown note."""
     try:
-        content = file_path.read_text(encoding="utf-8")
+        content = file_path.read_text(encoding="utf-8", errors="replace")
     except Exception:
-        try:
-            content = file_path.read_text(encoding="latin-1")
-        except Exception:
-            return None
+        return None
 
     title = None
     date_str = None
@@ -985,10 +982,7 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
             dst = archive_dir / src.name
             try:
                 # 1. Inject clean YAML frontmatter if missing
-                try:
-                    text_content = src.read_text(encoding="utf-8")
-                except Exception:
-                    text_content = src.read_text(encoding="latin-1")
+                text_content = src.read_text(encoding="utf-8", errors="replace")
 
                 if not re.match(r"^---\s*\n.*?\n---\s*\n", text_content, re.DOTALL):
                     clean_title = note.get("title") or src.stem

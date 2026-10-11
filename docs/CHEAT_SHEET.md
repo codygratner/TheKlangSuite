@@ -197,6 +197,15 @@
   `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
   (append `· [ 📬 Open N'kai Board ](sidecar://nkai/panel/)` only when an N'kai board session is active).
 
+---
+
+## 🔤 Universal UTF-8 Invariant (Mailbag `rj-02`)
+
+* **Strict Stream Reconfiguration**: All Python entrypoints configure `sys.stdout/stderr.reconfigure(encoding='utf-8')` to prevent `cp1252` encoding crashes on Windows.
+* **Explicit File I/O**: Every file read/write uses explicit `encoding='utf-8'` (fallback safely with `errors='replace'`, never `latin-1`).
+* **Linter Command**: `python tools/verify_utf8.py --all --strict` audits all Python tools across `TheKlangSuite`, `nkai`, and `bundle/`.
+
+
 
 
 

@@ -334,6 +334,11 @@
           "purpose": "Audits all markdown links in context clues files to ensure 100% path resolution."
         },
         {
+          "path": "tools/verify_utf8.py",
+          "title": "Universal UTF-8 Invariant Auditor",
+          "purpose": "Audits Python entrypoints for UTF-8 stream reconfiguration and enforces explicit encoding='utf-8' on all file I/O operations."
+        },
+        {
           "path": "tools/sync_roadmap_sidecar.py",
           "title": "Roadmap Sidecar Compiler",
           "purpose": "Compiles multi-repo BACKLOG.md files into an offline, hash-routed N'kai roadmap sidecar."
