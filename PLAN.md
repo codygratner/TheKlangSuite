@@ -178,19 +178,19 @@ class PresetPayload(BaseModel):
 - [x] Author `docs/architecture/the_klang_vault_studio_hub.md` detailing multi-repo separation.
 - [x] Register sync safety rules and automated agent ownership in `docs/GLOSSARY.md`, `context_clues_subagent.md`, `docs/CHEAT_SHEET.md`, `docs/DOCS_CATALOG.json`, and `docs/SYSTEM_MAP.md`.
 
-#### Scene 3 (Flight 3): The Architectural Zonal Boundary Standard (The 3-Zone READMEs)
-- [ ] Author `Source/dsp/README.md` (Zone 1: Native Audio DSP):
+#### Scene 3 (Flight 3): The Architectural Zonal Boundary Standard (The 3-Zone READMEs) — ✅ COMPLETED
+- [x] Author `Source/dsp/README.md` (Zone 1: Native Audio DSP):
   - Real-time audio thread invariants, zero allocations in `processBlock()`, zero locks, zero blocking I/O, SIMD `FastMath`, thread-safe lock-free SPSC ring buffers.
-- [ ] Author `assets/README.md` (Zone 2: Data Schemas & Assets):
+- [x] Author `assets/README.md` (Zone 2: Data Schemas & Assets):
   - 4-layer parameter separation of concerns (`controls/`, `layouts/`, `themes/`, `text/`), normalized ranges $[0.0, 1.0]$, APVTS parameter contracts.
-- [ ] Author `tools/README.md` (Zone 3: Tooling Harness):
+- [x] Author `tools/README.md` (Zone 3: Tooling Harness):
   - Tooling isolation: Zero external dependencies in Python scripts (standard library only, UTF-8 stdlib), Node CLI wrappers, and clean bridge servers.
-- [ ] Codify the anti-pattern prohibition against scattering rogue per-folder blackboxes.
+- [x] Codify the anti-pattern prohibition against scattering rogue per-folder blackboxes.
 
-#### Scene 4 (Flight 4): Global Pydantic Environment Provisioning
-- [ ] Execute `pip install pydantic` in global Python.
-- [ ] Verify global installation: `python -c "import pydantic; print(pydantic.__version__)"`.
-- [ ] Validate zero-venv execution from both `TheKlangSuite` and `TheKlangVault` command lines.
+#### Scene 4 (Flight 4): Global Pydantic Environment Provisioning — ✅ COMPLETED
+- [x] Execute `python -m pip install pydantic` in global Python.
+- [x] Verify global installation: `python -c "import pydantic; print(pydantic.__version__)"` (verified Pydantic v2.14.0).
+- [x] Validate zero-venv execution from both `TheKlangSuite` and `TheKlangVault` command lines.
 
 ---
 
