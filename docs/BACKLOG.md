@@ -1041,11 +1041,12 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1 — TOP ACTIVE PRIORITY)** — ⏳ QUEUED: Automated compilation of research cards, user notes, dialectical theses, and contrarian failure modes into a dense master system prompt payload for external LLM reasoning sessions.
 - [ ] **Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (Topic 6, P1 — TOP PRIORITY)** — ⏳ QUEUED: Background research daemon automating iterative exploration paired with the multi-tab dossier card layout (Source Note, PCDA, Research, and Mobile Bottom Sheet); next execution target upon weekly quota reset.
 - [ ] **Flight 4: General Research Assistant & Configurable Lens Profiles (Topic 9, P2)** — ⏳ QUEUED: Declarative lens profiles (`tools/lens_profiles.json`) with auto-detection tags (`#studio`, `#hardware`, `#ttrpg`, `#writing`) and zero product forking.
-- [ ] **Flight 5: Tracktion Engine Backend Evaluation (Topic 13, P1)** — ⏳ QUEUED: Architectural evaluation of Tracktion Engine for ToadTracker audio processing and sequencing.
-- [ ] **Flight 6: Dirtywave M8 Telemetry Capture & Bridge (Topic 10, P2)** — ⏳ QUEUED: Bidirectional telemetry and pattern synchronization bridge for Dirtywave M8 tracker hardware.
-- [ ] **Flight 7: Sub-Module & Component Presets Architecture (Topic 14, P1)** — ⏳ QUEUED: Sub-component preset schemas and serialization across synth modules.
-- [ ] **Flight 8: 4-Macro Mega Modules & Snap Heap Popovers (Topic 12, P1)** — ⏳ QUEUED: 4-encoder mega module abstractions with contextual popover settings callouts.
-- [ ] **Flight 9: Sonicware LIVEN CyDrums Super-Engine (Topic 15, P1)** — ⏳ QUEUED: Drum voice modeling and synthesis engine inspired by CyDrums.
+- [ ] **Flight 5: Spun-Up Flash Low Agent for N'kai-to-Chat Button Routing (Topic 16, P1 — TOP UNTRIAGED)** — ⏳ QUEUED: Spun-up lightweight Flash Low subagent handling zero-touch button dispatching and routing between the N'kai sidecar webview and chat runtime without manual clipboard pasting or Pro quota burn.
+- [ ] **Flight 6: Tracktion Engine Backend Evaluation (Topic 13, P1)** — ⏳ QUEUED: Architectural evaluation of Tracktion Engine for ToadTracker audio processing and sequencing.
+- [ ] **Flight 7: Dirtywave M8 Telemetry Capture & Bridge (Topic 10, P2)** — ⏳ QUEUED: Bidirectional telemetry and pattern synchronization bridge for Dirtywave M8 tracker hardware.
+- [ ] **Flight 8: Sub-Module & Component Presets Architecture (Topic 14, P1)** — ⏳ QUEUED: Sub-component preset schemas and serialization across synth modules.
+- [ ] **Flight 9: 4-Macro Mega Modules & Snap Heap Popovers (Topic 12, P1)** — ⏳ QUEUED: 4-encoder mega module abstractions with contextual popover settings callouts.
+- [ ] **Flight 10: Sonicware LIVEN CyDrums Super-Engine (Topic 15, P1)** — ⏳ QUEUED: Drum voice modeling and synthesis engine inspired by CyDrums.
 
 ### 16. Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)
 *Source Note:* [`TheKlangVault/Inbox/Archive/Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)  
