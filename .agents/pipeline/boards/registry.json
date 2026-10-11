@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "default_board_id": "morning_mail",
+  "boards": [
+    {
+      "id": "morning_mail",
+      "title": "Morning Mail Inbox & Triage Lab",
+      "description": "Daily operational triage for developer voice memos, mailbag cards, and backlog tickets",
+      "category": "active",
+      "file_path": ".agents/sidecar/morning_mail_inbox.html",
+      "environment": "PRODUCTION",
+      "card_count": 0,
+      "updated_at": "2026-10-11T20:00:00"
+    },
+    {
+      "id": "sandbox_mail",
+      "title": "Canonical QA Sandbox Test Board",
+      "description": "Deterministic test fixture with 7 synthetic cards for regression testing and UI/UX validation",
+      "category": "active",
+      "file_path": ".agents/sidecar/sandbox_mail_inbox.html",
+      "environment": "SANDBOX",
+      "card_count": 7,
+      "updated_at": "2026-10-11T20:00:00"
+    },
+    {
+      "id": "system_sanity_audit",
+      "title": "System Sanity Audit & Deep Research",
+      "description": "Historical deep research and dialectic analysis for ecosystem sanity and architecture triage",
+      "category": "archived",
+      "file_path": ".agents/sidecar/nkai_deep_research.html",
+      "environment": "PRODUCTION",
+      "card_count": 13,
+      "updated_at": "2026-10-11T20:00:00"
+    }
+  ]
+}

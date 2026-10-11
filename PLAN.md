@@ -1,121 +1,98 @@
-# 🎨 Flight 15: Unified Master Template & Schema-Driven Boards (`rj-04`)
+# 🎨 Flight 14: Multi-Board Hub & Session Manager (`rj-05`)
 
-> **ID:** plan-010  
+> **ID:** plan-011  
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Topic Target:** Mailbag Card `rj-04` / BACKLOG Section 15 ("Unified Master Template + Schema-Driven Boards")  
+> **Topic Target:** Mailbag Card `rj-05` / BACKLOG Section 15 ("Multi-Board Hub & Session Manager")  
 > **Status:** COMPLETED ✅  
 > **Priority:** P0 (Top Priority)  
-> **Target Branch:** `0.4.0-dev`  
+> **Target Branch:** `0.4.0-dev` (TheKlangSuite) / `main` (nkai)  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\Nkai.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai.md) + [`how stupid is it to make nkai's backend data driven like TKS.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/how%20stupid%20is%20it%20to%20make%20nkai's%20backend%20data%20driven%20like%20TKS.md)  
-> **Prerequisites:** Flight 18 (UTF-8) ✅, Flight 16+17 (QA Sandbox Board) ✅  
-> **Dependents:** Flight 14 (Multi-Board Hub & Session Manager) ⏳, Flight 19 (Per-Card Response Drawer) ⏳  
+> **Source Notes:** [`C:\Dev\TheKlangVault\Inbox\Archive\Nkai Multi-Board Hub and Archive Catalog.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Multi-Board%20Hub%20and%20Archive%20Catalog.md) + [`archived nkai boards probably need their own space.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/archived%20nkai%20boards%20probably%20need%20their%20own%20space.md)  
+> **Prerequisites:** Flight 15 (Unified Master Template & Schema-Driven Boards) ✅  
+> **Dependents:** Flight 19 (Per-Card Response Drawer) ⏳, Flight 21 (Checkpoint Resumption Engine & Opus Deep Audit) ⏳  
 
 ---
 
 ## 🎯 Architectural Intent & Storyline
 
-Previously, N'kai boards diverged into two parallel evolutionary branches:
-1. **The Research Board (`standalone-template.html` / `nkai_deep_research.html`)**: Rich hero stage panels, 4-lens PCDA accordions, and deep-link jump navigation, but carrying legacy localhost loopback bridge code (`:4040` / `:8000`) and missing the modern Two-Tier header and allowance meter.
-2. **The Mailbag Inbox (`check_mail.py` / `morning_mail_inbox.html`)**: Two-Tier header, live token allowance meter, session-stable two-rail filters, deterministic IDs, and sandbox mode, but embedded as a 1,500-line Python f-string that required editing Python code whenever UI layout evolved.
+Users navigating between tasks previously experienced two major friction points:
+1. **Aggressive Webview Caching**: The Antigravity IDE sidecar panel (Chromium/Electron) aggressively cached static GET responses, causing the panel to display stale or outdated board snapshots without explicit `no-cache` headers.
+2. **Missing Board Switcher & Archive Hub**: There was no interactive directory to switch between multiple active boards (e.g., Morning Mail Inbox vs. QA Sandbox Board) or reopen past, read-only archived research sessions without manually editing plugin entrypoint files.
 
-**Flight 15** synthesizes the best of both into a **single, declarative Unified Master Template** powered by one clean schema JSON:
-- **Zero HTML editing for new boards**: Whether generating a Morning Mail inbox, a Deep Research sprint, a Milestone Triage canvas, or an SQA audit board, the UI structure is driven entirely by a validated Pydantic model (`BoardSchema`).
-- **Keep the Gems**: Hero stage showcase, in-canvas 4-lens accordions, deterministic DOM IDs, Two-Tier sticky header, procedural Web Audio haptics, and zero-copy native Antigravity IPC (`window.sidecar.agent.sendMessage`).
-- **Cut the Cruft**: Completely excise phantom localhost loopback bridge endpoints (`:4040`/`:8000`), buried toasts, and misleading "sent" claims.
-- **Anti-Over-Engineering Guardrail**: No heavyweight JavaScript web frameworks (no React, Vue, Svelte, or Webpack). Pure zero-dependency vanilla HTML5/CSS3/ES6 and Python standard library.
+**Flight 14** delivers the **Multi-Board Hub & Session Manager**:
+- **Cache-Busting Backend**: `sidecars/panel/main.mjs` sets strict `Cache-Control: no-store, no-cache, must-revalidate` and `Pragma: no-cache` headers across all HTML/CSS/JS endpoints, plus query parameter routing (`/?board=<id>`).
+- **Interactive Header Switcher**: A persistent board selector button in the Top Tier Header of `master_template.html` (`[ 📋 Current Board Title ▾ ]`) that opens an accessible modal/popover with two distinct sections:
+  - 🟢 **Active Boards**: Live operational boards (`morning_mail`, `sandbox_mail`).
+  - 📁 **Archived Boards**: Historical research and audit sessions preserved read-only.
+- **Dual-Mode Registry Support**:
+  - *Extension/Server Mode*: Fetches `/api/boards` dynamically from the sidecar server.
+  - *File/Offline Mode*: Reads pre-baked inline registry manifest interpolated by `tools/board_renderer.py`.
+- **Anti-Over-Engineering Guardrail**: Zero external npm dependencies. Pure vanilla ES6, semantic HTML5, and CSS glassmorphism.
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Phase 0: Codify the Deep Docs Queue (`.agents/pipeline/docs/deep_docs_queue.json`)
-- [x] Initialize `.agents/pipeline/docs/deep_docs_queue.json` schema:
-  ```json
-  {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "version": "1.0.0",
-    "queue": [
-      {
-        "id": "doc-01",
-        "title": "N'kai Sidecar UI Extension Setup Guide (ELI5 Level)",
-        "audience": "Developers & Musicians",
-        "target_file": "TheKlangResearch/guides/nkai_sidecar_quickstart_eli5.md",
-        "status": "QUEUED",
-        "priority": "P1",
-        "created_at": "2026-10-11T20:35:00Z"
-      },
-      {
-        "id": "doc-02",
-        "title": "DAW Backend Dilemma: Replacing the Ardour Monolith with Headless C++20 (No-BS Case Study)",
-        "audience": "Senior Audio Software Architects",
-        "target_file": "TheKlangResearch/qa_autopsies/daw_backend_replacement_ardour_vs_bespoke.md",
-        "status": "QUEUED",
-        "priority": "P1",
-        "created_at": "2026-10-11T20:35:00Z"
-      }
-    ]
-  }
-  ```
-- [x] Add helper function in `tools/` or documentation to append items in 1 line.
+### Phase 1: Board Registry Data Model & Storage
+- [x] In `tools/models.py`, define Pydantic models for board registry:
+  - `BoardMetadata`: `id`, `title`, `description`, `category` (`"active"` | `"archived"`), `file_path`, `environment` (`"PRODUCTION"` | `"SANDBOX"`), `card_count`, `updated_at`.
+  - `BoardRegistry`: `version`, `default_board_id`, `boards: List[BoardMetadata]`.
+- [x] Initialize canonical registry at `.agents/pipeline/boards/registry.json`:
+  - Registers `morning_mail` (Active, Production, `.agents/sidecar/morning_mail_inbox.html`).
+  - Registers `sandbox_mail` (Active, Sandbox, `.agents/sidecar/sandbox_mail_inbox.html`).
+  - Registers `system_sanity_audit` (Archived, Research, `.agents/sidecar/nkai_deep_research.html`).
+- [x] Author CLI helper `tools/board_registry.py` with `list`, `register`, and `rescan` commands.
+- [x] Mirror models and registry tool to `c:\Dev\nkai\tools/` and `c:\Dev\nkai\bundle\tools/`.
 
-### Phase 1: Declarative Board Data Models (`tools/models.py`)
-- [x] In `tools/models.py`, define Pydantic models for declarative boards:
-  - `HeroStageItem`: `id`, `title`, `subtitle`, `badge`, `content_html` or `markdown`, `context_target`.
-  - `FilterRailItem`: `id`, `label`, `icon`, `count`, `filter_key`, `filter_type` (`"pillar"` | `"status"` | `"custom"`).
-  - `FilterRail`: `rail_id`, `label`, `items: List[FilterRailItem]`.
-  - `BoardActionDefinition`: `action_id`, `label`, `icon`, `color_var`, `prompt_template`, `shortcut`.
-  - `BoardSchema`:
-    - `board_id`: str (e.g. `"mailbag"`, `"sandbox"`, `"deep_research"`, `"audit"`)
-    - `title`: str
-    - `subtitle`: str = ""
-    - `environment`: str = "PRODUCTION" (`"PRODUCTION"` | `"SANDBOX"`)
-    - `has_hero_stage`: bool = False
-    - `hero_items`: List[HeroStageItem] = []
-    - `filter_rails`: List[FilterRail] = []
-    - `available_actions`: List[BoardActionDefinition] = []
-    - `cards`: List[MailItem] = []
-- [x] Export canonical JSON schema to `c:\Dev\nkai\core\schema.json`.
-- [x] Mirror models to `c:\Dev\nkai\tools\models.py`.
+### Phase 2: Sidecar Backend Cache Invalidation & Routing (`main.mjs`)
+- [x] In `c:\Dev\nkai\sidecars\panel\main.mjs`:
+  - Add explicit anti-cache HTTP response headers:
+    - `Cache-Control: no-store, no-cache, must-revalidate, max-age=0`
+    - `Pragma: no-cache`
+    - `Expires: 0`
+  - Implement `/api/boards` endpoint returning the parsed board registry.
+  - Enhance `app.page('/', ...)` to parse query parameter `?board=<id>`:
+    - If `board` matches a registered board, serve its target HTML file with cache-busting headers.
+    - If no parameter or unknown, serve default active board (`morning_mail_inbox.html`).
+- [x] Update `sidecars/panel/index.html` to load default board cleanly.
 
-### Phase 2: Master Template HTML/CSS/JS Consolidation
-- [x] Author `c:\Dev\nkai\core\master_template.html` (and mirror to `c:\Dev\TheKlangSuite\.agents\sidecar\master_template.html`):
-  - **Header**: Two-Tier Sticky Header with live brand title, font zoom scaler (`A-`/`100%`/`A+`), Web Audio haptics toggle (`🔊`), allowance meter, and refresh action.
-  - **Sandbox Banner**: Conditional sticky amber banner `#sandbox-banner` when `environment === "SANDBOX"`.
-  - **Hero Stage**: Conditional Hero Stage panel with context navigation, active item selection, and smooth transitions.
-  - **Consolidated Rails**: Declarative Rail 1 (Pillars/Categories) and Rail 2 (Status/Triage) with deterministic IDs (`pill-<rail>-<key>`).
-  - **Cards Stream**: Responsive CSS grid with deterministic card IDs, priority badges, prerequisite chips, merged-note chips, 4-lens PCDA accordions, and action buttons (`btn-<action>-<id>`).
-  - **Deterministic Dispatch Engine**:
-    - Mode 1: Antigravity IDE UI Extension (`window.sidecar.agent.sendMessage`).
-    - Mode 2: Local Sidecar Server / CLI harness fallback.
-    - Mode 3: Silent clipboard copy with clear toast.
-    - Sandbox isolation: Prepend `[QA_TEST_MOCK] `, bypass network POSTs, namespace localStorage keys to `nkai_sbx_`.
+### Phase 3: Header Board Switcher UI & Controller (`master_template.html` & `sidecar.js`)
+- [x] In `c:\Dev\nkai\core\master_template.html` (and `.agents/sidecar/master_template.html`):
+  - In `.header-tier-top`, replace static title with interactive Board Switcher trigger:
+    ```html
+    <button id="btn-board-switcher" class="board-switcher-btn" onclick="toggleBoardSwitcherModal()">
+      <span class="board-icon">📋</span>
+      <span class="board-title">{{BOARD_TITLE}}</span>
+      <span class="board-caret">▾</span>
+    </button>
+    ```
+  - Add accessible Modal / Popover dialog `#board-switcher-modal`:
+    - Search/filter input for rapid board location.
+    - Group 1: 🟢 **Active Boards** (with status badges & card counters).
+    - Group 2: 📁 **Archived Sessions** (with timestamp & read-only tags).
+    - Close button `[ ✕ ]` and keyboard shortcut (`Escape` to close).
+- [x] In `c:\Dev\nkai\core\sidecar.css`:
+  - Style `.board-switcher-btn` with subtle hover glow and border accents.
+  - Style `#board-switcher-modal`, `.board-group`, `.board-entry`, and `.board-entry:hover`.
+- [x] In `c:\Dev\nkai\core\sidecar.js`:
+  - Implement `toggleBoardSwitcherModal()`, `loadBoardList()`, and `switchBoard(boardId)`.
+  - Handle extension mode (`window.location.search = '?board=' + boardId + '&_t=' + Date.now()`) vs offline file fallback.
+- [x] Update `tools/board_renderer.py` to embed board registry JSON into template for offline support.
 
-### Phase 3: Zero-HTML-Edit Generator Engine (`tools/board_renderer.py`)
-- [x] Author `tools/board_renderer.py`:
-  - `render_board(schema: BoardSchema, out_path: Path) -> Path`:
-    - Injects schema JSON and card items into `master_template.html`.
-    - Generates 100% self-contained, valid HTML artifact.
-    - Preserves UTF-8 encoding across all streams.
-- [x] Refactor `tools/check_mail.py` to use `BoardSchema` and `board_renderer.py`:
-  - Decomposes the ~1,500-line monolithic inline HTML string in `check_mail.py` into clean data structure construction.
-  - Generates `.agents/sidecar/morning_mail_inbox.html` and `.agents/sidecar/sandbox_mail_inbox.html` using the master renderer.
-- [x] Mirror `board_renderer.py` to `c:\Dev\nkai\tools/board_renderer.py` and `c:\Dev\nkai\bundle\tools/board_renderer.py`.
-
-### Phase 4: Automated Verification & Sandbox Regression Gauntlet
-- [x] Run `python -m unittest tools/tests/test_sandbox_board.py` (assert 4/4 PASS).
-- [x] Expand `test_sandbox_board.py` with `test_board_schema_validation()` to assert `BoardSchema` parsing.
-- [x] Run `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html` (assert 0 errors, PERFECT PASS).
-- [x] Run `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html` (assert 0 errors, PERFECT PASS).
-- [x] Run `python tools/check_mail.py --archive --no-browser` (confirm 37 production cards, audit PERFECT PASS).
-- [x] Verify `python tools/verify_utf8.py --all --strict` (assert 100% compliance).
-- [x] Verify `python tools/verify_context_clues.py` (assert 100% pass).
+### Phase 4: Automated Verification Gauntlet
+- [x] Author `tools/tests/test_board_hub.py`:
+  - Asserts `BoardRegistry` schema validation and serialization.
+  - Asserts `main.mjs` contains proper cache-busting headers.
+  - Asserts `master_template.html` renders board switcher modal with deterministic IDs.
+- [x] Run `python -m unittest tools/tests/test_board_hub.py` and `tools/tests/test_sandbox_board.py` (100% PASS).
+- [x] Run `python tools/audit_sidecar.py` across updated templates (0 errors, PERFECT PASS).
+- [x] Run `python tools/verify_utf8.py --all --strict` (assert 100% compliance).
+- [x] Run `python tools/verify_context_clues.py` (assert 100% pass).
+- [x] Reinstall plugin using `python tools/install_nkai_plugin.py` and assert validation pass.
 
 ### Phase 5: Design Spec, Documentation & Multi-Repo Commits
-- [x] Author design spec `docs/specs/nkai_unified_master_template_and_schema.md`:
-  - Document the unified data-driven board architecture.
-  - Document the `BoardSchema` JSON specification and rendering lifecycle.
-- [x] Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-- [x] Update `docs/GLOSSARY.md` (§20: Unified Master Template) and `docs/CHEAT_SHEET.md`.
-- [x] Mark Flight 15 as `[x] COMPLETED` in `docs/BACKLOG.md` and Card `rj-04` in `.agents/pipeline/mailbag/rejigger.json`.
+- [x] Author design spec `docs/specs/nkai_multi_board_hub_and_session_manager.md`.
+- [x] Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+- [x] Update `docs/GLOSSARY.md` (§21: Multi-Board Hub & Session Manager) and `docs/CHEAT_SHEET.md`.
+- [x] Mark Flight 14 as `[x] COMPLETED` in `docs/BACKLOG.md` and Card `rj-05` in `.agents/pipeline/mailbag/rejigger.json`.
 - [x] Commit changes cleanly across `TheKlangSuite` and `nkai`.

@@ -220,6 +220,16 @@
 * **BoardSchema**: Pydantic model (`tools/models.py`) and JSON schema (`c:\Dev\nkai\core\schema.json`) parameterizing board metadata, rails, and card streams.
 * **Renderer Engine**: `tools/board_renderer.py` provides `render_board(schema, out_path)`, eliminating ~1,500 lines of monolithic HTML f-string from `check_mail.py` for zero-HTML-edit board generation.
 
+---
+
+## 🗂️ Multi-Board Hub & Session Manager (Flight 14 / `rj-05`)
+
+* **Board Switcher Button & Modal**: `#btn-board-switcher` in Top-Tier Header triggers accessible modal `#board-switcher-modal` with search filter, active boards group, and archived sessions group.
+* **BoardRegistry Data Model**: Pydantic schema in `tools/models.py` backed by canonical `.agents/pipeline/boards/registry.json`.
+* **Strict Anti-Cache Backend**: `sidecars/panel/main.mjs` injects `Cache-Control: no-store, no-cache, must-revalidate, max-age=0`, `Pragma: no-cache`, `Expires: 0` headers, plus `GET /api/boards` and query routing (`?board=<id>&_t=<timestamp>`).
+* **Registry CLI**: `python tools/board_registry.py list|register|rescan` manages ecosystem board discovery and card counts.
+
+
 
 
 

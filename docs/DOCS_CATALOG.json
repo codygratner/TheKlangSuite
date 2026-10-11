@@ -172,6 +172,11 @@
           "path": "docs/specs/nkai_unified_master_template_and_schema.md",
           "title": "N'kai Unified Master Template & Schema-Driven Boards (Flight 15 / rj-04)",
           "purpose": "Data-driven BoardSchema architecture, consolidated master_template.html, board_renderer engine, and zero-HTML-edit board generation."
+        },
+        {
+          "path": "docs/specs/nkai_multi_board_hub_and_session_manager.md",
+          "title": "N'kai Multi-Board Hub & Session Manager (Flight 14 / rj-05)",
+          "purpose": "Multi-board directory modal, BoardRegistry data model, anti-cache HTTP response headers, ?board=<id> routing, and dual-mode offline/extension operation."
         }
       ]
     },

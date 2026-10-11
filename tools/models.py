@@ -6,6 +6,7 @@ Provides schema validation, priority queue sorting, and atomic transaction recei
 
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 import re
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -502,5 +503,43 @@ class BoardSchema(BaseModel):
         schema = cls.model_json_schema()
         path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
         return path
+
+
+# ==============================================================================
+# Multi-Board Hub & Registry Models (Flight 14 / Topic 6.11 / rj-05)
+# ==============================================================================
+
+
+class BoardMetadata(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(description="Deterministic board identifier e.g. morning_mail, sandbox_mail")
+    title: str = Field(description="Human-readable title of the board")
+    description: str = Field(default="", description="Summary of board purpose")
+    category: str = Field(default="active", description="Board category ('active' | 'archived')")
+    file_path: str = Field(description="Relative or canonical path to HTML file e.g. .agents/sidecar/morning_mail_inbox.html")
+    environment: str = Field(default="PRODUCTION", description="Runtime environment ('PRODUCTION' | 'SANDBOX')")
+    card_count: int = Field(default=0, description="Total cards or items on the board")
+    updated_at: str = Field(default_factory=lambda: datetime.now().isoformat(), description="ISO timestamp of last update")
+
+
+class BoardRegistry(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    version: str = Field(default="1.0.0", description="Board registry schema SemVer")
+    default_board_id: str = Field(default="morning_mail", description="Default board ID to load")
+    boards: List[BoardMetadata] = Field(default_factory=list, description="Registered boards list")
+
+    def get_board(self, board_id: str) -> Optional[BoardMetadata]:
+        for b in self.boards:
+            if b.id == board_id:
+                return b
+        return None
+
+    def active_boards(self) -> List[BoardMetadata]:
+        return [b for b in self.boards if b.category.lower() == "active"]
+
+    def archived_boards(self) -> List[BoardMetadata]:
+        return [b for b in self.boards if b.category.lower() == "archived"]
 
 

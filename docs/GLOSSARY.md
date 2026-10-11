@@ -253,6 +253,17 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Declarative Board Schema (`BoardSchema`)**: The Pydantic model (`tools/models.py`) and JSON schema (`c:\Dev\nkai\core\schema.json`) that fully parameterizes an N'kai board (board ID, title, subtitle, environment, hero items, filter rails, available actions, and card items).
 * **Zero-HTML-Edit Generator Engine (`tools/board_renderer.py`)**: The centralized Python engine (`render_board()`) that ingests a `BoardSchema` object, populates `master_template.html`, and emits a self-contained, audit-passing HTML artifact with zero manual HTML editing required.
 
+---
+
+## 21. Multi-Board Hub & Session Manager (Flight 14 / `rj-05`)
+
+* **Multi-Board Hub (`#board-switcher-modal`)**: The interactive header popover dialog in `master_template.html` triggered by `#btn-board-switcher`, providing quick-switch navigation between operational boards (Morning Mailbox, QA Sandbox) and archived deep research sessions, complete with real-time text search and <kbd>Esc</kbd> dismissal.
+* **Board Registry (`BoardRegistry` & `BoardMetadata`)**: The Pydantic data model in `tools/models.py` and canonical catalog (`.agents/pipeline/boards/registry.json`) indexing all ecosystem boards with metadata (`id`, `title`, `description`, `category`, `environment`, `file_path`, `card_count`).
+* **Strict Anti-Cache HTTP Response Headers**: The mandatory header triplet (`Cache-Control: no-store, no-cache, must-revalidate, max-age=0`, `Pragma: no-cache`, `Expires: 0`) injected by `sidecars/panel/main.mjs` across all HTML, JS, CSS, and JSON endpoints to defeat Chromium/Electron in-memory caching.
+* **Dual-Mode Offline & Server Resiliency**: The hybrid architecture in `sidecar.js` that queries `/api/boards` dynamically when served by the Antigravity sidecar, but seamlessly falls back to pre-baked embedded registry JSON in `<script id="nkai-board-registry-data" type="application/json">` during offline `file:///` viewing.
+* **Board Registry CLI (`tools/board_registry.py`)**: The standalone command-line tool providing `list`, `register`, and `rescan` subcommands for automated catalog management.
+
+
 
 
 

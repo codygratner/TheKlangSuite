@@ -246,3 +246,79 @@ STATUS: COMPLETED
 - `python tools/verify_context_clues.py`:
   - **PASS**: 4/4 files passed, 56/56 local links resolved.
 
+---
+
+STATUS: COMPLETED
+
+# Subagent Execution Receipt: Flight 14 Multi-Board Hub & Session Manager
+> *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
+> *Active Branch:* `0.4.0-dev` (TKS) / `main` (nkai)  
+> *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
+
+---
+
+## 1. Execution Header
+- **STATUS**: `COMPLETED`
+- **ROLE EXECUTED**: `Flash Tooling Builder`
+- **TASK SLUG**: `flight-14-multi-board-hub` (Card `rj-05`)
+- **COMPLETED AT**: `2026-10-11T21:30:00Z`
+- **MODEL TIER**: `Tier 2 Flash (High)`
+- **SOURCE PLAN**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
+
+---
+
+## 2. Deliverables & Artifacts
+1. **Board Registry Data Model & Canonical Storage (`tools/models.py` & `.agents/pipeline/boards/registry.json`)**:
+   - Implemented `BoardMetadata` and `BoardRegistry` models in Pydantic v2.
+   - Initialized canonical catalog `.agents/pipeline/boards/registry.json` registering `morning_mail` (Production, Active), `sandbox_mail` (Sandbox, Active), and `system_sanity_audit` (Production, Archived).
+   - Mirrored models and registry catalog to `c:\Dev\nkai\tools/`, `nkai/bundle/tools/`, and `nkai/boards/`.
+2. **Board Registry CLI Management Utility (`tools/board_registry.py`)**:
+   - Built standalone CLI supporting `list`, `register`, and `rescan` subcommands with table formatting and card counting.
+   - Mirrored to `c:\Dev\nkai\tools/board_registry.py` and `nkai/bundle/tools/board_registry.py`.
+3. **Sidecar Backend Cache Invalidation & Routing (`sidecars/panel/main.mjs`)**:
+   - Injected strict anti-cache HTTP response headers (`Cache-Control: no-store, no-cache, must-revalidate, max-age=0`, `Pragma: no-cache`, `Expires: 0`) across all responses.
+   - Implemented `GET /api/boards` endpoint returning parsed board registry JSON.
+   - Enhanced `app.page('/', (req) => ...)` to parse query parameter `?board=<id>` and resolve target board HTML dynamically.
+   - Mirrored to `nkai/plugin/sidecars/panel/main.mjs` and re-validated via `tools/install_nkai_plugin.py`.
+4. **Interactive Header Switcher & Accessible Modal (`master_template.html`, `sidecar.css`, `sidecar.js`)**:
+   - Replaced static title in `.header-tier-top` with `#btn-board-switcher` trigger.
+   - Added `#board-switcher-modal` dialog featuring real-time search filtering (`#board-search-input`), active operational boards section, and archived research sessions section with keyboard <kbd>Esc</kbd> dismissal.
+   - Added glassmorphic modal styles in `core/sidecar.css`.
+   - Implemented `toggleBoardSwitcherModal()`, `filterBoardList()`, and `switchBoard(boardId)` with `_t` timestamp cache-busting token in `core/sidecar.js`.
+   - Updated `tools/board_renderer.py` to embed board registry JSON into template for offline support and replace `{{BOARD_TITLE}}`.
+   - Mirrored across `.agents/sidecar/master_template.html` and `nkai/bundle/templates/master_template.html`.
+5. **Automated Verification Gauntlet (`tools/tests/test_board_hub.py`)**:
+   - Authored test suite asserting model validation, anti-cache headers in `main.mjs`, modal markup in `master_template.html`, and CLI execution (5/5 PASS).
+   - Verified `test_sandbox_board.py` (5/5 PASS).
+   - Audited templates with `tools/audit_sidecar.py` (PERFECT PASS, 0 issues/warnings across all 3 files).
+   - Validated Universal UTF-8 compliance across 54/54 Python files (100% compliant).
+   - Validated context clues (4/4 passed, 56/56 links resolved).
+   - Successfully installed and validated extension via `tools/install_nkai_plugin.py`.
+6. **Architectural Specification & Governance Sync**:
+   - Authored [`docs/specs/nkai_multi_board_hub_and_session_manager.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_multi_board_hub_and_session_manager.md).
+   - Registered in [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) and [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md).
+   - Updated [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) (§21: Multi-Board Hub & Session Manager) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md).
+   - Updated Card `rj-05` to `COMPLETED` in `.agents/pipeline/mailbag/rejigger.json` and marked complete in `docs/BACKLOG.md`.
+
+---
+
+## 3. Verification Gauntlet Results
+- `python -m unittest tools/tests/test_board_hub.py`:
+  - **PASS**: 5 tests in ~0.43s (100% PASS).
+- `python -m unittest tools/tests/test_sandbox_board.py`:
+  - **PASS**: 5 tests in ~2.15s (100% PASS).
+- `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/master_template.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/verify_utf8.py --all --strict`:
+  - **PASS**: 54/54 files compliant (100% Universal UTF-8).
+- `python tools/verify_context_clues.py`:
+  - **PASS**: 4/4 files passed, 56/56 local links resolved.
+- `python tools/install_nkai_plugin.py`:
+  - **PASS**: All 6 validation checks passed.
+
+

@@ -56,9 +56,12 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Rambles Ingestion Engine Specification](specs/nkai_rambles_ingestion_engine.md) — Stream-of-consciousness ramble intake, multi-idea paragraph decomposition, 3-bullet decision cards, and zero-mutation safety invariant.
   - [N'kai QA Sandbox Board & Multi-Stage Environments](specs/nkai_sandbox_and_multistage_environments.md) — 2-mode architecture (SANDBOX vs PRODUCTION), Lovecraftian synthetic fixtures, zero-mutation guarantee, and deterministic DOM IDs.
   - [N'kai Unified Master Template & Schema-Driven Boards](specs/nkai_unified_master_template_and_schema.md) — Data-driven BoardSchema architecture, master_template.html, board_renderer engine, and zero-HTML-edit board generation.
+  - [N'kai Multi-Board Hub & Session Manager](specs/nkai_multi_board_hub_and_session_manager.md) — Multi-board directory modal, BoardRegistry data model, anti-cache HTTP response headers, ?board=<id> routing, and dual-mode operation.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
 ### 8. 🛠️ Developer Tooling & Data Schemas
+- [board_registry.py](../tools/board_registry.py) — Multi-Board Hub registry manager CLI (list, register, rescan).
+- [board_renderer.py](../tools/board_renderer.py) — Data-driven board renderer engine (Flight 15).
 - [preset_audit.py](../tools/preset_audit.py) — TKPL Preset Linter CLI (validates presets against Pydantic schema and master controls).
 - [ramble_ingest.py](../tools/ramble_ingest.py) — Zero-dependency stream-of-consciousness ramble ingestion CLI.
 - [nkai_api.py](../tools/nkai_api.py) — Local FastAPI Bridge server on `http://127.0.0.1:8000`.
@@ -69,6 +72,7 @@ This is the central directory for all high-level documentation, rules, and histo
 - [nkai_serve.py](../tools/nkai_serve.py) — Zero-dependency local HTTP server for interactive sidecars.
 - [verify_context_clues.py](../tools/verify_context_clues.py) — Markdown hyperlink integrity auditor.
 - [verify_utf8.py](../tools/verify_utf8.py) — Universal UTF-8 Invariant auditor and CLI stream enforcer.
+- [registry.json](../.agents/pipeline/boards/registry.json) — Canonical Multi-Board Hub registry catalog.
 - [master_control_schema.json](../assets/controls/master_control_schema.json) — Master DSP parameter schema across all 8 modules (202 parameters).
 - [preset.schema.json](../assets/presets/$schema/preset.schema.json) — Universal preset JSON schema generated from Pydantic `PresetPayload`.
 

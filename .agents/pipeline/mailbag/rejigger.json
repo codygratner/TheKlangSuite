@@ -138,7 +138,7 @@
       "id": "rj-05",
       "rank": 5,
       "priority": "P0",
-      "status": "APPROVED",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "NK"
@@ -150,7 +150,7 @@
         "Cache-busting so stale boards never show",
         "Sandbox board (rj-03) becomes the second board that proves the switcher"
       ],
-      "next_action": "Approve -> build after rj-04 template lands.",
+      "next_action": "Completed in Flight 14.",
       "depends_on": [
         "rj-04"
       ],
@@ -159,8 +159,8 @@
         "archived nkai boards probably need their own space",
         "Nkai"
       ],
-      "verdict": "APPROVED",
-      "verdict_notes": "2026-10-11: Approved. BACKLOG N'kai Flight 14 updated; builds after Flight 15 (rj-04). Order 18 -> 16+17 -> 15 -> 14."
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Completed Flight 14. Board Switcher modal, BoardRegistry models, anti-cache HTTP headers in main.mjs, ?board=<id> routing, board_registry.py CLI, test suite tools/tests/test_board_hub.py, and spec docs/specs/nkai_multi_board_hub_and_session_manager.md."
     },
     {
       "id": "rj-06",

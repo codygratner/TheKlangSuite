@@ -451,6 +451,19 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     output_html = output_html.replace("{{DISPATCHED_COUNT}}", str(dispatched_count))
     output_html = output_html.replace("{{ALLOWANCE_BUDGET}}", str(schema.allowance_budget))
 
+    # Flight 14: Board Title & Injected Registry Manifest
+    board_title = f"[SBX] {schema.title}" if is_sandbox else schema.title
+    output_html = output_html.replace("{{BOARD_TITLE}}", html.escape(board_title))
+
+    registry_path = Path(__file__).resolve().parent.parent / ".agents" / "pipeline" / "boards" / "registry.json"
+    if not registry_path.exists():
+        registry_path = Path(r"c:\Dev\nkai\boards\registry.json")
+    if registry_path.exists():
+        registry_json_str = registry_path.read_text(encoding="utf-8")
+    else:
+        registry_json_str = '{"version":"1.0.0","default_board_id":"morning_mail","boards":[]}'
+    output_html = output_html.replace("{{BOARD_REGISTRY_JSON}}", registry_json_str)
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(output_html, encoding="utf-8")
 
