@@ -154,6 +154,13 @@
 - **JSON Merge Priority (Overwrite Trap)**: Base/Master JSON files MUST be loaded *first*, followed by specific modules/effects. Loading out of order will silently overwrite module data.
 - **Trust, But Verify (Pre-Flight Grounding Rule)**: Before adopting any premise stated in a prompt or recalled from memory (framework versions, model names/vendors, file locations, "X already exists"), verify it: **local first** (`CMakeLists.txt`, `GEMINI.md`, version headers, the file itself), **web second** for model/vendor/upstream claims. If the premise is wrong, open with a polite one-line reality check before answering. Never build on an unverified premise.
 
+## Strict Audit Cadence & Checkpoint Resumption Protocol
+- **Dual-Tier Audit Cadence**:
+  1. *Light Milestone Audits (Tier 2 Flash High)*: Executed at every patch release (`v0.4.1`, `v0.4.2`) via native test suites (`dsp_tests`, `gui_tests`, `audiothread-guard`, link validator).
+  2. *Deep Cross-Repo Audits (Tier 1 Targeted Opus Swap)*: Executed once per minor version (`v0.4.0`, `v0.5.0`) across all active repositories (TKS, TT, NK, Research), or opportunistically when burning surplus weekly Opus quota before reset.
+- **Checkpoint Resumption Invariant**: Deep multi-repo audits MUST record progress after each repository into `audit_checkpoint.json`. If token allowances or API rate limits pause execution, the audit resumes in 0 turns from the checkpoint without re-auditing passed repos.
+- **Findings Surface**: Major audit findings are emitted directly to an N'kai review board rather than overwhelming chat scrollback.
+
 ## Interactive Decision Modals & Wrap-Up
 - **Interactive Modal Required for Design Menus**: When presenting design options (at the end of `/grill-me`, `/plan`, or architectural branching forks), NEVER output raw numbered text lists forcing the user to type "3". ALWAYS invoke `ask_question`.
 - **CRITICAL EXCEPTIONS (NEVER USE `ask_question`)**:

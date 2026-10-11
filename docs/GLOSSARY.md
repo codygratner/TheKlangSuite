@@ -214,6 +214,12 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **One-Way Vault Mirror**: `TheKlangVault` is a generated, read-only mirror. Content flows **repo → vault only**; nothing in the vault is ever synced, copied, or merged back into a repo. Vault-side edits outside `Inbox/` are disposable.
 * **Inbox Exception**: `Inbox/` notes are *read* by intake tools (`check_mail.py`, `ramble_ingest.py`) and turned into repo ledger/backlog entries; the note files themselves never enter a repo. Changing this requires an explicit user decision ("burn that bridge when we get there").
 
+## 16. Audit Cadence & Checkpoint Resumption Protocol
+
+* **Dual-Tier Cadence**: Light milestone audits (Flash High) run at every patch release tag; Deep Opus audits (Claude 5.5 Opus High) run once per minor version (`v0.4.0`, `v0.5.0`) or before weekly quota reset.
+* **Checkpoint Resumption**: Deep cross-repo sweeps save progress to `audit_checkpoint.json` per repo, allowing 0-turn resumption if interrupted by rate/token limits.
+* **Findings Board**: Audit findings populate an N'kai board rather than flooding chat history (Mailbag `rj-11`).
+
 
 
 

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:37:30.343702",
+  "last_scanned": "2026-10-11T13:38:49.246014",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -372,7 +372,7 @@
       "title": "Audit Cadence + Opus Deep Audit with Checkpoints",
       "created_at": "2026-10-09",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [
         "merged:3"
       ],
@@ -388,8 +388,8 @@
         "rj-02",
         "rj-05"
       ],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Backlogged as Flight 21 (Tier 1 Targeted Opus Swap). Cadence policy codified in GEMINI.md, GLOSSARY sec 16, CHEAT_SHEET.",
       "estimated_tokens": 10000,
       "char_count": 831,
       "word_count": 110,

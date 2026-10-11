@@ -180,6 +180,13 @@
 * **Repo → vault only.** Nothing in `TheKlangVault` is ever synced/copied back into a repo; vault edits outside `Inbox/` get overwritten.
 * **Inbox exception:** notes are *read* by `check_mail.py` / `ramble_ingest.py` into repo ledgers; the files never enter a repo.
 
+---
+
+## 🛡️ Audit Cadence & Checkpoint Resumption
+
+* **Light vs Deep**: Light audit at every patch tag (Flash High); Deep Opus audit once per minor version (`v0.4.0`, `v0.5.0`) or before quota reset.
+* **Checkpoints**: Progress saves to `audit_checkpoint.json` per repo; resume in 0 turns if quota cuts off. Findings land on an N'kai board.
+
 
 
 
