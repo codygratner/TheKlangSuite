@@ -39,6 +39,7 @@
   - [N'kai v0.3.0 Milestone (Mobile Companion & Touch Ergonomics)](#14-nkai-v030-milestone-the-mobile-companion--touch-ergonomics-update---deferred)
   - [N'kai Sidecar Architecture Roadmap (Act III)](#15-nkai-sidecar-architecture-roadmap-the-rejiggered-runway--act-iii)
   - [Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)](#16-flight-2-nkai-to-high-reasoning-prompt-compiler-p1--top-active-priority)
+  - [Flight 3: N'kai Automode & Multi-Drawer Dossier Cards (P1 — TOP PRIORITY)](#17-flight-3-nkai-automode-2-pass-iterative-research-daemon--multi-drawer-dossier-cards-p1--top-priority)
 - [Spin-Off Products & Explorations](#-spin-off-products--explorations)
   - [1. The Klang Mill (Standalone VST)](#1-the-klang-mill-standalone-vst--industrial-1x6-multi-fx-pedalboard-rack)
   - [2. The Klang Boilerplate](#2-the-klang-boilerplate--modern-c20--juce-9-foss-plugin-starter-template)
@@ -1037,7 +1038,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 ### 15. N'kai Sidecar Architecture Roadmap (The Rejiggered Runway — Act III)
 - [x] **Flight 1: The "Rambles" Ingestion Engine (Topic 2, P0)** — ✅ COMPLETED: Zero-dependency stream-of-consciousness ramble ingestor CLI (`tools/ramble_ingest.py`), Pydantic models (`RambleCard`, `RambleExtractionResult`, `to_mail_item()`), 3-bullet decision card decomposition, and `/ramble` micro-skill (`.agents/skills/ramble-ingest/SKILL.md`).
 - [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1 — TOP ACTIVE PRIORITY)** — ⏳ QUEUED: Automated compilation of research cards, user notes, dialectical theses, and contrarian failure modes into a dense master system prompt payload for external LLM reasoning sessions.
-- [ ] **Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon (Topic 6, P1)** — ⏳ QUEUED: Background research daemon automating iterative exploration without stalling chat.
+- [ ] **Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (Topic 6, P1 — TOP PRIORITY)** — ⏳ QUEUED: Background research daemon automating iterative exploration paired with the multi-tab dossier card layout (Source Note, PCDA, Research, and Mobile Bottom Sheet); next execution target upon weekly quota reset.
 - [ ] **Flight 4: General Research Assistant & Custom Lens Profiles (Topic 9, P2)** — ⏳ QUEUED: Expanding N'kai into a generalized engineering research companion with pluggable review lenses.
 - [ ] **Flight 5: Tracktion Engine Backend Evaluation (Topic 13, P1)** — ⏳ QUEUED: Architectural evaluation of Tracktion Engine for ToadTracker audio processing and sequencing.
 - [ ] **Flight 6: Dirtywave M8 Telemetry Capture & Bridge (Topic 10, P2)** — ⏳ QUEUED: Bidirectional telemetry and pattern synchronization bridge for Dirtywave M8 tracker hardware.
@@ -1083,6 +1084,35 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 #### 5. Sidecar & Webview Integration
 - **1-Click Action Chip**: Integrates `[ 🧠 Compile Reasoning Prompt ]` chip into `morning_mail_inbox.html` and N'kai sidecars.
 - **Readonly Prompt Composer**: Pre-renders the compiled payload into a selectable, highlighted container with dedicated `[ 📋 Copy ]` button, eliminating webview clipboard sandbox permission traps.
+
+### 17. Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (P1 — TOP PRIORITY)
+*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai Automode.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md) ("Should there be a skill to auto-research all the items twice using the idea about loops and going through twice and not more?")  
+*Status: ⏳ QUEUED (Top Immediate Priority for Execution upon Weekly Quota Reset)*  
+*Priority: P1 — TOP PRIORITY*  
+*Target Pillar: N'kai Sidecar Architecture Roadmap*  
+*Related Architecture:* [`audit-reorder` Skill (2-Pass Convergence Gate)](file:///c:/Dev/TheKlangSuite/.agents/skills/audit-reorder/SKILL.md)  
+*Goal: Automate 2-pass iterative research sweeps across queued triage items without stalling the chat session, while strictly bounding loops, preventing hallucination compounding or quota incinerations, and integrating a unified multi-tab dossier card layout for both desktop and mobile.*
+
+#### 1. The "Rule of 2" Bounded Convergence Architecture
+- **Strict Finite Bound (`max_iterations = 2`)**: Multi-agent reflection research demonstrates that gains steeply plateau after iteration 2. Pass 3+ yields negative returns (semantic churn, hallucination compounding, and token waste). Automode strictly enforces the 2-Pass law:
+  - **Pass 1 (Parallel Divergent Sweep — Tier 2 Flash)**: Spawns parallel `explore` (SOTA precedents & affirmative thesis) and `contrarian` (failure modes & architectural stress-testing) subagents with a 3-minute hard watchdog.
+  - **Pass 2 (Convergent Synthesis — Tier 2 Flash)**: Spawns a synthesis subagent to reconcile Thesis and Antithesis into standard 3-bullet decision cards and complete 4-lens PCDA matrices (Real-World Ergonomics, Audio Software, Wider SOTA, Best Practices).
+- **Pro Model Prohibition (Zero Pro Burn)**: Automode runs 100% on Tier 2 Flash 3.8 High. Tier 1 Pro models are strictly prohibited, reserving critical high-reasoning quotas exclusively for Flight 2 Prompt Compiler synthesis.
+
+#### 2. The Human Triage Gate & Bounded Execution Invariants
+- **No Blind Vault Sweeps**: Automode NEVER autonomously ingests or researches raw notes in [`TheKlangVault/Inbox/`](file:///C:/Dev/TheKlangVault/Inbox). It executes strictly on items that the user has explicitly triaged with `[ 🔬 Research ]` in [`morning_mail_inbox.html`](file:///c:/Dev/TheKlangSuite/.agents/sidecar/morning_mail_inbox.html) or marked `status: "research"` in `.agents/pipeline/mailbag/mail_queue.json`.
+- **Strict Batch Cap (`--limit 3`)**: Default execution batch size is strictly capped at 3 items (configurable via `--limit N`). Operates as a finite, one-shot CLI job (`tools/research_daemon.py` or `/automode --limit 3`), NEVER as an infinite continuous loop daemon (`while True:`).
+- **Isolated Staging Area**: Researched outputs write to `.agents/pipeline/mailbag/researched/`, keeping active Git working trees and tracked C++ codebase completely clean. Emits an ambient completion chime upon batch finish.
+
+#### 3. In-Card Dossier Integration (The "Hero Front + 3-Tab Drawer" Standard)
+- **Front Panel Hero (Always Visible)**: The 3-bullet synthesis (🎯 Core Intent, 🛠️ Proposed Mechanism, 🚦 Action Route) remains permanently visible on the front face of each card for instantaneous 15-second scanning. Never hidden behind an accordion.
+- **Single Unified Dossier Drawer (`.mail-dossier-drawer`)**: Replaces multi-accordion vertical stacks with ONE clean drawer toggle: `[ 📂 View Full Dossier (3) ]`.
+- **3-Segmented Tab Strip Inside Drawer**:
+  - `[ 📄 Source Note ]`: Renders original raw/rendered Markdown note from the Obsidian vault.
+  - `[ ⚖️ PCDA Dialectic ]`: Renders the 4-part Dialectic Triad (Pros, Cons, Devil's Advocate, 80/20 Resolution) with 4-lens metrics.
+  - `[ 🔬 Research Dossier ]`: Renders curated technical citations, benchmarks, and upstream architectural precedents.
+- **On-Demand Progressive Population**: Unresearched tabs display a clean empty state with a 1-click trigger (`[ ⚡ Generate PCDA in Sidecar ]`). When Automode completes, the dossier tabs are populated in-place in the sidecar with zero chat transcript bloat.
+- **Mobile-Ready Architecture (v0.3.0 Bottom-Sheet Bridge)**: On viewports $\le 640\text{px}$, toggling the dossier slides up an 85vh swipeable bottom sheet with sticky segmented tabs, completely eliminating nested accordion scroll traps on touch devices.
 
 ---
 
