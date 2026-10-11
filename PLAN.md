@@ -298,22 +298,22 @@ class PresetPayload(BaseModel):
 - [x] Register all new specs, guides, and tools in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
 - [x] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
 
-#### Scene 2 (Flight 15): The Full Acceptance Gauntlet
-- [ ] **Multi-Plan Queue Test**:
+#### Scene 2 (Flight 15): The Full Acceptance Gauntlet — ✅ COMPLETED
+- [x] **Multi-Plan Queue Test**:
   - Queue test plan via `python tools/plan_queue.py add-plan test.md`.
   - Promote next plan and verify `PLAN.md` updates.
   - Run `python tools/plan_queue.py rollback` and assert original `PLAN.md` is restored in 5ms.
-- [ ] **Pydantic Validation Test**:
+- [x] **Pydantic Validation Test**:
   - Inject invalid type into `mail_queue.json`.
   - Run `python tools/check_mail.py`.
   - Assert Pydantic logs structured `ValidationError`.
-- [ ] **TKPL Preset Linting Test**:
+- [x] **TKPL Preset Linting Test**:
   - Run `python tools/preset_audit.py --lint`.
   - Assert all presets pass schema validation.
-- [ ] **FastAPI Bridge Test**:
+- [x] **FastAPI Bridge Test**:
   - Start `python tools/nkai_api.py` and query `GET http://127.0.0.1:8000/health`.
   - Assert HTTP 200 with valid JSON response.
-- [ ] **Context Clues Verification**:
+- [x] **Context Clues Verification**:
   - Run `python tools/verify_context_clues.py`.
   - Assert 100% pass rate.
 
