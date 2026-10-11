@@ -173,6 +173,13 @@
 * **Verify premises before building on them**: local first (`CMakeLists.txt`, `GEMINI.md`, version headers, the file itself), web second (model/vendor/upstream claims).
 * **Wrong premise?** Lead with a polite one-line reality check, then answer.
 
+---
+
+## 🪞 One-Way Vault Mirror (ABSOLUTE)
+
+* **Repo → vault only.** Nothing in `TheKlangVault` is ever synced/copied back into a repo; vault edits outside `Inbox/` get overwritten.
+* **Inbox exception:** notes are *read* by `check_mail.py` / `ramble_ingest.py` into repo ledgers; the files never enter a repo.
+
 
 
 

@@ -209,6 +209,11 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Pre-Flight Grounding**: Before adopting a premise (framework version, model name/vendor, file location, "this already exists"), the agent verifies it — local files first (`CMakeLists.txt`, `GEMINI.md`, version headers), web second for model/vendor/upstream claims.
 * **Reality Check**: When a premise is wrong, the agent opens with a polite one-line correction before answering, instead of silently building on it. Origin: the "JUCE 8 vs 9" and "Pro 3.8 is Argon" whoopsies (Mailbag `rj-06`, 2026-10-11).
 
+## 15. One-Way Vault Mirror (Absolute Invariant)
+
+* **One-Way Vault Mirror**: `TheKlangVault` is a generated, read-only mirror. Content flows **repo → vault only**; nothing in the vault is ever synced, copied, or merged back into a repo. Vault-side edits outside `Inbox/` are disposable.
+* **Inbox Exception**: `Inbox/` notes are *read* by intake tools (`check_mail.py`, `ramble_ingest.py`) and turned into repo ledger/backlog entries; the note files themselves never enter a repo. Changing this requires an explicit user decision ("burn that bridge when we get there").
+
 
 
 
