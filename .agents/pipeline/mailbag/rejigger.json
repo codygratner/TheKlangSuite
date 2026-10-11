@@ -237,7 +237,7 @@
       "pillars": ["TT", "NK"],
       "title": "M8 Telemetry Bridge & Second-Monitor Sidecar",
       "summary": "Merged ToadTracker vs M8 web bridge with second-monitor uses for the N'kai sidecar (dashboards, ramble overflow queue).",
-      "angles": ["M8 headless display protocol as reference", "Second monitor = always-on board"],
+      "angles": ["M8 headless display protocol as reference", "Second monitor = always-on board", "Tabled from rj-08: compact HUD (current topic, QA diagnostics, allowance) once a second monitor exists"],
       "next_action": "Table until ToadTracker makes sound.",
       "sources": ["docket-9", "Second Monitor and Other Uses for the Nkai Sidecar Integration"]
     },

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:14:49.872624",
+  "last_scanned": "2026-10-11T13:19:48.453342",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -264,7 +264,7 @@
       "title": "Chat-Minimal Surfaces: Fullscreen, Second Monitor & Response Drawer",
       "created_at": "2026-10-11",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [
         "merged:2"
       ],
@@ -276,8 +276,8 @@
       "dependencies": [
         "rj-04"
       ],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: PCDA split approved. Drawer -> BACKLOG N'kai Flight 19 (small, can go early). Fullscreen spike resolved: only AUX_PANE entrypoint exists; use widened pane or nkai_serve.py tab (clipboard fallback). HUD tabled into rj-24.",
       "estimated_tokens": 10000,
       "char_count": 786,
       "word_count": 104,
@@ -813,10 +813,10 @@
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 573,
-      "word_count": 69,
+      "char_count": 678,
+      "word_count": 85,
       "tier": "tier2",
-      "body": "Merged ToadTracker vs M8 web bridge with second-monitor uses for the N'kai sidecar (dashboards, ramble overflow queue).\n\n- M8 headless display protocol as reference\n- Second monitor = always-on board\n\n**Next action:** Table until ToadTracker makes sound.\n\n**Source notes:**\n- [ToadTracker vs. Dirtywave M8 Telemetry & Web Bridge (P2)](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)\n- [Second Monitor and Other Uses for the Nkai Sidecar Integration](file:///C:/Dev/TheKlangVault/Inbox/Archive/Second Monitor and Other Uses for the Nkai Sidecar Integration.md)",
+      "body": "Merged ToadTracker vs M8 web bridge with second-monitor uses for the N'kai sidecar (dashboards, ramble overflow queue).\n\n- M8 headless display protocol as reference\n- Second monitor = always-on board\n- Tabled from rj-08: compact HUD (current topic, QA diagnostics, allowance) once a second monitor exists\n\n**Next action:** Table until ToadTracker makes sound.\n\n**Source notes:**\n- [ToadTracker vs. Dirtywave M8 Telemetry & Web Bridge (P2)](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)\n- [Second Monitor and Other Uses for the Nkai Sidecar Integration](file:///C:/Dev/TheKlangVault/Inbox/Archive/Second Monitor and Other Uses for the Nkai Sidecar Integration.md)",
       "excerpt": "Merged ToadTracker vs M8 web bridge with second-monitor uses for the N'kai sidecar (dashboards, ramble overflow queue).",
       "file_name": "",
       "rel_path": "[`Toad vs M8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)",
