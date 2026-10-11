@@ -51,6 +51,7 @@
   - [11. Persistent Mailbag Session & Dynamic Priority Queue](#11-persistent-mailbag-session--dynamic-priority-queue---queued)
   - [12. Multi-Tier Rollback Architecture Across Agent Skills](#12-multi-tier-rollback-architecture-across-agent-skills---active)
   - [13. The Operatic Runway & Tooling Flights (Acts I & II)](#13-the-operatic-runway--tooling-flights-acts-i--ii---completed)
+  - [14. Tooling Maintenance: Git for Windows Upgrade](#14-tooling-maintenance-git-for-windows-upgrade---queued)
 
 ---
 *Focus: Tooling, Data-Driven Architecture, and 1:1 Legacy Parity.*
@@ -1173,6 +1174,13 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 - **Flight 7 (N'kai FastAPI Local Bridge)**: Deployed `tools/nkai_api.py` on `localhost:8000` with universal CORS, PNA preflight, and dynamic sidecar detection.
 - **Flight 8 (Rolling Blackbox Context Compaction)**: Formalized context compaction tripwires, 4-step memory flush protocol, and 0-turn cold boot invariant in `GEMINI.md`, `docs/GLOSSARY.md`, and `docs/CHEAT_SHEET.md`.
 - **Flight 9 (Subagent Soul Harvest)**: Vacuumed staged souls from `.agents/pipeline/staging/souls/` into `TheKlangResearch/subagents/`, achieving true Inbox Zero.
+
+---
+
+### 14. Tooling Maintenance: Git for Windows Upgrade — ⏳ QUEUED
+*Goal: Upgrade Git for Windows CLI to the latest release (`git update-git-for-windows` or `winget upgrade Git.Git`) during an idle maintenance window.*
+- **Scope**: Perform clean CLI upgrade, verify credentials/SSH keys, and validate git subprocess operations across all 5 ecosystem repositories.
+- **Trigger**: Run between feature plans when no active compilation or subagent git commits are running.
 
 ---
 
