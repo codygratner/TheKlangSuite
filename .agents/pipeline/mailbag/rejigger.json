@@ -111,7 +111,7 @@
       "id": "rj-04",
       "rank": 4,
       "priority": "P0",
-      "status": "APPROVED",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "NK"
@@ -123,7 +123,7 @@
         "Cut: localhost bridges, buried toasts, fake 'sent' claims",
         "Guard against over-engineering: one schema file, not a framework"
       ],
-      "next_action": "Approve -> design pass in grill lab, validate on rj-03 sandbox.",
+      "next_action": "Completed in Flight 15.",
       "depends_on": [
         "rj-03"
       ],
@@ -131,8 +131,8 @@
         "docket-15",
         "how stupid is it to make nkai's backend data driven like TKS"
       ],
-      "verdict": "APPROVED",
-      "verdict_notes": "2026-10-11: Approved. Next: /grill-lab design pass, validate on rj-03 sandbox. BACKLOG N'kai Flight 15 updated with keep/cut/guardrail scope."
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Completed & verified in Flight 15. Unified master template, BoardSchema, board_renderer.py, and deep docs queue operational."
     },
     {
       "id": "rj-05",

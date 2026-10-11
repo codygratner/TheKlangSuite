@@ -131,5 +131,41 @@ class TestNkaiSandboxBoard(unittest.TestCase):
         self.assertNotIn("<title>[SBX]", content, "Production HTML title must NOT contain [SBX]")
 
 
+    def test_board_schema_roundtrip(self):
+        """Test 5: Asserts BoardSchema model serialization, JSON schema export, and board_renderer rendering."""
+        from tools.models import BoardSchema
+        from tools.board_renderer import render_board
+
+        fixture_data = self.fixture_path.read_text(encoding="utf-8")
+        queue = MailQueue.model_validate_json(fixture_data)
+
+        schema = BoardSchema(
+            board_id="unit_test_board",
+            title="Unit Test Master Board",
+            subtitle="Testing roundtrip schema-driven rendering",
+            environment="SANDBOX",
+            cards=queue.items,
+            allowance_budget=150000,
+        )
+
+        test_out = self.repo_root / ".agents" / "sidecar" / "test_roundtrip_board.html"
+        try:
+            rendered_path = render_board(schema, test_out)
+            self.assertTrue(rendered_path.exists(), "Rendered test HTML does not exist")
+            rendered_html = rendered_path.read_text(encoding="utf-8")
+
+            self.assertIn("Unit Test Master Board", rendered_html)
+            self.assertIn('[SBX] Unit Test Master Board', rendered_html)
+            self.assertIn('window.NKAI_ENVIRONMENT = "SANDBOX"', rendered_html)
+            self.assertIn('id="sandbox-banner"', rendered_html)
+            self.assertIn('btn-approve-sbx-01', rendered_html)
+        finally:
+            if test_out.exists():
+                try:
+                    test_out.unlink()
+                except Exception:
+                    pass
+
+
 if __name__ == "__main__":
     unittest.main()

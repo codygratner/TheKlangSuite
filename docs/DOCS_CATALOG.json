@@ -167,6 +167,11 @@
           "path": "docs/specs/nkai_sandbox_and_multistage_environments.md",
           "title": "N'kai QA Sandbox Board & Multi-Stage Environments (Flight 16+17 / rj-03)",
           "purpose": "2-mode architecture (SANDBOX vs PRODUCTION), Lovecraftian synthetic fixtures, zero-mutation guarantee, mock action dispatch, and deterministic DOM element IDs."
+        },
+        {
+          "path": "docs/specs/nkai_unified_master_template_and_schema.md",
+          "title": "N'kai Unified Master Template & Schema-Driven Boards (Flight 15 / rj-04)",
+          "purpose": "Data-driven BoardSchema architecture, consolidated master_template.html, board_renderer engine, and zero-HTML-edit board generation."
         }
       ]
     },

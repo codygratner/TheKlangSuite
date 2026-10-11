@@ -55,6 +55,7 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Allowance Ledger & Token Governance](specs/nkai_allowance_ledger_and_token_governance.md) — Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics, cumulative allowance ledger, and offline CLI auditor.
   - [N'kai Rambles Ingestion Engine Specification](specs/nkai_rambles_ingestion_engine.md) — Stream-of-consciousness ramble intake, multi-idea paragraph decomposition, 3-bullet decision cards, and zero-mutation safety invariant.
   - [N'kai QA Sandbox Board & Multi-Stage Environments](specs/nkai_sandbox_and_multistage_environments.md) — 2-mode architecture (SANDBOX vs PRODUCTION), Lovecraftian synthetic fixtures, zero-mutation guarantee, and deterministic DOM IDs.
+  - [N'kai Unified Master Template & Schema-Driven Boards](specs/nkai_unified_master_template_and_schema.md) — Data-driven BoardSchema architecture, master_template.html, board_renderer engine, and zero-HTML-edit board generation.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
 ### 8. 🛠️ Developer Tooling & Data Schemas

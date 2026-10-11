@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T15:29:09.381354",
+  "last_scanned": "2026-10-11T16:11:39.563714",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -140,10 +140,10 @@
       "verdict": "APPROVED",
       "verdict_notes": "2026-10-11: Approved. Next: /grill-lab design pass, validate on rj-03 sandbox. BACKLOG N'kai Flight 15 updated with keep/cut/guardrail scope.",
       "estimated_tokens": 10000,
-      "char_count": 861,
-      "word_count": 114,
+      "char_count": 821,
+      "word_count": 107,
       "tier": "tier2",
-      "body": "Merged: 'best of both UIs' plus 'should N'kai be data-driven like TKS?'. Answer: yes, lightly. Pydantic models already define the data; add one board-schema JSON so new board types need zero HTML edits.\n\n- Keep: hero stage, in-canvas 4-lens accordions, native IPC buttons, two-rail filters\n- Cut: localhost bridges, buried toasts, fake 'sent' claims\n- Guard against over-engineering: one schema file, not a framework\n\n**Next action:** Approve -> design pass in grill lab, validate on rj-03 sandbox.\n\n**Source notes:**\n- [Best-of-Both Unified UI/UX Master Template Synthesis (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Unified%20UI-UX%20Master%20Template%20Synthesis.md)\n- [how stupid is it to make nkai's backend data driven like TKS](file:///C:/Dev/TheKlangVault/Inbox/Archive/how stupid is it to make nkai's backend data driven like TKS.md)",
+      "body": "Merged: 'best of both UIs' plus 'should N'kai be data-driven like TKS?'. Answer: yes, lightly. Pydantic models already define the data; add one board-schema JSON so new board types need zero HTML edits.\n\n- Keep: hero stage, in-canvas 4-lens accordions, native IPC buttons, two-rail filters\n- Cut: localhost bridges, buried toasts, fake 'sent' claims\n- Guard against over-engineering: one schema file, not a framework\n\n**Next action:** Completed in Flight 15.\n\n**Source notes:**\n- [Best-of-Both Unified UI/UX Master Template Synthesis (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Unified%20UI-UX%20Master%20Template%20Synthesis.md)\n- [how stupid is it to make nkai's backend data driven like TKS](file:///C:/Dev/TheKlangVault/Inbox/Archive/how stupid is it to make nkai's backend data driven like TKS.md)",
       "excerpt": "Merged: 'best of both UIs' plus 'should N'kai be data-driven like TKS?'. Answer: yes, lightly. Pydantic models already define the data; add one board-schema JSON so new board types need zero HTML edits.",
       "file_name": "",
       "rel_path": "[`Nkai Unified UI-UX Master Template Synthesis.md`](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Unified%20UI-UX%20Master%20Template%20Synthesis.md)",

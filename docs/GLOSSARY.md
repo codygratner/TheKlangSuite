@@ -247,6 +247,12 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Deterministic DOM IDs**: The standardized naming schema for webview action chips (`btn-<action>-<cardId>`) and filter pills (`pill-<rail>-<key>`), enabling automated, headless UI verification without brittle CSS selectors.
 * **Mock Action Echoing (`[QA_TEST_MOCK]`)**: The safety protocol in sandbox mode where button clicks echo prompt strings prefixed with `[QA_TEST_MOCK]` and bypass backend API persistence (`:8000/api/action`), while namespacing state to `localStorage['nkai_sbx_mail_triage_actions']`.
 
+## 20. Unified Master Template & Schema-Driven Boards (Flight 15 / `rj-04`)
+
+* **N'kai Unified Master Template (`master_template.html`)**: The canonical, standalone HTML5/CSS3/ES6 shell located at `c:\Dev\nkai\core\master_template.html` that synthesizes the Two-Tier header, live allowance meter, audio haptics, optional hero stage, and in-canvas 4-lens accordions, while excising all dead loopback bridge code.
+* **Declarative Board Schema (`BoardSchema`)**: The Pydantic model (`tools/models.py`) and JSON schema (`c:\Dev\nkai\core\schema.json`) that fully parameterizes an N'kai board (board ID, title, subtitle, environment, hero items, filter rails, available actions, and card items).
+* **Zero-HTML-Edit Generator Engine (`tools/board_renderer.py`)**: The centralized Python engine (`render_board()`) that ingests a `BoardSchema` object, populates `master_template.html`, and emits a self-contained, audit-passing HTML artifact with zero manual HTML editing required.
+
 
 
 

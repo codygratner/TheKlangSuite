@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "queue": [
+    {
+      "id": "doc-01",
+      "title": "N'kai Sidecar UI Extension Setup Guide (ELI5 Level)",
+      "audience": "Developers & Musicians",
+      "target_file": "TheKlangResearch/guides/nkai_sidecar_quickstart_eli5.md",
+      "status": "QUEUED",
+      "priority": "P1",
+      "created_at": "2026-10-11T20:35:00Z"
+    },
+    {
+      "id": "doc-02",
+      "title": "DAW Backend Dilemma: Replacing the Ardour Monolith with Headless C++20 (No-BS Case Study)",
+      "audience": "Senior Audio Software Architects",
+      "target_file": "TheKlangResearch/qa_autopsies/daw_backend_replacement_ardour_vs_bespoke.md",
+      "status": "QUEUED",
+      "priority": "P1",
+      "created_at": "2026-10-11T20:35:00Z"
+    }
+  ]
+}

@@ -214,6 +214,12 @@
 * **Deterministic Element IDs**: Action chips (`btn-<action>-<id>`) and filter pills (`pill-<rail>-<slug>`) provide stable DOM anchors for automated testing.
 * **Mock Action Echoing**: Actions in sandbox prepend `[QA_TEST_MOCK]`, bypass API persistence, and namespace local storage to `nkai_sbx_mail_triage_actions`.
 
+## 🎨 Unified Master Template & Schema-Driven Boards (Flight 15 / `rj-04`)
+
+* **Master Template**: `c:\Dev\nkai\core\master_template.html` canonical standalone shell combining Two-Tier header, live allowance meter, audio haptics, hero stage, and in-canvas 4-lens accordions with zero dead loopback bridge code.
+* **BoardSchema**: Pydantic model (`tools/models.py`) and JSON schema (`c:\Dev\nkai\core\schema.json`) parameterizing board metadata, rails, and card streams.
+* **Renderer Engine**: `tools/board_renderer.py` provides `render_board(schema, out_path)`, eliminating ~1,500 lines of monolithic HTML f-string from `check_mail.py` for zero-HTML-edit board generation.
+
 
 
 

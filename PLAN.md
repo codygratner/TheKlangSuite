@@ -1,86 +1,121 @@
-# 🧪 Flight 16+17: N'kai QA Sandbox Board & Sandbox/Production Mode (`rj-03`)
+# 🎨 Flight 15: Unified Master Template & Schema-Driven Boards (`rj-04`)
 
-> **ID:** plan-009  
+> **ID:** plan-010  
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Topic Target:** Mailbag Card `rj-03` / BACKLOG Section 15 ("QA Sandbox Board & Sandbox/Production Mode")  
+> **Topic Target:** Mailbag Card `rj-04` / BACKLOG Section 15 ("Unified Master Template + Schema-Driven Boards")  
 > **Status:** COMPLETED ✅  
 > **Priority:** P0 (Top Priority)  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\SQA meeting with Tom about vibe coding QA.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/SQA%20meeting%20with%20Tom%20about%20vibe%20coding%20QA.md)  
-> **Supersedes:** BACKLOG N'kai Flights 16 (Sandbox & Fixture QA Test Board) + 17 (Multi-Stage Environment PCDA)  
+> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\Nkai.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai.md) + [`how stupid is it to make nkai's backend data driven like TKS.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/how%20stupid%20is%20it%20to%20make%20nkai's%20backend%20data%20driven%20like%20TKS.md)  
+> **Prerequisites:** Flight 18 (UTF-8) ✅, Flight 16+17 (QA Sandbox Board) ✅  
+> **Dependents:** Flight 14 (Multi-Board Hub & Session Manager) ⏳, Flight 19 (Per-Card Response Drawer) ⏳  
 
 ---
 
 ## 🎯 Architectural Intent & Storyline
 
-Every N'kai UI change was previously validated against the *production* mailbag, which risked real triage state (as experienced during the `--archive-inbox` ledger-wipe autopsy). A synthetic fixture board gives a safe, deterministic place to test and break UI interactions.
+Previously, N'kai boards diverged into two parallel evolutionary branches:
+1. **The Research Board (`standalone-template.html` / `nkai_deep_research.html`)**: Rich hero stage panels, 4-lens PCDA accordions, and deep-link jump navigation, but carrying legacy localhost loopback bridge code (`:4040` / `:8000`) and missing the modern Two-Tier header and allowance meter.
+2. **The Mailbag Inbox (`check_mail.py` / `morning_mail_inbox.html`)**: Two-Tier header, live token allowance meter, session-stable two-rail filters, deterministic IDs, and sandbox mode, but embedded as a 1,500-line Python f-string that required editing Python code whenever UI layout evolved.
 
-The Hegelian 80/20 resolution to "do we need dev/qa/prod environments?" for solo AI pair-programming:
-**One codebase, two runtime modes (`SANDBOX` vs `PRODUCTION`), and Git branches for staging** — zero multi-server infrastructure bloat.
-
-**Flight 16+17** delivers:
-1. `assets/fixtures/sandbox_mail_queue.json`: Fully typed synthetic test fixture covering every visual card state (Lovecraftian mock items: Tsathoggua statue placement, Shub-Niggurath spore filter, etc.).
-2. `--sandbox` CLI runtime mode in `tools/check_mail.py` rendering `.agents/sidecar/sandbox_mail_inbox.html`.
-3. Echo-only mock action dispatch (`[QA_TEST_MOCK]` prefix) with zero ledger or vault mutation.
-4. Deterministic element IDs for automated testing (`btn-<action>-<cardId>`, `pill-<rail>-<key>`).
-5. Automated test suite `tools/tests/test_sandbox_board.py` verifying zero-mutation isolation.
+**Flight 15** synthesizes the best of both into a **single, declarative Unified Master Template** powered by one clean schema JSON:
+- **Zero HTML editing for new boards**: Whether generating a Morning Mail inbox, a Deep Research sprint, a Milestone Triage canvas, or an SQA audit board, the UI structure is driven entirely by a validated Pydantic model (`BoardSchema`).
+- **Keep the Gems**: Hero stage showcase, in-canvas 4-lens accordions, deterministic DOM IDs, Two-Tier sticky header, procedural Web Audio haptics, and zero-copy native Antigravity IPC (`window.sidecar.agent.sendMessage`).
+- **Cut the Cruft**: Completely excise phantom localhost loopback bridge endpoints (`:4040`/`:8000`), buried toasts, and misleading "sent" claims.
+- **Anti-Over-Engineering Guardrail**: No heavyweight JavaScript web frameworks (no React, Vue, Svelte, or Webpack). Pure zero-dependency vanilla HTML5/CSS3/ES6 and Python standard library.
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Phase 1: Fixture Data (`assets/fixtures/sandbox_mail_queue.json`)
-- [x] Create directory `assets/fixtures/` if not present.
-- [x] Author `assets/fixtures/sandbox_mail_queue.json` matching `MailQueue` schema in `tools/models.py`:
-  - 6 synthetic cards covering visual states:
-    - `sbx-01`: PENDING P0 ("Tsathoggua Statue Placement in City Hall Plaza")
-    - `sbx-02`: PENDING P3 ("Deep One Submersible Air Compressor") with `merged_count: 3` and 3 source notes.
-    - `sbx-03`: APPROVED ("Shub-Niggurath Spore Dispersion Filter")
-    - `sbx-04`: BACKLOG ("Cthulhu Slumber Cycle LFO Timing")
-    - `sbx-05`: GRAVEYARD ("Azathoth Random Note Generator without Clock")
-    - `sbx-06`: COMPLETED ("Nyarlathotep 1000-Voice Facet Stacking")
-  - One 🆕 new-mail item (`sbx-07` "🆕 Unreferenced Shoggoth Sighting").
-  - Tags include `"sandbox"` and multi-pillar tags (`["tks", "nk", "tt"]`) to test overflow pills.
-- [x] Validate fixture loads and parses cleanly via `MailQueue.model_validate_json`.
+### Phase 0: Codify the Deep Docs Queue (`.agents/pipeline/docs/deep_docs_queue.json`)
+- [x] Initialize `.agents/pipeline/docs/deep_docs_queue.json` schema:
+  ```json
+  {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "version": "1.0.0",
+    "queue": [
+      {
+        "id": "doc-01",
+        "title": "N'kai Sidecar UI Extension Setup Guide (ELI5 Level)",
+        "audience": "Developers & Musicians",
+        "target_file": "TheKlangResearch/guides/nkai_sidecar_quickstart_eli5.md",
+        "status": "QUEUED",
+        "priority": "P1",
+        "created_at": "2026-10-11T20:35:00Z"
+      },
+      {
+        "id": "doc-02",
+        "title": "DAW Backend Dilemma: Replacing the Ardour Monolith with Headless C++20 (No-BS Case Study)",
+        "audience": "Senior Audio Software Architects",
+        "target_file": "TheKlangResearch/qa_autopsies/daw_backend_replacement_ardour_vs_bespoke.md",
+        "status": "QUEUED",
+        "priority": "P1",
+        "created_at": "2026-10-11T20:35:00Z"
+      }
+    ]
+  }
+  ```
+- [x] Add helper function in `tools/` or documentation to append items in 1 line.
 
-### Phase 2: Mode Switch in `check_mail.py`
-- [x] Add `--sandbox` CLI flag to `tools/check_mail.py`:
-  - Loads `assets/fixtures/sandbox_mail_queue.json` directly.
-  - Never scans Vault `Inbox/` or `Archive/`.
-  - Never writes to `.agents/pipeline/mailbag/mail_queue.json` or snapshot files.
-  - Defaults output HTML to `.agents/sidecar/sandbox_mail_inbox.html`.
-- [x] Inject `window.NKAI_ENVIRONMENT = "SANDBOX"` into sandbox HTML and `"PRODUCTION"` into production HTML.
-- [x] Add visual Sandbox indicator:
-  - Page `<title>` prefixed `[SBX]`.
-  - Persistent high-contrast amber banner across top of board:
-    `🧪 SANDBOX MODE — Mock data only. Button clicks echo [QA_TEST_MOCK] with zero persistence.`
+### Phase 1: Declarative Board Data Models (`tools/models.py`)
+- [x] In `tools/models.py`, define Pydantic models for declarative boards:
+  - `HeroStageItem`: `id`, `title`, `subtitle`, `badge`, `content_html` or `markdown`, `context_target`.
+  - `FilterRailItem`: `id`, `label`, `icon`, `count`, `filter_key`, `filter_type` (`"pillar"` | `"status"` | `"custom"`).
+  - `FilterRail`: `rail_id`, `label`, `items: List[FilterRailItem]`.
+  - `BoardActionDefinition`: `action_id`, `label`, `icon`, `color_var`, `prompt_template`, `shortcut`.
+  - `BoardSchema`:
+    - `board_id`: str (e.g. `"mailbag"`, `"sandbox"`, `"deep_research"`, `"audit"`)
+    - `title`: str
+    - `subtitle`: str = ""
+    - `environment`: str = "PRODUCTION" (`"PRODUCTION"` | `"SANDBOX"`)
+    - `has_hero_stage`: bool = False
+    - `hero_items`: List[HeroStageItem] = []
+    - `filter_rails`: List[FilterRail] = []
+    - `available_actions`: List[BoardActionDefinition] = []
+    - `cards`: List[MailItem] = []
+- [x] Export canonical JSON schema to `c:\Dev\nkai\core\schema.json`.
+- [x] Mirror models to `c:\Dev\nkai\tools\models.py`.
 
-### Phase 3: Mock Action Dispatch & Deterministic Element IDs
-- [x] In `tools/check_mail.py` HTML template (and `c:\Dev\nkai\core\sidecar.js`):
-  - In `dispatchAction(payload)`: when `window.NKAI_ENVIRONMENT === "SANDBOX"`, prefix message with `[QA_TEST_MOCK]` and bypass API persistence.
-  - LocalStorage key namespace uses `nkai_sbx_` prefix in sandbox mode.
-- [x] Add deterministic DOM IDs to all interactive controls:
-  - Quick action chips / buttons: `id="btn-<action>-<id>"` (e.g. `btn-approve-sbx-01`, `btn-backlog-sbx-02`).
-  - Filter pills: `id="pill-<rail>-<key>"` (e.g. `pill-status-pending`, `pill-pillar-tks`).
+### Phase 2: Master Template HTML/CSS/JS Consolidation
+- [x] Author `c:\Dev\nkai\core\master_template.html` (and mirror to `c:\Dev\TheKlangSuite\.agents\sidecar\master_template.html`):
+  - **Header**: Two-Tier Sticky Header with live brand title, font zoom scaler (`A-`/`100%`/`A+`), Web Audio haptics toggle (`🔊`), allowance meter, and refresh action.
+  - **Sandbox Banner**: Conditional sticky amber banner `#sandbox-banner` when `environment === "SANDBOX"`.
+  - **Hero Stage**: Conditional Hero Stage panel with context navigation, active item selection, and smooth transitions.
+  - **Consolidated Rails**: Declarative Rail 1 (Pillars/Categories) and Rail 2 (Status/Triage) with deterministic IDs (`pill-<rail>-<key>`).
+  - **Cards Stream**: Responsive CSS grid with deterministic card IDs, priority badges, prerequisite chips, merged-note chips, 4-lens PCDA accordions, and action buttons (`btn-<action>-<id>`).
+  - **Deterministic Dispatch Engine**:
+    - Mode 1: Antigravity IDE UI Extension (`window.sidecar.agent.sendMessage`).
+    - Mode 2: Local Sidecar Server / CLI harness fallback.
+    - Mode 3: Silent clipboard copy with clear toast.
+    - Sandbox isolation: Prepend `[QA_TEST_MOCK] `, bypass network POSTs, namespace localStorage keys to `nkai_sbx_`.
 
-### Phase 4: Automated Verification Suite (`tools/tests/test_sandbox_board.py`)
-- [x] Author `tools/tests/test_sandbox_board.py` using Python `unittest`:
-  - Test 1: `assets/fixtures/sandbox_mail_queue.json` validates against Pydantic `MailQueue`.
-  - Test 2: Running `check_mail.py --sandbox --no-browser` leaves production `mail_queue.json` untouched (hash/mtime check).
-  - Test 3: Output file `.agents/sidecar/sandbox_mail_inbox.html` exists and contains `NKAI_ENVIRONMENT = "SANDBOX"`.
-  - Test 4: Output HTML contains deterministic element IDs (`btn-approve-sbx-01`, etc.).
-- [x] Execute `python -m unittest tools/tests/test_sandbox_board.py` (assert 100% pass).
-- [x] Run `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html` (assert PERFECT PASS).
-- [x] Run production regression: `python tools/check_mail.py --archive --no-browser` (confirm 37 production cards, audit PERFECT PASS).
+### Phase 3: Zero-HTML-Edit Generator Engine (`tools/board_renderer.py`)
+- [x] Author `tools/board_renderer.py`:
+  - `render_board(schema: BoardSchema, out_path: Path) -> Path`:
+    - Injects schema JSON and card items into `master_template.html`.
+    - Generates 100% self-contained, valid HTML artifact.
+    - Preserves UTF-8 encoding across all streams.
+- [x] Refactor `tools/check_mail.py` to use `BoardSchema` and `board_renderer.py`:
+  - Decomposes the ~1,500-line monolithic inline HTML string in `check_mail.py` into clean data structure construction.
+  - Generates `.agents/sidecar/morning_mail_inbox.html` and `.agents/sidecar/sandbox_mail_inbox.html` using the master renderer.
+- [x] Mirror `board_renderer.py` to `c:\Dev\nkai\tools/board_renderer.py` and `c:\Dev\nkai\bundle\tools/board_renderer.py`.
 
-### Phase 5: Documentation, Sync & Commits
-- [x] Author design spec `docs/specs/nkai_sandbox_and_multistage_environments.md`:
-  - Document the 2-mode architecture (`SANDBOX` vs `PRODUCTION`).
-  - Map Tom's dev/cert/prod PCDA: dev = feature branch + Sandbox, cert = dev branch + QA pass, prod = tagged release + Production.
+### Phase 4: Automated Verification & Sandbox Regression Gauntlet
+- [x] Run `python -m unittest tools/tests/test_sandbox_board.py` (assert 4/4 PASS).
+- [x] Expand `test_sandbox_board.py` with `test_board_schema_validation()` to assert `BoardSchema` parsing.
+- [x] Run `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html` (assert 0 errors, PERFECT PASS).
+- [x] Run `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html` (assert 0 errors, PERFECT PASS).
+- [x] Run `python tools/check_mail.py --archive --no-browser` (confirm 37 production cards, audit PERFECT PASS).
+- [x] Verify `python tools/verify_utf8.py --all --strict` (assert 100% compliance).
+- [x] Verify `python tools/verify_context_clues.py` (assert 100% pass).
+
+### Phase 5: Design Spec, Documentation & Multi-Repo Commits
+- [x] Author design spec `docs/specs/nkai_unified_master_template_and_schema.md`:
+  - Document the unified data-driven board architecture.
+  - Document the `BoardSchema` JSON specification and rendering lifecycle.
 - [x] Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-- [x] Synchronize `docs/GLOSSARY.md` (Section 19: Sandbox Mode & Fixture QA) and `docs/CHEAT_SHEET.md`.
-- [x] Mirror updated `check_mail.py` to `c:\Dev\nkai\tools` and `c:\Dev\nkai\bundle\tools`.
-- [x] Run `python tools/verify_utf8.py --all --strict` and `python tools/verify_context_clues.py`.
-- [x] Mark Flight 16+17 as `[x] COMPLETED` in `docs/BACKLOG.md` and Card `rj-03` in `rejigger.json`.
-- [x] Commit changes cleanly in `TheKlangSuite` and `nkai`.
+- [x] Update `docs/GLOSSARY.md` (§20: Unified Master Template) and `docs/CHEAT_SHEET.md`.
+- [x] Mark Flight 15 as `[x] COMPLETED` in `docs/BACKLOG.md` and Card `rj-04` in `.agents/pipeline/mailbag/rejigger.json`.
+- [x] Commit changes cleanly across `TheKlangSuite` and `nkai`.

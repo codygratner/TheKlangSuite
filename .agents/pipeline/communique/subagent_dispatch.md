@@ -9,122 +9,110 @@ STATUS: COMPLETED
 ---
 
 ## 1. Assignment Header
-- **STATUS**: `DISPATCHED`
+- **STATUS**: `COMPLETED`
 - **ROLE**: `Flash Tooling Builder`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **TASK TYPE**: `TOOLING_IMPLEMENTATION`
-- **TASK SLUG**: `nkai-qa-sandbox-board`
+- **TASK SLUG**: `unified-master-template`
 - **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
-- **TICKET ID**: `plan-009` (Flight 16+17 / `rj-03`)
+- **TICKET ID**: `plan-010` (Flight 15 / `rj-04`)
 
 ## 2. Scope & Instructions
 
-### Phase 2: Mode Switch & Sandbox Pipeline in `tools/check_mail.py`
-1. Add `--sandbox` CLI flag to `tools/check_mail.py` `main()`:
-   - When `--sandbox` is passed:
-     - Load fixture `assets/fixtures/sandbox_mail_queue.json` (resolving relative to repo root or `DEFAULT_SANDBOX_FIXTURE = Path("assets/fixtures/sandbox_mail_queue.json")`).
-     - Load via `MailQueue.model_validate_json(fixture_path.read_text(encoding="utf-8"))`.
-     - Skip scanning vault `Inbox/` or `Archive/`.
-     - Skip building queue, skip writing to `.agents/pipeline/mailbag/mail_queue.json`, and skip creating snapshots.
-     - Default output HTML path: `.agents/sidecar/sandbox_mail_inbox.html` (unless `--out` is explicitly passed).
-     - Set `environment = "SANDBOX"`.
-     - Pass `environment="SANDBOX"` to `generate_html_inbox_board(inbox_dir=Path("assets/fixtures"), notes=[], docket_items=[], out_path=out_file, queue=queue, environment="SANDBOX")`.
-   - When not `--sandbox`:
-     - Default output HTML path: `.agents/sidecar/morning_mail_inbox.html`.
-     - Set `environment = "PRODUCTION"`.
-     - Pass `environment="PRODUCTION"` to `generate_html_inbox_board(..., environment="PRODUCTION")`.
-2. In `generate_html_inbox_board`:
-   - Add parameter `environment: str = "PRODUCTION"`.
-   - Page `<title>`:
-     - If `environment == "SANDBOX"`: `<title>[SBX] N'kai Morning Mail Inbox & Triage Lab</title>`.
-     - If `environment == "PRODUCTION"`: `<title>📬 N'kai Morning Mail Inbox & Triage Lab</title>`.
-   - In HTML body:
-     - If `environment == "SANDBOX"`, inject persistent amber banner at the top of the board (above `.header-tier-top`):
-       `<div id="sandbox-banner" class="sandbox-banner">🧪 <strong>SANDBOX MODE</strong> — Synthetic test fixture (7 mock cards). Button clicks echo <code>[QA_TEST_MOCK]</code> with zero persistence.</div>`
-     - If `environment == "PRODUCTION"`, empty string.
-   - CSS for `.sandbox-banner`:
-     - Amber styling: `background: rgba(245, 158, 11, 0.18); border-bottom: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; padding: 8px 16px; font-size: 12px; font-family: var(--font-mono); text-align: center; z-index: 2000;`.
-   - CSS for `.chip-approve`:
-     - `.chip-approve { color: #34d399; border-color: rgba(52, 211, 153, 0.4); }`
-     - `.chip-approve:hover { background: rgba(52, 211, 153, 0.2); border-color: #34d399; }`
+Follow the active plan in `c:\Dev\TheKlangSuite\PLAN.md` and deliver Phases 0 through 5:
 
-### Phase 3: Mock Action Dispatch & Deterministic Element IDs
-1. Deterministic Element IDs:
-   - On each card, action buttons must have IDs:
-     - `id="btn-approve-{clean_id}"`
-     - `id="btn-backlog-{clean_id}"`
-     - `id="btn-research-{clean_id}"`
-     - `id="btn-graveyard-{clean_id}"`
-     - `id="btn-pcda-{clean_id}"`
-     where `clean_id = re.sub(r'[^a-zA-Z0-9_-]', '_', it.id)`. (Ensure `btn-approve-{clean_id}` is rendered!).
-   - On filter chips / pills:
-     - Rail 1 (Pillars): `id="pill-pillar-all"`, and for each pillar `id="pill-pillar-{p_slug}"`. Update `applyPillarFilter` to support both `pill-pillar-` and `pillar-btn-`.
-     - Rail 2 (Status): `id="pill-status-all"`, `id="pill-status-untriaged"`, `id="pill-status-p0"`, `id="pill-status-backlog"`, `id="pill-status-completed"`, `id="pill-status-research"`, `id="pill-status-graveyard"`, `id="pill-status-pcda"`, `id="pill-status-docket"`. Update `applyStatusFilter` to query `document.getElementById('pill-status-' + statusKey) || document.getElementById('filter-' + statusKey)`.
-2. In Board JavaScript:
-   - Inject `window.NKAI_ENVIRONMENT = "{environment}";`.
-   - In `dispatchMailAction(cardId, actionOrTitle, ...)`:
-     - Support `'approve'` action alongside `['backlog', 'research', 'graveyard', 'pcda']`.
-     - If `actionType === 'approve'`:
-       `promptText = "Approve '" + title + "' for implementation and schedule into active development runway.";`
-     - If `window.NKAI_ENVIRONMENT === "SANDBOX"`:
-       - Prefix `promptText = "[QA_TEST_MOCK] " + promptText;`
-       - Bypass the `fetch('http://127.0.0.1:8000/api/action', ...)` call.
-   - In `applyCardDOMStatus`:
-     - Handle `'approve'` status: icon `✅`, accentColor `#34d399`. If `window.NKAI_ENVIRONMENT === "SANDBOX"`, ensure input box contains `[QA_TEST_MOCK] ` prefix.
-   - In `saveTriageAction` and `initLocalStorageSync`:
-     - Use `const key = (window.NKAI_ENVIRONMENT === 'SANDBOX') ? 'nkai_sbx_mail_triage_actions' : 'nkai_mail_triage_actions';`.
-3. In `c:\Dev\nkai\core\sidecar.js`:
-   - In `dispatchAction(actionPayload)`:
-     - If `window.NKAI_ENVIRONMENT === "SANDBOX"`:
-       - If payload is string and does not start with `[QA_TEST_MOCK]`, prepend `[QA_TEST_MOCK] `.
-       - Bypass the `fetch` to `:8000/api/action`.
+### Phase 0: Codify the Deep Docs Queue
+1. Author `.agents/pipeline/docs/deep_docs_queue.json`:
+   ```json
+   {
+     "$schema": "https://json-schema.org/draft/2020-12/schema",
+     "version": "1.0.0",
+     "queue": [
+       {
+         "id": "doc-01",
+         "title": "N'kai Sidecar UI Extension Setup Guide (ELI5 Level)",
+         "audience": "Developers & Musicians",
+         "target_file": "TheKlangResearch/guides/nkai_sidecar_quickstart_eli5.md",
+         "status": "QUEUED",
+         "priority": "P1",
+         "created_at": "2026-10-11T20:35:00Z"
+       },
+       {
+         "id": "doc-02",
+         "title": "DAW Backend Dilemma: Replacing the Ardour Monolith with Headless C++20 (No-BS Case Study)",
+         "audience": "Senior Audio Software Architects",
+         "target_file": "TheKlangResearch/qa_autopsies/daw_backend_replacement_ardour_vs_bespoke.md",
+         "status": "QUEUED",
+         "priority": "P1",
+         "created_at": "2026-10-11T20:35:00Z"
+       }
+     ]
+   }
+   ```
+2. Mirror to `c:\Dev\nkai\tools\deep_docs_queue.json` if applicable.
 
-### Phase 4: Automated Verification Suite (`tools/tests/test_sandbox_board.py`)
-1. Create `tools/tests/__init__.py`.
-2. Author `tools/tests/test_sandbox_board.py` using Python standard library `unittest`:
-   - `test_fixture_schema_valid()`: Asserts `assets/fixtures/sandbox_mail_queue.json` validates against `MailQueue`. Asserts 7 items, P0 count == 2, `sbx-01` through `sbx-07` present.
-   - `test_sandbox_zero_mutation()`:
-     - Computes SHA256 of `.agents/pipeline/mailbag/mail_queue.json` before run.
-     - Runs `check_mail.py --sandbox --no-browser`.
-     - Computes SHA256 of `.agents/pipeline/mailbag/mail_queue.json` after run; asserts hashes are 100% IDENTICAL.
-     - Asserts no new files created in `.agents/pipeline/staging/` or snapshots.
-   - `test_sandbox_html_content()`:
-     - Asserts `.agents/sidecar/sandbox_mail_inbox.html` exists.
-     - Asserts `<title>[SBX]` is in content.
-     - Asserts `id="sandbox-banner"` is in content.
-     - Asserts `window.NKAI_ENVIRONMENT = "SANDBOX"` is in content.
-     - Asserts `id="btn-approve-sbx-01"` is in content.
-     - Asserts `id="btn-backlog-sbx-02"` is in content.
-     - Asserts `id="pill-pillar-all"` is in content.
-     - Asserts `id="pill-status-untriaged"` is in content.
-   - `test_production_regression()`:
-     - Runs `check_mail.py --archive --no-browser`.
-     - Asserts `.agents/sidecar/morning_mail_inbox.html` exists and contains `window.NKAI_ENVIRONMENT = "PRODUCTION"`.
-     - Asserts `sandbox-banner` is NOT present in production HTML.
-3. Run `python -m unittest tools/tests/test_sandbox_board.py` (assert 100% pass).
-4. Run `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html` (assert PERFECT PASS).
-5. Run `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html` (assert PERFECT PASS).
+### Phase 1: Declarative Board Data Models (`tools/models.py`)
+1. In `c:\Dev\TheKlangSuite\tools\models.py`:
+   - Add models:
+     - `HeroStageItem`: `id: str`, `title: str`, `subtitle: str = ""`, `badge: str = ""`, `body_html: str = ""`, `context_target: Optional[str] = None`.
+     - `FilterRailItem`: `id: str`, `label: str`, `icon: str`, `count: int = 0`, `filter_key: str`, `filter_type: str = "status"`, `active: bool = False`.
+     - `FilterRail`: `rail_id: str`, `label: str`, `items: List[FilterRailItem] = []`.
+     - `BoardActionDefinition`: `action_id: str`, `label: str`, `icon: str`, `color_var: str = "var(--accent-blue)"`, `prompt_template: str = ""`, `shortcut: str = ""`.
+     - `BoardSchema`:
+       - `schema_version: str = "1.0.0"`
+       - `board_id: str` (e.g. `"morning_mail"`, `"sandbox_mail"`, `"deep_research"`, `"sqa_triage"`)
+       - `title: str`
+       - `subtitle: str = ""`
+       - `environment: str = "PRODUCTION"` (`"PRODUCTION"` or `"SANDBOX"`)
+       - `has_hero_stage: bool = False`
+       - `hero_items: List[HeroStageItem] = []`
+       - `filter_rails: List[FilterRail] = []`
+       - `available_actions: List[BoardActionDefinition] = []`
+       - `cards: List[MailItem] = []`
+       - `allowance_budget: int = 200000`
+2. Export JSON schema to `c:\Dev\nkai\core\schema.json` via `BoardSchema.model_json_schema()`.
+3. Mirror `tools/models.py` to `c:\Dev\nkai\tools\models.py`.
+
+### Phase 2: Master Template HTML/CSS/JS Consolidation
+1. Author `c:\Dev\nkai\core\master_template.html` (mirror to `c:\Dev\TheKlangSuite\.agents\sidecar\master_template.html` and `c:\Dev\nkai\bundle\templates\master_template.html`):
+   - Synthesize the Two-Tier header, font-scaler, Web Audio API haptics, allowance meter, `#sandbox-banner`, optional hero stage panel, two-rail filter chips, deterministic IDs (`btn-<action>-<id>`, `pill-<rail>-<key>`), and native IPC adapter (`window.sidecar.agent.sendMessage()`).
+   - Clean out dead loopback bridge URLs (`:4040`, `:8000` fetches when offline).
+   - In Sandbox mode: prepend `[QA_TEST_MOCK] `, namespace localStorage to `nkai_sbx_`, and bypass network POSTs.
+   - Clean, validated HTML5 with zero tag imbalances.
+
+### Phase 3: Zero-HTML-Edit Generator Engine (`tools/board_renderer.py`)
+1. Author `c:\Dev\TheKlangSuite\tools\board_renderer.py`:
+   - `render_board(schema: BoardSchema, out_path: Path) -> Path`: Ingests `BoardSchema`, loads `master_template.html`, serializes cards, rails, and metadata, and writes output HTML with UTF-8 encoding.
+2. In `c:\Dev\TheKlangSuite\tools\check_mail.py`:
+   - Refactor `generate_html_inbox_board()` to construct a `BoardSchema` object and call `render_board()`.
+   - Maintain 100% backward compatibility for `--sandbox`, `--archive`, `--chat`, etc.
+3. Mirror `tools/board_renderer.py` and `tools/check_mail.py` to `c:\Dev\nkai\tools/` and `c:\Dev\nkai\bundle/`.
+
+### Phase 4: Automated Verification & Sandbox Regression Gauntlet
+1. Run `python -m unittest tools/tests/test_sandbox_board.py` (ensure existing 4 tests pass).
+2. Add a 5th test in `test_sandbox_board.py`: `test_board_schema_roundtrip()` validating `BoardSchema` serialization and rendering.
+3. Run `python -m unittest tools/tests/test_sandbox_board.py` (assert 5/5 PASS).
+4. Run `python tools/check_mail.py --sandbox --no-browser`.
+5. Run `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html` (assert PERFECT PASS).
+6. Run `python tools/check_mail.py --archive --no-browser`.
+7. Run `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html` (assert PERFECT PASS).
+8. Run `python tools/verify_utf8.py --all --strict` (assert 100% compliance).
+9. Run `python tools/verify_context_clues.py` (assert 100% pass).
 
 ### Phase 5: Documentation, Sync & Multi-Repo Commits
-1. Author design spec `docs/specs/nkai_sandbox_and_multistage_environments.md`:
-   - Document the 2-mode architecture (`SANDBOX` vs `PRODUCTION`).
-   - Document Tom's dev/cert/prod PCDA resolution (Git branches + mode switch instead of multi-server infrastructure).
-   - Document deterministic DOM IDs for headless UI testing.
-2. Register spec in `docs/DOCS_CATALOG.json` under `specifications`.
-3. Register spec in `docs/SYSTEM_MAP.md` under Section 7 (Design Specs).
-4. Synchronize `docs/GLOSSARY.md` (Section 19: Sandbox Mode & Fixture QA) and `docs/CHEAT_SHEET.md`.
-5. Mirror `tools/check_mail.py` to `c:\Dev\nkai\tools/check_mail.py` and `c:\Dev\nkai\bundle\tools/check_mail.py`.
-6. Run `python tools/verify_utf8.py --all --strict` and `python tools/verify_context_clues.py`.
-7. Update `docs/BACKLOG.md`: mark Flight 16+17 as `[x] COMPLETED`.
-8. Update `.agents/pipeline/mailbag/rejigger.json`: mark card `rj-03` as `status: "COMPLETED"`, `verdict: "COMPLETED"`.
-9. Update `PLAN.md`: mark all checkboxes `[x]` and set Status to `COMPLETED ✅`.
-10. Append execution receipt to `.agents/pipeline/communique/subagent_receipt.md` and set dispatch `STATUS: COMPLETED`.
-11. Commit changes cleanly:
-    - In `TheKlangSuite` (`0.4.0-dev`): `git add ... ; git commit -m "feat(sandbox): implement Flight 16+17 N'kai QA sandbox board and sandbox/production mode"`
-    - In `nkai` (`main`): `git add ... ; git commit -m "feat(sandbox): add sandbox mode handling to check_mail and sidecar.js"`
+1. Author `c:\Dev\TheKlangSuite\docs\specs\nkai_unified_master_template_and_schema.md`:
+   - Document the data-driven `BoardSchema` model, the master template lifecycle, and how new board types are created with zero HTML changes.
+2. Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+3. Update `docs/GLOSSARY.md` (Section 20: Unified Master Template & Schema-Driven Boards) and `docs/CHEAT_SHEET.md`.
+4. Update `docs/BACKLOG.md` (mark Flight 15 as `[x] COMPLETED`) and `rejigger.json` (mark Card `rj-04` as `status: "COMPLETED"`, `verdict: "COMPLETED"`).
+5. In `PLAN.md`: check all phase boxes `[x]` and update Status to `COMPLETED ✅`.
+6. Append execution receipt to `subagent_receipt.md` and set dispatch `STATUS: COMPLETED`.
+7. Commit cleanly across both repositories (`0.4.0-dev` on TKS, `main` on nkai).
 
 ## 3. Acceptance Criteria
-- `python -m unittest tools/tests/test_sandbox_board.py` passes 100%.
-- Both `sandbox_mail_inbox.html` and `morning_mail_inbox.html` achieve PERFECT PASS on `audit_sidecar.py`.
-- Zero mutations to real queues or vaults in `--sandbox` mode.
-- Receipt committed and tickets synced.
+- `BoardSchema` defined in `models.py` and exported to `core/schema.json`.
+- `master_template.html` and `board_renderer.py` created and operational.
+- Monolithic HTML f-string extracted out of `check_mail.py`.
+- `tools/tests/test_sandbox_board.py` passes 5/5.
+- Both sandbox and production HTML pass `audit_sidecar.py` with 0 issues.
+- Spec authored, registered, and committed.

@@ -180,3 +180,69 @@ STATUS: COMPLETED
   - **PASS**: 44/44 files compliant (100% Universal UTF-8).
 - `python tools/verify_context_clues.py`:
   - **PASS**: 4/4 files passed, 56/56 local links resolved.
+
+---
+
+# Subagent Execution Receipt: Flight 15 (rj-04) Unified Master Template & Schema-Driven Boards
+> *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
+> *Active Branch:* `0.4.0-dev` (TheKlangSuite) / `main` (nkai)  
+> *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
+
+---
+
+## 1. Execution Header
+- **STATUS**: `COMPLETED`
+- **ROLE EXECUTED**: `Flash Tooling Builder`
+- **TASK SLUG**: `flight-15-unified-master-template` (Card `rj-04`)
+- **COMPLETED AT**: `2026-10-11T21:10:00Z`
+- **MODEL TIER**: `Tier 2 Flash (High)`
+- **SOURCE PLAN**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
+
+---
+
+## 2. Deliverables & Artifacts
+1. **Deep Docs Queue Initialization (`.agents/pipeline/docs/deep_docs_queue.json` & `tools/doc_queue.py`)**:
+   - Initialized schema with queued tasks (`doc-01` ELI5 sidecar setup guide, `doc-02` DAW backend replacement case study).
+   - Created CLI utility `tools/doc_queue.py` with `list` and `add` commands.
+   - Mirrored to `c:\Dev\nkai\tools/` and `bundle/tools/`.
+2. **Declarative Data Models & Schema (`tools/models.py` & `c:\Dev\nkai\core\schema.json`)**:
+   - Implemented `BoardSchema`, `HeroStageItem`, `FilterRailItem`, `FilterRail`, and `BoardActionDefinition` in Pydantic v2.
+   - Exported canonical schema to `c:\Dev\nkai\core\schema.json`.
+   - Mirrored models to `c:\Dev\nkai\tools/models.py` and `bundle/tools/models.py`.
+3. **Master Template Consolidation (`c:\Dev\nkai\core\master_template.html`)**:
+   - Unified the divergent UI branches into a single, declarative master HTML template.
+   - Preserves Two-Tier sticky header, allowance meter, Web Audio haptics, hero stage, deterministic IDs, and native Antigravity IPC (`window.sidecar.agent.sendMessage`).
+   - Excised all dead localhost loopback bridge code (`:4040`/`:8000`).
+   - Mirrored to `.agents/sidecar/master_template.html` and `nkai/bundle/templates/master_template.html`.
+4. **Zero-HTML-Edit Generator Engine (`tools/board_renderer.py` & `tools/check_mail.py`)**:
+   - Implemented `render_board()` in `tools/board_renderer.py`.
+   - Refactored `tools/check_mail.py`, eliminating the ~1,500-line monolithic inline HTML f-string and replacing it with clean `BoardSchema` instantiation.
+   - Mirrored `board_renderer.py` to `nkai/tools/` and `nkai/bundle/tools/`.
+5. **Automated Verification Suite Expansion**:
+   - Added `test_board_schema_roundtrip()` in `tools/tests/test_sandbox_board.py` (5/5 PASS).
+   - Audited sandbox, morning mail, and master template sidecars (all PERFECT PASS, 0 errors).
+   - Validated Universal UTF-8 compliance across 50/50 Python files.
+   - Validated context clues (4/4 passed, 56/56 links resolved).
+6. **Architectural Specification & Governance Sync**:
+   - Authored [`docs/specs/nkai_unified_master_template_and_schema.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_unified_master_template_and_schema.md).
+   - Registered in [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) and [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md).
+   - Updated [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) (§20: Unified Master Template) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md).
+   - Updated `rj-04` to `COMPLETED` in `.agents/pipeline/mailbag/rejigger.json` and marked complete in `docs/BACKLOG.md`.
+
+---
+
+## 3. Verification Gauntlet Results
+- `python -m unittest tools/tests/test_sandbox_board.py`:
+  - **PASS**: 5 tests in ~1.97s (100% PASS).
+- `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/master_template.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/verify_utf8.py --all --strict`:
+  - **PASS**: 50/50 files compliant (100% Universal UTF-8).
+- `python tools/verify_context_clues.py`:
+  - **PASS**: 4/4 files passed, 56/56 local links resolved.
+

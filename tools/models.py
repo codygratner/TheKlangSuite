@@ -425,3 +425,82 @@ class RambleExtractionResult(BaseModel):
     total_ideas: int = Field(default=0, description="Total extracted RambleCards")
     cards: List[RambleCard] = Field(default_factory=list, description="Extracted cards")
 
+
+# ==============================================================================
+# Declarative Board Models (Flight 15 / Topic 6.11 / rj-04)
+# ==============================================================================
+
+
+class HeroStageItem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(description="Unique DOM ID for hero stage item")
+    title: str = Field(description="Hero card title")
+    subtitle: str = Field(default="", description="Secondary subtitle or context")
+    badge: str = Field(default="", description="Badge text or emoji")
+    content_html: str = Field(default="", description="Rendered HTML content")
+    body_html: str = Field(default="", description="Alias for content_html")
+    context_target: Optional[str] = Field(default=None, description="Jump target card ID or section anchor")
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.content_html and self.body_html:
+            self.content_html = self.body_html
+        elif not self.body_html and self.content_html:
+            self.body_html = self.content_html
+
+
+class FilterRailItem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(description="Deterministic element ID e.g. pill-pillar-tks or pill-status-p0")
+    label: str = Field(description="Display label e.g. TKS or Top Priority")
+    icon: str = Field(default="🏷️", description="Emoji or SVG icon")
+    count: int = Field(default=0, description="Item counter")
+    filter_key: str = Field(description="Filter value matching card attribute")
+    filter_type: str = Field(default="status", description="Type of rail filter (pillar | status | custom)")
+    active: bool = Field(default=False, description="Whether currently active by default")
+
+
+class FilterRail(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    rail_id: str = Field(description="Identifier for rail (e.g. rail-pillars, rail-status)")
+    label: str = Field(description="Human-readable rail label")
+    items: List[FilterRailItem] = Field(default_factory=list, description="Filter items inside this rail")
+
+
+class BoardActionDefinition(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    action_id: str = Field(description="Action identifier (e.g. approve, backlog, research, graveyard, pcda)")
+    label: str = Field(description="Button display label")
+    icon: str = Field(description="Button emoji or icon")
+    color_var: str = Field(default="var(--accent-blue)", description="Theme color variable or CSS hex")
+    prompt_template: str = Field(default="", description="Prompt template dispatched to subagent or agent")
+    shortcut: str = Field(default="", description="Keyboard shortcut hint")
+
+
+class BoardSchema(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    schema_version: str = Field(default="1.0.0", description="Board schema SemVer")
+    board_id: str = Field(default="morning_mail", description="Board slug e.g. morning_mail, sandbox_mail, deep_research")
+    title: str = Field(description="Board title in header")
+    subtitle: str = Field(default="", description="Optional header subtitle or scope")
+    environment: str = Field(default="PRODUCTION", description="Environment mode (PRODUCTION or SANDBOX)")
+    has_hero_stage: bool = Field(default=False, description="Whether hero showcase panel is enabled")
+    hero_items: List[HeroStageItem] = Field(default_factory=list, description="Hero stage items")
+    filter_rails: List[FilterRail] = Field(default_factory=list, description="Filter rails (Rail 1, Rail 2, etc.)")
+    available_actions: List[BoardActionDefinition] = Field(default_factory=list, description="Card action button definitions")
+    cards: List[MailItem] = Field(default_factory=list, description="Card item stream")
+    allowance_budget: int = Field(default=200000, description="Token allowance budget ceiling for meter")
+
+    @classmethod
+    def export_schema_to_file(cls, path: Path) -> Path:
+        import json
+        path.parent.mkdir(parents=True, exist_ok=True)
+        schema = cls.model_json_schema()
+        path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
+        return path
+
+
