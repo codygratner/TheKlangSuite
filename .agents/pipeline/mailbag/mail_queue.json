@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:07:47.336301",
+  "last_scanned": "2026-10-11T13:09:26.238570",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -88,7 +88,7 @@
       "title": "QA Sandbox Board + Sandbox/Production Mode",
       "created_at": "2026-10-09",
       "priority": "P0",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [
         "merged:3"
       ],
@@ -101,8 +101,8 @@
       "dependencies": [
         "rj-02"
       ],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/nkai_qa_sandbox_board.md; merges BACKLOG Flights 16+17; runs after Flight 18 (rj-02).",
       "estimated_tokens": 10000,
       "char_count": 965,
       "word_count": 117,
