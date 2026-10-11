@@ -11,7 +11,7 @@
 | **`TheKlangSuite`** | `c:\Dev\TheKlangSuite` | Desktop Audio Plugin Suite (C++20, JUCE 9.0.3, VST3/AU) | Native Audio Factory Floor |
 | **`ToadTracker`** | `c:\Dev\ToadTracker` | Embedded Hardware Tracker & Groovebox Engine (C++20, HAL) | Hardware Firmware & Embedded DSP |
 | **`nkai`** | `c:\Dev\nkai` | Asymmetric Sidecar Framework & Interactive Triage Lab | Webview UI & CLI Harness Tools |
-| **`TheKlangResearch`** | `C:\Dev\Research` | Eternal DSP Mathematics, Central RFCs & Soul Harvests | Public Knowledge & Whitepapers |
+| **`TheKlangResearch`** | `C:\Dev\Research` | Eternal DSP Mathematics, Central RFCs & Soul Harvests | Continuous Living Archive (Git is Changelog; Zero SemVer) |
 | **`TheKlangVault`** | `C:\Dev\TheKlangVault` | Private Studio Hub, Raw Notes Mailbox & Pydantic Pipelines | Private Obsidian Vault (Git-backed) |
 
 ---

@@ -145,15 +145,16 @@
 
 ## Multi-Repo SemVer Footer Tracking & Deep-Linked Roadmap
 - Chat responses during active research/planning sessions must include the SemVer status badge and the subagent badge on separate lines without wrapping links in backticks (to allow clean clickable rendering and prevent mangled wrapping):
-  🏷️ [TKS: v0.4.0-dev](file:///<artifactDir>/roadmap_sidecar.html#tks-v0.4.0) · [TT: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#tt-v0.1.0) · [NK: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#nk-v0.1.0) · [TKR: v0.1.0](https://github.com/codygratner/TheKlangResearch)
+  🏷️ [TKS: v0.4.0-dev](file:///<artifactDir>/roadmap_sidecar.html#tks-v0.4.0) · [TT: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#tt-v0.1.0) · [NK: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#nk-v0.1.0) · [TKR: Research Hub](https://github.com/codygratner/TheKlangResearch)
   🔬 `Subagents: research (Pro) / explore (Flash) / contrarian (Advocate)`
 
 ## The Centralized Research Hub (`TheKlangResearch`) & Hybrid 80/20 Standard
-- **The Four Pillars**:
+- **The Five Pillars**:
   1. `TheKlangSuite` (`c:\Dev\TheKlangSuite`): Desktop audio plugin suite (VST3/AU).
   2. `ToadTracker` (`c:\Dev\ToadTracker`): Embedded hardware tracker & groovebox engine.
   3. `nkai` (`c:\Dev\nkai`): Asymmetric sidecar framework & interactive triage lab.
-  4. `TheKlangResearch` (`c:\Dev\Research` $\leftrightarrow$ `github.com/codygratner/TheKlangResearch`): Centralized RFCs, eternal DSP mathematics, cross-cutting microcontroller teardowns (TBD-16 ESP32-P4), interactive HTML research boards, and subagent soul harvests.
+  4. `TheKlangResearch` (`c:\Dev\Research` $\leftrightarrow$ `github.com/codygratner/TheKlangResearch`): Centralized RFCs, eternal DSP mathematics, cross-cutting microcontroller teardowns (TBD-16 ESP32-P4), interactive HTML research boards, and subagent soul harvests. Governed as a Continuous Living Archive (zero software SemVer, zero manual CHANGELOG.md; Git commit history is the single source of truth).
+  5. `TheKlangVault` (`C:\Dev\TheKlangVault`): Private Git-backed Obsidian studio hub for quick mobile thoughts, triage ledger, and global Pydantic data pipelines.
 - **The Hybrid 80/20 Invariant**:
   - Active implementation specs (`docs/specs/*.md`) and APVTS contracts stay co-located in the code repository to preserve atomic Git commits, PR review fidelity, and `git bisect` history.
   - Large 300KB+ HTML research boards, subagent transcript harvests, and cross-project hardware specs live in `TheKlangResearch` to prevent repository bloat and token-burning agent scans.

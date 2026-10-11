@@ -10,7 +10,7 @@
   - `The Klang Suite (TKS)`: `v0.4.0-dev`
   - `ToadTracker (TT)`: `v0.1.0`
   - `N'kai (NK)`: `v0.1.0`
-  - `The Klang Research (TKR)`: `v0.1.0`
+  - `The Klang Research (TKR)`: Continuous Living Archive (Zero SemVer)
 - **Roadmap Sidecar Deep Links**:
   - [The Klang Suite v0.4.0 Roadmap](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tks-v0.4.0)
   - [ToadTracker v0.1.0 Milestone](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tt-v0.1.0)

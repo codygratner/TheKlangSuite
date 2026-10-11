@@ -114,6 +114,7 @@ To prevent identity collisions across codebases, logging tags (`TKS_LOG`), asset
 | **`Topological Rejigger Intercept`** | Dependency Gate | Dynamic dependency-checking logic that flags when a high-priority (`P0`) note depends on an unbuilt prerequisite. | Suggestion chip rendered on Mailbag cards: `[ 🔄 Slot into Topological Order ]` vs `[ ⚡ Keep at Top ]`. |
 | **`Plans Queue`** | Agent Orchestration | A persistent queue managing multi-plan staging, execution sequences, and active execution pointer. | `.agents/pipeline/plans/queue.json`, coordinating plan transitions from `drafts/` to root `PLAN.md` to `completed/`. |
 | **`Stateless Atomic Rollback`** | Fault Recovery | A multi-tier rollback mechanism restoring previous states via immutable pre-transaction receipts. | Implemented in `check_mail.py --rollback`, `audit_reorder.py --rollback`, and `clean-plan --rollback`. |
+| **`Living Archive Standard`** 🏛️ | Knowledge Governance | A continuous, non-versioned research hub where Git commit history is the single source of truth. | Applied strictly to `TheKlangResearch` (zero software SemVer, zero manual `CHANGELOG.md`; RFCs, whitepapers, and soul harvests tracked via Git SHAs and timestamps). |
 
 ---
 
