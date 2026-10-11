@@ -34,7 +34,7 @@
     - **`explore` (`Model="flash"`)**: Autonomous Tier 2 Marathon mode for broad, goal-oriented sweeps (UI/UX layout explorations, community sentiment analysis across Reddit/KVR/Gearspace, preset browser taxonomy, and broad competitive benchmarking).
     - **`contrarian` (`Model="flash"`)**: The Devil's Advocate adversarial mode paired with exploratory sprints to stress-test proposals, expose edge-case failure modes, and derive the pragmatic 80/20 middle ground.
     - **Subagent Pre-Authorized Web Access & The `--no-web` Override**: By default, research, explore, and web-qa subagents are pre-authorized to use web access tools (`search_web`, `read_url_content`) to query upstream browser standards, developer forums, and competitor architectures without interactive prompts. Appending `--no-web` or `--offline` strictly enforces an air-gapped run restricted to local workspace docs and `TheKlangResearch`.
-    - **Session Footer Reminder**: Chat responses during active research/exploration sessions must include the lean subagent reminder badge in the footer: `[ 🔬 Subagents: research · explore · contrarian ]` (relying on the Cheat Sheet for detailed model tier allocations).
+    - **Session Footer Link**: Chat responses during active sessions must include the clickable N'kai board launcher in the footer: `[ 📬 Open N'kai Board ](sidecar://nkai/panel/)` (replacing legacy subagent text to provide 1-click side pane access).
 
 ## Target Toolchain & Standards
 - **C++ Standard**: C++20 (`CMAKE_CXX_STANDARD 20`).
@@ -164,9 +164,9 @@
 - **On-Demand Deep Dive Research Prompter**: When the user requests external validation or clicks `[ 🔬 Research Pros & Cons Online ]`, the agent leverages pre-authorized web access to sweep developer forums, bug tracks, and upstream documentation, returning concrete industry citations.
 
 ## Multi-Repo SemVer Footer Tracking & Deep-Linked Roadmap
-- Chat responses during active research/planning sessions must include the SemVer status badge and the subagent badge on separate lines without wrapping links in backticks (to allow clean clickable rendering and prevent mangled wrapping):
+- Chat responses during active research/planning sessions must include the SemVer status badge and the N'kai board link on separate lines without wrapping links in backticks (to allow clean clickable rendering and prevent mangled wrapping):
   🏷️ [TKS: v0.4.0-dev](file:///<artifactDir>/roadmap_sidecar.html#tks-v0.4.0) · [TT: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#tt-v0.1.0) · [NK: v0.1.0](file:///<artifactDir>/roadmap_sidecar.html#nk-v0.1.0) · [TKR: Research Hub](https://github.com/codygratner/TheKlangResearch)
-  🔬 `Subagents: research · explore · contrarian`
+  📬 [Open N'kai Board](sidecar://nkai/panel/)
 
 ## The Centralized Research Hub (`TheKlangResearch`) & Hybrid 80/20 Standard
 - **The Five Pillars**:

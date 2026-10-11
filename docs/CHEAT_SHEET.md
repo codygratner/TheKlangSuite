@@ -91,7 +91,7 @@
   * `research` (`Model="pro"`): Targeted Tier 1 Sprint for deep DSP differential equations, non-linear saturation proofs, and multi-file architectural synthesis.
   * `explore` (`Model="flash"`): Autonomous Tier 2 Marathon for broad UI/UX surveys, community sentiment, and competitive benchmarking.
   * `contrarian` (`Model="flash"`): The Devil's Advocate adversarial mode stress-testing proposals, failure modes, and cognitive debt.
-* **Lean Chat Footer**: Chat footers omit verbose model designations (`🔬 Subagents: research · explore · contrarian`), referring developers to this Cheat Sheet for exact tier mappings.
+* **Lean Chat Footer**: Chat footers provide direct 1-click side pane access via `[ 📬 Open N'kai Board ](sidecar://nkai/panel/)`, omitting legacy repetitive subagent labels while preserving the SemVer roadmap track.
 
 ---
 

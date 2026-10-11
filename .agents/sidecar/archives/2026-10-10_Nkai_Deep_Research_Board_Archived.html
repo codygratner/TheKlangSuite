@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>📬 N'kai Morning Mail Inbox & Triage Lab</title>
+  <script src="/preload.js"></script>
+  <style>
+    :root {
+      --bg-base: #090d13;
+      --bg-panel: #111620;
+      --bg-card: #18202c;
+      --border: #263345;
+      --text-main: #cbd5e1;
+      --text-muted: #8494a7;
+      --accent-blue: #38bdf8;
+      --accent-green: #34d399;
+      --accent-red: #f87171;
+      --accent-neon: #22d3ee;
+      --accent-amber: #fbbf24;
+      --accent-pink: #f43f5e;
+      --accent-purple: #a855f7;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+    }
+
+    /* ==========================================================================
+       Two-Tier Header (Flight 5 Standard)
+       ========================================================================== */
+    .header-tier-top {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(9, 13, 19, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand-title {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--accent-amber);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      color: var(--accent-amber);
+      font-family: var(--font-mono);
+    }
+
+    .header-source {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-panel);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      max-width: 340px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .utility-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .header-pill:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .meter-badge {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 800;
+    }
+    .meter-safe { background: rgba(52, 211, 153, 0.2); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+    .meter-warning { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+    .meter-critical { background: rgba(248, 113, 113, 0.2); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+
+    .header-btn {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text-main);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .header-btn:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .header-btn.is-spinning {
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Bottom Tier (Navigation & Filters) */
+    .header-tier-bottom {
+      position: sticky;
+      top: 49px;
+      z-index: 990;
+      background: rgba(13, 18, 26, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .nav-tabs-rail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-compact {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .tab-compact:hover {
+      color: var(--text-main);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .tab-compact.active {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .filter-chips-rail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-chip:hover {
+      color: var(--text-main);
+      border-color: var(--accent-blue);
+    }
+
+    .filter-chip.active {
+      background: var(--bg-card);
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+      font-weight: 700;
+    }
+
+    /* Main Container */
+    .inbox-container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+
+    /* Scoreboard */
+    .scoreboard-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+    }
+
+    .scoreboard-metrics {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .metric-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-total { color: var(--accent-neon); }
+    .metric-dispatched { color: #34d399; }
+    .metric-untriaged { color: var(--accent-amber); }
+    .metric-backlog { color: #34d399; }
+    .metric-research { color: var(--accent-blue); }
+    .metric-graveyard { color: #f87171; }
+    .metric-pcda { color: #fbbf24; }
+
+    /* Search Input */
+    .search-box-wrapper {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px 10px 38px;
+      font-size: 13px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+    }
+
+    .search-icon-pos {
+      position: absolute;
+      left: 12px;
+      top: 10px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Tab Viewports */
+    .tab-view {
+      display: none;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    /* Mail Cards */
+    .mail-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mail-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .mail-card:hover {
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .mail-card.dispatched {
+      border-color: rgba(52, 211, 153, 0.45);
+      background: rgba(6, 78, 59, 0.12);
+    }
+
+    .mail-card.completed {
+      border-color: rgba(56, 189, 248, 0.45);
+      background: rgba(12, 74, 110, 0.12);
+    }
+
+    .mail-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mail-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mail-idx-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.12);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .tier-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .tier-1 { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
+    .tier-2 { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .tier-3 { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    .mail-date-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .mail-status-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .mail-status-badge.badge-unhandled {
+      color: #94a3b8;
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .mail-status-badge.badge-dispatched {
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+
+    .mail-status-badge.badge-completed {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .mail-status-badge.badge-graveyard {
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+
+    .mail-file-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .mail-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin: 4px 0 10px 0;
+      line-height: 1.4;
+    }
+
+    .mail-excerpt-box {
+      background: var(--bg-card);
+      border-left: 3px solid var(--accent-blue);
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+
+    .mail-excerpt-text {
+      margin: 0;
+      font-size: 12.5px;
+      color: var(--text-main);
+      line-height: 1.55;
+    }
+
+    .mail-body-details {
+      margin-bottom: 14px;
+    }
+
+    .mail-body-toggle {
+      font-size: 11px;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+    }
+
+    .mail-body-toggle:hover {
+      text-decoration: underline;
+    }
+
+    .mail-body-rendered {
+      margin-top: 8px;
+      padding: 14px 16px;
+      background: #080d16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--text-main);
+      max-height: 380px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .mail-body-rendered h3, .mail-body-rendered h4, .mail-body-rendered h5 {
+      color: #f1f5f9;
+      margin: 12px 0 6px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .mail-body-rendered p {
+      margin: 6px 0;
+    }
+
+    .mail-body-rendered ul, .mail-body-rendered ol {
+      margin: 6px 0 6px 18px;
+      padding-left: 0;
+    }
+
+    .mail-body-rendered li {
+      margin: 3px 0;
+    }
+
+    .mail-body-rendered code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent-blue);
+    }
+
+    .mail-body-rendered pre {
+      background: #030712;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin: 8px 0;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .mail-body-rendered pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: #e2e8f0;
+    }
+
+    .mail-body-rendered a {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .mail-body-rendered a:hover {
+      color: #fff;
+    }
+
+    .mail-body-rendered blockquote {
+      border-left: 3px solid var(--accent-blue);
+      margin: 8px 0;
+      padding-left: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .mail-body-rendered hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    .mail-body-raw {
+      margin-top: 8px;
+      padding: 12px 14px;
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 320px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+
+    .mail-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(38, 51, 69, 0.7);
+    }
+
+    .actions-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .mail-chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .action-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      user-select: none;
+    }
+
+    .chip-backlog { color: #34d399; border-color: rgba(52, 211, 153, 0.3); }
+    .chip-backlog:hover { background: rgba(52, 211, 153, 0.15); border-color: #34d399; }
+
+    .chip-research { color: var(--accent-blue); border-color: rgba(56, 189, 248, 0.3); }
+    .chip-research:hover { background: rgba(56, 189, 248, 0.15); border-color: var(--accent-blue); }
+
+    .chip-graveyard { color: #f87171; border-color: rgba(248, 113, 113, 0.3); }
+    .chip-graveyard:hover { background: rgba(248, 113, 113, 0.15); border-color: #f87171; }
+
+    .chip-pcda { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
+    .chip-pcda:hover { background: rgba(251, 191, 36, 0.15); border-color: #fbbf24; }
+
+    /* Toast Notification */
+    #action-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 11px 18px;
+      background: #111827;
+      border: 1px solid var(--accent-blue);
+      border-radius: 8px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: all 0.22s ease;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #action-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 640px) {
+      .header-tier-top, .header-tier-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .header-source {
+        max-width: 100%;
+      }
+      .mail-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top-Tier Header -->
+  <header class="header-tier-top">
+    <div class="header-left">
+      <div class="brand-title">
+        <span>📬</span>
+        <span>N'KAI MORNING MAIL</span>
+        <span class="brand-tag">v0.4.0-test</span>
+      </div>
+      <div class="header-source" title="C:\Dev\TheKlangVault\Inbox">📁 C:\Dev\TheKlangVault\Inbox</div>
+    </div>
+
+    <div class="utility-cluster">
+      <div class="header-pill" id="header-allowance-pill" title="Cumulative approved tokens: 0k (Budget: 200k)">
+        <span>🔋</span>
+        <span id="allowance-val">~0k</span>
+        <span class="meter-badge meter-safe" id="allowance-status">SAFE 🟢</span>
+      </div>
+      <button class="header-btn" id="btn-haptics" onclick="toggleAudioHaptics()" title="Audio Haptics: ON (Click to mute)">
+        <span id="haptics-icon">🔊</span>
+      </button>
+      <button class="header-btn" onclick="forceReloadCanvas()" title="Hard Refresh Canvas">🔄</button>
+    </div>
+  </header>
+
+  <!-- Bottom-Tier Navigation & Filters -->
+  <div class="header-tier-bottom">
+    <div class="nav-tabs-rail">
+      <button class="tab-compact active" id="tab-btn-docket" onclick="switchView('docket')">
+        <span>🌟</span> Test-Drive Docket (13)
+      </button>
+      <button class="tab-compact" id="tab-btn-archive" onclick="switchView('archive')">
+        <span>📬</span> Active Mailbox (0)
+      </button>
+    </div>
+
+    <div class="filter-chips-rail">
+      <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); margin-right:4px;">Filter:</span>
+      <button class="filter-chip active" id="filter-untriaged" onclick="applyStatusFilter('untriaged')">⚪ Untriaged</button>
+      <button class="filter-chip" id="filter-backlog" onclick="applyStatusFilter('backlog')">📥 Backlog</button>
+      <button class="filter-chip" id="filter-completed" onclick="applyStatusFilter('completed')">✅ Completed</button>
+      <button class="filter-chip" id="filter-research" onclick="applyStatusFilter('research')">🔬 Research</button>
+      <button class="filter-chip" id="filter-graveyard" onclick="applyStatusFilter('graveyard')">🪦 Graveyard</button>
+      <button class="filter-chip" id="filter-pcda" onclick="applyStatusFilter('pcda')">⚖️ PCDA</button>
+      <button class="filter-chip" id="filter-all" onclick="applyStatusFilter('all')">📋 All</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="inbox-container">
+
+    <!-- Scoreboard Strip -->
+    <div class="scoreboard-banner">
+      <div class="scoreboard-metrics">
+        <div class="metric-pill metric-total">Total: <span id="count-total">13</span></div>
+        <div class="metric-pill metric-untriaged">Untriaged: <span id="count-untriaged">7</span></div>
+        <div class="metric-pill metric-dispatched">Dispatched: <span id="count-dispatched">6</span></div>
+        <div class="metric-pill metric-backlog">Backlog: <span id="count-backlog">3</span></div>
+        <div class="metric-pill metric-completed" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">Completed: <span id="count-completed">1</span></div>
+        <div class="metric-pill metric-research">Research: <span id="count-research">0</span></div>
+        <div class="metric-pill metric-graveyard">Graveyard: <span id="count-graveyard">2</span></div>
+        <div class="metric-pill metric-pcda">PCDA: <span id="count-pcda">0</span></div>
+      </div>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-box-wrapper">
+      <span class="search-icon-pos">🔍</span>
+      <input type="text" id="search-input" class="search-input" placeholder="Filter notes by title, keyword, or filename..." oninput="handleSearch()"/>
+    </div>
+
+    <!-- Viewport 1: Docket -->
+    <section class="tab-view active" id="view-docket">
+      <div class="mail-grid" id="grid-docket">
+        
+      <div class="mail-card dispatched completed" id="docket-card-1" data-card-idx="1" data-scope="docket" data-status="completed" data-tier="tier2" data-priority="P0" data-title="The &quot;Rambles&quot; Ingestion Engine (P0 — TOP PRIORITY)" data-source="[`Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#1</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            <span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-completed" id="badge-docket-card-1">✅ COMPLETED</span>
+          </div>
+          <span class="mail-file-pill" title="[`Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)">📌 [`Rambles.md`](file:///C:/Dev/TheKlangVaul...</span>
+        </div>
+
+        <h3 class="mail-card-title">The &quot;Rambles&quot; Ingestion Engine (P0 — TOP PRIORITY)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 2 - Source Note: [Rambles.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md) - Status: ✅ COMPLETED (Shipped in commit aeebc0c / bd2edcb)</p>
+        </div>
+
+        <details class="mail-body-details" open>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (33 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 2</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md" target="_blank" rel="noopener noreferrer"><code>Rambles.md</code></a></li>
+  <li><strong>Status:</strong> <code>✅ COMPLETED</code> (Shipped in commit <code>aeebc0c</code> / <code>bd2edcb</code>)</li>
+  <li><strong>Deliverables:</strong> <code>tools/ramble_ingest.py</code>, <code>/ramble</code> skill, Pydantic v2 <code>RambleCard</code> model, and multi-idea decomposition engine.</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #38bdf8; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>✅ Completed & Codified</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Shipped</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Shipped and codified in <strong>docs/BACKLOG.md</strong>.
+            </div>
+          </div>
+        </div>
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-1', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-1', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-1', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-1', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card dispatched" id="docket-card-2" data-card-idx="2" data-scope="docket" data-status="backlog" data-tier="tier2" data-priority="P2" data-title="N&#x27;kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)" data-source="[`Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#2</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-dispatched" id="badge-docket-card-2">✅ BACKLOG</span>
+          </div>
+          <span class="mail-file-pill" title="[`Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)">📌 [`Nkai to High Reasoning Prompt.md`](file:...</span>
+        </div>
+
+        <h3 class="mail-card-title">N&#x27;kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 5 - Source Note: [Nkai to High Reasoning Prompt.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 2 Flash</p>
+        </div>
+
+        <details class="mail-body-details" open>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (120 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 5</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md" target="_blank" rel="noopener noreferrer"><code>Nkai to High Reasoning Prompt.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-10 | <strong>Priority:</strong> <code>P1</code> | <strong>Tier:</strong> Tier 2 Flash</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;Is it a strategic implementation strategy to terminate my custom research pipeline by compiling a structured markdown payload—consisting of aggregated technical reference nodes and an adversarial subagent&#x27;s friction metrics—and automatically routing this unified payload as the master system prompt for an external LLM reasoning session?&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li>Automated compilation of deep research cards, user notes, and contrarian failure modes into a dense, ready-to-run prompt.</li>
+  <li>Single-click export or zero-copy agent handoff for complex architectural problems requiring high-thinking models (Claude 3.7 Sonnet Thinking, Gemini 3.1 Pro High).</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>📥 Cataloged in Backlog</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Section 16: Flight 2</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Documented in <strong>docs/BACKLOG.md</strong> (Section 16: Flight 2).
+            </div>
+          </div>
+        </div>
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-2', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-2', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-2', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-2', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card dispatched" id="docket-card-3" data-card-idx="3" data-scope="docket" data-status="backlog" data-tier="tier2" data-priority="P2" data-title="N&#x27;kai Automode: 2-Pass Iterative Research Daemon (P1)" data-source="[`Nkai Automode.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#3</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-dispatched" id="badge-docket-card-3">✅ BACKLOG</span>
+          </div>
+          <span class="mail-file-pill" title="[`Nkai Automode.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md)">📌 [`Nkai Automode.md`](file:///C:/Dev/TheKla...</span>
+        </div>
+
+        <h3 class="mail-card-title">N&#x27;kai Automode: 2-Pass Iterative Research Daemon (P1)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 6 - Source Note: [Nkai Automode.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md) - Capture Date: 2026-10-09 | Priority: P1 | Tier: Tier 2 Flash</p>
+        </div>
+
+        <details class="mail-body-details" open>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (126 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 6</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md" target="_blank" rel="noopener noreferrer"><code>Nkai Automode.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-09 | <strong>Priority:</strong> <code>P1</code> | <strong>Tier:</strong> Tier 2 Flash</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;There&#x27;s a rejigger skill to redo the sequence. Should there be a skill the auto research all the items twice (using the idea we saw before about how loops and how you go through twice and not more)&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li>Formalizing the <strong>2-Pass Convergence Gate</strong> into an autonomous background runner.</li>
+  <li>Pass 1 (Flash Explore): Sweeps pros, cons, and devil&#x27;s advocate points.</li>
+  <li>Pass 2 (Pro Synthesis): Converges on the 80/20 resolution and freezes the spec. Strict hard-cap at 2 iterations to prevent infinite echo loops.</li>
+</ul>
+<hr />
+<h5>📑 Phase 2: Assistant Flexibility &amp; Custom Lenses</h5></div>
+        </details>
+        
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>📥 Cataloged in Backlog</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Section 17: Flight 3</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Documented in <strong>docs/BACKLOG.md</strong> (Section 17: Flight 3).
+            </div>
+          </div>
+        </div>
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-3', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-3', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-3', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-3', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card dispatched" id="docket-card-4" data-card-idx="4" data-scope="docket" data-status="backlog" data-tier="tier3" data-priority="P2" data-title="General Research Assistant &amp; Configurable Lens Profiles (P2)" data-source="[`Nkai Use Cases.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#4</span>
+            <span class="badge tier-badge tier-3">Tier 3 Low</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-dispatched" id="badge-docket-card-4">✅ BACKLOG</span>
+          </div>
+          <span class="mail-file-pill" title="[`Nkai Use Cases.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md)">📌 [`Nkai Use Cases.md`](file:///C:/Dev/TheKl...</span>
+        </div>
+
+        <h3 class="mail-card-title">General Research Assistant &amp; Configurable Lens Profiles (P2)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 9 - Source Note: [Nkai Use Cases.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md) - Capture Date: 2026-10-10 | Priority: P2 | Tier: Tier 3 Minimal</p>
+        </div>
+
+        <details class="mail-body-details" open>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (126 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 9</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md" target="_blank" rel="noopener noreferrer"><code>Nkai Use Cases.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-10 | <strong>Priority:</strong> <code>P2</code> | <strong>Tier:</strong> Tier 3 Minimal</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;Right now it&#x27;s mostly for dev. But, what about a general research assistant use case? Maybe we can move a lot of the settings (like PCDA settings and whatnot) into a settings file? So it can be a little more general use case for other research? What if I want to research a TTRPG system or write lyrics?&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li>Decoupling audio DSP software rules from general research canvases.</li>
+  <li>Introducing a configurable <code>nkai.config.json</code> allowing custom 4-Lens evaluation matrices (e.g. Swapping the &quot;Audio Software Industry&quot; lens for &quot;Tabletop RPG Game Systems&quot; or &quot;Creative Writing&quot;).</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>📥 Cataloged in Backlog</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Section 18: Flight 4</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Documented in <strong>docs/BACKLOG.md</strong> (Section 18: Flight 4).
+            </div>
+          </div>
+        </div>
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-4', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-4', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-4', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-4', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card dispatched graveyard" id="docket-card-5" data-card-idx="5" data-scope="docket" data-status="graveyard" data-tier="tier2" data-priority="P2" data-title="Spun-Up Flash Low Agent for N&#x27;kai-to-Chat Button Routing (P1) — 🪦 GRAVEYARD / KILLED" data-source="[`Nkai Button Flash Routing Agent.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Button%20Flash%20Routing%20Agent.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#5</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-graveyard" id="badge-docket-card-5">🪦 GRAVEYARD</span>
+          </div>
+          <span class="mail-file-pill" title="[`Nkai Button Flash Routing Agent.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Button%20Flash%20Routing%20Agent.md)">📌 [`Nkai Button Flash Routing Agent.md`](fil...</span>
+        </div>
+
+        <h3 class="mail-card-title">Spun-Up Flash Low Agent for N&#x27;kai-to-Chat Button Routing (P1) — 🪦 GRAVEYARD / KILLED</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 16 - Source Note: [Nkai Button Flash Routing Agent.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Button%20Flash%20Routing%20Agent.md) - Capture Date: 2026-10-11 | Triage Date: 2026-10-11 | Status: 🪦 GRAVEYARD / KILLED | Tier: Tier 3 Minimal</p>
+        </div>
+
+        <details class="mail-body-details" open>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (297 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 16</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Button%20Flash%20Routing%20Agent.md" target="_blank" rel="noopener noreferrer"><code>Nkai Button Flash Routing Agent.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-11 | <strong>Triage Date:</strong> 2026-10-11 | <strong>Status:</strong> <code>🪦 GRAVEYARD / KILLED</code> | <strong>Tier:</strong> Tier 3 Minimal</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;maybe the button interaction needs a spun up flash low agent to do all the routing between nkai and the chat? a topic to look into when my weekly allowance is back. add it to the top of the untriaged in the mailbag! I&#x27;m at 1%, so just add it, don&#x27;t look into it right now hahaha&quot;</em></li>
+  <li><strong>Key Angles &amp; Online Research Dossier:</strong></li>
+  <li><strong>The Plumbing vs. Reasoning Trap</strong>: LLMs are probabilistic neural networks with 500ms–2s latency and token burn per turn. Using an LLM subagent as a static string relay for DOM button clicks is classic architectural over-engineering (&quot;using an LLM for plumbing&quot;).</li>
+  <li><strong>Subagent Lifecycle Limits</strong>: In Antigravity, subagents can only be spawned during an active LLM turn, not by an external webview click. A subagent cannot run an indefinite polling loop without hitting turn/timer limits.</li>
+  <li><strong>The Built-In Solution</strong>: When running as an official Antigravity UI Extension (<code>plugins/nkai/sidecars/panel/</code>), the panel has direct access to <code>window.sidecar.agent.sendMessage(text)</code> via <code>/preload.js</code> — providing 100% deterministic, 0ms latency, zero-token dispatch directly into the chat conversation.</li>
+  <li><strong>PCDA Dialectic Synthesis</strong>:</li>
+  <li><strong>Pros</strong>: Pure hands-free operation; eliminates <code>Ctrl+V</code>.</li>
+  <li><strong>Cons</strong>: 1–2s inference latency per click; base prompt token burn; hallucination risk during parameter passing.</li>
+  <li><strong>Devil&#x27;s Advocate</strong>: Burning tokens on two models (subagent + main agent) just to forward a button click is the definition of AI slop.</li>
+  <li><strong>80/20 Resolution</strong>: <strong>REJECT the Flash Routing Subagent (<code>🪦 GRAVEYARD</code>)</strong>. Rely on Antigravity&#x27;s native <code>window.sidecar.agent.sendMessage()</code> when running as an official UI extension, and maintain the honest 1-click <code>[ 📋 Copy ]</code> composer for standalone browser views.</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #f87171; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>🪦 Strategy Graveyard (Rejected)</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Strategy Graveyard (Flight 5)</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Rejected and cataloged in <strong>docs/BACKLOG.md</strong> (Strategy Graveyard).
+            </div>
+          </div>
+        </div>
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-5', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-5', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-5', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-5', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card" id="docket-card-6" data-card-idx="6" data-scope="docket" data-status="untriaged" data-tier="tier3" data-priority="P2" data-title="Platform &amp; Ecosystem Pillar Badges on Cards (P2)" data-source="[`Nkai Platform Pillar Badges.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#6</span>
+            <span class="badge tier-badge tier-3">Tier 3 Low</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-unhandled" id="badge-docket-card-6">⚪ UNTRIAGED</span>
+          </div>
+          <span class="mail-file-pill" title="[`Nkai Platform Pillar Badges.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md)">📌 [`Nkai Platform Pillar Badges.md`](file://...</span>
+        </div>
+
+        <h3 class="mail-card-title">Platform &amp; Ecosystem Pillar Badges on Cards (P2)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 17 - Source Note: [Nkai Platform Pillar Badges.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal</p>
+        </div>
+
+        <details class="mail-body-details">
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (152 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 17</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md" target="_blank" rel="noopener noreferrer"><code>Nkai Platform Pillar Badges.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-11 | <strong>Priority:</strong> <code>P2</code> | <strong>Tier:</strong> Tier 3 Minimal</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;oh! maybe also an emoji (the same from the footer) on each card to idicate what end platform the idea is for? maybe with some kind of like agent emoji for workflow stuff? also, if it&#x27;s across multiple, we add as many as needed? or, maybe instead of unclear emoji, we use equally under acronyms (unclear to someone else, but clear to the user of nkai)? add just adter the last item to the untriaged.&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li><strong>Pillar Destination Indicators</strong>: Declarative badge chips on every mail card (<code>TKS</code>, <code>TT</code>, <code>NK</code>, <code>TKR</code>, <code>AGY</code>, <code>TBD-16</code>).</li>
+  <li><strong>Multi-Pillar Tagging</strong>: Supporting multiple badges on cross-ecosystem ideas without card visual bloat.</li>
+  <li><strong>Visual Ergonomics</strong>: Comparing emoji glyphs vs. colored acronym pills for instant glanceability.</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-6', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-6', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-6', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-6', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card" id="docket-card-7" data-card-idx="7" data-scope="docket" data-status="untriaged" data-tier="tier2" data-priority="P2" data-title="Streamlined Mailbag Ingestion &amp; Dynamic Positioning (P2)" data-source="[`Nkai Streamlined Mailbag Ingestion.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#7</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-unhandled" id="badge-docket-card-7">⚪ UNTRIAGED</span>
+          </div>
+          <span class="mail-file-pill" title="[`Nkai Streamlined Mailbag Ingestion.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md)">📌 [`Nkai Streamlined Mailbag Ingestion.md`](...</span>
+        </div>
+
+        <h3 class="mail-card-title">Streamlined Mailbag Ingestion &amp; Dynamic Positioning (P2)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 18 - Source Note: [Nkai Streamlined Mailbag Ingestion.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal</p>
+        </div>
+
+        <details class="mail-body-details">
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (132 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 18</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md" target="_blank" rel="noopener noreferrer"><code>Nkai Streamlined Mailbag Ingestion.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-11 | <strong>Priority:</strong> <code>P2</code> | <strong>Tier:</strong> Tier 3 Minimal</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;and, for the next untriaged item after that, maybe we can look at streamlining me adding items to the mailbag from the chat. it seems like a lot of backend work to do a simple &#x27;add this as untriaged in position x&#x27;&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li><strong>Single-Command Ingestion</strong>: Eliminating manual multi-file renumbering across <code>BACKLOG.md</code> and <code>morning_mail_topics.md</code> via a dedicated CLI tool or <code>/mail-add</code> micro-skill.</li>
+  <li><strong>Dynamic Positional Splice</strong>: Automatically shifting downstream flights (<code>position X</code>) and recalculating indices.</li>
+  <li><strong>Instant Atomic Sync</strong>: Updating the ledger and recompiling the sidecar in a single automated pass.</li>
+</ul>
+<hr />
+<h5>📑 Phase 3: Hardware &amp; Tracker Architecture</h5></div>
+        </details>
+        
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-7', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-7', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-7', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-7', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card dispatched graveyard" id="docket-card-8" data-card-idx="8" data-scope="docket" data-status="graveyard" data-tier="tier2" data-priority="P2" data-title="Tracktion Engine Backend Evaluation for ToadTracker (P1) — 🪦 GRAVEYARD / KILLED" data-source="[`Tracktion Backend for The Toad.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Tracktion%20Backend%20for%20The%20Toad.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#8</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-graveyard" id="badge-docket-card-8">🪦 GRAVEYARD</span>
+          </div>
+          <span class="mail-file-pill" title="[`Tracktion Backend for The Toad.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Tracktion%20Backend%20for%20The%20Toad.md)">📌 [`Tracktion Backend for The Toad.md`](file...</span>
+        </div>
+
+        <h3 class="mail-card-title">Tracktion Engine Backend Evaluation for ToadTracker (P1) — 🪦 GRAVEYARD / KILLED</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 13 - Source Note: [Tracktion Backend for The Toad.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Tracktion%20Backend%20for%20The%20Toad.md) - Capture Date: 2026-10-10 | Triage Date: 2026-10-11 | Status: 🪦 GRAVEYARD / KILLED</p>
+        </div>
+
+        <details class="mail-body-details" open>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (206 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 13</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Tracktion%20Backend%20for%20The%20Toad.md" target="_blank" rel="noopener noreferrer"><code>Tracktion Backend for The Toad.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-10 | <strong>Triage Date:</strong> 2026-10-11 | <strong>Status:</strong> <code>🪦 GRAVEYARD / KILLED</code></li>
+  <li><strong>Original Prompt:</strong> <em>&quot;a friend of mine is building the front end for his own DAW. he started with ardour, but recently moved the backed to tracktion. is this a reasonable backend for The Toad? maybe just on desktop and steam deck? what about the possibility of a stripped down one for the TBD-16 if it can&#x27;t run the whole thing? https://www.tracktion.com/develop/tracktion-engine&quot;</em></li>
+  <li><strong>PCDA Autopsy &amp; Strategic Verdict:</strong></li>
+  <li><strong>Verdict</strong>: <strong>REJECTED (KILLED)</strong>. Do not adopt Tracktion Engine even as temporary scaffolding.</li>
+  <li><strong>Core Autopsy</strong>: Tracktion Engine is a heavy linear DAW engine (<code>te::Edit</code>, <code>te::Track</code>, <code>te::Clip</code>). Trackers are discrete, integer-based step sequencers and tick accumulators. Developing a desktop Tracktion version alongside an embedded C++ microcontroller version creates a disastrous &quot;parallel engine&quot; maintenance debt and leaky abstractions.</li>
+  <li><strong>Winning Synthesis (The 80/20 Resolution)</strong>: Adopt the <strong>Dirtywave M8 / SunVox Model</strong> — author a pure, allocation-free C++20 tracker core (<code>ToadCore</code>) that compiles identically on Desktop and TBD-16, wrapped in a thin ~100-line JUCE standalone audio device shell on Desktop. 100% hardware parity on Day 1, zero throwaway code, zero Tracktion bloat.</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #f87171; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>🪦 Strategy Graveyard (Rejected)</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Strategy Graveyard (Flight 8)</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Rejected and cataloged in <strong>docs/BACKLOG.md</strong> (Strategy Graveyard).
+            </div>
+          </div>
+        </div>
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-8', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-8', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-8', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-8', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card" id="docket-card-9" data-card-idx="9" data-scope="docket" data-status="untriaged" data-tier="tier2" data-priority="P2" data-title="ToadTracker vs. Dirtywave M8 Telemetry &amp; Web Bridge (P2)" data-source="[`Toad vs M8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#9</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-unhandled" id="badge-docket-card-9">⚪ UNTRIAGED</span>
+          </div>
+          <span class="mail-file-pill" title="[`Toad vs M8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)">📌 [`Toad vs M8.md`](file:///C:/Dev/TheKlangV...</span>
+        </div>
+
+        <h3 class="mail-card-title">ToadTracker vs. Dirtywave M8 Telemetry &amp; Web Bridge (P2)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 10 - Source Note: [Toad vs M8.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md) - Capture Date: 2026-10-10 | Priority: P2 | Tier: Tier 2 Flash</p>
+        </div>
+
+        <details class="mail-body-details">
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (346 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 10</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md" target="_blank" rel="noopener noreferrer"><code>Toad vs M8.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-10 | <strong>Priority:</strong> <code>P2</code> | <strong>Tier:</strong> Tier 2 Flash</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;Can you be like a man in the middle between the M8 and M8.run and record what I do? Maybe like some kind of Python and SQLite thing to do all the data capture and you can analyze how it works? Maybe also watch my workflow and try to make sure what I do really is polished once you analyze it? There might be an m8.run GitHub as well?&quot;</em></li>
+  <li><strong>Key Angles &amp; Online Research Dossier:</strong></li>
+  <li><strong>Protocol Architecture</strong>: Dirtywave M8 and Teensy 4.1 communicate via high-speed USB CDC ACM Serial using <strong>SLIP framing</strong> (<code>0xC0</code> packet boundaries, <code>0xDB</code> escape bytes). Host sends compact button input bitmasks; M8 streams vector draw opcodes and screen primitives. Audio streams separately over USB Audio Class 2.0 (UAC 2.0).</li>
+  <li><strong>Open Source Precedents</strong>: <code>derkyjadex/M8WebDisplay</code> (<code>m8.run</code> WebSerial client), <code>laamaa/m8c</code> (canonical C/SDL client), <code>turbolent/g0m8</code> (Go client).</li>
+  <li><strong>MITM Proxy Reality</strong>: Hardware serial ports enforce exclusive OS locks. A Python MITM proxy requires opening physical <code>COM3</code>, intercepting SLIP frames, logging to SQLite, and relaying to a virtual COM port (<code>com0com</code>) or WebSocket bridge for <code>m8.run</code> / <code>m8c</code>.</li>
+  <li><strong>ToadTracker Ergonomics</strong>: Extracting keystroke heatmaps, multi-button navigation chords (<code>Shift + Option</code>, <code>Edit + Arrow</code>), and screen dwell times (Song vs Chain vs Phrase vs Table) to optimize TBD-16 physical microswitch placement.</li>
+  <li><strong>PCDA Dialectic Synthesis</strong>:</li>
+  <li><strong>Pros</strong>: Real quantitative telemetry on tracker workflow bottlenecks; validates TBD-16 hardware button layouts with empirical data.</li>
+  <li><strong>Cons</strong>: High setup friction on Windows due to virtual COM port kernel driver enforcement (<code>com0com</code>).</li>
+  <li><strong>Devil&#x27;s Advocate</strong>: Keystroke count doesn&#x27;t equal creative flow; danger of &quot;productive procrastination&quot; building a complex telemetry bridge instead of coding the tracker engine.</li>
+  <li><strong>80/20 Resolution</strong>: Skip virtual COM kernel drivers. Instead, either add a lightweight 20-line SQLite logging hook directly into <code>laamaa/m8c</code> or run a Python WebSocket bridge for local <code>m8.run</code>. Backlog as a P2 Research Spinoff for ToadTracker v0.2.0.</li>
+</ul>
+<hr />
+<h5>📑 Phase 4: Synthesizer &amp; Audio DSP Engineering</h5></div>
+        </details>
+        
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-9', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-9', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-9', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-9', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card" id="docket-card-10" data-card-idx="10" data-scope="docket" data-status="untriaged" data-tier="tier2" data-priority="P2" data-title="Sub-Module &amp; Component Presets Architecture (P1)" data-source="[`Component Presets As Well.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Component%20Presets%20As%20Well.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#10</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-unhandled" id="badge-docket-card-10">⚪ UNTRIAGED</span>
+          </div>
+          <span class="mail-file-pill" title="[`Component Presets As Well.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Component%20Presets%20As%20Well.md)">📌 [`Component Presets As Well.md`](file:///C...</span>
+        </div>
+
+        <h3 class="mail-card-title">Sub-Module &amp; Component Presets Architecture (P1)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 14 - Source Note: [Component Presets As Well.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Component%20Presets%20As%20Well.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 3 Minimal</p>
+        </div>
+
+        <details class="mail-body-details">
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (166 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 14</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Component%20Presets%20As%20Well.md" target="_blank" rel="noopener noreferrer"><code>Component Presets As Well.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-10 | <strong>Priority:</strong> <code>P1</code> | <strong>Tier:</strong> Tier 3 Minimal</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;oh, yeah, I have a planned preset system with tags and all the usual stuff. so that saving that sorta thing is absolutely on the books!! I should make component presets as well, so I can load up the CyDrums voice and save JUST that part, instead of a full voice preset!!&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li><strong>Hierarchical Preset Taxonomy</strong>:</li>
+  <li><em>Full Patch Preset (<code>.tkf</code> / <code>.tkpl</code>)</em>: Complete 202-parameter synthesizer state.</li>
+  <li><em>Component / Voice Preset (<code>.tkmod</code> / <code>.tkpart</code>)</em>: Isolated module snapshot (e.g. Card 1 Oscillator cluster, Card 2 Filter network, or a single CyDrums drum voice).</li>
+  <li><strong>JSON Chunk Serialization</strong>: Extending <code>master_control_schema.json</code> with card-scoped sub-dictionaries (<code>&quot;card_scope&quot;: &quot;oscillator&quot; | &quot;filter&quot; | &quot;voice&quot;</code>).</li>
+  <li><strong>Drag-and-Drop Drop-In Ergonomics</strong>: Dragging a component preset onto a card replaces ONLY that module&#x27;s parameters while keeping the rest of the patch intact.</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-10', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-10', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-10', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-10', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card" id="docket-card-11" data-card-idx="11" data-scope="docket" data-status="untriaged" data-tier="tier2" data-priority="P2" data-title="4-Macro Mega Modules &amp; Snap Heap Popover Panels (P1)" data-source="[`Effects and Oscillators and More.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Effects%20and%20Oscillators%20and%20More.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#11</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-unhandled" id="badge-docket-card-11">⚪ UNTRIAGED</span>
+          </div>
+          <span class="mail-file-pill" title="[`Effects and Oscillators and More.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Effects%20and%20Oscillators%20and%20More.md)">📌 [`Effects and Oscillators and More.md`](fi...</span>
+        </div>
+
+        <h3 class="mail-card-title">4-Macro Mega Modules &amp; Snap Heap Popover Panels (P1)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 12 - Source Note: [Effects and Oscillators and More.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Effects%20and%20Oscillators%20and%20More.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 2 Flash</p>
+        </div>
+
+        <details class="mail-body-details">
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (114 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 12</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Effects%20and%20Oscillators%20and%20More.md" target="_blank" rel="noopener noreferrer"><code>Effects and Oscillators and More.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-10 | <strong>Priority:</strong> <code>P1</code> | <strong>Tier:</strong> Tier 2 Flash</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;A lot of the more complex stuff could have 4 macro knobs and have a popover panel (like Slice EQ when in SnapHeap) to make all the settings and map the macros... this might just be TKM all over again?&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li>Kilohearts Snap Heap / Phase Plant paradigm: 4 high-level macro sliders on the front chassis, with a popover panel (<code>juce::CallOutBox</code>) expanding into an exhaustive micro-parameter editor.</li>
+  <li>Perfect fit for complex DSP units like Chorus/Ensemble and Multi-Stage Wavefolders.</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-11', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-11', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-11', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-11', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card" id="docket-card-12" data-card-idx="12" data-scope="docket" data-status="untriaged" data-tier="tier2" data-priority="P2" data-title="Sonicware LIVEN CyDrums Architecture &amp; Structure Mapping (P1)" data-source="[`CyDrums Research.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#12</span>
+            <span class="badge tier-badge tier-2">Tier 2 Flash</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-unhandled" id="badge-docket-card-12">⚪ UNTRIAGED</span>
+          </div>
+          <span class="mail-file-pill" title="[`CyDrums Research.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md)">📌 [`CyDrums Research.md`](file:///C:/Dev/The...</span>
+        </div>
+
+        <h3 class="mail-card-title">Sonicware LIVEN CyDrums Architecture &amp; Structure Mapping (P1)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 15 - Source Note: [CyDrums Research.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 1 Pro</p>
+        </div>
+
+        <details class="mail-body-details">
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (244 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 15</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md" target="_blank" rel="noopener noreferrer"><code>CyDrums Research.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-10 | <strong>Priority:</strong> <code>P1</code> | <strong>Tier:</strong> Tier 1 Pro</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;from a friend on my synth discord: 1. Probably could just start a project where you give it the manual and see how it does mapping the structures directly from pdf. start on page 169... I honestly wouldnt even change much about the wavetables or structures as there is already toooon of options there. Only things I&#x27;m thinking about adding are (1) LFOs as there is just 1 looping envelope per track... (2) a couple 24db filter LP/HP, (3) and some options on effects... yep the structures are cool, most have x2 wavetables and noise and tick generator, the wavetable directions (pg47) give a lot of variety too. The modulation targets (pg 65) are really nice... having x2 lfos would be wild with all those mod targets&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li><strong>CyDrums Synthesis Engine Analysis</strong>:</li>
+  <li>Structural topology: 2x Wavetable Oscillators + Noise Generator + Physical Tick Generator.</li>
+  <li>Directional wavetable scanning modes (forward, backward, alternating, ping-pong).</li>
+  <li>Modulation matrix: Targetable wavetable parameters, filter cutoffs, and structure morphing.</li>
+  <li><strong>The Super-CyDrums Proposal</strong>: Overcoming hardware limitations by adding dual free-running LFOs, 4-pole (24dB/oct) ladder filters, and multi-fx blocks.</li>
+  <li><strong>Implementation Runway</strong>: PDF structure extraction project for a future specialized drum synth or dedicated Klang Farmer expansion engine.</li>
+</ul>
+<hr />
+<h5>📑 Phase 5: Spatial UI Polish &amp; Consolidation</h5></div>
+        </details>
+        
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-12', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-12', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-12', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-12', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mail-card" id="docket-card-13" data-card-idx="13" data-scope="docket" data-status="untriaged" data-tier="tier3" data-priority="P2" data-title="Consolidated Filter-Counter Pills &amp; Spatial Header Optimization (P2)" data-source="[`Nkai Filter Counter Pills.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md)">
+        <div class="mail-card-header">
+          <div class="mail-header-left">
+            <span class="mail-idx-badge">#13</span>
+            <span class="badge tier-badge tier-3">Tier 3 Low</span>
+            
+            
+            <span class="mail-date-badge">📅 2026-10-09</span>
+            <span class="mail-status-badge badge-unhandled" id="badge-docket-card-13">⚪ UNTRIAGED</span>
+          </div>
+          <span class="mail-file-pill" title="[`Nkai Filter Counter Pills.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md)">📌 [`Nkai Filter Counter Pills.md`](file:///C...</span>
+        </div>
+
+        <h3 class="mail-card-title">Consolidated Filter-Counter Pills &amp; Spatial Header Optimization (P2)</h3>
+
+        <div class="mail-excerpt-box">
+          <p class="mail-excerpt-text">- Topic ID: Topic 19 - Source Note: [Nkai Filter Counter Pills.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal</p>
+        </div>
+
+        <details class="mail-body-details">
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context (142 words)</summary>
+          <div class="mail-body-rendered"><ul>
+  <li><strong>Topic ID:</strong> <code>Topic 19</code></li>
+  <li><strong>Source Note:</strong> <a href="file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md" target="_blank" rel="noopener noreferrer"><code>Nkai Filter Counter Pills.md</code></a></li>
+  <li><strong>Capture Date:</strong> 2026-10-11 | <strong>Priority:</strong> <code>P2</code> | <strong>Tier:</strong> Tier 3 Minimal</li>
+  <li><strong>Original Prompt:</strong> <em>&quot;another untriaged item to add to the bottom, maybe we can kinda merge the filter buttons and the numbers of each type of item to consolidate space and make it easier to parse what&#x27;s up there&quot;</em></li>
+  <li><strong>Key Angles &amp; PCDA Dossier:</strong></li>
+  <li><strong>Unified Filter-Counter Pills</strong>: Merging separate scoreboard tally badges with interactive filter buttons (e.g. <code>[ 📋 All (13) ]</code>, <code>[ ⚪ Untriaged (9) ]</code>, <code>[ 📥 Backlog (3) ]</code>, <code>[ ✅ Completed (1) ]</code>, <code>[ 🔥 P0 (1) ]</code>).</li>
+  <li><strong>Vertical Spatial Conservation</strong>: Eliminating redundant multi-row header banners to save 30–50px of vertical space in narrow 360–480px IDE panels.</li>
+  <li><strong>Cognitive Clarity</strong>: Knowing exactly how many items match each category before clicking.</li>
+</ul>
+<hr /></div>
+        </details>
+        
+        <div class="mail-card-actions">
+          <span class="actions-label">Dispatch Action:</span>
+          <div class="mail-chip-group">
+            
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('docket-card-13', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span>📥</span> Backlog
+            </button>
+            <button class="action-chip chip-research" onclick="dispatchMailAction('docket-card-13', 'research')" title="Route to TheKlangResearch">
+              <span>🔬</span> Research
+            </button>
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('docket-card-13', 'graveyard')" title="Reject and record in Graveyard">
+              <span>🪦</span> Graveyard
+            </button>
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('docket-card-13', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+              <span>⚖️</span> PCDA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      </div>
+    </section>
+
+    <!-- Viewport 2: Archive -->
+    <section class="tab-view" id="view-archive">
+      <div class="mail-grid" id="grid-archive">
+        <div class="mail-card" style="text-align:center;color:var(--text-muted);"><p>🎉 Mailbox zero! No archive notes found.</p></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="action-toast">⚡ Action Dispatched!</div>
+
+  <script>
+    const docketData = [{"id": "docket-1", "idx": 1, "title": "The \"Rambles\" Ingestion Engine (P0 — TOP PRIORITY)", "source_note": "[`Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)", "excerpt": "- Topic ID: Topic 2 - Source Note: [Rambles.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md) - Status: ✅ COMPLETED (Shipped in commit aeebc0c / bd2edcb)", "body": "- **Topic ID:** `Topic 2`\n- **Source Note:** [`Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)\n- **Status:** `✅ COMPLETED` (Shipped in commit `aeebc0c` / `bd2edcb`)\n- **Deliverables:** `tools/ramble_ingest.py`, `/ramble` skill, Pydantic v2 `RambleCard` model, and multi-idea decomposition engine.\n\n---", "word_count": 33, "date": "2026-10-09", "tier": "tier2", "priority": "P0", "tags": [], "dependencies": [], "status": "completed", "badge_text": "✅ COMPLETED", "section_info": "Flight 1: The \"Rambles\" Ingestion Engine (Topic 2, P0)", "sec_num": ""}, {"id": "docket-2", "idx": 2, "title": "N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)", "source_note": "[`Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)", "excerpt": "- Topic ID: Topic 5 - Source Note: [Nkai to High Reasoning Prompt.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 2 Flash", "body": "- **Topic ID:** `Topic 5`\n- **Source Note:** [`Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P1` | **Tier:** Tier 2 Flash\n- **Original Prompt:** *\"Is it a strategic implementation strategy to terminate my custom research pipeline by compiling a structured markdown payload—consisting of aggregated technical reference nodes and an adversarial subagent's friction metrics—and automatically routing this unified payload as the master system prompt for an external LLM reasoning session?\"*\n- **Key Angles & PCDA Dossier:**\n  - Automated compilation of deep research cards, user notes, and contrarian failure modes into a dense, ready-to-run prompt.\n  - Single-click export or zero-copy agent handoff for complex architectural problems requiring high-thinking models (Claude 3.7 Sonnet Thinking, Gemini 3.1 Pro High).\n\n---", "word_count": 120, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "backlog", "badge_text": "✅ BACKLOG", "section_info": "Section 16: Flight 2", "sec_num": "16"}, {"id": "docket-3", "idx": 3, "title": "N'kai Automode: 2-Pass Iterative Research Daemon (P1)", "source_note": "[`Nkai Automode.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md)", "excerpt": "- Topic ID: Topic 6 - Source Note: [Nkai Automode.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md) - Capture Date: 2026-10-09 | Priority: P1 | Tier: Tier 2 Flash", "body": "- **Topic ID:** `Topic 6`\n- **Source Note:** [`Nkai Automode.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md)\n- **Capture Date:** 2026-10-09 | **Priority:** `P1` | **Tier:** Tier 2 Flash\n- **Original Prompt:** *\"There's a rejigger skill to redo the sequence. Should there be a skill the auto research all the items twice (using the idea we saw before about how loops and how you go through twice and not more)\"*\n- **Key Angles & PCDA Dossier:**\n  - Formalizing the **2-Pass Convergence Gate** into an autonomous background runner.\n  - Pass 1 (Flash Explore): Sweeps pros, cons, and devil's advocate points.\n  - Pass 2 (Pro Synthesis): Converges on the 80/20 resolution and freezes the spec. Strict hard-cap at 2 iterations to prevent infinite echo loops.\n\n---\n\n### 📑 Phase 2: Assistant Flexibility & Custom Lenses", "word_count": 126, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "backlog", "badge_text": "✅ BACKLOG", "section_info": "Section 17: Flight 3", "sec_num": "17"}, {"id": "docket-4", "idx": 4, "title": "General Research Assistant & Configurable Lens Profiles (P2)", "source_note": "[`Nkai Use Cases.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md)", "excerpt": "- Topic ID: Topic 9 - Source Note: [Nkai Use Cases.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md) - Capture Date: 2026-10-10 | Priority: P2 | Tier: Tier 3 Minimal", "body": "- **Topic ID:** `Topic 9`\n- **Source Note:** [`Nkai Use Cases.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P2` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"Right now it's mostly for dev. But, what about a general research assistant use case? Maybe we can move a lot of the settings (like PCDA settings and whatnot) into a settings file? So it can be a little more general use case for other research? What if I want to research a TTRPG system or write lyrics?\"*\n- **Key Angles & PCDA Dossier:**\n  - Decoupling audio DSP software rules from general research canvases.\n  - Introducing a configurable `nkai.config.json` allowing custom 4-Lens evaluation matrices (e.g. Swapping the \"Audio Software Industry\" lens for \"Tabletop RPG Game Systems\" or \"Creative Writing\").\n\n---", "word_count": 126, "date": "2026-10-09", "tier": "tier3", "priority": "P2", "tags": [], "dependencies": [], "status": "backlog", "badge_text": "✅ BACKLOG", "section_info": "Section 18: Flight 4", "sec_num": "18"}, {"id": "docket-5", "idx": 5, "title": "Spun-Up Flash Low Agent for N'kai-to-Chat Button Routing (P1) — 🪦 GRAVEYARD / KILLED", "source_note": "[`Nkai Button Flash Routing Agent.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Button%20Flash%20Routing%20Agent.md)", "excerpt": "- Topic ID: Topic 16 - Source Note: [Nkai Button Flash Routing Agent.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Button%20Flash%20Routing%20Agent.md) - Capture Date: 2026-10-11 | Triage Date: 2026-10-11 | Status: 🪦 GRAVEYARD / KILLED | Tier: Tier 3 Minimal", "body": "- **Topic ID:** `Topic 16`\n- **Source Note:** [`Nkai Button Flash Routing Agent.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Button%20Flash%20Routing%20Agent.md)\n- **Capture Date:** 2026-10-11 | **Triage Date:** 2026-10-11 | **Status:** `🪦 GRAVEYARD / KILLED` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"maybe the button interaction needs a spun up flash low agent to do all the routing between nkai and the chat? a topic to look into when my weekly allowance is back. add it to the top of the untriaged in the mailbag! I'm at 1%, so just add it, don't look into it right now hahaha\"*\n- **Key Angles & Online Research Dossier:**\n  - **The Plumbing vs. Reasoning Trap**: LLMs are probabilistic neural networks with 500ms–2s latency and token burn per turn. Using an LLM subagent as a static string relay for DOM button clicks is classic architectural over-engineering (\"using an LLM for plumbing\").\n  - **Subagent Lifecycle Limits**: In Antigravity, subagents can only be spawned during an active LLM turn, not by an external webview click. A subagent cannot run an indefinite polling loop without hitting turn/timer limits.\n  - **The Built-In Solution**: When running as an official Antigravity UI Extension (`plugins/nkai/sidecars/panel/`), the panel has direct access to `window.sidecar.agent.sendMessage(text)` via `/preload.js` — providing 100% deterministic, 0ms latency, zero-token dispatch directly into the chat conversation.\n- **PCDA Dialectic Synthesis**:\n  - **Pros**: Pure hands-free operation; eliminates `Ctrl+V`.\n  - **Cons**: 1–2s inference latency per click; base prompt token burn; hallucination risk during parameter passing.\n  - **Devil's Advocate**: Burning tokens on two models (subagent + main agent) just to forward a button click is the definition of AI slop.\n  - **80/20 Resolution**: **REJECT the Flash Routing Subagent (`🪦 GRAVEYARD`)**. Rely on Antigravity's native `window.sidecar.agent.sendMessage()` when running as an official UI extension, and maintain the honest 1-click `[ 📋 Copy ]` composer for standalone browser views.\n\n---", "word_count": 297, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "graveyard", "badge_text": "🪦 GRAVEYARD", "section_info": "Strategy Graveyard (Flight 5)", "sec_num": ""}, {"id": "docket-6", "idx": 6, "title": "Platform & Ecosystem Pillar Badges on Cards (P2)", "source_note": "[`Nkai Platform Pillar Badges.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md)", "excerpt": "- Topic ID: Topic 17 - Source Note: [Nkai Platform Pillar Badges.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal", "body": "- **Topic ID:** `Topic 17`\n- **Source Note:** [`Nkai Platform Pillar Badges.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md)\n- **Capture Date:** 2026-10-11 | **Priority:** `P2` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"oh! maybe also an emoji (the same from the footer) on each card to idicate what end platform the idea is for? maybe with some kind of like agent emoji for workflow stuff? also, if it's across multiple, we add as many as needed? or, maybe instead of unclear emoji, we use equally under acronyms (unclear to someone else, but clear to the user of nkai)? add just adter the last item to the untriaged.\"*\n- **Key Angles & PCDA Dossier:**\n  - **Pillar Destination Indicators**: Declarative badge chips on every mail card (`TKS`, `TT`, `NK`, `TKR`, `AGY`, `TBD-16`).\n  - **Multi-Pillar Tagging**: Supporting multiple badges on cross-ecosystem ideas without card visual bloat.\n  - **Visual Ergonomics**: Comparing emoji glyphs vs. colored acronym pills for instant glanceability.\n\n---", "word_count": 152, "date": "2026-10-09", "tier": "tier3", "priority": "P2", "tags": [], "dependencies": [], "status": "untriaged", "badge_text": "⚪ UNTRIAGED", "section_info": "", "sec_num": ""}, {"id": "docket-7", "idx": 7, "title": "Streamlined Mailbag Ingestion & Dynamic Positioning (P2)", "source_note": "[`Nkai Streamlined Mailbag Ingestion.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md)", "excerpt": "- Topic ID: Topic 18 - Source Note: [Nkai Streamlined Mailbag Ingestion.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal", "body": "- **Topic ID:** `Topic 18`\n- **Source Note:** [`Nkai Streamlined Mailbag Ingestion.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md)\n- **Capture Date:** 2026-10-11 | **Priority:** `P2` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"and, for the next untriaged item after that, maybe we can look at streamlining me adding items to the mailbag from the chat. it seems like a lot of backend work to do a simple 'add this as untriaged in position x'\"*\n- **Key Angles & PCDA Dossier:**\n  - **Single-Command Ingestion**: Eliminating manual multi-file renumbering across `BACKLOG.md` and `morning_mail_topics.md` via a dedicated CLI tool or `/mail-add` micro-skill.\n  - **Dynamic Positional Splice**: Automatically shifting downstream flights (`position X`) and recalculating indices.\n  - **Instant Atomic Sync**: Updating the ledger and recompiling the sidecar in a single automated pass.\n\n---\n\n### 📑 Phase 3: Hardware & Tracker Architecture", "word_count": 132, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "untriaged", "badge_text": "⚪ UNTRIAGED", "section_info": "", "sec_num": ""}, {"id": "docket-8", "idx": 8, "title": "Tracktion Engine Backend Evaluation for ToadTracker (P1) — 🪦 GRAVEYARD / KILLED", "source_note": "[`Tracktion Backend for The Toad.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Tracktion%20Backend%20for%20The%20Toad.md)", "excerpt": "- Topic ID: Topic 13 - Source Note: [Tracktion Backend for The Toad.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Tracktion%20Backend%20for%20The%20Toad.md) - Capture Date: 2026-10-10 | Triage Date: 2026-10-11 | Status: 🪦 GRAVEYARD / KILLED", "body": "- **Topic ID:** `Topic 13`\n- **Source Note:** [`Tracktion Backend for The Toad.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Tracktion%20Backend%20for%20The%20Toad.md)\n- **Capture Date:** 2026-10-10 | **Triage Date:** 2026-10-11 | **Status:** `🪦 GRAVEYARD / KILLED`\n- **Original Prompt:** *\"a friend of mine is building the front end for his own DAW. he started with ardour, but recently moved the backed to tracktion. is this a reasonable backend for The Toad? maybe just on desktop and steam deck? what about the possibility of a stripped down one for the TBD-16 if it can't run the whole thing? https://www.tracktion.com/develop/tracktion-engine\"*\n- **PCDA Autopsy & Strategic Verdict:**\n  - **Verdict**: **REJECTED (KILLED)**. Do not adopt Tracktion Engine even as temporary scaffolding.\n  - **Core Autopsy**: Tracktion Engine is a heavy linear DAW engine (`te::Edit`, `te::Track`, `te::Clip`). Trackers are discrete, integer-based step sequencers and tick accumulators. Developing a desktop Tracktion version alongside an embedded C++ microcontroller version creates a disastrous \"parallel engine\" maintenance debt and leaky abstractions.\n  - **Winning Synthesis (The 80/20 Resolution)**: Adopt the **Dirtywave M8 / SunVox Model** — author a pure, allocation-free C++20 tracker core (`ToadCore`) that compiles identically on Desktop and TBD-16, wrapped in a thin ~100-line JUCE standalone audio device shell on Desktop. 100% hardware parity on Day 1, zero throwaway code, zero Tracktion bloat.\n\n---", "word_count": 206, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "graveyard", "badge_text": "🪦 GRAVEYARD", "section_info": "Strategy Graveyard (Flight 8)", "sec_num": ""}, {"id": "docket-9", "idx": 9, "title": "ToadTracker vs. Dirtywave M8 Telemetry & Web Bridge (P2)", "source_note": "[`Toad vs M8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)", "excerpt": "- Topic ID: Topic 10 - Source Note: [Toad vs M8.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md) - Capture Date: 2026-10-10 | Priority: P2 | Tier: Tier 2 Flash", "body": "- **Topic ID:** `Topic 10`\n- **Source Note:** [`Toad vs M8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P2` | **Tier:** Tier 2 Flash\n- **Original Prompt:** *\"Can you be like a man in the middle between the M8 and M8.run and record what I do? Maybe like some kind of Python and SQLite thing to do all the data capture and you can analyze how it works? Maybe also watch my workflow and try to make sure what I do really is polished once you analyze it? There might be an m8.run GitHub as well?\"*\n- **Key Angles & Online Research Dossier:**\n  - **Protocol Architecture**: Dirtywave M8 and Teensy 4.1 communicate via high-speed USB CDC ACM Serial using **SLIP framing** (`0xC0` packet boundaries, `0xDB` escape bytes). Host sends compact button input bitmasks; M8 streams vector draw opcodes and screen primitives. Audio streams separately over USB Audio Class 2.0 (UAC 2.0).\n  - **Open Source Precedents**: `derkyjadex/M8WebDisplay` (`m8.run` WebSerial client), `laamaa/m8c` (canonical C/SDL client), `turbolent/g0m8` (Go client).\n  - **MITM Proxy Reality**: Hardware serial ports enforce exclusive OS locks. A Python MITM proxy requires opening physical `COM3`, intercepting SLIP frames, logging to SQLite, and relaying to a virtual COM port (`com0com`) or WebSocket bridge for `m8.run` / `m8c`.\n  - **ToadTracker Ergonomics**: Extracting keystroke heatmaps, multi-button navigation chords (`Shift + Option`, `Edit + Arrow`), and screen dwell times (Song vs Chain vs Phrase vs Table) to optimize TBD-16 physical microswitch placement.\n- **PCDA Dialectic Synthesis**:\n  - **Pros**: Real quantitative telemetry on tracker workflow bottlenecks; validates TBD-16 hardware button layouts with empirical data.\n  - **Cons**: High setup friction on Windows due to virtual COM port kernel driver enforcement (`com0com`).\n  - **Devil's Advocate**: Keystroke count doesn't equal creative flow; danger of \"productive procrastination\" building a complex telemetry bridge instead of coding the tracker engine.\n  - **80/20 Resolution**: Skip virtual COM kernel drivers. Instead, either add a lightweight 20-line SQLite logging hook directly into `laamaa/m8c` or run a Python WebSocket bridge for local `m8.run`. Backlog as a P2 Research Spinoff for ToadTracker v0.2.0.\n\n---\n\n### 📑 Phase 4: Synthesizer & Audio DSP Engineering", "word_count": 346, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "untriaged", "badge_text": "⚪ UNTRIAGED", "section_info": "", "sec_num": ""}, {"id": "docket-10", "idx": 10, "title": "Sub-Module & Component Presets Architecture (P1)", "source_note": "[`Component Presets As Well.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Component%20Presets%20As%20Well.md)", "excerpt": "- Topic ID: Topic 14 - Source Note: [Component Presets As Well.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Component%20Presets%20As%20Well.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 3 Minimal", "body": "- **Topic ID:** `Topic 14`\n- **Source Note:** [`Component Presets As Well.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Component%20Presets%20As%20Well.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P1` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"oh, yeah, I have a planned preset system with tags and all the usual stuff. so that saving that sorta thing is absolutely on the books!! I should make component presets as well, so I can load up the CyDrums voice and save JUST that part, instead of a full voice preset!!\"*\n- **Key Angles & PCDA Dossier:**\n  - **Hierarchical Preset Taxonomy**:\n    1. *Full Patch Preset (`.tkf` / `.tkpl`)*: Complete 202-parameter synthesizer state.\n    2. *Component / Voice Preset (`.tkmod` / `.tkpart`)*: Isolated module snapshot (e.g. Card 1 Oscillator cluster, Card 2 Filter network, or a single CyDrums drum voice).\n  - **JSON Chunk Serialization**: Extending `master_control_schema.json` with card-scoped sub-dictionaries (`\"card_scope\": \"oscillator\" | \"filter\" | \"voice\"`).\n  - **Drag-and-Drop Drop-In Ergonomics**: Dragging a component preset onto a card replaces ONLY that module's parameters while keeping the rest of the patch intact.\n\n---", "word_count": 166, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "untriaged", "badge_text": "⚪ UNTRIAGED", "section_info": "", "sec_num": ""}, {"id": "docket-11", "idx": 11, "title": "4-Macro Mega Modules & Snap Heap Popover Panels (P1)", "source_note": "[`Effects and Oscillators and More.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Effects%20and%20Oscillators%20and%20More.md)", "excerpt": "- Topic ID: Topic 12 - Source Note: [Effects and Oscillators and More.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Effects%20and%20Oscillators%20and%20More.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 2 Flash", "body": "- **Topic ID:** `Topic 12`\n- **Source Note:** [`Effects and Oscillators and More.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Effects%20and%20Oscillators%20and%20More.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P1` | **Tier:** Tier 2 Flash\n- **Original Prompt:** *\"A lot of the more complex stuff could have 4 macro knobs and have a popover panel (like Slice EQ when in SnapHeap) to make all the settings and map the macros... this might just be TKM all over again?\"*\n- **Key Angles & PCDA Dossier:**\n  - Kilohearts Snap Heap / Phase Plant paradigm: 4 high-level macro sliders on the front chassis, with a popover panel (`juce::CallOutBox`) expanding into an exhaustive micro-parameter editor.\n  - Perfect fit for complex DSP units like Chorus/Ensemble and Multi-Stage Wavefolders.\n\n---", "word_count": 114, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "untriaged", "badge_text": "⚪ UNTRIAGED", "section_info": "", "sec_num": ""}, {"id": "docket-12", "idx": 12, "title": "Sonicware LIVEN CyDrums Architecture & Structure Mapping (P1)", "source_note": "[`CyDrums Research.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md)", "excerpt": "- Topic ID: Topic 15 - Source Note: [CyDrums Research.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 1 Pro", "body": "- **Topic ID:** `Topic 15`\n- **Source Note:** [`CyDrums Research.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P1` | **Tier:** Tier 1 Pro\n- **Original Prompt:** *\"from a friend on my synth discord: 1. Probably could just start a project where you give it the manual and see how it does mapping the structures directly from pdf. start on page 169... I honestly wouldnt even change much about the wavetables or structures as there is already toooon of options there. Only things I'm thinking about adding are (1) LFOs as there is just 1 looping envelope per track... (2) a couple 24db filter LP/HP, (3) and some options on effects... yep the structures are cool, most have x2 wavetables and noise and tick generator, the wavetable directions (pg47) give a lot of variety too. The modulation targets (pg 65) are really nice... having x2 lfos would be wild with all those mod targets\"*\n- **Key Angles & PCDA Dossier:**\n  - **CyDrums Synthesis Engine Analysis**:\n    - Structural topology: 2x Wavetable Oscillators + Noise Generator + Physical Tick Generator.\n    - Directional wavetable scanning modes (forward, backward, alternating, ping-pong).\n    - Modulation matrix: Targetable wavetable parameters, filter cutoffs, and structure morphing.\n  - **The Super-CyDrums Proposal**: Overcoming hardware limitations by adding dual free-running LFOs, 4-pole (24dB/oct) ladder filters, and multi-fx blocks.\n  - **Implementation Runway**: PDF structure extraction project for a future specialized drum synth or dedicated Klang Farmer expansion engine.\n\n---\n\n### 📑 Phase 5: Spatial UI Polish & Consolidation", "word_count": 244, "date": "2026-10-09", "tier": "tier2", "priority": "P2", "tags": [], "dependencies": [], "status": "untriaged", "badge_text": "⚪ UNTRIAGED", "section_info": "", "sec_num": ""}, {"id": "docket-13", "idx": 13, "title": "Consolidated Filter-Counter Pills & Spatial Header Optimization (P2)", "source_note": "[`Nkai Filter Counter Pills.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md)", "excerpt": "- Topic ID: Topic 19 - Source Note: [Nkai Filter Counter Pills.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal", "body": "- **Topic ID:** `Topic 19`\n- **Source Note:** [`Nkai Filter Counter Pills.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md)\n- **Capture Date:** 2026-10-11 | **Priority:** `P2` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"another untriaged item to add to the bottom, maybe we can kinda merge the filter buttons and the numbers of each type of item to consolidate space and make it easier to parse what's up there\"*\n- **Key Angles & PCDA Dossier:**\n  - **Unified Filter-Counter Pills**: Merging separate scoreboard tally badges with interactive filter buttons (e.g. `[ 📋 All (13) ]`, `[ ⚪ Untriaged (9) ]`, `[ 📥 Backlog (3) ]`, `[ ✅ Completed (1) ]`, `[ 🔥 P0 (1) ]`).\n  - **Vertical Spatial Conservation**: Eliminating redundant multi-row header banners to save 30–50px of vertical space in narrow 360–480px IDE panels.\n  - **Cognitive Clarity**: Knowing exactly how many items match each category before clicking.\n\n---", "word_count": 142, "date": "2026-10-09", "tier": "tier3", "priority": "P2", "tags": [], "dependencies": [], "status": "untriaged", "badge_text": "⚪ UNTRIAGED", "section_info": "", "sec_num": ""}];
+    const archiveData = [];
+
+    let activeTab = 'docket';
+    let activeFilter = 'untriaged';
+    let audioMuted = false;
+    let hapticAudioCtx = null;
+
+    const triageStats = {
+      total: 13,
+      untriaged: 7,
+      dispatched: 6,
+      backlog: 3,
+      completed: 1,
+      research: 0,
+      graveyard: 2,
+      pcda: 0
+    };
+
+    const tokenLedger = {
+      tokensPro: 0,
+      tokensFlash: 0,
+      tokensMinimal: 0,
+      totalTokens: 0
+    };
+
+    /* ==========================================================================
+       Procedural Web Audio Haptics (Flight 5 Standard)
+       ========================================================================== */
+    function initAudioHaptics() {
+      const saved = localStorage.getItem('nkai_audio_muted');
+      if (saved !== null) {
+        audioMuted = (saved === 'true');
+      }
+      updateHapticsUI();
+    }
+
+    function updateHapticsUI() {
+      const btn = document.getElementById('btn-haptics');
+      const icon = document.getElementById('haptics-icon');
+      if (!icon) return;
+      if (!audioMuted) {
+        icon.textContent = '🔊';
+        if (btn) btn.title = 'Audio Haptics: ON (Click to mute)';
+      } else {
+        icon.textContent = '🔇';
+        if (btn) btn.title = 'Audio Haptics: MUTED (Click to unmute)';
+      }
+    }
+
+    function toggleAudioHaptics() {
+      audioMuted = !audioMuted;
+      localStorage.setItem('nkai_audio_muted', audioMuted ? 'true' : 'false');
+      updateHapticsUI();
+      if (!audioMuted) {
+        playHaptic('action');
+        showToast('🔊 Audio Haptics Unmuted');
+      } else {
+        showToast('🔇 Audio Haptics Muted');
+      }
+    }
+
+    function playHaptic(type) {
+      if (audioMuted) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!hapticAudioCtx) {
+          hapticAudioCtx = new AudioContextClass();
+        }
+        if (hapticAudioCtx.state === 'suspended') {
+          hapticAudioCtx.resume();
+        }
+        const t = hapticAudioCtx.currentTime;
+        const osc = hapticAudioCtx.createOscillator();
+        const gain = hapticAudioCtx.createGain();
+
+        if (type === 'action') {
+          // Ascending chime
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, t);
+          osc.frequency.exponentialRampToValueAtTime(880, t + 0.06);
+          gain.gain.setValueAtTime(0.06, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+          osc.connect(gain);
+          gain.connect(hapticAudioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.06);
+        } else if (type === 'tab') {
+          // Tab glide
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, t);
+          osc.frequency.exponentialRampToValueAtTime(660, t + 0.04);
+          gain.gain.setValueAtTime(0.04, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+          osc.connect(gain);
+          gain.connect(hapticAudioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.04);
+        } else {
+          // Tick
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, t);
+          osc.frequency.exponentialRampToValueAtTime(400, t + 0.02);
+          gain.gain.setValueAtTime(0.03, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+          osc.connect(gain);
+          gain.connect(hapticAudioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.02);
+        }
+      } catch (e) {}
+    }
+
+    /* ==========================================================================
+       Tab & Filter Switching
+       ========================================================================== */
+    function switchView(tabKey) {
+      playHaptic('tab');
+      activeTab = tabKey;
+      document.querySelectorAll('.tab-compact').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
+
+      const activeBtn = document.getElementById('tab-btn-' + tabKey);
+      const activeView = document.getElementById('view-' + tabKey);
+      if (activeBtn) activeBtn.classList.add('active');
+      if (activeView) activeView.classList.add('active');
+
+      handleSearch();
+    }
+
+    function applyStatusFilter(filterKey) {
+      playHaptic('tick');
+      activeFilter = filterKey;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      const activeChip = document.getElementById('filter-' + filterKey);
+      if (activeChip) activeChip.classList.add('active');
+
+      handleSearch();
+    }
+
+    function handleSearch() {
+      const query = (document.getElementById('search-input').value || '').toLowerCase();
+      const currentGridId = activeTab === 'docket' ? 'grid-docket' : 'grid-archive';
+      const cards = document.querySelectorAll('#' + currentGridId + ' .mail-card');
+
+      cards.forEach(card => {
+        const title = (card.getAttribute('data-title') || '').toLowerCase();
+        const file = (card.getAttribute('data-file') || '').toLowerCase();
+        const source = (card.getAttribute('data-source') || '').toLowerCase();
+        const status = (card.getAttribute('data-status') || 'untriaged').toLowerCase();
+        const text = card.innerText.toLowerCase();
+
+        const matchesQuery = !query || title.includes(query) || file.includes(query) || source.includes(query) || text.includes(query);
+        const matchesFilter = (activeFilter === 'all') || (status === activeFilter);
+
+        if (matchesQuery && matchesFilter) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('action-toast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    function forceReloadCanvas() {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('t', Date.now().toString());
+        window.location.href = url.toString();
+      } catch (e) {
+        window.location.href = window.location.pathname + '?t=' + Date.now();
+      }
+    }
+
+    function filterByPrereq(target) {
+      playHaptic('tick');
+      const depName = typeof target === 'string' ? target : (target && target.getAttribute ? target.getAttribute('data-prereq') : '');
+      const searchBox = document.getElementById('search-input');
+      if (searchBox && depName) {
+        searchBox.value = depName;
+        searchBox.dispatchEvent(new Event('input'));
+        showToast('🔍 Filtered by Prerequisite: ' + depName);
+      }
+    }
+
+    function copyToClipboardSilently(text) {
+      if (!text) return false;
+      let copied = false;
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '0';
+        ta.style.width = '2em';
+        ta.style.height = '2em';
+        ta.style.opacity = '0.01';
+        ta.style.zIndex = '999999';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        copied = document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {}
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+      }
+      return copied;
+    }
+
+    /* ==========================================================================
+       Action Dispatching & Live Allowance Tracking
+       ========================================================================== */
+    function dispatchMailAction(cardId, actionOrTitle, maybeAction, maybeTier) {
+      playHaptic('action');
+
+      let actionType = 'backlog';
+      let title = '';
+      let tier = 'tier2';
+
+      const card = document.getElementById(cardId);
+      if (card) {
+        title = card.getAttribute('data-title') || '';
+        tier = card.getAttribute('data-tier') || 'tier2';
+      }
+
+      if (['backlog', 'research', 'graveyard', 'pcda'].includes(actionOrTitle)) {
+        actionType = actionOrTitle;
+      } else if (maybeAction) {
+        actionType = maybeAction;
+        if (actionOrTitle) title = actionOrTitle;
+        if (maybeTier) tier = maybeTier;
+      }
+
+      let promptText = '';
+      if (actionType === 'backlog') {
+        promptText = `Add '${title}' to docs/BACKLOG.md under its target pillar with requirements and priority.`;
+      } else if (actionType === 'research') {
+        promptText = `Research '${title}' across TheKlangResearch and industry precedents.`;
+      } else if (actionType === 'graveyard') {
+        promptText = `Reject concept '${title}' and document strategic rationale in Strategy Graveyard.`;
+      } else if (actionType === 'pcda') {
+        promptText = `Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${title}'.`;
+      }
+
+      // Dispatch via FastAPI bridge (:8000), environment adapter, or clipboard
+      if (typeof fetch === 'function') {
+        fetch('http://127.0.0.1:8000/api/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: actionType.toUpperCase(),
+            note_id: cardId.replace('note-', ''),
+            title: title,
+            tier: tier,
+            source: 'morning_mail_inbox'
+          })
+        }).then(res => {
+          if (res.ok) console.log('⚡ Action recorded to FastAPI bridge (:8000)');
+        }).catch(() => {});
+      }
+
+      // 1. Direct Native Antigravity Extension IPC (if running in side pane)
+      if (typeof window !== 'undefined' && window.sidecar && window.sidecar.agent && typeof window.sidecar.agent.sendMessage === 'function') {
+        try {
+          window.sidecar.agent.sendMessage(promptText);
+          showToast(`⚡ Dispatched [${actionType.toUpperCase()}] directly to Agent!`);
+        } catch (e) {
+          console.warn('[Mail] Native IPC dispatch error:', e);
+        }
+      } else if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
+        window.NkaiEnv.dispatchAction(promptText);
+      } else {
+        copyToClipboardSilently(promptText);
+        showToast(`📋 Copied [${actionType.toUpperCase()}] prompt to clipboard! Paste in chat (Ctrl+V)`);
+      }
+
+      // 2. Apply DOM modifications and persist to localStorage
+      if (card) {
+        applyCardDOMStatus(card, cardId, actionType, title, tier, true);
+        saveTriageAction(cardId, actionType, title, tier);
+      }
+    }
+
+    function saveTriageAction(cardId, actionType, title, tier) {
+      try {
+        const key = 'nkai_mail_triage_actions';
+        const raw = localStorage.getItem(key);
+        const stored = raw ? JSON.parse(raw) : {};
+        stored[cardId] = {
+          action: actionType,
+          title: title,
+          tier: tier,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(key, JSON.stringify(stored));
+      } catch (e) {
+        console.warn('[Mail] LocalStorage save error:', e);
+      }
+    }
+
+    function initLocalStorageSync() {
+      try {
+        const key = 'nkai_mail_triage_actions';
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        const stored = JSON.parse(raw);
+        let changed = false;
+
+        for (const [cardId, data] of Object.entries(stored)) {
+          const card = document.getElementById(cardId);
+          if (!card) continue;
+          const currentStatus = (card.getAttribute('data-status') || 'untriaged').toLowerCase();
+          // If the card is untriaged in static HTML, apply the stored user triage verdict
+          if (currentStatus === 'untriaged' && data && data.action) {
+            applyCardDOMStatus(card, cardId, data.action, data.title || '', data.tier || 'tier2', false);
+            changed = true;
+          }
+        }
+        if (changed) {
+          updateScoreboardUI();
+          handleSearch();
+        }
+      } catch (e) {
+        console.warn('[Mail] LocalStorage restore error:', e);
+      }
+    }
+
+    function applyCardDOMStatus(card, cardId, actionType, title, tier, isUserClick) {
+      const prevStatus = (card.getAttribute('data-status') || 'untriaged').toLowerCase();
+      if (prevStatus === actionType) return;
+
+      card.setAttribute('data-status', actionType);
+      card.classList.add('dispatched');
+      if (actionType === 'completed') {
+        card.classList.add('completed');
+      } else {
+        card.classList.remove('completed');
+      }
+
+      const badge = document.getElementById('badge-' + cardId);
+      if (badge) {
+        badge.className = 'mail-status-badge ' + (actionType === 'completed' ? 'badge-completed' : 'badge-dispatched');
+        badge.textContent = '✅ ' + actionType.toUpperCase();
+      }
+
+      let banner = card.querySelector('.mail-dispatch-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.className = 'mail-dispatch-banner';
+        const actionsBox = card.querySelector('.mail-card-actions');
+        if (actionsBox) actionsBox.before(banner);
+        else card.appendChild(banner);
+      }
+
+      let promptText = '';
+      if (actionType === 'backlog') {
+        promptText = `Add '${title}' to docs/BACKLOG.md under its target pillar with requirements and priority.`;
+      } else if (actionType === 'research') {
+        promptText = `Research '${title}' across TheKlangResearch and industry precedents.`;
+      } else if (actionType === 'graveyard') {
+        promptText = `Reject concept '${title}' and document strategic rationale in Strategy Graveyard.`;
+      } else if (actionType === 'pcda') {
+        promptText = `Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${title}'.`;
+      }
+
+      const promptEsc = promptText.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+      const actionLabel = actionType.toUpperCase();
+      const icon = actionType === 'pcda' ? '⚖️' : (actionType === 'research' ? '🔬' : (actionType === 'backlog' ? '📥' : '🪦'));
+      const accentColor = actionType === 'pcda' ? '#fbbf24' : (actionType === 'research' ? 'var(--accent-blue)' : (actionType === 'backlog' ? '#34d399' : '#f87171'));
+      const bgTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.08)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.08)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.08)' : 'rgba(248, 113, 113, 0.08)'));
+      const borderTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.3)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.3)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.3)' : 'rgba(248, 113, 113, 0.3)'));
+
+      banner.innerHTML = `
+        <div style="background: ${bgTint}; border: 1px solid ${borderTint}; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+          <div style="color: ${accentColor}; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span>${icon} ${actionLabel} Prompt Ready</span>
+            <span style="font-size: 10px; color: var(--text-muted);">Paste in Chat or Copy Below</span>
+          </div>
+          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+            <input type="text" readonly value="${promptEsc}" onclick="this.select()" style="flex: 1; background: #0f172a; border: 1px solid ${borderTint}; border-radius: 4px; padding: 6px 8px; color: #f8fafc; font-family: var(--font-mono); font-size: 11px; outline: none; cursor: text;" />
+            <button onclick="copyToClipboardSilently(this.previousElementSibling.value); this.textContent='✅ Copied!'; setTimeout(() => this.textContent='📋 Copy', 2000)" style="background: #1e293b; border: 1px solid ${borderTint}; border-radius: 4px; padding: 6px 12px; color: ${accentColor}; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">📋 Copy</button>
+          </div>
+          <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+            Press <kbd style="background:#1e293b; color:#fff; padding:1px 4px; border-radius:3px; border:1px solid #334155;">Ctrl+V</kbd> in chat to execute this action with Antigravity!
+          </div>
+        </div>`;
+
+      const details = card.querySelector('.mail-body-details');
+      if (details) {
+        details.open = true;
+      }
+
+      // Update Stats
+      if (prevStatus === 'untriaged') {
+        triageStats.untriaged = Math.max(0, triageStats.untriaged - 1);
+        triageStats.dispatched++;
+      } else if (prevStatus in triageStats) {
+        triageStats[prevStatus] = Math.max(0, triageStats[prevStatus] - 1);
+      }
+      if (actionType in triageStats) {
+        triageStats[actionType]++;
+      }
+
+      if (isUserClick) {
+        updateScoreboardUI();
+        const costMap = { tier1: 40000, tier2: 10000, tier3: 2000 };
+        const cost = costMap[tier] || 10000;
+        if (actionType === 'backlog' || actionType === 'research') {
+          tokenLedger.totalTokens += cost;
+          updateAllowanceUI();
+        }
+      }
+    }
+
+    function updateScoreboardUI() {
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+      setVal('count-total', triageStats.total);
+      setVal('count-untriaged', triageStats.untriaged);
+      setVal('count-dispatched', triageStats.dispatched);
+      setVal('count-backlog', triageStats.backlog);
+      setVal('count-completed', triageStats.completed || 0);
+      setVal('count-research', triageStats.research);
+      setVal('count-graveyard', triageStats.graveyard);
+      setVal('count-pcda', triageStats.pcda);
+    }
+
+    function updateAllowanceUI() {
+      const valEl = document.getElementById('allowance-val');
+      const statusEl = document.getElementById('allowance-status');
+      const pill = document.getElementById('header-allowance-pill');
+      if (!valEl || !statusEl || !pill) return;
+
+      const total = tokenLedger.totalTokens;
+      const formattedK = total > 0 ? (total >= 1000 ? Math.round(total / 1000) + 'k' : total) : '0k';
+      valEl.textContent = `~${formattedK}`;
+
+      let band = 'safe';
+      let bandLabel = 'SAFE 🟢';
+      if (total > 200000) {
+        band = 'critical';
+        bandLabel = 'CRITICAL 🔴';
+      } else if (total > 100000) {
+        band = 'warning';
+        bandLabel = 'WARNING 🟡';
+      }
+
+      statusEl.className = `meter-badge meter-${band}`;
+      statusEl.textContent = bandLabel;
+      pill.title = `Cumulative approved tokens: ${total.toLocaleString()} / 200,000 budget`;
+    }
+
+    function initMailboard() {
+      initAudioHaptics();
+      initLocalStorageSync();
+      updateScoreboardUI();
+      handleSearch();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMailboard);
+    } else {
+      initMailboard();
+    }
+  </script>
+</body>
+</html>
