@@ -38,6 +38,32 @@ DEFAULT_TEMPLATE_PATHS = [
     Path(r"c:\Dev\nkai\bundle\templates\master_template.html"),
 ]
 
+DEFAULT_OVERFLOW_PATH = Path(r".agents/pipeline/mailbag/overflow.json")
+
+
+def load_overflow_map(overflow_path: Optional[Path] = None) -> dict:
+    """Loads overflow.json and returns a mapping of split_group -> count."""
+    p = overflow_path or DEFAULT_OVERFLOW_PATH
+    if not p.exists():
+        for base in [Path.cwd(), Path(__file__).resolve().parent.parent]:
+            cand = base / ".agents" / "pipeline" / "mailbag" / "overflow.json"
+            if cand.exists():
+                p = cand
+                break
+    if not p.exists():
+        return {}
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        counts = {}
+        if isinstance(data, list):
+            for it in data:
+                sg = it.get("split_group") or Path(it.get("source_note", "")).stem
+                if sg:
+                    counts[sg] = counts.get(sg, 0) + 1
+        return counts
+    except Exception:
+        return {}
+
 
 def resolve_master_template(custom_path: Optional[Path] = None) -> Path:
     """Finds the master_template.html across local workspace or nkai core."""
@@ -192,7 +218,7 @@ def render_pillar_badges(pillars: list) -> str:
     return "".join(badge_htmls)
 
 
-def render_card_html(it: MailItem, i: int) -> str:
+def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) -> str:
     """Renders a single MailItem into an accessible, deterministic DOM card."""
     idx = it.idx
     rank_val = idx if idx > 0 else i
@@ -247,6 +273,37 @@ def render_card_html(it: MailItem, i: int) -> str:
     is_dispatched = (status != "untriaged")
     priority = it.priority.value
     priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
+
+    tags_lower = [t.lower().lstrip("#") for t in (it.tags or [])]
+
+    # Attention tags (Phase 4)
+    attention_badges = []
+    if "important" in tags_lower:
+        attention_badges.append('<span class="badge badge-attention badge-attention-important">⚠️ IMPORTANT</span>')
+    if "bloated" in tags_lower:
+        attention_badges.append('<span class="badge badge-attention badge-attention-bloated">📦 BLOATED (needs split)</span>')
+    if "incomplete" in tags_lower:
+        attention_badges.append('<span class="badge badge-attention badge-attention-incomplete">📝 INCOMPLETE (early draft)</span>')
+    if "spike" in tags_lower:
+        attention_badges.append('<span class="badge badge-attention badge-attention-spike">⚡ SPIKE</span>')
+    attention_badges_html = "".join(attention_badges)
+
+    # Quick Note chip (Phase 2)
+    quicknote_chip = '<span class="badge badge-quicknote" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Quick Note (Filename only)">📝 quick-note</span>' if "quick-note" in tags_lower else ""
+
+    # Tabled chip (Phase 3)
+    tabled_chip = '<span class="badge badge-tabled" style="background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent-authored note tabled in Inbox/Tabled/">🗂 Tabled by agent</span>' if "tabled" in tags_lower else ""
+
+    # Overflow chip (Phase 1)
+    overflow_chip = ""
+    overflow_count = 0
+    if overflow_map:
+        sg = getattr(it, "split_group", "") or Path(it.source_file or it.source_note or it.file_name or "").stem
+        overflow_count = overflow_map.get(sg, 0)
+        if overflow_count > 0:
+            overflow_chip = f'<span class="badge badge-overflow" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="{overflow_count} ideas in overflow queue">⤵ {overflow_count} in overflow</span>'
+
+    has_overflow = (overflow_count > 0)
 
     deps = it.dependencies or []
     dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
@@ -323,14 +380,18 @@ def render_card_html(it: MailItem, i: int) -> str:
         </div>"""
 
     return f"""
-      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}" id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}">
+      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}" id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{rank_val}</span>
             <span class="mail-status-badge {badge_cls}" id="badge-{card_id}">{badge_text}</span>
             {priority_badge}
+            {attention_badges_html}
             {dep_badges}
             {merged_chip}
+            {quicknote_chip}
+            {tabled_chip}
+            {overflow_chip}
             {docket_badge}
           </div>
           <div class="mail-header-right">
@@ -370,6 +431,18 @@ def render_card_html(it: MailItem, i: int) -> str:
             </button>
           </div>
         </div>
+        <div class="mail-session-launchers" style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(38, 51, 69, 0.6); flex-wrap: wrap;">
+          <span class="actions-label" style="font-size: 10px; color: var(--text-muted);">Session Launch:</span>
+          <button id="btn-launch-grill-{clean_id}" class="action-chip chip-session-grill" onclick="launchSessionAction('{card_id}', 'grill-lab')" title="Launch Grill-Lab visual architectural interview">
+            <span>🔬</span> Grill-Lab
+          </button>
+          <button id="btn-launch-research-{clean_id}" class="action-chip chip-session-research" onclick="launchSessionAction('{card_id}', 'deep-research')" title="Launch Deep Research subagent exploration">
+            <span>🧠</span> Deep Research
+          </button>
+          <button id="btn-launch-plan-{clean_id}" class="action-chip chip-session-plan" onclick="launchSessionAction('{card_id}', 'draft-plan')" title="Draft implementation plan in Antigravity">
+            <span>🔨</span> Draft Plan
+          </button>
+        </div>
       </div>
 """
 
@@ -381,6 +454,16 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
 
     items = schema.cards
     total_count = len(items)
+
+    # Load overflow mappings for Phase 1
+    overflow_map = load_overflow_map()
+    total_overflow = sum(overflow_map.values())
+    overflow_pill_html = (
+        f'<button class="filter-chip" id="pill-status-overflow" onclick="applyStatusFilter(\'overflow\')" title="Filter cards with ideas in overflow queue">'
+        f'⤵ Overflow <span class="chip-count" id="count-status-overflow">{total_overflow}</span>'
+        f'</button>'
+        if total_overflow > 0 else ""
+    )
 
     # 1. Tally Pillars across all items (Session-Stable Frequency Ranking)
     pillar_counts = {}
@@ -420,7 +503,7 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     dispatched_count = approved_count + backlog_count + completed_count + research_count + graveyard_count + pcda_count
 
     # 3. Render Cards
-    cards_html = [render_card_html(it, i) for i, it in enumerate(items, 1)]
+    cards_html = [render_card_html(it, i, overflow_map) for i, it in enumerate(items, 1)]
     cards_joined = "".join(cards_html) if cards_html else '<div class="mail-card" style="text-align:center;color:var(--text-muted);"><p>🎉 Mailbox zero! No active notes found.</p></div>'
 
     # 4. Environment & Banners
@@ -436,9 +519,11 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     output_html = output_html.replace("{{PAGE_TITLE}}", page_title)
     output_html = output_html.replace("{{SANDBOX_BANNER}}", sandbox_banner)
     output_html = output_html.replace("{{RAIL_1_BUTTONS}}", pillar_buttons_html)
+    output_html = output_html.replace("{{OVERFLOW_FILTER_PILL}}", overflow_pill_html)
     output_html = output_html.replace("{{CARDS_HTML}}", cards_joined)
     output_html = output_html.replace("{{ENVIRONMENT}}", "SANDBOX" if is_sandbox else "PRODUCTION")
     output_html = output_html.replace("{{TOTAL_COUNT}}", str(total_count))
+    output_html = output_html.replace("{{OVERFLOW_COUNT}}", str(total_overflow))
     output_html = output_html.replace("{{UNTRIAGED_COUNT}}", str(untriaged_count))
     output_html = output_html.replace("{{APPROVED_COUNT}}", str(approved_count))
     output_html = output_html.replace("{{BACKLOG_COUNT}}", str(backlog_count))

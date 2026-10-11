@@ -42,13 +42,13 @@ class TestNkaiSandboxBoard(unittest.TestCase):
         raw_json = self.fixture_path.read_text(encoding="utf-8")
         queue = MailQueue.model_validate_json(raw_json)
 
-        self.assertEqual(queue.total_items, 7, "Fixture should have exactly 7 items")
-        self.assertEqual(len(queue.items), 7, "Fixture items list should contain 7 entries")
+        self.assertEqual(queue.total_items, 8, "Fixture should have exactly 8 items")
+        self.assertEqual(len(queue.items), 8, "Fixture items list should contain 8 entries")
         self.assertEqual(queue.p0_count, 2, "Fixture should have exactly 2 P0 items")
 
-        expected_ids = [f"sbx-0{i}" for i in range(1, 8)]
+        expected_ids = [f"sbx-0{i}" for i in range(1, 8)] + ["sbx-quick-01"]
         actual_ids = [it.id for it in queue.items]
-        self.assertEqual(actual_ids, expected_ids, "Expected sbx-01 through sbx-07 in order")
+        self.assertEqual(actual_ids, expected_ids, "Expected sbx-01 through sbx-07 and sbx-quick-01 in order")
 
     def test_sandbox_zero_mutation(self):
         """Test 2: Asserts running check_mail.py in sandbox mode never mutates production ledger or vault."""

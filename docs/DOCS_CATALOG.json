@@ -177,6 +177,11 @@
           "path": "docs/specs/nkai_multi_board_hub_and_session_manager.md",
           "title": "N'kai Multi-Board Hub & Session Manager (Flight 14 / rj-05)",
           "purpose": "Multi-board directory modal, BoardRegistry data model, anti-cache HTTP response headers, ?board=<id> routing, and dual-mode offline/extension operation."
+        },
+        {
+          "path": "docs/specs/nkai_mailbag_intake_and_triage_v2.md",
+          "title": "N'kai Mailbag Intake & Triage v2 Specification (Flight 7 / rj-07 & rj-17)",
+          "purpose": "Ramble overflow queue, filename-only quick notes, Inbox/Tabled/ directory, attention tags with session launchers, and /mail-add position splice CLI."
         }
       ]
     },

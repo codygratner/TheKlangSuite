@@ -70,6 +70,7 @@ except ImportError:
 DEFAULT_VAULT_INBOX = Path(r"C:\Dev\TheKlangVault\Inbox")
 FALLBACK_LOCAL_INBOX = Path("docs/inbox")
 DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
+DEFAULT_OVERFLOW_FILE = Path(r".agents/pipeline/mailbag/overflow.json")
 
 
 def resolve_inbox_directory(dir_override: Optional[str] = None, scan_archive: bool = False) -> Path:
@@ -314,8 +315,51 @@ def synthesize_card_fields(
     }
 
 
-def parse_ramble_file(file_path: Path) -> RambleExtractionResult:
-    """Parses a markdown ramble note and decomposes it into RambleCards."""
+def save_overflow_cards(
+    overflow_cards: List[RambleCard],
+    overflow_path: Optional[Path] = None,
+    split_group: str = "",
+    dry_run: bool = False,
+) -> int:
+    """
+    Writes overflow cards to overflow.json as a JSON array of RambleCard objects.
+    Preserves cards from other split groups and replaces cards for this split_group idempotently.
+    """
+    target = overflow_path or DEFAULT_OVERFLOW_FILE
+    existing: List[Dict[str, Any]] = []
+    if target.exists():
+        try:
+            content = target.read_text(encoding="utf-8")
+            parsed = json.loads(content)
+            if isinstance(parsed, list):
+                existing = parsed
+        except Exception:
+            existing = []
+
+    # Filter out previous items for this split_group
+    if split_group:
+        kept = [c for c in existing if c.get("split_group") != split_group]
+    else:
+        kept = existing
+
+    # Append new overflow cards
+    for oc in overflow_cards:
+        kept.append(oc.model_dump())
+
+    if not dry_run:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(kept, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    return len(overflow_cards)
+
+
+def parse_ramble_file(
+    file_path: Path,
+    overflow_path: Optional[Path] = None,
+    write_overflow: bool = True,
+    dry_run: bool = False,
+) -> RambleExtractionResult:
+    """Parses a markdown ramble note and decomposes it into RambleCards (top 3 active, remainder to overflow)."""
     try:
         content = file_path.read_text(encoding="utf-8", errors="replace")
     except Exception:
@@ -409,8 +453,22 @@ def parse_ramble_file(file_path: Path) -> RambleExtractionResult:
             tags=synthesis["tags"],
             raw_snippet=synthesis["raw_snippet"],
             confidence_score=confidence,
+            split_group=source_name,
         )
         cards.append(card)
+
+    # Phase 1 Overflow Queue: If > 3 ideas, promote top 3 to active queue, remainder to overflow.json
+    if len(cards) > 3:
+        active_cards = cards[:3]
+        overflow_cards = cards[3:]
+        if write_overflow:
+            save_overflow_cards(
+                overflow_cards,
+                overflow_path=overflow_path,
+                split_group=source_name,
+                dry_run=dry_run,
+            )
+        cards = active_cards
 
     return RambleExtractionResult(
         source_file=str(file_path),
@@ -531,6 +589,7 @@ def main():
     parser.add_argument("--archive", action="store_true", help="Move processed notes from Inbox/ to Inbox/Archive/.")
     parser.add_argument("--dry-run", action="store_true", help="Simulate without modifying files or queues.")
     parser.add_argument("--queue-file", type=str, default=str(DEFAULT_MAIL_QUEUE), help="Custom path to mail_queue.json.")
+    parser.add_argument("--overflow-file", type=str, default=str(DEFAULT_OVERFLOW_FILE), help="Custom path to overflow.json.")
 
     args = parser.parse_args()
 
@@ -561,9 +620,10 @@ def main():
     # Process all notes
     results: List[RambleExtractionResult] = []
     all_cards: List[RambleCard] = []
+    overflow_path = Path(args.overflow_file)
 
     for f in files_to_process:
-        res = parse_ramble_file(f)
+        res = parse_ramble_file(f, overflow_path=overflow_path, write_overflow=True, dry_run=args.dry_run)
         results.append(res)
         all_cards.extend(res.cards)
 

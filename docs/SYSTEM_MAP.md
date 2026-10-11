@@ -57,9 +57,11 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai QA Sandbox Board & Multi-Stage Environments](specs/nkai_sandbox_and_multistage_environments.md) — 2-mode architecture (SANDBOX vs PRODUCTION), Lovecraftian synthetic fixtures, zero-mutation guarantee, and deterministic DOM IDs.
   - [N'kai Unified Master Template & Schema-Driven Boards](specs/nkai_unified_master_template_and_schema.md) — Data-driven BoardSchema architecture, master_template.html, board_renderer engine, and zero-HTML-edit board generation.
   - [N'kai Multi-Board Hub & Session Manager](specs/nkai_multi_board_hub_and_session_manager.md) — Multi-board directory modal, BoardRegistry data model, anti-cache HTTP response headers, ?board=<id> routing, and dual-mode operation.
+  - [N'kai Mailbag Intake & Triage v2](specs/nkai_mailbag_intake_and_triage_v2.md) — Ramble overflow queue, quick notes, Tabled directory, attention tags, session launchers, and position splice.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
 ### 8. 🛠️ Developer Tooling & Data Schemas
+- [mail_add.py](../tools/mail_add.py) — Mailbag backlog item splice CLI with contiguous rank renumbering.
 - [board_registry.py](../tools/board_registry.py) — Multi-Board Hub registry manager CLI (list, register, rescan).
 - [board_renderer.py](../tools/board_renderer.py) — Data-driven board renderer engine (Flight 15).
 - [preset_audit.py](../tools/preset_audit.py) — TKPL Preset Linter CLI (validates presets against Pydantic schema and master controls).

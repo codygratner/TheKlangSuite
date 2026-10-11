@@ -321,4 +321,78 @@ STATUS: COMPLETED
 - `python tools/install_nkai_plugin.py`:
   - **PASS**: All 6 validation checks passed.
 
+---
+
+STATUS: COMPLETED
+
+# Subagent Execution Receipt: Flight 7 Mailbag Intake & Triage v2
+> *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
+> *Active Branch:* `0.4.0-dev` (TKS) / `main` (nkai)  
+> *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
+
+---
+
+## 1. Execution Header
+- **STATUS**: `COMPLETED`
+- **ROLE EXECUTED**: `Flash Tooling Builder`
+- **TASK SLUG**: `flight-7-mailbag-intake-v2` (Cards `rj-07` & `rj-17`)
+- **COMPLETED AT**: `2026-10-11T22:05:00Z`
+- **MODEL TIER**: `Tier 2 Flash (High)`
+- **SOURCE PLAN**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
+
+---
+
+## 2. Deliverables & Artifacts
+1. **Ramble Overflow Queue (`tools/ramble_ingest.py`, `tools/models.py`)**:
+   - Added `split_group: str = ""` to `MailItem` and `RambleCard`.
+   - Updated `tools/ramble_ingest.py` to keep top 3 ideas in active queue, write remaining ideas to `.agents/pipeline/mailbag/overflow.json`, retain `source_note` and `split_group`.
+   - Added `⤵ N in overflow` chip (`.badge-overflow`) and Rail 2 `Overflow` filter pill in `tools/board_renderer.py` and `master_template.html`.
+2. **Filename-Only Quick Notes (`tools/check_mail.py`)**:
+   - Empty or whitespace-only notes automatically extract title from filename stem, attach tag `quick-note`, and format preview/excerpt/body as `(quick note — title only)`.
+   - Added `sbx-quick-01` fixture to `assets/fixtures/sandbox_mail_queue.json`.
+3. **`Inbox/Tabled/` Subdirectory & Tabling Protocol**:
+   - Created `C:\Dev\TheKlangVault\Inbox\Tabled\` and local fallbacks.
+   - Updated `tools/check_mail.py` to scan `Tabled/` alongside `Inbox/` and `Archive/`, tagging notes with `tabled` and rendering `🗂 Tabled by agent` chip (`.badge-tabled`).
+   - Documented tabling protocol in `GEMINI.md` under Strict TODO & Backlog Handling.
+4. **Attention Tags & Interactive Session Routing Launchers (`tools/check_mail.py`, `master_template.html`)**:
+   - Parsed markers `!IMPORTANT`, `!BLOATED`, `!INCOMPLETE`, `!SPIKE` into semantic badges.
+   - Added action launcher buttons `[ 🔬 Grill-Lab ]`, `[ 🧠 Deep Research ]`, `[ 🔨 Draft Plan ]` with dual dispatch (extension IPC `/api/command` and clipboard toast copy fallback).
+5. **`/mail-add` Position Splice CLI (`tools/mail_add.py`)**:
+   - Implemented position slicing with `--after <id>` or `--rank <n>`, contiguous 1-based rank renumbering, markdown note creation in `TheKlangVault/Inbox/`, and `--dry-run`.
+   - Authored skill documentation in `.agents/skills/mail-add/SKILL.md`.
+6. **Ecosystem Synchronization**:
+   - Synchronized all tools, models, templates, and skills across `TheKlangSuite`, `c:\Dev\nkai`, and `nkai/bundle/`.
+7. **Testing & Verification Gauntlet**:
+   - Authored comprehensive test suite `tools/tests/test_intake_v2.py` (6 unit tests passing).
+   - 16 total unit tests passing across all test files.
+   - Web QA audit `tools/audit_sidecar.py` reported 0 errors across all templates.
+   - Universal UTF-8 compliance verified at 100% (58/58 files compliant).
+   - Context clues link resolution verified at 100% (56/56 local links resolved).
+   - N'kai extension installation verified (all checks passed).
+8. **Specification & Documentation Registration**:
+   - Authored design spec [`docs/specs/nkai_mailbag_intake_and_triage_v2.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_mailbag_intake_and_triage_v2.md).
+   - Registered spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+   - Synchronized `docs/GLOSSARY.md` (§22) and `docs/CHEAT_SHEET.md`.
+   - Marked `rj-07` and `rj-17` as `COMPLETED` in `.agents/pipeline/mailbag/rejigger.json` and Flight 7 in `docs/BACKLOG.md`.
+
+---
+
+## 3. Verification Gauntlet Results
+- `python -m unittest tools/tests/test_intake_v2.py tools/tests/test_board_hub.py tools/tests/test_sandbox_board.py`:
+  - **PASS**: 16 tests in 2.53s (100% PASS).
+- `python tools/audit_sidecar.py .agents/sidecar/master_template.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/verify_utf8.py --all --strict`:
+  - **PASS**: 58/58 files compliant (100% Universal UTF-8).
+- `python tools/verify_context_clues.py`:
+  - **PASS**: 4/4 files passed, 56/56 local links resolved.
+- `python tools/install_nkai_plugin.py`:
+  - **PASS**: All 6 validation checks passed.
+
+
 

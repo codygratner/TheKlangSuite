@@ -204,6 +204,7 @@ class MailItem(BaseModel):
     idx: int = 0
     merged_count: int = 0
     source_ids: List[str] = Field(default_factory=list)
+    split_group: str = ""
 
     @field_validator("priority", mode="before")
     @classmethod
@@ -340,6 +341,7 @@ class RambleCard(BaseModel):
     tags: List[str] = Field(default_factory=list, description="Descriptive or domain tags")
     raw_snippet: str = Field(default="", description="Supporting quote or excerpt from source note")
     confidence_score: float = Field(default=0.85, description="Heuristic parsing confidence [0.0, 1.0]")
+    split_group: str = Field(default="", description="Parent note identifier or stem for overflow grouping")
 
     def to_mail_item(self) -> MailItem:
         import re
@@ -415,6 +417,7 @@ class RambleCard(BaseModel):
             word_count=len(body_text.split()),
             tier=tier,
             idx=self.idea_index,
+            split_group=self.split_group,
         )
 
 

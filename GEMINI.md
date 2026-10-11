@@ -65,6 +65,7 @@
 - **Record Only, Do Not Implement**: When the user mentions items "for the todo", "on the backlog", "for later", or lists future features/fixes, you must **ONLY** document them into `docs/BACKLOG.md`.
 - **No Premature Implementation**: Under no circumstances should you edit source code, run compilers, trigger builds, or execute tests for backlog items until the user explicitly directs implementation.
 - **Single Source of Truth**: The *only* valid backlog file is `docs/BACKLOG.md`. Never create rogue backlog files (`TODO.md`, `future_backlog.md`, etc.).
+- **Agent Tabling Protocol (`Inbox/Tabled/`)**: When an agent authors notes, research proposals, or peripheral topics that should be held for triage without polluting the primary human capture queue (`TheKlangVault/Inbox/`), save them to `TheKlangVault/Inbox/Tabled/` (or local fallback `docs/inbox/tabled/`). Notes in `Inbox/Tabled/` receive the `tabled` tag and render a distinct `🗂 Tabled by agent` chip on N'kai triage boards, clearly distinguishing agent-staged material from raw user memos.
 
 ## Strict Domain Division: Tooling Harness vs. Native Audio Factory
 - **Klang Industries (Factory Floor)**: Reserved strictly for native C++ DSP, JUCE component architecture, CMake/MSBuild targets, APVTS parameter schemas (`assets/controls/`), and real-time audio safety audits (`audiothread-guard`). Never dispatch pure HTML/CSS sidecars, documentation sweeps, or PowerShell/Python dev scripts to the C++ factory.

@@ -263,6 +263,17 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Dual-Mode Offline & Server Resiliency**: The hybrid architecture in `sidecar.js` that queries `/api/boards` dynamically when served by the Antigravity sidecar, but seamlessly falls back to pre-baked embedded registry JSON in `<script id="nkai-board-registry-data" type="application/json">` during offline `file:///` viewing.
 * **Board Registry CLI (`tools/board_registry.py`)**: The standalone command-line tool providing `list`, `register`, and `rescan` subcommands for automated catalog management.
 
+---
+
+## 22. Mailbag Intake & Triage v2 (Flight 7 / `rj-07` & `rj-17`)
+
+* **Ramble Overflow Queue (`overflow.json`)**: The decomposition and triage gating mechanism where notes containing more than 3 distinct ideas keep exactly the top 3 cards in the active mail queue while offloading cards 4+ into `.agents/pipeline/mailbag/overflow.json`. Both active and overflow cards preserve a common `split_group` attribute, rendering a `⤵ N in overflow` chip (`.badge-overflow`) on parent cards and an `Overflow` filter pill in Rail 2.
+* **Filename-Only Quick Notes**: The zero-friction intake heuristic where 0-byte or whitespace-only files derive their title from the filename stem, automatically attach the `quick-note` tag, and format preview, excerpt, and body text as `(quick note — title only)`, preserving any present YAML frontmatter.
+* **`Inbox/Tabled/` Directory & Tabling Protocol**: The ecosystem standard establishing a dedicated `TheKlangVault/Inbox/Tabled/` directory for agent-authored tabling artifacts and autonomous proposals, keeping the human inbox clean. Notes scanned from this folder receive the `tabled` tag, `is_tabled = True`, and render a `🗂 Tabled by agent` chip (`.badge-tabled`).
+* **Attention Tags & Interactive Session Launchers**: The parsing of inline markers (`!IMPORTANT`, `!BLOATED`, `!INCOMPLETE`, `!SPIKE`) into semantic attention badges, paired with 1-click action buttons in the card footer (`[ 🔬 Grill-Lab ]`, `[ 🧠 Deep Research ]`, `[ 🔨 Draft Plan ]`) that execute via sidecar IPC or fall back to system clipboard copy with toast feedback.
+* **`/mail-add` Position Splice CLI (`tools/mail_add.py`)**: The backlog insertion CLI that splices new items into the queue using `--after <id>` or `--rank <n>`, executes contiguous renumbering across all subsequent ranks without gaps or collisions, and generates a structured inbox markdown note.
+
+
 
 
 

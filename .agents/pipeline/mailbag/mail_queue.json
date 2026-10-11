@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T16:11:47.976463",
-  "total_items": 37,
+  "last_scanned": "2026-10-11T16:54:48.793148",
+  "total_items": 42,
   "p0_count": 6,
   "items": [
     {
@@ -49,7 +49,8 @@
         "Nkai terms and if they’re right for me … and some Python bridge nonsense from ai mode on a google search",
         "The Klang Suite",
         "2026-10-09_Morning_Mail_Batch_Docket"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-02",
@@ -81,7 +82,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-18"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-03",
@@ -118,7 +120,8 @@
         "docket-16",
         "docket-17",
         "SQA meeting with Tom about vibe coding QA"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-04",
@@ -153,7 +156,8 @@
       "source_ids": [
         "docket-15",
         "how stupid is it to make nkai's backend data driven like TKS"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-05",
@@ -175,10 +179,10 @@
       "verdict": "APPROVED",
       "verdict_notes": "2026-10-11: Approved. BACKLOG N'kai Flight 14 updated; builds after Flight 15 (rj-04). Order 18 -> 16+17 -> 15 -> 14.",
       "estimated_tokens": 10000,
-      "char_count": 783,
-      "word_count": 91,
+      "char_count": 762,
+      "word_count": 88,
       "tier": "tier2",
-      "body": "Merged: board directory, 'archived boards need their own space', and the old 'session manager to reopen unfinished sessions' wish. One switcher: active boards on top, read-only archive below.\n\n- Active vs archived sections\n- Cache-busting so stale boards never show\n- Sandbox board (rj-03) becomes the second board that proves the switcher\n\n**Next action:** Approve -> build after rj-04 template lands.\n\n**Source notes:**\n- [Multi-Board Hub & Archive Catalog (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Multi-Board%20Hub%20and%20Archive%20Catalog.md)\n- [archived nkai boards probably need their own space](file:///C:/Dev/TheKlangVault/Inbox/Archive/archived nkai boards probably need their own space.md)\n- [Nkai](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai.md)",
+      "body": "Merged: board directory, 'archived boards need their own space', and the old 'session manager to reopen unfinished sessions' wish. One switcher: active boards on top, read-only archive below.\n\n- Active vs archived sections\n- Cache-busting so stale boards never show\n- Sandbox board (rj-03) becomes the second board that proves the switcher\n\n**Next action:** Completed in Flight 14.\n\n**Source notes:**\n- [Multi-Board Hub & Archive Catalog (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Multi-Board%20Hub%20and%20Archive%20Catalog.md)\n- [archived nkai boards probably need their own space](file:///C:/Dev/TheKlangVault/Inbox/Archive/archived nkai boards probably need their own space.md)\n- [Nkai](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai.md)",
       "excerpt": "Merged: board directory, 'archived boards need their own space', and the old 'session manager to reopen unfinished sessions' wish. One switcher: active boards on top, read-only archive below.",
       "file_name": "",
       "rel_path": "[`Nkai Multi-Board Hub and Archive Catalog.md`](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Multi-Board%20Hub%20and%20Archive%20Catalog.md)",
@@ -189,7 +193,8 @@
         "docket-14",
         "archived nkai boards probably need their own space",
         "Nkai"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-06",
@@ -220,7 +225,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-19"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-07",
@@ -257,7 +263,8 @@
         "Those Nkai Files in the Inbox",
         "archived nkai boards probably need their own space",
         "Inbox archive"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-08",
@@ -292,7 +299,8 @@
       "source_ids": [
         "Fullscreen Sidecar",
         "Second Monitor and Other Uses for the Nkai Sidecar Integration"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-09",
@@ -328,7 +336,8 @@
       "source_ids": [
         "Priorities",
         "Multiple Repos"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-10",
@@ -365,7 +374,8 @@
         "git update",
         "Reorganize docs and make it all wiki linked",
         "TBD-16"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-11",
@@ -405,7 +415,8 @@
         "docket-20",
         "how often should we be doing code reviews",
         "Micro and Macro Skills"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-12",
@@ -435,7 +446,8 @@
       "merged_count": 1,
       "source_ids": [
         "SQA meeting with Tom about vibe coding QA"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-13",
@@ -468,7 +480,8 @@
       "source_ids": [
         "The Toad on Stam Deck",
         "Tracktion for Reference"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-14",
@@ -498,7 +511,8 @@
       "merged_count": 1,
       "source_ids": [
         "Modulations UX"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-15",
@@ -532,7 +546,8 @@
         "docket-11",
         "FX UX Ideas",
         "Future ideas while I fall asleep"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-16",
@@ -567,7 +582,8 @@
       "source_ids": [
         "docket-10",
         "Future ideas while I fall asleep"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-17",
@@ -598,7 +614,8 @@
       "merged_count": 1,
       "source_ids": [
         "Mailbag Feature (and a nkai ramble)"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-18",
@@ -634,7 +651,8 @@
         "Firmware Hacking",
         "Obsidian Manager App",
         "Obsidian Plugins"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-19",
@@ -667,7 +685,8 @@
       "source_ids": [
         "VST UI Tips Video",
         "FX and Mod Cards"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-20",
@@ -700,7 +719,8 @@
       "source_ids": [
         "Bass mode!",
         "Phase Smear Idea"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-21",
@@ -730,7 +750,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-12"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-22",
@@ -762,7 +783,8 @@
       "merged_count": 1,
       "source_ids": [
         "Research Demo"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-23",
@@ -792,7 +814,8 @@
       "merged_count": 1,
       "source_ids": [
         "Remote Antigravity"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-24",
@@ -826,7 +849,8 @@
       "source_ids": [
         "docket-9",
         "Second Monitor and Other Uses for the Nkai Sidecar Integration"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "rj-25",
@@ -856,7 +880,8 @@
       "merged_count": 1,
       "source_ids": [
         "Meeblip SE Engine"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-1",
@@ -886,7 +911,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-1"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-6",
@@ -916,7 +942,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-6"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-13",
@@ -946,7 +973,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-13"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "Opus 5.5",
@@ -976,7 +1004,8 @@
       "merged_count": 1,
       "source_ids": [
         "Opus 5.5"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "Anti-Slop in Open Source",
@@ -1006,7 +1035,8 @@
       "merged_count": 1,
       "source_ids": [
         "Anti-Slop in Open Source"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "Mailbag Queue",
@@ -1036,7 +1066,8 @@
       "merged_count": 1,
       "source_ids": [
         "Mailbag Queue"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "Response from my SQA Friend",
@@ -1066,7 +1097,8 @@
       "merged_count": 1,
       "source_ids": [
         "Response from my SQA Friend"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-2",
@@ -1096,7 +1128,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-2"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-3",
@@ -1126,7 +1159,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-3"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-4",
@@ -1156,7 +1190,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-4"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-5",
@@ -1186,7 +1221,8 @@
       "merged_count": 1,
       "source_ids": [
         "docket-5"
-      ]
+      ],
+      "split_group": ""
     },
     {
       "id": "docket-8",
@@ -1216,7 +1252,167 @@
       "merged_count": 1,
       "source_ids": [
         "docket-8"
-      ]
+      ],
+      "split_group": ""
+    },
+    {
+      "id": "Nkai Minimal",
+      "title": "🆕 Nkai Minimal",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "target_pillars": [
+        "NK"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
+      "preview": "Should we make a package variant that’s just a “how to make most of nkai work just in the chat” without the actual nkai board system? The whole agent (skills, guardrails, etc) system, like mailbox system, research system, PCDA system, ticket queue system, etc etc So this can be r...",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 737,
+      "word_count": 132,
+      "tier": "tier2",
+      "body": "Should we make a package variant that’s just a “how to make most of nkai work just in the chat” without the actual nkai board system? The whole agent (skills, guardrails, etc) system, like mailbox system, research system, PCDA system, ticket queue system, etc etc\n\nSo this can be run even more “anywhere” and anyone who doesn’t want to use the sidecar can get the same benefits?\n\nShould all this sorta stuff be incorporated into the nkai repo? Since the magic is the integration with the agent, not the actual boards? The boards make it WAY better, but a chat only interface was seemingly working out earlier today\n\nSeems like an easy thing to try out in a project and not like murder the whole agent settings you have already fine tuned",
+      "excerpt": "Should we make a package variant that’s just a “how to make most of nkai work just in the chat” without the actual nkai board system? The whole agent (skills, guardrails, etc) system, like mailbox system, research system, PCDA system, ticket queue system, etc etc So this can be r...",
+      "file_name": "Nkai Minimal.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
+      "source_note": "",
+      "idx": 0,
+      "merged_count": 1,
+      "source_ids": [
+        "Nkai Minimal"
+      ],
+      "split_group": ""
+    },
+    {
+      "id": "Single fast PCDA on mail ingestion",
+      "title": "🆕 Single fast PCDA on mail ingestion",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "target_pillars": [
+        "TKS"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
+      "preview": "Is there any benefit to having parallel flash agents run light PCDA on the entire inbox once they’ve been analyzed? Like, batched jobs of a single agent per mail piece? Cons: token churn for things that take no decision time. Pros, it’s all queued up, so I say do it and can walk ...",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 579,
+      "word_count": 111,
+      "tier": "tier2",
+      "body": "Is there any benefit to having parallel flash agents run light PCDA on the entire inbox once they’ve been analyzed? Like, batched jobs of a single agent per mail piece? Cons: token churn for things that take no decision time. Pros, it’s all queued up, so I say do it and can walk away.\n\nMaybe a smart decision maker? Like, if it’s super easy and we should definitely do it, don’t bother, I’ll pull full PCDA later if I want it. If it’s like “this definitely needs more context” then we also don’t do it. But, if it’s like “I understood but this is a little opaque” then we do it.",
+      "excerpt": "Is there any benefit to having parallel flash agents run light PCDA on the entire inbox once they’ve been analyzed? Like, batched jobs of a single agent per mail piece? Cons: token churn for things that take no decision time. Pros, it’s all queued up, so I say do it and can walk ...",
+      "file_name": "Single fast PCDA on mail ingestion.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
+      "source_note": "",
+      "idx": 0,
+      "merged_count": 1,
+      "source_ids": [
+        "Single fast PCDA on mail ingestion"
+      ],
+      "split_group": ""
+    },
+    {
+      "id": "Deep docs update",
+      "title": "🆕 Deep docs update",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "target_pillars": [
+        "AGY"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
+      "preview": "Should we use flash, pro or opus? Should we make this atomic and rollback enabled, so if I do this and there’s not enough allowance, another model or waiting for a refresh won’t screw anything up? Should any more things be atomic and rollback enabled like this? Please gst PCDA in...",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 291,
+      "word_count": 52,
+      "tier": "tier3",
+      "body": "Should we use flash, pro or opus? Should we make this atomic and rollback enabled, so if I do this and there’s not enough allowance, another model or waiting for a refresh won’t screw anything up?\n\nShould any more things be atomic and rollback enabled like this? \n\nPlease gst PCDA in advance",
+      "excerpt": "Should we use flash, pro or opus? Should we make this atomic and rollback enabled, so if I do this and there’s not enough allowance, another model or waiting for a refresh won’t screw anything up? Should any more things be atomic and rollback enabled like this? Please gst PCDA in...",
+      "file_name": "Deep docs update.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
+      "source_note": "",
+      "idx": 0,
+      "merged_count": 1,
+      "source_ids": [
+        "Deep docs update"
+      ],
+      "split_group": ""
+    },
+    {
+      "id": "Should we download the picotracker repo for reference",
+      "title": "🆕 Should we download the picotracker repo for reference",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "quick-note"
+      ],
+      "target_pillars": [
+        "TKS"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
+      "preview": "(quick note — title only)",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 25,
+      "word_count": 5,
+      "tier": "tier2",
+      "body": "(quick note — title only)",
+      "excerpt": "(quick note — title only)",
+      "file_name": "Should we download the picotracker repo for reference.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
+      "source_note": "",
+      "idx": 0,
+      "merged_count": 1,
+      "source_ids": [
+        "Should we download the picotracker repo for reference"
+      ],
+      "split_group": ""
+    },
+    {
+      "id": "Update all archived inbox items with front matter",
+      "title": "🆕 Update all archived inbox items with front matter",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "quick-note"
+      ],
+      "target_pillars": [
+        "TKS"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
+      "preview": "(quick note — title only)",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 25,
+      "word_count": 5,
+      "tier": "tier2",
+      "body": "(quick note — title only)",
+      "excerpt": "(quick note — title only)",
+      "file_name": "Update all archived inbox items with front matter.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
+      "source_note": "",
+      "idx": 0,
+      "merged_count": 1,
+      "source_ids": [
+        "Update all archived inbox items with front matter"
+      ],
+      "split_group": ""
     }
   ]
 }

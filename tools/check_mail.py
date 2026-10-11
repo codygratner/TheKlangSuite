@@ -124,10 +124,13 @@ def extract_note_metadata(file_path: Path):
         if date_m:
             date_str = date_m.group(1).strip()
 
+    # Phase 2 Quick Notes: Check if body is empty or whitespace only
+    is_quick_note = (not body.strip())
+
     # 2. Extract title from first Markdown heading if not in frontmatter
-    if not title:
+    if not title or is_quick_note:
         heading_m = re.search(r"^#\s+(.+)$", body, re.MULTILINE)
-        if heading_m:
+        if heading_m and not is_quick_note:
             title = heading_m.group(1).strip()
         else:
             title = file_path.stem
@@ -141,21 +144,26 @@ def extract_note_metadata(file_path: Path):
             date_str = datetime.date.today().strftime("%Y-%m-%d")
 
     # 4. Generate clean body excerpt
-    clean_lines = []
-    for line in body.splitlines():
-        trimmed = line.strip()
-        if not trimmed or trimmed.startswith("#") or trimmed.startswith("---"):
-            continue
-        clean_lines.append(trimmed)
+    if is_quick_note:
+        excerpt = "(quick note — title only)"
+        clean_body = "(quick note — title only)"
+    else:
+        clean_lines = []
+        for line in body.splitlines():
+            trimmed = line.strip()
+            if not trimmed or trimmed.startswith("#") or trimmed.startswith("---"):
+                continue
+            clean_lines.append(trimmed)
 
-    clean_text = " ".join(clean_lines)
-    clean_text = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", clean_text)  # strip links
-    clean_text = re.sub(r"[*_`]", "", clean_text)  # strip formatting
-    clean_text = re.sub(r"\s+", " ", clean_text).strip()
+        clean_text = " ".join(clean_lines)
+        clean_text = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", clean_text)  # strip links
+        clean_text = re.sub(r"[*_`]", "", clean_text)  # strip formatting
+        clean_text = re.sub(r"\s+", " ", clean_text).strip()
 
-    excerpt = clean_text[:280] + ("..." if len(clean_text) > 280 else "")
-    if not excerpt:
-        excerpt = "(Empty note body)"
+        excerpt = clean_text[:280] + ("..." if len(clean_text) > 280 else "")
+        if not excerpt:
+            excerpt = "(Empty note body)"
+        clean_body = body.strip()
 
     # Determine priority heuristic
     priority = "P2"
@@ -177,6 +185,20 @@ def extract_note_metadata(file_path: Path):
 
     # Extract tags
     tags = list(set(re.findall(r"#([a-zA-Z0-9_\-/]+)", content)))
+    if is_quick_note and "quick-note" not in tags:
+        tags.append("quick-note")
+
+    # Phase 3 Tabled: Tag if file resides in a Tabled directory
+    if file_path.parent.name.lower() == "tabled":
+        if "tabled" not in tags:
+            tags.append("tabled")
+
+    # Phase 4 Attention Tags: Scan note frontmatter and body for attention markers
+    attention_matches = re.findall(r"!(IMPORTANT|BLOATED|INCOMPLETE|SPIKE)\b", content, re.IGNORECASE)
+    for am in attention_matches:
+        am_tag = am.lower()
+        if am_tag not in tags:
+            tags.append(am_tag)
 
     # Extract dependencies / prerequisites
     dependencies = []
@@ -211,10 +233,11 @@ def extract_note_metadata(file_path: Path):
         "rel_path": str(file_path),
         "title": title,
         "date": date_str,
+        "preview": excerpt,
         "excerpt": excerpt,
-        "body": body.strip(),
-        "char_count": len(body),
-        "word_count": len(body.split()),
+        "body": clean_body,
+        "char_count": len(clean_body),
+        "word_count": len(clean_body.split()),
         "tier": tier,
         "priority": priority,
         "tags": tags,
@@ -240,21 +263,32 @@ def scan_inbox(inbox_dir: Path):
 
 def scan_all_inbox_notes(inbox_dir: Path) -> list:
     """
-    Scans both root inbox and its Archive/ subfolder, combining and deduping notes by id.
-    Live root inbox notes win on content over Archive notes.
+    Scans root inbox, its Archive/ subfolder, and its Tabled/ subfolder, combining and deduping notes by id.
+    Live root inbox notes win on content over Archive and Tabled notes.
     """
-    if inbox_dir.name.lower() == "archive":
-        archive_dir = inbox_dir
-        live_dir = inbox_dir.parent
+    if inbox_dir.name.lower() in ["archive", "tabled"]:
+        base_dir = inbox_dir.parent
     else:
-        live_dir = inbox_dir
-        archive_dir = inbox_dir / "Archive"
+        base_dir = inbox_dir
+
+    archive_dir = base_dir / "Archive"
+    tabled_dir = base_dir / "Tabled"
+    live_dir = base_dir
 
     arch_notes = scan_inbox(archive_dir) if archive_dir and archive_dir.exists() else []
-    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() != archive_dir.resolve() else []
+    tabled_notes = scan_inbox(tabled_dir) if tabled_dir and tabled_dir.exists() else []
+    for tn in tabled_notes:
+        if "tabled" not in tn.get("tags", []):
+            tn["tags"].append("tabled")
+        tn["is_tabled"] = True
+
+    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() != archive_dir.resolve() and live_dir.resolve() != tabled_dir.resolve() else []
 
     notes_by_id = {}
     for n in arch_notes:
+        if n.get("id"):
+            notes_by_id[str(n["id"])] = n
+    for n in tabled_notes:
         if n.get("id"):
             notes_by_id[str(n["id"])] = n
     # Live notes overwrite on content
@@ -605,6 +639,7 @@ def build_mail_queue(
             "file_name": "",
             "rel_path": str(it.get("source_note", "")),
             "idx": int(it.get("idx", 0)),
+            "split_group": str(it.get("split_group", "")),
         })
 
     # Collect known docket source note names to avoid duplicate cards
@@ -663,6 +698,7 @@ def build_mail_queue(
             "rel_path": str(n.get("rel_path", "")),
             "source_note": "",
             "idx": 0,
+            "split_group": str(n.get("split_group", "")),
         })
 
     # 3. Check for rejigger overlay

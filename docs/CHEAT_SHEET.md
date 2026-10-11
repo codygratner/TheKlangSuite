@@ -229,6 +229,17 @@
 * **Strict Anti-Cache Backend**: `sidecars/panel/main.mjs` injects `Cache-Control: no-store, no-cache, must-revalidate, max-age=0`, `Pragma: no-cache`, `Expires: 0` headers, plus `GET /api/boards` and query routing (`?board=<id>&_t=<timestamp>`).
 * **Registry CLI**: `python tools/board_registry.py list|register|rescan` manages ecosystem board discovery and card counts.
 
+---
+
+## 📬 Mailbag Intake & Triage v2 (Flight 7 / `rj-07` & `rj-17`)
+
+* **Ramble Overflow Queue**: Notes with >3 ideas keep top 3 active; remainder written to `overflow.json` with linked `split_group`; displays `⤵ N in overflow` chip and Rail 2 `Overflow` filter pill.
+* **Filename-Only Quick Notes**: 0-byte or whitespace-only files use filename stem as title; tagged `quick-note`; preview/body set to `(quick note — title only)`.
+* **Agent Tabled Folder (`Inbox/Tabled/`)**: Dedicated folder for agent-authored notes; tagged `tabled`; rendered with `🗂 Tabled by agent` chip; protects human inbox purity.
+* **Attention Tags & Session Launchers**: Markdown markers (`!IMPORTANT`, `!BLOATED`, `!INCOMPLETE`, `!SPIKE`) parsed into attention badges; card footer renders `[ 🔬 Grill-Lab ]`, `[ 🧠 Deep Research ]`, `[ 🔨 Draft Plan ]` launchers with extension IPC / clipboard fallback.
+* **`/mail-add` CLI**: `python tools/mail_add.py <title> --after <id> | --rank <n>` splices into queue with contiguous rank renumbering and generates structured inbox notes.
+
+
 
 
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "last_scanned": "2026-10-11T15:00:00Z",
-  "total_items": 7,
+  "total_items": 8,
   "p0_count": 2,
   "items": [
     {
@@ -157,6 +157,28 @@
       "idx": 7,
       "merged_count": 1,
       "source_ids": ["note-shoggoth-raw"]
+    },
+    {
+      "id": "sbx-quick-01",
+      "title": "Quick Mobile Thought",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": ["quick-note", "tks"],
+      "target_pillars": ["TKS"],
+      "source_file": "TheKlangVault/Inbox/Quick Mobile Thought.md",
+      "preview": "(quick note — title only)",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 1000,
+      "char_count": 27,
+      "word_count": 5,
+      "tier": "tier2",
+      "body": "(quick note — title only)",
+      "idx": 8,
+      "merged_count": 1,
+      "source_ids": ["note-quick-mobile"]
     }
   ]
 }

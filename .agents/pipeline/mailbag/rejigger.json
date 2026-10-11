@@ -190,7 +190,7 @@
       "id": "rj-07",
       "rank": 7,
       "priority": "P1",
-      "status": "APPROVED",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "NK",
@@ -205,7 +205,7 @@
         "Verify filename-only notes in the rj-03 sandbox",
         "/mail-add with position splice"
       ],
-      "next_action": "Approve -> plan as one tooling flight.",
+      "next_action": "Shipped in Flight 7.",
       "sources": [
         "Ramble Engine",
         "docket-7",
@@ -213,8 +213,8 @@
         "archived nkai boards probably need their own space",
         "Inbox archive"
       ],
-      "verdict": "APPROVED",
-      "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/mailbag_intake_v2.md; supersedes BACKLOG Flight 7; runs after Flight 16+17."
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped in Flight 7 (Mailbag Intake & Triage v2). Overflow queue (>3 ideas) with split_group, filename-only quick notes, Inbox/Tabled/ agent folder with chip, attention tags (!IMPORTANT, !BLOATED, !INCOMPLETE, !SPIKE) with session launchers, and /mail-add CLI with position splice."
     },
     {
       "id": "rj-08",
@@ -455,7 +455,7 @@
       "id": "rj-17",
       "rank": 17,
       "priority": "P2",
-      "status": "APPROVED",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "NK",
@@ -468,12 +468,12 @@
         "!BLOATED auto-suggests a split (like this rejigger)",
         "Session routing = prefilled prompt per variant"
       ],
-      "next_action": "Approve -> BACKLOG section 13 (N'kai).",
+      "next_action": "Shipped in Flight 7 alongside rj-07.",
       "sources": [
         "Mailbag Feature (and a nkai ramble)"
       ],
-      "verdict": "APPROVED",
-      "verdict_notes": "Folded into staged draft plan mailbag_intake_v2.md (Flight 7: Unified Mailbag Intake & Triage v2 Engine)."
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped in Flight 7 alongside rj-07. Attention markers parsed, semantic badges rendered, and one-click session routing launchers ([Grill-Lab], [Deep Research], [Draft Plan]) deployed with extension IPC / clipboard fallback."
     },
     {
       "id": "rj-18",
