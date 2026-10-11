@@ -215,7 +215,7 @@ def parse_docket_file(docket_path: Path):
     except Exception:
         return []
 
-    pattern = r"^###\s+(\d+)\.\s*(?:🆕\s*)?([^\n]+)$"
+    pattern = r"^#{3,4}\s*(?:[🚀⏳⚡🆕✅]\s*)?(?:Flight\s+)?(\d+)[:.]\s*([^\n]+)$"
     matches = list(re.finditer(pattern, content, re.MULTILINE))
 
     items = []
