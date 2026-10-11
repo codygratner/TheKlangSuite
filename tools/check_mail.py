@@ -1779,13 +1779,13 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
       let promptText = '';
       if (actionType === 'backlog') {{
-        promptText = `/plan feat: add '${{title}}' to docs/BACKLOG.md and create implementation roadmap`;
+        promptText = `Add '${{title}}' to docs/BACKLOG.md under its target pillar with requirements and priority.`;
       }} else if (actionType === 'research') {{
-        promptText = `/deep-research '${{title}}' across TheKlangResearch`;
+        promptText = `Research '${{title}}' across TheKlangResearch and industry precedents.`;
       }} else if (actionType === 'graveyard') {{
-        promptText = `Reject concept '${{title}}' and document strategic rationale in Strategy Graveyard`;
+        promptText = `Reject concept '${{title}}' and document strategic rationale in Strategy Graveyard.`;
       }} else if (actionType === 'pcda') {{
-        promptText = `/grill-me Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${{title}}'`;
+        promptText = `Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${{title}}'.`;
       }}
 
       // Dispatch via FastAPI bridge (:8000), environment adapter, or clipboard
