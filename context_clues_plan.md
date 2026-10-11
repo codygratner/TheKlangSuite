@@ -29,24 +29,13 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** The Grand Operatic Flight Plan: Symphony of New Klang City
+- **Current Objective:** Flight 2: Open Source Anti-Slop Hardening & CI Safety Gauntlet (Card #29 / Section 15)
 - **Active Agenda:**
-  1. **Act I: Ground Control & Taxiway (Flights 1–4)**: 🏆 100% COMPLETED.
-     - Multi-Plan Queue with 5ms atomic rollback (`tools/plan_queue.py`).
-     - The Klang Vault studio hub (`C:\Dev\TheKlangVault`) Git & sync isolation.
-     - The 3-Zone README Architectural Standards (`Source/dsp/`, `assets/`, `tools/`).
-     - Global Pydantic v2.14.0 provisioning for zero-venv script execution.
-  2. **Act II: Ascent & Cruising Altitude (Flights 5–8)**: 🏆 100% COMPLETED.
-     - Flight 5: Persistent Mailbag Session & Pydantic Validation (`tools/models.py`, `tools/check_mail.py`).
-     - Flight 6: TKPL — The Klang Preset Linter CLI & Master APVTS Schema (`tools/preset_audit.py`, 202 parameters).
-     - Flight 7: N'kai Local FastAPI Sidecar Bridge (`tools/nkai_api.py` on `:8000`, CORS+PNA headers).
-     - Flight 8: Rolling Blackbox Context Compaction & Institutional Memory (`GEMINI.md`, `DEV_HISTORY.md`).
-  3. **Act III: High-Altitude Reconnaissance & Deep Docs (Flights 9–13)**: 🚀 READY TO LAUNCH.
-     - Flight 9: Field Guide Separation of Concerns (Universal vs. Audio DSP — Field Guides Always Last).
-     - Flight 10: The "Anti-Slop" Vibe-Coding Executive Summary (Zero-Lore Whitepaper).
-     - Flight 11: The SQA Engineering & Vibe-Coding Workflow Cheat Sheet.
-     - Flight 12: Subagent Soul Vacuum & Master Research Index Compilation.
-     - Flight 13: Cross-Pillar Obsidian Vault Mirror & Link Integrity Gauntlet.
+  1. **Phase 1: Real-Time Audio-Thread Memory Pre-Allocation** (`Source/ModularBlocks.h`: fix lines 1716, 2219, 2401).
+  2. **Phase 2: Universal Open-Source Governance Artifacts** (`CONTRIBUTING.md`, PR template across TKS, TT, NK).
+  3. **Phase 3: CI/CD Automation & Matrix Hardening** (`.github/workflows/ci.yml`: `gui_tests`, audio linter, `pluginval`).
+  4. **Phase 4: Local Regression & Validation Gauntlet** (`dsp_tests`, `gui_tests`, `verify_context_clues.py`).
+  5. **Phase 5: Re-Run the Anti-Slop Audit & Scorecard Delivery** (Assert 10/10 EXCEED across all dimensions).
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
 
 

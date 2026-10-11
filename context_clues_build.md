@@ -22,14 +22,15 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** Factory Floor Execution & Standby
-- **Execution State:** `STANDBY` (Acts I & II Complete; Act III Tooling / Deep Docs in progress)
+- **Current Objective:** Flight 2: Open Source Anti-Slop Hardening & CI Safety Gauntlet (Card #29 / Section 15)
+- **Execution State:** `READY_FOR_TAKEOFF` 🛫
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **Factory Phase Status**:
-  1. [x] **Act I: Ground Control & Taxiway (Flights 1–4)** — 🏆 100% COMPLETED.
-  2. [x] **Act II: Ascent & Cruising Altitude (Flights 5–8)** — 🏆 100% COMPLETED.
-  3. [ ] **Act III: High-Altitude Reconnaissance & Deep Docs (Flights 9–13)** — Ready to Launch (`TARGET: TOOLING_HARNESS`).
-  4. [ ] **Milestone v0.4.1 Control Surface & UI Shells** — Staged in `.agents/pipeline/plans/drafts/` (`TARGET: FACTORY_FLOOR`).
+  1. [ ] **Phase 1: Real-Time Audio-Thread Memory Pre-Allocation** (`Source/ModularBlocks.h`)
+  2. [ ] **Phase 2: Universal Open-Source Governance Artifacts** (`CONTRIBUTING.md`, PR template)
+  3. [ ] **Phase 3: CI/CD Automation & Matrix Hardening** (`.github/workflows/ci.yml`)
+  4. [ ] **Phase 4: Local Regression & Validation Gauntlet** (`dsp_tests`, `gui_tests`, audio linter)
+  5. [ ] **Phase 5: Re-Run the Anti-Slop Audit & Scorecard Delivery** (Assert 10/10 EXCEED)
 
 
 ---

@@ -1,87 +1,69 @@
-# 🎙️ Flight 1: The "Rambles" Ingestion Engine (P0 — Topic 2)
+# 🛡️ Flight 2: Open Source Anti-Slop Hardening & CI Safety Gauntlet (Card #29 / Section 15)
 
-> **ID:** plan-005  
-> **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Topic Target:** Flight 1 (The "Rambles" Ingestion Engine — Topic 2)  
-> **Status:** COMPLETED ✅  
+> **ID:** plan-006  
+> **TARGET:** FACTORY_FLOOR (Klang Industries & New Klang City) 🚀  
+> **Topic Target:** Card #29 / Section 15 (`Anti-Slop in Open Source`)  
+> **Status:** READY FOR TAKEOFF 🛫  
 > **Priority:** P0 (Top Priority)  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)  
-> **Source Agreements:** Morning Mail Rejiggered Runway & System Sanity Audit Topic 6.11  
+> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\Anti-Slop in Open Source.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Anti-Slop%20in%20Open%20Source.md)  
+> **Benchmark Source:** `https://www.opensourceprojects.dev/post/anti-slop` (`miqdadbadjuber/anti-slop`)  
 
 ---
 
 ## 🎯 Architectural Intent & Storyline
 
-Creative musicians and developers don't author structured Jira tickets while inspiration strikes; they dump voice memos, stream-of-consciousness phone notes, and chaotic midnight thoughts into Obsidian (`TheKlangVault/Inbox/`). 
+In our initial research audit of `https://www.opensourceprojects.dev/post/anti-slop` (Card #29 in the N'kai Morning Mail Inbox), our ecosystem was evaluated across 10 critical dimensions:
+1. **Internally, we decisively EXCEED the SOTA anti-slop standard**: Our AST-level audio thread safety linter (`audiothread-guard`), automated C++ schema separation assertions (`ParameterSchemaAuditTest.h`), 100% dynamic UI reflection suites (`ReflectionGuardrailSuite.h`), and Hegelian adversarial subagents (`contrarian`) go far beyond typical markdown rulebooks.
+2. **Externally, towards the public open-source contributor surface, we FAIL**: Across `TheKlangSuite`, `ToadTracker`, `nkai`, and `TheKlangResearch`, there is **zero `CONTRIBUTING.md`**, zero `.github/PULL_REQUEST_TEMPLATE.md`, and zero CI static analysis in `.github/workflows/ci.yml` checking audio safety or schema leakage on external PRs.
+3. **Audio-Thread Invariant Violation**: In `Source/ModularBlocks.h`, three runtime container resizes (`targetSig.resize`, `ctx.ampEnvSignal.resize`, `envSig.resize`) violate our strict zero-allocation audio-thread invariant.
 
-Currently, raw rambling notes require manual interpretation, risking context bloat or premature backlog pollution. The **"Rambles" Ingestion Engine** turns unformatted stream-of-consciousness prose into atomic, structured 3-bullet decision cards:
-1. 🎯 **Core Intent**: 1-sentence synthesis of the creative goal.
-2. 🛠️ **Proposed Mechanism**: Target repo, hardware, or module architecture (`TKS`, `TT`, `NK`, `TBD-16`).
-3. 🚦 **Action Route**: Suggested triage recommendation (`[ 📥 Backlog ]`, `[ 🔬 Research ]`, `[ 🪦 Graveyard ]`, `[ ⚖️ PCDA ]`).
-
-### Strict Safety & Governance Invariants:
-- **Zero Premature Mutation**: Extracted cards NEVER directly edit `docs/BACKLOG.md` or `PLAN.md` without an explicit human triage confirmation button.
-- **Multi-Idea Decomposition**: A single long ramble discussing multiple distinct topics (e.g. note size vs ingestion pipeline in `Rambles.md`) is intelligently decomposed into separate, atomic cards.
-- **Inbox Zero Stewardship**: Processing notes with `--archive` safely moves them into `TheKlangVault/Inbox/Archive/`, preserving full provenance.
+**Flight 2** eliminates every identified blind spot, elevates our public open-source posture to true SOTA, hardens our GitHub CI pipeline, and concludes by re-running the full Anti-Slop Audit to achieve a clean **10/10 EXCEED** scorecard.
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Phase 1: Specification & Architectural Catalog Registration
-- [x] Author `docs/specs/nkai_rambles_ingestion_engine.md`:
-  - Document the 3-bullet card format (Core Intent, Proposed Mechanism, Action Route).
-  - Document the multi-idea decomposition heuristic for stream-of-consciousness text.
-  - Document CLI flags (`--file`, `--inbox`, `--scan-archive`, `--chat`, `--json`, `--archive`, `--add-to-queue`, `--dry-run`).
-  - Document triage dispatch integration with N'kai sidecars and `tools/check_mail.py`.
-- [x] Register spec in `docs/DOCS_CATALOG.json` under `specifications`.
-- [x] Register spec in `docs/SYSTEM_MAP.md` under Section 7 (Design Specs).
+### Phase 1: Real-Time Audio-Thread Memory Pre-Allocation (`Source/ModularBlocks.h`)
+- [ ] Inspect and eliminate runtime container resizes in `Source/ModularBlocks.h`:
+  - Line 1716: `targetSig.resize(numSamples);`
+  - Line 2219: `ctx.ampEnvSignal.resize(numSamples);`
+  - Line 2401: `envSig.resize(numSamples);`
+- [ ] Ensure `VoiceContext` pre-allocates `filterEnv1Signal`, `filterEnv2Signal`, `filterEnv3Signal`, `ampEnvSignal`, `modEnv1Signal`, `modEnv2Signal`, and `modEnv3Signal` to `maxBlockSize` inside `prepareToPlay()` / `prepareVoiceBuffers()`.
+- [ ] Clamp buffer access to pre-allocated capacity without reallocation in `processStereo()`.
+- [ ] Run `python tools/audit_audiothread.py --path Source/ModularBlocks.h --strict` and assert zero allocation violations.
 
-### Phase 2: Pydantic Data Models (`tools/models.py`)
-- [x] Author `RambleCard` and `RambleExtractionResult` models in `tools/models.py`:
-  - `source_note`: Originating file name or identifier.
-  - `idea_index`: Integer index for multi-idea notes (1-indexed).
-  - `title`: Synthesized crisp title (max 64 chars).
-  - `core_intent`: 1-sentence creative goal summary.
-  - `proposed_mechanism`: Affected repo, module, or hardware target.
-  - `action_route`: Triage action enum (`BACKLOG`, `RESEARCH`, `GRAVEYARD`, `PCDA`).
-  - `target_pillar`: Target repo/domain (`TKS`, `TT`, `NK`, `TKR`, `TBD-16`).
-  - `tags`: List of searchable tags (`#ramble`, `#dsp`, `#ui`, etc.).
-  - `raw_snippet`: Supporting excerpt from the source text.
-  - Method `to_mail_item()`: Converts `RambleCard` to a standardized `MailItem` bearing the `[ 🎙️ RAMBLE ]` badge and formatted body for instant consumption in `morning_mail_inbox.html`.
+### Phase 2: Author Universal Open-Source Governance Artifacts
+- [ ] Author `CONTRIBUTING.md` across active repositories (`TheKlangSuite`, `ToadTracker`, `nkai`):
+  - **The Anti-Slop Manifesto**: Boy Scout Rule, zero decorative comment banners, no tautological comments, ruthless deletion.
+  - **The Audio Thread Invariants**: Zero allocations in `processBlock()`, zero mutexes/locks, zero blocking I/O, SIMD `FastMath` preference.
+  - **4-Layer Schema Separation Contract**: `controls/` (DSP contracts only), `layouts/` (structure only), `themes/` (visuals only), `text/` (strings only).
+  - **FOSS & Algorithmic Attribution**: Mandatory SPDX GPL-3.0 headers and inline provenance docblocks for adapted algorithms.
+  - **Conventional Commits**: Strict format `<type>(<scope>): <desc>`.
+- [ ] Author `.github/PULL_REQUEST_TEMPLATE.md` across `TheKlangSuite`, `ToadTracker`, and `nkai`:
+  - Mandatory contributor checklist (Audio thread verification, schema leak test, local test pass, no AI slop).
 
-### Phase 3: Zero-Dependency Ramble Ingestor CLI (`tools/ramble_ingest.py`)
-- [x] Implement `tools/ramble_ingest.py`:
-  - Standard Python library only + `tools/models.py` (Pydantic v2).
-  - Heuristic-driven stream-of-consciousness parser:
-    - Splits text on paragraph breaks, rhetorical transition phrases ("also", "another thought", "what about", "on the other hand"), and numbered lists.
-    - Categorizes target pillar (`TKS`, `TT`, `NK`, `TKR`, `TBD-16`) based on domain keyword heuristics.
-    - Determines suggested action route based on question vs concrete proposal cues.
-  - CLI capabilities:
-    - `--file <path>`: Ingest specific markdown ramble.
-    - `--inbox`: Scan all notes in `TheKlangVault/Inbox/`.
-    - `--scan-archive`: Scan notes in `TheKlangVault/Inbox/Archive/`.
-    - `--chat` / `--text-only`: Output clean Markdown cards directly in console.
-    - `--json`: Output serialized JSON.
-    - `--add-to-queue`: Append extracted cards to `.agents/pipeline/mailbag/mail_queue.json`.
-    - `--archive`: Move processed notes from `Inbox/` to `Inbox/Archive/`.
-    - `--dry-run`: Preview extraction without disk modifications.
-- [x] Mirror `tools/ramble_ingest.py` to `c:\Dev\nkai\tools\ramble_ingest.py` and `c:\Dev\nkai\bundle\tools\ramble_ingest.py`.
+### Phase 3: CI/CD Automation & Matrix Hardening (`.github/workflows/ci.yml`)
+- [ ] Update `.github/workflows/ci.yml` in `TheKlangSuite`:
+  - Add `gui_tests` to Windows build and test steps (enforcing `ParameterSchemaAuditTest` and `ReflectionGuardrailSuite`).
+  - Add `gui_tests` execution to Linux CI step under `xvfb-run -a`.
+  - Add automated audio-thread safety check:
+    ```yaml
+    - name: Run Audio-Thread Safety Linter
+      run: python tools/audit_audiothread.py --strict
+    ```
+  - Remove `|| true` failure masking from Linux and macOS `pluginval` runs.
 
-### Phase 4: Micro-Skill Registration (`.agents/skills/ramble-ingest/SKILL.md`)
-- [x] Author `c:\Dev\TheKlangSuite\.agents\skills\ramble-ingest\SKILL.md`:
-  - Name: `ramble-ingest` (triggers `/ramble`, `/ramble-ingest`, `/ingest-ramble`, "ingest ramble", "ramble ingest").
-  - Clear usage guidance, flag references, and output format examples.
-- [x] Mirror skill to `c:\Dev\nkai\bundle\skills\ramble-ingest\SKILL.md`.
+### Phase 4: Local Regression & Validation Gauntlet
+- [ ] Execute `python tools/audit_audiothread.py --strict` across entire `Source/` tree.
+- [ ] Compile and run `dsp_tests.exe` via CMake.
+- [ ] Compile and run `gui_tests.exe` via CMake (asserting 100% pass on schema isolation and reflection).
+- [ ] Run `python tools/verify_context_clues.py` (confirm 100% link resolution).
 
-### Phase 5: Verification Gauntlet & Multi-Repo Commits
-- [x] Run `python tools/ramble_ingest.py --file "C:\Dev\TheKlangVault\Inbox\Archive\Rambles.md" --chat`:
-  - Assert that both ideas (Ramble Ingestion Workflow + Note Granularity) are decomposed into crisp 3-bullet cards.
-- [x] Run test on complex note: `python tools/ramble_ingest.py --file "C:\Dev\TheKlangVault\Inbox\Archive\Effects and Oscillators and More.md" --chat`.
-- [x] Run `python tools/verify_context_clues.py` in `c:\Dev\TheKlangSuite` (confirm 100% link resolution).
-- [x] Update `docs/BACKLOG.md`: Mark Flight 1 (Topic 2: Rambles Ingestion Engine) as completed.
-- [x] In `PLAN.md`: Mark all phases completed `[x]` and update Status to `COMPLETED ✅`.
-- [x] Append execution report to `.agents/pipeline/communique/subagent_receipt.md`.
-- [x] Commit changes cleanly in `c:\Dev\TheKlangSuite` and `c:\Dev\nkai`.
+### Phase 5: Re-Run the Anti-Slop Audit & Scorecard Delivery
+- [ ] Re-run the comprehensive audit against `https://www.opensourceprojects.dev/post/anti-slop`.
+- [ ] Generate the updated 10-point scorecard verifying that all 10 dimensions now register as **10/10 EXCEED / SOTA**.
+- [ ] Update `docs/BACKLOG.md`: Mark Section 15 (Open Source Anti-Slop Hardening & CI Safety Gauntlet) as `[x] COMPLETED`.
+- [ ] Mark Card #29 in `.agents/pipeline/mailbag/mail_queue.json` as `COMPLETED`.
+- [ ] Commit all changes cleanly across affected repositories.
