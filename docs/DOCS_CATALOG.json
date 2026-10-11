@@ -182,6 +182,11 @@
           "path": "docs/specs/nkai_mailbag_intake_and_triage_v2.md",
           "title": "N'kai Mailbag Intake & Triage v2 Specification (Flight 7 / rj-07 & rj-17)",
           "purpose": "Ramble overflow queue, filename-only quick notes, Inbox/Tabled/ directory, attention tags with session launchers, and /mail-add position splice CLI."
+        },
+        {
+          "path": "docs/specs/nkai_per_card_response_drawer.md",
+          "title": "N'kai Per-Card Response Drawer Specification (Flight 19 / rj-08)",
+          "purpose": "In-card agent_reply reasoning, collapsible glassmorphic drawer, procedural Web Audio detent haptics, chat-minimal pair programming, and --reply-card CLI."
         }
       ]
     },

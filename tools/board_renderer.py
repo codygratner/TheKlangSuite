@@ -379,8 +379,29 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
           </div>
         </div>"""
 
+    # Per-Card Response Drawer (Flight 19 / rj-08)
+    drawer_html = ""
+    reply_badge = ""
+    has_reply = bool(it.agent_reply and it.agent_reply.strip())
+    if has_reply:
+        reply_rendered = render_markdown_to_html(it.agent_reply.strip())
+        drawer_html = f"""
+        <div class="card-drawer-container" id="drawer-container-{clean_id}">
+          <button class="card-drawer-toggle" id="btn-drawer-{clean_id}" onclick="toggleResponseDrawer('{clean_id}')" aria-expanded="false">
+            <span class="drawer-toggle-icon">💬</span>
+            <span class="drawer-toggle-label">Agent Assessment & Rationale</span>
+            <span class="drawer-toggle-caret">▾</span>
+          </button>
+          <div class="card-drawer-content" id="drawer-{clean_id}" hidden>
+            <div class="drawer-inner markdown-body">
+              {reply_rendered}
+            </div>
+          </div>
+        </div>"""
+        reply_badge = '<span class="badge badge-reply" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent assessment attached">💬 Agent Reply</span>'
+
     return f"""
-      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}" id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}">
+      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}" id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}" data-has-reply="{str(has_reply).lower()}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{rank_val}</span>
@@ -393,6 +414,7 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
             {tabled_chip}
             {overflow_chip}
             {docket_badge}
+            {reply_badge}
           </div>
           <div class="mail-header-right">
             <div class="mail-pill-group">
@@ -409,6 +431,7 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
           <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({it.word_count} words)</summary>
           <div class="mail-body-rendered">{body_rendered}</div>
         </details>
+        {drawer_html}
         {dispatch_banner_html}
         <div class="mail-card-actions">
           <span class="actions-label">Dispatch Action:</span>

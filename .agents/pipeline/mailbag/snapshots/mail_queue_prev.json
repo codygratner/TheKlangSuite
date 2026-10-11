@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T16:54:48.793148",
-  "total_items": 42,
+  "last_scanned": "2026-10-11T17:19:54.718140",
+  "total_items": 43,
   "p0_count": 6,
   "items": [
     {
@@ -50,7 +50,10 @@
         "The Klang Suite",
         "2026-10-09_Morning_Mail_Batch_Docket"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-02",
@@ -83,7 +86,10 @@
       "source_ids": [
         "docket-18"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-03",
@@ -121,7 +127,10 @@
         "docket-17",
         "SQA meeting with Tom about vibe coding QA"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-04",
@@ -157,7 +166,10 @@
         "docket-15",
         "how stupid is it to make nkai's backend data driven like TKS"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-05",
@@ -194,7 +206,10 @@
         "archived nkai boards probably need their own space",
         "Nkai"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-06",
@@ -226,7 +241,10 @@
       "source_ids": [
         "docket-19"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-07",
@@ -247,10 +265,10 @@
       "verdict": "APPROVED",
       "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/mailbag_intake_v2.md; supersedes BACKLOG Flight 7; runs after Flight 16+17.",
       "estimated_tokens": 10000,
-      "char_count": 1226,
-      "word_count": 146,
+      "char_count": 1208,
+      "word_count": 143,
       "tier": "tier2",
-      "body": "Merged everything about how items ENTER the mailbag: long rambles get an overflow queue so throwaway-line ideas (like the FX/osc list) are not lost; filename-only quick notes; agent-tabled topics go to their own folder with an explicit 'tabling this' callout; add-at-position-X from chat.\n\n- Overflow queue only for rambles with more than 3 topics\n- Split cards link one shared original note instead of copying it\n- Inbox/Tabled/ folder for agent-authored notes (like the Nkai*.md files in Inbox)\n- Verify filename-only notes in the rj-03 sandbox\n- /mail-add with position splice\n\n**Next action:** Approve -> plan as one tooling flight.\n\n**Source notes:**\n- [Ramble Engine](file:///C:/Dev/TheKlangVault/Inbox/Archive/Ramble Engine.md)\n- [Streamlined Mailbag Ingestion & Dynamic Positioning (P2)](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md)\n- [Those Nkai Files in the Inbox](file:///C:/Dev/TheKlangVault/Inbox/Archive/Those Nkai Files in the Inbox.md)\n- [archived nkai boards probably need their own space](file:///C:/Dev/TheKlangVault/Inbox/Archive/archived nkai boards probably need their own space.md)\n- [Inbox archive](file:///C:/Dev/TheKlangVault/Inbox/Archive/Inbox archive.md)",
+      "body": "Merged everything about how items ENTER the mailbag: long rambles get an overflow queue so throwaway-line ideas (like the FX/osc list) are not lost; filename-only quick notes; agent-tabled topics go to their own folder with an explicit 'tabling this' callout; add-at-position-X from chat.\n\n- Overflow queue only for rambles with more than 3 topics\n- Split cards link one shared original note instead of copying it\n- Inbox/Tabled/ folder for agent-authored notes (like the Nkai*.md files in Inbox)\n- Verify filename-only notes in the rj-03 sandbox\n- /mail-add with position splice\n\n**Next action:** Shipped in Flight 7.\n\n**Source notes:**\n- [Ramble Engine](file:///C:/Dev/TheKlangVault/Inbox/Archive/Ramble Engine.md)\n- [Streamlined Mailbag Ingestion & Dynamic Positioning (P2)](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Streamlined%20Mailbag%20Ingestion.md)\n- [Those Nkai Files in the Inbox](file:///C:/Dev/TheKlangVault/Inbox/Archive/Those Nkai Files in the Inbox.md)\n- [archived nkai boards probably need their own space](file:///C:/Dev/TheKlangVault/Inbox/Archive/archived nkai boards probably need their own space.md)\n- [Inbox archive](file:///C:/Dev/TheKlangVault/Inbox/Archive/Inbox archive.md)",
       "excerpt": "Merged everything about how items ENTER the mailbag: long rambles get an overflow queue so throwaway-line ideas (like the FX/osc list) are not lost; filename-only quick notes; agent-tabled topics go to their own folder with an explicit 'tabling this' callout; add-at-position-X from chat.",
       "file_name": "Ramble Engine.md",
       "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Ramble Engine.md",
@@ -264,7 +282,10 @@
         "archived nkai boards probably need their own space",
         "Inbox archive"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-08",
@@ -300,7 +321,10 @@
         "Fullscreen Sidecar",
         "Second Monitor and Other Uses for the Nkai Sidecar Integration"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-09",
@@ -337,7 +361,10 @@
         "Priorities",
         "Multiple Repos"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-10",
@@ -375,7 +402,10 @@
         "Reorganize docs and make it all wiki linked",
         "TBD-16"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-11",
@@ -416,7 +446,10 @@
         "how often should we be doing code reviews",
         "Micro and Macro Skills"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-12",
@@ -447,7 +480,10 @@
       "source_ids": [
         "SQA meeting with Tom about vibe coding QA"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-13",
@@ -481,7 +517,10 @@
         "The Toad on Stam Deck",
         "Tracktion for Reference"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-14",
@@ -512,7 +551,10 @@
       "source_ids": [
         "Modulations UX"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-15",
@@ -547,7 +589,10 @@
         "FX UX Ideas",
         "Future ideas while I fall asleep"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-16",
@@ -583,7 +628,10 @@
         "docket-10",
         "Future ideas while I fall asleep"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-17",
@@ -602,10 +650,10 @@
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 548,
+      "char_count": 546,
       "word_count": 75,
       "tier": "tier2",
-      "body": "Pillar filters already shipped. What remains: !IMPORTANT / !BLOATED / !INCOMPLETE attention tags on notes, and routing a card straight into a grill-lab / deep-research / research-assistant session.\n\n- Tags parsed from note body, rendered as chips\n- !BLOATED auto-suggests a split (like this rejigger)\n- Session routing = prefilled prompt per variant\n\n**Next action:** Approve -> BACKLOG section 13 (N'kai).\n\n**Source notes:**\n- [Mailbag Feature (and a nkai ramble)](file:///C:/Dev/TheKlangVault/Inbox/Archive/Mailbag Feature (and a nkai ramble).md)",
+      "body": "Pillar filters already shipped. What remains: !IMPORTANT / !BLOATED / !INCOMPLETE attention tags on notes, and routing a card straight into a grill-lab / deep-research / research-assistant session.\n\n- Tags parsed from note body, rendered as chips\n- !BLOATED auto-suggests a split (like this rejigger)\n- Session routing = prefilled prompt per variant\n\n**Next action:** Shipped in Flight 7 alongside rj-07.\n\n**Source notes:**\n- [Mailbag Feature (and a nkai ramble)](file:///C:/Dev/TheKlangVault/Inbox/Archive/Mailbag Feature (and a nkai ramble).md)",
       "excerpt": "Pillar filters already shipped. What remains: !IMPORTANT / !BLOATED / !INCOMPLETE attention tags on notes, and routing a card straight into a grill-lab / deep-research / research-assistant session.",
       "file_name": "Mailbag Feature (and a nkai ramble).md",
       "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Mailbag Feature (and a nkai ramble).md",
@@ -615,7 +663,10 @@
       "source_ids": [
         "Mailbag Feature (and a nkai ramble)"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-18",
@@ -652,7 +703,10 @@
         "Obsidian Manager App",
         "Obsidian Plugins"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-19",
@@ -686,7 +740,10 @@
         "VST UI Tips Video",
         "FX and Mod Cards"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-20",
@@ -720,7 +777,10 @@
         "Bass mode!",
         "Phase Smear Idea"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-21",
@@ -751,7 +811,10 @@
       "source_ids": [
         "docket-12"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-22",
@@ -784,7 +847,10 @@
       "source_ids": [
         "Research Demo"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-23",
@@ -815,7 +881,10 @@
       "source_ids": [
         "Remote Antigravity"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-24",
@@ -850,7 +919,10 @@
         "docket-9",
         "Second Monitor and Other Uses for the Nkai Sidecar Integration"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "rj-25",
@@ -881,7 +953,10 @@
       "source_ids": [
         "Meeblip SE Engine"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-1",
@@ -912,7 +987,10 @@
       "source_ids": [
         "docket-1"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-6",
@@ -943,7 +1021,10 @@
       "source_ids": [
         "docket-6"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-13",
@@ -974,7 +1055,10 @@
       "source_ids": [
         "docket-13"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Opus 5.5",
@@ -1005,7 +1089,10 @@
       "source_ids": [
         "Opus 5.5"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Anti-Slop in Open Source",
@@ -1036,7 +1123,10 @@
       "source_ids": [
         "Anti-Slop in Open Source"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Mailbag Queue",
@@ -1067,7 +1157,10 @@
       "source_ids": [
         "Mailbag Queue"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Response from my SQA Friend",
@@ -1098,7 +1191,10 @@
       "source_ids": [
         "Response from my SQA Friend"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-2",
@@ -1129,7 +1225,10 @@
       "source_ids": [
         "docket-2"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-3",
@@ -1160,7 +1259,10 @@
       "source_ids": [
         "docket-3"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-4",
@@ -1191,7 +1293,10 @@
       "source_ids": [
         "docket-4"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-5",
@@ -1222,7 +1327,10 @@
       "source_ids": [
         "docket-5"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "docket-8",
@@ -1253,7 +1361,46 @@
       "source_ids": [
         "docket-8"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
+    },
+    {
+      "id": "The testing board ought to have precomputed PCDA and stuff to put in the cards to test with",
+      "title": "🆕 The testing board ought to have precomputed PCDA and stuff to put in the cards to test with",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "quick-note"
+      ],
+      "target_pillars": [
+        "TKS"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\The testing board ought to have precomputed PCDA and stuff to put in the cards to test with.md",
+      "preview": "(quick note — title only)",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 25,
+      "word_count": 5,
+      "tier": "tier2",
+      "body": "(quick note — title only)",
+      "excerpt": "(quick note — title only)",
+      "file_name": "The testing board ought to have precomputed PCDA and stuff to put in the cards to test with.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\The testing board ought to have precomputed PCDA and stuff to put in the cards to test with.md",
+      "source_note": "",
+      "idx": 0,
+      "merged_count": 1,
+      "source_ids": [
+        "The testing board ought to have precomputed PCDA and stuff to put in the cards to test with"
+      ],
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Nkai Minimal",
@@ -1284,7 +1431,10 @@
       "source_ids": [
         "Nkai Minimal"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Single fast PCDA on mail ingestion",
@@ -1315,7 +1465,10 @@
       "source_ids": [
         "Single fast PCDA on mail ingestion"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Deep docs update",
@@ -1346,7 +1499,10 @@
       "source_ids": [
         "Deep docs update"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Should we download the picotracker repo for reference",
@@ -1379,7 +1535,10 @@
       "source_ids": [
         "Should we download the picotracker repo for reference"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     },
     {
       "id": "Update all archived inbox items with front matter",
@@ -1412,7 +1571,10 @@
       "source_ids": [
         "Update all archived inbox items with front matter"
       ],
-      "split_group": ""
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     }
   ]
 }

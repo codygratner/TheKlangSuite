@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T15:00:00Z",
+  "last_scanned": "2026-10-11T16:00:00Z",
   "total_items": 8,
   "p0_count": 2,
   "items": [
@@ -10,7 +10,7 @@
       "created_at": "2026-10-11",
       "priority": "P0",
       "status": "PENDING",
-      "tags": ["sandbox", "lore", "plaza"],
+      "tags": ["sandbox", "lore", "plaza", "important"],
       "target_pillars": ["NK", "AGY"],
       "source_file": "TheKlangVault/Inbox/Tsathoggua_Statue.md",
       "preview": "Placement coordinates for the grand obsidian toad effigy in the central fountain plaza.",
@@ -24,7 +24,10 @@
       "body": "Proposal to erect an 8-meter basalt monument of Mayor Tsathoggua overlooking City Hall plaza.\n\n- Emits an ambient 55Hz sub-bass drone via SPI DMA.\n- Equipped with dual glowing emerald LED ocular sensors.\n- Automated pigeon deterrent sonic pulse generator.",
       "idx": 1,
       "merged_count": 1,
-      "source_ids": ["docket-tsathoggua"]
+      "source_ids": ["docket-tsathoggua"],
+      "agent_reply": "### ⚖️ PCDA Dialectic Matrix: 55Hz Basalt Resonator\n- 🏛️ **Thesis**: Continuous 55Hz sub-bass drone emitted from basalt statue via SPI DMA audio DAC to induce hypnotic civic reverence.\n- ⚡ **Thesis Friction**: Structural resonance at 55Hz vibrates City Hall stained glass to catastrophic failure; pigeons may nest in tuned acoustic ports.\n- 😈 **Antithesis**: Silent obsidian monolith with optical green LED pulse illumination only; zero acoustic emissions.\n- 🎯 **80/20 Pragmatic Resolution**: Band-limited 55Hz carrier modulated with 0.1Hz infrasonic flutter during council sessions only; ultrasonic pigeon repeller tuned to 28kHz.",
+      "agent_reply_at": "2026-10-11T16:00:00Z",
+      "has_reply": true
     },
     {
       "id": "sbx-02",
@@ -32,7 +35,7 @@
       "created_at": "2026-10-10",
       "priority": "P3",
       "status": "PENDING",
-      "tags": ["sandbox", "hardware", "submersible"],
+      "tags": ["sandbox", "hardware", "submersible", "bloated"],
       "target_pillars": ["TBD-16", "TT"],
       "source_file": "TheKlangVault/Inbox/Submersible_Compressor.md",
       "preview": "Merged from 3 notes: Pneumatic valve manifold and low-pressure ballast control.",
@@ -46,7 +49,10 @@
       "body": "Pneumatic valve manifold for pneumatic chamber pressurization.\n\n- Angle 1: Sub-sea ballast pressure monitoring via I2C sensor\n- Angle 2: 12V high-flow solenoid controller with flyback protection\n- Angle 3: Zero-latency hardware trigger synchronization with ToadCore ticks\n\n**Next action:** Approve -> prototype valve controller on TBD-16.\n\n**Source notes:**\n- [Ballast Notes](file:///C:/Dev/TheKlangVault/Inbox/Ballast.md)\n- [Compressor Tuning](file:///C:/Dev/TheKlangVault/Inbox/Compressor.md)\n- [Pressure Sensor](file:///C:/Dev/TheKlangVault/Inbox/Pressure.md)",
       "idx": 2,
       "merged_count": 3,
-      "source_ids": ["docket-sub-1", "docket-sub-2", "docket-sub-3"]
+      "source_ids": ["docket-sub-1", "docket-sub-2", "docket-sub-3"],
+      "agent_reply": "### ⚖️ PCDA Dialectic Matrix: Submersible Compressor Control\n- 🏛️ **Thesis**: High-pressure ballast management via TBD-16 dedicated FreeRTOS worker task with dual 12V solenoid driver.\n- ⚡ **Thesis Friction**: Inductive flyback surges risk latching up the ESP32 GPIO bus; high current draw may brown out microcontroller 3.3V rail during simultaneous audio playback.\n- 😈 **Antithesis**: Pure mechanical relief valve with zero software coupling. Complete physical isolation prevents any firmware crashes in benthic trenches.\n- 🎯 **80/20 Pragmatic Resolution**: Optoisolated MOSFET gates with dedicated Schottky flyback diodes; software watchdog heartbeat with fail-open mechanical spring relief.",
+      "agent_reply_at": "2026-10-11T16:20:00Z",
+      "has_reply": true
     },
     {
       "id": "sbx-03",
@@ -54,7 +60,7 @@
       "created_at": "2026-10-09",
       "priority": "P1",
       "status": "APPROVED",
-      "tags": ["sandbox", "dsp", "filter"],
+      "tags": ["sandbox", "dsp", "filter", "spike"],
       "target_pillars": ["TKS", "TKR"],
       "source_file": "TheKlangVault/Inbox/Spore_Filter.md",
       "preview": "12-stage non-linear allpass cascade modeling organic biological spore dispersion.",
@@ -68,7 +74,10 @@
       "body": "A biological allpass diffuser filter modeling atmospheric particle dispersion.\n\n- 12 cascaded allpass sections with irrational delay ratios.\n- Non-linear saturating feedback path with asymmetric soft clipping.",
       "idx": 3,
       "merged_count": 1,
-      "source_ids": ["docket-spore"]
+      "source_ids": ["docket-spore"],
+      "agent_reply": "### ⚖️ PCDA Dialectic Matrix: 12-Stage Biological Allpass Cascade\n- 🏛️ **Thesis**: 12-stage non-linear allpass cascade utilizing SIMD-vectorized FastMath to emulate organic fungal spore diffusion.\n- ⚡ **Thesis Friction**: High filter order increases phase smearing at Nyquist; non-linear feedback saturation risks explosive DC offset under pathological bursts.\n- 😈 **Antithesis**: Static 4-stage Butterworth ladder with fixed coefficient lookup tables. Low CPU overhead and guaranteed bounded-input bounded-output (BIBO) stability.\n- 🎯 **80/20 Pragmatic Resolution**: 6-stage vectorized allpass core with soft tanh saturation in feedback path and automated DC-blocker highpass pole at 10Hz.",
+      "agent_reply_at": "2026-10-11T16:30:00Z",
+      "has_reply": true
     },
     {
       "id": "sbx-04",
@@ -76,7 +85,7 @@
       "created_at": "2026-10-08",
       "priority": "P2",
       "status": "BACKLOG",
-      "tags": ["sandbox", "modulation", "lfo"],
+      "tags": ["sandbox", "modulation", "lfo", "incomplete"],
       "target_pillars": ["TKS"],
       "source_file": "TheKlangVault/Inbox/Cthulhu_Cycle.md",
       "preview": "Ultra-low frequency modulation cycle spanning 1000 hours per period.",
@@ -90,7 +99,10 @@
       "body": "Cosmic geological timescale LFO designed for infinite drone installations.\n\n- Period adjustable from 10 minutes to 1000 hours.\n- Phase drift modeled after tectonic tidal fluctuations.",
       "idx": 4,
       "merged_count": 1,
-      "source_ids": ["docket-cthulhu"]
+      "source_ids": ["docket-cthulhu"],
+      "agent_reply": "### 📥 Backlog Implementation Brief: Cosmic LFO Module\n- **Target Location**: `Source/dsp/CosmicLFO.h` in TheKlangSuite.\n- **Parameters Contract**:\n  - `cthulhu_rate`: Range [0.0001 Hz to 0.05 Hz], logarithmic skew factor 0.3.\n  - `cthulhu_drift`: Normal random walk phase jitter via xoshiro256+ generator.\n- **Phase 1 Acceptance Criteria**:\n  - Zero heap allocations inside `processBlock()`.\n  - APVTS parameter binding verified in `test_cthulhu_lfo.cpp`.",
+      "agent_reply_at": "2026-10-11T16:40:00Z",
+      "has_reply": true
     },
     {
       "id": "sbx-05",
@@ -112,7 +124,10 @@
       "body": "Unsynchronized radioactive decay simulation triggering arbitrary MIDI pitches.\n\n- Rejected: Violates real-time audio thread invariants.\n- Causes unbounded memory allocation in voice allocator queue.",
       "idx": 5,
       "merged_count": 1,
-      "source_ids": ["docket-azathoth"]
+      "source_ids": ["docket-azathoth"],
+      "agent_reply": "### 🪦 Technical Autopsy & Rejection Rationale\n- **Failure Mode**: Unclocked asynchronous event polling inside audio callback violates Audio Thread Invariants (§1: Zero Allocations, §2: Zero Locks).\n- **Benchmark Findings**: Jitter exceeded 18.4ms under 128-sample buffer stress; random MIDI events triggered unbounded dynamic allocations in voice queue.\n- **Permanent Verdict**: Abandon unclocked architecture. All future stochastic generative systems must be driven strictly by sample-accurate block-synchronous accumulators.",
+      "agent_reply_at": "2026-10-11T16:50:00Z",
+      "has_reply": true
     },
     {
       "id": "sbx-06",
@@ -134,21 +149,24 @@
       "body": "Massive polyphonic voice allocation benchmarked for extreme ambient textures.\n\n- Successfully optimized using Structure-of-Arrays (SoA) layout.\n- 0 allocations inside audio render block.",
       "idx": 6,
       "merged_count": 1,
-      "source_ids": ["docket-nyarlathotep"]
+      "source_ids": ["docket-nyarlathotep"],
+      "agent_reply": "### ✅ Feature Codification & Architecture Summary\n- **Shipped Target**: `Source/dsp/VoiceManager.cpp` (v0.4.0-dev).\n- **Performance Attained**: 1000 active voices summed in 0.42ms on Apple M1 Max / 0.58ms on Intel i9-13900K.\n- **Audio Thread Hygiene**: Fully verified zero allocations and zero locks via `audiothread-guard`.",
+      "agent_reply_at": "2026-10-11T17:00:00Z",
+      "has_reply": true
     },
     {
       "id": "sbx-07",
       "title": "🆕 Unreferenced Shoggoth Sighting in Lower Sump",
       "created_at": "2026-10-11",
       "priority": "P1",
-      "status": "PENDING",
-      "tags": ["sandbox", "new-mail", "sump"],
+      "status": "RESEARCH",
+      "tags": ["sandbox", "new-mail", "sump", "spike"],
       "target_pillars": ["NK"],
       "source_file": "TheKlangVault/Inbox/Shoggoth_Sighting.md",
       "preview": "Fresh unreferenced note captured from the field without a rejigger card mapping.",
       "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "RESEARCH",
+      "verdict_notes": "Routed to TheKlangResearch for protoplasmic UI texture spike.",
       "estimated_tokens": 6000,
       "char_count": 270,
       "word_count": 38,
@@ -156,7 +174,10 @@
       "body": "Raw note discovered in Lower Sump sewer conduit.\n\n- Shows prototype protoplasmic UI texture animations.\n- Emits intermittent whistling sounds matching 'Tekeli-li! Tekeli-li!'",
       "idx": 7,
       "merged_count": 1,
-      "source_ids": ["note-shoggoth-raw"]
+      "source_ids": ["note-shoggoth-raw"],
+      "agent_reply": "### 🔬 Research Brief: Protoplasmic Procedural UI Canvas\n- **Key Questions to Answer**:\n  1. Can WebGL / Canvas2D shader render amorphous fluid boundaries at 60fps in Antigravity AUX_PANE without pegging GPU thread?\n  2. What is the memory footprint of storing protoplasmic point mesh arrays per frame?\n- **Technical References**:\n  - [Müller et al. (2020) Position Based Fluids](https://matthias-research.github.io/pages/publications/pbf_sig_preprint.pdf)\n  - [`TheKlangResearch/RFC/RFC-0014_FluidUI.md`](file:///c:/Dev/TheKlangResearch/RFC/RFC-0014_FluidUI.md)\n- **Benchmark Targets**:\n  - Maximum CPU utilization < 3.5% across 8-core desktop.\n  - Cold load latency into DOM sidecar < 40ms.",
+      "agent_reply_at": "2026-10-11T17:10:00Z",
+      "has_reply": true
     },
     {
       "id": "sbx-quick-01",
@@ -178,7 +199,10 @@
       "body": "(quick note — title only)",
       "idx": 8,
       "merged_count": 1,
-      "source_ids": ["note-quick-mobile"]
+      "source_ids": ["note-quick-mobile"],
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
     }
   ]
 }

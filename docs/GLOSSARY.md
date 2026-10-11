@@ -273,6 +273,16 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Attention Tags & Interactive Session Launchers**: The parsing of inline markers (`!IMPORTANT`, `!BLOATED`, `!INCOMPLETE`, `!SPIKE`) into semantic attention badges, paired with 1-click action buttons in the card footer (`[ 🔬 Grill-Lab ]`, `[ 🧠 Deep Research ]`, `[ 🔨 Draft Plan ]`) that execute via sidecar IPC or fall back to system clipboard copy with toast feedback.
 * **`/mail-add` Position Splice CLI (`tools/mail_add.py`)**: The backlog insertion CLI that splices new items into the queue using `--after <id>` or `--rank <n>`, executes contiguous renumbering across all subsequent ranks without gaps or collisions, and generates a structured inbox markdown note.
 
+---
+
+## 23. Per-Card Response Drawer (Flight 19 / `rj-08`)
+
+* **Per-Card Response Drawer (`#drawer-<id>`)**: The accessible collapsible drawer rendered inside N'kai triage cards when an agent attaches structured reasoning, PCDA trade-off dialectics, or implementation notes via the `agent_reply` schema field. Designed with a dark slate contrast background, subtle purple indicator border, and smooth cubic-bezier height transitions.
+* **Chat-Minimal Pair Programming**: The workflow protocol where agents commit multi-paragraph assessments, code signatures, and dialectical trade-offs directly into in-card drawers while emitting only 1–2 summary lines in the active chat transcript (`"Triaged to Backlog. Architectural breakdown committed to card drawer."`), preserving context window capacity and eliminating compaction amnesia.
+* **Deterministic Drawer IDs & ARIA Semantics**: The standardized DOM hierarchy (`#drawer-container-<id>`, `#btn-drawer-<id>`, `#drawer-<id>`) pairing an accessible `<button>` toggle with dynamic `aria-expanded="false|true"` attributes and a `<div hidden>` content wrapper, ensuring robust headless testing and assistive accessibility.
+* **Fast CLI Reply Tooling (`--reply-card`)**: The command-line option in `tools/check_mail.py` (`--reply-card <id> --text "<markdown>"`) that updates `agent_reply` and `agent_reply_at` on matching items in `mail_queue.json` and immediately regenerates the HTML board in under 50ms without re-scanning vault notes.
+* **Procedural Detent Audio Haptic**: The Web Audio procedural sine detent click (`playHaptic('tick')`, 800Hz → 400Hz exponential ramp) triggered on drawer expansion/collapse, simulating a physical tactile detent while respecting localStorage audio mute preferences.
+
 
 
 

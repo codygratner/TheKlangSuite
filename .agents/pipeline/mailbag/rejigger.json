@@ -220,7 +220,7 @@
       "id": "rj-08",
       "rank": 8,
       "priority": "P1",
-      "status": "APPROVED",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "NK"
@@ -240,8 +240,8 @@
         "Fullscreen Sidecar",
         "Second Monitor and Other Uses for the Nkai Sidecar Integration"
       ],
-      "verdict": "APPROVED",
-      "verdict_notes": "2026-10-11: PCDA split approved. Drawer -> BACKLOG N'kai Flight 19 (small, can go early). Fullscreen spike resolved: only AUX_PANE entrypoint exists; use widened pane or nkai_serve.py tab (clipboard fallback). HUD tabled into rj-24."
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Flight 19 completed. Per-card response drawer implemented (agent_reply schema field, collapsible accessible glassmorphic drawer, procedural Web Audio detent haptics, and --reply-card CLI). Fullscreen spike resolved via widened pane/nkai_serve.py. HUD tabled into rj-24."
     },
     {
       "id": "rj-09",

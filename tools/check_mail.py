@@ -616,6 +616,10 @@ def build_mail_queue(
             verdict = old_it.get("verdict")
             verdict_notes = old_it.get("verdict_notes")
 
+        agent_reply = old_it.get("agent_reply") if old_it else None
+        agent_reply_at = old_it.get("agent_reply_at") if old_it else None
+        has_reply = bool(agent_reply and str(agent_reply).strip())
+
         raw_items.append({
             "id": it_id,
             "title": str(it.get("title", "Untitled Docket Topic")),
@@ -640,6 +644,9 @@ def build_mail_queue(
             "rel_path": str(it.get("source_note", "")),
             "idx": int(it.get("idx", 0)),
             "split_group": str(it.get("split_group", "")),
+            "agent_reply": agent_reply,
+            "agent_reply_at": agent_reply_at,
+            "has_reply": has_reply,
         })
 
     # Collect known docket source note names to avoid duplicate cards
@@ -675,6 +682,10 @@ def build_mail_queue(
             verdict = old_it.get("verdict")
             verdict_notes = old_it.get("verdict_notes")
 
+        agent_reply = old_it.get("agent_reply") if old_it else None
+        agent_reply_at = old_it.get("agent_reply_at") if old_it else None
+        has_reply = bool(agent_reply and str(agent_reply).strip())
+
         raw_items.append({
             "id": item_id,
             "title": str(n.get("title", "Untitled Note")),
@@ -699,6 +710,9 @@ def build_mail_queue(
             "source_note": "",
             "idx": 0,
             "split_group": str(n.get("split_group", "")),
+            "agent_reply": agent_reply,
+            "agent_reply_at": agent_reply_at,
+            "has_reply": has_reply,
         })
 
     # 3. Check for rejigger overlay
@@ -812,6 +826,10 @@ def build_mail_queue(
                 if merged_count > 1 and f"merged:{merged_count}" not in tags:
                     tags.append(f"merged:{merged_count}")
 
+                agent_reply = old_it.get("agent_reply") if old_it else None
+                agent_reply_at = old_it.get("agent_reply_at") if old_it else None
+                has_reply = bool(agent_reply and str(agent_reply).strip())
+
                 m_item = MailItem(
                     id=card_id,
                     title=card_title,
@@ -836,6 +854,9 @@ def build_mail_queue(
                     idx=card_rank,
                     merged_count=merged_count,
                     source_ids=source_ids,
+                    agent_reply=agent_reply,
+                    agent_reply_at=agent_reply_at,
+                    has_reply=has_reply,
                 )
                 overlay_mail_items.append(m_item)
 
@@ -865,6 +886,10 @@ def build_mail_queue(
                         verdict = old_it.get("verdict")
                         verdict_notes = old_it.get("verdict_notes")
 
+                    agent_reply = old_it.get("agent_reply") if old_it else r.get("agent_reply")
+                    agent_reply_at = old_it.get("agent_reply_at") if old_it else r.get("agent_reply_at")
+                    has_reply = bool(agent_reply and str(agent_reply).strip())
+
                     unref_item = MailItem(
                         id=r_id,
                         title=r_title,
@@ -889,6 +914,9 @@ def build_mail_queue(
                         idx=0,
                         merged_count=1,
                         source_ids=[r_id],
+                        agent_reply=agent_reply,
+                        agent_reply_at=agent_reply_at,
+                        has_reply=has_reply,
                     )
                     unreferenced_raw_items.append(unref_item)
 
@@ -945,6 +973,9 @@ def build_mail_queue(
             rel_path=str(r.get("rel_path", "")),
             source_note=str(r.get("source_note", "")),
             idx=int(r.get("idx", 0)),
+            agent_reply=r.get("agent_reply"),
+            agent_reply_at=r.get("agent_reply_at"),
+            has_reply=bool(r.get("agent_reply") and str(r.get("agent_reply")).strip()),
         ))
 
     queue = MailQueue(
@@ -1336,6 +1367,68 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     return render_board(schema, out_path)
 
 
+def handle_card_reply(
+    target_id: str,
+    reply_text: str,
+    queue_path: Path,
+    out_path: Path,
+    is_sandbox: bool = False,
+) -> int:
+    """
+    Attaches agent response markdown to a target card in mail_queue.json
+    and immediately regenerates the HTML triage board in <50ms (Flight 19 / rj-08).
+    """
+    if not queue_path.exists():
+        print(f"❌ Error: MailQueue ledger not found at {queue_path}")
+        return 1
+
+    try:
+        raw_json = queue_path.read_text(encoding="utf-8")
+        queue = MailQueue.model_validate_json(raw_json)
+    except Exception as e:
+        print(f"❌ Error reading queue ledger: {e}")
+        return 1
+
+    clean_target = re.sub(r"[^a-zA-Z0-9_-]", "_", target_id)
+    matched_item = None
+    for item in queue.items:
+        clean_item_id = re.sub(r"[^a-zA-Z0-9_-]", "_", item.id)
+        if item.id == target_id or clean_item_id == clean_target or clean_item_id == target_id or item.id == clean_target:
+            matched_item = item
+            break
+
+    if not matched_item:
+        print(f"❌ Error: Card '{target_id}' not found in {queue_path}")
+        return 1
+
+    now_iso = datetime.datetime.now().isoformat()
+    matched_item.agent_reply = reply_text
+    matched_item.agent_reply_at = now_iso
+    matched_item.has_reply = bool(reply_text and reply_text.strip())
+
+    # Save mutated queue
+    queue_path.write_text(queue.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
+    # Fast board regeneration (<50ms)
+    env = "SANDBOX" if is_sandbox else "PRODUCTION"
+    board_title = "N'kai Morning Mail Inbox & Triage Lab"
+    board_id = "sandbox_mail" if is_sandbox else "morning_mail"
+
+    schema = BoardSchema(
+        schema_version="1.0.0",
+        board_id=board_id,
+        title=board_title,
+        subtitle=f"Fast Reply Regen: {queue_path.name}",
+        environment=env,
+        cards=queue.items,
+        allowance_budget=200000,
+    )
+    rendered_board = render_board(schema, out_path)
+
+    print(f"💬 Recorded agent reply for card '{matched_item.id}' in {queue_path}")
+    print(f"✅ Regenerated triage board: {rendered_board}")
+    return 0
+
 
 def main():
     try:
@@ -1427,8 +1520,36 @@ def main():
         action="store_true",
         help="Disable rejigger overlay and build raw mail queue directly",
     )
+    parser.add_argument(
+        "--reply-card",
+        type=str,
+        default=None,
+        metavar="CARD_ID",
+        help="Target card ID to attach agent response to in mail_queue.json",
+    )
+    parser.add_argument(
+        "--text",
+        type=str,
+        default=None,
+        help="Markdown body of the agent response when used with --reply-card",
+    )
 
     args = parser.parse_args()
+
+    # Handle agent response drawer submission (--reply-card <id> --text "<markdown>")
+    if args.reply_card:
+        if not args.text:
+            print("❌ Error: --text '<markdown>' is required when using --reply-card.")
+            return 1
+        q_target = Path(args.fixture).resolve() if args.sandbox else Path(args.queue).resolve()
+        o_target = Path(args.out).resolve() if args.out else (DEFAULT_SANDBOX_OUTPUT_HTML.resolve() if args.sandbox else DEFAULT_OUTPUT_HTML.resolve())
+        return handle_card_reply(
+            target_id=args.reply_card,
+            reply_text=args.text,
+            queue_path=q_target,
+            out_path=o_target,
+            is_sandbox=args.sandbox,
+        )
 
     # Handle rollback command
     if args.rollback:

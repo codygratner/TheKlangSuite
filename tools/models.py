@@ -9,7 +9,7 @@ from enum import Enum
 from pathlib import Path
 import re
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class EcosystemPillar(str, Enum):
@@ -206,6 +206,19 @@ class MailItem(BaseModel):
     source_ids: List[str] = Field(default_factory=list)
     split_group: str = ""
 
+    # Per-Card Response Drawer (Flight 19 / rj-08)
+    agent_reply: Optional[str] = None
+    agent_reply_at: Optional[str] = None
+    has_reply: bool = False
+
+    @model_validator(mode="after")
+    def sync_has_reply(self) -> "MailItem":
+        if self.agent_reply and self.agent_reply.strip():
+            self.has_reply = True
+        elif not self.agent_reply:
+            self.has_reply = False
+        return self
+
     @field_validator("priority", mode="before")
     @classmethod
     def normalize_priority(cls, v: Any) -> PriorityLevel:
@@ -342,6 +355,8 @@ class RambleCard(BaseModel):
     raw_snippet: str = Field(default="", description="Supporting quote or excerpt from source note")
     confidence_score: float = Field(default=0.85, description="Heuristic parsing confidence [0.0, 1.0]")
     split_group: str = Field(default="", description="Parent note identifier or stem for overflow grouping")
+    agent_reply: Optional[str] = Field(default=None, description="Optional markdown body of agent response")
+    agent_reply_at: Optional[str] = Field(default=None, description="ISO timestamp of reply")
 
     def to_mail_item(self) -> MailItem:
         import re
@@ -418,6 +433,9 @@ class RambleCard(BaseModel):
             tier=tier,
             idx=self.idea_index,
             split_group=self.split_group,
+            agent_reply=self.agent_reply,
+            agent_reply_at=self.agent_reply_at,
+            has_reply=bool(self.agent_reply and self.agent_reply.strip()),
         )
 
 

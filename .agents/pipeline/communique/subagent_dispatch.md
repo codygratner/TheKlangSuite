@@ -9,80 +9,65 @@ STATUS: COMPLETED
 ---
 
 ## 1. Assignment Header
-- **STATUS**: `DISPATCHED`
+- **STATUS**: `COMPLETED`
 - **ROLE**: `Flash Tooling Builder`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **TASK TYPE**: `TOOLING_IMPLEMENTATION`
-- **TASK SLUG**: `mailbag-intake-v2`
+- **TASK SLUG**: `card-response-drawer`
 - **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
-- **TICKET ID**: `plan-012` (Flight 7 / `rj-07` & `rj-17`)
+- **TICKET ID**: `plan-013` (Flight 19 / `rj-08` split)
 
 ## 2. Scope & Instructions
 
-Follow the active plan in `c:\Dev\TheKlangSuite\PLAN.md` and deliver Phases 1 through 6:
+Follow the active plan in `c:\Dev\TheKlangSuite\PLAN.md` and deliver Phases 1 through 5:
 
-### Phase 1: Ramble Overflow Queue (`tools/ramble_ingest.py`)
+### Phase 1: Data Model Expansion (`tools/models.py`)
 1. In `c:\Dev\TheKlangSuite\tools\models.py`:
-   - Add `split_group: str = ""` to `RambleCard` and `MailItem`.
-2. In `c:\Dev\TheKlangSuite\tools\ramble_ingest.py`:
-   - When decomposing a note into $> 3$ ideas:
-     - Top 3 become active `RambleCard`s returned in the extraction result.
-     - Remaining cards are written to `c:\Dev\TheKlangSuite\.agents\pipeline\mailbag\overflow.json` (as a JSON array of `RambleCard` objects).
-     - Each card stores `source_note` (path to original note) and `split_group` (stem of original note).
-3. In `master_template.html` & `tools/board_renderer.py`:
-   - If a card has overflow items in `overflow.json` with matching `split_group`, render a chip `⤵ N in overflow`.
-   - In Rail 2 (Status filters), add an `Overflow` filter pill after `All` if overflow items exist.
-4. Mirror changes to `c:\Dev\nkai\tools/` and `c:\Dev\nkai\bundle/`.
+   - Add fields to `MailItem`:
+     - `agent_reply: Optional[str] = None`
+     - `agent_reply_at: Optional[str] = None`
+     - `has_reply: bool = False` (set `True` if `agent_reply` is present and non-empty)
+   - Add `agent_reply: Optional[str] = None` to `RambleCard` and pass through to `to_mail_item()`.
+2. Mirror `tools/models.py` to `c:\Dev\nkai\tools/models.py` and `nkai/bundle/tools/models.py`.
 
-### Phase 2: Filename-Only Quick Notes (`tools/check_mail.py`)
-1. In `c:\Dev\TheKlangSuite\tools\check_mail.py`:
-   - When reading a note: if the body (after frontmatter stripping) is empty or whitespace only:
-     - Set card `title` to the note's filename stem.
-     - Add tag `"quick-note"`.
-     - Set `preview` to `"(quick note — title only)"`.
-2. Add a quick-note card fixture to `assets/fixtures/sandbox_mail_queue.json` (`id="sbx-quick-01"`, `title="Quick Mobile Thought"`, `tags=["quick-note", "tks"]`).
-3. Verify clean rendering on `sandbox_mail_inbox.html`.
+### Phase 2: Response Drawer Markup & Styling (`master_template.html` & `sidecar.css`)
+1. In `c:\Dev\nkai\core\master_template.html` (and `.agents/sidecar/master_template.html`):
+   - Render drawer container if card has `agent_reply`:
+     `<div class="card-drawer-container" id="drawer-container-{{CARD_ID}}">`
+       `<button class="card-drawer-toggle" id="btn-drawer-{{CARD_ID}}" onclick="toggleResponseDrawer('{{CARD_ID}}')" aria-expanded="false">`
+         `<span class="drawer-toggle-icon">💬</span>`
+         `<span class="drawer-toggle-label">Agent Assessment & Rationale</span>`
+         `<span class="drawer-toggle-caret">▾</span>`
+       `</button>`
+       `<div class="card-drawer-content" id="drawer-{{CARD_ID}}" hidden>`
+         `<div class="drawer-inner markdown-body">{{AGENT_REPLY_HTML}}</div>`
+       `</div>`
+     `</div>`
+2. In `c:\Dev\nkai\core\sidecar.css`:
+   - Style `.card-drawer-container`, `.card-drawer-toggle`, `.card-drawer-content`, `.drawer-inner`.
+   - Subtle glassmorphic background, purple/indigo accent border, smooth max-height animation.
+3. Mirror to `c:\Dev\TheKlangSuite\.agents\sidecar\master_template.html` and `nkai/bundle/templates/master_template.html`.
 
-### Phase 3: `Inbox/Tabled/` for Agent-Authored Notes
-1. Create `C:\Dev\TheKlangVault\Inbox\Tabled\` directory (and support local fallback `docs/inbox/tabled/`).
-2. In `tools/check_mail.py`:
-   - Scan `Inbox/Tabled/` alongside `Inbox/` and `Archive/`.
-   - Items from `Tabled/` receive `tags += ["tabled"]` and render a `🗂 Tabled by agent` chip.
-3. Update `GEMINI.md` (Strict TODO & Backlog Handling) and documentation with the tabling protocol.
+### Phase 3: Drawer Controller & CLI Reply Tooling (`sidecar.js` & `check_mail.py`)
+1. In `c:\Dev\nkai\core\sidecar.js`:
+   - Implement `toggleResponseDrawer(cardId)`: toggles `hidden` and `.is-open`, updates `aria-expanded`, plays haptic tick.
+2. In `c:\Dev\TheKlangSuite\tools\board_renderer.py`:
+   - Format `agent_reply` markdown to safe HTML using markdown renderer.
+   - Conditionally inject response drawer markup per card.
+3. In `c:\Dev\TheKlangSuite\tools\check_mail.py`:
+   - Add CLI argument `--reply-card <id> --text "<markdown>"`:
+     - Updates `agent_reply` and `agent_reply_at` on matching item in `mail_queue.json`.
+     - Regenerates the board in <50ms.
+4. In `assets/fixtures/sandbox_mail_queue.json`:
+   - Add an `agent_reply` fixture to card `sbx-02` ("Synthetic Deep Research Specimen").
 
-### Phase 4: Attention Tags & One-Click Session Routing Launchers (`rj-17`)
-1. In `tools/check_mail.py` & `tools/models.py`:
-   - Parse markers from frontmatter and note body:
-     - `!IMPORTANT` $\rightarrow$ tag `important`, renders `⚠️ IMPORTANT` badge.
-     - `!BLOATED` $\rightarrow$ tag `bloated`, renders `📦 BLOATED (needs split)` badge.
-     - `!INCOMPLETE` $\rightarrow$ tag `incomplete`, renders `📝 INCOMPLETE (early draft)` badge.
-     - `!SPIKE` $\rightarrow$ tag `spike`, renders `⚡ SPIKE` badge.
-2. In `master_template.html` & `sidecar.css`:
-   - Add styles for `.badge-attention-important`, `.badge-attention-bloated`, `.badge-attention-incomplete`, `.badge-attention-spike`.
-   - Add session launcher buttons in card action rows:
-     - `[ 🔬 Grill-Lab ]`: Dispatches `/grill-lab --topic "<clean_title>"`
-     - `[ 🧠 Deep Research ]`: Dispatches targeted research turn
-     - `[ 🔨 Draft Plan ]`: Dispatches plan drafting turn
-3. In `sidecar.js`:
-   - Handle button clicks: in extension mode dispatches via `window.sidecar.agent.sendMessage()`; in file mode copies to clipboard and flashes toast.
-
-### Phase 5: `/mail-add` CLI with Position Splice (`tools/mail_add.py`)
-1. Author `c:\Dev\TheKlangSuite\tools\mail_add.py`:
-   - Python stdlib + Pydantic v2 + Universal UTF-8.
-   - Arguments: `title` (required), `--body TEXT`, `--pillar NK` (default TKS), `--priority P1` (default P1), `--after ID` or `--rank N`, `--dry-run`.
-   - Writes note to `C:\Dev\TheKlangVault\Inbox/<title>.md` (or local fallback).
-   - Splices card into `rejigger.json` at target rank and renumbers subsequent cards' `rank` contiguously.
-2. Author skill `.agents/skills/mail-add/SKILL.md` (triggers: `/mail-add`, "add to mailbag").
-3. Mirror to `c:\Dev\nkai\tools/` and `c:\Dev\nkai\bundle/`.
-
-### Phase 6: Automated Verification & Documentation Closeout
-1. Author unit tests `c:\Dev\TheKlangSuite\tools\tests\test_intake_v2.py`:
-   - Test ramble overflow slicing (> 3 ideas).
-   - Test filename-only quick-note parsing.
-   - Test attention tag extraction (`!IMPORTANT`, `!BLOATED`, etc.).
-   - Test `mail_add.py` position splicing and contiguous rank renumbering.
+### Phase 4: Automated Verification Gauntlet
+1. Author `c:\Dev\TheKlangSuite\tools\tests\test_response_drawer.py`:
+   - Test `MailItem` serialization with `agent_reply`.
+   - Test drawer rendering in `board_renderer.py`.
+   - Test `--reply-card` CLI updates `mail_queue.json` and regenerates HTML.
 2. Run test suites:
-   `python -m unittest tools/tests/test_intake_v2.py tools/tests/test_board_hub.py tools/tests/test_sandbox_board.py`
+   `python -m unittest tools/tests/test_response_drawer.py tools/tests/test_intake_v2.py tools/tests/test_board_hub.py tools/tests/test_sandbox_board.py`
 3. Audit templates:
    `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html`
    `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`
@@ -90,11 +75,13 @@ Follow the active plan in `c:\Dev\TheKlangSuite\PLAN.md` and deliver Phases 1 th
 4. Run `python tools/verify_utf8.py --all --strict` (assert 100% compliance).
 5. Run `python tools/verify_context_clues.py` (assert 100% pass).
 6. Run `python tools/install_nkai_plugin.py`.
-7. Author specification `docs/specs/nkai_mailbag_intake_and_triage_v2.md`.
-8. Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-9. Update `docs/GLOSSARY.md` (§22: Mailbag Intake & Triage v2) and `docs/CHEAT_SHEET.md`.
-10. Update `docs/BACKLOG.md` (mark Flight 7 complete) and Cards `rj-07`/`rj-17` in `rejigger.json`.
-11. Check all boxes `[x]` in `PLAN.md` and set `Status: COMPLETED ✅`.
-12. Append execution receipt to `subagent_receipt.md` and set dispatch `STATUS: COMPLETED`.
-13. Commit `TheKlangSuite`: `feat(mailbag): intake & triage v2 — overflow, quick notes, attention tags, session routing, tabled folder, mail-add`.
-14. Commit `nkai`: `feat(mailbag): sync intake & triage v2 tools, models, and template`.
+
+### Phase 5: Design Spec, Documentation & Multi-Repo Commits
+1. Author `docs/specs/nkai_per_card_response_drawer.md`.
+2. Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+3. Update `docs/GLOSSARY.md` (§23: Per-Card Response Drawer) and `docs/CHEAT_SHEET.md`.
+4. Update `docs/BACKLOG.md` (mark Flight 19 complete) and Card `rj-08` in `rejigger.json`.
+5. Check all boxes `[x]` in `PLAN.md` and set `Status: COMPLETED ✅`.
+6. Append execution receipt to `subagent_receipt.md` and set dispatch `STATUS: COMPLETED`.
+7. Commit `TheKlangSuite`: `feat(drawer): implement Flight 19 per-card response drawer`.
+8. Commit `nkai`: `feat(drawer): sync response drawer markup, styles, and models`.

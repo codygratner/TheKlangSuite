@@ -166,6 +166,48 @@ class TestNkaiSandboxBoard(unittest.TestCase):
                 except Exception:
                     pass
 
+    def test_sandbox_response_drawers_and_card_variants(self):
+        """Test 6 (Flight 19): Asserts sandbox board renders all card variants and response drawers."""
+        cmd = [
+            sys.executable,
+            str(self.script_path),
+            "--sandbox",
+            "--no-browser",
+        ]
+        res = subprocess.run(cmd, cwd=str(self.repo_root), capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(res.returncode, 0)
+        content = self.sandbox_html_path.read_text(encoding="utf-8")
+
+        # 1. Deterministic response drawer buttons and containers
+        for cid in ["sbx-01", "sbx-02", "sbx-03", "sbx-04", "sbx-05", "sbx-06", "sbx-07"]:
+            self.assertIn(f'id="btn-drawer-{cid}"', content, f"Missing btn-drawer-{cid}")
+            self.assertIn(f'id="drawer-{cid}"', content, f"Missing drawer-{cid}")
+            self.assertIn(f'id="drawer-container-{cid}"', content, f"Missing drawer-container-{cid}")
+
+        # Quick note card sbx-quick-01 has no reply -> no drawer
+        self.assertNotIn('id="btn-drawer-sbx-quick-01"', content)
+        self.assertNotIn('id="drawer-sbx-quick-01"', content)
+
+        # 2. Phoney PCDA dialectic breakdowns on cards
+        self.assertIn("PCDA Dialectic Matrix: 55Hz Basalt Resonator", content)
+        self.assertIn("PCDA Dialectic Matrix: Submersible Compressor Control", content)
+        self.assertIn("PCDA Dialectic Matrix: 12-Stage Biological Allpass Cascade", content)
+
+        # 3. Card triage variants with rich briefs in agent_reply
+        self.assertIn("Research Brief: Protoplasmic Procedural UI Canvas", content)
+        self.assertIn("Backlog Implementation Brief: Cosmic LFO Module", content)
+        self.assertIn("Technical Autopsy &amp; Rejection Rationale", content)
+        self.assertIn("Feature Codification &amp; Architecture Summary", content)
+
+        # 4. Attention badges and metadata chips
+        self.assertIn("badge-attention-important", content)
+        self.assertIn("badge-attention-bloated", content)
+        self.assertIn("badge-attention-incomplete", content)
+        self.assertIn("badge-attention-spike", content)
+        self.assertIn("badge-merged", content)
+        self.assertIn("badge-quicknote", content)
+        self.assertIn("mail-prereq-badge", content)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -394,5 +394,86 @@ STATUS: COMPLETED
 - `python tools/install_nkai_plugin.py`:
   - **PASS**: All 6 validation checks passed.
 
+---
+
+STATUS: COMPLETED
+
+# Subagent Execution Receipt: Flight 19 Per-Card Response Drawer (rj-08 split)
+> *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
+> *Active Branch:* `0.4.0-dev` (TKS) / `main` (nkai)  
+> *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
+
+---
+
+## 1. Execution Header
+- **STATUS**: `COMPLETED`
+- **ROLE EXECUTED**: `Flash Tooling Builder`
+- **TASK SLUG**: `flight-19-response-drawer` (Card `rj-08` split)
+- **COMPLETED AT**: `2026-10-11T22:30:00Z`
+- **MODEL TIER**: `Tier 2 Flash (High)`
+- **SOURCE PLAN**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
+
+---
+
+## 2. Deliverables & Artifacts
+1. **Data Model Expansion (`tools/models.py`)**:
+   - Added `agent_reply: Optional[str] = None`, `agent_reply_at: Optional[str] = None`, and `has_reply: bool = False` to `MailItem` with automatic `sync_has_reply` model validator.
+   - Added `agent_reply` and `agent_reply_at` to `RambleCard` with passthrough to `to_mail_item()`.
+   - Mirrored models to `c:\Dev\nkai\tools/models.py` and `nkai/bundle/tools/models.py`.
+2. **Accessible Response Drawer UI & Styling (`core/master_template.html`, `core/sidecar.css`)**:
+   - Rendered `#drawer-container-{{CARD_ID}}`, accessible toggle `#btn-drawer-{{CARD_ID}}`, and `#drawer-{{CARD_ID}}` on cards with replies.
+   - Styled `.card-drawer-container`, `.card-drawer-toggle`, `.card-drawer-content`, and `.drawer-inner` with dark-slate contrast, subtle purple accent borders, and glassmorphic depth.
+   - Added header indicator badge `💬 Agent assessed` (`.badge-has-reply`).
+   - Mirrored across `.agents/sidecar/master_template.html` and `nkai/bundle/templates/master_template.html`.
+3. **Controller & CLI Reply Tooling (`core/sidecar.js`, `tools/board_renderer.py`, `tools/check_mail.py`)**:
+   - Implemented `toggleResponseDrawer(cardId)` with ARIA synchronization, `.is-open` animation, and Web Audio detent haptics (`playHaptic('tick')`).
+   - Integrated markdown formatting and drawer container injection in `tools/board_renderer.py`.
+   - Implemented `--reply-card <id> --text "<markdown>"` in `tools/check_mail.py` supporting sub-50ms queue updates and board regeneration without vault rescanning.
+   - Hardened `build_mail_queue` to preserve existing `agent_reply` and `agent_reply_at` across full intake runs.
+   - Mirrored to `c:\Dev\nkai\core/sidecar.js`, `nkai/tools/`, and `nkai/bundle/tools/`.
+4. **Comprehensive Sandbox & Card Variants Fixture (`assets/fixtures/sandbox_mail_queue.json`)**:
+   - Showcases all 8 card variants with rich responses:
+     - PCDA dialectic breakdowns (Thesis, Friction, Antithesis, 80/20 Resolution) on `sbx-01`, `sbx-02`, and `sbx-03`.
+     - `RESEARCH` card (`sbx-07`) with research brief, open questions, and benchmark targets.
+     - `BACKLOG` card (`sbx-04`) with implementation milestones.
+     - `GRAVEYARD` card (`sbx-05`) with technical autopsy.
+     - `COMPLETED` card (`sbx-06`) with architectural codification summary.
+     - Quick note (`sbx-quick-01`), attention tags, merged source chips, dependencies, and overflow indicators.
+   - Initialized `.agents/pipeline/mailbag/overflow.json` with sample overflow item.
+5. **Testing & Verification Gauntlet**:
+   - Authored `tools/tests/test_response_drawer.py` (5/5 PASS).
+   - Expanded `tools/tests/test_sandbox_board.py` with `test_sandbox_response_drawers_and_card_variants` (6/6 PASS).
+   - Executed full 22-test unit gauntlet across all suites (22/22 PASS in ~4.7s).
+   - Audited templates with `tools/audit_sidecar.py` (PERFECT PASS, 0 errors/warnings across all sidecars).
+   - Validated Universal UTF-8 compliance across 59/59 Python files (100% compliant).
+   - Validated context clues (4/4 passed, 56/56 links resolved).
+   - Successfully verified extension assets via `tools/install_nkai_plugin.py`.
+6. **Architectural Specification & Governance Sync**:
+   - Authored design spec [`docs/specs/nkai_per_card_response_drawer.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_per_card_response_drawer.md).
+   - Registered in [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) and [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md).
+   - Synchronized [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) (§23: Per-Card Response Drawer) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md).
+   - Marked Card `rj-08` as `COMPLETED` in `.agents/pipeline/mailbag/rejigger.json` and marked Flight 19 complete in `docs/BACKLOG.md`.
+   - Updated `PLAN.md` with 100% check-off and marked `Status: COMPLETED ✅`.
+
+---
+
+## 3. Verification Gauntlet Results
+- `python -m unittest tools/tests/test_response_drawer.py tools/tests/test_intake_v2.py tools/tests/test_board_hub.py tools/tests/test_sandbox_board.py`:
+  - **PASS**: 22 tests in 4.7s (100% PASS).
+- `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/master_template.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/verify_utf8.py --all --strict`:
+  - **PASS**: 59/59 files compliant (100% Universal UTF-8).
+- `python tools/verify_context_clues.py`:
+  - **PASS**: 4/4 files passed, 56/56 local links resolved.
+- `python tools/install_nkai_plugin.py`:
+  - **PASS**: All 6 validation checks passed.
+
+
 
 

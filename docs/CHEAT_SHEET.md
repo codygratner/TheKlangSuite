@@ -239,6 +239,16 @@
 * **Attention Tags & Session Launchers**: Markdown markers (`!IMPORTANT`, `!BLOATED`, `!INCOMPLETE`, `!SPIKE`) parsed into attention badges; card footer renders `[ 🔬 Grill-Lab ]`, `[ 🧠 Deep Research ]`, `[ 🔨 Draft Plan ]` launchers with extension IPC / clipboard fallback.
 * **`/mail-add` CLI**: `python tools/mail_add.py <title> --after <id> | --rank <n>` splices into queue with contiguous rank renumbering and generates structured inbox notes.
 
+---
+
+## 💬 Per-Card Response Drawer (Flight 19 / `rj-08`)
+
+* **In-Card Reasoning (`agent_reply`)**: Attaches rich Markdown assessments, PCDA matrices, code signatures, and benchmark targets directly to cards, displayed in an accessible collapsible drawer (`#drawer-<id>`).
+* **Chat-Minimal Pair Programming**: Preserves context window capacity by keeping chat responses to 1–2 crisp status lines (`"Triaged rj-08 to Backlog. Architectural breakdown committed to card drawer."`).
+* **Deterministic Drawer Hierarchy**: Accessible button `#btn-drawer-<id>` with dynamic `aria-expanded`, content wrapper `#drawer-<id>` with `hidden` attribute, and `.drawer-inner.markdown-body`.
+* **Fast CLI Reply Tooling**: `python tools/check_mail.py --reply-card <id> --text "<markdown>"` commits replies to `mail_queue.json` and regenerates the HTML board in <50ms without vault re-scanning.
+* **Procedural Detent Audio**: Web Audio API `playHaptic('tick')` exponential sine sweep (800Hz → 400Hz) delivers physical detent feedback on drawer toggle, respecting localStorage audio mute preferences.
+
 
 
 
