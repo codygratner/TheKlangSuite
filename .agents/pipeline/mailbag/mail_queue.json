@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:06:15.650871",
+  "last_scanned": "2026-10-11T13:07:47.336301",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -56,7 +56,7 @@
       "title": "Universal UTF-8 Invariant (quick win)",
       "created_at": "2026-10-09",
       "priority": "P0",
-      "status": "PENDING",
+      "status": "BACKLOG",
       "tags": [],
       "target_pillars": [
         "AGY",
@@ -66,8 +66,8 @@
       "source_file": "[`UTF-8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/UTF-8.md)",
       "preview": "Promoted P1 -> P0. Windows cp1252 crashes hit every tooling session (three times today alone). Tiny fix, removes daily friction for everything downstream.",
       "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "BACKLOG",
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG.md N'kai Flight 18 (P0 quick win, next up).",
       "estimated_tokens": 10000,
       "char_count": 521,
       "word_count": 62,
