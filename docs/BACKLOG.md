@@ -1042,7 +1042,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1 — TOP ACTIVE PRIORITY)** — ⏳ QUEUED: Automated compilation of research cards, user notes, dialectical theses, and contrarian failure modes into a dense master system prompt payload for external LLM reasoning sessions.
 - [ ] **Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (Topic 6, P1 — TOP PRIORITY)** — ⏳ QUEUED: Background research daemon automating iterative exploration paired with the multi-tab dossier card layout (Source Note, PCDA, Research, and Mobile Bottom Sheet); next execution target upon weekly quota reset.
 - [ ] **Flight 4: General Research Assistant & Configurable Lens Profiles (Topic 9, P2)** — ⏳ QUEUED: Declarative lens profiles (`tools/lens_profiles.json`) with auto-detection tags (`#studio`, `#hardware`, `#ttrpg`, `#writing`) and zero product forking.
-- [ ] **Flight 5: Spun-Up Flash Low Agent for N'kai-to-Chat Button Routing (Topic 16, P1 — TOP UNTRIAGED)** — ⏳ QUEUED: Spun-up lightweight Flash Low subagent handling zero-touch button dispatching and routing between the N'kai sidecar webview and chat runtime without manual clipboard pasting or Pro quota burn.
+- [x] **Flight 5: Spun-Up Flash Low Agent for N'kai-to-Chat Button Routing (Topic 16, P1)** — 🪦 GRAVEYARD: Rejected in favor of Antigravity's native UI Extension IPC (`window.sidecar.agent.sendMessage()`), avoiding unnecessary LLM inference latency and token overhead for simple string routing.
 - [ ] **Flight 6: Platform & Ecosystem Pillar Badges on Cards (Topic 17, P2)** — ⏳ QUEUED: Declarative platform/ecosystem pillar badges (TKS, TT, NK, TKR, TBD-16, AGY) and agent workflow indicators across triage cards for instant destination recognition.
 - [ ] **Flight 7: Streamlined Mailbag Ingestion & Dynamic Positioning (Topic 18, P2)** — ⏳ QUEUED: Lightweight CLI tooling and chat command integration to effortlessly append and position untriaged ideas without manual multi-file renumbering.
 - [x] **Flight 8: Tracktion Engine Backend Evaluation (Topic 13, P1)** — 🪦 GRAVEYARD: Rejected in favor of pure C++20 allocation-free ToadCore state machine wrapped in a thin JUCE standalone shell (guaranteeing 1:1 hardware parity with TBD-16 without DAW bloat).
@@ -1358,6 +1358,19 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
   2. *The Parallel Engine Debt*: Maintaining a Tracktion desktop version alongside a bare-metal microcontroller C++ engine doubles development debt and bug surface area.
   3. *Leaky Abstractions*: Temporary scaffolding inevitably creates hidden dependencies on DAW-style async streaming, making eventual microcontroller migration a catastrophic rewrite.
 - **Winning Synthesis (The 80/20 Resolution)**: Adopt the **Dirtywave M8 / SunVox Model** — author a pure, allocation-free C++20 tracker core (`ToadCore`) that compiles identically on Desktop and TBD-16, wrapped in a lightweight ~100-line JUCE audio device host on Desktop. 100% hardware parity on Day 1, zero throwaway code, zero Tracktion bloat.
+
+---
+
+### 2. Spun-Up Flash Low Agent for N'kai Button Routing (Topic 16 / Flight 5) — 🪦 KILLED / GRAVEYARD
+- **Date:** 2026-10-11 | **Proposed Route:** Spawn an autonomous background Flash Low subagent (`invoke_subagent(Model="flash_lite")`) to poll for webview button clicks and route action directives to the main chat session.
+- **Strategic Verdict:** **REJECTED (KILLED)**.
+- **Autopsy & Failure Modes:**
+  1. *Using an LLM for Plumbing (AI Slop Anti-Pattern)*: Software engineering has possessed instant, deterministic, zero-cost IPC mechanisms (sockets, pipes, DOM events, native APIs) for 50 years. Using a multi-billion-parameter neural network as a dumb string relay between a webview and a chat window is textbook AI over-engineering.
+  2. *Lifecycle & Deadlock Trap*: In Antigravity, subagents cannot be spawned by DOM button clicks or external scripts—only an active LLM turn can call `invoke_subagent`. An agent cannot run an infinite polling loop without hitting turn/timer limits.
+  3. *The Double-Dip Quota Multiplier*: When a subagent calls `send_message()`, the main chat wakes up and executes a full turn. That means 1 button click = 2 separate LLM inferences, burning quota needlessly.
+- **Winning Synthesis (The 80/20 Resolution)**: Rely on Antigravity's **Native UI Extension IPC (`window.sidecar.agent.sendMessage()`)**. When N'kai runs in its official home in the Antigravity Extension Pane, clicking any button dispatches directly to the active chat in 0ms with zero token burn. For standalone browser views, maintain the honest 1-click clipboard composer (`Ctrl+V`).
+
+---
 
 ---
 
