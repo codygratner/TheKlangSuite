@@ -220,8 +220,14 @@ def parse_docket_file(docket_path: Path):
 
     items = []
     for i, m in enumerate(matches):
-        idx = int(m.group(1))
+        full_heading = m.group(0)
         title = m.group(2).strip()
+
+        # Skip already completed, shipped, or approved flights
+        if "✅" in full_heading or any(s in title.lower() for s in ["completed", "shipped", "approved"]):
+            continue
+
+        idx = int(m.group(1))
         start_pos = m.end()
         end_pos = matches[i + 1].start() if i + 1 < len(matches) else len(content)
         # Stop at next major ## section if present
