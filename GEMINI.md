@@ -39,8 +39,14 @@
     - **`research` (`Model="pro"`)**: Targeted Tier 1 Sprint mode reserved strictly for high-reasoning tasks (DSP differential equations, non-linear saturation proofs, lock-free concurrency proofs, and complex multi-file architectural synthesis).
     - **`explore` (`Model="flash"`)**: Autonomous Tier 2 Marathon mode for broad, goal-oriented sweeps (UI/UX layout explorations, community sentiment analysis across Reddit/KVR/Gearspace, preset browser taxonomy, and broad competitive benchmarking).
     - **`contrarian` (`Model="flash"`)**: The Devil's Advocate adversarial mode paired with exploratory sprints to stress-test proposals, expose edge-case failure modes, and derive the pragmatic 80/20 middle ground.
-    - **Subagent Pre-Authorized Web Access & The `--no-web` Override**: By default, research, explore, and web-qa subagents are pre-authorized to use web access tools (`search_web`, `read_url_content`) to query upstream browser standards, developer forums, and competitor architectures without interactive prompts. Appending `--no-web` or `--offline` strictly enforces an air-gapped run restricted to local workspace docs and `TheKlangResearch`.
-  - **Session Footer Link**: Chat responses during active sessions must include the clickable N'kai board launcher in the footer: `[ 📬 Open N'kai Board ](sidecar://nkai/panel/)` (replacing legacy subagent text to provide 1-click side pane access).
+  - **Ambient Status Footer Line & Dynamic N'kai Board Launcher**:
+    - Chat responses conclude with a single ambient status line in the footer:
+      `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
+      (e.g. `Focus: N'kai hardening | TKS-0.4.0 · TT-0.1.0 · NK-0.2.0 · TR-Active`).
+    - **Dynamic Board Link Rule**: When an N'kai interactive triage board session is actively open or being worked on, append `· [ 📬 Open N'kai Board ](sidecar://nkai/panel/)` to the end of the line. On routine C++/tooling turns, omit the link to keep chat transcripts clean.
+  - **Gentle Re-Centering Nudge Protocol (Compass Check)**: Immediately upon concluding exploratory research sprints, deep PCDA teardowns, or peripheral side quests, the agent outputs a single-sentence re-centering compass check:
+    > 🧭 **North Star Check**: Returning from *[Detour Topic]* to active focus: **[Current Pillar & Active Flight]** (per [`docs/FOCUS.md`](file:///c:/Dev/TheKlangSuite/docs/FOCUS.md)).
+    *(Nudge invariant: this is a subtle compass check, never a blocking gate).*
 
 ## Target Toolchain & Standards
 - **C++ Standard**: C++20 (`CMAKE_CXX_STANDARD 20`).

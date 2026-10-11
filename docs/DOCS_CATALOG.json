@@ -18,6 +18,11 @@
           "purpose": "Single source of truth for active and future milestones, features, bugs, and non-goals."
         },
         {
+          "path": "docs/FOCUS.md",
+          "title": "North Star Focus Anchor",
+          "purpose": "Living compass for active mission precedence (N'kai -> TKS -> ToadTracker), four pillars matrix, and negative architecture."
+        },
+        {
           "path": "docs/GLOSSARY.md",
           "title": "Architectural Taxonomy & Terminology",
           "purpose": "Defines canonical UI taxonomy (Cards, Modules, Sliders, Knobs) and DSP terms."

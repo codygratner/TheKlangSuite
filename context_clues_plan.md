@@ -30,14 +30,14 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** Mailbag triage 100% COMPLETED across all 37 cards (**Inbox Zero** achieved!). Next objective: **Flight 0: North Star Focus Doc (`rj-09`) & Ambient Status Footer**.
+- **Current Objective:** **Flight 0 (North Star Focus Doc `rj-09`) COMPLETED ✅**. Next objective: **Flight 18: Universal UTF-8 Invariant (`rj-02`)**.
 - **Board & Data**:
-  - All 37 cards triaged: 12 Completed, 5 Backlog, 13 Approved, 5 Tabled, 2 Graveyard, 0 Pending.
-  - Source of truth: [`.agents/pipeline/mailbag/rejigger.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/rejigger.json) & [`.agents/pipeline/mailbag/mail_queue.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/mail_queue.json).
-  - Both repos synchronized and committed (`fff05f4` TKS, `7564d7b` nkai).
+  - Mailbag triage 100% complete (Inbox Zero).
+  - Living North Star anchor active: [`docs/FOCUS.md`](file:///c:/Dev/TheKlangSuite/docs/FOCUS.md).
+  - Ambient status footer line standardized: `Focus: N'kai hardening | TKS-0.4.0 · TT-0.1.0 · NK-0.2.0 · TR-Active`.
 - **DAW Dilemma Status**: Blind DA stress test & parallel Flash vs. Pro benchmark complete. Opus 5.5 run deferred until rolling 5-hour allowance resets. Task 9 (No-BS DAW Engine Memo) queued in [`.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md).
 - **Model State**: Active chat on **Gemini 3.8 Flash (High)**. Opus 5.5 in 5-hour allowance cooldown.
-- **Immediate Next Command**: Execute **Flight 0: North Star Focus Doc (`rj-09`)** — author `docs/FOCUS.md` and wire ambient status footer line into guidelines/glossary/cheat sheet.
+- **Immediate Next Command**: Execute **Flight 18: Universal UTF-8 Invariant (`rj-02`)** — author `tools/verify_utf8.py` to audit and enforce explicit `encoding="utf-8"` across all repo scripts.
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
 
 

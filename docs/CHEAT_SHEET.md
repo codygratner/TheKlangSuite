@@ -94,7 +94,7 @@
   * `research` (`Model="pro"`): Targeted Tier 1 Sprint for deep DSP differential equations, non-linear saturation proofs, and multi-file architectural synthesis.
   * `explore` (`Model="flash"`): Autonomous Tier 2 Marathon for broad UI/UX surveys, community sentiment, and competitive benchmarking.
   * `contrarian` (`Model="flash"`): The Devil's Advocate adversarial mode stress-testing proposals, failure modes, and cognitive debt.
-* **Lean Chat Footer**: Chat footers provide direct 1-click side pane access via `[ 📬 Open N'kai Board ](sidecar://nkai/panel/)`, omitting legacy repetitive subagent labels while preserving the SemVer roadmap track.
+* **Ambient Status Footer**: Responses conclude with a single ambient status line: `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`. When an interactive N'kai board is actively open, appends `· [ 📬 Open N'kai Board ](sidecar://nkai/panel/)`; on routine coding turns, omits the link to keep transcripts clean.
 
 ---
 
@@ -183,9 +183,20 @@
 ---
 
 ## 🛡️ Audit Cadence & Checkpoint Resumption
-
+ 
 * **Light vs Deep**: Light audit at every patch tag (Flash High); Deep Opus audit once per minor version (`v0.4.0`, `v0.5.0`) or before quota reset.
 * **Checkpoints**: Progress saves to `audit_checkpoint.json` per repo; resume in 0 turns if quota cuts off. Findings land on an N'kai board.
+
+---
+
+## 🧭 The North Star Focus & Ambient Status Line (Mailbag `rj-09`)
+
+* **The Living Compass (`docs/FOCUS.md`)**: Single source of truth for active project precedence (`N'kai Solidification` → `TKS v0.4.0 UI Shells / v0.5.0-dev Sound & Chaos` → `ToadTracker PoC`) and strict Negative Architecture (what we are *not* doing right now).
+* **Gentle Re-Centering Nudge**: A single-sentence compass check after research detours: `🧭 North Star Check: Returning from [Detour] to active focus: [Target]` (nudge, never a blocking gate).
+* **Ambient Status Footer**: The single line at the end of every response:
+  `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
+  (append `· [ 📬 Open N'kai Board ](sidecar://nkai/panel/)` only when an N'kai board session is active).
+
 
 
 

@@ -220,6 +220,17 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Checkpoint Resumption**: Deep cross-repo sweeps save progress to `audit_checkpoint.json` per repo, allowing 0-turn resumption if interrupted by rate/token limits.
 * **Findings Board**: Audit findings populate an N'kai board rather than flooding chat history (Mailbag `rj-11`).
 
+---
+
+## 17. The North Star Focus & Ambient Status Protocol (Mailbag `rj-09`)
+
+* **The North Star Focus Anchor (`docs/FOCUS.md`)**: The living compass document that declares the active mission, the 4-pillar precedence order (`N'kai Solidification` → `TKS v0.4.0 UI Shells / v0.5.0-dev Sound & Chaos` → `ToadTracker PoC`), and strict Negative Architecture (what we are *not* doing right now).
+* **The Gentle Re-Centering Nudge**: The conversational habit where an agent wrapping up a deep research spike, dialectic teardown, or creative tangent appends a single-sentence compass check to re-orient onto the active milestone without blocking execution (`🧭 North Star Check: Returning from [Detour] to active focus: [Target]`). Nudge, not a gate.
+* **Ambient Status Footer Line**: The unified, single-line footer appended to responses:
+  `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
+  providing ambient system orientation across multi-repo solo vibe-coding sessions.
+
+
 
 
 

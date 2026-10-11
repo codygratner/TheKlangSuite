@@ -4,6 +4,7 @@ This is the central directory for all high-level documentation, rules, and histo
 
 ### 1. 📜 Core Directives & Guardrails
 - [GEMINI.md](../GEMINI.md) — The ultimate source of truth for all agentic workflows, rules, coding standards, and architectural constraints. **Always read this first**.
+- [FOCUS.md](FOCUS.md) — The living compass for active mission precedence (N'kai -> TKS -> ToadTracker), four pillars matrix, and negative architecture.
 - [DOCS_CATALOG.json](DOCS_CATALOG.json) — Master index and navigation manifest for all documentation, specs, research archives, and sidecars.
 - [GLOSSARY.md](GLOSSARY.md) — The taxonomy of UI components (Cards, Modules, Sliders, Knobs) and project-specific terms.
 - [CHEAT_SHEET.md](CHEAT_SHEET.md) — Single-page master reference card for ecosystem pillars, acronyms, flight-deck metaphors, slash commands, and audio invariants.

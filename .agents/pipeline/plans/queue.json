@@ -35,9 +35,9 @@
     {
       "id": "plan-006",
       "title": "Flight 2: Open Source Anti-Slop Hardening & CI Safety Gauntlet (Card #29 / Section 15)",
-      "plan_file": "PLAN.md",
+      "plan_file": ".agents/pipeline/plans/completed/2026-10-11_flight2_open_source_anti_slop_hardening.md",
       "target": "FACTORY_FLOOR",
-      "status": "READY_FOR_TAKEOFF",
+      "status": "COMPLETED",
       "priority": "P0",
       "created_at": "2026-10-11T16:42:00Z"
     },
