@@ -53,6 +53,18 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Allowance Ledger & Token Governance](specs/nkai_allowance_ledger_and_token_governance.md) — Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics, cumulative allowance ledger, and offline CLI auditor.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
+### 8. 🛠️ Developer Tooling & Data Schemas
+- [preset_audit.py](../tools/preset_audit.py) — TKPL Preset Linter CLI (validates presets against Pydantic schema and master controls).
+- [nkai_api.py](../tools/nkai_api.py) — Local FastAPI Bridge server on `http://127.0.0.1:8000`.
+- [plan_queue.py](../tools/plan_queue.py) — Multi-Plan Queue and stateless atomic 5ms rollback engine.
+- [check_mail.py](../tools/check_mail.py) — Morning Mail Vault Inbox harvester and triage board generator.
+- [pcda_format.py](../tools/pcda_format.py) — PCDA dialectic validator and markdown-to-HTML formatter.
+- [nkai_ledger.py](../tools/nkai_ledger.py) — N'kai allowance meter and token consumption estimator.
+- [nkai_serve.py](../tools/nkai_serve.py) — Zero-dependency local HTTP server for interactive sidecars.
+- [verify_context_clues.py](../tools/verify_context_clues.py) — Markdown hyperlink integrity auditor.
+- [master_control_schema.json](../assets/controls/master_control_schema.json) — Master DSP parameter schema across all 8 modules (202 parameters).
+- [preset.schema.json](../assets/presets/$schema/preset.schema.json) — Universal preset JSON schema generated from Pydantic `PresetPayload`.
+
 ## 🏛️ The Five-Pillar Ecosystem
 
 The Klang ecosystem consists of five interconnected repositories:

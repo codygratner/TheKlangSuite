@@ -46,10 +46,11 @@
   - [6. N'kai Web Audio Haptics](#6-nkai-sidecar-harness-web-audio-haptics--webview-audio-pipeline-backlog)
   - [7. Obsidian Vault Inbox & Addons Triage](#7-obsidian-vault-inbox--addons-triage-next-nkai-session)
   - [8. Post-Milestone Deep Docs Gauntlet](#8-post-milestone-deep-docs--field-guides-separation-gauntlet---queued)
-  - [9. Tri-State Model Advisory Architecture](#9-tri-state-model-advisory-architecture-topic-4---queued)
+  - [9. Tri-State Model Advisory Architecture](#9-tri-state-model-advisory-architecture-topic-4---completed)
   - [10. Thematic Milestone Governance](#10-thematic-milestone-governance--lightweight-anti-willy-nilly-guardrails-topic-10---queued)
   - [11. Persistent Mailbag Session & Dynamic Priority Queue](#11-persistent-mailbag-session--dynamic-priority-queue---queued)
-  - [12. Multi-Tier Rollback Architecture Across Agent Skills](#12-multi-tier-rollback-architecture-across-agent-skills---queued)
+  - [12. Multi-Tier Rollback Architecture Across Agent Skills](#12-multi-tier-rollback-architecture-across-agent-skills---active)
+  - [13. The Operatic Runway & Tooling Flights (Acts I & II)](#13-the-operatic-runway--tooling-flights-acts-i--ii---completed)
 
 ---
 *Focus: Tooling, Data-Driven Architecture, and 1:1 Legacy Parity.*
@@ -1125,12 +1126,12 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 
 ---
 
-### 9. Tri-State Model Advisory Architecture (Topic 4) — ⏳ QUEUED
+### 9. Tri-State Model Advisory Architecture (Topic 4) — ✅ COMPLETED
 *Goal: Streamline model selection protocol in `GEMINI.md` to eliminate banner fatigue and interactive pauses during routine turns while strictly maintaining safety tripwires for audio DSP and factory build failures.*
 - **State 0 (95% Happy Path)**: Permanent Flash 3.8 High orchestrator daily driver. Routine turns, phase advances, and plan kickoffs run without multi-line advisory blocks or dropdown-check pauses, displaying only an ambient single-line footer badge (`[ ⚡ Engine: Flash High | Pro Subagents on Demand ]`).
 - **State 1 (Internal Guardrail - No Direct DSP)**: The Flash orchestrator is strictly forbidden from writing differential equations, non-linear saturation curves, SIMD DSP loops, or lock-free atomics directly in-session; it MUST delegate Tier 1 math tasks to `invoke_subagent(Model="pro")`.
 - **State 2 (Emergency Tripwire)**: A loud blocking advisory banner and hard-pause in chat text is strictly reserved for true emergency escalations: 2-Strike Factory Build Failures, Milestone Capstone Sanity Gates, and Release Gauntlets (`/cut-release`).
-- **Sourced from**: Topic 4 Deep Research & Contrarian Synthesis ([`TheKlangResearch`](https://github.com/codygratner/TheKlangResearch)).
+- **Status**: Implemented and codified in `GEMINI.md`, `docs/GLOSSARY.md`, and `docs/CHEAT_SHEET.md`.
 
 ---
 
@@ -1152,12 +1153,26 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 
 ---
 
-### 12. Multi-Tier Rollback Architecture Across Agent Skills — ⏳ QUEUED
+### 12. Multi-Tier Rollback Architecture Across Agent Skills — 🔨 ACTIVE
 *Goal: Establish stateless, instant atomic rollback paths across critical agent workflows to recover from mistaken operations, bad runs, or accidental file movements with zero token burn.*
+- **Persistent Plans Queue & Plan Rollback (`clean-plan --rollback` / `/rollback-plan`)** — ✅ COMPLETED: Manages multi-plan queue in `.agents/pipeline/plans/queue.json` and snapshots active `PLAN.md` to `PLAN_PREV.md` before overwriting or promoting from `drafts/`. Executes 5ms stateless rollback.
 - **Mailbox Archive Rollback (`tools/check_mail.py --rollback`)**: Emits atomic transaction receipts (`.agents/pipeline/staging/mail_tx_latest.json`) before moving files to `Archive/`. Running `--rollback` restores files in 5ms without LLM overhead.
 - **Topological Itinerary Rollback (`tools/audit_reorder.py --rollback`)**: Snapshots the prior flight sequence (`itinerary_snapshot_prev.json`) before applying re-sequencing, allowing instant reversion if topological reordering causes friction.
-- **Persistent Plans Queue & Plan Rollback (`clean-plan --rollback` / `/rollback-plan`)**: Manages multi-plan queue in `.agents/pipeline/plans/queue.json` and snapshots active `PLAN.md` before overwriting or promoting from `drafts/`.
 - **Factory & Verification Rollback (Future Discussion)**: Staged rollback hooks for `execute-task` (git stash/checkout on 2-strike build failures), `step-verify` (un-staging failed phase checkpoints), and `update-docs` (restoring docs catalog snapshots on link integrity failures).
+
+---
+
+### 13. The Operatic Runway & Tooling Flights (Acts I & II) — ✅ COMPLETED
+*The foundational infrastructure and developer tooling engine delivered in October 2026 across Acts I & II of the Operatic Flight Plan (`PLAN.md`).*
+- **Flight 1 (Multi-Plan Queue & Rollback)**: Added `tools/plan_queue.py`, `.agents/pipeline/plans/queue.json`, and `/rollback-plan` skill for 5ms zero-token plan restoration.
+- **Flight 2 (The Klang Vault Studio Hub)**: Hardened Obsidian configuration (`app.json`, `userIgnoreFilters`), initialized git repository, and authored multi-repo studio architecture spec.
+- **Flight 3 (Architectural Zonal Boundaries)**: Authored 3-Zone READMEs (`Source/dsp/README.md`, `assets/README.md`, `tools/README.md`) prohibiting rogue per-folder blackboxes.
+- **Flight 4 (Global Pydantic v2.14.0)**: Provisioned global Pydantic environment and unified data models (`tools/models.py`) mirrored across `TheKlangSuite`, `TheKlangVault`, and `nkai`.
+- **Flight 5 (Mailbag Session & Pydantic Validation)**: Validated mailbag queues and Pydantic models for structured note triage.
+- **Flight 6 (TKPL Preset Linter CLI)**: Authored `tools/preset_audit.py`, compiled `master_control_schema.json` (all 202 DSP parameters), and generated `preset.schema.json`.
+- **Flight 7 (N'kai FastAPI Local Bridge)**: Deployed `tools/nkai_api.py` on `localhost:8000` with universal CORS, PNA preflight, and dynamic sidecar detection.
+- **Flight 8 (Rolling Blackbox Context Compaction)**: Formalized context compaction tripwires, 4-step memory flush protocol, and 0-turn cold boot invariant in `GEMINI.md`, `docs/GLOSSARY.md`, and `docs/CHEAT_SHEET.md`.
+- **Flight 9 (Subagent Soul Harvest)**: Vacuumed staged souls from `.agents/pipeline/staging/souls/` into `TheKlangResearch/subagents/`, achieving true Inbox Zero.
 
 ---
 

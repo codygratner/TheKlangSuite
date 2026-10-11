@@ -255,7 +255,9 @@
         "refresh-context",
         "clean-plan",
         "clear",
-        "web-qa"
+        "web-qa",
+        "rollback-plan",
+        "audit-reorder"
       ]
     },
     "interactive_sidecars": {
@@ -272,9 +274,49 @@
       "rendering_rule": "To render visually in Antigravity's interactive panel, copy/write to brain artifact path with ArtifactMetadata."
     },
     "developer_tooling": {
-      "description": "Cross-project automation and synchronization utilities.",
+      "description": "Cross-project automation, linting, sidecar servers, and synchronization utilities.",
       "directory": "tools/",
       "items": [
+        {
+          "path": "tools/preset_audit.py",
+          "title": "TKPL: The Klang Preset Linter CLI",
+          "purpose": "Validates JSON presets against Pydantic PresetPayload and master control schema, fixes metadata, exports schemas, and scaffolds test presets."
+        },
+        {
+          "path": "tools/nkai_api.py",
+          "title": "N'kai FastAPI Local Bridge",
+          "purpose": "Lightweight FastAPI server running on localhost:8000 handling /health, /api/mail, /api/action, and /api/plan/rollback with universal CORS and PNA."
+        },
+        {
+          "path": "tools/plan_queue.py",
+          "title": "Multi-Plan Queue & Atomic Rollback CLI",
+          "purpose": "Manages .agents/pipeline/plans/queue.json, snapshots active plans, promotes queued drafts, and executes 5ms atomic rollbacks."
+        },
+        {
+          "path": "tools/check_mail.py",
+          "title": "Morning Mail Vault Harvester",
+          "purpose": "Scans TheKlangVault/Inbox/ for notes, validates via Pydantic MailItem/MailQueue models, and builds interactive triage boards."
+        },
+        {
+          "path": "tools/pcda_format.py",
+          "title": "PCDA Dialectic Formatter & Validator",
+          "purpose": "Parses and validates 4-part PCDA dialectic blocks (Pros, Cons, Devil's Advocate, 80/20 Resolution) with CLI linting."
+        },
+        {
+          "path": "tools/nkai_ledger.py",
+          "title": "N'kai Allowance Ledger & Token Estimator",
+          "purpose": "Audits HTML sidecar boards, tallies approved cards by model tier, and estimates cumulative token burn."
+        },
+        {
+          "path": "tools/nkai_serve.py",
+          "title": "N'kai Zero-Dependency CLI Server",
+          "purpose": "Serves interactive N'kai sidecars locally over HTTP with automatic browser launching and proper MIME typing."
+        },
+        {
+          "path": "tools/verify_context_clues.py",
+          "title": "Context Clues Link Integrity Validator",
+          "purpose": "Audits all markdown links in context clues files to ensure 100% path resolution."
+        },
         {
           "path": "tools/sync_roadmap_sidecar.py",
           "title": "Roadmap Sidecar Compiler",
@@ -284,6 +326,21 @@
           "path": "tools/sync_obsidian_vault.ps1",
           "title": "Obsidian Vault Mirror Bridge",
           "purpose": "Synchronizes documentation, field guides, and research into TheKlangVault."
+        }
+      ]
+    },
+    "data_schemas": {
+      "description": "JSON Schemas and contracts governing DSP parameter bindings and presets.",
+      "items": [
+        {
+          "path": "assets/controls/master_control_schema.json",
+          "title": "Master DSP Control Schema",
+          "purpose": "Compiled registry of all 202 DSP parameter contracts across all 8 modules (TKF & TKP)."
+        },
+        {
+          "path": "assets/presets/$schema/preset.schema.json",
+          "title": "Universal Preset JSON Schema",
+          "purpose": "Pydantic-derived JSON Schema enforcing PresetPayload, PresetMetadata, and normalized [0.0, 1.0] parameter values."
         }
       ]
     },
@@ -304,8 +361,8 @@
         }
       ]
     },
-    "four_pillar_ecosystem": {
-      "description": "The Four Pillars of the Klang Ecosystem.",
+    "five_pillar_ecosystem": {
+      "description": "The Five Pillars of the Klang Ecosystem.",
       "items": [
         {
           "path": "C:\\Dev\\TheKlangSuite",
@@ -326,6 +383,11 @@
           "path": "C:\\Dev\\Research",
           "title": "The Klang Research Hub",
           "purpose": "Centralized cross-project research repository, surveys, and soul harvests (https://github.com/codygratner/TheKlangResearch)."
+        },
+        {
+          "path": "C:\\Dev\\TheKlangVault",
+          "title": "The Klang Vault",
+          "purpose": "Private Studio Hub, raw thoughts mailbox, and Pydantic data pipelines."
         }
       ]
     }

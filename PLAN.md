@@ -242,10 +242,10 @@ class PresetPayload(BaseModel):
 - [x] Reset `.agents/pipeline/communique/subagent_receipt.md` to `STATUS: IDLE`.
 - [x] Purge processed raw files in `.agents/pipeline/staging/souls/` to achieve Inbox Zero.
 
-#### Scene 2 (Flight 10): Ground-State Spec Reconciliation & Catalog Registration
-- [ ] Register new tools (`preset_audit.py`, `nkai_api.py`), schemas (`master_control_schema.json`, `preset.schema.json`), and specs in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-- [ ] Reconcile `c:\Dev\TheKlangSuite\docs\BACKLOG.md` with recent Act I & II completions.
-- [ ] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
+#### Scene 2 (Flight 10): Ground-State Spec Reconciliation & Catalog Registration — ✅ COMPLETED
+- [x] Register new tools (`preset_audit.py`, `nkai_api.py`), schemas (`master_control_schema.json`, `preset.schema.json`), and specs in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+- [x] Reconcile `c:\Dev\TheKlangSuite\docs\BACKLOG.md` with recent Act I & II completions.
+- [x] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
 
 #### Scene 3 (Flight 11): Field Guide Separation of Concerns (Universal vs. Audio DSP — Field Guides Always Last)
 - [ ] **`TheKlangResearch/guides/vibe_coding_field_guide.md` (Universal Vibe-Coding Manifesto)**:
