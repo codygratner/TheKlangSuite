@@ -35,8 +35,10 @@
 - [v1.0.0 "The General Availability Launch"](#-milestone-v100-the-general-availability-launch)
 - [v1.1.0 "The Klang Box Hardware Universe (Post-1.0)"](#-milestone-v110-the-klang-box-hardware-universe-post-10)
 - [N'kai (NKAI) Asymmetric Sidecar Framework](#-nkai-nkai-asymmetric-sidecar-framework)
-  - [N'kai v0.2.0 Milestone (UI Extension & Native Bridge)](#13-nkai-v020-milestone-the-ui-extension--native-bridge-update---planned)
-  - [N'kai v0.3.0 Milestone (Mobile Companion & Touch Ergonomics)](#14-nkai-v030-milestone-the-mobile-companion--touch-ergonomics-update---planned)
+  - [N'kai v0.2.0 Milestone (UI Extension & Native Bridge)](#13-nkai-v020-milestone-the-ui-extension--native-bridge-update---completed)
+  - [N'kai v0.3.0 Milestone (Mobile Companion & Touch Ergonomics)](#14-nkai-v030-milestone-the-mobile-companion--touch-ergonomics-update---deferred)
+  - [N'kai Sidecar Architecture Roadmap (Act III)](#15-nkai-sidecar-architecture-roadmap-the-rejiggered-runway--act-iii)
+  - [Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)](#16-flight-2-nkai-to-high-reasoning-prompt-compiler-p1--top-active-priority)
 - [Spin-Off Products & Explorations](#-spin-off-products--explorations)
   - [1. The Klang Mill (Standalone VST)](#1-the-klang-mill-standalone-vst--industrial-1x6-multi-fx-pedalboard-rack)
   - [2. The Klang Boilerplate](#2-the-klang-boilerplate--modern-c20--juce-9-foss-plugin-starter-template)
@@ -1034,7 +1036,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 
 ### 15. N'kai Sidecar Architecture Roadmap (The Rejiggered Runway — Act III)
 - [x] **Flight 1: The "Rambles" Ingestion Engine (Topic 2, P0)** — ✅ COMPLETED: Zero-dependency stream-of-consciousness ramble ingestor CLI (`tools/ramble_ingest.py`), Pydantic models (`RambleCard`, `RambleExtractionResult`, `to_mail_item()`), 3-bullet decision card decomposition, and `/ramble` micro-skill (`.agents/skills/ramble-ingest/SKILL.md`).
-- [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1)** — ⏳ QUEUED: Automated compilation of research cards, user notes, and contrarian failure modes into a dense master system prompt payload for external LLM reasoning sessions.
+- [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1 — TOP ACTIVE PRIORITY)** — ⏳ QUEUED: Automated compilation of research cards, user notes, dialectical theses, and contrarian failure modes into a dense master system prompt payload for external LLM reasoning sessions.
 - [ ] **Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon (Topic 6, P1)** — ⏳ QUEUED: Background research daemon automating iterative exploration without stalling chat.
 - [ ] **Flight 4: General Research Assistant & Custom Lens Profiles (Topic 9, P2)** — ⏳ QUEUED: Expanding N'kai into a generalized engineering research companion with pluggable review lenses.
 - [ ] **Flight 5: Tracktion Engine Backend Evaluation (Topic 13, P1)** — ⏳ QUEUED: Architectural evaluation of Tracktion Engine for ToadTracker audio processing and sequencing.
@@ -1042,6 +1044,45 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [ ] **Flight 7: Sub-Module & Component Presets Architecture (Topic 14, P1)** — ⏳ QUEUED: Sub-component preset schemas and serialization across synth modules.
 - [ ] **Flight 8: 4-Macro Mega Modules & Snap Heap Popovers (Topic 12, P1)** — ⏳ QUEUED: 4-encoder mega module abstractions with contextual popover settings callouts.
 - [ ] **Flight 9: Sonicware LIVEN CyDrums Super-Engine (Topic 15, P1)** — ⏳ QUEUED: Drum voice modeling and synthesis engine inspired by CyDrums.
+
+### 16. Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)
+*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)  
+*Status: ⏳ QUEUED (Top Active Priority for Act III Runway)*  
+*Priority: P1 — TOP ACTIVE PRIORITY*  
+*Target Pillar: N'kai Sidecar Architecture Roadmap*  
+*Goal: Automate the compilation of raw research cards, user notes, dialectical theses, and adversarial contrarian friction metrics into a dense, high-signal master system prompt payload for high-reasoning flagship models (Gemini 3.1 Pro High, Claude 3.7 Sonnet Thinking).*
+
+#### 1. Core Value Proposition & The "Master Architect" Principle
+- **Data Miner & Structural Filter**: Passing unstructured rambles or fragmented chat histories directly to expensive high-reasoning models wastes valuable context window capacity and token allowance on basic noise reduction. The local N'kai harness and Tier 2 Flash orchestrator pre-mine data and apply structural filtering (Thesis + Antithesis) locally at near-zero token cost.
+- **Zero-Waste Synthesis**: When the high-reasoning model receives the compiled dossier, it bypasses orientation and baseline discovery entirely. Its deep-thinking reasoning budget is 100% focused on resolving architectural tensions, reconciling trade-offs, and generating definitive software blueprints adhering to the "Sleepy Architecture" invariant (achieving MAXIMUM feature leverage with MINIMAL coding execution overhead).
+
+#### 2. The 80/20 Dual-Harness Architecture (Synthesis)
+- **Mode A: In-IDE Native Subagent Dispatch (Context Shield)**:
+  - Compiles the structured dialectical payload directly into an autonomous `invoke_subagent(Model="pro")` dispatch charter ([`.agents/pipeline/communique/subagent_dispatch.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/subagent_dispatch.md)).
+  - Keeps the main chat session permanently lean on Tier 2 Flash 3.8 High (protecting user allowance and transcript hygiene) while spinning up on-demand Pro thinking subagents for heavy synthesis sprints.
+- **Mode B: External Web & Clipboard Exporter (CLI Tool `tools/compile_prompt.py`)**:
+  - Standalone, zero-dependency Python CLI: `python tools/compile_prompt.py --topic <id> --clipboard` (with `--out <file>`, `--chat`, `--vault` flags).
+  - Automatically aggregates reference nodes from `TheKlangResearch`, active notes from `TheKlangVault`, and contrarian failure modes.
+  - Injects formatted tags: `[THESIS: CORE INTENT]`, `[ANTITHESIS: ADVERSARIAL STRESS-TEST]`, `[CONSTRAINTS & TARGETS]`, and `[SYNTHESIS MANDATE]`.
+  - Populates the OS clipboard via cross-platform bindings (Win32 `ctypes`, macOS `pbcopy`, Linux `xclip`) for instantaneous 1-click pasting into external web interfaces (e.g. Claude Web, ChatGPT Pro, Gemini Web).
+
+#### 3. Structured Data Models (`tools/models.py`)
+- **`PromptHandoffPayload`**: Pydantic v2 data model capturing:
+  - `thread_id`: Unique session identifier.
+  - `reconciliation_protocol`: Dialectical reconciliation schema (e.g., `Standard`, `Strict Audio DSP`, `UI/UX Ergonomics`).
+  - `thesis`: Core intent and user goals (`ThesisBlock`).
+  - `antithesis`: Reviewer persona, friction matrix, identified structural vulnerabilities, and orthogonal vectors (`AntithesisBlock`).
+  - `targets`: Materialization targets, blueprint context, effort/impact metrics, and mayor clearance status (`SynthesisTargetConfig`).
+  - `prompt_mandate`: Explicit instruction set directing the reasoning model to synthesize the final blueprint.
+- **Export Adapters**: Methods `to_markdown()`, `to_clipboard()`, and `to_vault_file()`.
+
+#### 4. Fallback Boundaries (Zero-Bridge Reliability)
+- **Pure File-Based Sync (Obsidian Vault Drop)**: If OS clipboard APIs are restricted in sandboxed environments, writes compiled payload directly to `TheKlangVault/TsathogguaHandoffs/thread_<id>.md` for manual copying or archival review.
+- **CLI Shell Redirection**: Supports piping directly to terminal utilities: `python tools/compile_prompt.py --topic 5 | clip` (Windows) or `pbcopy` (macOS).
+
+#### 5. Sidecar & Webview Integration
+- **1-Click Action Chip**: Integrates `[ 🧠 Compile Reasoning Prompt ]` chip into `morning_mail_inbox.html` and N'kai sidecars.
+- **Readonly Prompt Composer**: Pre-renders the compiled payload into a selectable, highlighted container with dedicated `[ 📋 Copy ]` button, eliminating webview clipboard sandbox permission traps.
 
 ---
 
