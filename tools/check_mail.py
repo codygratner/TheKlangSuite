@@ -490,8 +490,23 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
         )
         mail_items.append(m_item)
 
-    # Ingest notes
+    # Collect known docket source note names to avoid duplicate cards
+    docket_source_names = set()
+    for it in docket_items:
+        sn = str(it.get("source_note", ""))
+        m = re.search(r"\[`?([^`\]]+)`?\]", sn)
+        if m:
+            docket_source_names.add(m.group(1).lower().strip())
+        docket_source_names.add(Path(sn).name.lower().strip())
+        docket_source_names.add(str(it.get("title", "")).lower().strip())
+
+    # Ingest notes (skipping those already formalized as curated docket items)
     for n in notes:
+        fn = str(n.get("file_name", "")).lower().strip()
+        stem = Path(fn).stem.lower().strip()
+        t = str(n.get("title", "")).lower().strip()
+        if fn in docket_source_names or stem in docket_source_names or t in docket_source_names:
+            continue
         m_item = MailItem(
             id=str(n.get("id") or n.get("file_name", "note")),
             title=str(n.get("title", "Untitled Note")),
@@ -527,10 +542,40 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
 
 
 
+def update_archive_index(archive_dir: Path):
+    """
+    Generates a master markdown index (INDEX.md / README.md) of all notes in Archive/
+    with clickable links, dates, and priorities for rapid lookup.
+    """
+    md_files = sorted(archive_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
+    lines = [
+        "# 🗄️ Obsidian Inbox Archive Index",
+        "> Automatically maintained by N'kai Harvester (`tools/check_mail.py`).",
+        f"> **Total Archived Notes:** {len(md_files) - 2 if len(md_files) >= 2 else len(md_files)} | **Last Updated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        "",
+        "| Note Title | Captured Date | Priority | File Link |",
+        "| :--- | :--- | :--- | :--- |",
+    ]
+    for f in md_files:
+        if f.name.upper() in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD"]:
+            continue
+        meta = extract_note_metadata(f)
+        if meta:
+            title = meta.get("title") or f.stem
+            date_str = meta.get("date") or ""
+            pri = meta.get("priority") or "P2"
+            lines.append(f"| **{title}** | `{date_str}` | `{pri}` | [{f.name}]({f.name}) |")
+
+    content = "\n".join(lines) + "\n"
+    (archive_dir / "INDEX.md").write_text(content, encoding="utf-8")
+    (archive_dir / "README.md").write_text(content, encoding="utf-8")
+
+
 def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, queue: MailQueue, queue_path: Path):
     """
     Moves all harvested markdown notes from the root inbox into inbox_dir/Archive,
-    updating the MailQueue ledger and writing an atomic TransactionReceipt for 5ms rollback.
+    ensuring clean YAML frontmatter, updating the MailQueue ledger, writing an atomic
+    TransactionReceipt for 5ms rollback, and compiling the master archive index.
     """
     archive_dir = inbox_dir / "Archive"
     archive_dir.mkdir(parents=True, exist_ok=True)
@@ -545,6 +590,19 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
         if src.parent.resolve() == inbox_dir.resolve():
             dst = archive_dir / src.name
             try:
+                # 1. Inject clean YAML frontmatter if missing
+                try:
+                    text_content = src.read_text(encoding="utf-8")
+                except Exception:
+                    text_content = src.read_text(encoding="latin-1")
+
+                if not re.match(r"^---\s*\n.*?\n---\s*\n", text_content, re.DOTALL):
+                    clean_title = note.get("title") or src.stem
+                    note_date = note.get("date") or datetime.date.today().strftime("%Y-%m-%d")
+                    note_pri = note.get("priority") or "P2"
+                    frontmatter = f"---\ntitle: \"{clean_title}\"\ndate: \"{note_date}\"\npriority: \"{note_pri}\"\ntags: [\"inbox\", \"raw-ramble\"]\nstatus: \"untriaged\"\n---\n\n"
+                    src.write_text(frontmatter + text_content, encoding="utf-8")
+
                 shutil.move(str(src), str(dst))
                 moved_files.append({"src": str(src), "dst": str(dst), "name": src.name})
                 note["rel_path"] = str(dst)
@@ -560,6 +618,12 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
     if moved_files:
         # Save updated queue
         queue_path.write_text(queue.model_dump_json(indent=2), encoding="utf-8")
+
+        # Compile master archive index
+        try:
+            update_archive_index(archive_dir)
+        except Exception as e:
+            print(f"⚠️ Failed to update archive index: {e}")
 
         # Write atomic rollback receipt
         receipt_data = {
@@ -971,6 +1035,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
   <title>📬 N'kai Morning Mail Inbox & Triage Lab</title>
   <script src="/preload.js"></script>
   <style>
