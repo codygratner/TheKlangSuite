@@ -205,13 +205,14 @@ class PresetPayload(BaseModel):
   - Implements atomic transaction receipts (`.agents/pipeline/staging/mail_tx_latest.json`) and `--rollback`.
 - [x] Update `morning_mail_inbox.html` with topological warning suggestion chips for dependent `P0` notes.
 
-#### Scene 2 (Flight 6): TKPL — The Klang Preset Linter CLI
-- [ ] Author `tools/preset_audit.py` (TKPL):
+#### Scene 2 (Flight 6): TKPL — The Klang Preset Linter CLI — ✅ COMPLETED
+- [x] Author `tools/preset_audit.py` (TKPL):
   - Validates all JSON files in `assets/presets/` against `PresetPayload` Pydantic model.
   - Validates parameter IDs exist in `assets/controls/master_control_schema.json`.
   - Asserts normalized parameter floats reside strictly in $[0.0, 1.0]$.
   - CLI commands: `--lint`, `--fix-metadata`, `--export-schema`.
-- [ ] Generate `assets/presets/$schema/preset.schema.json` via Pydantic `.model_json_schema()`.
+- [x] Generate `assets/presets/$schema/preset.schema.json` via Pydantic `.model_json_schema()`.
+
 
 #### Scene 3 (Flight 7): N'kai Local FastAPI Sidecar Bridge (`localhost:8000`)
 - [ ] Install FastAPI globally: `pip install fastapi uvicorn`.

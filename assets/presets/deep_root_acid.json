@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "TKP",
+  "metadata": {
+    "name": "Deep Root Acid",
+    "author": "Cody Gratner",
+    "category": "Kick",
+    "tags": [
+      "Factory",
+      "Default",
+      "tkp"
+    ],
+    "theme_hint": "dark_terminal"
+  },
+  "parameters": {
+    "planter_filter_cutoff": 1.0,
+    "planter_pitchenv_decay": 0.3806,
+    "planter_noise_filter": 0.5,
+    "planter_mod_speed": 0.5
+  }
+}

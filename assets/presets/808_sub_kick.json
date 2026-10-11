@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "TKF",
+  "metadata": {
+    "name": "808 Sub Kick",
+    "author": "Cody Gratner",
+    "category": "Bass",
+    "tags": [
+      "Factory",
+      "Default",
+      "tkf"
+    ],
+    "theme_hint": "dark_terminal"
+  },
+  "parameters": {
+    "carrier1_pitch": 0.5,
+    "carrier1_shape": 0.0,
+    "filter1_cutoff": 1.0,
+    "filter1_resonance": 0.0,
+    "pitchenv1_decay": 0.3806
+  }
+}

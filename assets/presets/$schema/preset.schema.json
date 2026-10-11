@@ -1,0 +1,89 @@
+{
+  "$defs": {
+    "PresetMetadata": {
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "description": "Human-readable name of the preset",
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "author": {
+          "default": "Cody Gratner",
+          "description": "Creator or author of the preset",
+          "title": "Author",
+          "type": "string"
+        },
+        "category": {
+          "description": "Sonic classification (e.g. Bass, Lead, Pad, Kick, Percussion, FX)",
+          "title": "Category",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Searchable descriptive tags",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "theme_hint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional UI theme identifier to pair with preset",
+          "title": "Theme Hint"
+        }
+      },
+      "required": [
+        "name",
+        "category"
+      ],
+      "title": "PresetMetadata",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "SemVer version of the preset schema",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "target_plugin": {
+      "description": "Target plugin identifier (TKF=Farmer, TKP=Planter, TKM=Modulator, TKR=Research)",
+      "pattern": "^(TKF|TKP|TKM|TKR)$",
+      "title": "Target Plugin",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/PresetMetadata",
+      "description": "Preset metadata block"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "Normalized APVTS parameter float values [0.0, 1.0]",
+      "title": "Parameters",
+      "type": "object"
+    }
+  },
+  "required": [
+    "target_plugin",
+    "metadata",
+    "parameters"
+  ],
+  "title": "The Klang Suite Preset Schema (TKPL)",
+  "type": "object",
+  "description": "JSON schema contract for The Klang Suite synthesizer and audio effect presets."
+}
