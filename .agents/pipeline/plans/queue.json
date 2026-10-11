@@ -69,6 +69,27 @@
       "action": "rollback",
       "pointer": 0,
       "title": "The Grand Operatic Flight Plan: Symphony of New Klang City"
+    },
+    {
+      "timestamp": "2026-10-11T02:42:37Z",
+      "action": "promote_next",
+      "from_id": "plan-001",
+      "to_id": "plan-002",
+      "title": "Mayor Toad's Sidecar Embezzlement: N'kai v0.2.0 Native Extension & v0.3.0 Mobile Companion",
+      "target": "TOOLING_HARNESS"
+    },
+    {
+      "timestamp": "2026-10-11T02:42:41Z",
+      "action": "rollback",
+      "from_id": "plan-002",
+      "to_id": "plan-001",
+      "title": "The Grand Operatic Flight Plan: Symphony of New Klang City"
+    },
+    {
+      "timestamp": "2026-10-11T02:42:57.644437+00:00",
+      "action": "rollback",
+      "pointer": 0,
+      "title": "The Grand Operatic Flight Plan: Symphony of New Klang City"
     }
   ]
 }
