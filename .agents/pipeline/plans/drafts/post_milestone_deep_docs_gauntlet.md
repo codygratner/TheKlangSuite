@@ -109,6 +109,24 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
     2. *The Developer Velocity Economics*: The 90% velocity tax of debugging 20-year-old POSIX locks and monolithic channel-strip god-classes for modern reactive UI features.
     3. *The 4-Step Strangler Migration Playbook*: Abstracting an `IAudioEngine` firewall with lock-free SPSC queues, evaluating modern headless alternatives (Tracktion Engine vs. custom JUCE DAG), and purging legacy code without rewriting the frontend.
 
+### Task 10: 🆕 N'kai & ToadTracker 1.0 Production GA Roadmaps (Late-Pass Panoramic Synthesis)
+- [ ] **Author `TheKlangResearch/roadmaps/nkai_and_toadtracker_1.0_ecosystem_roadmap.md`**:
+  - **Governing Invariant**: *The Field Guides Always Last Invariant* (`GEMINI.md`). Synthesized strictly after Tasks 1–9 have refreshed all autopsies, SOTA benchmarks, and field guides, giving the architect the complete panoramic picture of the entire 5-pillar ecosystem.
+  - **Intended Model**: Claude 5.5 Opus (Thinking: High) via the Targeted DSP/Architecture Swap Protocol (per user note `TheKlangVault/Inbox/Can you map out reasonable roadmaps for nkai and tt.md`).
+  - **Part A: N'kai 1.0 Production GA Roadmap (From Antigravity Sidecar to Universal Dev Companion)**:
+    1. *Stage 1 (Shipped)*: v0.2.0 Native Antigravity UI Extension & Zero-Copy Native IPC (`has_web_ui: true`, `main.mjs`, `window.sidecar.agent.sendMessage()`).
+    2. *Stage 2 (Shipped)*: Multi-Board Hub, Session Manager, and Per-Card Response Drawer (`registry.json`, `sbx` test fixtures with precomputed Lovecraftian PCDAs, research briefs, autopsies, and haptic drawers).
+    3. *Stage 3 (v0.3.0)*: Mobile Companion & Couch Dev (Tailscale + LAN pairing, touch-optimized swipe triage, responsive mobile drawer, WebSocket real-time sync).
+    4. *Stage 4*: N'kai Minimal / Chat-Only Headless Package (per user note `Nkai Minimal.md`: standalone skills, guardrails, and mailbag triage for terminal/chat environments without webview boards).
+    5. *Stage 5 (v1.0 GA)*: Multi-Project Workspace Switcher, Public Plugin Registry Packaging, and Deterministic Pre-Flight PCDA Ingestion Engine.
+  - **Part B: ToadTracker 1.0 Production GA Roadmap (The Toad on Steam Deck)**:
+    1. *Stage 1 (Foundation)*: Gamepad Input & Sub-Millisecond Polling Architecture (SDL3/evdev, SPSC ring buffer, high-priority thread, D-pad/ABXY ergonomics, custom button remapping per research sprint).
+    2. *Stage 2 (Interoperability)*: Native Renoise `.xrns` Export Architecture (`miniz` + streaming XML serialization, pattern pool/sequence matrices, instrument and sample bundling).
+    3. *Stage 3 (Audio Engine)*: Headless Audio Engine Decoupling (JUCE AudioProcessorGraph / Tracktion Engine vs bespoke SPSC engine, clean separation from UI per the Ardour autopsy memo).
+    4. *Stage 4 (UI/UX)*: High-Contrast 60fps Tracker Grid, Compact Pattern Matrix, Hex/Decimal dual display, Steam Deck 1280x800 native scaling, OLED-safe color schemes.
+    5. *Stage 5 (v1.0 GA)*: Standalone SteamOS AppImage / Flatpak packaging, ALSA/PipeWire low-latency audio driver configuration, and 1.0 Stable Release.
+  - [ ] Cross-link roadmap in `TheKlangResearch/README.md`, `TheKlangVault/Research/Master_Research_Index.md`, and `docs/BACKLOG.md`.
+
 ---
 
 ## 🛡️ Acceptance Criteria
@@ -117,5 +135,7 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
 3. `GEMINI.md` implements the Tri-State Model Advisory Architecture, eliminating banner fatigue while preserving critical audio invariants and the 2-strike escalation tripwire.
 4. `remote_antigravity_and_couch_dev_eli5.md` provides a crystal-clear, zero-jargon Tailscale + SSH phone tutorial.
 5. `daw_engine_impedance_mismatch_memo.md` provides a short, dense, zero-AI-fluff technical memo ready to send to a fellow DAW developer.
-6. 100% of touched markdown links resolve cleanly.
-7. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.
+6. `nkai_and_toadtracker_1.0_ecosystem_roadmap.md` provides an exhaustive, milestone-by-milestone production roadmap for both N'kai and ToadTracker to v1.0 GA.
+7. 100% of touched markdown links resolve cleanly.
+8. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.
+

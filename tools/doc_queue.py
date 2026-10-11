@@ -66,5 +66,35 @@ def queue_deep_doc(
 
 
 if __name__ == "__main__":
-    q = load_doc_queue()
-    print(f"Loaded {len(q.get('queue', []))} queued doc items from {DEFAULT_QUEUE_PATH}")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Deep Docs Queue Manager")
+    subparsers = parser.add_subparsers(dest="command")
+
+    # list
+    subparsers.add_parser("list", help="List all queued deep docs")
+
+    # add
+    add_parser = subparsers.add_parser("add", help="Add a deep doc to the queue")
+    add_parser.add_argument("--title", required=True, help="Title of the deep document")
+    add_parser.add_argument("--target", required=True, help="Target file path (e.g. TheKlangResearch/guides/...)")
+    add_parser.add_argument("--audience", default="Developers & Musicians", help="Target audience")
+    add_parser.add_argument("--priority", default="P1", help="Priority (e.g. P0, P1, P2)")
+
+    args = parser.parse_args()
+
+    if args.command == "add":
+        item = queue_deep_doc(
+            title=args.title,
+            target_file=args.target,
+            audience=args.audience,
+            priority=args.priority,
+        )
+        print(f"Added [{item['id']}] '{item['title']}' -> {item['target_file']}")
+    else:
+        q = load_doc_queue()
+        items = q.get("queue", [])
+        print(f"Deep Docs Queue ({len(items)} items queued):")
+        for it in items:
+            print(f"  [{it['id']}] ({it.get('priority', 'P1')}) {it['title']} -> {it['target_file']} ({it.get('status', 'QUEUED')})")
+
