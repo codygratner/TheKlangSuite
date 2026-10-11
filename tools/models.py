@@ -23,6 +23,7 @@ class TriageStatus(str, Enum):
     TABLED = "TABLED"
     KILLED = "KILLED"
     BACKLOG = "BACKLOG"
+    COMPLETED = "COMPLETED"
     RESEARCH = "RESEARCH"
     GRAVEYARD = "GRAVEYARD"
     PCDA = "PCDA"

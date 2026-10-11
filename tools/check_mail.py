@@ -45,6 +45,11 @@ DEFAULT_OUTPUT_HTML = Path(r".agents/sidecar/morning_mail_inbox.html")
 DEFAULT_DOCKET_PATH = Path(r".agents/sidecar/morning_mail_topics.md")
 DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
 DEFAULT_TX_RECEIPT = Path(r".agents/pipeline/staging/mail_tx_latest.json")
+DEFAULT_BACKLOG_PATH = Path("docs/BACKLOG.md")
+if not DEFAULT_BACKLOG_PATH.exists():
+    alt_backlog = Path(__file__).resolve().parent.parent / "docs" / "BACKLOG.md"
+    if alt_backlog.exists():
+        DEFAULT_BACKLOG_PATH = alt_backlog
 
 
 def resolve_inbox_directory(dir_override=None, scan_archive=False):
@@ -205,8 +210,81 @@ def scan_inbox(inbox_dir: Path):
     return notes
 
 
-def parse_docket_file(docket_path: Path):
-    """Parses curated docket items from morning_mail_topics.md."""
+def parse_backlog_flight_statuses(backlog_path: Path = DEFAULT_BACKLOG_PATH) -> dict:
+    """
+    Scans docs/BACKLOG.md for flight headings and roadmap entries to determine
+    the triage status of each flight in Act III.
+    Returns: { flight_idx (int): { 'status': 'completed' | 'backlog' | 'untriaged', 'badge': str, 'section': str, 'sec_num': str, 'title': str } }
+    """
+    if not backlog_path.exists():
+        return {}
+    try:
+        content = backlog_path.read_text(encoding="utf-8")
+    except Exception:
+        return {}
+
+    statuses = {}
+
+    # Locate Act III runway (Section 15 onwards)
+    act3_pos = content.find("### 15. N'kai Sidecar Architecture Roadmap")
+    search_content = content[act3_pos:] if act3_pos != -1 else content
+
+    # 1. Parse roadmap check-list items:
+    # Example: - [x] **Flight 1: The "Rambles" Ingestion Engine (Topic 2, P0)** — ✅ COMPLETED...
+    # Example: - [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1 — TOP ACTIVE PRIORITY)** — ⏳ QUEUED...
+    road_matches = re.finditer(
+        r'^-\s+\[(x| )\]\s+\*\*Flight\s+(\d+)[:.]\s*([^*]+)\*\*\s*—\s*([^\n]+)$',
+        search_content,
+        re.MULTILINE
+    )
+    for m in road_matches:
+        checked, f_num, title, status_text = m.groups()
+        f_idx = int(f_num)
+        if checked.lower() == "x" or "COMPLETED" in status_text.upper() or "SHIPPED" in status_text.upper():
+            statuses[f_idx] = {
+                "status": "completed",
+                "badge": "✅ COMPLETED",
+                "section": f"Flight {f_idx}: {title.strip()}",
+                "sec_num": "",
+                "title": title.strip()
+            }
+        else:
+            statuses[f_idx] = {
+                "status": "untriaged",
+                "badge": "⚪ UNTRIAGED",
+                "section": "",
+                "sec_num": "",
+                "title": title.strip()
+            }
+
+    # 2. Parse dedicated flight sections in Act III:
+    # Example: ### 16. Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)
+    # Example: ### 17. Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (P1 — TOP PRIORITY)
+    # Example: ### 18. Flight 4: General Research Assistant & Configurable Lens Profiles (P2)
+    sec_matches = re.finditer(
+        r'^###\s+(\d+)\.\s+Flight\s+(\d+)[:.]\s*([^\n]+)$',
+        search_content,
+        re.MULTILINE
+    )
+    for m in sec_matches:
+        sec_num, f_num, sec_title = m.groups()
+        f_idx = int(f_num)
+        clean_title = sec_title.strip()
+        # If not already completed, a dedicated section means it has been triaged to the BACKLOG!
+        if statuses.get(f_idx, {}).get("status") != "completed":
+            statuses[f_idx] = {
+                "status": "backlog",
+                "badge": "✅ BACKLOG",
+                "section": f"Section {sec_num}: Flight {f_idx}",
+                "sec_num": sec_num,
+                "title": clean_title
+            }
+
+    return statuses
+
+
+def parse_docket_file(docket_path: Path, backlog_path: Path = None):
+    """Parses curated docket items from morning_mail_topics.md cross-referenced with docs/BACKLOG.md."""
     if not docket_path.exists():
         return []
 
@@ -215,19 +293,23 @@ def parse_docket_file(docket_path: Path):
     except Exception:
         return []
 
+    backlog_statuses = {}
+    target_backlog = backlog_path or DEFAULT_BACKLOG_PATH
+    if target_backlog and target_backlog.exists():
+        backlog_statuses = parse_backlog_flight_statuses(target_backlog)
+
     pattern = r"^#{3,4}\s*(?:[🚀⏳⚡🆕✅]\s*)?(?:Flight\s+)?(\d+)[:.]\s*([^\n]+)$"
     matches = list(re.finditer(pattern, content, re.MULTILINE))
 
     items = []
     for i, m in enumerate(matches):
         full_heading = m.group(0)
-        title = m.group(2).strip()
-
-        # Skip already completed, shipped, or approved flights
-        if "✅" in full_heading or any(s in title.lower() for s in ["completed", "shipped", "approved"]):
-            continue
-
+        raw_title = m.group(2).strip()
         idx = int(m.group(1))
+
+        # Clean title of completed/shipped suffix if present
+        clean_title = re.sub(r"\s*—\s*(?:SHIPPED|COMPLETED|APPROVED)[^—\n]*", "", raw_title, flags=re.IGNORECASE).strip()
+
         start_pos = m.end()
         end_pos = matches[i + 1].start() if i + 1 < len(matches) else len(content)
         # Stop at next major ## section if present
@@ -251,16 +333,16 @@ def parse_docket_file(docket_path: Path):
         excerpt = " ".join(clean_lines[:3])[:280] + ("..." if len(" ".join(clean_lines[:3])) > 280 else "")
 
         # Model tier classification
-        t_low = title.lower()
+        t_low = clean_title.lower()
         if any(k in t_low for k in ["filter", "dsp", "saturation", "differential", "polyphon", "audio thread"]):
             tier = "tier1"
-        elif any(k in t_low for k in ["rebranding", "lore", "cheat sheet", "plugins for the knowledge"]):
+        elif any(k in t_low for k in ["rebranding", "lore", "cheat sheet", "plugins for the knowledge", "use cases", "lens profiles"]):
             tier = "tier3"
         else:
             tier = "tier2"
 
         # Priority detection
-        all_docket_text = (title + " " + section_text).lower()
+        all_docket_text = (clean_title + " " + section_text).lower()
         if any(k in all_docket_text for k in ["#p0", "priority: p0", "priority:p0", "highest priority", "top priority", "most highest priority"]):
             priority = "P0"
         elif any(k in all_docket_text for k in ["#p1", "priority: p1", "priority:p1"]):
@@ -280,10 +362,29 @@ def parse_docket_file(docket_path: Path):
 
         tags = list(set(re.findall(r"#([a-zA-Z0-9_\-/]+)", section_text)))
 
+        # Status resolution from docs/BACKLOG.md
+        heading_completed = "✅" in full_heading or any(s in raw_title.lower() for s in ["completed", "shipped", "approved"])
+        b_info = backlog_statuses.get(idx)
+        if b_info:
+            status = b_info["status"]
+            badge_text = b_info["badge"]
+            section_info = b_info.get("section", "")
+            sec_num = b_info.get("sec_num", "")
+        elif heading_completed:
+            status = "completed"
+            badge_text = "✅ COMPLETED"
+            section_info = f"Flight {idx}"
+            sec_num = ""
+        else:
+            status = "untriaged"
+            badge_text = "⚪ UNTRIAGED"
+            section_info = ""
+            sec_num = ""
+
         items.append({
             "id": f"docket-{idx}",
             "idx": idx,
-            "title": title,
+            "title": clean_title,
             "source_note": source_note,
             "excerpt": excerpt,
             "body": section_text,
@@ -293,6 +394,10 @@ def parse_docket_file(docket_path: Path):
             "priority": priority,
             "tags": tags,
             "dependencies": dependencies,
+            "status": status,
+            "badge_text": badge_text,
+            "section_info": section_info,
+            "sec_num": sec_num,
         })
 
     return items
@@ -340,12 +445,19 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
 
     # Ingest docket items
     for it in docket_items:
+        it_status = it.get("status", "untriaged")
+        m_status = TriageStatus.PENDING
+        if it_status == "backlog":
+            m_status = TriageStatus.BACKLOG
+        elif it_status == "completed":
+            m_status = TriageStatus.COMPLETED
+
         m_item = MailItem(
             id=str(it.get("id") or f"docket-{it.get('idx', 0)}"),
             title=str(it.get("title", "Untitled Docket Topic")),
             created_at=str(it.get("date") or "2026-10-09"),
             priority=it.get("priority", "P2"),
-            status=TriageStatus.PENDING,
+            status=m_status,
             tags=it.get("tags", []),
             source_file=str(it.get("source_note", "")),
             preview=str(it.get("excerpt", "")),
@@ -658,14 +770,50 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
         card_id = f"docket-card-{idx}"
 
+        status = it.get("status", "untriaged")
+        badge_text = it.get("badge_text", "⚪ UNTRIAGED")
+        sec_info = it.get("section_info", "")
+        sec_num = it.get("sec_num", "")
+
+        is_dispatched = (status != "untriaged")
+        badge_cls = "badge-dispatched" if status == "backlog" else ("badge-completed" if status == "completed" else "badge-unhandled")
+
         priority = it.get("priority", "P2")
         priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
         deps = it.get("dependencies", [])
         dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
         dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
+        dispatch_banner_html = ""
+        if status == "backlog":
+            dispatch_banner_html = f"""
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>📥 Cataloged in Backlog</span>
+              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(sec_info)}</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Documented in <strong>docs/BACKLOG.md</strong> ({html.escape(sec_info)}).
+            </div>
+          </div>
+        </div>"""
+        elif status == "completed":
+            dispatch_banner_html = f"""
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #38bdf8; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>✅ Completed & Codified</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Shipped</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Shipped and codified in <strong>docs/BACKLOG.md</strong>.
+            </div>
+          </div>
+        </div>"""
+
         docket_cards_html.append(f"""
-      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-tier="{tier}" data-priority="{priority}" data-title="{title_esc}" data-source="{source_esc}">
+      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-title="{title_esc}" data-source="{source_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{idx}</span>
@@ -673,7 +821,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
             {priority_badge}
             {dep_badges}
             <span class="mail-date-badge">📅 {date_esc}</span>
-            <span class="mail-status-badge badge-unhandled" id="badge-{card_id}">⚪ UNTRIAGED</span>
+            <span class="mail-status-badge {badge_cls}" id="badge-{card_id}">{badge_text}</span>
           </div>
           <span class="mail-file-pill" title="{source_esc}">📌 {source_esc[:42] + ('...' if len(source_esc) > 42 else '')}</span>
         </div>
@@ -684,11 +832,11 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           <p class="mail-excerpt-text">{excerpt_esc}</p>
         </div>
 
-        <details class="mail-body-details">
+        <details class="mail-body-details"{' open' if is_dispatched else ''}>
           <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({it['word_count']} words)</summary>
           <div class="mail-body-rendered">{body_rendered}</div>
         </details>
-
+        {dispatch_banner_html}
         <div class="mail-card-actions">
           <span class="actions-label">Dispatch Action:</span>
           <div class="mail-chip-group">
@@ -729,7 +877,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
         archive_cards_html.append(f"""
-      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-tier="{tier}" data-priority="{priority}" data-file="{file_esc}" data-title="{title_esc}">
+      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-status="untriaged" data-tier="{tier}" data-priority="{priority}" data-file="{file_esc}" data-title="{title_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{idx}</span>
@@ -777,6 +925,14 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     docket_joined = "".join(docket_cards_html)
     archive_joined = "".join(archive_cards_html)
     inbox_dir_esc = html.escape(str(inbox_dir))
+
+    untriaged_count = sum(1 for it in docket_items if it.get("status") == "untriaged") + len(notes)
+    backlog_count = sum(1 for it in docket_items if it.get("status") == "backlog")
+    completed_count = sum(1 for it in docket_items if it.get("status") == "completed")
+    research_count = sum(1 for it in docket_items if it.get("status") == "research")
+    graveyard_count = sum(1 for it in docket_items if it.get("status") == "graveyard")
+    pcda_count = sum(1 for it in docket_items if it.get("status") == "pcda")
+    dispatched_count = backlog_count + completed_count + research_count + graveyard_count + pcda_count
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1135,6 +1291,11 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       background: rgba(6, 78, 59, 0.12);
     }}
 
+    .mail-card.completed {{
+      border-color: rgba(56, 189, 248, 0.45);
+      background: rgba(12, 74, 110, 0.12);
+    }}
+
     .mail-card-header {{
       display: flex;
       align-items: center;
@@ -1198,6 +1359,12 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       color: #34d399;
       background: rgba(52, 211, 153, 0.15);
       border: 1px solid rgba(52, 211, 153, 0.35);
+    }}
+
+    .mail-status-badge.badge-completed {{
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
     }}
 
     .mail-file-pill {{
@@ -1488,6 +1655,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       <button class="filter-chip active" id="filter-all" onclick="applyStatusFilter('all')">All</button>
       <button class="filter-chip" id="filter-untriaged" onclick="applyStatusFilter('untriaged')">Untriaged</button>
       <button class="filter-chip" id="filter-backlog" onclick="applyStatusFilter('backlog')">📥 Backlog</button>
+      <button class="filter-chip" id="filter-completed" onclick="applyStatusFilter('completed')">✅ Completed</button>
       <button class="filter-chip" id="filter-research" onclick="applyStatusFilter('research')">🔬 Research</button>
       <button class="filter-chip" id="filter-graveyard" onclick="applyStatusFilter('graveyard')">🪦 Graveyard</button>
       <button class="filter-chip" id="filter-pcda" onclick="applyStatusFilter('pcda')">⚖️ PCDA</button>
@@ -1501,12 +1669,13 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     <div class="scoreboard-banner">
       <div class="scoreboard-metrics">
         <div class="metric-pill metric-total">Total: <span id="count-total">{total_count}</span></div>
-        <div class="metric-pill metric-untriaged">Untriaged: <span id="count-untriaged">{total_count}</span></div>
-        <div class="metric-pill metric-dispatched">Dispatched: <span id="count-dispatched">0</span></div>
-        <div class="metric-pill metric-backlog">Backlog: <span id="count-backlog">0</span></div>
-        <div class="metric-pill metric-research">Research: <span id="count-research">0</span></div>
-        <div class="metric-pill metric-graveyard">Graveyard: <span id="count-graveyard">0</span></div>
-        <div class="metric-pill metric-pcda">PCDA: <span id="count-pcda">0</span></div>
+        <div class="metric-pill metric-untriaged">Untriaged: <span id="count-untriaged">{untriaged_count}</span></div>
+        <div class="metric-pill metric-dispatched">Dispatched: <span id="count-dispatched">{dispatched_count}</span></div>
+        <div class="metric-pill metric-backlog">Backlog: <span id="count-backlog">{backlog_count}</span></div>
+        <div class="metric-pill metric-completed" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">Completed: <span id="count-completed">{completed_count}</span></div>
+        <div class="metric-pill metric-research">Research: <span id="count-research">{research_count}</span></div>
+        <div class="metric-pill metric-graveyard">Graveyard: <span id="count-graveyard">{graveyard_count}</span></div>
+        <div class="metric-pill metric-pcda">PCDA: <span id="count-pcda">{pcda_count}</span></div>
       </div>
     </div>
 
@@ -1545,12 +1714,13 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     const triageStats = {{
       total: {total_count},
-      untriaged: {total_count},
-      dispatched: 0,
-      backlog: 0,
-      research: 0,
-      graveyard: 0,
-      pcda: 0
+      untriaged: {untriaged_count},
+      dispatched: {dispatched_count},
+      backlog: {backlog_count},
+      completed: {completed_count},
+      research: {research_count},
+      graveyard: {graveyard_count},
+      pcda: {pcda_count}
     }};
 
     const tokenLedger = {{
@@ -1820,67 +1990,135 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         showToast(`📋 Copied [${{actionType.toUpperCase()}}] prompt to clipboard! Paste in chat (Ctrl+V)`);
       }}
 
-      // 2. Insert interactive in-card dispatch banner with clear next-step guidance & copyable box
+      // 2. Apply DOM modifications and persist to localStorage
       if (card) {{
-        let banner = card.querySelector('.mail-dispatch-banner');
-        if (!banner) {{
-          banner = document.createElement('div');
-          banner.className = 'mail-dispatch-banner';
-          const actionsBox = card.querySelector('.mail-card-actions');
-          if (actionsBox) actionsBox.before(banner);
-          else card.appendChild(banner);
+        applyCardDOMStatus(card, cardId, actionType, title, tier, true);
+        saveTriageAction(cardId, actionType, title, tier);
+      }}
+    }}
+
+    function saveTriageAction(cardId, actionType, title, tier) {{
+      try {{
+        const key = 'nkai_mail_triage_actions';
+        const raw = localStorage.getItem(key);
+        const stored = raw ? JSON.parse(raw) : {{}};
+        stored[cardId] = {{
+          action: actionType,
+          title: title,
+          tier: tier,
+          timestamp: Date.now()
+        }};
+        localStorage.setItem(key, JSON.stringify(stored));
+      }} catch (e) {{
+        console.warn('[Mail] LocalStorage save error:', e);
+      }}
+    }}
+
+    function initLocalStorageSync() {{
+      try {{
+        const key = 'nkai_mail_triage_actions';
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        const stored = JSON.parse(raw);
+        let changed = false;
+
+        for (const [cardId, data] of Object.entries(stored)) {{
+          const card = document.getElementById(cardId);
+          if (!card) continue;
+          const currentStatus = (card.getAttribute('data-status') || 'untriaged').toLowerCase();
+          // If the card is untriaged in static HTML, apply the stored user triage verdict
+          if (currentStatus === 'untriaged' && data && data.action) {{
+            applyCardDOMStatus(card, cardId, data.action, data.title || '', data.tier || 'tier2', false);
+            changed = true;
+          }}
         }}
-
-        const promptEsc = promptText.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-        const actionLabel = actionType.toUpperCase();
-        const icon = actionType === 'pcda' ? '⚖️' : (actionType === 'research' ? '🔬' : (actionType === 'backlog' ? '📥' : '🪦'));
-        const accentColor = actionType === 'pcda' ? '#fbbf24' : (actionType === 'research' ? 'var(--accent-blue)' : (actionType === 'backlog' ? '#34d399' : '#f87171'));
-        const bgTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.08)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.08)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.08)' : 'rgba(248, 113, 113, 0.08)'));
-        const borderTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.3)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.3)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.3)' : 'rgba(248, 113, 113, 0.3)'));
-
-        banner.innerHTML = `
-          <div style="background: ${{bgTint}}; border: 1px solid ${{borderTint}}; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
-            <div style="color: ${{accentColor}}; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-              <span>${{icon}} ${{actionLabel}} Prompt Ready</span>
-              <span style="font-size: 10px; color: var(--text-muted);">Paste in Chat or Copy Below</span>
-            </div>
-            <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-              <input type="text" readonly value="${{promptEsc}}" onclick="this.select()" style="flex: 1; background: #0f172a; border: 1px solid ${{borderTint}}; border-radius: 4px; padding: 6px 8px; color: #f8fafc; font-family: var(--font-mono); font-size: 11px; outline: none; cursor: text;" />
-              <button onclick="copyToClipboardSilently(this.previousElementSibling.value); this.textContent='✅ Copied!'; setTimeout(() => this.textContent='📋 Copy', 2000)" style="background: #1e293b; border: 1px solid ${{borderTint}}; border-radius: 4px; padding: 6px 12px; color: ${{accentColor}}; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">📋 Copy</button>
-            </div>
-            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
-              Press <kbd style="background:#1e293b; color:#fff; padding:1px 4px; border-radius:3px; border:1px solid #334155;">Ctrl+V</kbd> in chat to execute this action with Antigravity!
-            </div>
-          </div>`;
-
-        const details = card.querySelector('.mail-body-details');
-        if (details) {{
-          details.open = true;
+        if (changed) {{
+          updateScoreboardUI();
+          handleSearch();
         }}
-        const prevStatus = card.getAttribute('data-status') || 'untriaged';
-        card.setAttribute('data-status', actionType);
-        card.classList.add('dispatched');
+      }} catch (e) {{
+        console.warn('[Mail] LocalStorage restore error:', e);
+      }}
+    }}
 
-        const badge = document.getElementById('badge-' + cardId);
-        if (badge) {{
-          badge.className = 'mail-status-badge badge-dispatched';
-          badge.textContent = '✅ ' + actionType.toUpperCase();
-        }}
+    function applyCardDOMStatus(card, cardId, actionType, title, tier, isUserClick) {{
+      const prevStatus = (card.getAttribute('data-status') || 'untriaged').toLowerCase();
+      if (prevStatus === actionType) return;
 
-        // Update Stats
-        if (prevStatus === 'untriaged') {{
-          triageStats.untriaged = Math.max(0, triageStats.untriaged - 1);
-          triageStats.dispatched++;
-        }} else if (prevStatus in triageStats) {{
-          triageStats[prevStatus] = Math.max(0, triageStats[prevStatus] - 1);
-        }}
-        if (actionType in triageStats) {{
-          triageStats[actionType]++;
-        }}
+      card.setAttribute('data-status', actionType);
+      card.classList.add('dispatched');
+      if (actionType === 'completed') {{
+        card.classList.add('completed');
+      }} else {{
+        card.classList.remove('completed');
+      }}
 
+      const badge = document.getElementById('badge-' + cardId);
+      if (badge) {{
+        badge.className = 'mail-status-badge ' + (actionType === 'completed' ? 'badge-completed' : 'badge-dispatched');
+        badge.textContent = '✅ ' + actionType.toUpperCase();
+      }}
+
+      let banner = card.querySelector('.mail-dispatch-banner');
+      if (!banner) {{
+        banner = document.createElement('div');
+        banner.className = 'mail-dispatch-banner';
+        const actionsBox = card.querySelector('.mail-card-actions');
+        if (actionsBox) actionsBox.before(banner);
+        else card.appendChild(banner);
+      }}
+
+      let promptText = '';
+      if (actionType === 'backlog') {{
+        promptText = `Add '${{title}}' to docs/BACKLOG.md under its target pillar with requirements and priority.`;
+      }} else if (actionType === 'research') {{
+        promptText = `Research '${{title}}' across TheKlangResearch and industry precedents.`;
+      }} else if (actionType === 'graveyard') {{
+        promptText = `Reject concept '${{title}}' and document strategic rationale in Strategy Graveyard.`;
+      }} else if (actionType === 'pcda') {{
+        promptText = `Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${{title}}'.`;
+      }}
+
+      const promptEsc = promptText.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+      const actionLabel = actionType.toUpperCase();
+      const icon = actionType === 'pcda' ? '⚖️' : (actionType === 'research' ? '🔬' : (actionType === 'backlog' ? '📥' : '🪦'));
+      const accentColor = actionType === 'pcda' ? '#fbbf24' : (actionType === 'research' ? 'var(--accent-blue)' : (actionType === 'backlog' ? '#34d399' : '#f87171'));
+      const bgTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.08)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.08)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.08)' : 'rgba(248, 113, 113, 0.08)'));
+      const borderTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.3)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.3)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.3)' : 'rgba(248, 113, 113, 0.3)'));
+
+      banner.innerHTML = `
+        <div style="background: ${{bgTint}}; border: 1px solid ${{borderTint}}; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+          <div style="color: ${{accentColor}}; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span>${{icon}} ${{actionLabel}} Prompt Ready</span>
+            <span style="font-size: 10px; color: var(--text-muted);">Paste in Chat or Copy Below</span>
+          </div>
+          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+            <input type="text" readonly value="${{promptEsc}}" onclick="this.select()" style="flex: 1; background: #0f172a; border: 1px solid ${{borderTint}}; border-radius: 4px; padding: 6px 8px; color: #f8fafc; font-family: var(--font-mono); font-size: 11px; outline: none; cursor: text;" />
+            <button onclick="copyToClipboardSilently(this.previousElementSibling.value); this.textContent='✅ Copied!'; setTimeout(() => this.textContent='📋 Copy', 2000)" style="background: #1e293b; border: 1px solid ${{borderTint}}; border-radius: 4px; padding: 6px 12px; color: ${{accentColor}}; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">📋 Copy</button>
+          </div>
+          <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+            Press <kbd style="background:#1e293b; color:#fff; padding:1px 4px; border-radius:3px; border:1px solid #334155;">Ctrl+V</kbd> in chat to execute this action with Antigravity!
+          </div>
+        </div>`;
+
+      const details = card.querySelector('.mail-body-details');
+      if (details) {{
+        details.open = true;
+      }}
+
+      // Update Stats
+      if (prevStatus === 'untriaged') {{
+        triageStats.untriaged = Math.max(0, triageStats.untriaged - 1);
+        triageStats.dispatched++;
+      }} else if (prevStatus in triageStats) {{
+        triageStats[prevStatus] = Math.max(0, triageStats[prevStatus] - 1);
+      }}
+      if (actionType in triageStats) {{
+        triageStats[actionType]++;
+      }}
+
+      if (isUserClick) {{
         updateScoreboardUI();
-
-        // Update Cumulative Allowance Meter
         const costMap = {{ tier1: 40000, tier2: 10000, tier3: 2000 }};
         const cost = costMap[tier] || 10000;
         if (actionType === 'backlog' || actionType === 'research') {{
@@ -1899,6 +2137,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       setVal('count-untriaged', triageStats.untriaged);
       setVal('count-dispatched', triageStats.dispatched);
       setVal('count-backlog', triageStats.backlog);
+      setVal('count-completed', triageStats.completed || 0);
       setVal('count-research', triageStats.research);
       setVal('count-graveyard', triageStats.graveyard);
       setVal('count-pcda', triageStats.pcda);
@@ -1931,7 +2170,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     document.addEventListener('DOMContentLoaded', () => {{
       initAudioHaptics();
+      initLocalStorageSync();
       updateScoreboardUI();
+      handleSearch();
     }});
   </script>
 </body>
@@ -1947,6 +2188,22 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         try:
             artifact_file = artifact_dir / out_path.name
             artifact_file.write_text(html_content, encoding="utf-8")
+        except Exception as e:
+            pass
+
+    # Mirror to active Antigravity Extension panel
+    plugin_panel_file = Path(r"C:\Users\codyg\.gemini\config\plugins\nkai\sidecars\panel\index.html")
+    if plugin_panel_file.parent.exists():
+        try:
+            plugin_panel_file.write_text(html_content, encoding="utf-8")
+        except Exception as e:
+            pass
+
+    # Mirror to nkai repository sidecar panel
+    nkai_panel_file = Path(r"c:\Dev\nkai\sidecars\panel\index.html")
+    if nkai_panel_file.parent.exists():
+        try:
+            nkai_panel_file.write_text(html_content, encoding="utf-8")
         except Exception as e:
             pass
 
