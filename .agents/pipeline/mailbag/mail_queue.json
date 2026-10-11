@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T00:56:20.559868",
+  "last_scanned": "2026-10-11T01:05:03.002719",
   "total_items": 13,
   "p0_count": 1,
   "items": [
@@ -201,10 +201,10 @@
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 830,
-      "word_count": 130,
+      "char_count": 2378,
+      "word_count": 346,
       "tier": "tier2",
-      "body": "- **Topic ID:** `Topic 10`\n- **Source Note:** [`Toad vs M8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P2` | **Tier:** Tier 2 Flash\n- **Original Prompt:** *\"Can you be like a man in the middle between the M8 and M8.run and record what I do? Maybe like some kind of Python and SQLite thing to do all the data capture and you can analyze how it works? Maybe also watch my workflow and try to make sure what I do really is polished once you analyze it?\"*\n- **Key Angles & PCDA Dossier:**\n  - Capturing MIDI/Serial telemetry from Dirtywave M8 headless firmware over USB.\n  - Analyzing command sequences, keypress velocities, and navigation flows to inform ToadTracker's embedded physical button ergonomics.\n\n---\n\n### 📑 Phase 4: Synthesizer & Audio DSP Engineering",
+      "body": "- **Topic ID:** `Topic 10`\n- **Source Note:** [`Toad vs M8.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P2` | **Tier:** Tier 2 Flash\n- **Original Prompt:** *\"Can you be like a man in the middle between the M8 and M8.run and record what I do? Maybe like some kind of Python and SQLite thing to do all the data capture and you can analyze how it works? Maybe also watch my workflow and try to make sure what I do really is polished once you analyze it? There might be an m8.run GitHub as well?\"*\n- **Key Angles & Online Research Dossier:**\n  - **Protocol Architecture**: Dirtywave M8 and Teensy 4.1 communicate via high-speed USB CDC ACM Serial using **SLIP framing** (`0xC0` packet boundaries, `0xDB` escape bytes). Host sends compact button input bitmasks; M8 streams vector draw opcodes and screen primitives. Audio streams separately over USB Audio Class 2.0 (UAC 2.0).\n  - **Open Source Precedents**: `derkyjadex/M8WebDisplay` (`m8.run` WebSerial client), `laamaa/m8c` (canonical C/SDL client), `turbolent/g0m8` (Go client).\n  - **MITM Proxy Reality**: Hardware serial ports enforce exclusive OS locks. A Python MITM proxy requires opening physical `COM3`, intercepting SLIP frames, logging to SQLite, and relaying to a virtual COM port (`com0com`) or WebSocket bridge for `m8.run` / `m8c`.\n  - **ToadTracker Ergonomics**: Extracting keystroke heatmaps, multi-button navigation chords (`Shift + Option`, `Edit + Arrow`), and screen dwell times (Song vs Chain vs Phrase vs Table) to optimize TBD-16 physical microswitch placement.\n- **PCDA Dialectic Synthesis**:\n  - **Pros**: Real quantitative telemetry on tracker workflow bottlenecks; validates TBD-16 hardware button layouts with empirical data.\n  - **Cons**: High setup friction on Windows due to virtual COM port kernel driver enforcement (`com0com`).\n  - **Devil's Advocate**: Keystroke count doesn't equal creative flow; danger of \"productive procrastination\" building a complex telemetry bridge instead of coding the tracker engine.\n  - **80/20 Resolution**: Skip virtual COM kernel drivers. Instead, either add a lightweight 20-line SQLite logging hook directly into `laamaa/m8c` or run a Python WebSocket bridge for local `m8.run`. Backlog as a P2 Research Spinoff for ToadTracker v0.2.0.\n\n---\n\n### 📑 Phase 4: Synthesizer & Audio DSP Engineering",
       "excerpt": "- Topic ID: Topic 10 - Source Note: [Toad vs M8.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Toad%20vs%20M8.md) - Capture Date: 2026-10-10 | Priority: P2 | Tier: Tier 2 Flash",
       "file_name": "",
       "rel_path": "",

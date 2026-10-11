@@ -1690,13 +1690,13 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     <div class="filter-chips-rail">
       <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); margin-right:4px;">Filter:</span>
-      <button class="filter-chip active" id="filter-all" onclick="applyStatusFilter('all')">All</button>
-      <button class="filter-chip" id="filter-untriaged" onclick="applyStatusFilter('untriaged')">Untriaged</button>
+      <button class="filter-chip active" id="filter-untriaged" onclick="applyStatusFilter('untriaged')">⚪ Untriaged</button>
       <button class="filter-chip" id="filter-backlog" onclick="applyStatusFilter('backlog')">📥 Backlog</button>
       <button class="filter-chip" id="filter-completed" onclick="applyStatusFilter('completed')">✅ Completed</button>
       <button class="filter-chip" id="filter-research" onclick="applyStatusFilter('research')">🔬 Research</button>
       <button class="filter-chip" id="filter-graveyard" onclick="applyStatusFilter('graveyard')">🪦 Graveyard</button>
       <button class="filter-chip" id="filter-pcda" onclick="applyStatusFilter('pcda')">⚖️ PCDA</button>
+      <button class="filter-chip" id="filter-all" onclick="applyStatusFilter('all')">📋 All</button>
     </div>
   </div>
 
@@ -1746,7 +1746,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     const archiveData = {notes_json};
 
     let activeTab = 'docket';
-    let activeFilter = 'all';
+    let activeFilter = 'untriaged';
     let audioMuted = false;
     let hapticAudioCtx = null;
 
