@@ -512,6 +512,127 @@ def rollback_mail_tx(queue_path: Path, receipt_path: Path) -> bool:
     return True
 
 
+def render_markdown_to_html(md_text: str) -> str:
+    """Zero-dependency Markdown to styled HTML renderer for note dossiers."""
+    if not md_text or not md_text.strip():
+        return "<p><em>No content available.</em></p>"
+
+    lines = md_text.strip().splitlines()
+    html_out = []
+    in_code_block = False
+    code_buffer = []
+    in_list = False
+
+    def format_inline(text: str) -> str:
+        escaped = html.escape(text, quote=True)
+        # Links: [label](url)
+        escaped = re.sub(
+            r'\[([^\]]+)\]\(([^)]+)\)',
+            r'<a href="\2" target="_blank" rel="noopener noreferrer">\1</a>',
+            escaped
+        )
+        # Inline code: `code`
+        escaped = re.sub(r'`([^`]+)`', r'<code>\1</code>', escaped)
+        # Bold: **bold**
+        escaped = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', escaped)
+        # Italic: *italic*
+        escaped = re.sub(r'\*([^*]+)\*', r'<em>\1</em>', escaped)
+        return escaped
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Handle fenced code blocks
+        if stripped.startswith("```"):
+            if in_code_block:
+                code_content = html.escape("\n".join(code_buffer))
+                html_out.append(f"<pre><code>{code_content}</code></pre>")
+                code_buffer = []
+                in_code_block = False
+            else:
+                if in_list:
+                    html_out.append("</ul>")
+                    in_list = False
+                in_code_block = True
+            continue
+
+        if in_code_block:
+            code_buffer.append(line)
+            continue
+
+        # Horizontal rule
+        if stripped in ["---", "***", "___"]:
+            if in_list:
+                html_out.append("</ul>")
+                in_list = False
+            html_out.append("<hr />")
+            continue
+
+        # Blank line
+        if not stripped:
+            if in_list:
+                html_out.append("</ul>")
+                in_list = False
+            continue
+
+        # Headings (##, ###, ####, #####)
+        heading_match = re.match(r'^(#{1,6})\s+(.*)', stripped)
+        if heading_match:
+            if in_list:
+                html_out.append("</ul>")
+                in_list = False
+            level = len(heading_match.group(1))
+            heading_text = format_inline(heading_match.group(2))
+            h_tag = f"h{min(level + 2, 6)}"
+            html_out.append(f"<{h_tag}>{heading_text}</{h_tag}>")
+            continue
+
+        # Blockquote
+        if stripped.startswith(">"):
+            if in_list:
+                html_out.append("</ul>")
+                in_list = False
+            bq_text = format_inline(stripped.lstrip("> ").strip())
+            html_out.append(f"<blockquote>{bq_text}</blockquote>")
+            continue
+
+        # Bullet list item (- , * )
+        list_match = re.match(r'^[-*]\s+(.*)', stripped)
+        if list_match:
+            if not in_list:
+                html_out.append("<ul>")
+                in_list = True
+            item_html = format_inline(list_match.group(1))
+            html_out.append(f"  <li>{item_html}</li>")
+            continue
+
+        # Numbered list item (1. , 2. )
+        num_list_match = re.match(r'^\d+\.\s+(.*)', stripped)
+        if num_list_match:
+            if not in_list:
+                html_out.append("<ul>")
+                in_list = True
+            item_html = format_inline(num_list_match.group(1))
+            html_out.append(f"  <li>{item_html}</li>")
+            continue
+
+        # Normal paragraph
+        if in_list:
+            html_out.append("</ul>")
+            in_list = False
+        p_html = format_inline(stripped)
+        html_out.append(f"<p>{p_html}</p>")
+
+    if in_code_block:
+        code_content = html.escape("\n".join(code_buffer))
+        html_out.append(f"<pre><code>{code_content}</code></pre>")
+
+    if in_list:
+        html_out.append("</ul>")
+
+    return "\n".join(html_out)
+
+
 def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, out_path: Path):
     """Generates a standalone, interactive N'kai triage board with Two-Tier Header & Web Audio."""
     docket_count = len(docket_items)
@@ -532,7 +653,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         source_esc = html.escape(it["source_note"])
         date_esc = html.escape(it["date"])
         excerpt_esc = html.escape(it["excerpt"])
-        body_esc = html.escape(it["body"])
+        body_rendered = render_markdown_to_html(it["body"])
         tier = it["tier"]
         tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
         card_id = f"docket-card-{idx}"
@@ -564,8 +685,8 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         </div>
 
         <details class="mail-body-details">
-          <summary class="mail-body-toggle">👁️ View Raw Ingested Note & Metadata ({it['word_count']} words)</summary>
-          <pre class="mail-body-raw">{body_esc}</pre>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({it['word_count']} words)</summary>
+          <div class="mail-body-rendered">{body_rendered}</div>
         </details>
 
         <div class="mail-card-actions">
@@ -596,7 +717,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         file_esc = html.escape(note["file_name"])
         date_esc = html.escape(note["date"])
         excerpt_esc = html.escape(note["excerpt"])
-        body_esc = html.escape(note["body"])
+        body_rendered = render_markdown_to_html(note["body"])
         tier = note["tier"]
         tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
         card_id = f"archive-card-{idx}"
@@ -628,8 +749,8 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         </div>
 
         <details class="mail-body-details">
-          <summary class="mail-body-toggle">👁️ View Full Note Body ({note['word_count']} words)</summary>
-          <pre class="mail-body-raw">{body_esc}</pre>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({note['word_count']} words)</summary>
+          <div class="mail-body-rendered">{body_rendered}</div>
         </details>
 
         <div class="mail-card-actions">
@@ -1127,6 +1248,93 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     .mail-body-toggle:hover {{
       text-decoration: underline;
+    }}
+
+    .mail-body-rendered {{
+      margin-top: 8px;
+      padding: 14px 16px;
+      background: #080d16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--text-main);
+      max-height: 380px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }}
+
+    .mail-body-rendered h3, .mail-body-rendered h4, .mail-body-rendered h5 {{
+      color: #f1f5f9;
+      margin: 12px 0 6px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }}
+
+    .mail-body-rendered p {{
+      margin: 6px 0;
+    }}
+
+    .mail-body-rendered ul, .mail-body-rendered ol {{
+      margin: 6px 0 6px 18px;
+      padding-left: 0;
+    }}
+
+    .mail-body-rendered li {{
+      margin: 3px 0;
+    }}
+
+    .mail-body-rendered code {{
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent-blue);
+    }}
+
+    .mail-body-rendered pre {{
+      background: #030712;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin: 8px 0;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.45;
+    }}
+
+    .mail-body-rendered pre code {{
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: #e2e8f0;
+    }}
+
+    .mail-body-rendered a {{
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }}
+
+    .mail-body-rendered a:hover {{
+      color: #fff;
+    }}
+
+    .mail-body-rendered blockquote {{
+      border-left: 3px solid var(--accent-blue);
+      margin: 8px 0;
+      padding-left: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+    }}
+
+    .mail-body-rendered hr {{
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
     }}
 
     .mail-body-raw {{
