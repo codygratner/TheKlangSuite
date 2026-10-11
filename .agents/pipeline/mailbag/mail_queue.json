@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:38:49.246014",
+  "last_scanned": "2026-10-11T13:40:16.852035",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -412,7 +412,7 @@
       "title": "Finish SQA Automation Hardening (Tom's spec)",
       "created_at": "2026-10-07",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tags": [],
       "target_pillars": [
         "TKS"
@@ -420,8 +420,8 @@
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\SQA meeting with Tom about vibe coding QA.md",
       "preview": "Split out of Tom's meeting notes: the C++ test side (5 min suite / 30 s test timeouts, failure screenshots in their own folder, failures-first reports) is drafted in sqa_automation_hardening.md but still DRAFTING. Factory-floor work.",
       "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped & verified. Pre-flight grounding audit revealed test/GuiTestHelpers.h & BACKLOG sec 5.2 already implemented the full watchdog, locator, failure snapshots, and leaderboard on 2026-10-07. Spec status updated to COMPLETED.",
       "estimated_tokens": 10000,
       "char_count": 535,
       "word_count": 72,

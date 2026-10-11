@@ -1,8 +1,8 @@
 # Plan: SQA Automation Hardening (v0.4.0)
 
-> **Status:** DRAFTING
+> **Status:** COMPLETED ✅ (Implemented & verified in `test/GuiTestHelpers.h` & `test/gui_tests.cpp`, commit on 2026-10-07)
 > **Origin:** SQA Advisory Consultation (Tom) — Local Vault Inbox
-> **Context:** `docs/SQA_MEETING_BRIEFING.md`
+> **Context:** `docs/SQA_MEETING_BRIEFING.md`, Section 5.2 of `docs/BACKLOG.md`
 
 ## Overview
 This architectural plan implements the SQA recommendations to harden our automated testing infrastructure (`gui_tests` and `dsp_tests`). It introduces a robust "wait-fail" pattern for asynchronous UI testing, global/local timeout guardrails, automated deduplicated failure snapshots, and advanced telemetry (profiling metrics and chaos testing hooks).
