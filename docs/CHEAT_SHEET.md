@@ -166,6 +166,13 @@
 * **Deferred Note Enrichment**: Batch back-propagation of resolution footers (status badges, pillar crosslinks, PCDA summaries) into archived notes strictly under `/update-docs --deep` via Flash subagents.
 * **Single Source of Truth**: `docs/BACKLOG.md` is canonical; `TheKlangVault/Inbox/Archive/` is historical provenance.
 
+---
+
+## 🔎 Trust, But Verify (Pre-Flight Grounding Rule)
+
+* **Verify premises before building on them**: local first (`CMakeLists.txt`, `GEMINI.md`, version headers, the file itself), web second (model/vendor/upstream claims).
+* **Wrong premise?** Lead with a polite one-line reality check, then answer.
+
 
 
 

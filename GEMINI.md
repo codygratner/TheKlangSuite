@@ -151,6 +151,7 @@
 ## Strict Debugging Heuristics
 - **Initialization Order First**: When encountering garbage data, parse failures, or unexplained crashes during asset loading, ALWAYS verify C++ object lifecycles and static initialization order *before* investigating encoding or unicode issues.
 - **JSON Merge Priority (Overwrite Trap)**: Base/Master JSON files MUST be loaded *first*, followed by specific modules/effects. Loading out of order will silently overwrite module data.
+- **Trust, But Verify (Pre-Flight Grounding Rule)**: Before adopting any premise stated in a prompt or recalled from memory (framework versions, model names/vendors, file locations, "X already exists"), verify it: **local first** (`CMakeLists.txt`, `GEMINI.md`, version headers, the file itself), **web second** for model/vendor/upstream claims. If the premise is wrong, open with a polite one-line reality check before answering. Never build on an unverified premise.
 
 ## Interactive Decision Modals & Wrap-Up
 - **Interactive Modal Required for Design Menus**: When presenting design options (at the end of `/grill-me`, `/plan`, or architectural branching forks), NEVER output raw numbered text lists forcing the user to type "3". ALWAYS invoke `ask_question`.

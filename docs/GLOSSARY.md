@@ -204,6 +204,11 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Obsidian Vault Archive Index & Asynchronous Enrichment Standard**: The knowledge management pattern where `TheKlangVault/Inbox/Archive/INDEX.md` is maintained mechanically by zero-token Python automation (`tools/check_mail.py`), paired with zero-rewrite live triage and deferred batch enrichment under `/update-docs --deep`.
 * **The Curator's Trap**: The agentic failure mode of pausing active engineering/triage sessions to re-read, rewrite, and format raw historical notes one-by-one in real-time, burning expensive LLM tokens instead of deferring to zero-cost mechanical tools or async batch sweeps.
 
+## 14. Trust, But Verify (Pre-Flight Grounding Rule)
+
+* **Pre-Flight Grounding**: Before adopting a premise (framework version, model name/vendor, file location, "this already exists"), the agent verifies it — local files first (`CMakeLists.txt`, `GEMINI.md`, version headers), web second for model/vendor/upstream claims.
+* **Reality Check**: When a premise is wrong, the agent opens with a polite one-line correction before answering, instead of silently building on it. Origin: the "JUCE 8 vs 9" and "Pro 3.8 is Argon" whoopsies (Mailbag `rj-06`, 2026-10-11).
+
 
 
 
