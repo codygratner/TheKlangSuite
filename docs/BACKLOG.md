@@ -1049,6 +1049,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [ ] **Flight 10: Sub-Module & Component Presets Architecture (Topic 14, P1)** — ⏳ QUEUED: Sub-component preset schemas and serialization across synth modules.
 - [ ] **Flight 11: 4-Macro Mega Modules & Snap Heap Popovers (Topic 12, P1)** — ⏳ QUEUED: 4-encoder mega module abstractions with contextual popover settings callouts.
 - [ ] **Flight 12: Sonicware LIVEN CyDrums Super-Engine (Topic 15, P1)** — ⏳ QUEUED: Drum voice modeling and synthesis engine inspired by CyDrums.
+- [ ] **Flight 13: Consolidated Filter-Counter Pills & Spatial Header Optimization (Topic 19, P2)** — ⏳ QUEUED: Merging category/status filter buttons with count badges into unified interactive pill chips to eliminate vertical header redundancy and maximize card viewing area.
 
 ### 16. Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)
 *Source Note:* [`TheKlangVault/Inbox/Archive/Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)  

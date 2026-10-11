@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T00:37:34.618289",
-  "total_items": 12,
+  "last_scanned": "2026-10-11T00:40:19.986335",
+  "total_items": 13,
   "p0_count": 1,
   "items": [
     {
@@ -134,7 +134,7 @@
       "estimated_tokens": 10000,
       "char_count": 1043,
       "word_count": 152,
-      "tier": "tier2",
+      "tier": "tier3",
       "body": "- **Topic ID:** `Topic 17`\n- **Source Note:** [`Nkai Platform Pillar Badges.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md)\n- **Capture Date:** 2026-10-11 | **Priority:** `P2` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"oh! maybe also an emoji (the same from the footer) on each card to idicate what end platform the idea is for? maybe with some kind of like agent emoji for workflow stuff? also, if it's across multiple, we add as many as needed? or, maybe instead of unclear emoji, we use equally under acronyms (unclear to someone else, but clear to the user of nkai)? add just adter the last item to the untriaged.\"*\n- **Key Angles & PCDA Dossier:**\n  - **Pillar Destination Indicators**: Declarative badge chips on every mail card (`TKS`, `TT`, `NK`, `TKR`, `AGY`, `TBD-16`).\n  - **Multi-Pillar Tagging**: Supporting multiple badges on cross-ecosystem ideas without card visual bloat.\n  - **Visual Ergonomics**: Comparing emoji glyphs vs. colored acronym pills for instant glanceability.\n\n---",
       "excerpt": "- Topic ID: Topic 17 - Source Note: [Nkai Platform Pillar Badges.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Platform%20Pillar%20Badges.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal",
       "file_name": "",
@@ -270,15 +270,38 @@
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 1619,
-      "word_count": 235,
+      "char_count": 1669,
+      "word_count": 244,
       "tier": "tier2",
-      "body": "- **Topic ID:** `Topic 15`\n- **Source Note:** [`CyDrums Research.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P1` | **Tier:** Tier 1 Pro\n- **Original Prompt:** *\"from a friend on my synth discord: 1. Probably could just start a project where you give it the manual and see how it does mapping the structures directly from pdf. start on page 169... I honestly wouldnt even change much about the wavetables or structures as there is already toooon of options there. Only things I'm thinking about adding are (1) LFOs as there is just 1 looping envelope per track... (2) a couple 24db filter LP/HP, (3) and some options on effects... yep the structures are cool, most have x2 wavetables and noise and tick generator, the wavetable directions (pg47) give a lot of variety too. The modulation targets (pg 65) are really nice... having x2 lfos would be wild with all those mod targets\"*\n- **Key Angles & PCDA Dossier:**\n  - **CyDrums Synthesis Engine Analysis**:\n    - Structural topology: 2x Wavetable Oscillators + Noise Generator + Physical Tick Generator.\n    - Directional wavetable scanning modes (forward, backward, alternating, ping-pong).\n    - Modulation matrix: Targetable wavetable parameters, filter cutoffs, and structure morphing.\n  - **The Super-CyDrums Proposal**: Overcoming hardware limitations by adding dual free-running LFOs, 4-pole (24dB/oct) ladder filters, and multi-fx blocks.\n  - **Implementation Runway**: PDF structure extraction project for a future specialized drum synth or dedicated Klang Farmer expansion engine.\n\n---",
+      "body": "- **Topic ID:** `Topic 15`\n- **Source Note:** [`CyDrums Research.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P1` | **Tier:** Tier 1 Pro\n- **Original Prompt:** *\"from a friend on my synth discord: 1. Probably could just start a project where you give it the manual and see how it does mapping the structures directly from pdf. start on page 169... I honestly wouldnt even change much about the wavetables or structures as there is already toooon of options there. Only things I'm thinking about adding are (1) LFOs as there is just 1 looping envelope per track... (2) a couple 24db filter LP/HP, (3) and some options on effects... yep the structures are cool, most have x2 wavetables and noise and tick generator, the wavetable directions (pg47) give a lot of variety too. The modulation targets (pg 65) are really nice... having x2 lfos would be wild with all those mod targets\"*\n- **Key Angles & PCDA Dossier:**\n  - **CyDrums Synthesis Engine Analysis**:\n    - Structural topology: 2x Wavetable Oscillators + Noise Generator + Physical Tick Generator.\n    - Directional wavetable scanning modes (forward, backward, alternating, ping-pong).\n    - Modulation matrix: Targetable wavetable parameters, filter cutoffs, and structure morphing.\n  - **The Super-CyDrums Proposal**: Overcoming hardware limitations by adding dual free-running LFOs, 4-pole (24dB/oct) ladder filters, and multi-fx blocks.\n  - **Implementation Runway**: PDF structure extraction project for a future specialized drum synth or dedicated Klang Farmer expansion engine.\n\n---\n\n### 📑 Phase 5: Spatial UI Polish & Consolidation",
       "excerpt": "- Topic ID: Topic 15 - Source Note: [CyDrums Research.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/CyDrums%20Research.md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 1 Pro",
       "file_name": "",
       "rel_path": "",
       "source_note": "",
       "idx": 12
+    },
+    {
+      "id": "docket-13",
+      "title": "Consolidated Filter-Counter Pills & Spatial Header Optimization (P2)",
+      "created_at": "2026-10-09",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "source_file": "[`Nkai Filter Counter Pills.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md)",
+      "preview": "- Topic ID: Topic 19 - Source Note: [Nkai Filter Counter Pills.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 958,
+      "word_count": 142,
+      "tier": "tier3",
+      "body": "- **Topic ID:** `Topic 19`\n- **Source Note:** [`Nkai Filter Counter Pills.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md)\n- **Capture Date:** 2026-10-11 | **Priority:** `P2` | **Tier:** Tier 3 Minimal\n- **Original Prompt:** *\"another untriaged item to add to the bottom, maybe we can kinda merge the filter buttons and the numbers of each type of item to consolidate space and make it easier to parse what's up there\"*\n- **Key Angles & PCDA Dossier:**\n  - **Unified Filter-Counter Pills**: Merging separate scoreboard tally badges with interactive filter buttons (e.g. `[ 📋 All (13) ]`, `[ ⚪ Untriaged (9) ]`, `[ 📥 Backlog (3) ]`, `[ ✅ Completed (1) ]`, `[ 🔥 P0 (1) ]`).\n  - **Vertical Spatial Conservation**: Eliminating redundant multi-row header banners to save 30–50px of vertical space in narrow 360–480px IDE panels.\n  - **Cognitive Clarity**: Knowing exactly how many items match each category before clicking.\n\n---",
+      "excerpt": "- Topic ID: Topic 19 - Source Note: [Nkai Filter Counter Pills.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Filter%20Counter%20Pills.md) - Capture Date: 2026-10-11 | Priority: P2 | Tier: Tier 3 Minimal",
+      "file_name": "",
+      "rel_path": "",
+      "source_note": "",
+      "idx": 13
     }
   ]
 }

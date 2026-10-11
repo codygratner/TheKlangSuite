@@ -332,14 +332,24 @@ def parse_docket_file(docket_path: Path, backlog_path: Path = None):
         clean_lines = [re.sub(r"[*_`]", "", l) for l in lines]
         excerpt = " ".join(clean_lines[:3])[:280] + ("..." if len(" ".join(clean_lines[:3])) > 280 else "")
 
-        # Model tier classification
-        t_low = clean_title.lower()
-        if any(k in t_low for k in ["filter", "dsp", "saturation", "differential", "polyphon", "audio thread"]):
-            tier = "tier1"
-        elif any(k in t_low for k in ["rebranding", "lore", "cheat sheet", "plugins for the knowledge", "use cases", "lens profiles"]):
-            tier = "tier3"
+        # Model tier classification (explicit metadata first, keyword fallback second)
+        tier_m = re.search(r"\bTier:\s*(?:Tier\s*)?(\d+|pro|flash|minimal)", section_text, re.IGNORECASE)
+        if tier_m:
+            t_val = tier_m.group(1).lower()
+            if t_val in ["1", "pro"]:
+                tier = "tier1"
+            elif t_val in ["3", "minimal"]:
+                tier = "tier3"
+            else:
+                tier = "tier2"
         else:
-            tier = "tier2"
+            t_low = clean_title.lower()
+            if any(k in t_low for k in ["ladder filter", "audio filter", "filter dsp", "dsp", "saturation", "differential", "polyphon", "audio thread"]):
+                tier = "tier1"
+            elif any(k in t_low for k in ["rebranding", "lore", "cheat sheet", "plugins for the knowledge", "use cases", "lens profiles", "pill", "counter"]):
+                tier = "tier3"
+            else:
+                tier = "tier2"
 
         # Priority detection
         all_docket_text = (clean_title + " " + section_text).lower()
