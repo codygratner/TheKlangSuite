@@ -86,11 +86,23 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
   - Delete legacy 5-minute downgrade timer rules.
   - Synchronize updated guidelines across documentation catalogs and cheat sheets.
 
+### Task 8: 🆕 Remote Access & Couch Dev Guide (ELI5 Tutorial) (Mailbag `rj-23`)
+- [ ] **Author `TheKlangResearch/guides/remote_antigravity_and_couch_dev_eli5.md`**:
+  - **Tone**: Extreme ELI5 ("Explain Like I'm 5") step-by-step visual tutorial. Zero assumed networking jargon, zero complex CLI mumbo-jumbo.
+  - **Goal**: Step-by-step instructions for remote monitoring of Antigravity, checking build logs, and running tests from your phone or couch using Tailscale + SSH / Webview.
+  - **Steps covered**:
+    1. Install Tailscale on Windows PC + Install Tailscale app on iPhone/Android. Sign in with the exact same account. Tap Connect.
+    2. How to find your PC's 100.x.y.z Tailscale IP (with clear diagrams).
+    3. Install a free phone SSH client (Termius or Prompt). Connect using your Windows username/password over Tailscale to get a safe PowerShell terminal on your couch.
+    4. How to view the N'kai sidecar webview directly in mobile browser (`http://100.x.y.z:3030`).
+    5. Security reassurance: 100% encrypted WireGuard mesh, 0 router port-forwarding, 0 exposure to public internet.
+
 ---
 
 ## 🛡️ Acceptance Criteria
 1. `vibe_coding_field_guide.md` contains zero JUCE or C++ audio thread code blocks (100% stack-agnostic).
 2. `audio_dsp_field_guide.md` contains comprehensive, deep C++ audio engineering invariants.
 3. `GEMINI.md` implements the Tri-State Model Advisory Architecture, eliminating banner fatigue while preserving critical audio invariants and the 2-strike escalation tripwire.
-4. 100% of touched markdown links resolve cleanly.
-5. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.
+4. `remote_antigravity_and_couch_dev_eli5.md` provides a crystal-clear, zero-jargon Tailscale + SSH phone tutorial.
+5. 100% of touched markdown links resolve cleanly.
+6. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.

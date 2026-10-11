@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T14:19:58.886551",
+  "last_scanned": "2026-10-11T14:42:50.025385",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -605,7 +605,7 @@
       "title": "Moonshot Shelf & Personal Parking Lot",
       "created_at": "2026-10-11",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tags": [
         "merged:5"
       ],
@@ -641,7 +641,7 @@
       "title": "Aesthetic Direction & Typography",
       "created_at": "2026-10-07",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [
         "merged:2"
       ],
@@ -671,10 +671,10 @@
     },
     {
       "id": "rj-20",
-      "title": "Planter Bass Mode & Phase Smear",
+      "title": "Planter Bass Mode, Phase Smear & Expanded Oscillator Engines",
       "created_at": "2026-10-07",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [
         "merged:2"
       ],
@@ -707,7 +707,7 @@
       "title": "CyDrums Structure Mapping",
       "created_at": "2026-10-09",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [],
       "target_pillars": [
         "TKS"
@@ -734,10 +734,10 @@
     },
     {
       "id": "rj-22",
-      "title": "DA Engine Stress Test: Ardour -> Tracktion blind scenario",
+      "title": "DA Engine Stress Test: Blind Backend Trap Scenario",
       "created_at": "2026-10-11",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [],
       "target_pillars": [
         "NK"
@@ -769,7 +769,7 @@
       "title": "Remote Antigravity Access",
       "created_at": "2026-10-11",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "TABLED",
       "tags": [],
       "target_pillars": [
         "AGY"
@@ -799,7 +799,7 @@
       "title": "M8 Telemetry Bridge & Second-Monitor Sidecar",
       "created_at": "2026-10-09",
       "priority": "P3",
-      "status": "PENDING",
+      "status": "TABLED",
       "tags": [
         "merged:2"
       ],
@@ -833,7 +833,7 @@
       "title": "Meeblip SE Port feasibility",
       "created_at": "2026-10-11",
       "priority": "P3",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [],
       "target_pillars": [
         "TKS"

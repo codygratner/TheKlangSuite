@@ -8,7 +8,7 @@
       "id": "rj-01",
       "rank": 1,
       "priority": "P0",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tier": "tier3",
       "pillars": [
         "NK",
@@ -48,13 +48,15 @@
         "next paste",
         "The Klang Suite",
         "2026-10-09_Morning_Mail_Batch_Docket"
-      ]
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: User confirmed all 14 notes already shipped/covered. Residual halves live on in rj-05 (session manager), rj-07 (missed FX list), rj-11 (audit cadence). Roster correction: embedded build is TKB."
     },
     {
       "id": "rj-02",
       "rank": 2,
       "priority": "P0",
-      "status": "PENDING",
+      "status": "BACKLOG",
       "tier": "tier3",
       "pillars": [
         "AGY",
@@ -71,13 +73,15 @@
       "next_action": "Dispatch to Flash builder: sweep tools/ + nkai/tools, add rule.",
       "sources": [
         "docket-18"
-      ]
+      ],
+      "verdict": "BACKLOG",
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG.md N'kai Flight 18 (P0 quick win, next up)."
     },
     {
       "id": "rj-03",
       "rank": 3,
       "priority": "P0",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "NK",
@@ -99,13 +103,15 @@
         "docket-16",
         "docket-17",
         "SQA meeting with Tom about vibe coding QA"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/nkai_qa_sandbox_board.md; merges BACKLOG Flights 16+17; runs after Flight 18 (rj-02)."
     },
     {
       "id": "rj-04",
       "rank": 4,
       "priority": "P0",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "NK"
@@ -124,13 +130,15 @@
       "sources": [
         "docket-15",
         "how stupid is it to make nkai's backend data driven like TKS"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Next: /grill-lab design pass, validate on rj-03 sandbox. BACKLOG N'kai Flight 15 updated with keep/cut/guardrail scope."
     },
     {
       "id": "rj-05",
       "rank": 5,
       "priority": "P0",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "NK"
@@ -150,13 +158,15 @@
         "docket-14",
         "archived nkai boards probably need their own space",
         "Nkai"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. BACKLOG N'kai Flight 14 updated; builds after Flight 15 (rj-04). Order 18 -> 16+17 -> 15 -> 14."
     },
     {
       "id": "rj-06",
       "rank": 6,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tier": "tier3",
       "pillars": [
         "AGY",
@@ -172,13 +182,15 @@
       "next_action": "Approve -> add rule to GEMINI.md + GLOSSARY/CHEAT_SHEET.",
       "sources": [
         "docket-19"
-      ]
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped. Rule added to GEMINI.md (Strict Debugging Heuristics), GLOSSARY section 14, CHEAT_SHEET."
     },
     {
       "id": "rj-07",
       "rank": 7,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "NK",
@@ -200,13 +212,15 @@
         "Those Nkai Files in the Inbox",
         "archived nkai boards probably need their own space",
         "Inbox archive"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/mailbag_intake_v2.md; supersedes BACKLOG Flight 7; runs after Flight 16+17."
     },
     {
       "id": "rj-08",
       "rank": 8,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "NK"
@@ -225,13 +239,15 @@
       "sources": [
         "Fullscreen Sidecar",
         "Second Monitor and Other Uses for the Nkai Sidecar Integration"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: PCDA split approved. Drawer -> BACKLOG N'kai Flight 19 (small, can go early). Fullscreen spike resolved: only AUX_PANE entrypoint exists; use widened pane or nkai_serve.py tab (clipboard fallback). HUD tabled into rj-24."
     },
     {
       "id": "rj-09",
       "rank": 9,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "BACKLOG",
       "tier": "tier3",
       "pillars": [
         "AGY",
@@ -250,13 +266,15 @@
       "sources": [
         "Priorities",
         "Multiple Repos"
-      ]
+      ],
+      "verdict": "BACKLOG",
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG N'kai Flight 0 — FIRST flight after mailbag triage (user: want this done SOON). Single merged footer line."
     },
     {
       "id": "rj-10",
       "rank": 10,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tier": "tier3",
       "pillars": [
         "AGY",
@@ -277,13 +295,15 @@
         "git update",
         "Reorganize docs and make it all wiki linked",
         "TBD-16"
-      ]
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: All 4 lightning round items resolved: (a) Lore added to context clues; (b) winget verified git is up to date; (c) Flight 20 backlogged; (d) TBD-16 links filed in spec."
     },
     {
       "id": "rj-11",
       "rank": 11,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier1",
       "pillars": [
         "AGY",
@@ -307,13 +327,15 @@
         "docket-20",
         "how often should we be doing code reviews",
         "Micro and Macro Skills"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Backlogged as Flight 21 (Tier 1 Targeted Opus Swap). Cadence policy codified in GEMINI.md, GLOSSARY sec 16, CHEAT_SHEET."
     },
     {
       "id": "rj-12",
       "rank": 12,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "TKS"
@@ -327,7 +349,9 @@
       "next_action": "Approve -> promote spec to PLAN when the factory is idle.",
       "sources": [
         "SQA meeting with Tom about vibe coding QA"
-      ]
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped & verified. Pre-flight grounding audit revealed test/GuiTestHelpers.h & BACKLOG sec 5.2 already implemented the full watchdog, locator, failure snapshots, and leaderboard on 2026-10-07. Spec status updated to COMPLETED."
     },
     {
       "id": "rj-13",
@@ -455,7 +479,7 @@
       "id": "rj-18",
       "rank": 18,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tier": "tier3",
       "pillars": [
         "NK"
@@ -474,13 +498,15 @@
         "Firmware Hacking",
         "Obsidian Manager App",
         "Obsidian Plugins"
-      ]
+      ],
+      "verdict": "PARKED",
+      "verdict_notes": "Parked to docs/MOONSHOTS.md. Original notes preserved in TheKlangVault/Inbox/Archive/."
     },
     {
       "id": "rj-19",
       "rank": 19,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "TKS"
@@ -496,18 +522,20 @@
       "sources": [
         "VST UI Tips Video",
         "FX and Mod Cards"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Folded into Milestone v0.7.0 in docs/BACKLOG.md (Aesthetic Direction, OFL Typography, Text-Truncation Suite, Unified Card Grammar)."
     },
     {
       "id": "rj-20",
       "rank": 20,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "TKS"
       ],
-      "title": "Planter Bass Mode & Phase Smear",
+      "title": "Planter Bass Mode, Phase Smear & Expanded Oscillator Engines",
       "summary": "Planter variant where the 2-op FM becomes dual-osc for bass/percussion, plus phase smear 2nd/4th order switch questions. Phase smear is already in BACKLOG; bass mode is new. Target v0.5.5.",
       "angles": [
         "Bass mode as a Planter engine switch, not a new plugin",
@@ -517,13 +545,15 @@
       "sources": [
         "Bass mode!",
         "Phase Smear Idea"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Approved with Expanded Oscillator Engines rolled in (Chiptune/VRC/SID/PCE, M8 wave synth, Mask1 bitmasking, Plaits models, and Planter dual-osc bass mode with portamento). Reconciled in docs/BACKLOG.md under v0.5.5/v0.7.0."
     },
     {
       "id": "rj-21",
       "rank": 21,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier1",
       "pillars": [
         "TKS"
@@ -537,18 +567,20 @@
       "next_action": "Approve -> research spike via explore subagent.",
       "sources": [
         "docket-12"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Approved as an on-demand research spike in docs/BACKLOG.md under Milestone v0.7.0 §3.5."
     },
     {
       "id": "rj-22",
       "rank": 22,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "NK"
       ],
-      "title": "DA Engine Stress Test: Ardour -> Tracktion blind scenario",
+      "title": "DA Engine Stress Test: Blind Backend Trap Scenario",
       "summary": "Run the devil's-advocate engine blind on your friend's Ardour-to-Tracktion DAW decision and compare against what he actually did. Doubles as a demo you can show him.",
       "angles": [
         "Blind = no hint of his outcome",
@@ -560,13 +592,15 @@
       ],
       "sources": [
         "Research Demo"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Blind prompt: \"we keep patching back end bugs in a project that's not even what we want, instead of moving forward on the front end.\" (Zero mention of Tracktion). Scheduled to run immediately after mailbag triage concludes."
     },
     {
       "id": "rj-23",
       "rank": 23,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "TABLED",
       "tier": "tier2",
       "pillars": [
         "AGY"
@@ -580,13 +614,15 @@
       "next_action": "Approve -> try Tailscale + SSH.",
       "sources": [
         "Remote Antigravity"
-      ]
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Tabled for later. Task 8 queued in post_milestone_deep_docs_gauntlet.md to author an ELI5 visual tutorial for Tailscale + SSH / mobile webview access during the next deep docs pass."
     },
     {
       "id": "rj-24",
       "rank": 24,
       "priority": "P3",
-      "status": "PENDING",
+      "status": "TABLED",
       "tier": "tier2",
       "pillars": [
         "TT",
@@ -603,13 +639,15 @@
       "sources": [
         "docket-9",
         "Second Monitor and Other Uses for the Nkai Sidecar Integration"
-      ]
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Tabled until ToadTracker makes sound and core playback engine is operational."
     },
     {
       "id": "rj-25",
       "rank": 25,
       "priority": "P3",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "TKS"
@@ -623,7 +661,9 @@
       "next_action": "Verify the license, then decide.",
       "sources": [
         "Meeblip SE Engine"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Approved as 'The Klang Blip' (MeeBlip SE Standalone Plugin sidequest with TKS JSON Preset Browser). Backlogged in docs/BACKLOG.md as a scheduled palette-cleanser milestone."
     },
     {
       "id": "docket-1",

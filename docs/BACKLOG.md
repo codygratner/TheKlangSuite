@@ -617,17 +617,29 @@ Add a fully JSON-driven contextual randomization system:
   - **Dedicated Transient Sub-Mixer**: Each slot has Level, Pan, and Filter controls, summing into a dedicated Transient bus before hitting the main Voice 1 & 2 mixer.
   - **Choke Groups**: Configurable choking between transient slots (e.g., open vs closed hi-hats or muting clicks).
 
-### 3.5. Custom Wavetable Oscillator Engine & CyDrums Topologies [EVALUATION]
-  *Goal: Explore augmenting or replacing the mathematical crossfading oscillators in Voice 1 & 2 with a multi-frame / single-cycle wavetable engine and CyDrums-style sound structures.*
-  - **CyDrums Sound Structures**: Pre-configured synthesis topologies on Voice 1 & 2 ([2-Op FM], [Wavetable FM], [Ring Mod], [Hard Sync], [Wavetable Morph]) keeping the 4 front knobs invariant.
-  - **Popover Option**: Right-click Carrier/Modulator card popover reveals Oscillator Mode: [ Algorithmic Morph (Default) | Custom Wavetable (.wav) ].
-  - **Serum/Vital Standard**: Support drag-and-drop loading of standard 2048-sample single-cycle or 256-frame .wav wavetables directly onto the card.
-  - **Bandlimited Anti-Aliasing**: High-performance mip-mapped wavetable tables in memory to eliminate aliasing at high octaves.
-### 4. Advanced Typography Engine (JUCE 9)
+### 3.5. Custom Wavetable, Vintage Chiptune & Expanded Oscillator Topologies (Mailbag `rj-20`)
+*Goal: Expand Voice 1 & 2 synthesis topologies with vintage chiptune engines, modern bit-masking, M8-style wave manipulation, and CyDrums-style sound structures.*
+- **CyDrums & Multi-Engine Topologies**: Pre-configured synthesis topologies on Voice 1 & 2 ([2-Op FM], [Wavetable FM], [Ring Mod], [Hard Sync], [Wavetable Morph]) keeping the 4 front knobs invariant.
+- **Vintage Computer & Console Oscillator Cores**:
+  - **Game Boy / NES (APU + VRC6/FDS)**: Variable pulse width (12.5%, 25%, 50%, 75%), authentic NES triangle stepped staircase, VRC6 saw, and FDS 64-step wavetable accumulator.
+  - **Commodore 64 (SID 6581/8580)**: Combined multi-waveforms (pulse+saw, tri+saw) and authentic ring modulation/sync.
+  - **PC-Engine (HuC6280)**: 32-step 5-bit wavetable looping registers for lo-fi crunchy retro lead/bass textures.
+- **Modern Macro & Wave-Shaping Models**:
+  - **M8-Style Wave Synth**: Multiplier, fold/squeeze, and waveform rearranging macros.
+  - **Kodamo Mask1 Bit-Masking Engine**: Bitwise masking of oscillator phase to generate gritty, vocal-like harmonic overtones.
+  - **Plaits / Braids Macro Models**: Single-knob macro-timbral sound models (Virtual Analog, Additive, Formant, Harmonic Strings).
+- **Popover Option & Serum/Vital Standard**:
+  - Right-click Carrier/Modulator card popover reveals Oscillator Mode selector.
+  - Drag-and-drop loading of standard 2048-sample single-cycle or 256-frame `.wav` wavetables directly onto the card.
+  - Bandlimited anti-aliased mip-mapped wavetables in memory.
+- **CyDrums Structural Research Spike (Mailbag `rj-21`)**: Prior to active DSP implementation, execute an explore subagent research spike to ingest the CyDrums manual/schematics, mapping its percussion voice models directly into JSON parameter schemas (`assets/controls/*.json`) and C++ DSP signal graphs.
+### 4. Advanced Typography Engine (JUCE 9) & Aesthetic Direction (Mailbag `rj-19`)
 *Detailed Plan: [`docs/typography_engine_plan.md`](specs/typography_engine.md)*
 Implement a JSON-driven, CSS-class style typography system utilizing JUCE 9's advanced text rendering pipeline.
-- **Embedded Binary Assets**: `.ttf`/`.otf` files are baked into `BinaryData` for 100% cross-platform consistency.
+- **Embedded Binary Assets & OFL Invariant**: `.ttf`/`.otf` files are baked into `BinaryData` for 100% cross-platform consistency. Strictly enforce SIL Open Font License (OFL) typefaces (JetBrains Mono for monospace meters/values, Inter or Satoshi for UI copy) to eliminate proprietary font licensing exposure.
 - **CSS-Style JSON Classes**: Define global text profiles (e.g., `HeaderStyle`, `TooltipStyle`) in the layout JSON, exposing Font Family, Size, Weight, Tracking (letter-spacing), and Justification.
+- **Automated Text-Truncation Test Suite (`gui_tests`)**: Automated regression tests measuring string layout bounds against card boundaries across 100%, 125%, 150%, and 200% DPI display scales to mathematically prove zero string clipping (`bounds.getWidth() >= textLayout.getWidth()`).
+- **Unified Module Visual Grammar**: Harmonize card chrome, pill headers, slider gutters, and corner bevels across Voice, FX, and Modulation cards into a single cohesive visual language.
 - **Editor Integration**: The JSON Editor tool provides sliders/fields to instantly visualize tracking and weight changes across the UI.
 
 ### 5. Continuous Fuzz Testing (DSP Stability)
@@ -727,7 +739,18 @@ Transform the dual-FM drum synthesizer into a dual-threat drum and bass machine 
 - Did the `/clear` command with split `context_clues.md` files sufficiently protect against hidden state?
 - Did the strict "Planner vs Builder" guardrail successfully prevent task bleeding and keep architecture decisions centralized?
 - **Granular Hybrid Decomposition & 2-Strike Escalation**: Codified Flash 3.8 High as the universal default baseline for both planning and building. Pro High is strictly an exception reserved for complex DSP math/concurrency, and when used for planning, must decompose `PLAN.md` into granular drop-in C++ blueprints so execution drops back to Flash High.
-- Document final workflow decisions in `docs/post_v040_workflow_retro.md`.
+### 11. "The Klang Blip" (MeeBlip SE Standalone Edition) Palette-Cleanser Sidequest (Mailbag `rj-25`)
+*Goal: Build a bit-accurate, zero-feature-creep software recreation of the iconic open-source MeeBlip SE hybrid synthesizer as a dedicated standalone VST3/AU/CLAP plugin, packaged as a fun inter-milestone palette cleanser.*
+- **Zero-Feature-Creep "Iron Panel" Constraint**:
+  - Exact 1:1 hardware front-panel parameter parity (Dual Digital Oscillators, Pulse Width, Sweep, Sub-Osc, Cutoff, Resonance, Decay, Envelope Routing switches).
+  - Strictly zero sub-menus, zero secondary tabs, zero hidden mod matrices.
+- **TKS Preset Browser Addition**:
+  - Embeds The Klang Suite's JSON preset management system (`assets/presets/`), adding full patch saving, loading, and randomizer capability (the one feature the original hardware lacked).
+- **GPLv3 Clean Open-Source Provenance**:
+  - Ingests the open-source C/assembly firmware algorithms released by James Surine and Peter Kirn (CDM) under GNU General Public License v3.0.
+  - Zero Delay Feedback (ZDF) analog Twin-T resonant filter model with non-linear saturation.
+- **Sibling Build Target**:
+  - Compiles as a lightweight sibling CMake target inside `c:\Dev\TheKlangSuite`, reusing `Source/dsp/` and `Source/ui/` without creating a rogue repository.
 
 ---
 
