@@ -564,7 +564,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         </div>
 
         <details class="mail-body-details">
-          <summary class="mail-body-toggle">👁️ View Full Analysis & PCDA Dossier ({it['word_count']} words)</summary>
+          <summary class="mail-body-toggle">👁️ View Raw Ingested Note & Metadata ({it['word_count']} words)</summary>
           <pre class="mail-body-raw">{body_esc}</pre>
         </details>
 
@@ -1519,6 +1519,32 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }}
     }}
 
+    function copyToClipboardSilently(text) {{
+      if (!text) return false;
+      let copied = false;
+      try {{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '0';
+        ta.style.width = '2em';
+        ta.style.height = '2em';
+        ta.style.opacity = '0.01';
+        ta.style.zIndex = '999999';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        copied = document.execCommand('copy');
+        document.body.removeChild(ta);
+      }} catch (e) {{}}
+      if (navigator.clipboard && navigator.clipboard.writeText) {{
+        navigator.clipboard.writeText(text).catch(() => {{}});
+      }}
+      return copied;
+    }}
+
     /* ==========================================================================
        Action Dispatching & Live Allowance Tracking
        ========================================================================== */
@@ -1582,27 +1608,43 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }} else if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {{
         window.NkaiEnv.dispatchAction(promptText);
       }} else {{
-        // Fallback: clipboard copy with honest feedback
-        let copied = false;
-        if (navigator.clipboard && navigator.clipboard.writeText) {{
-          navigator.clipboard.writeText(promptText).catch(() => {{}});
-          copied = true;
-        }}
-        if (!copied) {{
-          try {{
-            const ta = document.createElement('textarea');
-            ta.value = promptText;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-          }} catch (e) {{}}
-        }}
+        copyToClipboardSilently(promptText);
         showToast(`📋 Copied [${{actionType.toUpperCase()}}] prompt to clipboard! Paste in chat (Ctrl+V)`);
       }}
 
-      // 2. Auto-expand analysis dossier accordion on the card for instant visual feedback
+      // 2. Insert interactive in-card dispatch banner with clear next-step guidance & copyable box
       if (card) {{
+        let banner = card.querySelector('.mail-dispatch-banner');
+        if (!banner) {{
+          banner = document.createElement('div');
+          banner.className = 'mail-dispatch-banner';
+          const actionsBox = card.querySelector('.mail-card-actions');
+          if (actionsBox) actionsBox.before(banner);
+          else card.appendChild(banner);
+        }}
+
+        const promptEsc = promptText.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+        const actionLabel = actionType.toUpperCase();
+        const icon = actionType === 'pcda' ? '⚖️' : (actionType === 'research' ? '🔬' : (actionType === 'backlog' ? '📥' : '🪦'));
+        const accentColor = actionType === 'pcda' ? '#fbbf24' : (actionType === 'research' ? 'var(--accent-blue)' : (actionType === 'backlog' ? '#34d399' : '#f87171'));
+        const bgTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.08)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.08)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.08)' : 'rgba(248, 113, 113, 0.08)'));
+        const borderTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.3)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.3)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.3)' : 'rgba(248, 113, 113, 0.3)'));
+
+        banner.innerHTML = `
+          <div style="background: ${{bgTint}}; border: 1px solid ${{borderTint}}; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: ${{accentColor}}; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span>${{icon}} ${{actionLabel}} Prompt Ready</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Paste in Chat or Copy Below</span>
+            </div>
+            <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+              <input type="text" readonly value="${{promptEsc}}" onclick="this.select()" style="flex: 1; background: #0f172a; border: 1px solid ${{borderTint}}; border-radius: 4px; padding: 6px 8px; color: #f8fafc; font-family: var(--font-mono); font-size: 11px; outline: none; cursor: text;" />
+              <button onclick="copyToClipboardSilently(this.previousElementSibling.value); this.textContent='✅ Copied!'; setTimeout(() => this.textContent='📋 Copy', 2000)" style="background: #1e293b; border: 1px solid ${{borderTint}}; border-radius: 4px; padding: 6px 12px; color: ${{accentColor}}; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">📋 Copy</button>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Press <kbd style="background:#1e293b; color:#fff; padding:1px 4px; border-radius:3px; border:1px solid #334155;">Ctrl+V</kbd> in chat to execute this action with Antigravity!
+            </div>
+          </div>`;
+
         const details = card.querySelector('.mail-body-details');
         if (details) {{
           details.open = true;
