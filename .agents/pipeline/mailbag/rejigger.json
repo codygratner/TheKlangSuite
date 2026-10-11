@@ -405,7 +405,7 @@
       "id": "rj-16",
       "rank": 16,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "TABLED",
       "tier": "tier2",
       "pillars": [
         "TKS"
@@ -423,7 +423,9 @@
       "sources": [
         "docket-10",
         "Future ideas while I fall asleep"
-      ]
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Bundled with rj-14 (Modulation System Overhaul) and rj-15 (FX Rack 2.0) into the TKS Sound & FX Research Cluster for joint deep research and plan drafting when returning to active TKS coding."
     },
     {
       "id": "rj-17",
