@@ -737,6 +737,7 @@ def render_pillar_badges(pillars: list) -> str:
     """
     Renders up to 2 pillar badges with dedicated styling, plus a '+N' overflow chip
     if there are 3 or more pillars (The Rule of Two).
+    Pillars are interactive buttons with onclick="applyPillarFilter('{p}', event)".
     """
     if not pillars:
         pillars = ["TKS"]
@@ -753,13 +754,14 @@ def render_pillar_badges(pillars: list) -> str:
         emoji = meta["emoji"]
         cls_name = f"pillar-{p_upper.lower().replace('-', '')}"
         badge_htmls.append(
-            f'<span class="pillar-chip {cls_name}" title="{html.escape(meta["name"])}: {html.escape(meta["desc"])}">{emoji} {p_upper}</span>'
+            f'<span class="pillar-chip {cls_name}" title="Filter by {html.escape(meta["name"])}: {html.escape(meta["desc"])}" onclick="applyPillarFilter(\'{p_upper}\', event)">{emoji} {p_upper}</span>'
         )
 
     if overflow:
         overflow_titles = ", ".join([PILLAR_METADATA.get(op.upper(), {}).get("name", op) for op in overflow])
+        first_overflow = overflow[0].upper()
         badge_htmls.append(
-            f'<span class="pillar-chip pillar-overflow" title="Also: {html.escape(overflow_titles)}">+{len(overflow)}</span>'
+            f'<span class="pillar-chip pillar-overflow" title="Also: {html.escape(overflow_titles)} (Click to filter by {first_overflow})" onclick="applyPillarFilter(\'{first_overflow}\', event)">+{len(overflow)}</span>'
         )
 
     return "".join(badge_htmls)
@@ -886,48 +888,120 @@ def render_markdown_to_html(md_text: str) -> str:
     return "\n".join(html_out)
 
 
-def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, out_path: Path):
-    """Generates a standalone, interactive N'kai triage board with Two-Tier Header & Web Audio."""
-    docket_count = len(docket_items)
-    archive_count = len(notes)
-    total_count = docket_count + archive_count
+def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, out_path: Path, queue: MailQueue = None):
+    """
+    Generates a standalone, unified interactive N'kai triage board with Two-Tier Header,
+    Session-Stable Pillar Filters, and Live Consolidated Status Counter Pills (Flights 6 & 13).
+    """
+    if queue is None:
+        queue = build_mail_queue(notes, docket_items, DEFAULT_MAIL_QUEUE)
 
-    archive_tab_title = "Vault Archive" if "archive" in str(inbox_dir).lower() else "Active Mailbox"
-    archive_tab_icon = "📦" if "archive" in str(inbox_dir).lower() else "📬"
+    items = queue.items
+    total_count = len(items)
 
-    docket_json = json.dumps(docket_items, ensure_ascii=False)
-    notes_json = json.dumps(notes, ensure_ascii=False)
+    # 1. Tally Ecosystem Pillars across all items (Session-Stable Frequency Ranking)
+    pillar_counts = {}
+    for it in items:
+        pils = it.target_pillars or ["TKS"]
+        for p in pils:
+            p_upper = p.upper()
+            pillar_counts[p_upper] = pillar_counts.get(p_upper, 0) + 1
 
-    # 1. Render Docket Cards HTML
-    docket_cards_html = []
-    for it in docket_items:
-        idx = it["idx"]
-        title_esc = html.escape(it["title"])
-        source_esc = html.escape(it["source_note"])
-        date_esc = html.escape(it["date"])
-        excerpt_esc = html.escape(it["excerpt"])
-        body_rendered = render_markdown_to_html(it["body"])
-        tier = it["tier"]
+    sorted_pillars = sorted(pillar_counts.keys(), key=lambda p: (-pillar_counts[p], p))
+
+    # Build Rail 1 Pillar buttons HTML
+    pillar_buttons = []
+    for p in sorted_pillars:
+        meta = PILLAR_METADATA.get(p, {"name": p, "emoji": "🏷️", "desc": p})
+        emoji = meta.get("emoji", "🏷️")
+        p_slug = p.lower().replace("-", "")
+        cnt = pillar_counts[p]
+        p_title = f"{meta['name']}: {meta.get('desc', '')}"
+        pillar_buttons.append(
+            f'<button class="pill-btn" id="pillar-btn-{p_slug}" onclick="applyPillarFilter(\'{p}\', event)" title="{html.escape(p_title)}">'
+            f'<span class="pill-icon">{emoji}</span> {p} <span class="pill-count" id="count-pillar-{p_slug}">{cnt}</span>'
+            f'</button>'
+        )
+    pillar_buttons_html = "\n        ".join(pillar_buttons)
+
+    # 2. Tally Status / Triage categories across all items
+    untriaged_count = sum(1 for it in items if it.status == TriageStatus.PENDING)
+    backlog_count = sum(1 for it in items if it.status == TriageStatus.BACKLOG)
+    completed_count = sum(1 for it in items if it.status == TriageStatus.COMPLETED)
+    research_count = sum(1 for it in items if it.status == TriageStatus.RESEARCH)
+    graveyard_count = sum(1 for it in items if it.status == TriageStatus.GRAVEYARD)
+    pcda_count = sum(1 for it in items if it.status == TriageStatus.PCDA)
+    p0_count = sum(1 for it in items if it.priority == PriorityLevel.P0)
+    docket_count = sum(1 for it in items if it.idx > 0 or it.id.startswith("docket-"))
+    dispatched_count = backlog_count + completed_count + research_count + graveyard_count + pcda_count
+
+    # 3. Render all 68 cards into a unified stream
+    all_cards_html = []
+    for i, it in enumerate(items, 1):
+        idx = it.idx
+        title_esc = html.escape(it.title)
+        source_esc = html.escape(it.source_note or it.source_file or it.file_name or "Note")
+        file_esc = html.escape(it.file_name or Path(it.source_file).name or "note.md")
+        date_esc = html.escape(it.created_at)
+        excerpt_esc = html.escape(it.excerpt or it.preview or "")
+        body_rendered = render_markdown_to_html(it.body)
+        tier = it.tier
         tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
-        card_id = f"docket-card-{idx}"
+        card_id = f"mail-card-{i}"
 
-        status = it.get("status", "untriaged")
-        badge_text = it.get("badge_text", "⚪ UNTRIAGED")
-        sec_info = it.get("section_info", "")
-        sec_num = it.get("sec_num", "")
+        is_docket = (idx > 0 or it.id.startswith("docket-"))
+        scope = "docket" if is_docket else "archive"
+
+        # Determine status and badges
+        if it.status == TriageStatus.PENDING:
+            status = "untriaged"
+            badge_text = "⚪ UNTRIAGED"
+            badge_cls = "badge-unhandled"
+        elif it.status == TriageStatus.BACKLOG:
+            status = "backlog"
+            badge_text = "📥 BACKLOG"
+            badge_cls = "badge-dispatched"
+        elif it.status == TriageStatus.COMPLETED:
+            status = "completed"
+            badge_text = "✅ COMPLETED"
+            badge_cls = "badge-completed"
+        elif it.status == TriageStatus.GRAVEYARD:
+            status = "graveyard"
+            badge_text = "🪦 GRAVEYARD"
+            badge_cls = "badge-graveyard"
+        elif it.status == TriageStatus.PCDA:
+            status = "pcda"
+            badge_text = "⚖️ PCDA"
+            badge_cls = "badge-pcda"
+        elif it.status == TriageStatus.RESEARCH:
+            status = "research"
+            badge_text = "🔬 RESEARCH"
+            badge_cls = "badge-research"
+        else:
+            status = it.status.value.lower()
+            badge_text = f"⚡ {it.status.value}"
+            badge_cls = "badge-dispatched"
 
         is_dispatched = (status != "untriaged")
-        badge_cls = "badge-dispatched" if status == "backlog" else ("badge-completed" if status == "completed" else ("badge-graveyard" if status == "graveyard" else "badge-unhandled"))
 
-        priority = it.get("priority", "P2")
+        priority = it.priority.value
         priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
-        deps = it.get("dependencies", [])
+
+        deps = it.dependencies or []
         dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
         dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
-        pillars = it.get("target_pillars") or infer_pillars(it["title"], it.get("tags", []), it.get("body", ""))
+        pillars = it.target_pillars or infer_pillars(it.title, it.tags, it.body)
         pillar_badges = render_pillar_badges(pillars)
         pillars_attr = html.escape(",".join(pillars), quote=True)
+
+        docket_badge = f'<span class="badge badge-docket" title="From Curated Morning Mail Docket">⭐ DOCKET #{idx}</span>' if is_docket else ""
+
+        file_pill_text = source_esc if is_docket else file_esc
+        file_pill_icon = "📌" if is_docket else "📄"
+        file_pill_esc = html.escape(file_pill_text)
+        file_pill_display = file_pill_esc[:42] + ("..." if len(file_pill_esc) > 42 else "")
+        file_pill = f'<span class="mail-file-pill" title="{file_pill_esc}">{file_pill_icon} {file_pill_display}</span>'
 
         dispatch_banner_html = ""
         if status == "backlog":
@@ -936,10 +1010,10 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
             <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
               <span>📥 Cataloged in Backlog</span>
-              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(sec_info)}</span>
+              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(it.verdict_notes or '')}</span>
             </div>
             <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
-              Documented in <strong>docs/BACKLOG.md</strong> ({html.escape(sec_info)}).
+              Documented in <strong>docs/BACKLOG.md</strong>.
             </div>
           </div>
         </div>"""
@@ -962,7 +1036,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           <div style="background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
             <div style="color: #f87171; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
               <span>🪦 Strategy Graveyard (Rejected)</span>
-              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(sec_info)}</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Rejected</span>
             </div>
             <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
               Rejected and cataloged in <strong>docs/BACKLOG.md</strong> (Strategy Graveyard).
@@ -970,11 +1044,12 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           </div>
         </div>"""
 
-        docket_cards_html.append(f"""
-      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-title="{title_esc}" data-source="{source_esc}">
+        all_cards_html.append(f"""
+      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}" id="{card_id}" data-card-idx="{i}" data-scope="{scope}" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-title="{title_esc}" data-source="{source_esc}" data-file="{file_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
-            <span class="mail-idx-badge">#{idx}</span>
+            <span class="mail-idx-badge">#{i}</span>
+            {docket_badge}
             <span class="badge tier-badge { 'tier-1' if tier == 'tier1' else ('tier-3' if tier == 'tier3' else 'tier-2') }">{tier_label}</span>
             {pillar_badges}
             {priority_badge}
@@ -982,7 +1057,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
             <span class="mail-date-badge">📅 {date_esc}</span>
             <span class="mail-status-badge {badge_cls}" id="badge-{card_id}">{badge_text}</span>
           </div>
-          <span class="mail-file-pill" title="{source_esc}">📌 {source_esc[:42] + ('...' if len(source_esc) > 42 else '')}</span>
+          {file_pill}
         </div>
 
         <h3 class="mail-card-title">{title_esc}</h3>
@@ -992,7 +1067,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         </div>
 
         <details class="mail-body-details"{' open' if is_dispatched else ''}>
-          <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({it['word_count']} words)</summary>
+          <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({it.word_count} words)</summary>
           <div class="mail-body-rendered">{body_rendered}</div>
         </details>
         {dispatch_banner_html}
@@ -1017,86 +1092,8 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       </div>
 """)
 
-    # 2. Render Archive Cards HTML
-    archive_cards_html = []
-    for idx, note in enumerate(notes, 1):
-        title_esc = html.escape(note["title"])
-        file_esc = html.escape(note["file_name"])
-        date_esc = html.escape(note["date"])
-        excerpt_esc = html.escape(note["excerpt"])
-        body_rendered = render_markdown_to_html(note["body"])
-        tier = note["tier"]
-        tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
-        card_id = f"archive-card-{idx}"
-
-        priority = note.get("priority", "P2")
-        priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
-        deps = note.get("dependencies", [])
-        dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
-        dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
-
-        pillars = note.get("target_pillars") or infer_pillars(note["title"], note.get("tags", []), note.get("body", ""))
-        pillar_badges = render_pillar_badges(pillars)
-        pillars_attr = html.escape(",".join(pillars), quote=True)
-
-        archive_cards_html.append(f"""
-      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-status="untriaged" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-file="{file_esc}" data-title="{title_esc}">
-        <div class="mail-card-header">
-          <div class="mail-header-left">
-            <span class="mail-idx-badge">#{idx}</span>
-            <span class="badge tier-badge { 'tier-1' if tier == 'tier1' else ('tier-3' if tier == 'tier3' else 'tier-2') }">{tier_label}</span>
-            {pillar_badges}
-            {priority_badge}
-            {dep_badges}
-            <span class="mail-date-badge">📅 {date_esc}</span>
-            <span class="mail-status-badge badge-unhandled" id="badge-{card_id}">⚪ UNTRIAGED</span>
-          </div>
-          <span class="mail-file-pill" title="{file_esc}">📄 {file_esc}</span>
-        </div>
-
-        <h3 class="mail-card-title">{title_esc}</h3>
-
-        <div class="mail-excerpt-box">
-          <p class="mail-excerpt-text">{excerpt_esc}</p>
-        </div>
-
-        <details class="mail-body-details">
-          <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({note['word_count']} words)</summary>
-          <div class="mail-body-rendered">{body_rendered}</div>
-        </details>
-
-        <div class="mail-card-actions">
-          <span class="actions-label">Dispatch Action:</span>
-          <div class="mail-chip-group">
-            {dep_chip}
-            <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', 'backlog')" title="Add to docs/BACKLOG.md">
-              <span>📥</span> Backlog
-            </button>
-            <button class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', 'research')" title="Route to TheKlangResearch">
-              <span>🔬</span> Research
-            </button>
-            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', 'graveyard')" title="Reject and record in Graveyard">
-              <span>🪦</span> Graveyard
-            </button>
-            <button class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', 'pcda')" title="Request 4-Lens PCDA Dialectic">
-              <span>⚖️</span> PCDA
-            </button>
-          </div>
-        </div>
-      </div>
-""")
-
-    docket_joined = "".join(docket_cards_html)
-    archive_joined = "".join(archive_cards_html)
+    all_cards_joined = "".join(all_cards_html)
     inbox_dir_esc = html.escape(str(inbox_dir))
-
-    untriaged_count = sum(1 for it in docket_items if it.get("status") == "untriaged") + len(notes)
-    backlog_count = sum(1 for it in docket_items if it.get("status") == "backlog")
-    completed_count = sum(1 for it in docket_items if it.get("status") == "completed")
-    research_count = sum(1 for it in docket_items if it.get("status") == "research")
-    graveyard_count = sum(1 for it in docket_items if it.get("status") == "graveyard")
-    pcda_count = sum(1 for it in docket_items if it.get("status") == "pcda")
-    dispatched_count = backlog_count + completed_count + research_count + graveyard_count + pcda_count
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1263,39 +1260,52 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       color: #fff;
     }}
 
-    .header-btn.is-spinning {{
-      animation: spin 0.6s linear infinite;
-    }}
-
-    @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
-
-    /* Bottom Tier (Navigation & Filters) */
+    /* ==========================================================================
+       Two-Tier Consolidated Navigation & Filter Rails (Flights 6 & 13)
+       ========================================================================== */
     .header-tier-bottom {{
       position: sticky;
       top: 49px;
       z-index: 990;
-      background: rgba(13, 18, 26, 0.94);
+      background: rgba(13, 18, 26, 0.96);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
-      padding: 8px 20px;
+      padding: 10px 20px;
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      flex-direction: column;
+      gap: 8px;
     }}
 
-    .nav-tabs-rail {{
+    .rail-row {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }}
+
+    .rail-label {{
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      min-width: 64px;
+    }}
+
+    .rail-chips {{
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
+      flex: 1;
     }}
 
-    .tab-compact {{
+    .pill-btn, .filter-chip {{
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      padding: 6px 14px;
+      padding: 4px 10px;
       border-radius: 6px;
       border: 1px solid var(--border);
       background: var(--bg-panel);
@@ -1305,48 +1315,51 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       align-items: center;
       gap: 6px;
       transition: all 0.15s ease;
+      user-select: none;
     }}
 
-    .tab-compact:hover {{
+    .pill-btn:hover, .filter-chip:hover {{
       color: var(--text-main);
-      border-color: rgba(56, 189, 248, 0.4);
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
     }}
 
-    .tab-compact.active {{
-      background: rgba(56, 189, 248, 0.14);
+    .pill-btn.active {{
+      background: rgba(56, 189, 248, 0.16);
       border-color: var(--accent-blue);
       color: #fff;
-    }}
-
-    .filter-chips-rail {{
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }}
-
-    .filter-chip {{
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: var(--bg-panel);
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }}
-
-    .filter-chip:hover {{
-      color: var(--text-main);
-      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
     }}
 
     .filter-chip.active {{
-      background: var(--bg-card);
+      background: rgba(251, 191, 36, 0.14);
       border-color: var(--accent-amber);
       color: var(--accent-amber);
-      font-weight: 700;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+    }}
+
+    /* Embedded Counter Badges (#26) */
+    .pill-count, .chip-count {{
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }}
+
+    .pill-btn.active .pill-count {{
+      background: rgba(56, 189, 248, 0.3);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #fff;
+    }}
+
+    .filter-chip.active .chip-count {{
+      background: rgba(251, 191, 36, 0.25);
+      border-color: rgba(251, 191, 36, 0.4);
+      color: var(--accent-amber);
     }}
 
     /* Main Container */
@@ -1355,48 +1368,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       margin: 0 auto;
       padding: 24px 20px 80px;
     }}
-
-    /* Scoreboard */
-    .scoreboard-banner {{
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-bottom: 20px;
-    }}
-
-    .scoreboard-metrics {{
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }}
-
-    .metric-pill {{
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--bg-card);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }}
-
-    .metric-total {{ color: var(--accent-neon); }}
-    .metric-dispatched {{ color: #34d399; }}
-    .metric-untriaged {{ color: var(--accent-amber); }}
-    .metric-backlog {{ color: #34d399; }}
-    .metric-research {{ color: var(--accent-blue); }}
-    .metric-graveyard {{ color: #f87171; }}
-    .metric-pcda {{ color: #fbbf24; }}
 
     /* Search Input */
     .search-box-wrapper {{
@@ -1430,15 +1401,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       pointer-events: none;
     }}
 
-    /* Tab Viewports */
-    .tab-view {{
-      display: none;
-    }}
-
-    .tab-view.active {{
-      display: block;
-    }}
-
     /* Mail Cards */
     .mail-grid {{
       display: flex;
@@ -1470,6 +1432,11 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       background: rgba(12, 74, 110, 0.12);
     }}
 
+    .mail-card.graveyard {{
+      border-color: rgba(248, 113, 113, 0.45);
+      background: rgba(127, 29, 29, 0.12);
+    }}
+
     .mail-card-header {{
       display: flex;
       align-items: center;
@@ -1497,6 +1464,17 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       border: 1px solid rgba(56, 189, 248, 0.3);
     }}
 
+    .badge-docket {{
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }}
+
     .tier-badge {{
       font-family: var(--font-mono);
       font-size: 10px;
@@ -1508,19 +1486,20 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     .tier-2 {{ background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }}
     .tier-3 {{ background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }}
 
-    /* Platform & Ecosystem Pillar Badges (Flight 6) */
+    /* Platform & Ecosystem Pillar Badges (Flights 6 & 13) */
     .pillar-chip {{
       font-family: var(--font-mono);
       font-size: 10px;
       font-weight: 800;
-      padding: 2px 6px;
+      padding: 2px 7px;
       border-radius: 4px;
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      cursor: default;
+      cursor: pointer;
       letter-spacing: 0.02em;
       transition: all 0.15s ease;
+      user-select: none;
     }}
     .pillar-tks {{ background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.35); }}
     .pillar-tt {{ background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }}
@@ -1532,11 +1511,12 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       background: rgba(148, 163, 184, 0.12);
       color: #94a3b8;
       border: 1px solid rgba(148, 163, 184, 0.25);
-      cursor: help;
+      cursor: pointer;
     }}
     .pillar-chip:hover {{
-      transform: translateY(-1px);
-      filter: brightness(1.15);
+      transform: translateY(-2px);
+      filter: brightness(1.25);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }}
 
     .mail-date-badge {{
@@ -1576,6 +1556,18 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       color: #f87171;
       background: rgba(248, 113, 113, 0.15);
       border: 1px solid rgba(248, 113, 113, 0.35);
+    }}
+
+    .mail-status-badge.badge-research {{
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }}
+
+    .mail-status-badge.badge-pcda {{
+      color: var(--accent-amber);
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.35);
     }}
 
     .mail-file-pill {{
@@ -1649,19 +1641,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       font-size: 12.5px;
     }}
 
-    .mail-body-rendered p {{
-      margin: 6px 0;
-    }}
-
-    .mail-body-rendered ul, .mail-body-rendered ol {{
-      margin: 6px 0 6px 18px;
-      padding-left: 0;
-    }}
-
-    .mail-body-rendered li {{
-      margin: 3px 0;
-    }}
-
+    .mail-body-rendered p {{ margin: 6px 0; }}
+    .mail-body-rendered ul, .mail-body-rendered ol {{ margin: 6px 0 6px 18px; padding-left: 0; }}
+    .mail-body-rendered li {{ margin: 3px 0; }}
     .mail-body-rendered code {{
       font-family: var(--font-mono);
       font-size: 11px;
@@ -1671,7 +1653,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       padding: 1px 5px;
       color: var(--accent-blue);
     }}
-
     .mail-body-rendered pre {{
       background: #030712;
       border: 1px solid var(--border);
@@ -1683,24 +1664,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       font-size: 11px;
       line-height: 1.45;
     }}
-
-    .mail-body-rendered pre code {{
-      background: transparent;
-      border: none;
-      padding: 0;
-      color: #e2e8f0;
-    }}
-
-    .mail-body-rendered a {{
-      color: var(--accent-blue);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }}
-
-    .mail-body-rendered a:hover {{
-      color: #fff;
-    }}
-
+    .mail-body-rendered pre code {{ background: transparent; border: none; padding: 0; color: #e2e8f0; }}
+    .mail-body-rendered a {{ color: var(--accent-blue); text-decoration: underline; text-underline-offset: 2px; }}
+    .mail-body-rendered a:hover {{ color: #fff; }}
     .mail-body-rendered blockquote {{
       border-left: 3px solid var(--accent-blue);
       margin: 8px 0;
@@ -1708,28 +1674,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       color: var(--text-muted);
       font-style: italic;
     }}
-
-    .mail-body-rendered hr {{
-      border: 0;
-      border-top: 1px solid var(--border);
-      margin: 12px 0;
-    }}
-
-    .mail-body-raw {{
-      margin-top: 8px;
-      padding: 12px 14px;
-      background: #06090e;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 11.5px;
-      color: var(--text-main);
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 320px;
-      overflow-y: auto;
-      line-height: 1.5;
-    }}
+    .mail-body-rendered hr {{ border: 0; border-top: 1px solid var(--border); margin: 12px 0; }}
 
     .mail-card-actions {{
       display: flex;
@@ -1814,9 +1759,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         flex-direction: column;
         align-items: flex-start;
       }}
-      .header-source {{
-        max-width: 100%;
-      }}
+      .header-source {{ max-width: 100%; }}
       .mail-card-header {{
         flex-direction: column;
         align-items: flex-start;
@@ -1850,76 +1793,73 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     </div>
   </header>
 
-  <!-- Bottom-Tier Navigation & Filters -->
+  <!-- Bottom-Tier Navigation & Filter Rails (Flights 6 & 13) -->
   <div class="header-tier-bottom">
-    <div class="nav-tabs-rail">
-      <button class="tab-compact active" id="tab-btn-docket" onclick="switchView('docket')">
-        <span>🌟</span> Test-Drive Docket ({docket_count})
-      </button>
-      <button class="tab-compact" id="tab-btn-archive" onclick="switchView('archive')">
-        <span>{archive_tab_icon}</span> {archive_tab_title} ({archive_count})
-      </button>
+    <!-- Rail 1: Platform & Product Pillars -->
+    <div class="rail-row rail-pillars">
+      <span class="rail-label">Product:</span>
+      <div class="rail-chips">
+        <button class="pill-btn active" id="pillar-btn-all" onclick="applyPillarFilter('all', event)" title="Show All Platform Products">
+          <span class="pill-icon">📋</span> All Mail <span class="pill-count" id="count-pillar-all">{total_count}</span>
+        </button>
+        {pillar_buttons_html}
+      </div>
     </div>
 
-    <div class="filter-chips-rail">
-      <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); margin-right:4px;">Filter:</span>
-      <button class="filter-chip active" id="filter-untriaged" onclick="applyStatusFilter('untriaged')">⚪ Untriaged</button>
-      <button class="filter-chip" id="filter-backlog" onclick="applyStatusFilter('backlog')">📥 Backlog</button>
-      <button class="filter-chip" id="filter-completed" onclick="applyStatusFilter('completed')">✅ Completed</button>
-      <button class="filter-chip" id="filter-research" onclick="applyStatusFilter('research')">🔬 Research</button>
-      <button class="filter-chip" id="filter-graveyard" onclick="applyStatusFilter('graveyard')">🪦 Graveyard</button>
-      <button class="filter-chip" id="filter-pcda" onclick="applyStatusFilter('pcda')">⚖️ PCDA</button>
-      <button class="filter-chip" id="filter-all" onclick="applyStatusFilter('all')">📋 All</button>
+    <!-- Rail 2: Status & Triage Filters -->
+    <div class="rail-row rail-status">
+      <span class="rail-label">Status:</span>
+      <div class="rail-chips">
+        <button class="filter-chip" id="filter-all" onclick="applyStatusFilter('all')" title="Show All Statuses">
+          📋 All <span class="chip-count" id="count-status-all">{total_count}</span>
+        </button>
+        <button class="filter-chip active" id="filter-untriaged" onclick="applyStatusFilter('untriaged')" title="Show Untriaged Mail (Inbox Zero Focus)">
+          ⚪ Untriaged <span class="chip-count" id="count-status-untriaged">{untriaged_count}</span>
+        </button>
+        <button class="filter-chip" id="filter-p0" onclick="applyStatusFilter('p0')" title="Filter by P0 Top Priority">
+          🚨 P0 <span class="chip-count" id="count-status-p0">{p0_count}</span>
+        </button>
+        <button class="filter-chip" id="filter-backlog" onclick="applyStatusFilter('backlog')" title="Filter by Cataloged in Backlog">
+          📥 Backlog <span class="chip-count" id="count-status-backlog">{backlog_count}</span>
+        </button>
+        <button class="filter-chip" id="filter-completed" onclick="applyStatusFilter('completed')" title="Filter by Completed & Codified">
+          ✅ Completed <span class="chip-count" id="count-status-completed">{completed_count}</span>
+        </button>
+        <button class="filter-chip" id="filter-research" onclick="applyStatusFilter('research')" title="Filter by Dispatched to Research">
+          🔬 Research <span class="chip-count" id="count-status-research">{research_count}</span>
+        </button>
+        <button class="filter-chip" id="filter-graveyard" onclick="applyStatusFilter('graveyard')" title="Filter by Strategy Graveyard">
+          🪦 Graveyard <span class="chip-count" id="count-status-graveyard">{graveyard_count}</span>
+        </button>
+        <button class="filter-chip" id="filter-pcda" onclick="applyStatusFilter('pcda')" title="Filter by PCDA Dialectic">
+          ⚖️ PCDA <span class="chip-count" id="count-status-pcda">{pcda_count}</span>
+        </button>
+        <button class="filter-chip" id="filter-docket" onclick="applyStatusFilter('docket')" title="Filter by Curated Docket Items">
+          ⭐ Docket <span class="chip-count" id="count-status-docket">{docket_count}</span>
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Main Container -->
   <main class="inbox-container">
-
-    <!-- Scoreboard Strip -->
-    <div class="scoreboard-banner">
-      <div class="scoreboard-metrics">
-        <div class="metric-pill metric-total">Total: <span id="count-total">{total_count}</span></div>
-        <div class="metric-pill metric-untriaged">Untriaged: <span id="count-untriaged">{untriaged_count}</span></div>
-        <div class="metric-pill metric-dispatched">Dispatched: <span id="count-dispatched">{dispatched_count}</span></div>
-        <div class="metric-pill metric-backlog">Backlog: <span id="count-backlog">{backlog_count}</span></div>
-        <div class="metric-pill metric-completed" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">Completed: <span id="count-completed">{completed_count}</span></div>
-        <div class="metric-pill metric-research">Research: <span id="count-research">{research_count}</span></div>
-        <div class="metric-pill metric-graveyard">Graveyard: <span id="count-graveyard">{graveyard_count}</span></div>
-        <div class="metric-pill metric-pcda">PCDA: <span id="count-pcda">{pcda_count}</span></div>
-      </div>
-    </div>
-
     <!-- Search Input -->
     <div class="search-box-wrapper">
       <span class="search-icon-pos">🔍</span>
-      <input type="text" id="search-input" class="search-input" placeholder="Filter notes by title, keyword, or filename..." oninput="handleSearch()"/>
+      <input type="text" id="search-input" class="search-input" placeholder="Filter notes by title, keyword, filename, or pillar..." oninput="handleSearch()"/>
     </div>
 
-    <!-- Viewport 1: Docket -->
-    <section class="tab-view active" id="view-docket">
-      <div class="mail-grid" id="grid-docket">
-        {docket_joined if docket_items else '<div class="mail-card" style="text-align:center;color:var(--text-muted);"><p>🎉 Docket empty! No active discussion cards.</p></div>'}
-      </div>
-    </section>
-
-    <!-- Viewport 2: Archive -->
-    <section class="tab-view" id="view-archive">
-      <div class="mail-grid" id="grid-archive">
-        {archive_joined if notes else '<div class="mail-card" style="text-align:center;color:var(--text-muted);"><p>🎉 Mailbox zero! No archive notes found.</p></div>'}
-      </div>
-    </section>
-
+    <!-- Unified Mail Stream Grid -->
+    <div class="mail-grid" id="grid-all">
+      {all_cards_joined if items else '<div class="mail-card" style="text-align:center;color:var(--text-muted);"><p>🎉 Mailbox zero! No active notes found.</p></div>'}
+    </div>
   </main>
 
   <div id="action-toast">⚡ Action Dispatched!</div>
 
   <script>
-    const docketData = {docket_json};
-    const archiveData = {notes_json};
-
-    let activeTab = 'docket';
-    let activeFilter = 'untriaged';
+    let activePillar = 'all';
+    let activeFilter = 'untriaged'; // Sanity-preserving default filter!
     let audioMuted = false;
     let hapticAudioCtx = null;
 
@@ -1931,7 +1871,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       completed: {completed_count},
       research: {research_count},
       graveyard: {graveyard_count},
-      pcda: {pcda_count}
+      pcda: {pcda_count},
+      p0: {p0_count},
+      docket: {docket_count}
     }};
 
     const tokenLedger = {{
@@ -1993,7 +1935,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         const gain = hapticAudioCtx.createGain();
 
         if (type === 'action') {{
-          // Ascending chime
           osc.type = 'sine';
           osc.frequency.setValueAtTime(587.33, t);
           osc.frequency.exponentialRampToValueAtTime(880, t + 0.06);
@@ -2004,7 +1945,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           osc.start(t);
           osc.stop(t + 0.06);
         }} else if (type === 'tab') {{
-          // Tab glide
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(440, t);
           osc.frequency.exponentialRampToValueAtTime(660, t + 0.04);
@@ -2015,7 +1955,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           osc.start(t);
           osc.stop(t + 0.04);
         }} else {{
-          // Tick
           osc.type = 'sine';
           osc.frequency.setValueAtTime(800, t);
           osc.frequency.exponentialRampToValueAtTime(400, t + 0.02);
@@ -2030,53 +1969,81 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     }}
 
     /* ==========================================================================
-       Tab & Filter Switching
+       Two-Tier Filter Switching & Unified Search (Flights 6 & 13)
        ========================================================================== */
-    function switchView(tabKey) {{
-      playHaptic('tab');
-      activeTab = tabKey;
-      document.querySelectorAll('.tab-compact').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
-
-      const activeBtn = document.getElementById('tab-btn-' + tabKey);
-      const activeView = document.getElementById('view-' + tabKey);
+    function applyPillarFilter(pillarKey, ev) {{
+      if (ev) ev.stopPropagation();
+      playHaptic('tick');
+      activePillar = pillarKey;
+      document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+      const slug = pillarKey.toLowerCase().replace('-', '');
+      const activeBtn = document.getElementById('pillar-btn-' + slug);
       if (activeBtn) activeBtn.classList.add('active');
-      if (activeView) activeView.classList.add('active');
-
+      showToast(pillarKey === 'all' ? '📋 Showing All Products' : `🔍 Filtered by Pillar: ${{pillarKey}}`);
       handleSearch();
     }}
 
-    function applyStatusFilter(filterKey) {{
+    function applyStatusFilter(statusKey) {{
       playHaptic('tick');
-      activeFilter = filterKey;
+      activeFilter = statusKey;
       document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      const activeChip = document.getElementById('filter-' + filterKey);
+      const activeChip = document.getElementById('filter-' + statusKey);
       if (activeChip) activeChip.classList.add('active');
-
       handleSearch();
     }}
 
     function handleSearch() {{
       const query = (document.getElementById('search-input').value || '').toLowerCase();
-      const currentGridId = activeTab === 'docket' ? 'grid-docket' : 'grid-archive';
-      const cards = document.querySelectorAll('#' + currentGridId + ' .mail-card');
+      const cards = document.querySelectorAll('#grid-all .mail-card');
 
       cards.forEach(card => {{
         const title = (card.getAttribute('data-title') || '').toLowerCase();
         const file = (card.getAttribute('data-file') || '').toLowerCase();
         const source = (card.getAttribute('data-source') || '').toLowerCase();
         const status = (card.getAttribute('data-status') || 'untriaged').toLowerCase();
+        const priority = (card.getAttribute('data-priority') || 'p2').toLowerCase();
+        const scope = (card.getAttribute('data-scope') || 'archive').toLowerCase();
+        const rawPillars = (card.getAttribute('data-pillars') || '').split(',');
+        const pillars = rawPillars.map(p => p.trim());
         const text = card.innerText.toLowerCase();
 
         const matchesQuery = !query || title.includes(query) || file.includes(query) || source.includes(query) || text.includes(query);
-        const matchesFilter = (activeFilter === 'all') || (status === activeFilter);
+        const matchesPillar = (activePillar === 'all') || pillars.includes(activePillar);
 
-        if (matchesQuery && matchesFilter) {{
+        let matchesStatus = false;
+        if (activeFilter === 'all') {{
+          matchesStatus = true;
+        }} else if (activeFilter === 'p0') {{
+          matchesStatus = (priority === 'p0');
+        }} else if (activeFilter === 'docket') {{
+          matchesStatus = (scope === 'docket');
+        }} else {{
+          matchesStatus = (status === activeFilter);
+        }}
+
+        if (matchesQuery && matchesPillar && matchesStatus) {{
           card.style.display = 'block';
         }} else {{
           card.style.display = 'none';
         }}
       }});
+    }}
+
+    function updateCountersUI() {{
+      const setVal = (id, val) => {{
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      }};
+      setVal('count-status-all', triageStats.total);
+      setVal('count-status-untriaged', triageStats.untriaged);
+      setVal('count-status-p0', triageStats.p0);
+      setVal('count-status-backlog', triageStats.backlog);
+      setVal('count-status-completed', triageStats.completed || 0);
+      setVal('count-status-research', triageStats.research);
+      setVal('count-status-graveyard', triageStats.graveyard);
+      setVal('count-status-pcda', triageStats.pcda);
+      setVal('count-status-docket', triageStats.docket);
+      setVal('count-pillar-all', triageStats.total);
     }}
 
     function showToast(msg) {{
@@ -2176,7 +2143,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           headers: {{ 'Content-Type': 'application/json' }},
           body: JSON.stringify({{
             action: actionType.toUpperCase(),
-            note_id: cardId.replace('note-', ''),
+            note_id: cardId.replace('mail-card-', ''),
             title: title,
             tier: tier,
             source: 'morning_mail_inbox'
@@ -2237,14 +2204,13 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           const card = document.getElementById(cardId);
           if (!card) continue;
           const currentStatus = (card.getAttribute('data-status') || 'untriaged').toLowerCase();
-          // If the card is untriaged in static HTML, apply the stored user triage verdict
           if (currentStatus === 'untriaged' && data && data.action) {{
             applyCardDOMStatus(card, cardId, data.action, data.title || '', data.tier || 'tier2', false);
             changed = true;
           }}
         }}
         if (changed) {{
-          updateScoreboardUI();
+          updateCountersUI();
           handleSearch();
         }}
       }} catch (e) {{
@@ -2328,30 +2294,17 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         triageStats[actionType]++;
       }}
 
+      updateCountersUI();
+
       if (isUserClick) {{
-        updateScoreboardUI();
         const costMap = {{ tier1: 40000, tier2: 10000, tier3: 2000 }};
         const cost = costMap[tier] || 10000;
         if (actionType === 'backlog' || actionType === 'research') {{
           tokenLedger.totalTokens += cost;
           updateAllowanceUI();
         }}
+        handleSearch();
       }}
-    }}
-
-    function updateScoreboardUI() {{
-      const setVal = (id, val) => {{
-        const el = document.getElementById(id);
-        if (el) el.textContent = val;
-      }};
-      setVal('count-total', triageStats.total);
-      setVal('count-untriaged', triageStats.untriaged);
-      setVal('count-dispatched', triageStats.dispatched);
-      setVal('count-backlog', triageStats.backlog);
-      setVal('count-completed', triageStats.completed || 0);
-      setVal('count-research', triageStats.research);
-      setVal('count-graveyard', triageStats.graveyard);
-      setVal('count-pcda', triageStats.pcda);
     }}
 
     function updateAllowanceUI() {{
@@ -2393,7 +2346,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       forceDarkBody();
       initAudioHaptics();
       initLocalStorageSync();
-      updateScoreboardUI();
+      updateCountersUI();
       handleSearch();
     }}
 
@@ -2437,6 +2390,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
             pass
 
     return out_path
+
 
 
 def main():
@@ -2560,7 +2514,7 @@ def main():
         return 0
 
     out_file = Path(args.out).resolve()
-    generated = generate_html_inbox_board(inbox_dir, notes, docket_items, out_file)
+    generated = generate_html_inbox_board(inbox_dir, notes, docket_items, out_file, queue=queue)
     print(f"✅ Generated Morning Mail Inbox: {generated} ({len(docket_items)} docket items, {len(notes)} archive notes)")
 
     if not args.no_browser:
