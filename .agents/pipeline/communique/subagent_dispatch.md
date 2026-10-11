@@ -1,10 +1,10 @@
-STATUS: DISPATCHED
+STATUS: COMPLETED
 
 # Subagent Dispatch Charter: Tooling Implementation
-> *Target Pipeline:* Dual-Track Communiqué — Tooling Pipeline (`TARGET: TOOLING_HARNESS`)  
-> *Active Branch:* `0.4.0-dev`  
-> *Orchestrator:* Antigravity Main Chat (New Klang City)  
-> *Executor:* Flash Builder Subagent  
+> *Target Pipeline:* Dual-Track Communiqué — Tooling Pipeline (`TARGET: TOOLING_HARNESS`)
+> *Active Branch:* `0.4.0-dev` (TKS) / `main` (nkai)
+> *Orchestrator:* Antigravity Main Chat (New Klang City)
+> *Executor:* Flash Builder Subagent
 
 ---
 
@@ -13,19 +13,17 @@ STATUS: DISPATCHED
 - **ROLE**: `Flash Tooling Builder`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **TASK TYPE**: `TOOLING_IMPLEMENTATION`
-- **TASK SLUG**: `flight-1-ramble-ingest`
-- **ACTIVE BLUEPRINT**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
-- **TARGET REPOSITORIES**:
-  - [x] `TheKlangSuite` (`c:\Dev\TheKlangSuite`)
-  - [x] `nkai` (`c:\Dev\nkai`)
+- **TASK SLUG**: `mailbag-rejigger-overlay`
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
 
----
+## 2. Scope
+1. Fix `check_mail.py --archive-inbox` ledger wipe: build queue from Archive + Inbox notes, deduped by id.
+2. Add `--rejigger PATH` (default `.agents/pipeline/mailbag/rejigger.json`) and `--no-rejigger`.
+3. Overlay: one MailItem per card; raw items referenced by card `sources` are folded in; unreferenced raw items appended with a `🆕 ` prefix; sort by rank.
+4. Snapshot `mail_queue.json` to `.agents/pipeline/mailbag/snapshots/mail_queue_prev.json` before overwrite.
+5. Render rank badge + "🧩 merged from N notes" chip.
+6. Mirror to `c:\Dev\nkai\tools\check_mail.py`; regenerate board; audit; deploy to nkai plugin; commit both repos.
 
-## 2. Scope & Target Files
-- Target Milestone: Flight 1: The "Rambles" Ingestion Engine (`P0 — Topic 2`).
-- Phases to execute:
-  - Phase 1: Architectural Specification & Catalog Registration (`docs/specs/nkai_rambles_ingestion_engine.md`, `docs/DOCS_CATALOG.json`, `docs/SYSTEM_MAP.md`).
-  - Phase 2: Pydantic Data Models (`tools/models.py`: `RambleCard`, `RambleExtractionResult`, `to_mail_item()`).
-  - Phase 3: Zero-Dependency Ramble Ingestor CLI (`tools/ramble_ingest.py`, mirrored to `c:\Dev\nkai\tools\ramble_ingest.py` and `c:\Dev\nkai\bundle\tools\ramble_ingest.py`).
-  - Phase 4: Micro-Skill Registration (`.agents/skills/ramble-ingest/SKILL.md`, mirrored to `c:\Dev\nkai\bundle\skills\ramble-ingest\SKILL.md`).
-  - Phase 5: Verification Gauntlet, Backlog Sync, and Clean Commits across `TheKlangSuite` and `nkai`.
+## 3. Acceptance
+- Board shows 37 cards (25 active + 12 status), audit PERFECT PASS, default filter Untriaged, "All" first on both rails.
+- Receipt appended to `subagent_receipt.md`.

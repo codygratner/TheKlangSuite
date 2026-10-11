@@ -201,6 +201,8 @@ class MailItem(BaseModel):
     rel_path: str = ""
     source_note: str = ""
     idx: int = 0
+    merged_count: int = 0
+    source_ids: List[str] = Field(default_factory=list)
 
     @field_validator("priority", mode="before")
     @classmethod

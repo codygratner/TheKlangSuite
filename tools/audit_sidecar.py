@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 class SidecarAuditor:
     def __init__(self, file_path: str, auto_fix: bool = False):
-        self.file_path = Path(file_path)
+        self.file_path = Path(file_path).resolve()
         self.auto_fix = auto_fix
         self.issues = []
         self.warnings = []

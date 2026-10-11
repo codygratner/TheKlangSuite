@@ -57,3 +57,64 @@ STATUS: COMPLETED
   - Flight 1 (The "Rambles" Ingestion Engine) marked `[x] COMPLETED` in Act III Section 15 and Section 13.
 - `PLAN.md`:
   - All checkboxes marked `[x]`, status updated to `COMPLETED ✅`.
+
+
+---
+
+# Subagent Execution Receipt: Mailbag Pro Rejigger Overlay & Archive Ledger Bugfix
+> *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
+> *Active Branch:* `0.4.0-dev` (TKS) / `main` (nkai)  
+> *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
+
+---
+
+## 1. Execution Header
+- **STATUS**: `COMPLETED`
+- **ROLE EXECUTED**: `Flash Tooling Builder`
+- **TASK SLUG**: `mailbag-rejigger-overlay`
+- **COMPLETED AT**: `2026-10-11T17:55:00Z`
+- **MODEL TIER**: `Tier 2 Flash (High)`
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
+
+---
+
+## 2. Deliverables & Artifacts
+1. **Archive Wipe Bug Fix (`tools/check_mail.py`)**:
+   - Implemented `scan_all_inbox_notes(inbox_dir)` combining notes from `Inbox` and `Inbox/Archive/` deduped by ID (Inbox wins on content).
+   - Hardened `archive_harvested_notes` so it only moves root inbox files and never clobbers existing archive notes.
+2. **Rejigger Overlay Support (`tools/check_mail.py` & `tools/models.py`)**:
+   - Added CLI flags `--rejigger PATH` (default: `.agents/pipeline/mailbag/rejigger.json`) and `--no-rejigger`.
+   - Updated `MailItem` model with `merged_count: int = 0` and `source_ids: List[str] = Field(default_factory=list)`.
+   - In `build_mail_queue`, overlay cards absorb raw notes referenced by `sources` (matched by id first, then case-insensitive title), retaining rich content for status cards.
+   - Unreferenced new mail is appended with `🆕 ` prefix and ordered by priority/date.
+   - Result sorted by card rank ascending (preserving Pro rejigger ordering without calling `sort_by_priority`).
+   - Prior ledger snapshotted to `.agents/pipeline/mailbag/snapshots/mail_queue_prev.json` before overwriting.
+3. **HTML Rendering & Badge Enhancements (`.agents/sidecar/morning_mail_inbox.html`)**:
+   - Displays rank badge (`#N`) on all cards.
+   - Displays `🧩 merged from N notes` chip for cards with `merged_count > 1`.
+   - Preserves default filter = Untriaged, both filter rails with 'All' in first position, and session-stable pillar ordering.
+4. **Tooling & Plugin Sync**:
+   - Mirrored `check_mail.py`, `models.py`, and `audit_sidecar.py` to `c:\Dev\nkai\tools\`.
+   - Mirrored updated `morning_mail_inbox.html` to `C:\Users\codyg\.gemini\antigravity\brain\9241988e-1227-466e-a0a5-446d61a69d77\morning_mail_inbox.html` and `c:\Dev\nkai\sidecars\panel\index.html`.
+   - Successfully ran `python tools/install_nkai_plugin.py` to install to `C:\Users\codyg\.gemini\config\plugins\nkai`.
+   - Prepended governance notice banner to `morning_mail_topics.md` and mirrored to artifact folder.
+
+---
+
+## 3. Verification Gauntlet Results
+- `python tools/check_mail.py --archive --no-browser`:
+  - **PASS**: 37 cards validated (25 ranked active + 12 status cards).
+  - **Status Checks**:
+    - `Opus 5.5`: `COMPLETED` (PASS)
+    - `Anti-Slop in Open Source`: `COMPLETED` (PASS)
+    - `Mailbag Queue`: `COMPLETED` (PASS)
+    - `Response from my SQA Friend`: `COMPLETED` (PASS)
+    - `docket-5`: `GRAVEYARD` (PASS)
+    - `docket-8`: `GRAVEYARD` (PASS)
+    - `docket-2`: `BACKLOG` (PASS)
+    - `docket-3`: `BACKLOG` (PASS)
+    - `docket-4`: `BACKLOG` (PASS)
+- `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`:
+  - **PASS**: `PERFECT PASS: Zero issues or warnings detected!`
+- `python tools/install_nkai_plugin.py`:
+  - **PASS**: `ALL VALIDATION CHECKS PASSED!`

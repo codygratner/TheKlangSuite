@@ -51,6 +51,7 @@ DEFAULT_OUTPUT_HTML = Path(r".agents/sidecar/morning_mail_inbox.html")
 DEFAULT_DOCKET_PATH = Path(r".agents/sidecar/morning_mail_topics.md")
 DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
 DEFAULT_TX_RECEIPT = Path(r".agents/pipeline/staging/mail_tx_latest.json")
+DEFAULT_REJIGGER_PATH = Path(r".agents/pipeline/mailbag/rejigger.json")
 DEFAULT_BACKLOG_PATH = Path("docs/BACKLOG.md")
 if not DEFAULT_BACKLOG_PATH.exists():
     alt_backlog = Path(__file__).resolve().parent.parent / "docs" / "BACKLOG.md"
@@ -225,6 +226,33 @@ def scan_inbox(inbox_dir: Path):
             if data:
                 notes.append(data)
     return notes
+
+
+def scan_all_inbox_notes(inbox_dir: Path) -> list:
+    """
+    Scans both root inbox and its Archive/ subfolder, combining and deduping notes by id.
+    Live root inbox notes win on content over Archive notes.
+    """
+    if inbox_dir.name.lower() == "archive":
+        archive_dir = inbox_dir
+        live_dir = inbox_dir.parent
+    else:
+        live_dir = inbox_dir
+        archive_dir = inbox_dir / "Archive"
+
+    arch_notes = scan_inbox(archive_dir) if archive_dir and archive_dir.exists() else []
+    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() != archive_dir.resolve() else []
+
+    notes_by_id = {}
+    for n in arch_notes:
+        if n.get("id"):
+            notes_by_id[str(n["id"])] = n
+    # Live notes overwrite on content
+    for n in live_notes:
+        if n.get("id"):
+            notes_by_id[str(n["id"])] = n
+
+    return list(notes_by_id.values())
 
 
 def parse_backlog_flight_statuses(backlog_path: Path = DEFAULT_BACKLOG_PATH) -> dict:
@@ -474,13 +502,39 @@ def render_chat_summary(inbox_dir: Path, notes: list, docket_items: list = None)
     return "\n".join(lines)
 
 
-def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQueue:
+def build_mail_queue(
+    notes: list,
+    docket_items: list,
+    queue_path: Path,
+    rejigger_path: Optional[Any] = None,
+    use_rejigger: bool = True
+) -> MailQueue:
     """
-    Constructs a validated MailQueue from raw notes and docket items,
-    enforcing reverse-chronological sorting for P0 items, and serializes
-    the session ledger to queue_path.
+    Constructs a validated MailQueue from raw notes and docket items, applying the
+    structural rejigger overlay if present, enforcing reverse-chronological sorting
+    for raw queues or rank ordering for overlay queues, snapshots the prior ledger,
+    and serializes the session ledger to queue_path.
     """
-    mail_items = []
+    # 0. Resolve rejigger overlay path
+    overlay_path = None
+    if use_rejigger and rejigger_path is not False:
+        if rejigger_path:
+            p = Path(rejigger_path)
+            if p.is_absolute():
+                if p.exists():
+                    overlay_path = p
+            else:
+                for base in [Path.cwd(), Path(__file__).resolve().parent.parent]:
+                    cand = base / p
+                    if cand.exists():
+                        overlay_path = cand
+                        break
+        else:
+            for base in [Path.cwd(), Path(__file__).resolve().parent.parent]:
+                cand = base / DEFAULT_REJIGGER_PATH
+                if cand.exists():
+                    overlay_path = cand
+                    break
 
     # Preserve existing triage status and verdicts from active ledger
     existing_by_id = {}
@@ -493,7 +547,9 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
         except Exception:
             pass
 
-    # Ingest docket items
+    raw_items = []
+
+    # 1. Ingest docket items
     for it in docket_items:
         it_id = str(it.get("id") or f"docket-{it.get('idx', 0)}")
         old_it = existing_by_id.get(it_id)
@@ -516,27 +572,30 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
             verdict = old_it.get("verdict")
             verdict_notes = old_it.get("verdict_notes")
 
-        m_item = MailItem(
-            id=it_id,
-            title=str(it.get("title", "Untitled Docket Topic")),
-            created_at=str(it.get("date") or "2026-10-09"),
-            priority=it.get("priority", "P2"),
-            status=m_status,
-            tags=it.get("tags", []),
-            target_pillars=it.get("target_pillars", []),
-            source_file=str(it.get("source_note", "")),
-            preview=str(it.get("excerpt", "")),
-            dependencies=it.get("dependencies", []),
-            verdict=verdict,
-            verdict_notes=verdict_notes,
-            char_count=len(str(it.get("body", ""))),
-            word_count=int(it.get("word_count", 0)),
-            tier=str(it.get("tier", "tier2")),
-            body=str(it.get("body", "")),
-            excerpt=str(it.get("excerpt", "")),
-            idx=int(it.get("idx", 0)),
-        )
-        mail_items.append(m_item)
+        raw_items.append({
+            "id": it_id,
+            "title": str(it.get("title", "Untitled Docket Topic")),
+            "created_at": str(it.get("date") or "2026-10-09"),
+            "date": str(it.get("date") or "2026-10-09"),
+            "priority": it.get("priority", "P2"),
+            "status": m_status,
+            "tags": it.get("tags", []),
+            "target_pillars": it.get("target_pillars", []),
+            "source_file": str(it.get("source_note", "")),
+            "source_note": str(it.get("source_note", "")),
+            "preview": str(it.get("excerpt", "")),
+            "excerpt": str(it.get("excerpt", "")),
+            "dependencies": it.get("dependencies", []),
+            "verdict": verdict,
+            "verdict_notes": verdict_notes,
+            "char_count": len(str(it.get("body", ""))),
+            "word_count": int(it.get("word_count", 0)),
+            "tier": str(it.get("tier", "tier2")),
+            "body": str(it.get("body", "")),
+            "file_name": "",
+            "rel_path": str(it.get("source_note", "")),
+            "idx": int(it.get("idx", 0)),
+        })
 
     # Collect known docket source note names to avoid duplicate cards
     docket_source_names = set()
@@ -548,7 +607,7 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
         docket_source_names.add(Path(sn).name.lower().strip())
         docket_source_names.add(str(it.get("title", "")).lower().strip())
 
-    # Ingest notes (skipping those already formalized as curated docket items)
+    # 2. Ingest notes (skipping those already formalized as curated docket items)
     for n in notes:
         fn = str(n.get("file_name", "")).lower().strip()
         stem = Path(fn).stem.lower().strip()
@@ -571,41 +630,300 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
             verdict = old_it.get("verdict")
             verdict_notes = old_it.get("verdict_notes")
 
-        m_item = MailItem(
-            id=item_id,
-            title=str(n.get("title", "Untitled Note")),
-            created_at=str(n.get("date") or datetime.date.today().strftime("%Y-%m-%d")),
-            priority=n.get("priority", "P2"),
-            status=note_status,
-            tags=n.get("tags", []),
-            target_pillars=n.get("target_pillars", []),
-            source_file=str(n.get("rel_path") or n.get("file_name", "")),
-            preview=str(n.get("excerpt", "")),
-            dependencies=n.get("dependencies", []),
-            verdict=verdict,
-            verdict_notes=verdict_notes,
-            char_count=int(n.get("char_count", 0)),
-            word_count=int(n.get("word_count", 0)),
-            tier=str(n.get("tier", "tier2")),
-            body=str(n.get("body", "")),
-            excerpt=str(n.get("excerpt", "")),
-            file_name=str(n.get("file_name", "")),
-            rel_path=str(n.get("rel_path", "")),
-        )
-        mail_items.append(m_item)
+        raw_items.append({
+            "id": item_id,
+            "title": str(n.get("title", "Untitled Note")),
+            "created_at": str(n.get("date") or datetime.date.today().strftime("%Y-%m-%d")),
+            "date": str(n.get("date") or datetime.date.today().strftime("%Y-%m-%d")),
+            "priority": n.get("priority", "P2"),
+            "status": note_status,
+            "tags": n.get("tags", []),
+            "target_pillars": n.get("target_pillars", []),
+            "source_file": str(n.get("rel_path") or n.get("file_name", "")),
+            "preview": str(n.get("excerpt", "")),
+            "excerpt": str(n.get("excerpt", "")),
+            "dependencies": n.get("dependencies", []),
+            "verdict": verdict,
+            "verdict_notes": verdict_notes,
+            "char_count": int(n.get("char_count", 0)),
+            "word_count": int(n.get("word_count", 0)),
+            "tier": str(n.get("tier", "tier2")),
+            "body": str(n.get("body", "")),
+            "file_name": str(n.get("file_name", "")),
+            "rel_path": str(n.get("rel_path", "")),
+            "source_note": "",
+            "idx": 0,
+        })
+
+    # 3. Check for rejigger overlay
+    if overlay_path and overlay_path.exists():
+        try:
+            rej_data = json.loads(overlay_path.read_text(encoding="utf-8"))
+            cards = rej_data.get("cards", [])
+        except Exception as e:
+            print(f"⚠️ Failed to parse rejigger overlay at {overlay_path}: {e}")
+            cards = []
+
+        if cards:
+            raw_by_id = {str(it["id"]): it for it in raw_items if it.get("id")}
+            raw_by_title = {str(it["title"]).lower().strip(): it for it in raw_items if it.get("title")}
+
+            referenced_raw_ids = set()
+            overlay_mail_items = []
+
+            for card in cards:
+                card_id = str(card.get("id"))
+                card_title = str(card.get("title", ""))
+                card_rank = int(card.get("rank", 0))
+                card_summary = str(card.get("summary", ""))
+                angles = card.get("angles", [])
+                next_action = str(card.get("next_action", ""))
+
+                matched_raw_items = []
+                for src in card.get("sources", []):
+                    src_str = str(src).strip()
+                    matched = None
+                    if src_str in raw_by_id:
+                        matched = raw_by_id[src_str]
+                    elif src_str.lower() in raw_by_title:
+                        matched = raw_by_title[src_str.lower()]
+                    if matched:
+                        matched_raw_items.append(matched)
+                        referenced_raw_ids.add(str(matched["id"]))
+
+                raw_match = raw_by_id.get(card_id)
+                if card_title == card_id and raw_match:
+                    card_title = str(raw_match.get("title") or card_title)
+
+                is_placeholder_summary = card_summary.strip().lower() in ["completed.", "in backlog.", "graveyard."]
+
+                if is_placeholder_summary and raw_match:
+                    body = str(raw_match.get("body", ""))
+                    preview = str(raw_match.get("excerpt") or raw_match.get("preview") or card_summary)
+                    excerpt = preview
+                    word_count = int(raw_match.get("word_count") or len(body.split()))
+                    char_count = len(body)
+                    source_file = str(raw_match.get("source_file") or raw_match.get("rel_path") or "")
+                    file_name = str(raw_match.get("file_name", ""))
+                    rel_path = str(raw_match.get("rel_path", ""))
+                    source_note = str(raw_match.get("source_note", ""))
+                    created_at = str(raw_match.get("date") or raw_match.get("created_at") or "2026-10-09")
+                else:
+                    body_parts = [card_summary]
+                    if angles:
+                        body_parts.append("\n".join(f"- {a}" for a in angles))
+                    if next_action:
+                        body_parts.append(f"**Next action:** {next_action}")
+                    if matched_raw_items:
+                        source_lines = ["**Source notes:**"]
+                        for r in matched_raw_items:
+                            r_title = str(r.get("title") or r.get("id") or "Note")
+                            r_path = str(r.get("rel_path") or r.get("source_file") or "")
+                            m_link = re.search(r'\((file:///[^)]+)\)', r_path)
+                            if m_link:
+                                file_url = m_link.group(1)
+                            elif r_path:
+                                file_url = "file:///" + r_path.replace("\\", "/")
+                            else:
+                                file_url = ""
+                            if file_url:
+                                source_lines.append(f"- [{r_title}]({file_url})")
+                            else:
+                                source_lines.append(f"- {r_title}")
+                        body_parts.append("\n".join(source_lines))
+                    body = "\n\n".join(p for p in body_parts if p.strip())
+                    preview = card_summary
+                    excerpt = card_summary
+                    word_count = len(body.split())
+                    char_count = len(body)
+                    source_file = str(matched_raw_items[0].get("source_file") or matched_raw_items[0].get("rel_path") or "") if matched_raw_items else ""
+                    file_name = str(matched_raw_items[0].get("file_name", "")) if matched_raw_items else ""
+                    rel_path = str(matched_raw_items[0].get("rel_path", "")) if matched_raw_items else ""
+                    source_note = str(matched_raw_items[0].get("source_note", "")) if matched_raw_items else ""
+                    created_at = str(matched_raw_items[0].get("date") or matched_raw_items[0].get("created_at") or "2026-10-11") if matched_raw_items else "2026-10-11"
+
+                # Status resolution: existing ledger wins on non-PENDING, else card status
+                old_it = existing_by_id.get(card_id)
+                card_status = card.get("status", "PENDING")
+                final_status = card_status
+                verdict = None
+                verdict_notes = None
+                if old_it:
+                    old_st = old_it.get("status")
+                    if old_st and old_st != "PENDING":
+                        final_status = old_st
+                    verdict = old_it.get("verdict")
+                    verdict_notes = old_it.get("verdict_notes")
+
+                try:
+                    status_enum = TriageStatus(final_status)
+                except ValueError:
+                    status_enum = TriageStatus.PENDING
+
+                merged_count = len(matched_raw_items)
+                source_ids = [str(r.get("id")) for r in matched_raw_items if r.get("id")]
+                tags = list(card.get("tags", []))
+                if merged_count > 1 and f"merged:{merged_count}" not in tags:
+                    tags.append(f"merged:{merged_count}")
+
+                m_item = MailItem(
+                    id=card_id,
+                    title=card_title,
+                    created_at=created_at,
+                    priority=card.get("priority", "P2"),
+                    status=status_enum,
+                    tags=tags,
+                    target_pillars=card.get("pillars", []),
+                    source_file=source_file,
+                    preview=preview,
+                    dependencies=card.get("depends_on", []),
+                    verdict=verdict,
+                    verdict_notes=verdict_notes,
+                    char_count=char_count,
+                    word_count=word_count,
+                    tier=card.get("tier", "tier2"),
+                    body=body,
+                    excerpt=excerpt,
+                    file_name=file_name,
+                    rel_path=rel_path,
+                    source_note=source_note,
+                    idx=card_rank,
+                    merged_count=merged_count,
+                    source_ids=source_ids,
+                )
+                overlay_mail_items.append(m_item)
+
+            # Sort overlay cards by rank ascending
+            overlay_mail_items.sort(key=lambda x: int(x.idx))
+
+            # Collect unreferenced raw items (new mail)
+            unreferenced_raw_items = []
+            for r in raw_items:
+                r_id = str(r.get("id"))
+                if r_id not in referenced_raw_ids:
+                    r_title = str(r.get("title", "Untitled Note"))
+                    if not r_title.startswith("🆕 "):
+                        r_title = f"🆕 {r_title}"
+
+                    old_it = existing_by_id.get(r_id)
+                    r_status = r.get("status", TriageStatus.PENDING)
+                    verdict = None
+                    verdict_notes = None
+                    if old_it:
+                        old_st = old_it.get("status")
+                        if old_st and old_st != "PENDING":
+                            try:
+                                r_status = TriageStatus(old_st)
+                            except ValueError:
+                                pass
+                        verdict = old_it.get("verdict")
+                        verdict_notes = old_it.get("verdict_notes")
+
+                    unref_item = MailItem(
+                        id=r_id,
+                        title=r_title,
+                        created_at=str(r.get("date") or r.get("created_at") or datetime.date.today().strftime("%Y-%m-%d")),
+                        priority=r.get("priority", "P2"),
+                        status=r_status,
+                        tags=r.get("tags", []),
+                        target_pillars=r.get("target_pillars", []),
+                        source_file=str(r.get("source_file") or r.get("rel_path") or ""),
+                        preview=str(r.get("preview") or r.get("excerpt") or ""),
+                        dependencies=r.get("dependencies", []),
+                        verdict=verdict,
+                        verdict_notes=verdict_notes,
+                        char_count=int(r.get("char_count", 0)),
+                        word_count=int(r.get("word_count", 0)),
+                        tier=str(r.get("tier", "tier2")),
+                        body=str(r.get("body", "")),
+                        excerpt=str(r.get("excerpt", "")),
+                        file_name=str(r.get("file_name", "")),
+                        rel_path=str(r.get("rel_path", "")),
+                        source_note=str(r.get("source_note", "")),
+                        idx=0,
+                        merged_count=1,
+                        source_ids=[r_id],
+                    )
+                    unreferenced_raw_items.append(unref_item)
+
+            # Order unreferenced new items by priority/date
+            pri_rank = {PriorityLevel.P0: 0, PriorityLevel.P1: 1, PriorityLevel.P2: 2, PriorityLevel.P3: 3}
+            unreferenced_raw_items.sort(key=lambda x: str(x.created_at or ""), reverse=True)
+            unreferenced_raw_items.sort(key=lambda x: pri_rank.get(x.priority, 2))
+
+            final_items = overlay_mail_items + unreferenced_raw_items
+            queue = MailQueue(
+                schema_version="1.0.0",
+                last_scanned=datetime.datetime.now().isoformat(),
+                total_items=len(final_items),
+                p0_count=sum(1 for it in final_items if it.priority == PriorityLevel.P0),
+                items=final_items,
+            )
+
+            # Snapshot existing ledger before overwriting
+            if queue_path.exists():
+                snap_dir = queue_path.parent / "snapshots"
+                snap_dir.mkdir(parents=True, exist_ok=True)
+                prev_snap = snap_dir / "mail_queue_prev.json"
+                try:
+                    shutil.copy2(str(queue_path), str(prev_snap))
+                except Exception as e:
+                    print(f"⚠️ Could not create snapshot: {e}")
+
+            queue_path.parent.mkdir(parents=True, exist_ok=True)
+            queue_path.write_text(queue.model_dump_json(indent=2), encoding="utf-8")
+            return queue
+
+    # 4. Standard raw queue if no overlay
+    std_items = []
+    for r in raw_items:
+        std_items.append(MailItem(
+            id=str(r["id"]),
+            title=str(r["title"]),
+            created_at=str(r.get("created_at") or r.get("date") or "2026-10-11"),
+            priority=r.get("priority", "P2"),
+            status=r.get("status", TriageStatus.PENDING),
+            tags=r.get("tags", []),
+            target_pillars=r.get("target_pillars", []),
+            source_file=str(r.get("source_file") or r.get("rel_path") or ""),
+            preview=str(r.get("preview") or r.get("excerpt") or ""),
+            dependencies=r.get("dependencies", []),
+            verdict=r.get("verdict"),
+            verdict_notes=r.get("verdict_notes"),
+            char_count=int(r.get("char_count", 0)),
+            word_count=int(r.get("word_count", 0)),
+            tier=str(r.get("tier", "tier2")),
+            body=str(r.get("body", "")),
+            excerpt=str(r.get("excerpt", "")),
+            file_name=str(r.get("file_name", "")),
+            rel_path=str(r.get("rel_path", "")),
+            source_note=str(r.get("source_note", "")),
+            idx=int(r.get("idx", 0)),
+        ))
 
     queue = MailQueue(
         schema_version="1.0.0",
         last_scanned=datetime.datetime.now().isoformat(),
-        items=mail_items,
+        items=std_items,
     )
     # Enforces reverse-chronological sorting for P0 items at top
     queue.sort_by_priority()
+
+    # Snapshot existing ledger before overwriting
+    if queue_path.exists():
+        snap_dir = queue_path.parent / "snapshots"
+        snap_dir.mkdir(parents=True, exist_ok=True)
+        prev_snap = snap_dir / "mail_queue_prev.json"
+        try:
+            shutil.copy2(str(queue_path), str(prev_snap))
+        except Exception as e:
+            print(f"⚠️ Could not create snapshot: {e}")
 
     # Ensure output directory exists and write ledger
     queue_path.parent.mkdir(parents=True, exist_ok=True)
     queue_path.write_text(queue.model_dump_json(indent=2), encoding="utf-8")
     return queue
+
 
 
 
@@ -652,8 +970,9 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
     ensuring clean YAML frontmatter, updating the MailQueue ledger, writing an atomic
     TransactionReceipt for 5ms rollback, and compiling the master archive index.
     """
-    archive_dir = inbox_dir / "Archive"
+    archive_dir = inbox_dir / "Archive" if inbox_dir.name.lower() != "archive" else inbox_dir
     archive_dir.mkdir(parents=True, exist_ok=True)
+    live_dir = inbox_dir if inbox_dir.name.lower() != "archive" else inbox_dir.parent
 
     moved_files = []
     for note in notes:
@@ -661,8 +980,8 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
         if not rel_p:
             continue
         src = Path(rel_p).resolve()
-        # Only archive files that are directly in inbox_dir (not already in Archive)
-        if src.parent.resolve() == inbox_dir.resolve():
+        # Only archive files that are directly in live_dir (not already in Archive)
+        if src.parent.resolve() == live_dir.resolve() and src.parent.resolve() != archive_dir.resolve():
             dst = archive_dir / src.name
             try:
                 # 1. Inject clean YAML frontmatter if missing
@@ -693,6 +1012,15 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
                 print(f"⚠️ Failed to move {src.name} to archive: {e}")
 
     if moved_files:
+        # Snapshot prior ledger before save
+        if queue_path.exists():
+            snap_dir = queue_path.parent / "snapshots"
+            snap_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                shutil.copy2(str(queue_path), str(snap_dir / "mail_queue_prev.json"))
+            except Exception:
+                pass
+
         # Save updated queue
         queue_path.write_text(queue.model_dump_json(indent=2), encoding="utf-8")
 
@@ -983,13 +1311,14 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     graveyard_count = sum(1 for it in items if it.status == TriageStatus.GRAVEYARD)
     pcda_count = sum(1 for it in items if it.status == TriageStatus.PCDA)
     p0_count = sum(1 for it in items if it.priority == PriorityLevel.P0)
-    docket_count = sum(1 for it in items if it.idx > 0 or it.id.startswith("docket-"))
+    docket_count = sum(1 for it in items if it.id.startswith("docket-"))
     dispatched_count = backlog_count + completed_count + research_count + graveyard_count + pcda_count
 
-    # 3. Render all 68 cards into a unified stream
+    # 3. Render all cards into a unified stream
     all_cards_html = []
     for i, it in enumerate(items, 1):
         idx = it.idx
+        rank_val = idx if idx > 0 else i
         title_esc = html.escape(it.title)
         source_esc = html.escape(it.source_note or it.source_file or it.file_name or "Note")
         file_esc = html.escape(it.file_name or Path(it.source_file).name or "note.md")
@@ -1000,7 +1329,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
         card_id = f"mail-card-{i}"
 
-        is_docket = (idx > 0 or it.id.startswith("docket-"))
+        is_docket = it.id.startswith("docket-")
         scope = "docket" if is_docket else "archive"
 
         # Determine status and badges
@@ -1041,6 +1370,10 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         deps = it.dependencies or []
         dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
         dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
+
+        merged_chip = ""
+        if getattr(it, "merged_count", 0) > 1:
+            merged_chip = f'<span class="badge badge-merged" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Merged from {it.merged_count} notes">🧩 merged from {it.merged_count} notes</span>'
 
         pillars = it.target_pillars or infer_pillars(it.title, it.tags, it.body)
         pillar_badges = render_pillar_badges(pillars)
@@ -1099,17 +1432,19 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}" id="{card_id}" data-card-idx="{i}" data-scope="{scope}" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-title="{title_esc}" data-source="{source_esc}" data-file="{file_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
-            <span class="mail-idx-badge">#{i}</span>
+            <span class="mail-idx-badge" title="Rank #{rank_val}">#{rank_val}</span>
             {docket_badge}
             <span class="badge tier-badge { 'tier-1' if tier == 'tier1' else ('tier-3' if tier == 'tier3' else 'tier-2') }">{tier_label}</span>
             {pillar_badges}
             {priority_badge}
             {dep_badges}
+            {merged_chip}
             <span class="mail-date-badge">📅 {date_esc}</span>
             <span class="mail-status-badge {badge_cls}" id="badge-{card_id}">{badge_text}</span>
           </div>
           {file_pill}
         </div>
+
 
         <h3 class="mail-card-title">{title_esc}</h3>
 
@@ -2512,6 +2847,17 @@ def main():
         action="store_true",
         help="Physically moves harvested root inbox notes to Archive/ subfolder and emits atomic rollback receipt",
     )
+    parser.add_argument(
+        "--rejigger",
+        type=str,
+        default=str(DEFAULT_REJIGGER_PATH),
+        help="Custom path to structural rejigger overlay JSON (default: .agents/pipeline/mailbag/rejigger.json)",
+    )
+    parser.add_argument(
+        "--no-rejigger",
+        action="store_true",
+        help="Disable rejigger overlay and build raw mail queue directly",
+    )
 
     args = parser.parse_args()
 
@@ -2521,10 +2867,7 @@ def main():
         return 0 if success else 1
 
     inbox_dir = resolve_inbox_directory(args.dir, scan_archive=args.archive)
-    notes = scan_inbox(inbox_dir)
-    # If root inbox is empty and not actively archiving, load Archive notes for Tab 2 viewing
-    if not notes and (inbox_dir / "Archive").exists() and not args.archive:
-        notes = scan_inbox(inbox_dir / "Archive")
+    notes = scan_all_inbox_notes(inbox_dir)
 
     # Locate curated docket
     docket_path = None
@@ -2540,9 +2883,23 @@ def main():
 
     docket_items = parse_docket_file(docket_path) if docket_path else []
 
+    # Resolve rejigger overlay path
+    rejigger_path = None
+    if not args.no_rejigger:
+        cand_p = Path(args.rejigger)
+        if cand_p.is_absolute():
+            if cand_p.exists():
+                rejigger_path = cand_p
+        else:
+            for base in [Path.cwd(), Path(__file__).resolve().parent.parent]:
+                test_p = base / cand_p
+                if test_p.exists():
+                    rejigger_path = test_p
+                    break
+
     # Build and serialize validated MailQueue ledger (Flight 5 Pydantic engine)
     queue_file = Path(args.queue).resolve()
-    queue = build_mail_queue(notes, docket_items, queue_file)
+    queue = build_mail_queue(notes, docket_items, queue_file, rejigger_path=rejigger_path, use_rejigger=(not args.no_rejigger))
     print(f"📦 Validated MailQueue Ledger: {queue_file} ({queue.total_items} items, {queue.p0_count} P0 Top Priority)")
 
     # Execute physical archival if requested and not already scanning Archive
