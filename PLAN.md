@@ -236,11 +236,11 @@ class PresetPayload(BaseModel):
 
 ### 🛰️ ACT III: HIGH-ALTITUDE RECONNAISSANCE & THE GAUNTLET (Late Flights / Deep Docs)
 
-#### Scene 1 (Flight 9): Subagent Soul Harvest & Autopsy Ingestion (Inbox Zero)
-- [ ] Ingest `.agents/pipeline/staging/souls/*.md` (including `2026-10-10_soul_operatic_flights_pcda.md`) into `TheKlangResearch/subagents/`.
-- [ ] Verify `TheKlangResearch/qa_autopsies/` contains all verified post-mortems and platform autopsies.
-- [ ] Reset `.agents/pipeline/communique/subagent_receipt.md` to `STATUS: IDLE`.
-- [ ] Purge processed raw files in `.agents/pipeline/staging/souls/` to achieve Inbox Zero.
+#### Scene 1 (Flight 9): Subagent Soul Harvest & Autopsy Ingestion (Inbox Zero) — ✅ COMPLETED
+- [x] Ingest `.agents/pipeline/staging/souls/*.md` (including `2026-10-10_soul_operatic_flights_pcda.md`) into `TheKlangResearch/subagents/`.
+- [x] Verify `TheKlangResearch/qa_autopsies/` contains all verified post-mortems and platform autopsies.
+- [x] Reset `.agents/pipeline/communique/subagent_receipt.md` to `STATUS: IDLE`.
+- [x] Purge processed raw files in `.agents/pipeline/staging/souls/` to achieve Inbox Zero.
 
 #### Scene 2 (Flight 10): Ground-State Spec Reconciliation & Catalog Registration
 - [ ] Register new tools (`preset_audit.py`, `nkai_api.py`), schemas (`master_control_schema.json`, `preset.schema.json`), and specs in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
