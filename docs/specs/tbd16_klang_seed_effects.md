@@ -83,3 +83,10 @@ flowchart TD
 ### Automated Tests
 1. Headless simulation test verifying that cycling through all 16 pages and updating the 4 encoders accurately maps to APVTS / engine parameters without zipper noise.
 2. Cycle count profiling: verify mono drum voice takes $< 250$ cycles per sample on Cortex-M7 and ESP32-P4.
+
+---
+
+## 6. Official Reference Links & Documentation
+- **TBD-16 Hardware Documentation:** [docs.dadamachines.com/tbd-16/](https://docs.dadamachines.com/tbd-16/)
+- **TBD Platform Architecture:** [docs.dadamachines.com/tbd-platform/](https://docs.dadamachines.com/tbd-platform/)
+- **CTAG TBD Engine & DSP Synth Apps Repo:** [dadamachines.github.io/ctag-tbd/](https://dadamachines.github.io/ctag-tbd/index.html)

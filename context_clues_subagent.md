@@ -1,5 +1,6 @@
 # Context Clues: Subagent Quick-Reference Index
 
+> *Pigeon Dispatch & Field Wire*: Welcome to the fray, subagent operative. Travel light, read fast, keep the chat context lean, and report your receipts cleanly back to Headquarters.  
 > **Step 0 Bootstrapping**: Subagents waking up from `invoke_subagent` MUST read this document on Turn 1 to orient on active SemVer, task status, architectural memory, canonical taxonomy, and inviolable guardrails without prompt bloat.
 
 ---

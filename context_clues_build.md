@@ -1,5 +1,6 @@
 # Context Clues: Klang Industries (Implementation & Factory Floor)
 
+> *Dispatch from the Factory Floor of Klang Industries*: Hard hats on, valves open, grease on the gears. Zero dynamic allocations on the audio floor, and check your wrenches twice before spinning up the turbines.  
 > **Step 0 Bootstrapping**: Factory builders waking up from a context refresh or starting an implementation phase MUST read this document on Turn 1 to orient on active build directives, return agenda, architectural memory, canonical taxonomy, and factory handshake gates without prompt bloat.
 
 ---

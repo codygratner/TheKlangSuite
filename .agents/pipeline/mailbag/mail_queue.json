@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:21:49.360348",
+  "last_scanned": "2026-10-11T13:37:30.343702",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -335,7 +335,7 @@
       "title": "Lightning Round: 4 one-line decisions",
       "created_at": "2026-10-07",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tags": [
         "merged:4"
       ],
@@ -347,8 +347,8 @@
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Context Clues.md",
       "preview": "Small questions bundled so they clear in one sitting.",
       "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: All 4 lightning round items resolved: (a) Lore added to context clues; (b) winget verified git is up to date; (c) Flight 20 backlogged; (d) TBD-16 links filed in spec.",
       "estimated_tokens": 10000,
       "char_count": 788,
       "word_count": 98,

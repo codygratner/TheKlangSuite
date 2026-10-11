@@ -1,5 +1,6 @@
 # Context Clues: New Klang City (Planning Headquarters)
 
+> *Transmission from the High Tower of New Klang City*: Where Mayor Toad sips chilled tea and architects grand operatic blueprints while factory steam whistles echo across the valley below.  
 > **Step 0 Bootstrapping**: Planners waking up from a context refresh or starting an architectural session MUST read this document on Turn 1 to orient on active milestones, return agenda, architectural memory, canonical taxonomy, and workflow gates without prompt bloat.
 
 ---
