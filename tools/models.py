@@ -6,8 +6,143 @@ Provides schema validation, priority queue sorting, and atomic transaction recei
 
 from datetime import datetime
 from enum import Enum
+import re
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class EcosystemPillar(str, Enum):
+    TKS = "TKS"        # The Klang Suite (Audio Plugins, DSP, JUCE, VST3/AU)
+    TT = "TT"          # ToadTracker (Tracker Engine & M8 Bridge)
+    NK = "NK"          # N'kai (Sidecar, Webviews & Triage Lab)
+    TKR = "TKR"        # TheKlangResearch (RFCs, Papers & DSP Math)
+    AGY = "AGY"        # Antigravity (Skills, Harness, Rules & Workflows)
+    TBD16 = "TBD-16"    # Hardware (ESP32-P4 / Microcontroller Firmware)
+
+
+PILLAR_METADATA = {
+    "TKS": {
+        "name": "The Klang Suite",
+        "emoji": "🎹",
+        "desc": "Audio Plugins & Native C++ DSP",
+        "color": "#0284c7",
+        "bg": "rgba(2, 132, 199, 0.15)",
+        "border": "rgba(2, 132, 199, 0.35)",
+    },
+    "TT": {
+        "name": "ToadTracker",
+        "emoji": "🐸",
+        "desc": "Tracker Engine & M8 Bridge",
+        "color": "#10b981",
+        "bg": "rgba(16, 185, 129, 0.15)",
+        "border": "rgba(16, 185, 129, 0.35)",
+    },
+    "NK": {
+        "name": "N'kai",
+        "emoji": "👁️",
+        "desc": "Sidecar & Triage Lab",
+        "color": "#8b5cf6",
+        "bg": "rgba(139, 92, 246, 0.15)",
+        "border": "rgba(139, 92, 246, 0.35)",
+    },
+    "TKR": {
+        "name": "TheKlangResearch",
+        "emoji": "🔬",
+        "desc": "RFCs & DSP Math",
+        "color": "#f59e0b",
+        "bg": "rgba(245, 158, 11, 0.15)",
+        "border": "rgba(245, 158, 11, 0.35)",
+    },
+    "AGY": {
+        "name": "Antigravity",
+        "emoji": "🧠",
+        "desc": "Skills, Harness & Rules",
+        "color": "#f43f5e",
+        "bg": "rgba(244, 63, 94, 0.15)",
+        "border": "rgba(244, 63, 94, 0.35)",
+    },
+    "TBD-16": {
+        "name": "TBD-16 Hardware",
+        "emoji": "🎛️",
+        "desc": "Microcontroller Firmware & Embedded Hardware",
+        "color": "#ea580c",
+        "bg": "rgba(234, 88, 12, 0.15)",
+        "border": "rgba(234, 88, 12, 0.35)",
+    },
+}
+
+
+def infer_pillars(title: str, tags: Optional[List[str]] = None, body: str = "") -> List[str]:
+    """
+    Infers target ecosystem pillars (TKS, TT, NK, TKR, AGY, TBD-16) from note title,
+    tags, and body keywords using heuristic matching.
+    """
+    text = f"{title} {' '.join(tags or [])} {body}".lower()
+    matched: List[str] = []
+
+    # 1. Direct tag & title bracket checks (e.g. "[TKS]", "#tt", "[NK]")
+    tag_set = {t.lower().lstrip("#") for t in (tags or [])}
+
+    bracket_m = re.findall(r"\[([a-zA-Z0-9_\-]+)\]", title)
+    for b in bracket_m:
+        b_upper = b.upper()
+        if b_upper in PILLAR_METADATA and b_upper not in matched:
+            matched.append(b_upper)
+
+    if any(t in tag_set for t in ["tks", "theklangsuite", "klang"]) and "TKS" not in matched:
+        matched.append("TKS")
+    if any(t in tag_set for t in ["tt", "toadtracker", "tracker"]) and "TT" not in matched:
+        matched.append("TT")
+    if any(t in tag_set for t in ["nk", "nkai", "sidecar"]) and "NK" not in matched:
+        matched.append("NK")
+    if any(t in tag_set for t in ["tkr", "theklangresearch", "research"]) and "TKR" not in matched:
+        matched.append("TKR")
+    if any(t in tag_set for t in ["agy", "antigravity"]) and "AGY" not in matched:
+        matched.append("AGY")
+    if any(t in tag_set for t in ["tbd-16", "tbd16", "hardware", "firmware"]) and "TBD-16" not in matched:
+        matched.append("TBD-16")
+
+    # 2. Targeted Keyword rules
+    keywords = {
+        "TKS": [
+            "vst", "vst3", "juce", "synth", "synthesizer", "filter", "oscillator",
+            "preset", "patch", "farmer", "planter", "modulator", "apvts", "drum machine",
+            "distortion", "chorus", "delay", "reverb", "audio thread", "fastmath"
+        ],
+        "TT": [
+            "toadtracker", "toadcore", "m8", "dirtywave", "tracker", "sequencer",
+            "pattern", "song mode", "sample playback", "headless"
+        ],
+        "NK": [
+            "nkai", "sidecar", "triage", "canvas", "webview", "dossier", "mailbag",
+            "action-chip", "two-tier header", "scoreboard", "haptic"
+        ],
+        "TKR": [
+            "rfc", "dsp paper", "math proof", "autopsy", "benchmark", "tradeoff",
+            "differential equation", "transfer function", "saturation model"
+        ],
+        "AGY": [
+            "antigravity", "subagent", "gemini.md", "prompt compiler", "allowance",
+            "token budget", "slash command", "skill", "orchestrator", "opus", "pro 3.1"
+        ],
+        "TBD-16": [
+            "esp32", "p4", "i2s", "codec", "rotary encoder", "teensy", "firmware",
+            "gpio", "eurorack", "pcb", "tbd-16"
+        ],
+    }
+
+    for pillar, kws in keywords.items():
+        if pillar not in matched:
+            for kw in kws:
+                if re.search(r"\b" + re.escape(kw) + r"\b", text):
+                    matched.append(pillar)
+                    break
+
+    # If nothing matched, default to TKS
+    if not matched:
+        matched.append("TKS")
+
+    return matched
 
 
 class PriorityLevel(str, Enum):
@@ -48,6 +183,7 @@ class MailItem(BaseModel):
     priority: PriorityLevel = PriorityLevel.P2
     status: TriageStatus = TriageStatus.PENDING
     tags: List[str] = Field(default_factory=list)
+    target_pillars: List[str] = Field(default_factory=list)
     source_file: str = ""
     preview: str = ""
     dependencies: List[str] = Field(default_factory=list)
@@ -87,6 +223,20 @@ class MailItem(BaseModel):
             if v_upper in TriageStatus._value2member_map_:
                 return TriageStatus(v_upper)
         return TriageStatus.PENDING
+
+    @field_validator("target_pillars", mode="before")
+    @classmethod
+    def normalize_target_pillars(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            return [v.strip().upper()] if v.strip() else []
+        if isinstance(v, (list, tuple, set)):
+            res = []
+            for p in v:
+                p_str = str(p).strip().upper()
+                if p_str and p_str not in res:
+                    res.append(p_str)
+            return res
+        return []
 
 
 class MailQueue(BaseModel):
@@ -250,6 +400,7 @@ class RambleCard(BaseModel):
             priority=priority,
             status=TriageStatus.PENDING,
             tags=clean_tags,
+            target_pillars=[self.target_pillar],
             source_file=self.source_note,
             source_note=self.source_note,
             file_name=Path(self.source_note).name if self.source_note else "",

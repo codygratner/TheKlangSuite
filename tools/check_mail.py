@@ -29,15 +29,15 @@ import webbrowser
 
 # Import Pydantic models for persistent Mailbag session (Flight 5)
 try:
-    from tools.models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt
+    from tools.models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt, EcosystemPillar, PILLAR_METADATA, infer_pillars
 except ImportError:
     try:
-        from models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt
+        from models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt, EcosystemPillar, PILLAR_METADATA, infer_pillars
     except ImportError:
         _script_dir = Path(__file__).resolve().parent
         if str(_script_dir) not in sys.path:
             sys.path.insert(0, str(_script_dir))
-        from models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt
+        from models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt, EcosystemPillar, PILLAR_METADATA, infer_pillars
 
 DEFAULT_VAULT_INBOX = Path(r"C:\Dev\TheKlangVault\Inbox")
 FALLBACK_LOCAL_INBOX = Path("docs/inbox")
@@ -178,6 +178,16 @@ def extract_note_metadata(file_path: Path):
     else:
         tier = "tier2"
 
+    # Extract or infer ecosystem target pillars (Flight 6)
+    pillars = []
+    if fm_match:
+        fm_pil = re.search(r"^pillars?:\s*\[?(.*?)\]?\s*$", fm_match.group(1), re.MULTILINE | re.IGNORECASE)
+        if fm_pil:
+            p_items = [p.strip().strip("'\"").upper() for p in fm_pil.group(1).split(",") if p.strip()]
+            pillars = [p for p in p_items if p in PILLAR_METADATA]
+    if not pillars:
+        pillars = infer_pillars(title, tags, body)
+
     return {
         "id": file_path.stem,
         "file_name": file_path.name,
@@ -192,6 +202,7 @@ def extract_note_metadata(file_path: Path):
         "priority": priority,
         "tags": tags,
         "dependencies": dependencies,
+        "target_pillars": pillars,
     }
 
 
@@ -400,6 +411,8 @@ def parse_docket_file(docket_path: Path, backlog_path: Path = None):
             section_info = ""
             sec_num = ""
 
+        target_pillars = infer_pillars(clean_title, tags, section_text)
+
         items.append({
             "id": f"docket-{idx}",
             "idx": idx,
@@ -413,6 +426,7 @@ def parse_docket_file(docket_path: Path, backlog_path: Path = None):
             "priority": priority,
             "tags": tags,
             "dependencies": dependencies,
+            "target_pillars": target_pillars,
             "status": status,
             "badge_text": badge_text,
             "section_info": section_info,
@@ -478,6 +492,7 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
             priority=it.get("priority", "P2"),
             status=m_status,
             tags=it.get("tags", []),
+            target_pillars=it.get("target_pillars", []),
             source_file=str(it.get("source_note", "")),
             preview=str(it.get("excerpt", "")),
             dependencies=it.get("dependencies", []),
@@ -514,6 +529,7 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
             priority=n.get("priority", "P2"),
             status=TriageStatus.PENDING,
             tags=n.get("tags", []),
+            target_pillars=n.get("target_pillars", []),
             source_file=str(n.get("rel_path") or n.get("file_name", "")),
             preview=str(n.get("excerpt", "")),
             dependencies=n.get("dependencies", []),
@@ -707,6 +723,38 @@ def rollback_mail_tx(queue_path: Path, receipt_path: Path) -> bool:
     return True
 
 
+def render_pillar_badges(pillars: list) -> str:
+    """
+    Renders up to 2 pillar badges with dedicated styling, plus a '+N' overflow chip
+    if there are 3 or more pillars (The Rule of Two).
+    """
+    if not pillars:
+        pillars = ["TKS"]
+
+    badge_htmls = []
+    visible = pillars[:2]
+    overflow = pillars[2:]
+
+    for p in visible:
+        p_upper = p.upper()
+        meta = PILLAR_METADATA.get(p_upper, {
+            "name": p_upper, "emoji": "🏷️", "desc": p_upper, "color": "#94a3b8"
+        })
+        emoji = meta["emoji"]
+        cls_name = f"pillar-{p_upper.lower().replace('-', '')}"
+        badge_htmls.append(
+            f'<span class="pillar-chip {cls_name}" title="{html.escape(meta["name"])}: {html.escape(meta["desc"])}">{emoji} {p_upper}</span>'
+        )
+
+    if overflow:
+        overflow_titles = ", ".join([PILLAR_METADATA.get(op.upper(), {}).get("name", op) for op in overflow])
+        badge_htmls.append(
+            f'<span class="pillar-chip pillar-overflow" title="Also: {html.escape(overflow_titles)}">+{len(overflow)}</span>'
+        )
+
+    return "".join(badge_htmls)
+
+
 def render_markdown_to_html(md_text: str) -> str:
     """Zero-dependency Markdown to styled HTML renderer for note dossiers."""
     if not md_text or not md_text.strip():
@@ -867,6 +915,10 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
         dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
+        pillars = it.get("target_pillars") or infer_pillars(it["title"], it.get("tags", []), it.get("body", ""))
+        pillar_badges = render_pillar_badges(pillars)
+        pillars_attr = html.escape(",".join(pillars), quote=True)
+
         dispatch_banner_html = ""
         if status == "backlog":
             dispatch_banner_html = f"""
@@ -909,11 +961,12 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         </div>"""
 
         docket_cards_html.append(f"""
-      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-title="{title_esc}" data-source="{source_esc}">
+      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-title="{title_esc}" data-source="{source_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{idx}</span>
             <span class="badge tier-badge { 'tier-1' if tier == 'tier1' else ('tier-3' if tier == 'tier3' else 'tier-2') }">{tier_label}</span>
+            {pillar_badges}
             {priority_badge}
             {dep_badges}
             <span class="mail-date-badge">📅 {date_esc}</span>
@@ -972,12 +1025,17 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
         dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
+        pillars = note.get("target_pillars") or infer_pillars(note["title"], note.get("tags", []), note.get("body", ""))
+        pillar_badges = render_pillar_badges(pillars)
+        pillars_attr = html.escape(",".join(pillars), quote=True)
+
         archive_cards_html.append(f"""
-      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-status="untriaged" data-tier="{tier}" data-priority="{priority}" data-file="{file_esc}" data-title="{title_esc}">
+      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-status="untriaged" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-file="{file_esc}" data-title="{title_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{idx}</span>
             <span class="badge tier-badge { 'tier-1' if tier == 'tier1' else ('tier-3' if tier == 'tier3' else 'tier-2') }">{tier_label}</span>
+            {pillar_badges}
             {priority_badge}
             {dep_badges}
             <span class="mail-date-badge">📅 {date_esc}</span>
@@ -1439,6 +1497,37 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     .tier-1 {{ background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }}
     .tier-2 {{ background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }}
     .tier-3 {{ background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }}
+
+    /* Platform & Ecosystem Pillar Badges (Flight 6) */
+    .pillar-chip {{
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      cursor: default;
+      letter-spacing: 0.02em;
+      transition: all 0.15s ease;
+    }}
+    .pillar-tks {{ background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.35); }}
+    .pillar-tt {{ background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }}
+    .pillar-nk {{ background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.35); }}
+    .pillar-tkr {{ background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }}
+    .pillar-agy {{ background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.35); }}
+    .pillar-tbd16 {{ background: rgba(234, 88, 12, 0.15); color: #fb923c; border: 1px solid rgba(234, 88, 12, 0.35); }}
+    .pillar-overflow {{
+      background: rgba(148, 163, 184, 0.12);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      cursor: help;
+    }}
+    .pillar-chip:hover {{
+      transform: translateY(-1px);
+      filter: brightness(1.15);
+    }}
 
     .mail-date-badge {{
       font-family: var(--font-mono);
