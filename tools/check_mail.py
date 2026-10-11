@@ -541,7 +541,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
         deps = it.get("dependencies", [])
         dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
-        dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(\'{html.escape(deps[0])}\')" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
+        dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
         docket_cards_html.append(f"""
       <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-tier="{tier}" data-priority="{priority}" data-title="{title_esc}" data-source="{source_esc}">
@@ -572,16 +572,16 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           <span class="actions-label">Dispatch Action:</span>
           <div class="mail-chip-group">
             {dep_chip}
-            <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'backlog', '{tier}')" title="Add to docs/BACKLOG.md">
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', 'backlog')" title="Add to docs/BACKLOG.md">
               <span>📥</span> Backlog
             </button>
-            <button class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'research', '{tier}')" title="Route to TheKlangResearch">
+            <button class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', 'research')" title="Route to TheKlangResearch">
               <span>🔬</span> Research
             </button>
-            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'graveyard', '{tier}')" title="Reject and record in Graveyard">
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', 'graveyard')" title="Reject and record in Graveyard">
               <span>🪦</span> Graveyard
             </button>
-            <button class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'pcda', '{tier}')" title="Request 4-Lens PCDA Dialectic">
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', 'pcda')" title="Request 4-Lens PCDA Dialectic">
               <span>⚖️</span> PCDA
             </button>
           </div>
@@ -605,7 +605,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
         deps = note.get("dependencies", [])
         dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
-        dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(\'{html.escape(deps[0])}\')" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
+        dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
         archive_cards_html.append(f"""
       <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-tier="{tier}" data-priority="{priority}" data-file="{file_esc}" data-title="{title_esc}">
@@ -636,16 +636,16 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           <span class="actions-label">Dispatch Action:</span>
           <div class="mail-chip-group">
             {dep_chip}
-            <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'backlog', '{tier}')" title="Add to docs/BACKLOG.md">
+            <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', 'backlog')" title="Add to docs/BACKLOG.md">
               <span>📥</span> Backlog
             </button>
-            <button class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'research', '{tier}')" title="Route to TheKlangResearch">
+            <button class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', 'research')" title="Route to TheKlangResearch">
               <span>🔬</span> Research
             </button>
-            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'graveyard', '{tier}')" title="Reject and record in Graveyard">
+            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', 'graveyard')" title="Reject and record in Graveyard">
               <span>🪦</span> Graveyard
             </button>
-            <button class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'pcda', '{tier}')" title="Request 4-Lens PCDA Dialectic">
+            <button class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', 'pcda')" title="Request 4-Lens PCDA Dialectic">
               <span>⚖️</span> PCDA
             </button>
           </div>
@@ -1508,10 +1508,11 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }}
     }}
 
-    function filterByPrereq(depName) {{
+    function filterByPrereq(target) {{
       playHaptic('tick');
+      const depName = typeof target === 'string' ? target : (target && target.getAttribute ? target.getAttribute('data-prereq') : '');
       const searchBox = document.getElementById('search-input');
-      if (searchBox) {{
+      if (searchBox && depName) {{
         searchBox.value = depName;
         searchBox.dispatchEvent(new Event('input'));
         showToast('🔍 Filtered by Prerequisite: ' + depName);
@@ -1521,8 +1522,26 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     /* ==========================================================================
        Action Dispatching & Live Allowance Tracking
        ========================================================================== */
-    function dispatchMailAction(cardId, title, actionType, tier) {{
+    function dispatchMailAction(cardId, actionOrTitle, maybeAction, maybeTier) {{
       playHaptic('action');
+
+      let actionType = 'backlog';
+      let title = '';
+      let tier = 'tier2';
+
+      const card = document.getElementById(cardId);
+      if (card) {{
+        title = card.getAttribute('data-title') || '';
+        tier = card.getAttribute('data-tier') || 'tier2';
+      }}
+
+      if (['backlog', 'research', 'graveyard', 'pcda'].includes(actionOrTitle)) {{
+        actionType = actionOrTitle;
+      }} else if (maybeAction) {{
+        actionType = maybeAction;
+        if (actionOrTitle) title = actionOrTitle;
+        if (maybeTier) tier = maybeTier;
+      }}
 
       let promptText = '';
       if (actionType === 'backlog') {{
@@ -1583,7 +1602,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }}
 
       // 2. Auto-expand analysis dossier accordion on the card for instant visual feedback
-      const card = document.getElementById(cardId);
       if (card) {{
         const details = card.querySelector('.mail-body-details');
         if (details) {{
@@ -1620,8 +1638,6 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           updateAllowanceUI();
         }}
       }}
-
-      showToast(`⚡ Dispatched [${{actionType.toUpperCase()}}]: "${{title}}"`);
     }}
 
     function updateScoreboardUI() {{
