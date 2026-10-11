@@ -247,19 +247,19 @@ class PresetPayload(BaseModel):
 - [x] Reconcile `c:\Dev\TheKlangSuite\docs\BACKLOG.md` with recent Act I & II completions.
 - [x] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
 
-#### Scene 3 (Flight 11): Field Guide Separation of Concerns (Universal vs. Audio DSP — Field Guides Always Last)
-- [ ] **`TheKlangResearch/guides/vibe_coding_field_guide.md` (Universal Vibe-Coding Manifesto)**:
+#### Scene 3 (Flight 11): Field Guide Separation of Concerns (Universal vs. Audio DSP — Field Guides Always Last) — ✅ COMPLETED
+- [x] **`TheKlangResearch/guides/vibe_coding_field_guide.md` (Universal Vibe-Coding Manifesto)**:
   - Strip out audio-specific C++ parameter blocks, JUCE audio thread invariants, and sample-rate math.
   - Generalize into a 100% stack-agnostic manual for autonomous AI pair-programming (Python, Rust, TypeScript, C++, web, embedded).
   - Emphasize: Dual-Chat division of labor (Ivory Tower vs Factory Floor), Model Tier economics, Asymmetric Sidecar Split, Tri-Engine subagent swarms (`explore`, `contrarian`, `research`), Strategy Graveyards, Negative Architecture, and bounded sprints vs runaway loops.
-- [ ] **`TheKlangResearch/guides/audio_dsp_field_guide.md` (Real-Time C++ & Audio DSP Bible)**:
+- [x] **`TheKlangResearch/guides/audio_dsp_field_guide.md` (Real-Time C++ & Audio DSP Bible)**:
   - Elevate from current stub into comprehensive, definitive manual for modern AI-assisted audio development.
   - Ingest all audio invariants: Zero allocations in `processBlock`, zero locks, zero blocking I/O, lock-free SPSC FIFOs, atomics for audio-to-UI telemetry.
   - Document SIMD `FastMath` Padé approximations, rational polynomial waveshapers, and cycle budgets.
   - Ingest filter topologies (SVF, ZDF, Ladder, Comb/Karplus-Strong) and anti-aliasing protocols (PolyBLEP, Half-Band FIR/IIR upsampling, MIP-mapped wavetables).
   - Codify modern C++20 standards for audio (RAII, zero raw ownership, JUCE 9.0.3 timer hygiene).
   - Document headless testing harness patterns (`dsp_tests`, `gui_tests`, dynamic reflection, `pluginval`).
-- [ ] **Local Pointers Synchronization**:
+- [x] **Local Pointers Synchronization**:
   - Update `c:\Dev\TheKlangSuite\docs\history\vibe_coding_field_guide.md` and `audio_dsp_field_guide.md` to reflect updated domain split.
 
 #### Scene 4 (Flight 12): The "Anti-Slop" Vibe-Coding Executive Summary & Workflow Cheat Sheet
