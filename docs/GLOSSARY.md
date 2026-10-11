@@ -177,5 +177,14 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Batch Post-Plan Distillation (Inbox Zero)**: Vacuuming staged souls during milestone capstone deep docs passes (`/update-docs --deep`), formalizing them into canonical RFCs in `TheKlangResearch`, indexing into `Master_Research_Index.md`, and purging staging to empty.
 * **The "Don't Harvest Noise" Rule**: Routine mechanical tasks (dependency installs, routine refactors) are never staged; only genuinely novel architecture or non-obvious gotchas qualify.
 
+---
+
+## 12. The "Field Guides Always Last" Invariant
+
+* **Topological Synthesis Sequence**: In all deep documentation passes (`/update-docs --deep` or Act III), low-level raw soul harvests, bug autopsies, backlogs, and technical specs MUST be ingested and cataloged *first*. High-level Field Guides (`vibe_coding_field_guide.md`, `audio_dsp_field_guide.md`, `WORKFLOW_CHEAT_SHEET.md`, and manifestos) MUST be synthesized **LAST**.
+* **Panoramic Pedagogical Synthesis**: Ingesting code diffs, gotchas, and raw notes first provides the author with the complete, panoramic picture. The agent can then boldly synthesize new pedagogical models, unify metaphors, and refactor explanations for maximum clarity rather than appending fragmented, disjointed bullet points.
+* **Git & Obsidian History Safety**: Because Git and Obsidian sync provide complete, immutable historical versioning across all repositories, authors and agents have total license to radically refactor and elevate field guides without fear of losing previous iterations.
+
+
 
 

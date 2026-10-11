@@ -234,11 +234,24 @@ class PresetPayload(BaseModel):
 
 ### 🛰️ ACT III: HIGH-ALTITUDE RECONNAISSANCE & THE GAUNTLET (Late Flights / Deep Docs)
 
-#### Scene 1 (Flight 9): Field Guide Separation of Concerns (Universal vs. Audio DSP)
+#### Scene 1 (Flight 9): Subagent Soul Harvest & Autopsy Ingestion (Inbox Zero)
+- [ ] Ingest `.agents/pipeline/staging/souls/*.md` (including `2026-10-10_soul_operatic_flights_pcda.md`) into `TheKlangResearch/subagents/`.
+- [ ] Verify `TheKlangResearch/qa_autopsies/` contains all verified post-mortems and platform autopsies.
+- [ ] Reset `.agents/pipeline/communique/subagent_receipt.md` to `STATUS: IDLE`.
+- [ ] Purge processed raw files in `.agents/pipeline/staging/souls/` to achieve Inbox Zero.
+
+#### Scene 2 (Flight 10): Five-Pillar Link Integrity & Ground-State Spec Reconciliation
+- [ ] Programmatic verification across all markdown documents in `TheKlangSuite`, `ToadTracker`, `nkai`, `TheKlangResearch`, and `TheKlangVault`.
+- [ ] Reconcile `c:\Dev\TheKlangSuite\docs\BACKLOG.md` with recent completions.
+- [ ] Reconcile `c:\Dev\TheKlangSuite\docs\history\DEV_HISTORY.md` with architectural milestones.
+- [ ] Synchronize and validate `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+
+#### Scene 3 (Flight 11): Field Guide Separation of Concerns (Universal vs. Audio DSP — Field Guides Always Last)
 - [ ] **`TheKlangResearch/guides/vibe_coding_field_guide.md` (Universal Vibe-Coding Manifesto)**:
   - Strip out audio-specific C++ parameter blocks, JUCE audio thread invariants, and sample-rate math.
   - Generalize into a 100% stack-agnostic manual for autonomous AI pair-programming (Python, Rust, TypeScript, C++, web, embedded).
   - Emphasize: Dual-Chat division of labor (Ivory Tower vs Factory Floor), Model Tier economics, Asymmetric Sidecar Split, Tri-Engine subagent swarms (`explore`, `contrarian`, `research`), Strategy Graveyards, Negative Architecture, and bounded sprints vs runaway loops.
+  - Synthesize holistic new pedagogical models and diagrams drawing from the complete harvested picture.
 - [ ] **`TheKlangResearch/guides/audio_dsp_field_guide.md` (Real-Time C++ & Audio DSP Bible)**:
   - Elevate from current stub into comprehensive, definitive manual for modern AI-assisted audio development.
   - Ingest all audio invariants: Zero allocations in `processBlock`, zero locks, zero blocking I/O, lock-free SPSC FIFOs, atomics for audio-to-UI telemetry.
@@ -249,7 +262,7 @@ class PresetPayload(BaseModel):
 - [ ] **Local Pointers Synchronization**:
   - Update `c:\Dev\TheKlangSuite\docs\history\vibe_coding_field_guide.md` and `audio_dsp_field_guide.md` to reflect updated domain split.
 
-#### Scene 2 (Flight 10): The "Anti-Slop" Vibe-Coding Executive Summary (2-to-3 Minute Whitepaper)
+#### Scene 4 (Flight 12): The "Anti-Slop" Executive Summary & Evergreen Workflow Cheat Sheet
 - [ ] **Author `TheKlangResearch/guides/anti_slop_vibe_coding_manifesto.md`**:
   - **Reading Time Target**: 2 to 3 minutes (~600 words, high-density, punchy, practical).
   - **Target Audience**: Professional software engineers and SQA practitioners skeptical of AI code generation and frustrated by "AI slop", hallucinations, broken whitespace, and silent regressions.
@@ -266,11 +279,8 @@ class PresetPayload(BaseModel):
     6. PCDA & The Adversarial Contrarian.
     7. Deterministic Test Gauntlets.
   - Index link in `TheKlangResearch/README.md` and `TheKlangVault/Research/Master_Research_Index.md`.
-
-#### Scene 3 (Flight 11): Evergreen Workflow Cheat Sheet & Tri-State Model Advisory
 - [ ] **Author `c:\Dev\TheKlangSuite\docs\WORKFLOW_CHEAT_SHEET.md`**:
-  - Distill staged soul harvest `.agents/pipeline/staging/souls/2026-10-10_soul_operatic_flights_pcda.md`.
-  - Concise, 1-page high-density reference sheet for human developers.
+  - Distill total session breakthroughs into a concise, 1-page high-density reference sheet for human developers.
   - Facility Spheres, Model Tiers, Subagent Swarm roles, Communiqué flow, 5-Phase standard, N'kai CLI reference.
   - Codify the **Event-Driven Glossary Invariant**: `GLOSSARY.md` and `CHEAT_SHEET.md` are updated *only* upon explicit terminology or workflow shifts, never on routine commits.
 - [ ] **Update `GEMINI.md` ("Strict Model Advisory Protocol & Anti-Spam Gate")**:
@@ -281,13 +291,7 @@ class PresetPayload(BaseModel):
   - Delete legacy 5-minute downgrade timer rules.
   - Synchronize across documentation catalogs and cheat sheets.
 
-#### Scene 4 (Flight 12): Subagent Soul Harvest & Autopsy Ingestion
-- [ ] Ingest `.agents/pipeline/staging/souls/2026-10-10_soul_operatic_flights_pcda.md` into `TheKlangResearch/subagents/`.
-- [ ] Verify `TheKlangResearch/qa_autopsies/` contains all verified post-mortems.
-- [ ] Reset `.agents/pipeline/communique/subagent_receipt.md` to `STATUS: IDLE`.
-
-#### Scene 5 (Flight 13): Five-Pillar Hyperlink Integrity Gauntlet & Central Vault Recompilation
-- [ ] Programmatic verification across all markdown documents in `TheKlangSuite`, `ToadTracker`, `nkai`, `TheKlangResearch`, and `TheKlangVault`.
+#### Scene 5 (Flight 13): Central Obsidian Vault Recompilation & Cross-Repo Sync
 - [ ] Run `powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1`.
 - [ ] Verify `TheKlangVault/Research/Master_Research_Index.md` compiles cleanly with 0 errors.
 

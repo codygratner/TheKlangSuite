@@ -70,8 +70,17 @@ When explicitly invoked with `--deep` (or `/deep-docs-update`), this skill trans
 4. **The Klang Research (`C:\Dev\Research`)**: Centralized RFCs, eternal DSP mathematics, research boards, subagent soul harvests, and novel QA autopsies.
 5. **The Klang Vault (`C:\Dev\TheKlangVault`)**: Reconciles the root staging inbox (`Inbox/`) and lore archives (`Lore/`) while mirroring project-level documentation into dedicated project sub-portals (`The Klang Suite/`, `ToadTracker/`, `N'kai/`, `Research/`).
 
-### Subagent Soul Harvest & QA Autopsy Curation Pipeline (Stage → Distill → Discard)
-To eliminate active coding friction while preventing the "knowledge cemetery" trap, `/update-docs --deep` acts as the master editorial curator for all subagent findings:
+### Strict 4-Stage Order of Operations ("Field Guides Always Last")
+To eliminate active coding friction while preventing the "knowledge cemetery" trap, `/update-docs --deep` enforces a rigorous 4-stage topological sequence. Ground-state data, receipts, and technical specs are cataloged first; high-level Field Guides are synthesized **LAST** so the authoring agent possesses the complete, panoramic picture before synthesizing new pedagogical models:
+
+```
+[ Stage 1: Harvest & Triage ] ──► [ Stage 2: Ground Specs & Catalog ] ──► [ Stage 3: Field Guides (LAST) ] ──► [ Stage 4: Vault Sync & Links ]
+  - Sweep staging souls             - Reconcile BACKLOG.md                  - vibe_coding_field_guide.md           - sync_obsidian_vault.ps1
+  - Curate QA autopsies             - Update DEV_HISTORY.md                 - audio_dsp_field_guide.md             - Master_Research_Index.md
+  - Purge staging (Inbox Zero)      - Sync specs & DOCS_CATALOG             - Anti-Slop Manifesto                  - 100% hyperlink verification
+```
+
+#### Stage 1: Subagent Soul Harvest & QA Autopsy Curation (Stage → Distill → Discard)
 1. **Ingest Staged Receipts & Raw Souls**:
    - Inspects [`.agents/pipeline/communique/subagent_receipt.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/subagent_receipt.md) for execution summaries.
    - Sweeps raw subagent payloads from the staging drop-box (`.agents/pipeline/staging/souls/*.md`).
@@ -84,9 +93,30 @@ To eliminate active coding friction while preventing the "knowledge cemetery" tr
      3. *Minimal Reproducible Proof*
      4. *Permanent Architectural Invariant / Rule*
      5. *Concrete Resolution & Code Snippet*
-3. **Recompile Vault Research Index**: Executes `tools/sync_obsidian_vault.ps1` to mirror all research domains and recompile `TheKlangVault/Research/Master_Research_Index.md` (100% plain Markdown, zero Dataview dependencies).
-4. **Ruthless Discard & Staging Reset (Inbox Zero)**:
+3. **Ruthless Discard & Staging Reset (Inbox Zero)**:
    - Permanently deletes processed raw files in `.agents/pipeline/staging/souls/` to prevent digital hoarding, storage bloat, and context contamination during future agent scans.
-   - Clears the processed entries in `.agents/pipeline/communique/subagent_receipt.md`.
-5. **Automated Link Verification**: Programmatically audits 100% of markdown hyperlinks across all five roots, asserting a 100% pass rate with zero dead anchors before completing.
+   - Clears processed entries in `.agents/pipeline/communique/subagent_receipt.md` (resets to `STATUS: IDLE`).
+
+#### Stage 2: Ground-State Specs, Backlogs, & Catalog Reconciliation
+1. **Backlog & History**:
+   - Reconcile `docs/BACKLOG.md` across all pillars, verifying completed tasks against passing test suites.
+   - Append concise milestone summaries to `docs/history/DEV_HISTORY.md`.
+2. **Technical Specs & Catalogs**:
+   - Update architecture specs in `docs/specs/*.md` to reflect verified C++ parameter schemas, APVTS contracts, and HAL topologies.
+   - Reconcile `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md` with newly created tools and specs.
+
+#### Stage 3: High-Altitude Field Guides & Pedagogical Synthesis (ALWAYS LAST)
+1. **The "Field Guides Always Last" Rationale**:
+   - Under no circumstances should Field Guides be edited before Stages 1 and 2 are complete.
+   - Having the complete, bird's-eye view of all harvested breakthroughs, platform autopsies, and spec changes allows the agent not merely to append bullet points, but to boldly synthesize new pedagogical models, unify metaphors, and rewrite sections for maximum clarity.
+   - **Git & Obsidian History Safety**: Because Git and Obsidian sync provide complete, immutable historical versioning, the agent has full license to radically refactor and distill field guides without fear of losing previous drafts.
+2. **Core Field Guides Refreshed**:
+   - **`TheKlangResearch/guides/vibe_coding_field_guide.md` (Universal Vibe-Coding Manifesto)**: Stack-agnostic manual for autonomous AI pair-programming (subagent slicing, context shield, asymmetric split, negative architecture).
+   - **`TheKlangResearch/guides/audio_dsp_field_guide.md` (Real-Time C++ & Audio DSP Bible)**: Real-time invariants, SIMD Padé approximations, filter topologies, cycle budgets, lock-free ring buffers.
+   - **`TheKlangResearch/guides/anti_slop_vibe_coding_manifesto.md`**: Executive summary (2-3 min read, 100% zero-lore, zero-product).
+   - **`docs/WORKFLOW_CHEAT_SHEET.md`**: 1-page evergreen developer cheat sheet.
+
+#### Stage 4: Central Vault Index Recompilation & Hyperlink Audit
+1. **Recompile Vault Research Index**: Executes `powershell -ExecutionPolicy Bypass -File tools/sync_obsidian_vault.ps1` to mirror all research domains and recompile `TheKlangVault/Research/Master_Research_Index.md` (100% plain Markdown, zero Dataview dependencies).
+2. **Automated Link Verification**: Programmatically audits 100% of markdown hyperlinks across all five roots, asserting a 100% pass rate with zero dead anchors before completing.
 

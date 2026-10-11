@@ -129,4 +129,13 @@
 * **Batch Post-Plan Distillation**: Formalize staged souls into `TheKlangResearch` RFCs during deep docs passes, wiping staging to Inbox Zero.
 * **Noise Filter**: Never harvest routine mechanical changes; only stage novel architecture, unexpected gotchas, and PCDA dialectics.
 
+---
+
+## 📚 The "Field Guides Always Last" Invariant
+
+* **Synthesis Sequence**: In deep docs sweeps (`/update-docs --deep` / Act III), ingest souls, autopsies, and ground specs *first*; synthesize Field Guides & Manifestos **LAST**.
+* **Panoramic Synthesis**: Complete bird's-eye context empowers bold rewriting and creation of new mental models rather than piecemeal bullet additions.
+* **History Safety**: Full Git and Obsidian sync history eliminates fear of radical refactoring.
+
+
 
