@@ -169,4 +169,13 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) in the exact same commit pass.
 * **Secondary Directory Pointers**: Core directories point back to the centralized Glossary and Cheat Sheet rather than authoring rogue, fragmented dictionaries.
 
+---
+
+## 11. Telescoping Soul Harvest Standard (Staging vs. Distillation)
+
+* **Opportunistic Post-Flight Staging (The Digital Shoebox)**: Dropping unvarnished notes, mathematical derivations, or bug autopsies into `.agents/pipeline/staging/souls/` immediately upon flight completion. Captures fresh context at 0 token cost before chat compaction.
+* **Batch Post-Plan Distillation (Inbox Zero)**: Vacuuming staged souls during milestone capstone deep docs passes (`/update-docs --deep`), formalizing them into canonical RFCs in `TheKlangResearch`, indexing into `Master_Research_Index.md`, and purging staging to empty.
+* **The "Don't Harvest Noise" Rule**: Routine mechanical tasks (dependency installs, routine refactors) are never staged; only genuinely novel architecture or non-obvious gotchas qualify.
+
+
 

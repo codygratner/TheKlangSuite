@@ -58,6 +58,10 @@
    - Strict Anti-Pattern: Never scatter rogue blackboxes per subfolder; respect the 3-zone boundaries.
 7. **Permanent Documentation Invariant**:
    - Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or guardrails change, agents MUST proactively update both `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md` in the exact same commit pass.
+8. **Telescoping Soul Harvest Standard**:
+   - Opportunistic post-flight staging into `.agents/pipeline/staging/souls/` for unexpected gotchas, novel PCDAs, and proofs.
+   - Batch distillation into `TheKlangResearch` RFCs at milestone capstone (Flight 12/13), purging staging to Inbox Zero.
+   - Never harvest routine mechanical noise.
 
 ---
 

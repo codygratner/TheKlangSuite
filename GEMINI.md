@@ -75,6 +75,9 @@
 ## Permanent Documentation Invariant (Glossary & Cheat Sheet Sync)
 - **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) in the exact same commit pass.
 - **The 3-Zone Architectural Standard**: Follow the 3-Zone README standard (`Source/dsp/README.md`, `assets/README.md`, `tools/README.md`). Never create rogue per-folder blackboxes.
+- **Telescoping Soul Harvest Standard (Capture vs. Distill)**:
+  - *Post-Flight Opportunistic Staging*: When a flight or subagent uncovers a non-trivial insight, platform gotcha, bug autopsy, or novel PCDA dialectic, immediately drop raw notes into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md`. Zero token cost; immunizes insights against chat context truncation. Never harvest routine mechanical noise.
+  - *Post-Plan Batch Distillation (Inbox Zero)*: During deep docs passes (`/update-docs --deep` or Flight 12/13), vacuum all staged souls, formalize them into permanent RFCs/autopsies in `TheKlangResearch`, compile `Master_Research_Index.md`, and wipe staging clean.
 
 ## Strict Planning Guardrails
 - **No Spontaneous Implementation**: When planning commands (`/plan`, `/read-plan`, `/execute-task`) are invoked, NEVER automatically start writing C++ code, compiling, or modifying source files.

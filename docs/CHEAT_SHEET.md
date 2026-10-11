@@ -121,3 +121,12 @@
 
 * **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) in the exact same commit pass.
 
+---
+
+## 🏺 Telescoping Soul Harvest Standard
+
+* **Opportunistic Post-Flight Staging**: Drop raw notes/gotchas into `.agents/pipeline/staging/souls/` immediately (0 tokens, fresh memory).
+* **Batch Post-Plan Distillation**: Formalize staged souls into `TheKlangResearch` RFCs during deep docs passes, wiping staging to Inbox Zero.
+* **Noise Filter**: Never harvest routine mechanical changes; only stage novel architecture, unexpected gotchas, and PCDA dialectics.
+
+
