@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T12:53:03.267212",
+  "last_scanned": "2026-10-11T13:06:15.650871",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -9,7 +9,7 @@
       "title": "Confirm-to-Close: 14 notes already shipped",
       "created_at": "2026-10-10",
       "priority": "P0",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tags": [
         "merged:14"
       ],
@@ -21,8 +21,8 @@
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Pydantic.md",
       "preview": "One-click inbox reduction. Each note below is already answered by shipped work or an existing doc; approve to close all 14 at once, or pull any one back out.",
       "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: User confirmed all 14 notes already shipped/covered. Residual halves live on in rj-05 (session manager), rj-07 (missed FX list), rj-11 (audit cadence). Roster correction: embedded build is TKB.",
       "estimated_tokens": 10000,
       "char_count": 2645,
       "word_count": 298,
