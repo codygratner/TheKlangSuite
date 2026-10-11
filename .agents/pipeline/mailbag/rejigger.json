@@ -380,7 +380,7 @@
       "id": "rj-15",
       "rank": 15,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "TABLED",
       "tier": "tier2",
       "pillars": [
         "TKS"
@@ -397,7 +397,9 @@
         "docket-11",
         "FX UX Ideas",
         "Future ideas while I fall asleep"
-      ]
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Bundled with rj-14 (Modulation System Overhaul) for joint deep research and plan drafting when returning to active TKS coding."
     },
     {
       "id": "rj-16",
