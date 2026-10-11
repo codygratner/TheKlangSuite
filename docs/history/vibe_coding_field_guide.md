@@ -22,6 +22,8 @@ This guide has graduated to the centralized **The Klang Research Hub** as the ov
    - Agents bootstrap from role-specific context clues (`context_clues_plan.md`, `context_clues_build.md`, `context_clues_subagent.md`) conforming to the universal 5-section standard, resuming operations in exactly 0 turns after a context refresh.
 6. **Telescoping Institutional Memory (The Soul Harvest Standard):**
    - Stage raw notes and gotchas into `.agents/pipeline/staging/souls/` post-flight (0 token cost). Batch-distill into permanent RFCs during deep docs passes (`/update-docs --deep`).
+7. **The SQA Defense (Pistons vs. Chassis & Velocity Governance):**
+   - When AI generative power operates at 100,000 RPM, automated regression shock absorbers (`audiothread-guard`, `ParameterSchemaAuditTest`, `dsp_tests`) prevent chassis fractures. Enforces the "House Foundation" smoke test model (fail fast, fail loud) and end-user simulated UI testing with deterministic selectors.
 
 *For full playbook history, the Strategy Graveyard tombstones, and sidecar architecture, see the canonical [Vibe-Coder's Field Guide](https://github.com/codygratner/TheKlangResearch/blob/main/guides/vibe_coding_field_guide.md).*
 *For native audio thread invariants and DSP engineering, see the [Audio DSP Field Guide](https://github.com/codygratner/TheKlangResearch/blob/main/guides/audio_dsp_field_guide.md).*
