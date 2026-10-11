@@ -4,7 +4,7 @@ STATUS: IDLE
 > *Target Pipeline:* Dual-Track Communiqué — Tooling Pipeline (`TARGET: TOOLING_HARNESS`)  
 > *Active Branch:* `0.4.0-dev`  
 > *Orchestrator:* Antigravity Main Chat (New Klang City)  
-> *Executor:* Idle (Act I Ground Control & Taxiway 100% Completed! 🏆)  
+> *Executor:* Idle (Flight 5 Completed! ✅)  
 
 ---
 
@@ -17,11 +17,11 @@ STATUS: IDLE
 - **ACTIVE BLUEPRINT**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **TARGET REPOSITORIES**:
   - [x] `TheKlangSuite` (`c:\Dev\TheKlangSuite`)
+  - [x] `TheKlangVault` (`C:\Dev\TheKlangVault`)
   - [x] `nkai` (`c:\Dev\nkai`)
 
 ---
 
 ## 2. Scope & Target Files
-- Flight 1 (Multi-Plan Queue & 5ms Rollback Engine) is COMPLETED (`f77f5c5` / `b24aae9`).
-- **Act I (Ground Control & Taxiway) is 100% COMPLETE!** 🏆 (Flights 1, 2, 3, 4).
-- Ready for Act II (Ascent & Cruising Altitude) starting with Flight 5 (Persistent Mailbag Session & Pydantic Validation).
+- Flight 5 (Persistent Mailbag Session & Pydantic Validation) is COMPLETED!
+- Next up: Scene 2 (Flight 6): TKPL — The Klang Preset Linter CLI.

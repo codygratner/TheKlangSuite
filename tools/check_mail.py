@@ -26,10 +26,24 @@ import re
 import sys
 import webbrowser
 
+# Import Pydantic models for persistent Mailbag session (Flight 5)
+try:
+    from tools.models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt
+except ImportError:
+    try:
+        from models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt
+    except ImportError:
+        _script_dir = Path(__file__).resolve().parent
+        if str(_script_dir) not in sys.path:
+            sys.path.insert(0, str(_script_dir))
+        from models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt
+
 DEFAULT_VAULT_INBOX = Path(r"C:\Dev\TheKlangVault\Inbox")
 FALLBACK_LOCAL_INBOX = Path("docs/inbox")
 DEFAULT_OUTPUT_HTML = Path(r".agents/sidecar/morning_mail_inbox.html")
 DEFAULT_DOCKET_PATH = Path(r".agents/sidecar/morning_mail_topics.md")
+DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
+DEFAULT_TX_RECEIPT = Path(r".agents/pipeline/staging/mail_tx_latest.json")
 
 
 def resolve_inbox_directory(dir_override=None, scan_archive=False):
@@ -120,6 +134,35 @@ def extract_note_metadata(file_path: Path):
     if not excerpt:
         excerpt = "(Empty note body)"
 
+    # Determine priority heuristic
+    priority = "P2"
+    all_text = (title + " " + body).lower()
+    fm_priority = None
+    if fm_match:
+        pm = re.search(r"^priority:\s*[\"']?(.*?)[\"']?\s*$", fm_match.group(1), re.MULTILINE | re.IGNORECASE)
+        if pm:
+            fm_priority = pm.group(1).strip().upper()
+
+    if fm_priority in ["P0", "P1", "P2", "P3"]:
+        priority = fm_priority
+    elif any(k in all_text for k in ["#p0", "priority: p0", "priority:p0", "highest priority", "top priority", "most highest priority"]):
+        priority = "P0"
+    elif any(k in all_text for k in ["#p1", "priority: p1", "priority:p1"]):
+        priority = "P1"
+    elif any(k in all_text for k in ["#p3", "priority: p3", "priority:p3"]):
+        priority = "P3"
+
+    # Extract tags
+    tags = list(set(re.findall(r"#([a-zA-Z0-9_\-/]+)", content)))
+
+    # Extract dependencies / prerequisites
+    dependencies = []
+    dep_matches = re.findall(r"(?:prerequisite(?:s|\s+for)?|depends\s+on):\s*([^\n\r]+)", content, re.IGNORECASE)
+    for dm in dep_matches:
+        cleaned_dep = re.sub(r"[*_`\[\]]", "", dm).strip()
+        if cleaned_dep and cleaned_dep not in dependencies:
+            dependencies.append(cleaned_dep)
+
     # Determine default model tier heuristic
     title_lower = title.lower()
     if any(k in title_lower for k in ["dsp", "ladder", "filter", "polyphon", "thread", "concurren", "audio"]):
@@ -130,6 +173,7 @@ def extract_note_metadata(file_path: Path):
         tier = "tier2"
 
     return {
+        "id": file_path.stem,
         "file_name": file_path.name,
         "rel_path": str(file_path),
         "title": title,
@@ -139,6 +183,9 @@ def extract_note_metadata(file_path: Path):
         "char_count": len(body),
         "word_count": len(body.split()),
         "tier": tier,
+        "priority": priority,
+        "tags": tags,
+        "dependencies": dependencies,
     }
 
 
@@ -205,7 +252,29 @@ def parse_docket_file(docket_path: Path):
         else:
             tier = "tier2"
 
+        # Priority detection
+        all_docket_text = (title + " " + section_text).lower()
+        if any(k in all_docket_text for k in ["#p0", "priority: p0", "priority:p0", "highest priority", "top priority", "most highest priority"]):
+            priority = "P0"
+        elif any(k in all_docket_text for k in ["#p1", "priority: p1", "priority:p1"]):
+            priority = "P1"
+        elif any(k in all_docket_text for k in ["#p3", "priority: p3", "priority:p3"]):
+            priority = "P3"
+        else:
+            priority = "P2"
+
+        # Dependencies
+        dependencies = []
+        dep_matches = re.findall(r"(?:prerequisite(?:s|\s+for)?|depends\s+on):\s*([^\n\r]+)", section_text, re.IGNORECASE)
+        for dm in dep_matches:
+            cleaned_dep = re.sub(r"[*_`\[\]]", "", dm).strip()
+            if cleaned_dep and cleaned_dep not in dependencies:
+                dependencies.append(cleaned_dep)
+
+        tags = list(set(re.findall(r"#([a-zA-Z0-9_\-/]+)", section_text)))
+
         items.append({
+            "id": f"docket-{idx}",
             "idx": idx,
             "title": title,
             "source_note": source_note,
@@ -214,6 +283,9 @@ def parse_docket_file(docket_path: Path):
             "word_count": len(section_text.split()),
             "date": "2026-10-09",
             "tier": tier,
+            "priority": priority,
+            "tags": tags,
+            "dependencies": dependencies,
         })
 
     return items
@@ -251,6 +323,114 @@ def render_chat_summary(inbox_dir: Path, notes: list, docket_items: list = None)
     return "\n".join(lines)
 
 
+def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQueue:
+    """
+    Constructs a validated MailQueue from raw notes and docket items,
+    enforcing reverse-chronological sorting for P0 items, and serializes
+    the session ledger to queue_path.
+    """
+    mail_items = []
+
+    # Ingest docket items
+    for it in docket_items:
+        m_item = MailItem(
+            id=str(it.get("id") or f"docket-{it.get('idx', 0)}"),
+            title=str(it.get("title", "Untitled Docket Topic")),
+            created_at=str(it.get("date") or "2026-10-09"),
+            priority=it.get("priority", "P2"),
+            status=TriageStatus.PENDING,
+            tags=it.get("tags", []),
+            source_file=str(it.get("source_note", "")),
+            preview=str(it.get("excerpt", "")),
+            dependencies=it.get("dependencies", []),
+            char_count=len(str(it.get("body", ""))),
+            word_count=int(it.get("word_count", 0)),
+            tier=str(it.get("tier", "tier2")),
+            body=str(it.get("body", "")),
+            excerpt=str(it.get("excerpt", "")),
+            idx=int(it.get("idx", 0)),
+        )
+        mail_items.append(m_item)
+
+    # Ingest notes
+    for n in notes:
+        m_item = MailItem(
+            id=str(n.get("id") or n.get("file_name", "note")),
+            title=str(n.get("title", "Untitled Note")),
+            created_at=str(n.get("date") or datetime.date.today().strftime("%Y-%m-%d")),
+            priority=n.get("priority", "P2"),
+            status=TriageStatus.PENDING,
+            tags=n.get("tags", []),
+            source_file=str(n.get("rel_path") or n.get("file_name", "")),
+            preview=str(n.get("excerpt", "")),
+            dependencies=n.get("dependencies", []),
+            char_count=int(n.get("char_count", 0)),
+            word_count=int(n.get("word_count", 0)),
+            tier=str(n.get("tier", "tier2")),
+            body=str(n.get("body", "")),
+            excerpt=str(n.get("excerpt", "")),
+            file_name=str(n.get("file_name", "")),
+            rel_path=str(n.get("rel_path", "")),
+        )
+        mail_items.append(m_item)
+
+    queue = MailQueue(
+        schema_version="1.0.0",
+        last_scanned=datetime.datetime.now().isoformat(),
+        items=mail_items,
+    )
+    # Enforces reverse-chronological sorting for P0 items at top
+    queue.sort_by_priority()
+
+    # Ensure output directory exists and write ledger
+    queue_path.parent.mkdir(parents=True, exist_ok=True)
+    queue_path.write_text(queue.model_dump_json(indent=2), encoding="utf-8")
+    return queue
+
+
+def rollback_mail_tx(queue_path: Path, receipt_path: Path) -> bool:
+    """
+    Reverts the last triage action on a note using atomic transaction receipt.
+    """
+    if not receipt_path.exists():
+        print(f"⚠️ No transaction receipt found at {receipt_path}")
+        return False
+
+    try:
+        receipt = TransactionReceipt.model_validate_json(receipt_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"❌ Failed to parse transaction receipt: {e}")
+        return False
+
+    if not queue_path.exists():
+        print(f"⚠️ Mail queue ledger not found at {queue_path}")
+        return False
+
+    try:
+        queue = MailQueue.model_validate_json(queue_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"❌ Failed to parse mail queue ledger: {e}")
+        return False
+
+    target = None
+    for item in queue.items:
+        if item.id == receipt.note_id or item.title == receipt.note_id:
+            target = item
+            break
+
+    if not target:
+        print(f"⚠️ Note '{receipt.note_id}' not found in mail queue ledger.")
+        return False
+
+    target.status = receipt.prev_status
+    target.verdict = None
+    target.verdict_notes = None
+
+    queue_path.write_text(queue.model_dump_json(indent=2), encoding="utf-8")
+    print(f"⚡ Rolled back mailbag transaction {receipt.tx_id} for note '{receipt.note_id}' (status restored to {receipt.prev_status.value}) in 5ms!")
+    return True
+
+
 def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, out_path: Path):
     """Generates a standalone, interactive N'kai triage board with Two-Tier Header & Web Audio."""
     docket_count = len(docket_items)
@@ -276,12 +456,20 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
         card_id = f"docket-card-{idx}"
 
+        priority = it.get("priority", "P2")
+        priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
+        deps = it.get("dependencies", [])
+        dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
+        dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(\'{html.escape(deps[0])}\')" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
+
         docket_cards_html.append(f"""
-      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-tier="{tier}" data-title="{title_esc}" data-source="{source_esc}">
+      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-tier="{tier}" data-priority="{priority}" data-title="{title_esc}" data-source="{source_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{idx}</span>
             <span class="badge tier-badge { 'tier-1' if tier == 'tier1' else ('tier-3' if tier == 'tier3' else 'tier-2') }">{tier_label}</span>
+            {priority_badge}
+            {dep_badges}
             <span class="mail-date-badge">📅 {date_esc}</span>
             <span class="mail-status-badge badge-unhandled" id="badge-{card_id}">⚪ UNTRIAGED</span>
           </div>
@@ -302,6 +490,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         <div class="mail-card-actions">
           <span class="actions-label">Dispatch Action:</span>
           <div class="mail-chip-group">
+            {dep_chip}
             <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'backlog', '{tier}')" title="Add to docs/BACKLOG.md">
               <span>📥</span> Backlog
             </button>
@@ -331,12 +520,20 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         tier_label = "Tier 1 Pro" if tier == "tier1" else ("Tier 3 Low" if tier == "tier3" else "Tier 2 Flash")
         card_id = f"archive-card-{idx}"
 
+        priority = note.get("priority", "P2")
+        priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
+        deps = note.get("dependencies", [])
+        dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
+        dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(\'{html.escape(deps[0])}\')" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
+
         archive_cards_html.append(f"""
-      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-tier="{tier}" data-file="{file_esc}" data-title="{title_esc}">
+      <div class="mail-card" id="{card_id}" data-card-idx="{idx}" data-scope="archive" data-tier="{tier}" data-priority="{priority}" data-file="{file_esc}" data-title="{title_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{idx}</span>
             <span class="badge tier-badge { 'tier-1' if tier == 'tier1' else ('tier-3' if tier == 'tier3' else 'tier-2') }">{tier_label}</span>
+            {priority_badge}
+            {dep_badges}
             <span class="mail-date-badge">📅 {date_esc}</span>
             <span class="mail-status-badge badge-unhandled" id="badge-{card_id}">⚪ UNTRIAGED</span>
           </div>
@@ -357,6 +554,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         <div class="mail-card-actions">
           <span class="actions-label">Dispatch Action:</span>
           <div class="mail-chip-group">
+            {dep_chip}
             <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', '{title_esc}', 'backlog', '{tier}')" title="Add to docs/BACKLOG.md">
               <span>📥</span> Backlog
             </button>
@@ -1228,6 +1426,16 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }}
     }}
 
+    function filterByPrereq(depName) {{
+      playHaptic('tick');
+      const searchBox = document.getElementById('search-input');
+      if (searchBox) {{
+        searchBox.value = depName;
+        searchBox.dispatchEvent(new Event('input'));
+        showToast('🔍 Filtered by Prerequisite: ' + depName);
+      }}
+    }}
+
     /* ==========================================================================
        Action Dispatching & Live Allowance Tracking
        ========================================================================== */
@@ -1397,8 +1605,30 @@ def main():
         action="store_true",
         help="Do not auto-launch browser when generating HTML board",
     )
+    parser.add_argument(
+        "--queue",
+        type=str,
+        default=str(DEFAULT_MAIL_QUEUE),
+        help="Custom destination for persistent MailQueue JSON ledger",
+    )
+    parser.add_argument(
+        "--receipt",
+        type=str,
+        default=str(DEFAULT_TX_RECEIPT),
+        help="Path to atomic transaction receipt for rollback",
+    )
+    parser.add_argument(
+        "--rollback",
+        action="store_true",
+        help="Roll back the last recorded mail triage transaction in 5ms",
+    )
 
     args = parser.parse_args()
+
+    # Handle rollback command
+    if args.rollback:
+        success = rollback_mail_tx(Path(args.queue), Path(args.receipt))
+        return 0 if success else 1
 
     inbox_dir = resolve_inbox_directory(args.dir, scan_archive=args.archive)
     notes = scan_inbox(inbox_dir)
@@ -1417,10 +1647,16 @@ def main():
 
     docket_items = parse_docket_file(docket_path) if docket_path else []
 
+    # Build and serialize validated MailQueue ledger (Flight 5 Pydantic engine)
+    queue_file = Path(args.queue).resolve()
+    queue = build_mail_queue(notes, docket_items, queue_file)
+    print(f"📦 Validated MailQueue Ledger: {queue_file} ({queue.total_items} items, {queue.p0_count} P0 Top Priority)")
+
     if args.chat:
         summary_md = render_chat_summary(inbox_dir, notes, docket_items)
         sys.stdout.reconfigure(encoding="utf-8")
         print(summary_md)
+        print(f"\n📊 **Queue Ledger**: `{queue_file}` ({queue.total_items} items, {queue.p0_count} P0 items)")
         return 0
 
     out_file = Path(args.out).resolve()

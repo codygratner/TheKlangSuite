@@ -196,14 +196,14 @@ class PresetPayload(BaseModel):
 
 ### ✈️ ACT II: ASCENT & CRUISING ALTITUDE (Main Flights / Core Engine & Triage)
 
-#### Scene 1 (Flight 5): Persistent Mailbag Session & Pydantic Validation
-- [ ] Author `TheKlangVault/tools/models.py`:
+#### Scene 1 (Flight 5): Persistent Mailbag Session & Pydantic Validation — ✅ COMPLETED
+- [x] Author `TheKlangVault/tools/models.py` (mirrored to `TheKlangSuite` and `nkai`):
   - Implements `MailItem`, `MailQueue`, `TriageStatus`, `PriorityLevel`, and `TransactionReceipt`.
-- [ ] Refactor `tools/check_mail.py` to use Pydantic models for validation and serialization:
+- [x] Refactor `tools/check_mail.py` to use Pydantic models for validation and serialization:
   - Enforces reverse-chronological sorting for `P0` notes.
   - Generates `.agents/pipeline/mailbag/mail_queue.json` ledger.
   - Implements atomic transaction receipts (`.agents/pipeline/staging/mail_tx_latest.json`) and `--rollback`.
-- [ ] Update `morning_mail_inbox.html` with topological warning suggestion chips for dependent `P0` notes.
+- [x] Update `morning_mail_inbox.html` with topological warning suggestion chips for dependent `P0` notes.
 
 #### Scene 2 (Flight 6): TKPL — The Klang Preset Linter CLI
 - [ ] Author `tools/preset_audit.py` (TKPL):
