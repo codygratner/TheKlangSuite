@@ -2206,12 +2206,18 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       pill.title = `Cumulative approved tokens: ${{total.toLocaleString()}} / 200,000 budget`;
     }}
 
-    document.addEventListener('DOMContentLoaded', () => {{
+    function initMailboard() {{
       initAudioHaptics();
       initLocalStorageSync();
       updateScoreboardUI();
       handleSearch();
-    }});
+    }}
+
+    if (document.readyState === 'loading') {{
+      document.addEventListener('DOMContentLoaded', initMailboard);
+    }} else {{
+      initMailboard();
+    }}
   </script>
 </body>
 </html>
