@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T14:42:50.025385",
+  "last_scanned": "2026-10-11T15:29:23.243137",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -104,10 +104,10 @@
       "verdict": "APPROVED",
       "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/nkai_qa_sandbox_board.md; merges BACKLOG Flights 16+17; runs after Flight 18 (rj-02).",
       "estimated_tokens": 10000,
-      "char_count": 965,
-      "word_count": 117,
+      "char_count": 951,
+      "word_count": 114,
       "tier": "tier2",
-      "body": "Merged: the sandbox test board IS the 80/20 answer to 'do we need dev/qa/prod?'. Build the chassis before the pistons: every later N'kai UI card gets validated here first.\n\n- Mock cards (Tsathoggua statue) whose buttons only echo [QA_TEST_MOCK] to chat\n- ENVIRONMENT: SANDBOX | PRODUCTION switch instead of multi-server envs\n- Tom's dev/cert/prod note maps to git branches + this switch\n- Deterministic element IDs for headless checks\n\n**Next action:** Approve -> plan as N'kai tooling flight.\n\n**Source notes:**\n- [Canonical Sandbox & Fixture QA Test Board (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Canonical%20Sandbox%20and%20QA%20Test%20Board.md)\n- [Multi-Stage Environment Architecture PCDA (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Multi-Stage%20Environment%20Architecture%20PCDA.md)\n- [SQA meeting with Tom about vibe coding QA](file:///C:/Dev/TheKlangVault/Inbox/Archive/SQA meeting with Tom about vibe coding QA.md)",
+      "body": "Merged: the sandbox test board IS the 80/20 answer to 'do we need dev/qa/prod?'. Build the chassis before the pistons: every later N'kai UI card gets validated here first.\n\n- Mock cards (Tsathoggua statue) whose buttons only echo [QA_TEST_MOCK] to chat\n- ENVIRONMENT: SANDBOX | PRODUCTION switch instead of multi-server envs\n- Tom's dev/cert/prod note maps to git branches + this switch\n- Deterministic element IDs for headless checks\n\n**Next action:** Completed in Flight 16+17.\n\n**Source notes:**\n- [Canonical Sandbox & Fixture QA Test Board (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Canonical%20Sandbox%20and%20QA%20Test%20Board.md)\n- [Multi-Stage Environment Architecture PCDA (P0 — TOP PRIORITY)](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Multi-Stage%20Environment%20Architecture%20PCDA.md)\n- [SQA meeting with Tom about vibe coding QA](file:///C:/Dev/TheKlangVault/Inbox/Archive/SQA meeting with Tom about vibe coding QA.md)",
       "excerpt": "Merged: the sandbox test board IS the 80/20 answer to 'do we need dev/qa/prod?'. Build the chassis before the pistons: every later N'kai UI card gets validated here first.",
       "file_name": "",
       "rel_path": "[`Nkai Canonical Sandbox and QA Test Board.md`](file:///C:/Dev/TheKlangVault/Inbox/Nkai%20Canonical%20Sandbox%20and%20QA%20Test%20Board.md)",

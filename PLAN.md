@@ -1,76 +1,86 @@
-# 🔤 Flight 18: Universal UTF-8 Invariant (`rj-02`)
+# 🧪 Flight 16+17: N'kai QA Sandbox Board & Sandbox/Production Mode (`rj-03`)
 
-> **ID:** plan-008  
+> **ID:** plan-009  
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Topic Target:** Mailbag Card `rj-02` / BACKLOG Section 15 ("Universal UTF-8 Invariant")  
+> **Topic Target:** Mailbag Card `rj-03` / BACKLOG Section 15 ("QA Sandbox Board & Sandbox/Production Mode")  
 > **Status:** COMPLETED ✅  
-> **Priority:** P0 (Top Priority — Quick Win)  
+> **Priority:** P0 (Top Priority)  
 > **Target Branch:** `0.4.0-dev`  
-> **Recommended Setting:** Gemini 3.8 Flash (Thinking: Low/Medium) — ⚡ MINIMAL  
-> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\docket-18.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/docket-18.md)  
+> **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
+> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\SQA meeting with Tom about vibe coding QA.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/SQA%20meeting%20with%20Tom%20about%20vibe%20coding%20QA.md)  
+> **Supersedes:** BACKLOG N'kai Flights 16 (Sandbox & Fixture QA Test Board) + 17 (Multi-Stage Environment PCDA)  
 
 ---
 
 ## 🎯 Architectural Intent & Storyline
 
-On Windows, Python defaults to the system ANSI code page (`cp1252` / `Windows-1252`) for standard console output and unadorned `open()` file I/O. Throughout our ecosystem sessions, emojis (🎙️, 🧠, 🧭, 📦, ⚡), box-drawing characters, and mathematical symbols have caused repeated `UnicodeEncodeError: 'charmap' codec can't encode character` crashes.
+Every N'kai UI change was previously validated against the *production* mailbag, which risked real triage state (as experienced during the `--archive-inbox` ledger-wipe autopsy). A synthetic fixture board gives a safe, deterministic place to test and break UI interactions.
 
-Additionally, Windows PowerShell 5.1's default `Get-Content` can misinterpret BOM-less UTF-8, creating visual artifact confusion even when files are clean on disk.
+The Hegelian 80/20 resolution to "do we need dev/qa/prod environments?" for solo AI pair-programming:
+**One codebase, two runtime modes (`SANDBOX` vs `PRODUCTION`), and Git branches for staging** — zero multi-server infrastructure bloat.
 
-**Flight 18** establishes an unbreakable, automated **Universal UTF-8 Invariant**:
-1. **Linter & Enforcement CLI (`tools/verify_utf8.py`)**: An automated scanner auditing all `.py` files across `TheKlangSuite` and `nkai` for stdout/stderr reconfiguration and explicit `encoding="utf-8"` on all file I/O.
-2. **Ecosystem Script Sweep**: Ensuring 100% of Python tools configure UTF-8 output streams and declare `encoding="utf-8"` on every file read/write.
-3. **PowerShell Harness Invariant**: Setting `$env:PYTHONUTF8 = "1"` and `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` in deployment and test scripts.
-4. **Permanent Guardrail**: Codifying the invariant in `GEMINI.md`, `docs/GLOSSARY.md`, and `docs/CHEAT_SHEET.md`.
+**Flight 16+17** delivers:
+1. `assets/fixtures/sandbox_mail_queue.json`: Fully typed synthetic test fixture covering every visual card state (Lovecraftian mock items: Tsathoggua statue placement, Shub-Niggurath spore filter, etc.).
+2. `--sandbox` CLI runtime mode in `tools/check_mail.py` rendering `.agents/sidecar/sandbox_mail_inbox.html`.
+3. Echo-only mock action dispatch (`[QA_TEST_MOCK]` prefix) with zero ledger or vault mutation.
+4. Deterministic element IDs for automated testing (`btn-<action>-<cardId>`, `pill-<rail>-<key>`).
+5. Automated test suite `tools/tests/test_sandbox_board.py` verifying zero-mutation isolation.
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Phase 1: Author Automated UTF-8 Audit Tool (`tools/verify_utf8.py`)
-- [x] Author `c:\Dev\TheKlangSuite\tools\verify_utf8.py`:
-  - Scans Python files across specified directories (`tools/`, `nkai/tools/`).
-  - AST / regex inspection:
-    1. Checks entrypoint files for `sys.stdout.reconfigure(encoding='utf-8')` / `sys.stderr.reconfigure(encoding='utf-8')`.
-    2. Checks all `open(...)`, `Path.read_text(...)`, and `Path.write_text(...)` calls to ensure `encoding="utf-8"` is specified.
-  - Supports `--fix` flag to automatically inject UTF-8 stdout reconfiguration where missing.
-  - Supports `--strict` flag to fail with non-zero exit code if violations exist.
-- [x] Mirror `tools/verify_utf8.py` to `c:\Dev\nkai\tools\verify_utf8.py` and `c:\Dev\nkai\bundle\tools\verify_utf8.py`.
+### Phase 1: Fixture Data (`assets/fixtures/sandbox_mail_queue.json`)
+- [x] Create directory `assets/fixtures/` if not present.
+- [x] Author `assets/fixtures/sandbox_mail_queue.json` matching `MailQueue` schema in `tools/models.py`:
+  - 6 synthetic cards covering visual states:
+    - `sbx-01`: PENDING P0 ("Tsathoggua Statue Placement in City Hall Plaza")
+    - `sbx-02`: PENDING P3 ("Deep One Submersible Air Compressor") with `merged_count: 3` and 3 source notes.
+    - `sbx-03`: APPROVED ("Shub-Niggurath Spore Dispersion Filter")
+    - `sbx-04`: BACKLOG ("Cthulhu Slumber Cycle LFO Timing")
+    - `sbx-05`: GRAVEYARD ("Azathoth Random Note Generator without Clock")
+    - `sbx-06`: COMPLETED ("Nyarlathotep 1000-Voice Facet Stacking")
+  - One 🆕 new-mail item (`sbx-07` "🆕 Unreferenced Shoggoth Sighting").
+  - Tags include `"sandbox"` and multi-pillar tags (`["tks", "nk", "tt"]`) to test overflow pills.
+- [x] Validate fixture loads and parses cleanly via `MailQueue.model_validate_json`.
 
-### Phase 2: Sweep & Harden All Python Tools
-- [x] Run `python tools/verify_utf8.py` across `c:\Dev\TheKlangSuite\tools` and fix any unconfigured or unencoded file operations:
-  - `audit_audiothread.py`
-  - `audit_legacy_parity.py`
-  - `audit_sidecar.py`
-  - `check_mail.py`
-  - `install_nkai_plugin.py`
-  - `models.py`
-  - `nkai_api.py`
-  - `nkai_bridge.py`
-  - `nkai_ledger.py`
-  - `nkai_serve.py`
-  - `pcda_format.py`
-  - `plan_queue.py`
-  - `preset_audit.py`
-  - `ramble_ingest.py`
-  - `sync_roadmap_sidecar.py`
-  - `test_nkai_api.py`
-  - `verify_context_clues.py`
-- [x] Run `python tools/verify_utf8.py` across `c:\Dev\nkai\tools` and fix any unconfigured scripts.
-- [x] Run `verify_utf8.py --strict` across both repos to assert 100% clean pass.
+### Phase 2: Mode Switch in `check_mail.py`
+- [x] Add `--sandbox` CLI flag to `tools/check_mail.py`:
+  - Loads `assets/fixtures/sandbox_mail_queue.json` directly.
+  - Never scans Vault `Inbox/` or `Archive/`.
+  - Never writes to `.agents/pipeline/mailbag/mail_queue.json` or snapshot files.
+  - Defaults output HTML to `.agents/sidecar/sandbox_mail_inbox.html`.
+- [x] Inject `window.NKAI_ENVIRONMENT = "SANDBOX"` into sandbox HTML and `"PRODUCTION"` into production HTML.
+- [x] Add visual Sandbox indicator:
+  - Page `<title>` prefixed `[SBX]`.
+  - Persistent high-contrast amber banner across top of board:
+    `🧪 SANDBOX MODE — Mock data only. Button clicks echo [QA_TEST_MOCK] with zero persistence.`
 
-### Phase 3: Update PowerShell Harnesses & Wrapper Scripts
-- [x] Ensure `tools/sync_obsidian_vault.ps1`, `install_nkai_bundle.ps1`, and relevant runner scripts declare `$env:PYTHONUTF8 = "1"` and `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`.
+### Phase 3: Mock Action Dispatch & Deterministic Element IDs
+- [x] In `tools/check_mail.py` HTML template (and `c:\Dev\nkai\core\sidecar.js`):
+  - In `dispatchAction(payload)`: when `window.NKAI_ENVIRONMENT === "SANDBOX"`, prefix message with `[QA_TEST_MOCK]` and bypass API persistence.
+  - LocalStorage key namespace uses `nkai_sbx_` prefix in sandbox mode.
+- [x] Add deterministic DOM IDs to all interactive controls:
+  - Quick action chips / buttons: `id="btn-<action>-<id>"` (e.g. `btn-approve-sbx-01`, `btn-backlog-sbx-02`).
+  - Filter pills: `id="pill-<rail>-<key>"` (e.g. `pill-status-pending`, `pill-pillar-tks`).
 
-### Phase 4: Codify Guardrails & Synchronize Invariants
-- [x] Update `GEMINI.md`: Add "Universal UTF-8 Invariant" rule under Agent Guidelines.
-- [x] Synchronize `docs/GLOSSARY.md` (Section 18: Universal UTF-8 Invariant).
-- [x] Synchronize `docs/CHEAT_SHEET.md`.
-- [x] Register `tools/verify_utf8.py` in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+### Phase 4: Automated Verification Suite (`tools/tests/test_sandbox_board.py`)
+- [x] Author `tools/tests/test_sandbox_board.py` using Python `unittest`:
+  - Test 1: `assets/fixtures/sandbox_mail_queue.json` validates against Pydantic `MailQueue`.
+  - Test 2: Running `check_mail.py --sandbox --no-browser` leaves production `mail_queue.json` untouched (hash/mtime check).
+  - Test 3: Output file `.agents/sidecar/sandbox_mail_inbox.html` exists and contains `NKAI_ENVIRONMENT = "SANDBOX"`.
+  - Test 4: Output HTML contains deterministic element IDs (`btn-approve-sbx-01`, etc.).
+- [x] Execute `python -m unittest tools/tests/test_sandbox_board.py` (assert 100% pass).
+- [x] Run `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html` (assert PERFECT PASS).
+- [x] Run production regression: `python tools/check_mail.py --archive --no-browser` (confirm 37 production cards, audit PERFECT PASS).
 
-### Phase 5: Verification, Backlog Closeout & Multi-Repo Commits
-- [x] Run `python tools/verify_utf8.py --strict` (confirm 100% pass across all repos).
-- [x] Run `python tools/verify_context_clues.py` (confirm 100% link resolution).
-- [x] Update `docs/BACKLOG.md`: Mark Flight 18 as `[x] COMPLETED`.
-- [x] Update `context_clues_plan.md` to point to Flight 16+17 (QA Sandbox Board).
+### Phase 5: Documentation, Sync & Commits
+- [x] Author design spec `docs/specs/nkai_sandbox_and_multistage_environments.md`:
+  - Document the 2-mode architecture (`SANDBOX` vs `PRODUCTION`).
+  - Map Tom's dev/cert/prod PCDA: dev = feature branch + Sandbox, cert = dev branch + QA pass, prod = tagged release + Production.
+- [x] Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+- [x] Synchronize `docs/GLOSSARY.md` (Section 19: Sandbox Mode & Fixture QA) and `docs/CHEAT_SHEET.md`.
+- [x] Mirror updated `check_mail.py` to `c:\Dev\nkai\tools` and `c:\Dev\nkai\bundle\tools`.
+- [x] Run `python tools/verify_utf8.py --all --strict` and `python tools/verify_context_clues.py`.
+- [x] Mark Flight 16+17 as `[x] COMPLETED` in `docs/BACKLOG.md` and Card `rj-03` in `rejigger.json`.
 - [x] Commit changes cleanly in `TheKlangSuite` and `nkai`.

@@ -20,6 +20,7 @@ current_build/
 # Python Scratch Scripts & Temp Logs
 *.py
 !tools/*.py
+!tools/**/*.py
 __pycache__/
 *.pyc
 *.txt

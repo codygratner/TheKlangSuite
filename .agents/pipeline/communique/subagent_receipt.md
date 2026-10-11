@@ -118,3 +118,65 @@ STATUS: COMPLETED
   - **PASS**: `PERFECT PASS: Zero issues or warnings detected!`
 - `python tools/install_nkai_plugin.py`:
   - **PASS**: `ALL VALIDATION CHECKS PASSED!`
+
+---
+
+# Subagent Execution Receipt: Flight 16+17 (rj-03) N'kai QA Sandbox Board & Multi-Stage Environments
+> *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
+> *Active Branch:* `0.4.0-dev` (TheKlangSuite) / `main` (nkai)  
+> *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
+
+---
+
+## 1. Execution Header
+- **STATUS**: `COMPLETED`
+- **ROLE EXECUTED**: `Flash Tooling Builder`
+- **TASK SLUG**: `flight-16-17-sandbox-board` (Card `rj-03`)
+- **COMPLETED AT**: `2026-10-11T20:30:00Z`
+- **MODEL TIER**: `Tier 2 Flash (High)`
+- **SOURCE PLAN**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `nkai`
+
+---
+
+## 2. Deliverables & Artifacts
+1. **Synthetic Lovecraftian Mock Data Fixture (`assets/fixtures/sandbox_mail_queue.json`)**:
+   - Conforms 100% to Pydantic `MailQueue` schema with 7 mock items (`sbx-01` through `sbx-07`), 2 P0 top priority cards, and full multi-pillar distributions (`TKS`, `NK`, `TT`, `TKR`, `TBD-16`).
+2. **Multi-Stage CLI Isolation & Mode Switch (`tools/check_mail.py`)**:
+   - Added `--sandbox` and `--fixture PATH` CLI runtime options.
+   - Bypasses live vault scanning and production queue serialization.
+   - Renders visual amber warning banner (`#sandbox-banner`), prepends `[SBX]` to title, and sets `window.NKAI_ENVIRONMENT = "SANDBOX"`.
+   - Defaults output to `.agents/sidecar/sandbox_mail_inbox.html`.
+3. **Deterministic DOM IDs & Sandbox Safe Dispatches (`tools/check_mail.py` & `c:\Dev\nkai\core\sidecar.js`)**:
+   - Deterministic button action IDs: `btn-approve-{clean_id}`, `btn-backlog-{clean_id}`, `btn-research-{clean_id}`, `btn-graveyard-{clean_id}`, `btn-pcda-{clean_id}`.
+   - Deterministic filter pill IDs: `pill-pillar-{slug}`, `pill-status-{slug}`.
+   - Added `approve` triage action support across HTML badges, banners, and handlers.
+   - Injected `[QA_TEST_MOCK]` prefix on sandbox action prompts, completely bypassed `:8000/api/action` fetch, and namespaced storage keys to `nkai_sbx_mail_triage_actions`.
+   - Mirrored changes across `TheKlangSuite` and `nkai` (`core/sidecar.js`, `tools/check_mail.py`, `bundle/tools/check_mail.py`, `sidecars/panel/index.html`).
+4. **Automated Verification Suite (`tools/tests/test_sandbox_board.py`)**:
+   - `test_fixture_schema_valid`: Validates Pydantic schema conformance.
+   - `test_sandbox_zero_mutation`: SHA-256 pre/post check asserts zero mutation on production queues and staging dirs.
+   - `test_sandbox_html_content`: Verifies deterministic IDs, banner, and `window.NKAI_ENVIRONMENT = "SANDBOX"`.
+   - `test_production_regression`: Confirms production mode generates clean HTML with `window.NKAI_ENVIRONMENT = "PRODUCTION"` and no sandbox artifacts.
+5. **Architectural Specification & Governance Sync**:
+   - Authored [`docs/specs/nkai_sandbox_and_multistage_environments.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_sandbox_and_multistage_environments.md).
+   - Registered in [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) and [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md).
+   - Synchronized [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) (Section 19: Sandbox Mode & Fixture QA) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md).
+   - Updated `.gitignore` to track `tools/tests/` suites (`!tools/**/*.py`).
+   - Marked Card `rj-03` completed in `.agents/pipeline/mailbag/rejigger.json` and Flight 16+17 completed in `docs/BACKLOG.md`.
+
+---
+
+## 3. Verification Gauntlet Results
+- `python -m unittest tools/tests/test_sandbox_board.py`:
+  - **PASS**: 4 tests in ~1.86s (100% PASS).
+- `python tools/audit_sidecar.py .agents/sidecar/sandbox_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py .agents/sidecar/morning_mail_inbox.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/audit_sidecar.py c:\Dev\nkai\sidecars\panel\index.html`:
+  - **PASS**: PERFECT PASS (0 issues/warnings).
+- `python tools/verify_utf8.py --all --strict`:
+  - **PASS**: 44/44 files compliant (100% Universal UTF-8).
+- `python tools/verify_context_clues.py`:
+  - **PASS**: 4/4 files passed, 56/56 local links resolved.

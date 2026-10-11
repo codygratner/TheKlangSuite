@@ -162,6 +162,11 @@
           "path": "docs/specs/nkai_rambles_ingestion_engine.md",
           "title": "N'kai Rambles Ingestion Engine Specification (Topic 2, Flight 1)",
           "purpose": "Stream-of-consciousness ramble intake, multi-idea paragraph decomposition, 3-bullet decision cards, and zero-mutation safety invariant."
+        },
+        {
+          "path": "docs/specs/nkai_sandbox_and_multistage_environments.md",
+          "title": "N'kai QA Sandbox Board & Multi-Stage Environments (Flight 16+17 / rj-03)",
+          "purpose": "2-mode architecture (SANDBOX vs PRODUCTION), Lovecraftian synthetic fixtures, zero-mutation guarantee, mock action dispatch, and deterministic DOM element IDs."
         }
       ]
     },

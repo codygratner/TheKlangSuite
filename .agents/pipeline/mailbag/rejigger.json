@@ -81,7 +81,7 @@
       "id": "rj-03",
       "rank": 3,
       "priority": "P0",
-      "status": "APPROVED",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "NK",
@@ -95,7 +95,7 @@
         "Tom's dev/cert/prod note maps to git branches + this switch",
         "Deterministic element IDs for headless checks"
       ],
-      "next_action": "Approve -> plan as N'kai tooling flight.",
+      "next_action": "Completed in Flight 16+17.",
       "depends_on": [
         "rj-02"
       ],
@@ -104,8 +104,8 @@
         "docket-17",
         "SQA meeting with Tom about vibe coding QA"
       ],
-      "verdict": "APPROVED",
-      "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/nkai_qa_sandbox_board.md; merges BACKLOG Flights 16+17; runs after Flight 18 (rj-02)."
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped in Flight 16+17. Fixture assets/fixtures/sandbox_mail_queue.json, check_mail.py --sandbox mode, sidecar.js sandbox mock dispatch, deterministic element IDs, tools/tests/test_sandbox_board.py, and design spec docs/specs/nkai_sandbox_and_multistage_environments.md."
     },
     {
       "id": "rj-04",

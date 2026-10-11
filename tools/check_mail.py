@@ -48,6 +48,8 @@ except ImportError:
 DEFAULT_VAULT_INBOX = Path(r"C:\Dev\TheKlangVault\Inbox")
 FALLBACK_LOCAL_INBOX = Path("docs/inbox")
 DEFAULT_OUTPUT_HTML = Path(r".agents/sidecar/morning_mail_inbox.html")
+DEFAULT_SANDBOX_OUTPUT_HTML = Path(r".agents/sidecar/sandbox_mail_inbox.html")
+DEFAULT_SANDBOX_FIXTURE = Path(r"assets/fixtures/sandbox_mail_queue.json")
 DEFAULT_DOCKET_PATH = Path(r".agents/sidecar/morning_mail_topics.md")
 DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
 DEFAULT_TX_RECEIPT = Path(r".agents/pipeline/staging/mail_tx_latest.json")
@@ -1261,10 +1263,11 @@ def render_markdown_to_html(md_text: str) -> str:
     return "\n".join(html_out)
 
 
-def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, out_path: Path, queue: MailQueue = None):
+def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, out_path: Path, queue: MailQueue = None, environment: str = "PRODUCTION"):
     """
     Generates a standalone, unified interactive N'kai triage board with Two-Tier Header,
     Session-Stable Pillar Filters, and Live Consolidated Status Counter Pills (Flights 6 & 13).
+    Supports SANDBOX and PRODUCTION runtime environments (Flight 16+17).
     """
     if queue is None:
         queue = build_mail_queue(notes, docket_items, DEFAULT_MAIL_QUEUE)
@@ -1282,7 +1285,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     sorted_pillars = sorted(pillar_counts.keys(), key=lambda p: (-pillar_counts[p], p))
 
-    # Build Rail 1 Pillar buttons HTML
+    # Build Rail 1 Pillar buttons HTML (Deterministic IDs: pill-pillar-{slug})
     pillar_buttons = []
     for p in sorted_pillars:
         meta = PILLAR_METADATA.get(p, {"name": p, "emoji": "🏷️", "desc": p})
@@ -1291,7 +1294,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         cnt = pillar_counts[p]
         p_title = f"{meta['name']}: {meta.get('desc', '')}"
         pillar_buttons.append(
-            f'<button class="pill-btn" id="pillar-btn-{p_slug}" onclick="applyPillarFilter(\'{p}\', event)" title="{html.escape(p_title)}">'
+            f'<button class="pill-btn" id="pill-pillar-{p_slug}" onclick="applyPillarFilter(\'{p}\', event)" title="{html.escape(p_title)}">'
             f'<span class="pill-icon">{emoji}</span> {p} <span class="pill-count" id="count-pillar-{p_slug}">{cnt}</span>'
             f'</button>'
         )
@@ -1299,6 +1302,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     # 2. Tally Status / Triage categories across all items
     untriaged_count = sum(1 for it in items if it.status == TriageStatus.PENDING)
+    approved_count = sum(1 for it in items if it.status == TriageStatus.APPROVED)
     backlog_count = sum(1 for it in items if it.status == TriageStatus.BACKLOG)
     completed_count = sum(1 for it in items if it.status == TriageStatus.COMPLETED)
     research_count = sum(1 for it in items if it.status == TriageStatus.RESEARCH)
@@ -1306,13 +1310,14 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     pcda_count = sum(1 for it in items if it.status == TriageStatus.PCDA)
     p0_count = sum(1 for it in items if it.priority == PriorityLevel.P0)
     docket_count = sum(1 for it in items if it.id.startswith("docket-"))
-    dispatched_count = backlog_count + completed_count + research_count + graveyard_count + pcda_count
+    dispatched_count = approved_count + backlog_count + completed_count + research_count + graveyard_count + pcda_count
 
     # 3. Render all cards into a unified stream
     all_cards_html = []
     for i, it in enumerate(items, 1):
         idx = it.idx
         rank_val = idx if idx > 0 else i
+        clean_id = re.sub(r"[^a-zA-Z0-9_-]", "_", it.id)
         title_esc = html.escape(it.title)
         source_esc = html.escape(it.source_note or it.source_file or it.file_name or "Note")
         file_esc = html.escape(it.file_name or Path(it.source_file).name or "note.md")
@@ -1331,6 +1336,10 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
             status = "untriaged"
             badge_text = "⚪ UNTRIAGED"
             badge_cls = "badge-unhandled"
+        elif it.status == TriageStatus.APPROVED:
+            status = "approved"
+            badge_text = "✅ APPROVED"
+            badge_cls = "badge-approved"
         elif it.status == TriageStatus.BACKLOG:
             status = "backlog"
             badge_text = "📥 BACKLOG"
@@ -1382,7 +1391,20 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         file_pill = f'<span class="mail-file-pill" title="{file_pill_esc}">{file_pill_icon} {file_pill_display}</span>'
 
         dispatch_banner_html = ""
-        if status == "backlog":
+        if status == "approved":
+            dispatch_banner_html = f"""
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>✅ Approved for Implementation</span>
+              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(it.verdict_notes or 'Approved')}</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Approved for active implementation runway.
+            </div>
+          </div>
+        </div>"""
+        elif status == "backlog":
             dispatch_banner_html = f"""
         <div class="mail-dispatch-banner">
           <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
@@ -1423,7 +1445,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         </div>"""
 
         all_cards_html.append(f"""
-      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}" id="{card_id}" data-card-idx="{i}" data-scope="{scope}" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-title="{title_esc}" data-source="{source_esc}" data-file="{file_esc}">
+      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}{' approved' if status == 'approved' else ''}" id="{card_id}" data-card-idx="{i}" data-scope="{scope}" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-pillars="{pillars_attr}" data-title="{title_esc}" data-source="{source_esc}" data-file="{file_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge" title="Rank #{rank_val}">#{rank_val}</span>
@@ -1455,16 +1477,19 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
           <span class="actions-label">Dispatch Action:</span>
           <div class="mail-chip-group">
             {dep_chip}
-            <button class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', 'backlog')" title="Add to docs/BACKLOG.md">
+            <button id="btn-approve-{clean_id}" class="action-chip chip-approve" onclick="dispatchMailAction('{card_id}', 'approve')" title="Approve for immediate implementation">
+              <span>✅</span> Approve
+            </button>
+            <button id="btn-backlog-{clean_id}" class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', 'backlog')" title="Add to docs/BACKLOG.md">
               <span>📥</span> Backlog
             </button>
-            <button class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', 'research')" title="Route to TheKlangResearch">
+            <button id="btn-research-{clean_id}" class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', 'research')" title="Route to TheKlangResearch">
               <span>🔬</span> Research
             </button>
-            <button class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', 'graveyard')" title="Reject and record in Graveyard">
+            <button id="btn-graveyard-{clean_id}" class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', 'graveyard')" title="Reject and record in Graveyard">
               <span>🪦</span> Graveyard
             </button>
-            <button class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', 'pcda')" title="Request 4-Lens PCDA Dialectic">
+            <button id="btn-pcda-{clean_id}" class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', 'pcda')" title="Request 4-Lens PCDA Dialectic">
               <span>⚖️</span> PCDA
             </button>
           </div>
@@ -1475,6 +1500,13 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     all_cards_joined = "".join(all_cards_html)
     inbox_dir_esc = html.escape(str(inbox_dir))
 
+    page_title = "[SBX] N'kai Morning Mail Inbox & Triage Lab" if environment == "SANDBOX" else "📬 N'kai Morning Mail Inbox & Triage Lab"
+    sandbox_banner_html = (
+        '<div id="sandbox-banner" class="sandbox-banner">🧪 <strong>SANDBOX MODE</strong> — Synthetic test fixture (7 mock cards). Button clicks echo <code>[QA_TEST_MOCK]</code> with zero persistence.</div>'
+        if environment == "SANDBOX"
+        else ""
+    )
+
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1483,7 +1515,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="Pragma" content="no-cache"/>
   <meta http-equiv="Expires" content="0"/>
-  <title>📬 N'kai Morning Mail Inbox & Triage Lab</title>
+  <title>{page_title}</title>
   <script src="/preload.js"></script>
   <style>
     :root {{
@@ -1926,6 +1958,12 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       border: 1px solid rgba(52, 211, 153, 0.35);
     }}
 
+    .mail-status-badge.badge-approved {{
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }}
+
     .mail-status-badge.badge-completed {{
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.15);
@@ -2094,6 +2132,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       user-select: none;
     }}
 
+    .chip-approve {{ color: #34d399; border-color: rgba(52, 211, 153, 0.4); }}
+    .chip-approve:hover {{ background: rgba(52, 211, 153, 0.2); border-color: #34d399; }}
+
     .chip-backlog {{ color: #34d399; border-color: rgba(52, 211, 153, 0.3); }}
     .chip-backlog:hover {{ background: rgba(52, 211, 153, 0.15); border-color: #34d399; }}
 
@@ -2105,6 +2146,17 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     .chip-pcda {{ color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }}
     .chip-pcda:hover {{ background: rgba(251, 191, 36, 0.15); border-color: #fbbf24; }}
+
+    .sandbox-banner {{
+      background: rgba(245, 158, 11, 0.18);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      text-align: center;
+      z-index: 2000;
+    }}
 
     /* Toast Notification */
     #action-toast {{
@@ -2148,7 +2200,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
   </style>
 </head>
 <body>
-
+  {sandbox_banner_html}
   <!-- Top-Tier Header -->
   <header class="header-tier-top">
     <div class="header-left">
@@ -2179,7 +2231,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     <div class="rail-row rail-pillars">
       <span class="rail-label">Product:</span>
       <div class="rail-chips">
-        <button class="pill-btn active" id="pillar-btn-all" onclick="applyPillarFilter('all', event)" title="Show All Platform Products">
+        <button class="pill-btn active" id="pill-pillar-all" onclick="applyPillarFilter('all', event)" title="Show All Platform Products">
           <span class="pill-icon">📋</span> All Mail <span class="pill-count" id="count-pillar-all">{total_count}</span>
         </button>
         {pillar_buttons_html}
@@ -2190,31 +2242,31 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     <div class="rail-row rail-status">
       <span class="rail-label">Status:</span>
       <div class="rail-chips">
-        <button class="filter-chip" id="filter-all" onclick="applyStatusFilter('all')" title="Show All Statuses">
+        <button class="filter-chip" id="pill-status-all" onclick="applyStatusFilter('all')" title="Show All Statuses">
           📋 All <span class="chip-count" id="count-status-all">{total_count}</span>
         </button>
-        <button class="filter-chip active" id="filter-untriaged" onclick="applyStatusFilter('untriaged')" title="Show Untriaged Mail (Inbox Zero Focus)">
+        <button class="filter-chip active" id="pill-status-untriaged" onclick="applyStatusFilter('untriaged')" title="Show Untriaged Mail (Inbox Zero Focus)">
           ⚪ Untriaged <span class="chip-count" id="count-status-untriaged">{untriaged_count}</span>
         </button>
-        <button class="filter-chip" id="filter-p0" onclick="applyStatusFilter('p0')" title="Filter by P0 Top Priority">
+        <button class="filter-chip" id="pill-status-p0" onclick="applyStatusFilter('p0')" title="Filter by P0 Top Priority">
           🚨 P0 <span class="chip-count" id="count-status-p0">{p0_count}</span>
         </button>
-        <button class="filter-chip" id="filter-backlog" onclick="applyStatusFilter('backlog')" title="Filter by Cataloged in Backlog">
+        <button class="filter-chip" id="pill-status-backlog" onclick="applyStatusFilter('backlog')" title="Filter by Cataloged in Backlog">
           📥 Backlog <span class="chip-count" id="count-status-backlog">{backlog_count}</span>
         </button>
-        <button class="filter-chip" id="filter-completed" onclick="applyStatusFilter('completed')" title="Filter by Completed & Codified">
+        <button class="filter-chip" id="pill-status-completed" onclick="applyStatusFilter('completed')" title="Filter by Completed & Codified">
           ✅ Completed <span class="chip-count" id="count-status-completed">{completed_count}</span>
         </button>
-        <button class="filter-chip" id="filter-research" onclick="applyStatusFilter('research')" title="Filter by Dispatched to Research">
+        <button class="filter-chip" id="pill-status-research" onclick="applyStatusFilter('research')" title="Filter by Dispatched to Research">
           🔬 Research <span class="chip-count" id="count-status-research">{research_count}</span>
         </button>
-        <button class="filter-chip" id="filter-graveyard" onclick="applyStatusFilter('graveyard')" title="Filter by Strategy Graveyard">
+        <button class="filter-chip" id="pill-status-graveyard" onclick="applyStatusFilter('graveyard')" title="Filter by Strategy Graveyard">
           🪦 Graveyard <span class="chip-count" id="count-status-graveyard">{graveyard_count}</span>
         </button>
-        <button class="filter-chip" id="filter-pcda" onclick="applyStatusFilter('pcda')" title="Filter by PCDA Dialectic">
+        <button class="filter-chip" id="pill-status-pcda" onclick="applyStatusFilter('pcda')" title="Filter by PCDA Dialectic">
           ⚖️ PCDA <span class="chip-count" id="count-status-pcda">{pcda_count}</span>
         </button>
-        <button class="filter-chip" id="filter-docket" onclick="applyStatusFilter('docket')" title="Filter by Curated Docket Items">
+        <button class="filter-chip" id="pill-status-docket" onclick="applyStatusFilter('docket')" title="Filter by Curated Docket Items">
           ⭐ Docket <span class="chip-count" id="count-status-docket">{docket_count}</span>
         </button>
       </div>
@@ -2238,6 +2290,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
   <div id="action-toast">⚡ Action Dispatched!</div>
 
   <script>
+    window.NKAI_ENVIRONMENT = "{environment}";
     let activePillar = 'all';
     let activeFilter = 'untriaged'; // Sanity-preserving default filter!
     let audioMuted = false;
@@ -2246,6 +2299,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
     const triageStats = {{
       total: {total_count},
       untriaged: {untriaged_count},
+      approved: {approved_count},
       dispatched: {dispatched_count},
       backlog: {backlog_count},
       completed: {completed_count},
@@ -2357,7 +2411,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       activePillar = pillarKey;
       document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
       const slug = pillarKey.toLowerCase().replace('-', '');
-      const activeBtn = document.getElementById('pillar-btn-' + slug);
+      const activeBtn = document.getElementById('pill-pillar-' + slug) || document.getElementById('pillar-btn-' + slug);
       if (activeBtn) activeBtn.classList.add('active');
       showToast(pillarKey === 'all' ? '📋 Showing All Products' : `🔍 Filtered by Pillar: ${{pillarKey}}`);
       handleSearch();
@@ -2367,7 +2421,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       playHaptic('tick');
       activeFilter = statusKey;
       document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      const activeChip = document.getElementById('filter-' + statusKey);
+      const activeChip = document.getElementById('pill-status-' + statusKey) || document.getElementById('filter-' + statusKey);
       if (activeChip) activeChip.classList.add('active');
       handleSearch();
     }}
@@ -2416,6 +2470,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }};
       setVal('count-status-all', triageStats.total);
       setVal('count-status-untriaged', triageStats.untriaged);
+      setVal('count-status-approved', triageStats.approved || 0);
       setVal('count-status-p0', triageStats.p0);
       setVal('count-status-backlog', triageStats.backlog);
       setVal('count-status-completed', triageStats.completed || 0);
@@ -2497,7 +2552,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         tier = card.getAttribute('data-tier') || 'tier2';
       }}
 
-      if (['backlog', 'research', 'graveyard', 'pcda'].includes(actionOrTitle)) {{
+      if (['approve', 'backlog', 'research', 'graveyard', 'pcda'].includes(actionOrTitle)) {{
         actionType = actionOrTitle;
       }} else if (maybeAction) {{
         actionType = maybeAction;
@@ -2506,7 +2561,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }}
 
       let promptText = '';
-      if (actionType === 'backlog') {{
+      if (actionType === 'approve') {{
+        promptText = `Approve '${{title}}' for implementation and schedule into active development runway.`;
+      }} else if (actionType === 'backlog') {{
         promptText = `Add '${{title}}' to docs/BACKLOG.md under its target pillar with requirements and priority.`;
       }} else if (actionType === 'research') {{
         promptText = `Research '${{title}}' across TheKlangResearch and industry precedents.`;
@@ -2516,8 +2573,12 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         promptText = `Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${{title}}'.`;
       }}
 
-      // Dispatch via FastAPI bridge (:8000), environment adapter, or clipboard
-      if (typeof fetch === 'function') {{
+      if (window.NKAI_ENVIRONMENT === 'SANDBOX') {{
+        promptText = '[QA_TEST_MOCK] ' + promptText;
+      }}
+
+      // Dispatch via FastAPI bridge (:8000), environment adapter, or clipboard (Bypassed in SANDBOX)
+      if (window.NKAI_ENVIRONMENT !== 'SANDBOX' && typeof fetch === 'function') {{
         fetch('http://127.0.0.1:8000/api/action', {{
           method: 'POST',
           headers: {{ 'Content-Type': 'application/json' }},
@@ -2557,7 +2618,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     function saveTriageAction(cardId, actionType, title, tier) {{
       try {{
-        const key = 'nkai_mail_triage_actions';
+        const key = (window.NKAI_ENVIRONMENT === 'SANDBOX') ? 'nkai_sbx_mail_triage_actions' : 'nkai_mail_triage_actions';
         const raw = localStorage.getItem(key);
         const stored = raw ? JSON.parse(raw) : {{}};
         stored[cardId] = {{
@@ -2574,7 +2635,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
     function initLocalStorageSync() {{
       try {{
-        const key = 'nkai_mail_triage_actions';
+        const key = (window.NKAI_ENVIRONMENT === 'SANDBOX') ? 'nkai_sbx_mail_triage_actions' : 'nkai_mail_triage_actions';
         const raw = localStorage.getItem(key);
         if (!raw) return;
         const stored = JSON.parse(raw);
@@ -2612,7 +2673,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
 
       const badge = document.getElementById('badge-' + cardId);
       if (badge) {{
-        badge.className = 'mail-status-badge ' + (actionType === 'completed' ? 'badge-completed' : 'badge-dispatched');
+        badge.className = 'mail-status-badge ' + (actionType === 'completed' ? 'badge-completed' : (actionType === 'approve' ? 'badge-approved' : 'badge-dispatched'));
         badge.textContent = '✅ ' + actionType.toUpperCase();
       }}
 
@@ -2626,7 +2687,9 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       }}
 
       let promptText = '';
-      if (actionType === 'backlog') {{
+      if (actionType === 'approve') {{
+        promptText = `Approve '${{title}}' for implementation and schedule into active development runway.`;
+      }} else if (actionType === 'backlog') {{
         promptText = `Add '${{title}}' to docs/BACKLOG.md under its target pillar with requirements and priority.`;
       }} else if (actionType === 'research') {{
         promptText = `Research '${{title}}' across TheKlangResearch and industry precedents.`;
@@ -2636,12 +2699,16 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         promptText = `Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${{title}}'.`;
       }}
 
+      if (window.NKAI_ENVIRONMENT === 'SANDBOX' && !promptText.startsWith('[QA_TEST_MOCK]')) {{
+        promptText = '[QA_TEST_MOCK] ' + promptText;
+      }}
+
       const promptEsc = promptText.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
       const actionLabel = actionType.toUpperCase();
-      const icon = actionType === 'pcda' ? '⚖️' : (actionType === 'research' ? '🔬' : (actionType === 'backlog' ? '📥' : '🪦'));
-      const accentColor = actionType === 'pcda' ? '#fbbf24' : (actionType === 'research' ? 'var(--accent-blue)' : (actionType === 'backlog' ? '#34d399' : '#f87171'));
-      const bgTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.08)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.08)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.08)' : 'rgba(248, 113, 113, 0.08)'));
-      const borderTint = actionType === 'pcda' ? 'rgba(251, 191, 36, 0.3)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.3)' : (actionType === 'backlog' ? 'rgba(52, 211, 153, 0.3)' : 'rgba(248, 113, 113, 0.3)'));
+      const icon = actionType === 'approve' ? '✅' : (actionType === 'pcda' ? '⚖️' : (actionType === 'research' ? '🔬' : (actionType === 'backlog' ? '📥' : '🪦')));
+      const accentColor = (actionType === 'approve' || actionType === 'backlog') ? '#34d399' : (actionType === 'pcda' ? '#fbbf24' : (actionType === 'research' ? 'var(--accent-blue)' : '#f87171'));
+      const bgTint = (actionType === 'approve' || actionType === 'backlog') ? 'rgba(52, 211, 153, 0.08)' : (actionType === 'pcda' ? 'rgba(251, 191, 36, 0.08)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.08)' : 'rgba(248, 113, 113, 0.08)'));
+      const borderTint = (actionType === 'approve' || actionType === 'backlog') ? 'rgba(52, 211, 153, 0.3)' : (actionType === 'pcda' ? 'rgba(251, 191, 36, 0.3)' : (actionType === 'research' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(248, 113, 113, 0.3)'));
 
       banner.innerHTML = `
         <div style="background: ${{bgTint}}; border: 1px solid ${{borderTint}}; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
@@ -2679,7 +2746,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       if (isUserClick) {{
         const costMap = {{ tier1: 40000, tier2: 10000, tier3: 2000 }};
         const cost = costMap[tier] || 10000;
-        if (actionType === 'backlog' || actionType === 'research') {{
+        if (actionType === 'approve' || actionType === 'backlog' || actionType === 'research') {{
           tokenLedger.totalTokens += cost;
           updateAllowanceUI();
         }}
@@ -2807,9 +2874,20 @@ def main():
         help="Outputs clean Markdown summary to terminal without opening browser",
     )
     parser.add_argument(
+        "--sandbox",
+        action="store_true",
+        help="Runs in isolated QA Sandbox mode using synthetic fixtures and zero persistence",
+    )
+    parser.add_argument(
+        "--fixture",
+        type=str,
+        default=str(DEFAULT_SANDBOX_FIXTURE),
+        help="Custom fixture path for sandbox mode (default: assets/fixtures/sandbox_mail_queue.json)",
+    )
+    parser.add_argument(
         "--out",
         type=str,
-        default=str(DEFAULT_OUTPUT_HTML),
+        default=None,
         help="Custom destination for generated HTML triage board",
     )
     parser.add_argument(
@@ -2859,6 +2937,50 @@ def main():
     if args.rollback:
         success = rollback_mail_tx(Path(args.queue), Path(args.receipt))
         return 0 if success else 1
+
+    # Isolated QA Sandbox Mode (Flight 16+17)
+    if args.sandbox:
+        fixture_path = None
+        cand_p = Path(args.fixture) if args.fixture else DEFAULT_SANDBOX_FIXTURE
+        for base in [Path.cwd(), Path(__file__).resolve().parent.parent]:
+            test_p = base / cand_p
+            if test_p.exists():
+                fixture_path = test_p
+                break
+        if not fixture_path and cand_p.exists():
+            fixture_path = cand_p.resolve()
+        if not fixture_path or not fixture_path.exists():
+            print(f"❌ Sandbox fixture not found: {cand_p}")
+            return 1
+
+        queue = MailQueue.model_validate_json(fixture_path.read_text(encoding="utf-8"))
+        print(f"🧪 [SANDBOX] Loaded Synthetic Fixture: {fixture_path} ({queue.total_items} items, {queue.p0_count} P0 Top Priority)")
+
+        out_file = Path(args.out).resolve() if args.out else DEFAULT_SANDBOX_OUTPUT_HTML.resolve()
+
+        if args.chat:
+            print(f"🧪 [SANDBOX MODE] {queue.total_items} mock items loaded from fixture.")
+            for item in queue.items:
+                print(f"- [{item.priority.value}] {item.id}: {item.title} ({item.status.value})")
+            return 0
+
+        generated = generate_html_inbox_board(
+            inbox_dir=Path("assets/fixtures"),
+            notes=[],
+            docket_items=[],
+            out_path=out_file,
+            queue=queue,
+            environment="SANDBOX",
+        )
+        print(f"✅ Generated Sandbox Mail Inbox: {generated} ({queue.total_items} synthetic cards)")
+
+        if not args.no_browser:
+            try:
+                webbrowser.open(generated.as_uri())
+            except Exception as e:
+                print(f"⚠️ Could not launch browser: {e}")
+
+        return 0
 
     inbox_dir = resolve_inbox_directory(args.dir, scan_archive=args.archive)
     notes = scan_all_inbox_notes(inbox_dir)
@@ -2915,8 +3037,8 @@ def main():
         print(f"\n📊 **Queue Ledger**: `{queue_file}` ({queue.total_items} items, {queue.p0_count} P0 items)")
         return 0
 
-    out_file = Path(args.out).resolve()
-    generated = generate_html_inbox_board(inbox_dir, notes, docket_items, out_file, queue=queue)
+    out_file = Path(args.out).resolve() if args.out else Path(DEFAULT_OUTPUT_HTML).resolve()
+    generated = generate_html_inbox_board(inbox_dir, notes, docket_items, out_file, queue=queue, environment="PRODUCTION")
     print(f"✅ Generated Morning Mail Inbox: {generated} ({len(docket_items)} docket items, {len(notes)} archive notes)")
 
     if not args.no_browser:

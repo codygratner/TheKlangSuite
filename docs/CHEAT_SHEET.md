@@ -205,6 +205,15 @@
 * **Explicit File I/O**: Every file read/write uses explicit `encoding='utf-8'` (fallback safely with `errors='replace'`, never `latin-1`).
 * **Linter Command**: `python tools/verify_utf8.py --all --strict` audits all Python tools across `TheKlangSuite`, `nkai`, and `bundle/`.
 
+---
+
+## 🧪 Sandbox Mode & Multi-Stage Environments (Flight 16+17 / `rj-03`)
+
+* **Sandbox CLI**: `python tools/check_mail.py --sandbox --no-browser` runs fully isolated with synthetic fixtures, zero persistence, and output to `.agents/sidecar/sandbox_mail_inbox.html`.
+* **The 80/20 Resolution**: One codebase, two runtime modes (`SANDBOX` vs `PRODUCTION`), and Git branches for staging (`feat/*` -> `0.4.0-dev` -> release tags), replacing enterprise server bloat.
+* **Deterministic Element IDs**: Action chips (`btn-<action>-<id>`) and filter pills (`pill-<rail>-<slug>`) provide stable DOM anchors for automated testing.
+* **Mock Action Echoing**: Actions in sandbox prepend `[QA_TEST_MOCK]`, bypass API persistence, and namespace local storage to `nkai_sbx_mail_triage_actions`.
+
 
 
 

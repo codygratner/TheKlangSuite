@@ -238,6 +238,15 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **The `verify_utf8` Auditor (`tools/verify_utf8.py`)**: The automated AST-based linter that scans all ecosystem Python scripts, detects missing stream reconfigurations or unencoded I/O calls, and enforces 100% compliance across `TheKlangSuite`, `nkai`, and `bundle/`.
 * **The PowerShell 5.1 BOM-less Decoding Trap**: The Windows terminal quirk where default PowerShell 5.1 `Get-Content` renders BOM-less UTF-8 files using ANSI/`cp1252`, causing visual artifact confusion even when files are perfectly clean on disk. Resolved by verifying raw bytes or inspecting with Python/UTF-8 editors.
 
+---
+
+## 19. Sandbox Mode & Fixture QA (Flight 16+17 / `rj-03`)
+
+* **N'kai QA Sandbox Mode (`--sandbox`)**: The isolated testing runtime mode in `tools/check_mail.py` that loads synthetic Lovecraftian mock data (`assets/fixtures/sandbox_mail_queue.json`), bypassing Obsidian vault harvesting, ledger writes, and staging file mutations. Outputs to `.agents/sidecar/sandbox_mail_inbox.html` with an amber warning banner and `[SBX]` title.
+* **The 80/20 Multi-Stage Environment Resolution**: The solo AI pair-programming answer to enterprise dev/cert/prod infrastructure: single codebase, two runtime modes (`SANDBOX` vs `PRODUCTION`), and Git branches (`feat/*` -> `0.4.0-dev` -> release tags) for progressive staging verification, avoiding multi-server overhead.
+* **Deterministic DOM IDs**: The standardized naming schema for webview action chips (`btn-<action>-<cardId>`) and filter pills (`pill-<rail>-<key>`), enabling automated, headless UI verification without brittle CSS selectors.
+* **Mock Action Echoing (`[QA_TEST_MOCK]`)**: The safety protocol in sandbox mode where button clicks echo prompt strings prefixed with `[QA_TEST_MOCK]` and bypass backend API persistence (`:8000/api/action`), while namespacing state to `localStorage['nkai_sbx_mail_triage_actions']`.
+
 
 
 
