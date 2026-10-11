@@ -57,6 +57,18 @@
       "from_id": "plan-002",
       "to_id": "plan-001",
       "title": "The Grand Operatic Flight Plan: Symphony of New Klang City"
+    },
+    {
+      "timestamp": "2026-10-11T01:59:00.656813+00:00",
+      "action": "rollback",
+      "pointer": 0,
+      "title": "The Grand Operatic Flight Plan: Symphony of New Klang City"
+    },
+    {
+      "timestamp": "2026-10-11T01:59:16.444568+00:00",
+      "action": "rollback",
+      "pointer": 0,
+      "title": "The Grand Operatic Flight Plan: Symphony of New Klang City"
     }
   ]
 }

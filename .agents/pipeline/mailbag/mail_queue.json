@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-10T20:48:53.656454",
+  "last_scanned": "2026-10-10T20:59:45.039584",
   "total_items": 37,
   "p0_count": 3,
   "items": [
@@ -107,10 +107,10 @@
       "status": "PENDING",
       "tags": [
         "toad",
-        "nkai",
         "workflow",
         "tkm",
-        "tks"
+        "tks",
+        "nkai"
       ],
       "source_file": "[`Mailbag Feature (and a nkai ramble).md`](file:///C:/Dev/TheKlangVault/Inbox/Mailbag%20Feature%20(and%20a%20nkai%20ramble).md)",
       "preview": "- Source Note: [Mailbag Feature (and a nkai ramble).md](file:///C:/Dev/TheKlangVault/Inbox/Mailbag%20Feature%20(and%20a%20nkai%20ramble).md) - Capture Date: 2026-10-10 | Priority: P1 | Tier: Tier 2 Flash - Original Prompt: \"I wanted like 'here's all the TKS mail, here's all the n...",

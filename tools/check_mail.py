@@ -1453,12 +1453,29 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         promptText = `/grill-me Conduct 4-Lens PCDA dialectic evaluation (Pros, Cons, Devil's Advocate, 80/20 Resolution) for '${{title}}'`;
       }}
 
-      // Dispatch via environment or clipboard
+      // Dispatch via FastAPI bridge (:8000), environment adapter, or clipboard
+      if (typeof fetch === 'function') {{
+        fetch('http://127.0.0.1:8000/api/action', {{
+          method: 'POST',
+          headers: {{ 'Content-Type': 'application/json' }},
+          body: JSON.stringify({{
+            action: actionType.toUpperCase(),
+            note_id: cardId.replace('note-', ''),
+            title: title,
+            tier: tier,
+            source: 'morning_mail_inbox'
+          }})
+        }}).then(res => {{
+          if (res.ok) console.log('⚡ Action recorded to FastAPI bridge (:8000)');
+        }}).catch(() => {{}});
+      }}
+
       if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {{
         window.NkaiEnv.dispatchAction(promptText);
       }} else if (navigator.clipboard && navigator.clipboard.writeText) {{
         navigator.clipboard.writeText(promptText).catch(() => {{}});
       }}
+
 
       // Update Card UI
       const card = document.getElementById(cardId);
