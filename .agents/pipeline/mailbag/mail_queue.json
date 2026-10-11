@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:19:48.453342",
+  "last_scanned": "2026-10-11T13:21:49.360348",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -299,7 +299,7 @@
       "title": "North Star Focus Doc + Status Footer",
       "created_at": "2026-10-11",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "BACKLOG",
       "tags": [
         "merged:2"
       ],
@@ -312,8 +312,8 @@
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Priorities.md",
       "preview": "Merged: your priority list (N'kai solid -> TKS 0.5.0-dev -> Toad PoC) plus the semver footer idea. One living FOCUS doc, a footer line like 'Focus: N'kai hardening | TKS-0.4.0 TT-0.1.0 NK-0.2.0', and a gentle back-on-track nudge after side quests.",
       "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "BACKLOG",
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG N'kai Flight 0 — FIRST flight after mailbag triage (user: want this done SOON). Single merged footer line.",
       "estimated_tokens": 10000,
       "char_count": 654,
       "word_count": 87,
