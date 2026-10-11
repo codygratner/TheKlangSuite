@@ -431,7 +431,7 @@
       "id": "rj-17",
       "rank": 17,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
         "NK",
@@ -447,7 +447,9 @@
       "next_action": "Approve -> BACKLOG section 13 (N'kai).",
       "sources": [
         "Mailbag Feature (and a nkai ramble)"
-      ]
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Folded into staged draft plan mailbag_intake_v2.md (Flight 7: Unified Mailbag Intake & Triage v2 Engine)."
     },
     {
       "id": "rj-18",
