@@ -30,15 +30,14 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** Mailbag triage on the **Pro-rejiggered board** (70 notes → 37 cards; 25 PENDING ranked cards + 12 status cards). Resume at **card #1 `rj-01` Confirm-to-Close** (14 notes believed shipped; user confirms closures — never auto-close).
+- **Current Objective:** Mailbag triage 100% COMPLETED across all 37 cards (**Inbox Zero** achieved!). Next objective: **Flight 0: North Star Focus Doc (`rj-09`) & Ambient Status Footer**.
 - **Board & Data**:
-  - Ordering source of truth: [`.agents/pipeline/mailbag/rejigger.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/rejigger.json) (ranked cards with `sources[]` → raw ledger items).
-  - Ledger: [`.agents/pipeline/mailbag/mail_queue.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/mail_queue.json); regen with `python tools/check_mail.py --archive --no-browser` (unreferenced new mail appears after cards as `🆕`).
-  - Rollback: `.agents/pipeline/mailbag/snapshots/mail_queue_pre_rejigger_2026-10-11.json` (pre-rejigger) and `snapshots/mail_queue_prev.json` (auto, every regen).
-  - Board UX invariants: default filter = Untriaged; "All" first on both rails; session-stable pillar order. Triage choices in chat text (no `ask_question`).
-- **Last Commits**: TKS `8a4e5b8` (rejigger overlay + `--archive-inbox` wipe fix), nkai `1914108`. Staged soul: `.agents/pipeline/staging/souls/2026-10-11_pro_mailbag_rejigger.md`.
-- **Model State**: Opus 5.5 High session concluded → main chat back on **Gemini 3.8 Flash (High)**. Opus weekly quota ~83% used (2026-10-11) — reserve for DSP / 2-strike only.
-- **Immediate Next Command**: Open the N'kai board and present card #1 (`rj-01`) for confirm-to-close triage.
+  - All 37 cards triaged: 12 Completed, 5 Backlog, 13 Approved, 5 Tabled, 2 Graveyard, 0 Pending.
+  - Source of truth: [`.agents/pipeline/mailbag/rejigger.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/rejigger.json) & [`.agents/pipeline/mailbag/mail_queue.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/mail_queue.json).
+  - Both repos synchronized and committed (`fff05f4` TKS, `7564d7b` nkai).
+- **DAW Dilemma Status**: Blind DA stress test & parallel Flash vs. Pro benchmark complete. Opus 5.5 run deferred until rolling 5-hour allowance resets. Task 9 (No-BS DAW Engine Memo) queued in [`.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md).
+- **Model State**: Active chat on **Gemini 3.8 Flash (High)**. Opus 5.5 in 5-hour allowance cooldown.
+- **Immediate Next Command**: Execute **Flight 0: North Star Focus Doc (`rj-09`)** — author `docs/FOCUS.md` and wire ambient status footer line into guidelines/glossary/cheat sheet.
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
 
 
