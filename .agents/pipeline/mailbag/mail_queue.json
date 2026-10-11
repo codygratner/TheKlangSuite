@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-10T22:47:12.011061",
-  "total_items": 50,
-  "p0_count": 4,
+  "last_scanned": "2026-10-10T23:03:29.083341",
+  "total_items": 49,
+  "p0_count": 3,
   "items": [
     {
       "id": "Anti-Slop in Open Source",
@@ -51,29 +51,6 @@
       "idx": 0
     },
     {
-      "id": "docket-1",
-      "title": "The \"Rambles\" Ingestion Engine (P0 — TOP PRIORITY)",
-      "created_at": "2026-10-09",
-      "priority": "P0",
-      "status": "PENDING",
-      "tags": [],
-      "source_file": "[`Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)",
-      "preview": "- Topic ID: Topic 2 - Source Note: [Rambles.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md) - Capture Date: 2026-10-10 | Priority: P0 (Top Priority) | Tier: Tier 2 Flash",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 1130,
-      "word_count": 175,
-      "tier": "tier2",
-      "body": "- **Topic ID:** `Topic 2`\n- **Source Note:** [`Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)\n- **Capture Date:** 2026-10-10 | **Priority:** `P0 (Top Priority)` | **Tier:** Tier 2 Flash\n- **Original Prompt:** *\"You seemed to be doing ok with taking a long ramble and turning it into discrete ideas. Is this a good workflow to take my rambles and figure out what to do with them?! This is probably most highest priority, since I'm just gonna continue to ramble if you don't tell me it's a bad idea. But, I kinda think that's part of why I wanted nkai, to take my ideas, figure out what I'm actually saying and researching each bit of it.\"*\n- **Key Angles & PCDA Dossier:**\n  - **The \"Ramble Ingestor\" Pattern**: Treating raw voice memos, messy paragraphs, and streams of consciousness as first-class inputs.\n  - LLM extraction passes: Parse unstructured prose into atomic structured cards with synthesized titles, underlying questions, and domain tags.\n  - Establishing a positive feedback loop: the developer rambles into Obsidian on their phone, and N'kai translates it into clean engineering decisions.\n\n---",
-      "excerpt": "- Topic ID: Topic 2 - Source Note: [Rambles.md](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md) - Capture Date: 2026-10-10 | Priority: P0 (Top Priority) | Tier: Tier 2 Flash",
-      "file_name": "",
-      "rel_path": "",
-      "source_note": "",
-      "idx": 1
-    },
-    {
       "id": "Response from my SQA Friend",
       "title": "Response from my SQA Friend",
       "created_at": "2026-10-07",
@@ -103,8 +80,8 @@
       "priority": "P1",
       "status": "PENDING",
       "tags": [
-        "tks-v0",
-        "nk-v0"
+        "nk-v0",
+        "tks-v0"
       ],
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\2026-10-09_Morning_Mail_Batch_Docket.md",
       "preview": "> Status: Queued for Post-Milestone N'kai Test Drive 🧪 > Source: TheKlangVault/Inbox/Archive/ (Oct 9, 2026 Morning Batch) + New Additions > Target Execution: Interactive N'kai Triage Board Session (post-v0.4.0 milestone completion) This artifact compiles the batch of design, work...",
@@ -400,7 +377,7 @@
     },
     {
       "id": "docket-2",
-      "title": "N'kai to High Reasoning Prompt Compiler (P1)",
+      "title": "N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)",
       "created_at": "2026-10-09",
       "priority": "P2",
       "status": "PENDING",
