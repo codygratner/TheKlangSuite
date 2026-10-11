@@ -97,6 +97,18 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
     4. How to view the N'kai sidecar webview directly in mobile browser (`http://100.x.y.z:3030`).
     5. Security reassurance: 100% encrypted WireGuard mesh, 0 router port-forwarding, 0 exposure to public internet.
 
+### Task 9: 🆕 No-BS Engineering Memo: The DAW Engine Impedance Mismatch (Ardour vs. Modern Engines)
+- [ ] **Author `TheKlangResearch/guides/daw_engine_impedance_mismatch_memo.md`**:
+  - **Audience & Context**: Written specifically as an objective, peer-to-peer technical memo for developers building custom DAWs on legacy backends (incorporating the Gemini Flash/Pro + Claude 5.5 Opus blind benchmarks).
+  - **Tone & Style Invariant (Strict Anti-AI-Fluff Mandate)**:
+    - Zero corporate filler, zero condescending "pedagogical framing".
+    - Strictly banned clichés: *"The lesson here is..."*, *"X is the final boss of Y"*, *"As you can see..."*, *"It's not just X, it's Y"*, *"In today's fast-paced world..."*, *"At the end of the day..."*.
+    - Reads like a seasoned audio systems architect writing a blunt, respectful technical review to a respected peer over email.
+  - **Technical Content**:
+    1. *The Architectural Reality*: Why linear multitrack tape engines (Ardour) physically reject dynamic Directed Acyclic Graphs (DAGs) and non-linear clip matrices.
+    2. *The Developer Velocity Economics*: The 90% velocity tax of debugging 20-year-old POSIX locks and monolithic channel-strip god-classes for modern reactive UI features.
+    3. *The 4-Step Strangler Migration Playbook*: Abstracting an `IAudioEngine` firewall with lock-free SPSC queues, evaluating modern headless alternatives (Tracktion Engine vs. custom JUCE DAG), and purging legacy code without rewriting the frontend.
+
 ---
 
 ## 🛡️ Acceptance Criteria
@@ -104,5 +116,6 @@ This blueprint serves as the permanent, hard-coded itinerary for the next compre
 2. `audio_dsp_field_guide.md` contains comprehensive, deep C++ audio engineering invariants.
 3. `GEMINI.md` implements the Tri-State Model Advisory Architecture, eliminating banner fatigue while preserving critical audio invariants and the 2-strike escalation tripwire.
 4. `remote_antigravity_and_couch_dev_eli5.md` provides a crystal-clear, zero-jargon Tailscale + SSH phone tutorial.
-5. 100% of touched markdown links resolve cleanly.
-6. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.
+5. `daw_engine_impedance_mismatch_memo.md` provides a short, dense, zero-AI-fluff technical memo ready to send to a fellow DAW developer.
+6. 100% of touched markdown links resolve cleanly.
+7. Git commits pushed to `TheKlangResearch` and committed on `TheKlangSuite`.
