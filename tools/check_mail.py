@@ -27,6 +27,12 @@ import shutil
 import sys
 import webbrowser
 
+# Universal UTF-8 Environment Invariant (Flight 18)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 # Import Pydantic models for persistent Mailbag session (Flight 5)
 try:
     from tools.models import MailItem, MailQueue, PriorityLevel, TriageStatus, TransactionReceipt, EcosystemPillar, PILLAR_METADATA, infer_pillars
@@ -214,7 +220,7 @@ def scan_inbox(inbox_dir: Path):
     notes = []
     md_files = sorted(inbox_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
     for f in md_files:
-        if f.is_file() and not f.name.startswith("."):
+        if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD"]:
             data = extract_note_metadata(f)
             if data:
                 notes.append(data)
@@ -476,8 +482,21 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
     """
     mail_items = []
 
+    # Preserve existing triage status and verdicts from active ledger
+    existing_by_id = {}
+    if queue_path.exists():
+        try:
+            old_data = json.loads(queue_path.read_text(encoding="utf-8"))
+            for old_it in old_data.get("items", []):
+                if old_it.get("id"):
+                    existing_by_id[str(old_it["id"])] = old_it
+        except Exception:
+            pass
+
     # Ingest docket items
     for it in docket_items:
+        it_id = str(it.get("id") or f"docket-{it.get('idx', 0)}")
+        old_it = existing_by_id.get(it_id)
         it_status = it.get("status", "untriaged")
         m_status = TriageStatus.PENDING
         if it_status == "backlog":
@@ -485,8 +504,20 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
         elif it_status == "completed":
             m_status = TriageStatus.COMPLETED
 
+        verdict = None
+        verdict_notes = None
+        if old_it:
+            old_st = old_it.get("status")
+            if old_st and old_st != "PENDING" and it_status == "untriaged":
+                try:
+                    m_status = TriageStatus(old_st)
+                except ValueError:
+                    pass
+            verdict = old_it.get("verdict")
+            verdict_notes = old_it.get("verdict_notes")
+
         m_item = MailItem(
-            id=str(it.get("id") or f"docket-{it.get('idx', 0)}"),
+            id=it_id,
             title=str(it.get("title", "Untitled Docket Topic")),
             created_at=str(it.get("date") or "2026-10-09"),
             priority=it.get("priority", "P2"),
@@ -496,6 +527,8 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
             source_file=str(it.get("source_note", "")),
             preview=str(it.get("excerpt", "")),
             dependencies=it.get("dependencies", []),
+            verdict=verdict,
+            verdict_notes=verdict_notes,
             char_count=len(str(it.get("body", ""))),
             word_count=int(it.get("word_count", 0)),
             tier=str(it.get("tier", "tier2")),
@@ -522,17 +555,35 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
         t = str(n.get("title", "")).lower().strip()
         if fn in docket_source_names or stem in docket_source_names or t in docket_source_names:
             continue
+
+        item_id = str(n.get("id") or n.get("file_name", "note"))
+        old_it = existing_by_id.get(item_id)
+        note_status = TriageStatus.PENDING
+        verdict = None
+        verdict_notes = None
+        if old_it:
+            old_st = old_it.get("status")
+            if old_st and old_st != "PENDING":
+                try:
+                    note_status = TriageStatus(old_st)
+                except ValueError:
+                    pass
+            verdict = old_it.get("verdict")
+            verdict_notes = old_it.get("verdict_notes")
+
         m_item = MailItem(
-            id=str(n.get("id") or n.get("file_name", "note")),
+            id=item_id,
             title=str(n.get("title", "Untitled Note")),
             created_at=str(n.get("date") or datetime.date.today().strftime("%Y-%m-%d")),
             priority=n.get("priority", "P2"),
-            status=TriageStatus.PENDING,
+            status=note_status,
             tags=n.get("tags", []),
             target_pillars=n.get("target_pillars", []),
             source_file=str(n.get("rel_path") or n.get("file_name", "")),
             preview=str(n.get("excerpt", "")),
             dependencies=n.get("dependencies", []),
+            verdict=verdict,
+            verdict_notes=verdict_notes,
             char_count=int(n.get("char_count", 0)),
             word_count=int(n.get("word_count", 0)),
             tier=str(n.get("tier", "tier2")),
