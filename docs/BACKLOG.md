@@ -40,6 +40,7 @@
   - [N'kai Sidecar Architecture Roadmap (Act III)](#15-nkai-sidecar-architecture-roadmap-the-rejiggered-runway--act-iii)
   - [Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)](#16-flight-2-nkai-to-high-reasoning-prompt-compiler-p1--top-active-priority)
   - [Flight 3: N'kai Automode & Multi-Drawer Dossier Cards (P1 — TOP PRIORITY)](#17-flight-3-nkai-automode-2-pass-iterative-research-daemon--multi-drawer-dossier-cards-p1--top-priority)
+  - [Flight 4: General Research Assistant & Configurable Lens Profiles (P2)](#18-flight-4-general-research-assistant--configurable-lens-profiles-p2)
 - [Spin-Off Products & Explorations](#-spin-off-products--explorations)
   - [1. The Klang Mill (Standalone VST)](#1-the-klang-mill-standalone-vst--industrial-1x6-multi-fx-pedalboard-rack)
   - [2. The Klang Boilerplate](#2-the-klang-boilerplate--modern-c20--juce-9-foss-plugin-starter-template)
@@ -1039,7 +1040,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [x] **Flight 1: The "Rambles" Ingestion Engine (Topic 2, P0)** — ✅ COMPLETED: Zero-dependency stream-of-consciousness ramble ingestor CLI (`tools/ramble_ingest.py`), Pydantic models (`RambleCard`, `RambleExtractionResult`, `to_mail_item()`), 3-bullet decision card decomposition, and `/ramble` micro-skill (`.agents/skills/ramble-ingest/SKILL.md`).
 - [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1 — TOP ACTIVE PRIORITY)** — ⏳ QUEUED: Automated compilation of research cards, user notes, dialectical theses, and contrarian failure modes into a dense master system prompt payload for external LLM reasoning sessions.
 - [ ] **Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (Topic 6, P1 — TOP PRIORITY)** — ⏳ QUEUED: Background research daemon automating iterative exploration paired with the multi-tab dossier card layout (Source Note, PCDA, Research, and Mobile Bottom Sheet); next execution target upon weekly quota reset.
-- [ ] **Flight 4: General Research Assistant & Custom Lens Profiles (Topic 9, P2)** — ⏳ QUEUED: Expanding N'kai into a generalized engineering research companion with pluggable review lenses.
+- [ ] **Flight 4: General Research Assistant & Configurable Lens Profiles (Topic 9, P2)** — ⏳ QUEUED: Declarative lens profiles (`tools/lens_profiles.json`) with auto-detection tags (`#studio`, `#hardware`, `#ttrpg`, `#writing`) and zero product forking.
 - [ ] **Flight 5: Tracktion Engine Backend Evaluation (Topic 13, P1)** — ⏳ QUEUED: Architectural evaluation of Tracktion Engine for ToadTracker audio processing and sequencing.
 - [ ] **Flight 6: Dirtywave M8 Telemetry Capture & Bridge (Topic 10, P2)** — ⏳ QUEUED: Bidirectional telemetry and pattern synchronization bridge for Dirtywave M8 tracker hardware.
 - [ ] **Flight 7: Sub-Module & Component Presets Architecture (Topic 14, P1)** — ⏳ QUEUED: Sub-component preset schemas and serialization across synth modules.
@@ -1113,6 +1114,68 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
   - `[ 🔬 Research Dossier ]`: Renders curated technical citations, benchmarks, and upstream architectural precedents.
 - **On-Demand Progressive Population**: Unresearched tabs display a clean empty state with a 1-click trigger (`[ ⚡ Generate PCDA in Sidecar ]`). When Automode completes, the dossier tabs are populated in-place in the sidecar with zero chat transcript bloat.
 - **Mobile-Ready Architecture (v0.3.0 Bottom-Sheet Bridge)**: On viewports $\le 640\text{px}$, toggling the dossier slides up an 85vh swipeable bottom sheet with sticky segmented tabs, completely eliminating nested accordion scroll traps on touch devices.
+
+### 18. Flight 4: General Research Assistant & Configurable Lens Profiles (P2)
+*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai Use Cases.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md) ("Right now it’s mostly for dev. But, what about a general research assistant use case? What if I want to research a TTRPG project, studio rewiring, Eurorack layout, or write lyrics?")  
+*Status: ⏳ QUEUED*  
+*Priority: P2*  
+*Target Pillar: N'kai Sidecar Architecture Roadmap*  
+*Goal: Expand N'kai into a versatile research companion beyond C++ audio plugin development by decoupling the 4-Lens evaluation matrix into declarative JSON profiles, enabling specialized research workflows (studio hardware, Eurorack, game design, writing) with zero product forking and zero yak shaving.*
+
+#### 1. Core Architecture & Anti-Yak-Shaving Invariant
+- **Single Unified Codebase (Never Fork the Product)**: N'kai remains ONE unified sidecar tool. Rejects building separate spin-off apps or multi-tenant plugin engines ("The Second-System Effect") to avoid derailment from core audio products (*The Klang Farmer*, *ToadTracker*).
+- **Invariant Dialectic Core**: The underlying Hegelian Dialectic Triad (Thesis $\to$ Antithesis $\to$ Synthesis) and the 3-Bullet Decision Card (🎯 Core Intent, 🛠️ Proposed Mechanism, 🚦 Action Route) remain permanently invariant across all domains. Only the 4 domain-specific evaluation lenses adapt.
+
+#### 2. Declarative Lens Dictionary (`tools/lens_profiles.json`)
+- Move hardcoded prompt strings out of Python scripts into a clean, lightweight JSON schema:
+  ```json
+  {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "version": "1.0.0",
+    "default_profile": "audio_dev",
+    "profiles": {
+      "audio_dev": {
+        "display_name": "Audio Plugin & DSP Engineering",
+        "tags": ["audio", "dsp", "vst", "synth", "juce", "tks"],
+        "lenses": [
+          { "id": "ergonomics", "name": "Real-World / Daily Ergonomics", "prompt": "Practical day-to-day developer friction, velocity, cognitive load, and maintenance realities." },
+          { "id": "industry", "name": "Audio Software Industry", "prompt": "How top synth/plugin developers (Vital, Kilohearts, FabFilter, Elektron, Bitwig, Reaper) solve it." },
+          { "id": "sota", "name": "Wider Software Industry / SOTA", "prompt": "Modern systems, agent harnesses, and web architectures (Anthropic, OpenAI, GitHub, Linux)." },
+          { "id": "best_practices", "name": "Best Practices & Sustainability", "prompt": "Audio thread safety, zero-allocations, token economics, and avoiding premature optimization." }
+        ]
+      },
+      "studio_hardware": {
+        "display_name": "Studio, Hardware & Eurorack Ergonomics",
+        "tags": ["studio", "hardware", "eurorack", "patchbay", "wiring", "m8", "tbd-16"],
+        "lenses": [
+          { "id": "signal_flow", "name": "Signal Flow, Latency & Impedance", "prompt": "Acoustic signal path, conversion stages, normalled patchbay routing, and monitoring latency." },
+          { "id": "physical_ergonomics", "name": "Physical Ergonomics & Patchability", "prompt": "Reachable knob/slider layouts, cable obstruction, ModularGrid 3U/1U spacing, and tactile flow." },
+          { "id": "power_noise", "name": "Power Draw, Heat & Noise Floor", "prompt": "mA load on +12V/-12V rails, ground loops, analog noise bleed, and thermal dissipation." },
+          { "id": "bom_budget", "name": "Modularity, Sourcing & Budget", "prompt": "Bill of materials, DIY feasibility, component availability, and 80/20 cost efficiency." }
+        ]
+      },
+      "creative_general": {
+        "display_name": "General Research, TTRPG & Creative Writing",
+        "tags": ["ttrpg", "writing", "lyrics", "gamedesign", "general"],
+        "lenses": [
+          { "id": "intent_narrative", "name": "Creative Intent & Narrative Resonance", "prompt": "Emotional core, thematic consistency, and poetic or fictional impact." },
+          { "id": "user_experience", "name": "User / Player Experience", "prompt": "Player agency, DM cognitive burden, lyric vocal rhythm, and intuitive clarity." },
+          { "id": "feasibility", "name": "Structural / Technical Feasibility", "prompt": "Ruleset coherence, systemic math balance, or practical execution constraints." },
+          { "id": "elegance", "name": "Elegance & The 80/20 Rule", "prompt": "Maximizing evocative depth while eliminating unnecessary mechanical crunch or clunky prose." }
+        ]
+      }
+    }
+  }
+  ```
+
+#### 3. Zero-Click Auto-Detection via Note Tags
+- **Frictionless Intake**: When capturing quick voice memos or rambles into Obsidian, adding a tag automatically maps the card to its optimal lens profile:
+  - Tags containing `#studio`, `#hardware`, `#eurorack`, `#wiring` $\to$ Activates `studio_hardware`.
+  - Tags containing `#ttrpg`, `#writing`, `#lyrics`, `#gamedesign` $\to$ Activates `creative_general`.
+  - Tags containing `#tks`, `#dsp`, `#audio`, or untagged notes $\to$ Defaults to `audio_dev`.
+- **Sidecar & CLI Overrides**:
+  - In `morning_mail_inbox.html`: A subtle dropdown on the PCDA tab allows instantaneous manual switching between profiles.
+  - In CLI: `python tools/check_mail.py --profile studio_hardware` or `tools/pcda_format.py --profile creative_general`.
 
 ---
 
