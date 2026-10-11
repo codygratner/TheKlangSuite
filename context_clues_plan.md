@@ -29,23 +29,26 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** Factory Execution & Roadmap Flight Orchestration
+- **Current Objective:** The Grand Operatic Flight Plan: Symphony of New Klang City
 - **Active Agenda:**
-  1. **Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7)**: ✅ COMPLETED.
-  2. **Flight 2: Distribution Packaging & Key Ergonomics (Topics 6.12 & 6.6)**: ✅ COMPLETED. Universal bundle (`c:\Dev\nkai\bundle/`), installer script (`install_nkai_bundle.ps1`), and dynamic shortcuts HUD.
-  3. **Flight 3: Universal AI Harness Portability (Topic 6.13)**: ✅ COMPLETED. Tri-mode environment adapter (`extension`, `file`, `server`), zero-dependency CLI server (`nkai_serve.py`), and `package.json` / `bin/nkai.js`.
-  4. **Flight 4: Skill Taxonomy & Invocation Defaults (Topics 6.4 & 6.14)**: ✅ COMPLETED. 3-Layer Hierarchy spec, N'kai-first visual defaults, and `--chat` terminal fallback.
-  5. **Flight 5: Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)**: ✅ COMPLETED. Two-tier header geometry, persistent utility cluster (`A-`/`100%`/`A+`, `🔊`, `🔄`, `[ ⌨️ Shortcuts ]`), hybrid compact category tabs (`1 🗺️`, `2 📦`...), and Web Audio click haptics.
-  6. **Flight 6: Interactive Triage Views (Topics 6.8 & 6.11)**: ✅ COMPLETED. Ongoing Autopsy View (`#tab-autopsy`) live in Slot 2 with dynamic scoreboard, filter chips, 1-click jump with pulse highlight, and zero-dependency `tools/check_mail.py` vault harvester.
-  7. **Flight 7: PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)**: ✅ COMPLETED. Spec indexed, semantic `.pcda-*` cards & `.lens-grid` deployed, `tools/pcda_format.py` CLI delivered.
-  8. **Flight 8: Cumulative Allowance & Token Impact Ledger (Topics 6.3 & 6.19)**: ✅ COMPLETED. Dynamic allowance meter, token heuristics spec, hash-anchor routing, and `tools/nkai_ledger.py` CLI delivered.
-  9. **🏆 The 8-Flight Runway is 100% COMPLETE!**
-  10. **Immediate Roadmap Sequence**:
-     - **Step 1**: Subagent Soul Harvest & Inbox Reset.
-     - **Step 2**: Simple Docs Update (`/update-docs` - incremental sync).
-     - **Step 3**: The Experimental Test Flight (`python tools/check_mail.py` with **12-card Morning Mail Docket**).
-     - **Step 4**: Full Deep Docs Gauntlet (`/update-docs --deep` - authoring Anti-Slop Manifesto, Workflow Cheat Sheet, decoupling field guides).
-- **Active Blueprint:** All 8 runway flights archived in `.agents/pipeline/plans/completed/` (All facilities idle 💤)
+  1. **Act I: Ground Control & Taxiway (Flights 1–4)**: 🏆 100% COMPLETED.
+     - Multi-Plan Queue with 5ms atomic rollback (`tools/plan_queue.py`).
+     - The Klang Vault studio hub (`C:\Dev\TheKlangVault`) Git & sync isolation.
+     - The 3-Zone README Architectural Standards (`Source/dsp/`, `assets/`, `tools/`).
+     - Global Pydantic v2.14.0 provisioning for zero-venv script execution.
+  2. **Act II: Ascent & Cruising Altitude (Flights 5–8)**: 🏆 100% COMPLETED.
+     - Flight 5: Persistent Mailbag Session & Pydantic Validation (`tools/models.py`, `tools/check_mail.py`).
+     - Flight 6: TKPL — The Klang Preset Linter CLI & Master APVTS Schema (`tools/preset_audit.py`, 202 parameters).
+     - Flight 7: N'kai Local FastAPI Sidecar Bridge (`tools/nkai_api.py` on `:8000`, CORS+PNA headers).
+     - Flight 8: Rolling Blackbox Context Compaction & Institutional Memory (`GEMINI.md`, `DEV_HISTORY.md`).
+  3. **Act III: High-Altitude Reconnaissance & Deep Docs (Flights 9–13)**: 🚀 READY TO LAUNCH.
+     - Flight 9: Field Guide Separation of Concerns (Universal vs. Audio DSP — Field Guides Always Last).
+     - Flight 10: The "Anti-Slop" Vibe-Coding Executive Summary (Zero-Lore Whitepaper).
+     - Flight 11: The SQA Engineering & Vibe-Coding Workflow Cheat Sheet.
+     - Flight 12: Subagent Soul Vacuum & Master Research Index Compilation.
+     - Flight 13: Cross-Pillar Obsidian Vault Mirror & Link Integrity Gauntlet.
+- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
+
 
 ---
 

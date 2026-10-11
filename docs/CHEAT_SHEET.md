@@ -141,6 +141,20 @@
 * **Synthesis Sequence**: In deep docs sweeps (`/update-docs --deep` / Act III), ingest souls, autopsies, and ground specs *first*; synthesize Field Guides & Manifestos **LAST**.
 * **Panoramic Synthesis**: Complete bird's-eye context empowers bold rewriting and creation of new mental models rather than piecemeal bullet additions.
 * **History Safety**: Full Git and Obsidian sync history eliminates fear of radical refactoring.
+ 
+---
+ 
+## 💾 Rolling Blackbox Context Compaction (Topic #7)
+
+* **Compaction Tripwires**: Triggered at Act/Flight boundaries, when chat transcript exceeds ~150k tokens, or strictly *before* executing `/clear`.
+* **The 4-Step Flush Protocol**:
+  1. Record achievements in `docs/history/DEV_HISTORY.md`.
+  2. Stage gotchas/autopsies in `.agents/pipeline/staging/souls/`.
+  3. Harden `context_clues_plan.md`, `context_clues_build.md`, or `context_clues_subagent.md`.
+  4. Validate links via `python tools/verify_context_clues.py`.
+* **The 0-Turn Cold Boot Invariant**: Boot fresh sessions cold from `context_clues_*.md` in exactly **0 turns** without asking orientation questions.
+
+
 
 
 

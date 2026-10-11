@@ -80,6 +80,22 @@
   - *Post-Plan Batch Distillation (Inbox Zero)*: During deep docs passes (`/update-docs --deep` or Flight 9/13), vacuum all staged souls, formalize them into permanent RFCs/autopsies in `TheKlangResearch`, compile `Master_Research_Index.md`, and wipe staging clean.
 - **The "Field Guides Always Last" Invariant**: In all deep documentation passes (`/update-docs --deep` or Act III), raw soul harvests, bug autopsies, backlogs, and technical specs MUST be ingested and reconciled *first*. High-level Field Guides (`vibe_coding_field_guide.md`, `audio_dsp_field_guide.md`, `WORKFLOW_CHEAT_SHEET.md`, and manifestos) MUST be synthesized **LAST**. Having the complete panoramic picture allows the author to boldly synthesize new pedagogical mental models, diagrams, and frameworks rather than appending fragmented bullet points. Git and Obsidian sync guarantee complete historical versioning, eliminating the fear of radical refactoring.
 
+## Rolling Blackbox Context Compaction & Institutional Memory (Topic #7)
+- **The Amnesia Prevention Tripwire**:
+  - Deep agentic engineering sessions produce rich architectural context that risks being lost if the chat window truncates or compacts unexpectedly.
+  - **Tripwire Triggers**:
+    1. *Act / Flight Completion*: Immediately upon completing a major flight or full Act in `PLAN.md`.
+    2. *Context Weight Tripwire*: When the active chat session approaches ~150,000 tokens or when the user invokes `/refresh-context`.
+    3. *Pre-Clear Flush Gate*: Under NO circumstances should `/clear` be executed without first performing the 4-Step Pre-Compaction Memory Flush.
+- **The 4-Step Pre-Compaction Flush Protocol**:
+  1. **Dev History Ingestion**: Append structured session achievements to `docs/history/DEV_HISTORY.md` using the canonical session template.
+  2. **Soul Harvest Staging**: Stage any unexpected platform gotchas, bug autopsies, or PCDA dialectic resolutions into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md`.
+  3. **Context Clues Hardening**: Update the role-specific context clues index (`context_clues_plan.md`, `context_clues_build.md`, or `context_clues_subagent.md`) with the active flight, target repository, uncommitted state, and immediate next command.
+  4. **Link Integrity Gate**: Run `python tools/verify_context_clues.py` to confirm 100% link resolution.
+- **The 0-Turn Cold Boot Invariant**:
+  - Following a context refresh, `/clear`, or fresh conversation boot, an agent reading `context_clues_*.md` MUST resume operations in exactly **0 turns**, seamlessly picking up the next immediate task without asking redundant orientation questions ("What should we work on?") or forcing the user to repeat prior context.
+
+
 ## Strict Planning Guardrails
 - **No Spontaneous Implementation**: When planning commands (`/plan`, `/read-plan`, `/execute-task`) are invoked, NEVER automatically start writing C++ code, compiling, or modifying source files.
 - **Mandatory Confirmation**: Always stop, summarize the loaded plan, and explicitly ask the user for permission to begin implementation.

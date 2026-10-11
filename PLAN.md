@@ -226,10 +226,11 @@ class PresetPayload(BaseModel):
 - [x] Update N'kai sidecars to detect `:8000` FastAPI bridge with zero-latency HTTP responses.
 
 
-#### Scene 4 (Flight 8): Rolling Blackbox Context Compaction & Institutional Memory (Topic #7)
-- [ ] Formalize Context Compaction Tripwires in `GEMINI.md`:
+#### Scene 4 (Flight 8): Rolling Blackbox Context Compaction & Institutional Memory (Topic #7) — ✅ COMPLETED
+- [x] Formalize Context Compaction Tripwires in `GEMINI.md`:
   - Enforce automated `/refresh-context` when active chat transcript approaches compaction thresholds.
   - Automate updating `context_clues_subagent.md` and `docs/history/DEV_HISTORY.md` before compacting.
+
 
 ---
 

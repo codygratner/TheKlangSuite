@@ -187,6 +187,19 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Panoramic Pedagogical Synthesis**: Ingesting code diffs, gotchas, and raw notes first provides the author with the complete, panoramic picture. The agent can then boldly synthesize new pedagogical models, unify metaphors, and refactor explanations for maximum clarity rather than appending fragmented, disjointed bullet points.
 * **Git & Obsidian History Safety**: Because Git and Obsidian sync provide complete, immutable historical versioning across all repositories, authors and agents have total license to radically refactor and elevate field guides without fear of losing previous iterations.
 
+---
+
+## 13. Rolling Blackbox Context Compaction & Institutional Memory (Topic #7)
+
+* **The Amnesia Prevention Tripwire**: Deep multi-flight pair programming generates nuanced architectural context. To prevent catastrophic amnesia when a chat session reaches context limits or prior to running `/clear`, agents trigger the 4-step memory flush.
+* **The 4-Step Pre-Compaction Flush Protocol**:
+  1. *Dev History Ingestion*: Append session accomplishments to `docs/history/DEV_HISTORY.md`.
+  2. *Soul Harvest Staging*: Drop unexpected gotchas, autopsies, and PCDA dialectics into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md`.
+  3. *Context Clues Hardening*: Update role-specific context clues index (`context_clues_plan.md`, `context_clues_build.md`, or `context_clues_subagent.md`) with active flights, branches, targets, and uncommitted files.
+  4. *Link Integrity Gate*: Execute `python tools/verify_context_clues.py` to ensure 100% link resolution.
+* **The 0-Turn Cold Boot Invariant**: Following `/clear` or starting a fresh session, reading `context_clues_*.md` allows the agent to boot in **0 turns**, seamlessly resuming the active task without asking redundant orientation questions ("What should we work on?").
+
+
 
 
 

@@ -62,8 +62,11 @@
    - Opportunistic post-flight staging into `.agents/pipeline/staging/souls/` for unexpected gotchas, novel PCDAs, and proofs.
    - Batch distillation into `TheKlangResearch` RFCs at milestone capstone (Flight 12/13), purging staging to Inbox Zero.
    - Never harvest routine mechanical noise.
+9. **Rolling Blackbox Context Compaction (Topic #7)**:
+   - When active session transcripts approach compaction limits (~150k+ tokens) or complete a major flight/act, the agent automatically executes the Pre-Compaction Memory Flush (updating `DEV_HISTORY.md`, staging soul notes, hardening `context_clues_*.md`, and running `tools/verify_context_clues.py`), guaranteeing a **0-turn cold boot** on subsequent sessions.
 
 ---
+
 
 ## 📖 Canonical Taxonomy, Product Lineup & Essential Spec Links
 - **Master Documentation Catalog**: [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) (100% indexed documentation ledger).
