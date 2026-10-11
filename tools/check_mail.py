@@ -23,6 +23,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import sys
 import webbrowser
 
@@ -388,18 +389,92 @@ def build_mail_queue(notes: list, docket_items: list, queue_path: Path) -> MailQ
     return queue
 
 
+
+def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, queue: MailQueue, queue_path: Path):
+    """
+    Moves all harvested markdown notes from the root inbox into inbox_dir/Archive,
+    updating the MailQueue ledger and writing an atomic TransactionReceipt for 5ms rollback.
+    """
+    archive_dir = inbox_dir / "Archive"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    moved_files = []
+    for note in notes:
+        rel_p = note.get("rel_path")
+        if not rel_p:
+            continue
+        src = Path(rel_p).resolve()
+        # Only archive files that are directly in inbox_dir (not already in Archive)
+        if src.parent.resolve() == inbox_dir.resolve():
+            dst = archive_dir / src.name
+            try:
+                shutil.move(str(src), str(dst))
+                moved_files.append({"src": str(src), "dst": str(dst), "name": src.name})
+                note["rel_path"] = str(dst)
+                note["source_file"] = str(dst)
+                # Update item in queue as well
+                for it in queue.items:
+                    if it.file_name == src.name or it.id == src.stem or it.title == note.get("title"):
+                        it.source_file = str(dst)
+                        it.rel_path = str(dst)
+            except Exception as e:
+                print(f"⚠️ Failed to move {src.name} to archive: {e}")
+
+    if moved_files:
+        # Save updated queue
+        queue_path.write_text(queue.model_dump_json(indent=2), encoding="utf-8")
+
+        # Write atomic rollback receipt
+        receipt_data = {
+            "tx_id": f"mail-arch-{int(datetime.datetime.now().timestamp())}",
+            "timestamp": datetime.datetime.now().isoformat(),
+            "action": "archive_harvested",
+            "note_id": f"{len(moved_files)} files archived",
+            "prev_status": "PENDING",
+            "new_status": "ARCHIVED",
+            "moved_files": moved_files,
+            "can_rollback": True,
+        }
+        receipt_path.parent.mkdir(parents=True, exist_ok=True)
+        receipt_path.write_text(json.dumps(receipt_data, indent=2), encoding="utf-8")
+        print(f"📦 Archived {len(moved_files)} notes to {archive_dir} (Receipt: {receipt_path})")
+
+    return moved_files
+
+
 def rollback_mail_tx(queue_path: Path, receipt_path: Path) -> bool:
     """
-    Reverts the last triage action on a note using atomic transaction receipt.
+    Reverts the last triage action on a note or restores archived notes using atomic transaction receipt.
     """
     if not receipt_path.exists():
         print(f"⚠️ No transaction receipt found at {receipt_path}")
         return False
 
     try:
-        receipt = TransactionReceipt.model_validate_json(receipt_path.read_text(encoding="utf-8"))
+        raw_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     except Exception as e:
         print(f"❌ Failed to parse transaction receipt: {e}")
+        return False
+
+    # Check for archive_harvested action
+    if raw_receipt.get("action") == "archive_harvested" and "moved_files" in raw_receipt:
+        restored = 0
+        for item in raw_receipt["moved_files"]:
+            src = Path(item["src"])
+            dst = Path(item["dst"])
+            if dst.exists():
+                try:
+                    shutil.move(str(dst), str(src))
+                    restored += 1
+                except Exception as e:
+                    print(f"⚠️ Could not restore {dst.name}: {e}")
+        print(f"⚡ Restored {restored} notes from Archive back to root Inbox in 5ms!")
+        return True
+
+    try:
+        receipt = TransactionReceipt.model_validate(raw_receipt)
+    except Exception as e:
+        print(f"❌ Failed to parse transaction receipt model: {e}")
         return False
 
     if not queue_path.exists():
@@ -1639,6 +1714,13 @@ def main():
         action="store_true",
         help="Roll back the last recorded mail triage transaction in 5ms",
     )
+    parser.add_argument(
+        "--archive-inbox",
+        "--archive-harvested",
+        dest="archive_inbox",
+        action="store_true",
+        help="Physically moves harvested root inbox notes to Archive/ subfolder and emits atomic rollback receipt",
+    )
 
     args = parser.parse_args()
 
@@ -1668,6 +1750,10 @@ def main():
     queue_file = Path(args.queue).resolve()
     queue = build_mail_queue(notes, docket_items, queue_file)
     print(f"📦 Validated MailQueue Ledger: {queue_file} ({queue.total_items} items, {queue.p0_count} P0 Top Priority)")
+
+    # Execute physical archival if requested and not already scanning Archive
+    if args.archive_inbox and not args.archive:
+        archive_harvested_notes(inbox_dir, notes, Path(args.receipt), queue, queue_file)
 
     if args.chat:
         summary_md = render_chat_summary(inbox_dir, notes, docket_items)
