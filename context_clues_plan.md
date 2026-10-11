@@ -29,13 +29,15 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** Flight 2: Open Source Anti-Slop Hardening & CI Safety Gauntlet (Card #29 / Section 15) — ✅ COMPLETED
-- **Completed Phases:**
-  1. [x] **Phase 1: Real-Time Audio-Thread Memory Pre-Allocation** (`Source/ModularBlocks.h`: fixed lines 505, 608, 1716, 2219, 2401; zero critical allocations).
-  2. [x] **Phase 2: Universal Open-Source Governance Artifacts** (`CONTRIBUTING.md`, PR template across TKS, TT, NK).
-  3. [x] **Phase 3: CI/CD Automation & Matrix Hardening** (`.github/workflows/ci.yml`: `gui_tests`, audio linter, strict `pluginval`).
-  4. [x] **Phase 4: Local Regression & Validation Gauntlet** (`dsp_tests`, `gui_tests` 376/376 passed, 53/53 links resolved).
-  5. [x] **Phase 5: Re-Run the Anti-Slop Audit & Scorecard Delivery** (10/10 EXCEED SOTA verified).
+- **Current Objective:** Mailbag triage on the **Pro-rejiggered board** (70 notes → 37 cards; 25 PENDING ranked cards + 12 status cards). Resume at **card #1 `rj-01` Confirm-to-Close** (14 notes believed shipped; user confirms closures — never auto-close).
+- **Board & Data**:
+  - Ordering source of truth: [`.agents/pipeline/mailbag/rejigger.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/rejigger.json) (ranked cards with `sources[]` → raw ledger items).
+  - Ledger: [`.agents/pipeline/mailbag/mail_queue.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/mailbag/mail_queue.json); regen with `python tools/check_mail.py --archive --no-browser` (unreferenced new mail appears after cards as `🆕`).
+  - Rollback: `.agents/pipeline/mailbag/snapshots/mail_queue_pre_rejigger_2026-10-11.json` (pre-rejigger) and `snapshots/mail_queue_prev.json` (auto, every regen).
+  - Board UX invariants: default filter = Untriaged; "All" first on both rails; session-stable pillar order. Triage choices in chat text (no `ask_question`).
+- **Last Commits**: TKS `8a4e5b8` (rejigger overlay + `--archive-inbox` wipe fix), nkai `1914108`. Staged soul: `.agents/pipeline/staging/souls/2026-10-11_pro_mailbag_rejigger.md`.
+- **Model State**: Opus 5.5 High session concluded → main chat back on **Gemini 3.8 Flash (High)**. Opus weekly quota ~83% used (2026-10-11) — reserve for DSP / 2-strike only.
+- **Immediate Next Command**: Open the N'kai board and present card #1 (`rj-01`) for confirm-to-close triage.
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
 
 

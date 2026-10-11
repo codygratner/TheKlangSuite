@@ -291,3 +291,12 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
 
 
 
+
+### Session: 2026-10-11 13:01 (9241988e-1227-466e-a0a5-446d61a69d77)
+- **Chat Role:** Strategic Planning (New Klang City)
+- **Primary Objectives:** Mailbag check + archive, SQA "Pistons vs Chassis" field-guide section, harvester hardening, and a full Pro rejigger of the mailbag (Opus 5.5 High, Path A).
+- **Key Decisions & Deliverables:**
+  - Field guide Section 9 "Pistons vs Chassis" (TheKlangResearch `aa22afa`), summarized in `docs/history/vibe_coding_field_guide.md`.
+  - `tools/check_mail.py`: UTF-8 stdout, index-file exclusion, triage-state preservation (`9f2fbb7`); rejigger overlay (`--rejigger` / `--no-rejigger`), Archive+Inbox union fixing the `--archive-inbox` ledger wipe, auto-snapshot `mail_queue_prev.json`, rank badge + "🧩 merged from N notes" chip (`8a4e5b8`). Mirrored to nkai (`ce724d9`, `1914108`).
+  - `.agents/pipeline/mailbag/rejigger.json`: 70 notes → 37 cards (25 ranked P0–P3 + 12 status), 100% source coverage verified.
+  - Model policy reaffirmed: main chat on Flash 3.8 High; Opus reserved for DSP / 2-strike (Opus quota ~83% on 2026-10-11); `/refresh-context` identified as the biggest allowance lever.
