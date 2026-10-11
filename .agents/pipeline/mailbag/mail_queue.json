@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T13:12:46.453708",
+  "last_scanned": "2026-10-11T13:14:49.872624",
   "total_items": 37,
   "p0_count": 6,
   "items": [
@@ -227,7 +227,7 @@
       "title": "Mailbag Intake v2: Overflow, Quick Notes & Tabled Topics",
       "created_at": "2026-10-11",
       "priority": "P1",
-      "status": "PENDING",
+      "status": "APPROVED",
       "tags": [
         "merged:5"
       ],
@@ -238,8 +238,8 @@
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Ramble Engine.md",
       "preview": "Merged everything about how items ENTER the mailbag: long rambles get an overflow queue so throwaway-line ideas (like the FX/osc list) are not lost; filename-only quick notes; agent-tabled topics go to their own folder with an explicit 'tabling this' callout; add-at-position-X from chat.",
       "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Draft plan .agents/pipeline/plans/drafts/mailbag_intake_v2.md; supersedes BACKLOG Flight 7; runs after Flight 16+17.",
       "estimated_tokens": 10000,
       "char_count": 1226,
       "word_count": 146,
