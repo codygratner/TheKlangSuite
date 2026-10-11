@@ -167,3 +167,107 @@ class PresetPayload(BaseModel):
                 raise ValueError(f"Parameter '{param_id}' value {val} is outside normalized range [0.0, 1.0]")
         return v
 
+
+# ==============================================================================
+# Ramble Ingestion Engine Models (Flight 1 / Topic 2)
+# ==============================================================================
+
+
+class RambleCard(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    source_note: str = Field(description="Originating note path or filename")
+    idea_index: int = Field(default=1, description="1-indexed idea index within note")
+    title: str = Field(max_length=64, description="Crisp synthesized title (max 64 chars)")
+    core_intent: str = Field(description="1-sentence summary of the creative goal")
+    proposed_mechanism: str = Field(description="Affected repo, module, or hardware target")
+    action_route: TriageActionType = Field(default=TriageActionType.BACKLOG, description="Suggested triage routing")
+    target_pillar: str = Field(default="TKS", description="Target ecosystem pillar (TKS, TT, NK, TKR, TBD-16, AGY)")
+    tags: List[str] = Field(default_factory=list, description="Descriptive or domain tags")
+    raw_snippet: str = Field(default="", description="Supporting quote or excerpt from source note")
+    confidence_score: float = Field(default=0.85, description="Heuristic parsing confidence [0.0, 1.0]")
+
+    def to_mail_item(self) -> MailItem:
+        import re
+        from pathlib import Path
+
+        # Sanitize source identifier for ID
+        stem = Path(self.source_note).stem if self.source_note else "note"
+        clean_stem = re.sub(r"[^a-zA-Z0-9_\-]", "", stem.lower().replace(" ", "_")) or "ramble"
+        item_id = f"ramble-{clean_stem}-{self.idea_index}"
+
+        # Clean tags
+        clean_tags = ["ramble", self.target_pillar.lower()]
+        for t in self.tags:
+            t_clean = t.lstrip("#").strip().lower()
+            if t_clean and t_clean not in clean_tags:
+                clean_tags.append(t_clean)
+
+        # Detect priority from tags or title
+        priority = PriorityLevel.P2
+        if any(p in clean_tags for p in ["p0", "highest-priority", "top-priority"]):
+            priority = PriorityLevel.P0
+        elif any(p in clean_tags for p in ["p1", "high-priority"]):
+            priority = PriorityLevel.P1
+        elif any(p in clean_tags for p in ["p3", "low-priority"]):
+            priority = PriorityLevel.P3
+
+        # Model tier heuristic
+        if self.target_pillar.upper() in ["TKS", "TT"] and any(k in self.title.lower() for k in ["dsp", "filter", "polyphon", "thread", "hal"]):
+            tier = "tier1"
+        elif any(k in self.title.lower() for k in ["doc", "catalog", "lore"]):
+            tier = "tier3"
+        else:
+            tier = "tier2"
+
+        route_emoji = {
+            TriageActionType.BACKLOG: "📥 Backlog",
+            TriageActionType.RESEARCH: "🔬 Research",
+            TriageActionType.GRAVEYARD: "🪦 Graveyard",
+            TriageActionType.PCDA: "⚖️ PCDA",
+        }.get(self.action_route, "📥 Backlog")
+
+        body_lines = [
+            f"### 🎙️ [{self.target_pillar}] {self.title}",
+            f"- 🎯 **Core Intent**: {self.core_intent}",
+            f"- 🛠️ **Proposed Mechanism**: {self.proposed_mechanism}",
+            f"- 🚦 **Action Route**: `[ {route_emoji} ]` (Confidence: {self.confidence_score:.2f})",
+        ]
+        if self.raw_snippet:
+            snippet_cleaned = self.raw_snippet.strip()
+            body_lines.append("")
+            body_lines.append("> **Source Excerpt:**")
+            for s_line in snippet_cleaned.splitlines():
+                body_lines.append(f"> {s_line}")
+
+        body_text = "\n".join(body_lines)
+
+        return MailItem(
+            id=item_id,
+            title=f"🎙️ [{self.target_pillar}] {self.title}",
+            created_at=datetime.now().strftime("%Y-%m-%d"),
+            priority=priority,
+            status=TriageStatus.PENDING,
+            tags=clean_tags,
+            source_file=self.source_note,
+            source_note=self.source_note,
+            file_name=Path(self.source_note).name if self.source_note else "",
+            rel_path=self.source_note,
+            preview=self.core_intent,
+            excerpt=self.core_intent,
+            body=body_text,
+            char_count=len(body_text),
+            word_count=len(body_text.split()),
+            tier=tier,
+            idx=self.idea_index,
+        )
+
+
+class RambleExtractionResult(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    source_file: str = Field(description="Path to processed file")
+    extracted_at: str = Field(default_factory=lambda: datetime.now().isoformat(), description="ISO timestamp")
+    total_ideas: int = Field(default=0, description="Total extracted RambleCards")
+    cards: List[RambleCard] = Field(default_factory=list, description="Extracted cards")
+

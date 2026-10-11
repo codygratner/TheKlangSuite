@@ -152,6 +152,11 @@
           "path": "docs/specs/nkai_allowance_ledger_and_token_governance.md",
           "title": "N'kai Allowance Ledger & Token Governance (Topics 6.3 & 6.19)",
           "purpose": "Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics (Tier 1 Pro vs Tier 2 Flash vs Tier 3), cumulative allowance ledger, and offline CLI auditor."
+        },
+        {
+          "path": "docs/specs/nkai_rambles_ingestion_engine.md",
+          "title": "N'kai Rambles Ingestion Engine Specification (Topic 2, Flight 1)",
+          "purpose": "Stream-of-consciousness ramble intake, multi-idea paragraph decomposition, 3-bullet decision cards, and zero-mutation safety invariant."
         }
       ]
     },
@@ -262,7 +267,8 @@
         "clear",
         "web-qa",
         "rollback-plan",
-        "audit-reorder"
+        "audit-reorder",
+        "ramble-ingest"
       ]
     },
     "interactive_sidecars": {

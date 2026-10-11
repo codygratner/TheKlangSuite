@@ -1,6 +1,6 @@
 STATUS: COMPLETED
 
-# Subagent Execution Receipt: N'kai v0.2.0 UI Extension & Zero-Copy IPC
+# Subagent Execution Receipt: Flight 1 The "Rambles" Ingestion Engine
 > *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
 > *Active Branch:* `0.4.0-dev`  
 > *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
@@ -10,41 +10,50 @@ STATUS: COMPLETED
 ## 1. Execution Header
 - **STATUS**: `COMPLETED`
 - **ROLE EXECUTED**: `Flash Tooling Builder`
-- **TASK SLUG**: `nkai-v020-ui-extension`
-- **COMPLETED AT**: `2026-10-10T22:05:00Z`
+- **TASK SLUG**: `flight-1-ramble-ingest`
+- **COMPLETED AT**: `2026-10-10T23:00:00Z`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **SOURCE PLAN**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+- **SOURCE NOTE**: [`C:\Dev\TheKlangVault\Inbox\Archive\Rambles.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Rambles.md)
 
 ---
 
 ## 2. Deliverables & Artifacts
-1. **Official Native Extension Manifests & Assets**:
-   - `c:\Dev\nkai\plugin.json` and `%USERPROFILE%\.gemini\config\plugins\nkai\plugin.json` (ID: `nkai`).
-   - `c:\Dev\nkai\assets\logo.svg` & `plugin\assets\logo.svg` (64x64 slate `#0f172a` container with glowing emerald `#10b981` N'kai quantum glyph).
-   - `c:\Dev\nkai\sidecars\panel\sidecar.json` (Supervised Node.js process, `has_web_ui: true`, `SIDECAR_UI_ENTRYPOINT_AUX_PANE`).
-   - `c:\Dev\nkai\sidecars\panel\package.json` (`{ "type": "module" }`).
-2. **Supervised Node.js Backend (`sidecars/panel/main.mjs`)**:
-   - Built on official `sidecar_sdk` (`SidecarApp`, `Response`).
-   - Serves static assets (`/`, `/core/sidecar.css`, `/core/sidecar.js`, `/styles.css`, `/app.js`, `/core/schema.json`, `/assets/logo.svg`).
-   - Serves JSON API routes (`POST /api/action` appending to `action_history.jsonl`, `POST /api/echo`, `GET /api/status`).
-   - Dual-path file resolver (`resolveFile`) supporting both standalone repository mode and installed plugin mode.
-3. **Frontend Bridge Adapter (`core/sidecar.js`)**:
-   - Upgraded `NkaiEnv.dispatchAction()` for Mode 1 extension:
-     - Direct zero-copy dispatch via `window.sidecar.agent.sendMessage(text)`.
-     - Physical audio haptic chime: `playHaptic('action')`.
-     - Persistent toast HUD: `⚡ Sent to Agent! Prompt delivered directly via Native IPC.`.
-   - Preserved Mode 2 (`/api/action` server) and Mode 3 (`file:///` clipboard / highlight) fallbacks.
-   - Global alias: `window.dispatchNkaiAction(payload)`.
-   - Synchronized across `dist/standalone-template.html`, `bundle/templates/template.html`, and `TheKlangSuite/.agents/sidecar/template.html`.
-4. **Installer & Verification Harness (`tools/install_nkai_plugin.py`)**:
-   - Automated zero-dependency Python installer copying and verifying files into `%USERPROFILE%\.gemini\config\plugins\nkai\`.
-   - Validates JSON manifests, entrypoint schemas, assets, and Node.js module contracts.
+1. **Architectural Specification & Catalog Registration**:
+   - Authored [`c:\Dev\TheKlangSuite\docs\specs\nkai_rambles_ingestion_engine.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_rambles_ingestion_engine.md) detailing stream-of-consciousness intake, the 3-bullet decision card standard, multi-idea decomposition heuristics, zero-mutation invariants, and CLI design.
+   - Registered in [`docs/DOCS_CATALOG.json`](file:///c:/Dev/TheKlangSuite/docs/DOCS_CATALOG.json) under `technical_specs` and `agent_workflows_and_skills`.
+   - Registered in [`docs/SYSTEM_MAP.md`](file:///c:/Dev/TheKlangSuite/docs/SYSTEM_MAP.md) under Section 7 (Design Specs) and Section 8 (Developer Tooling).
+2. **Pydantic Data Models (`tools/models.py`)**:
+   - Added `RambleCard` with fields `source_note`, `idea_index`, `title`, `core_intent`, `proposed_mechanism`, `action_route`, `target_pillar`, `tags`, `raw_snippet`, `confidence_score`.
+   - Implemented `to_mail_item()` conversion generating rich `MailItem` cards with 3-bullet bodies and priority routing for N'kai Morning Mail (`morning_mail_inbox.html`).
+   - Added `RambleExtractionResult` model.
+   - Mirrored models to `c:\Dev\nkai\tools\models.py` and `c:\Dev\nkai\bundle\tools\models.py`.
+3. **Zero-Dependency Ramble Ingestor CLI (`tools/ramble_ingest.py`)**:
+   - Standard Python library + Pydantic v2.
+   - Windows UTF-8 stdout hardening.
+   - Multi-idea paragraph and bullet-list decomposition heuristics.
+   - Keyword-based pillar identification (`TKS`, `TT`, `NK`, `TBD-16`, `TKR`).
+   - Tone and trade-off action routing (`[ 📥 Backlog ]`, `[ 🔬 Research ]`, `[ 🪦 Graveyard ]`, `[ ⚖️ PCDA ]`).
+   - Complete CLI support: `--file`, `--inbox`, `--scan-archive`, `--chat`, `--json`, `--add-to-queue`, `--archive`, `--dry-run`.
+   - Mirrored to `c:\Dev\nkai\tools\ramble_ingest.py` and `c:\Dev\nkai\bundle\tools\ramble_ingest.py`.
+4. **Micro-Skill Registration (`.agents/skills/ramble-ingest/SKILL.md`)**:
+   - Authored `/ramble` micro-skill in `TheKlangSuite`.
+   - Mirrored to `c:\Dev\nkai\bundle\skills\ramble-ingest\SKILL.md`.
 
 ---
 
 ## 3. Verification Gauntlet Results
-- `install_nkai_plugin.py`: **ALL 6 CHECKS PASSED**; extension successfully installed and verified under `C:\Users\codyg\.gemini\config\plugins\nkai\`.
-- `tools/audit_sidecar.py`: **PERFECT PASS** across `dist/standalone-template.html`, `bundle/templates/template.html`, and `TheKlangSuite/.agents/sidecar/template.html` (zero critical errors, zero tag imbalances, zero unescaped JS syntax hazards).
-- `tools/verify_context_clues.py`: **4/4 files passed, 53/53 local links resolved (100% compliant)**.
-- `docs/BACKLOG.md`: Milestone 13 marked `[x] COMPLETED`, Milestone 14 (v0.3.0 Mobile) reaffirmed `DEFERRED`.
-- `PLAN.md`: All phase checkboxes marked `[x]`, status updated to `COMPLETED ✅`.
+- `python tools/ramble_ingest.py --file "C:\Dev\TheKlangVault\Inbox\Archive\Rambles.md" --chat`:
+  - **PASS**: Decomposed into 2 atomic 3-bullet cards (`Stream-of-Consciousness Ramble Ingestion Workflow` [Backlog, P0] and `Ramble Note Granularity & Vault Architecture` [PCDA]).
+- `python tools/ramble_ingest.py --file "C:\Dev\TheKlangVault\Inbox\Archive\Effects and Oscillators and More.md" --chat`:
+  - **PASS**: Decomposed 34-line compound inventory into 4 atomic cards (4-Macro Popover Panels, FX Wishlist, Variant Consolidation, Meta-Container Hierarchy).
+- `python tools/ramble_ingest.py --file ... --json`:
+  - **PASS**: Valid JSON schema matching `RambleExtractionResult`.
+- `python tools/ramble_ingest.py --file ... --add-to-queue --dry-run`:
+  - **PASS**: Verified queue addition simulation and `MailQueue.sort_by_priority()`.
+- `python tools/verify_context_clues.py`:
+  - **PASS**: 4/4 files passed, 53/53 local links resolved (100% compliant).
+- `docs/BACKLOG.md`:
+  - Flight 1 (The "Rambles" Ingestion Engine) marked `[x] COMPLETED` in Act III Section 15 and Section 13.
+- `PLAN.md`:
+  - All checkboxes marked `[x]`, status updated to `COMPLETED ✅`.

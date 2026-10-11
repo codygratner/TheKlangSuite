@@ -52,10 +52,12 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Interactive Triage Views & Inbox Workflow](specs/nkai_interactive_triage_views_and_inbox_workflow.md) — Ongoing autopsy view, filterable scoreboard, 1-click cross-tab jump mechanics, and 'Check the Mail' vault inbox harvester.
   - [N'kai PCDA Dialectic Governance & SOTA Benchmarks](specs/nkai_pcda_governance_and_sota_benchmarks.md) — Continuous live triage contracts, 4-part PCDA dialectic standard, progressive disclosure, and SOTA competitive teardowns.
   - [N'kai Allowance Ledger & Token Governance](specs/nkai_allowance_ledger_and_token_governance.md) — Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics, cumulative allowance ledger, and offline CLI auditor.
+  - [N'kai Rambles Ingestion Engine Specification](specs/nkai_rambles_ingestion_engine.md) — Stream-of-consciousness ramble intake, multi-idea paragraph decomposition, 3-bullet decision cards, and zero-mutation safety invariant.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
 ### 8. 🛠️ Developer Tooling & Data Schemas
 - [preset_audit.py](../tools/preset_audit.py) — TKPL Preset Linter CLI (validates presets against Pydantic schema and master controls).
+- [ramble_ingest.py](../tools/ramble_ingest.py) — Zero-dependency stream-of-consciousness ramble ingestion CLI.
 - [nkai_api.py](../tools/nkai_api.py) — Local FastAPI Bridge server on `http://127.0.0.1:8000`.
 - [plan_queue.py](../tools/plan_queue.py) — Multi-Plan Queue and stateless atomic 5ms rollback engine.
 - [check_mail.py](../tools/check_mail.py) — Morning Mail Vault Inbox harvester and triage board generator.

@@ -52,6 +52,7 @@
   - [12. Multi-Tier Rollback Architecture Across Agent Skills](#12-multi-tier-rollback-architecture-across-agent-skills---active)
   - [13. The Operatic Runway & Tooling Flights (Acts I & II)](#13-the-operatic-runway--tooling-flights-acts-i--ii---completed)
   - [14. Tooling Maintenance: Git for Windows Upgrade](#14-tooling-maintenance-git-for-windows-upgrade---queued)
+  - [15. Open Source Anti-Slop Hardening & CI Safety Gauntlet](#15-open-source-anti-slop-hardening--ci-safety-gauntlet---queued)
 
 ---
 *Focus: Tooling, Data-Driven Architecture, and 1:1 Legacy Parity.*
@@ -1031,6 +1032,17 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Mobile Testing & LAN Pairing**:
   - Zero-config mobile pairing via `python tools/nkai_serve.py --host 0.0.0.0` or `npx nkai serve --host 0.0.0.0` (with local network IP output and optional terminal QR code) to instantly load and test N'kai triage sessions on phone over local Wi-Fi from the studio or the couch!
 
+### 15. N'kai Sidecar Architecture Roadmap (The Rejiggered Runway — Act III)
+- [x] **Flight 1: The "Rambles" Ingestion Engine (Topic 2, P0)** — ✅ COMPLETED: Zero-dependency stream-of-consciousness ramble ingestor CLI (`tools/ramble_ingest.py`), Pydantic models (`RambleCard`, `RambleExtractionResult`, `to_mail_item()`), 3-bullet decision card decomposition, and `/ramble` micro-skill (`.agents/skills/ramble-ingest/SKILL.md`).
+- [ ] **Flight 2: N'kai to High Reasoning Prompt Compiler (Topic 5, P1)** — ⏳ QUEUED: Automated compilation of research cards, user notes, and contrarian failure modes into a dense master system prompt payload for external LLM reasoning sessions.
+- [ ] **Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon (Topic 6, P1)** — ⏳ QUEUED: Background research daemon automating iterative exploration without stalling chat.
+- [ ] **Flight 4: General Research Assistant & Custom Lens Profiles (Topic 9, P2)** — ⏳ QUEUED: Expanding N'kai into a generalized engineering research companion with pluggable review lenses.
+- [ ] **Flight 5: Tracktion Engine Backend Evaluation (Topic 13, P1)** — ⏳ QUEUED: Architectural evaluation of Tracktion Engine for ToadTracker audio processing and sequencing.
+- [ ] **Flight 6: Dirtywave M8 Telemetry Capture & Bridge (Topic 10, P2)** — ⏳ QUEUED: Bidirectional telemetry and pattern synchronization bridge for Dirtywave M8 tracker hardware.
+- [ ] **Flight 7: Sub-Module & Component Presets Architecture (Topic 14, P1)** — ⏳ QUEUED: Sub-component preset schemas and serialization across synth modules.
+- [ ] **Flight 8: 4-Macro Mega Modules & Snap Heap Popovers (Topic 12, P1)** — ⏳ QUEUED: 4-encoder mega module abstractions with contextual popover settings callouts.
+- [ ] **Flight 9: Sonicware LIVEN CyDrums Super-Engine (Topic 15, P1)** — ⏳ QUEUED: Drum voice modeling and synthesis engine inspired by CyDrums.
+
 ---
 
 ## 🔮 Spin-Off Products & Explorations
@@ -1175,6 +1187,7 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 - **Flight 7 (N'kai FastAPI Local Bridge)**: Deployed `tools/nkai_api.py` on `localhost:8000` with universal CORS, PNA preflight, and dynamic sidecar detection.
 - **Flight 8 (Rolling Blackbox Context Compaction)**: Formalized context compaction tripwires, 4-step memory flush protocol, and 0-turn cold boot invariant in `GEMINI.md`, `docs/GLOSSARY.md`, and `docs/CHEAT_SHEET.md`.
 - **Flight 9 (Subagent Soul Harvest)**: Vacuumed staged souls from `.agents/pipeline/staging/souls/` into `TheKlangResearch/subagents/`, achieving true Inbox Zero.
+- **Flight 10 (Act III, Flight 1: The "Rambles" Ingestion Engine - Topic 2, P0)**: ✅ COMPLETED — Zero-dependency ramble ingestor CLI (`tools/ramble_ingest.py`), Pydantic models (`RambleCard`, `RambleExtractionResult`, `to_mail_item()`), 3-bullet decision card decomposition, and `/ramble` micro-skill (`.agents/skills/ramble-ingest/SKILL.md`).
 
 ---
 
@@ -1182,6 +1195,16 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 *Goal: Upgrade Git for Windows CLI to the latest release (`git update-git-for-windows` or `winget upgrade Git.Git`) during an idle maintenance window.*
 - **Scope**: Perform clean CLI upgrade, verify credentials/SSH keys, and validate git subprocess operations across all 5 ecosystem repositories.
 - **Trigger**: Run between feature plans when no active compilation or subagent git commits are running.
+
+---
+
+### 15. Open Source Anti-Slop Hardening & CI Safety Gauntlet — ⏳ QUEUED
+*Goal: Harden public-facing open source posture and CI regression pipeline inspired by the Anti-Slop Audit (opensourceprojects.dev/post/anti-slop).*
+- **Audio-Thread Pre-Allocation Hardening (`Source/ModularBlocks.h`)**: Eliminate real-time vector resizes in `processStereo()` (lines 1716, 2219, 2401: `targetSig.resize`, `ctx.ampEnvSignal.resize`, `envSig.resize`) by pre-allocating fixed scratch buffers in `prepareToPlay()`.
+- **CI Matrix Schema & UI Reflection Enforcement**: Add `gui_tests` to `.github/workflows/ci.yml` (on Windows and on Linux under `xvfb-run -a`) to enforce automated C++ schema separation assertions (`ParameterSchemaAuditTest.h`) on external PRs.
+- **Audio Thread CI Linter Step**: Integrate `python tools/audit_audiothread.py --strict` into `.github/workflows/ci.yml` to automatically reject PRs introducing allocations, locks, or I/O into DSP render paths.
+- **Strict Pluginval Compliance**: Remove `|| true` masking from Linux and macOS `pluginval` runs in GitHub Actions.
+- **Cross-Pillar Governance Sync**: Mirror `CONTRIBUTING.md` and `.github/PULL_REQUEST_TEMPLATE.md` to `ToadTracker` and `nkai`.
 
 ---
 
