@@ -1051,6 +1051,10 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [ ] **Flight 11: 4-Macro Mega Modules & Snap Heap Popovers (Topic 12, P1)** — ⏳ QUEUED: 4-encoder mega module abstractions with contextual popover settings callouts.
 - [ ] **Flight 12: Sonicware LIVEN CyDrums Super-Engine (Topic 15, P1)** — ⏳ QUEUED: Drum voice modeling and synthesis engine inspired by CyDrums.
 - [ ] **Flight 13: Consolidated Filter-Counter Pills & Spatial Header Optimization (Topic 19, P2)** — ⏳ QUEUED: Merging category/status filter buttons with count badges into unified interactive pill chips to eliminate vertical header redundancy and maximize card viewing area.
+- [ ] **Flight 14: Multi-Board Hub & Archive Catalog (Topic 20, P0 — TOP PRIORITY FOR TOMORROW)** — ⏳ QUEUED: Multi-board directory and switcher (Active vs Read-Only Archived boards) + webview cache invalidation headers in `main.mjs`.
+- [ ] **Flight 15: Best-of-Both Unified UI/UX Master Template Synthesis (Topic 21, P0 — TOP PRIORITY FOR TOMORROW)** — ⏳ QUEUED: Synthesizing the Active Hero Stage, 4-Lens accordion disclosure, native IPC button dispatch, and two-tier header while pruning dead localhost bridge code.
+- [ ] **Flight 16: Canonical Sandbox & Fixture QA Test Board (Topic 22, P0 — TOP PRIORITY FOR TOMORROW)** — ⏳ QUEUED: Safe dummy topics (e.g. Tsathoggua statue) with mock button dispatch to test IDE chat reception without polluting production backlogs.
+- [ ] **Flight 17: Multi-Stage Environment Architecture PCDA (Topic 23, P0 — TOP PRIORITY FOR TOMORROW)** — ⏳ QUEUED: Dialectic evaluation on whether an AI-assisted solo developer needs formal Dev/QA/Prod tiers or a lean single-track dual-mode workflow.
 
 ### 16. Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)
 *Source Note:* [`TheKlangVault/Inbox/Archive/Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)  
