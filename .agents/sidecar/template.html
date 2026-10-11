@@ -4919,39 +4919,63 @@
             return this.detect() === 'server';
           },
     
+          checkBridge: async function(url = 'http://127.0.0.1:8000') {
+            try {
+              const res = await fetch(`${url}/health`, { method: 'GET', headers: { 'Accept': 'application/json' } });
+              if (res.ok) {
+                const data = await res.json();
+                window.nkaiBridgeAvailable = true;
+                window.nkaiBridgeUrl = url;
+                return data;
+              }
+            } catch (e) {
+              window.nkaiBridgeAvailable = false;
+            }
+            return null;
+          },
+    
           dispatchAction: function(actionPayload) {
             const env = this.detect();
             const text = typeof actionPayload === 'string' ? actionPayload : JSON.stringify(actionPayload, null, 2);
     
-            // Mode 1: Antigravity IDE UI Extension
+            // Mode 1: Antigravity IDE UI Extension (Zero-Copy Native IPC)
             if (env === 'extension') {
               try {
                 window.sidecar.agent.sendMessage(text);
-                showToast('Dispatched message directly to Agent!');
+                if (typeof playHaptic === 'function') playHaptic('action');
+                showToast('⚡ Sent to Agent! Prompt delivered directly via Native IPC.');
                 return true;
               } catch (err) {
                 console.warn('[NkaiEnv] Extension dispatch failed, falling back to clipboard:', err);
               }
             }
     
-            // Mode 2: Local HTTP Server (CLI Harness)
-            if (env === 'server' && typeof fetch === 'function') {
-              fetch('/api/dispatch', {
+            // Mode 2: Local Sidecar Server / FastAPI Bridge
+            if (env === 'server' || typeof fetch === 'function') {
+              const bridgeUrl = (window.nkaiBridgeUrl || (window.location && window.location.origin ? window.location.origin : 'http://127.0.0.1:8000'));
+              const isObject = typeof actionPayload === 'object' && actionPayload !== null;
+              const endpoint = '/api/action';
+              const bodyPayload = isObject ? actionPayload : { action: actionPayload, prompt: text, timestamp: Date.now() };
+    
+              fetch(`${bridgeUrl}${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: actionPayload, timestamp: Date.now() })
+                body: JSON.stringify(bodyPayload)
               }).then(res => {
                 if (res.ok) {
-                  showToast('Dispatched to local CLI server & copied to clipboard!');
+                  if (typeof playHaptic === 'function') playHaptic('action');
+                  showToast('⚡ Action recorded to Sidecar API & copied to clipboard!');
                 }
               }).catch(() => {
-                // Fallback silently if /api/dispatch not captured
+                // Bridge offline, silently handled by clipboard fallback
               });
             }
     
             // Mode 3: Local File (file:///) / Default Fallback
+            if (typeof playHaptic === 'function') playHaptic('action');
             return this.copyToClipboard(text);
           },
+    
     
           copyToClipboard: function(payload) {
             const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
@@ -4977,6 +5001,11 @@
             }
             return false;
           }
+        };
+    
+        /* Global Action Dispatcher Alias */
+        window.dispatchNkaiAction = function(payload) {
+          return window.NkaiEnv.dispatchAction(payload);
         };
     
         /* Audio Haptics Protocol (Topics 6.9 & 6.10) */

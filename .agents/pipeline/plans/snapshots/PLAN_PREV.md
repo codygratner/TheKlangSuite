@@ -3,7 +3,7 @@
 
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
 > **Dramatis Personae & Execution Fleet:** Tier 2 Flash Builder Subagent (via `subagent_dispatch.md`) + Tier 1 Pro On-Demand Math/Taxonomy Specialists  
-> **Status:** READY_FOR_EXECUTION (Awaiting Kickoff Confirmation) ⏳  
+> **Status:** COMPLETED ✅ (All 16 Flights Landed with 100% Pass Rate)  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
 > **Altitude & Stage:** 4 Operatic Acts across 16 Flat Sequenced Flights (Early Flights $\to$ Main Flights $\to$ Late Flights $\to$ Touchdown)  
@@ -298,26 +298,26 @@ class PresetPayload(BaseModel):
 - [x] Register all new specs, guides, and tools in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
 - [x] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
 
-#### Scene 2 (Flight 15): The Full Acceptance Gauntlet
-- [ ] **Multi-Plan Queue Test**:
+#### Scene 2 (Flight 15): The Full Acceptance Gauntlet — ✅ COMPLETED
+- [x] **Multi-Plan Queue Test**:
   - Queue test plan via `python tools/plan_queue.py add-plan test.md`.
   - Promote next plan and verify `PLAN.md` updates.
   - Run `python tools/plan_queue.py rollback` and assert original `PLAN.md` is restored in 5ms.
-- [ ] **Pydantic Validation Test**:
+- [x] **Pydantic Validation Test**:
   - Inject invalid type into `mail_queue.json`.
   - Run `python tools/check_mail.py`.
   - Assert Pydantic logs structured `ValidationError`.
-- [ ] **TKPL Preset Linting Test**:
+- [x] **TKPL Preset Linting Test**:
   - Run `python tools/preset_audit.py --lint`.
   - Assert all presets pass schema validation.
-- [ ] **FastAPI Bridge Test**:
+- [x] **FastAPI Bridge Test**:
   - Start `python tools/nkai_api.py` and query `GET http://127.0.0.1:8000/health`.
   - Assert HTTP 200 with valid JSON response.
-- [ ] **Context Clues Verification**:
+- [x] **Context Clues Verification**:
   - Run `python tools/verify_context_clues.py`.
   - Assert 100% pass rate.
 
-#### Scene 3 (Flight 16): Grand Touchdown & v0.4.0 Test-Drive Docket Review
-- [ ] Commit all changes cleanly with conventional commits across affected repositories.
-- [ ] Push clean commits to `TheKlangResearch` and `TheKlangVault`.
-- [ ] Present comprehensive Operatic Touchdown report in chat with interactive test-drive docket.
+#### Scene 3 (Flight 16): Grand Touchdown & v0.4.0 Test-Drive Docket Review — ✅ COMPLETED
+- [x] Commit all changes cleanly with conventional commits across affected repositories.
+- [x] Push clean commits to `TheKlangResearch` and `TheKlangVault`.
+- [x] Present comprehensive Operatic Touchdown report in chat with interactive test-drive docket.

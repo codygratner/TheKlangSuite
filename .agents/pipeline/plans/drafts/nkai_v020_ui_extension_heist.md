@@ -1,67 +1,74 @@
-# 🐸 Mayor Toad's Sidecar Embezzlement: N'kai v0.2.0 Native Extension & v0.3.0 Mobile Companion
+# 🐸 Mayor Toad's Sidecar Embezzlement: N'kai v0.2.0 Native Extension & Zero-Copy IPC
 
 > **ID:** plan-002  
 > **TARGET:** TOOLING_HARNESS (New Klang City) 🚀  
-> **Topic Target:** N'kai v0.2.0 (UI Extension & Native IPC Bridge) & N'kai v0.3.0 (Mobile Touch Companion & LAN Wi-Fi Pairing)  
+> **Topic Target:** N'kai v0.2.0 (Official Antigravity UI Extension & Zero-Copy Native IPC)  
 > **Status:** QUEUED (Staged for Multi-Plan Queue Execution) ⏳  
 > **Priority:** P1  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Source Agreements:** `docs/BACKLOG.md` (Sections 13 & 14) & System Sanity Audit Topic 6.5, 6.17, 6.18  
+> **Source Agreements:** `docs/BACKLOG.md` (Section 13) & System Sanity Audit Topics 6.5, 6.17, 6.18  
+> **Mobile Deferral Invariant:** Mobile Touch Companion & LAN Wi-Fi Pairing (v0.3.0) are formally deferred to the backlog to protect the 1-Week Bounded Tooling Box and unblock the return to native C++ DSP.
 
 ---
 
 ## 🎯 Architectural Intent & Storyline
 
-While the factory floor in Klang Industries is busy building DSP filters, Mayor Toad has quietly siphoned off municipal tooling resources to turn N'kai into his personal executive dashboard:
-1. **v0.2.0: Official Google Antigravity UI Extension**:
-   - Upgrades N'kai from an offline `file:///` sidecar into an officially registered Antigravity Plugin UI Extension using the built-in Sidecar SDK.
-   - Replaces the temporary uneditable click-to-highlight prompt workaround with **true zero-copy native IPC** (`window.sidecar.agent.sendMessage()`).
-   - Native host audio triggers for mechanical clicks and chime notifications.
-2. **v0.3.0: Mobile Couch Companion & Zero-Config LAN Pairing**:
-   - Enables Mayor Toad (and the developer) to conduct morning mail reviews and triage sessions directly from an iPhone or Android phone on the studio couch.
-   - Touch ergonomics: 44px minimum tap targets, bottom-sheet thumb navigation, momentum scrolling.
-   - Zero-config local LAN pairing via `python tools/nkai_serve.py --host 0.0.0.0` with auto-detected local IP and terminal ASCII QR code!
+While the factory floor in Klang Industries prepares to forge DSP filter shells, Mayor Toad has quietly siphoned off municipal tooling resources to turn N'kai into an official Google Antigravity UI Extension:
+1. **Official Antigravity Plugin Packaging**:
+   - Packages N'kai under `%USERPROFILE%\.gemini\config\plugins\nkai\` with `plugin.json`, `assets/logo.svg`, and `sidecars/panel/sidecar.json`.
+   - Uses the built-in Sidecar SDK (`sidecar_sdk`) running a supervised Node.js backend (`main.mjs`).
+2. **True Zero-Copy Native IPC**:
+   - Upgrades `dispatchNkaiAction()` to use `window.sidecar.agent.sendMessage()` when in extension mode.
+   - Clicking `[ ✅ APPROVE ]`, `[ 🔬 Research ]`, or `[ ⚖️ PCDA ]` sends actionable prompts directly to the active conversation loop without requiring manual copy-paste.
+   - Seamlessly maintains the read-only click-to-highlight fallback when running in standalone offline `file:///` mode or external browsers.
+3. **Native Audio Alerts**:
+   - Triggers clean, physical audio haptics (30ms mechanical click and major triad chime) in the side panel.
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Phase 1: Official Antigravity UI Extension Manifest & Packaging
-- [ ] Create `c:\Dev\nkai\plugin.json` (or Antigravity plugin manifest structure):
-  - Register `nkai` as a native UI extension with side-panel icon, title, and activation events.
-  - Configure permissions: Webview host permissions, host clipboard access.
-- [ ] Implement Sidecar SDK Bridge in `c:\Dev\nkai\core\sidecar.js`:
-  - Detect `window.sidecar` presence.
-  - Bind `dispatchNkaiAction()` directly to `window.sidecar.agent.sendMessage()` when in extension mode.
-  - Retain `file:///` click-to-highlight fallback for air-gapped or non-Antigravity browsers.
+### Phase 1: Native Plugin Manifest & Sidecar Infrastructure
+- [ ] Create `c:\Dev\nkai\plugin.json`:
+  - Identifier `"name": "nkai"`, description, `"logo": "assets/logo.svg"`.
+- [ ] Create `c:\Dev\nkai\assets\logo.svg`:
+  - 64x64 vector logo with dark slate rounded square background and glowing emerald N'kai glyph.
+- [ ] Create `c:\Dev\nkai\sidecars\panel\sidecar.json`:
+  - Process command `"node"`, args `["main.mjs"]`, restart policy `"always"`.
+  - `"has_web_ui": true`, `"entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE"`, title `"N'kai Triage Lab"`.
+- [ ] Create `c:\Dev\nkai\sidecars\panel\package.json`:
+  - `{ "type": "module" }`.
 
-### Phase 2: Native IPC Action Dispatch & Telemetry
-- [ ] Author typed action contracts:
-  - `ActionPayload`: `{ type: "TRIAGE_VERDICT" | "RUN_SKILL" | "EXPAND_RESEARCH", topicId: string, verdict?: string, prompt?: string }`.
-- [ ] Wire 1-click execution:
-  - Clicking `[ ✅ APPROVE ]` in extension mode immediately posts action to the agent without requiring manual chat pasting.
-  - Floating toast HUD displays `⚡ Native IPC Dispatch: 200 OK`.
-- [ ] Native audio trigger integration:
-  - Connect haptic ticks and major triad chimes to native audio elements.
+### Phase 2: Node.js Sidecar Backend (`sidecars/panel/main.mjs`)
+- [ ] Implement `main.mjs` using `sidecar_sdk`:
+  - Serves static assets (`core/sidecar.css`, `core/sidecar.js`, sound effects).
+  - Serves canonical HTML template on `/`.
+  - Implements lightweight JSON API endpoints:
+    - `POST /api/action`: Records triage verdicts and telemetries.
+    - `POST /api/echo`: Health check and status ping.
+  - Automatically listens on `ANTIGRAVITY_SIDECAR_WEB_PORT` via `app.run()`.
 
-### Phase 3: Mobile Viewport & Touch Ergonomics (v0.3.0)
-- [ ] In `c:\Dev\nkai\core\sidecar.css`:
-  - Add responsive media queries for 320px–390px (iPhone/Android viewports).
-  - Enforce minimum 44px touch targets on all verdict chips (`[ APPROVE ]`, `[ TABLE ]`, `[ KILL ]`, `[ PCDA ]`).
-  - Implement bottom-sheet thumb drawer (`.mobile-action-bar`) anchored to viewport bottom.
-  - Enable hardware momentum touch scrolling (`-webkit-overflow-scrolling: touch`).
-- [ ] Verify tab navigation and allowance meters adapt gracefully without horizontal clipping.
+### Phase 3: Frontend Bridge Adapter (`core/sidecar.js`)
+- [ ] Update `c:\Dev\nkai\core\sidecar.js`:
+  - Detect `window.sidecar` and `window.sidecar.agent`.
+  - When running as an Antigravity UI Extension:
+    - Route `dispatchNkaiAction(actionData)` directly to `window.sidecar.agent.sendMessage(actionData.prompt)`.
+    - Display persistent floating toast HUD (`⚡ Sent to Agent!`).
+    - Trigger haptic chime sound.
+  - When running under standalone `file:///` or HTTP CLI server:
+    - Gracefully fallback to highlighting the readonly prompt box for manual `Ctrl+C` / `Ctrl+V`.
+- [ ] Synchronize changes to `c:\Dev\TheKlangSuite\.agents\sidecar\template.html` and `c:\Dev\nkai\dist\standalone-template.html`.
 
-### Phase 4: Zero-Config LAN Pairing & QR Code Server
-- [ ] Update `tools/nkai_serve.py` (and mirror to `nkai/tools/`):
-  - Add `--lan` / `--host 0.0.0.0` flag.
-  - Auto-detect local network IP (e.g. `192.168.1.X`).
-  - Output clickable LAN link and optional lightweight terminal ASCII QR code (or fallback URL display).
-  - Display clear studio banner: `📱 Mobile Sidecar Online: Open http://192.168.1.X:3030 on your phone`.
+### Phase 4: Local Installation & Verification Harness
+- [ ] Author `c:\Dev\TheKlangSuite\tools\install_nkai_plugin.py` (and mirror to `nkai/tools/`):
+  - Copies or links `c:\Dev\nkai` into `%USERPROFILE%\.gemini\config\plugins\nkai\`.
+  - Asserts all required files exist (`plugin.json`, `logo.svg`, `sidecar.json`, `main.mjs`).
+  - Verifies Node.js syntax and `sidecar.json` schema validity.
+- [ ] Execute `python tools/audit_sidecar.py` across all N'kai templates (confirm 100% tag balance, 0 errors).
+- [ ] Run `python tools/verify_context_clues.py` in `c:\Dev\TheKlangSuite` (confirm 100% pass).
 
-### Phase 5: Verification & End-to-End Test Flight
-- [ ] Run `python tools/audit_sidecar.py` across updated templates (100% tag balance, 0 errors).
-- [ ] Test mobile responsiveness in Headless Chrome (`--window-size=375,812`).
-- [ ] Test LAN server binding on local interface.
-- [ ] Document release in `docs/BACKLOG.md` and commit cleanly.
+### Phase 5: Closeout, Backlog Sync & Multi-Repo Commits
+- [ ] Update `docs/BACKLOG.md`: Mark N'kai v0.2.0 as complete and reaffirm v0.3.0 (Mobile) as deferred.
+- [ ] In `PLAN.md`: Mark all phases completed `[x]` and update Status to `COMPLETED ✅`.
+- [ ] Commit changes cleanly in `c:\Dev\TheKlangSuite` and `c:\Dev\nkai`.

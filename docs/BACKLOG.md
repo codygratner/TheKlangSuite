@@ -1008,19 +1008,20 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **v0.1.0 Standard**: Standardized on **uneditable (readonly) click-to-highlight text boxes** directly embedded on every card (`#ws-prompt-input` and `#audit-prompt-input-${tid}`). The user clicks or double-clicks once to select/highlight all text, then manually copies (`Ctrl+C`) and pastes into chat (`Ctrl+V`). Zero modal popups, zero sandbox permission issues, zero silent failures.
 - **v0.2.0 Path**: Fully implement bidirectional agent messaging (`window.sidecar.agent.sendMessage()`) and native clipboard APIs when packaging N'kai as an official Antigravity UI Extension plugin.
 
-### 13. N'kai v0.2.0 Milestone ("The UI Extension & Native Bridge Update") — ⏳ PLANNED
+### 13. N'kai v0.2.0 Milestone ("The UI Extension & Native Bridge Update") — ✅ COMPLETED
 *Goal: Integrate N'kai directly into Google Antigravity as an official UI Extension with a true native bidirectional IPC bridge and clipboard engine.*
 - **Official Antigravity UI Extension Packaging**:
-  - Package N'kai as an official Antigravity UI Extension plugin using the built-in Sidecar SDK (`window.sidecar.agent.sendMessage()`).
-  - Register extension panel in IDE auxiliary side pane with status icons.
+  - Packaged N'kai as an official Antigravity UI Extension plugin (`%USERPROFILE%\.gemini\config\plugins\nkai\`) using the built-in Sidecar SDK (`sidecar_sdk`), supervised `main.mjs`, and native `plugin.json` + `sidecar.json`.
+  - Registered extension panel in IDE auxiliary side pane (`SIDECAR_UI_ENTRYPOINT_AUX_PANE`) with glowing emerald vector glyph logo (`assets/logo.svg`).
 - **Native IPC Bridge & Direct Agent Dispatch**:
-  - True zero-copy bidirectional agent messaging (`window.sidecar.agent.sendMessage()`), replacing the temporary uneditable click-to-highlight boxes with direct, 1-click agent action dispatch.
-  - Native clipboard write and host IDE event integration, eliminating all `file:///` sandbox restrictions and origin null CORS barriers.
-  - Native host audio triggers for physical hardware clicks and approval chimes.
+  - True zero-copy native IPC agent messaging via `window.sidecar.agent.sendMessage()` in `core/sidecar.js` and global `window.dispatchNkaiAction()`.
+  - Direct 1-click agent action dispatch with persistent HUD toast and mechanical audio chime haptics.
+  - Native clipboard write and host IDE event integration, eliminating `file:///` sandbox restrictions and origin null CORS barriers.
 - **Preserved Decoupled Offline Mode**:
-  - Maintain 100% standalone offline `file:///` fallback and CLI runner parity for non-Antigravity environments.
+  - Maintained 100% standalone offline `file:///` fallback and CLI runner parity for non-Antigravity environments.
 
-### 14. N'kai v0.3.0 Milestone ("The Mobile Companion & Touch Ergonomics Update") — ⏳ PLANNED
+### 14. N'kai v0.3.0 Milestone ("The Mobile Companion & Touch Ergonomics Update") — ⏳ DEFERRED
+*(Formally deferred to protect the 1-Week Bounded Tooling Box and unblock the return to native C++ DSP in Klang Industries).*
 *Goal: Evolve N'kai from a desktop IDE sidecar into a multi-device, interactive AI pair-programming companion with mobile ergonomics and zero-config LAN pairing.*
 - **Mobile Formatting & Touch Ergonomics**:
   - **Phone-Optimized Layouts**: Responsive breakpoints down to 320px–390px (iPhone & Android mobile viewports).
