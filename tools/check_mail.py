@@ -657,6 +657,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>📬 N'kai Morning Mail Inbox & Triage Lab</title>
+  <script src="/preload.js"></script>
   <style>
     :root {{
       --bg-base: #090d13;
@@ -1545,16 +1546,43 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         }}).catch(() => {{}});
       }}
 
-      if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {{
+      // 1. Direct Native Antigravity Extension IPC (if running in side pane)
+      if (typeof window !== 'undefined' && window.sidecar && window.sidecar.agent && typeof window.sidecar.agent.sendMessage === 'function') {{
+        try {{
+          window.sidecar.agent.sendMessage(promptText);
+          showToast(`⚡ Dispatched [${{actionType.toUpperCase()}}] directly to Agent!`);
+        }} catch (e) {{
+          console.warn('[Mail] Native IPC dispatch error:', e);
+        }}
+      }} else if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {{
         window.NkaiEnv.dispatchAction(promptText);
-      }} else if (navigator.clipboard && navigator.clipboard.writeText) {{
-        navigator.clipboard.writeText(promptText).catch(() => {{}});
+      }} else {{
+        // Fallback: clipboard copy with honest feedback
+        let copied = false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {{
+          navigator.clipboard.writeText(promptText).catch(() => {{}});
+          copied = true;
+        }}
+        if (!copied) {{
+          try {{
+            const ta = document.createElement('textarea');
+            ta.value = promptText;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }} catch (e) {{}}
+        }}
+        showToast(`📋 Copied [${{actionType.toUpperCase()}}] prompt to clipboard! Paste in chat (Ctrl+V)`);
       }}
 
-
-      // Update Card UI
+      // 2. Auto-expand analysis dossier accordion on the card for instant visual feedback
       const card = document.getElementById(cardId);
       if (card) {{
+        const details = card.querySelector('.mail-body-details');
+        if (details) {{
+          details.open = true;
+        }}
         const prevStatus = card.getAttribute('data-status') || 'untriaged';
         card.setAttribute('data-status', actionType);
         card.classList.add('dispatched');
