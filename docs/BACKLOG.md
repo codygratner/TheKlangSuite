@@ -57,6 +57,7 @@
   - [13. The Operatic Runway & Tooling Flights (Acts I & II)](#13-the-operatic-runway--tooling-flights-acts-i--ii---completed)
   - [14. Tooling Maintenance: Git for Windows Upgrade](#14-tooling-maintenance-git-for-windows-upgrade---queued)
   - [15. Open Source Anti-Slop Hardening & CI Safety Gauntlet](#15-open-source-anti-slop-hardening--ci-safety-gauntlet---queued)
+- [The Strategy Graveyard](#-the-strategy-graveyard)
 
 ---
 *Focus: Tooling, Data-Driven Architecture, and 1:1 Legacy Parity.*
@@ -1044,7 +1045,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [ ] **Flight 5: Spun-Up Flash Low Agent for N'kai-to-Chat Button Routing (Topic 16, P1 — TOP UNTRIAGED)** — ⏳ QUEUED: Spun-up lightweight Flash Low subagent handling zero-touch button dispatching and routing between the N'kai sidecar webview and chat runtime without manual clipboard pasting or Pro quota burn.
 - [ ] **Flight 6: Platform & Ecosystem Pillar Badges on Cards (Topic 17, P2)** — ⏳ QUEUED: Declarative platform/ecosystem pillar badges (TKS, TT, NK, TKR, TBD-16, AGY) and agent workflow indicators across triage cards for instant destination recognition.
 - [ ] **Flight 7: Streamlined Mailbag Ingestion & Dynamic Positioning (Topic 18, P2)** — ⏳ QUEUED: Lightweight CLI tooling and chat command integration to effortlessly append and position untriaged ideas without manual multi-file renumbering.
-- [ ] **Flight 8: Tracktion Engine Backend Evaluation (Topic 13, P1)** — ⏳ QUEUED: Architectural evaluation of Tracktion Engine for ToadTracker audio processing and sequencing.
+- [x] **Flight 8: Tracktion Engine Backend Evaluation (Topic 13, P1)** — 🪦 GRAVEYARD: Rejected in favor of pure C++20 allocation-free ToadCore state machine wrapped in a thin JUCE standalone shell (guaranteeing 1:1 hardware parity with TBD-16 without DAW bloat).
 - [ ] **Flight 9: Dirtywave M8 Telemetry Capture & Bridge (Topic 10, P2)** — ⏳ QUEUED: Bidirectional telemetry and pattern synchronization bridge for Dirtywave M8 tracker hardware.
 - [ ] **Flight 10: Sub-Module & Component Presets Architecture (Topic 14, P1)** — ⏳ QUEUED: Sub-component preset schemas and serialization across synth modules.
 - [ ] **Flight 11: 4-Macro Mega Modules & Snap Heap Popovers (Topic 12, P1)** — ⏳ QUEUED: 4-encoder mega module abstractions with contextual popover settings callouts.
@@ -1343,6 +1344,20 @@ Port the battle-tested, data-driven architecture from *The Klang Farmer* over to
 - **Audio Thread CI Linter Step**: Integrate `python tools/audit_audiothread.py --strict` into `.github/workflows/ci.yml` to automatically reject PRs introducing allocations, locks, or I/O into DSP render paths.
 - **Strict Pluginval Compliance**: Remove `|| true` masking from Linux and macOS `pluginval` runs in GitHub Actions.
 - **Cross-Pillar Governance Sync**: Mirror `CONTRIBUTING.md` and `.github/PULL_REQUEST_TEMPLATE.md` to `ToadTracker` and `nkai`.
+
+---
+
+## 🪦 The Strategy Graveyard
+*Architectural proposals, prototypes, and technical paths evaluated and deliberately rejected, documenting the strategic autopsy and rationale to prevent revisiting dead ends.*
+
+### 1. Tracktion Engine as Scaffolding for ToadTracker (Topic 13 / Flight 8) — 🪦 KILLED / GRAVEYARD
+- **Date:** 2026-10-11 | **Proposed Route:** Use Tracktion Engine as temporary desktop DAW scaffolding while developing ToadTracker.
+- **Strategic Verdict:** **REJECTED (KILLED)**.
+- **Autopsy & Failure Modes:**
+  1. *Paradigm Collision*: Tracktion Engine is an object-heavy linear DAW engine (`te::Edit`, `te::Track`, `te::Clip`). Trackers are discrete, integer-based step sequencers and tick accumulators.
+  2. *The Parallel Engine Debt*: Maintaining a Tracktion desktop version alongside a bare-metal microcontroller C++ engine doubles development debt and bug surface area.
+  3. *Leaky Abstractions*: Temporary scaffolding inevitably creates hidden dependencies on DAW-style async streaming, making eventual microcontroller migration a catastrophic rewrite.
+- **Winning Synthesis (The 80/20 Resolution)**: Adopt the **Dirtywave M8 / SunVox Model** — author a pure, allocation-free C++20 tracker core (`ToadCore`) that compiles identically on Desktop and TBD-16, wrapped in a lightweight ~100-line JUCE audio device host on Desktop. 100% hardware parity on Day 1, zero throwaway code, zero Tracktion bloat.
 
 ---
 

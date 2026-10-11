@@ -240,7 +240,16 @@ def parse_backlog_flight_statuses(backlog_path: Path = DEFAULT_BACKLOG_PATH) -> 
     for m in road_matches:
         checked, f_num, title, status_text = m.groups()
         f_idx = int(f_num)
-        if checked.lower() == "x" or "COMPLETED" in status_text.upper() or "SHIPPED" in status_text.upper():
+        st_upper = status_text.upper()
+        if "GRAVEYARD" in st_upper or "KILLED" in st_upper:
+            statuses[f_idx] = {
+                "status": "graveyard",
+                "badge": "🪦 GRAVEYARD",
+                "section": f"Strategy Graveyard (Flight {f_idx})",
+                "sec_num": "",
+                "title": title.strip()
+            }
+        elif checked.lower() == "x" or "COMPLETED" in st_upper or "SHIPPED" in st_upper:
             statuses[f_idx] = {
                 "status": "completed",
                 "badge": "✅ COMPLETED",
@@ -298,7 +307,7 @@ def parse_docket_file(docket_path: Path, backlog_path: Path = None):
     if target_backlog and target_backlog.exists():
         backlog_statuses = parse_backlog_flight_statuses(target_backlog)
 
-    pattern = r"^#{3,4}\s*(?:[🚀⏳⚡🆕✅]\s*)?(?:Flight\s+)?(\d+)[:.]\s*([^\n]+)$"
+    pattern = r"^#{3,4}\s*(?:[🚀⏳⚡🆕✅🪦❌💀]\s*)?(?:Flight\s+)?(\d+)[:.]\s*([^\n]+)$"
     matches = list(re.finditer(pattern, content, re.MULTILINE))
 
     items = []
@@ -307,8 +316,8 @@ def parse_docket_file(docket_path: Path, backlog_path: Path = None):
         raw_title = m.group(2).strip()
         idx = int(m.group(1))
 
-        # Clean title of completed/shipped suffix if present
-        clean_title = re.sub(r"\s*—\s*(?:SHIPPED|COMPLETED|APPROVED)[^—\n]*", "", raw_title, flags=re.IGNORECASE).strip()
+        # Clean title of completed/shipped/graveyard suffix if present
+        clean_title = re.sub(r"\s*—\s*(?:SHIPPED|COMPLETED|APPROVED|GRAVEYARD|KILLED)[^—\n]*", "", raw_title, flags=re.IGNORECASE).strip()
 
         start_pos = m.end()
         end_pos = matches[i + 1].start() if i + 1 < len(matches) else len(content)
@@ -786,7 +795,7 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
         sec_num = it.get("sec_num", "")
 
         is_dispatched = (status != "untriaged")
-        badge_cls = "badge-dispatched" if status == "backlog" else ("badge-completed" if status == "completed" else "badge-unhandled")
+        badge_cls = "badge-dispatched" if status == "backlog" else ("badge-completed" if status == "completed" else ("badge-graveyard" if status == "graveyard" else "badge-unhandled"))
 
         priority = it.get("priority", "P2")
         priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
@@ -821,9 +830,22 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
             </div>
           </div>
         </div>"""
+        elif status == "graveyard":
+            dispatch_banner_html = f"""
+        <div class="mail-dispatch-banner">
+          <div style="background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
+            <div style="color: #f87171; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span>🪦 Strategy Graveyard (Rejected)</span>
+              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(sec_info)}</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+              Rejected and cataloged in <strong>docs/BACKLOG.md</strong> (Strategy Graveyard).
+            </div>
+          </div>
+        </div>"""
 
         docket_cards_html.append(f"""
-      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-title="{title_esc}" data-source="{source_esc}">
+      <div class="mail-card{' dispatched' if is_dispatched else ''}{' completed' if status == 'completed' else ''}{' graveyard' if status == 'graveyard' else ''}" id="{card_id}" data-card-idx="{idx}" data-scope="docket" data-status="{status}" data-tier="{tier}" data-priority="{priority}" data-title="{title_esc}" data-source="{source_esc}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{idx}</span>
@@ -1375,6 +1397,12 @@ def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, 
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.15);
       border: 1px solid rgba(56, 189, 248, 0.35);
+    }}
+
+    .mail-status-badge.badge-graveyard {{
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.35);
     }}
 
     .mail-file-pill {{
