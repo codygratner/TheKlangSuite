@@ -55,7 +55,9 @@
 ## 🧠 Architectural Memory & "Unforgettables"
 1. **Agent Model Protocol**:
    - Main Chat / Orchestrator runs strictly on **Gemini 3.8 Flash (Thinking: High)** for sustainable, near-zero quota burn.
-   - When deep DSP math, circuit analysis, or complex architecture is required, spawn an on-demand **Pro Subagent** (`invoke_subagent(Model="pro")`).
+   - **Targeted Opus DSP Swap**: For heavy C++ DSP algorithms or 2-strike factory escalations, the agent emits a Tier 1 Model Advisory prompting the user to manually swap to `Claude 5.5 Opus (Thinking: High)` in the IDE footer. Upon completion, a Mandatory Downgrade Chime prompts switching back to Flash High.
+   - **Argon GA Reconvene Trigger**: When Gemini 4 Argon reaches public General Availability in the IDE dropdown, immediately reconvene to benchmark Argon vs. Opus 5.5 High on C++ DSP.
+   - For routine background deep dives, spawn an on-demand subagent (`invoke_subagent`).
 2. **DSP & Audio Thread Invariants**:
    - Zero runtime allocations (`new`/`malloc`) or locks (`std::mutex`) in `processBlock`.
    - Prefer `TbdAudio::FastMath` over standard CRT transcendentals (`std::pow`, `std::sin`, `std::tanh`).
