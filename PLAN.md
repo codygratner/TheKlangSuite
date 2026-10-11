@@ -262,8 +262,8 @@ class PresetPayload(BaseModel):
 - [x] **Local Pointers Synchronization**:
   - Update `c:\Dev\TheKlangSuite\docs\history\vibe_coding_field_guide.md` and `audio_dsp_field_guide.md` to reflect updated domain split.
 
-#### Scene 4 (Flight 12): The "Anti-Slop" Vibe-Coding Executive Summary & Workflow Cheat Sheet
-- [ ] **Author `TheKlangResearch/guides/anti_slop_vibe_coding_manifesto.md`**:
+#### Scene 4 (Flight 12): The "Anti-Slop" Vibe-Coding Executive Summary & Workflow Cheat Sheet — ✅ COMPLETED
+- [x] **Author `TheKlangResearch/guides/anti_slop_vibe_coding_manifesto.md`**:
   - **Reading Time Target**: 2 to 3 minutes (~600 words, high-density, punchy, practical).
   - **Target Audience**: Professional software engineers and SQA practitioners skeptical of AI code generation and frustrated by "AI slop", hallucinations, broken whitespace, and silent regressions.
   - **Strict Tone & Style Invariant (ZERO INTERNAL LORE & ZERO PRODUCT NAMES)**:
@@ -279,7 +279,7 @@ class PresetPayload(BaseModel):
     6. PCDA & The Adversarial Contrarian.
     7. Deterministic Test Gauntlets.
   - Index link in `TheKlangResearch/README.md` and `TheKlangVault/Research/Master_Research_Index.md`.
-- [ ] **Author `c:\Dev\TheKlangSuite\docs\WORKFLOW_CHEAT_SHEET.md`**:
+- [x] **Author `c:\Dev\TheKlangSuite\docs\WORKFLOW_CHEAT_SHEET.md`**:
   - Distill staged soul harvest `.agents/pipeline/staging/souls/2026-10-10_soul_operatic_flights_pcda.md`.
   - Concise, 1-page high-density reference sheet for human developers.
   - Facility Spheres, Model Tiers, Subagent Swarm roles, Communiqué flow, 5-Phase standard, N'kai CLI reference.

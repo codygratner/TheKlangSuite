@@ -38,6 +38,11 @@
           "purpose": "Single-page reference card for ecosystem pillars, acronyms, flight-deck metaphors, slash commands, and audio invariants."
         },
         {
+          "path": "docs/WORKFLOW_CHEAT_SHEET.md",
+          "title": "Developer Workflow Cheat Sheet",
+          "purpose": "1-page high-density operational reference for facility spheres, model tiers, subagents, and N'kai CLI tools."
+        },
+        {
           "path": "docs/README.md",
           "title": "Documentation Directory Guide",
           "purpose": "Overview of the docs directory layout and contribution protocols."

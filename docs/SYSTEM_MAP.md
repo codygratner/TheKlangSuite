@@ -7,6 +7,7 @@ This is the central directory for all high-level documentation, rules, and histo
 - [DOCS_CATALOG.json](DOCS_CATALOG.json) — Master index and navigation manifest for all documentation, specs, research archives, and sidecars.
 - [GLOSSARY.md](GLOSSARY.md) — The taxonomy of UI components (Cards, Modules, Sliders, Knobs) and project-specific terms.
 - [CHEAT_SHEET.md](CHEAT_SHEET.md) — Single-page master reference card for ecosystem pillars, acronyms, flight-deck metaphors, slash commands, and audio invariants.
+- [WORKFLOW_CHEAT_SHEET.md](WORKFLOW_CHEAT_SHEET.md) — 1-page high-density operational reference for facility spheres, model tiers, subagents, and N'kai CLI tools.
 - [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — FOSS attribution ledger and GNU GPLv3 copyleft reciprocity contracts.
 
 ### 2. 📝 Planning & Backlog
