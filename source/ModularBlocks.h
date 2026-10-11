@@ -502,12 +502,12 @@ public:
 
         auto& modSig = (voiceIndex == 1) ? ctx.mod1Signal : ctx.mod2Signal;
         const auto& peSig = (voiceIndex == 1) ? ctx.pitchEnv1Signal : ctx.pitchEnv2Signal;
-        modSig.resize(numSamples);
         int target = (voiceIndex == 1) ? ctx.pitchEnv1Target : ctx.pitchEnv2Target;
         bool applyPitchEnv = (target == 1 || target == 2 || target == 3);
         float pitchEnvSign = (target == 3) ? -1.0f : 1.0f;
 
-        for (int i = 0; i < numSamples; ++i) {
+        int count = std::min(numSamples, static_cast<int>(modSig.size()));
+        for (int i = 0; i < count; ++i) {
             float pitchEnv = (applyPitchEnv && i < static_cast<int>(peSig.size())) ? (peSig[i] * pitchEnvSign) : 0.0f;
             float instFreq = oscFreq * FastMath::fastPow2(pitchEnv * 5.0f);
             instFreq = std::clamp(instFreq, 0.05f, sampleRate * 0.48f);
@@ -605,9 +605,9 @@ public:
         else ctx.pitchEnv2Target = target;
 
         auto& peSig = (voiceIndex == 1) ? ctx.pitchEnv1Signal : ctx.pitchEnv2Signal;
-        peSig.resize(numSamples);
 
-        for (int i = 0; i < numSamples; ++i) {
+        int count = std::min(numSamples, static_cast<int>(peSig.size()));
+        for (int i = 0; i < count; ++i) {
             float linearProgress = timeSinceTrigger / decayTime;
             float envLinear = std::clamp(1.0f - linearProgress, 0.0f, 1.0f);
             float envVal = applyEnvelopeSlope(envLinear, slope) * depth;
@@ -1712,11 +1712,9 @@ public:
 
         std::vector<float>& targetSig = (voiceIndex == 1) ? ctx.filterEnv1Signal :
                                         ((voiceIndex == 2) ? ctx.filterEnv2Signal : ctx.filterEnv3Signal);
-        if (static_cast<int>(targetSig.size()) < numSamples) {
-            targetSig.resize(numSamples);
-        }
 
-        for (int i = 0; i < numSamples; ++i) {
+        int count = std::min(numSamples, static_cast<int>(targetSig.size()));
+        for (int i = 0; i < count; ++i) {
             float linearProgress = timeSinceTrigger / decayTime;
             float envLinear = std::clamp(1.0f - linearProgress, 0.0f, 1.0f);
             float envVal = applyEnvelopeSlope(envLinear, slope) * depth;
@@ -2216,9 +2214,8 @@ public:
 
         float clapBurstsDuration = (numClaps > 0) ? (numClaps * clapInterval) : 0.0f;
 
-        ctx.ampEnvSignal.resize(numSamples);
-
-        for (int i = 0; i < numSamples; ++i) {
+        int count = std::min(numSamples, static_cast<int>(ctx.ampEnvSignal.size()));
+        for (int i = 0; i < count; ++i) {
             float envVal = 0.0f;
             if (numClaps > 0 && timeSinceTrigger < clapBurstsDuration) {
                 float burstIdx = std::floor(timeSinceTrigger / clapInterval);
@@ -2397,11 +2394,9 @@ public:
 
         std::vector<float>& envSig = (index == 1) ? ctx.modEnv1Signal :
                                      ((index == 2) ? ctx.modEnv2Signal : ctx.modEnv3Signal);
-        if (static_cast<int>(envSig.size()) < numSamples) {
-            envSig.resize(numSamples);
-        }
 
-        for (int i = 0; i < numSamples; ++i) {
+        int count = std::min(numSamples, static_cast<int>(envSig.size()));
+        for (int i = 0; i < count; ++i) {
             float linearProgress = timeSinceTrigger / decayTime;
             float envLinear = std::clamp(1.0f - linearProgress, 0.0f, 1.0f);
             float envVal = applyEnvelopeSlope(envLinear, slope) * depth;
@@ -2645,7 +2640,7 @@ public:
         init(44100.0f);
     }
 
-    void init(float sampleRate) {
+    void init(float sampleRate, int maxBlockSize = 1024) {
         ctx.sampleRate = sampleRate;
         ctx.invSr = 1.0f / sampleRate;
 
@@ -2686,23 +2681,24 @@ public:
         }
 
         // Pre-allocate realtime working buffers
-        tempNoiseL.assign(1024, 0.0f);
-        tempNoiseR.assign(1024, 0.0f);
-        tempCarrier1L.assign(1024, 0.0f);
-        tempCarrier1R.assign(1024, 0.0f);
-        tempCarrier2L.assign(1024, 0.0f);
-        tempCarrier2R.assign(1024, 0.0f);
-        ctx.mod1Signal.assign(1024, 0.0f);
-        ctx.mod2Signal.assign(1024, 0.0f);
-        ctx.pitchEnv1Signal.assign(1024, 0.0f);
-        ctx.pitchEnv2Signal.assign(1024, 0.0f);
-        ctx.filterEnv1Signal.assign(1024, 0.0f);
-        ctx.filterEnv2Signal.assign(1024, 0.0f);
-        ctx.filterEnv3Signal.assign(1024, 0.0f);
-        ctx.ampEnvSignal.assign(1024, 1.0f);
-        ctx.modEnv1Signal.assign(1024, 0.0f);
-        ctx.modEnv2Signal.assign(1024, 0.0f);
-        ctx.modEnv3Signal.assign(1024, 0.0f);
+        int bufSize = std::max(1024, maxBlockSize);
+        tempNoiseL.assign(bufSize, 0.0f);
+        tempNoiseR.assign(bufSize, 0.0f);
+        tempCarrier1L.assign(bufSize, 0.0f);
+        tempCarrier1R.assign(bufSize, 0.0f);
+        tempCarrier2L.assign(bufSize, 0.0f);
+        tempCarrier2R.assign(bufSize, 0.0f);
+        ctx.mod1Signal.assign(bufSize, 0.0f);
+        ctx.mod2Signal.assign(bufSize, 0.0f);
+        ctx.pitchEnv1Signal.assign(bufSize, 0.0f);
+        ctx.pitchEnv2Signal.assign(bufSize, 0.0f);
+        ctx.filterEnv1Signal.assign(bufSize, 0.0f);
+        ctx.filterEnv2Signal.assign(bufSize, 0.0f);
+        ctx.filterEnv3Signal.assign(bufSize, 0.0f);
+        ctx.ampEnvSignal.assign(bufSize, 1.0f);
+        ctx.modEnv1Signal.assign(bufSize, 0.0f);
+        ctx.modEnv2Signal.assign(bufSize, 0.0f);
+        ctx.modEnv3Signal.assign(bufSize, 0.0f);
 
         // Voice 1 defaults
         setPageParameter(BLK_CARRIER1, 0, 0.0f);
@@ -3185,6 +3181,9 @@ public:
             ctx.filterEnv2Signal.assign(numSamples, 0.0f);
             ctx.filterEnv3Signal.assign(numSamples, 0.0f);
             ctx.ampEnvSignal.assign(numSamples, 1.0f);
+            ctx.modEnv1Signal.assign(numSamples, 0.0f);
+            ctx.modEnv2Signal.assign(numSamples, 0.0f);
+            ctx.modEnv3Signal.assign(numSamples, 0.0f);
         }
 
         // --- MODULATION ENVELOPES ---

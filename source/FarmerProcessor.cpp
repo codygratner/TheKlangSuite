@@ -203,7 +203,7 @@ TheKlangFarmerAudioProcessor::TheKlangFarmerAudioProcessor()
 void TheKlangFarmerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     ::RlyehSound::DevLogger::getInstance().registerAudioThread(std::this_thread::get_id());
     TKS_LOG_INFO("TheKlangFarmerAudioProcessor::prepareToPlay: sampleRate=" + juce::String(sampleRate) + ", samplesPerBlock=" + juce::String(samplesPerBlock));
-    engine.init(static_cast<float>(sampleRate));
+    engine.init(static_cast<float>(sampleRate), samplesPerBlock);
 }
 
 void TheKlangFarmerAudioProcessor::releaseResources() {

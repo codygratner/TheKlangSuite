@@ -3,7 +3,7 @@
 > **ID:** plan-006  
 > **TARGET:** FACTORY_FLOOR (Klang Industries & New Klang City) 🚀  
 > **Topic Target:** Card #29 / Section 15 (`Anti-Slop in Open Source`)  
-> **Status:** READY FOR TAKEOFF 🛫  
+> **Status:** COMPLETED ✅  
 > **Priority:** P0 (Top Priority)  
 > **Target Branch:** `0.4.0-dev`  
 > **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
@@ -26,26 +26,28 @@ In our initial research audit of `https://www.opensourceprojects.dev/post/anti-s
 ## 📋 Phase Breakdown
 
 ### Phase 1: Real-Time Audio-Thread Memory Pre-Allocation (`Source/ModularBlocks.h`)
-- [ ] Inspect and eliminate runtime container resizes in `Source/ModularBlocks.h`:
+- [x] Inspect and eliminate runtime container resizes in `Source/ModularBlocks.h`:
+  - Line 505: `modSig.resize(numSamples);`
+  - Line 608: `peSig.resize(numSamples);`
   - Line 1716: `targetSig.resize(numSamples);`
   - Line 2219: `ctx.ampEnvSignal.resize(numSamples);`
   - Line 2401: `envSig.resize(numSamples);`
-- [ ] Ensure `VoiceContext` pre-allocates `filterEnv1Signal`, `filterEnv2Signal`, `filterEnv3Signal`, `ampEnvSignal`, `modEnv1Signal`, `modEnv2Signal`, and `modEnv3Signal` to `maxBlockSize` inside `prepareToPlay()` / `prepareVoiceBuffers()`.
-- [ ] Clamp buffer access to pre-allocated capacity without reallocation in `processStereo()`.
-- [ ] Run `python tools/audit_audiothread.py --path Source/ModularBlocks.h --strict` and assert zero allocation violations.
+- [x] Ensure `VoiceContext` pre-allocates `filterEnv1Signal`, `filterEnv2Signal`, `filterEnv3Signal`, `ampEnvSignal`, `modEnv1Signal`, `modEnv2Signal`, and `modEnv3Signal` to `maxBlockSize` inside `prepareToPlay()` / `prepareVoiceBuffers()`.
+- [x] Clamp buffer access to pre-allocated capacity without reallocation in `processStereo()`.
+- [x] Run `python tools/audit_audiothread.py --path Source/ModularBlocks.h --strict` and assert zero allocation violations.
 
 ### Phase 2: Author Universal Open-Source Governance Artifacts
-- [ ] Author `CONTRIBUTING.md` across active repositories (`TheKlangSuite`, `ToadTracker`, `nkai`):
+- [x] Author `CONTRIBUTING.md` across active repositories (`TheKlangSuite`, `ToadTracker`, `nkai`):
   - **The Anti-Slop Manifesto**: Boy Scout Rule, zero decorative comment banners, no tautological comments, ruthless deletion.
   - **The Audio Thread Invariants**: Zero allocations in `processBlock()`, zero mutexes/locks, zero blocking I/O, SIMD `FastMath` preference.
   - **4-Layer Schema Separation Contract**: `controls/` (DSP contracts only), `layouts/` (structure only), `themes/` (visuals only), `text/` (strings only).
   - **FOSS & Algorithmic Attribution**: Mandatory SPDX GPL-3.0 headers and inline provenance docblocks for adapted algorithms.
   - **Conventional Commits**: Strict format `<type>(<scope>): <desc>`.
-- [ ] Author `.github/PULL_REQUEST_TEMPLATE.md` across `TheKlangSuite`, `ToadTracker`, and `nkai`:
+- [x] Author `.github/PULL_REQUEST_TEMPLATE.md` across `TheKlangSuite`, `ToadTracker`, and `nkai`:
   - Mandatory contributor checklist (Audio thread verification, schema leak test, local test pass, no AI slop).
 
 ### Phase 3: CI/CD Automation & Matrix Hardening (`.github/workflows/ci.yml`)
-- [ ] Update `.github/workflows/ci.yml` in `TheKlangSuite`:
+- [x] Update `.github/workflows/ci.yml` in `TheKlangSuite`:
   - Add `gui_tests` to Windows build and test steps (enforcing `ParameterSchemaAuditTest` and `ReflectionGuardrailSuite`).
   - Add `gui_tests` execution to Linux CI step under `xvfb-run -a`.
   - Add automated audio-thread safety check:
@@ -56,14 +58,14 @@ In our initial research audit of `https://www.opensourceprojects.dev/post/anti-s
   - Remove `|| true` failure masking from Linux and macOS `pluginval` runs.
 
 ### Phase 4: Local Regression & Validation Gauntlet
-- [ ] Execute `python tools/audit_audiothread.py --strict` across entire `Source/` tree.
-- [ ] Compile and run `dsp_tests.exe` via CMake.
-- [ ] Compile and run `gui_tests.exe` via CMake (asserting 100% pass on schema isolation and reflection).
-- [ ] Run `python tools/verify_context_clues.py` (confirm 100% link resolution).
+- [x] Execute `python tools/audit_audiothread.py --strict` across entire `Source/` tree.
+- [x] Compile and run `dsp_tests.exe` via CMake.
+- [x] Compile and run `gui_tests.exe` via CMake (asserting 100% pass on schema isolation and reflection).
+- [x] Run `python tools/verify_context_clues.py` (confirm 100% link resolution).
 
 ### Phase 5: Re-Run the Anti-Slop Audit & Scorecard Delivery
-- [ ] Re-run the comprehensive audit against `https://www.opensourceprojects.dev/post/anti-slop`.
-- [ ] Generate the updated 10-point scorecard verifying that all 10 dimensions now register as **10/10 EXCEED / SOTA**.
-- [ ] Update `docs/BACKLOG.md`: Mark Section 15 (Open Source Anti-Slop Hardening & CI Safety Gauntlet) as `[x] COMPLETED`.
-- [ ] Mark Card #29 in `.agents/pipeline/mailbag/mail_queue.json` as `COMPLETED`.
-- [ ] Commit all changes cleanly across affected repositories.
+- [x] Re-run the comprehensive audit against `https://www.opensourceprojects.dev/post/anti-slop`.
+- [x] Generate the updated 10-point scorecard verifying that all 10 dimensions now register as **10/10 EXCEED / SOTA**.
+- [x] Update `docs/BACKLOG.md`: Mark Section 15 (Open Source Anti-Slop Hardening & CI Safety Gauntlet) as `[x] COMPLETED`.
+- [x] Mark Card #29 in `.agents/pipeline/mailbag/mail_queue.json` as `COMPLETED`.
+- [x] Commit all changes cleanly across affected repositories.
