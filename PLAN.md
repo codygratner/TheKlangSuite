@@ -294,9 +294,9 @@ class PresetPayload(BaseModel):
 
 ### 🛬 ACT IV: FINAL APPROACH & TOUCHDOWN (Pre-Release Capstone)
 
-#### Scene 1 (Flight 14): Catalog Registration & Ecosystem System Map Synchronization
-- [ ] Register all new specs, guides, and tools in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-- [ ] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
+#### Scene 1 (Flight 14): Catalog Registration & Ecosystem System Map Synchronization — ✅ COMPLETED
+- [x] Register all new specs, guides, and tools in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+- [x] Verify Section 8 (Aviation Metaphors), Section 9 (Zonal Boundaries), and Section 10 (Documentation Invariant) in `docs/GLOSSARY.md` and `docs/CHEAT_SHEET.md`.
 
 #### Scene 2 (Flight 15): The Full Acceptance Gauntlet
 - [ ] **Multi-Plan Queue Test**:
