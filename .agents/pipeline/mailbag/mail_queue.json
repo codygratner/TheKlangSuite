@@ -1,9 +1,32 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-10T22:18:38.261929",
-  "total_items": 49,
-  "p0_count": 3,
+  "last_scanned": "2026-10-10T22:47:12.011061",
+  "total_items": 50,
+  "p0_count": 4,
   "items": [
+    {
+      "id": "Anti-Slop in Open Source",
+      "title": "Anti-Slop in Open Source (Failing, Meeting, or Exceeding)",
+      "created_at": "2026-10-10",
+      "priority": "P0",
+      "status": "PENDING",
+      "tags": [],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Anti-Slop in Open Source.md",
+      "preview": "URL: https://www.opensourceprojects.dev/post/anti-slop Priority: P0 Captured: 2026-10-10 > \"another topic for the mailbag, p0 > https://www.opensourceprojects.dev/post/anti-slop > > I want to look into this and see if we fail, meet or exceed what's there? and, what we can learn f...",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 690,
+      "word_count": 98,
+      "tier": "tier2",
+      "body": "# Anti-Slop in Open Source\n\n**URL:** https://www.opensourceprojects.dev/post/anti-slop  \n**Priority:** `P0`  \n**Captured:** 2026-10-10  \n\n## Raw Prompt\n> \"another topic for the mailbag, p0\n> https://www.opensourceprojects.dev/post/anti-slop\n> \n> I want to look into this and see if we fail, meet or exceed what's there? and, what we can learn from that!\"\n\n## Core Inquiry\n1. What are the key criteria, complaints, and recommendations defined in the article?\n2. Scorecard: Do our codebase, development workflows, and AI harness guardrails **FAIL**, **MEET**, or **EXCEED** each standard?\n3. What concrete lessons, automated checks, or rules can we extract to harden our open source posture?",
+      "excerpt": "URL: https://www.opensourceprojects.dev/post/anti-slop Priority: P0 Captured: 2026-10-10 > \"another topic for the mailbag, p0 > https://www.opensourceprojects.dev/post/anti-slop > > I want to look into this and see if we fail, meet or exceed what's there? and, what we can learn f...",
+      "file_name": "Anti-Slop in Open Source.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Anti-Slop in Open Source.md",
+      "source_note": "",
+      "idx": 0
+    },
     {
       "id": "Mailbag Queue",
       "title": "Mailbag Queue",
@@ -80,8 +103,8 @@
       "priority": "P1",
       "status": "PENDING",
       "tags": [
-        "nk-v0",
-        "tks-v0"
+        "tks-v0",
+        "nk-v0"
       ],
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\2026-10-09_Morning_Mail_Batch_Docket.md",
       "preview": "> Status: Queued for Post-Milestone N'kai Test Drive 🧪 > Source: TheKlangVault/Inbox/Archive/ (Oct 9, 2026 Morning Batch) + New Additions > Target Execution: Interactive N'kai Triage Board Session (post-v0.4.0 milestone completion) This artifact compiles the batch of design, work...",

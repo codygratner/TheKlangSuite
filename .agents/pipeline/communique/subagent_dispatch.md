@@ -13,7 +13,7 @@ STATUS: DISPATCHED
 - **ROLE**: `Flash Tooling Builder`
 - **MODEL TIER**: `Tier 2 Flash (High)`
 - **TASK TYPE**: `TOOLING_IMPLEMENTATION`
-- **TASK SLUG**: `nkai-v020-ui-extension`
+- **TASK SLUG**: `flight-1-ramble-ingest`
 - **ACTIVE BLUEPRINT**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **TARGET REPOSITORIES**:
   - [x] `TheKlangSuite` (`c:\Dev\TheKlangSuite`)
@@ -22,10 +22,10 @@ STATUS: DISPATCHED
 ---
 
 ## 2. Scope & Target Files
-- Target Milestone: N'kai v0.2.0 (Official Antigravity UI Extension & Zero-Copy Native IPC).
+- Target Milestone: Flight 1: The "Rambles" Ingestion Engine (`P0 — Topic 2`).
 - Phases to execute:
-  - Phase 1: Native Plugin Manifest & Sidecar Infrastructure (`c:\Dev\nkai\plugin.json`, `c:\Dev\nkai\assets\logo.svg`, `c:\Dev\nkai\sidecars\panel\sidecar.json`, `c:\Dev\nkai\sidecars\panel\package.json`).
-  - Phase 2: Node.js Sidecar Backend (`c:\Dev\nkai\sidecars\panel\main.mjs`) using `sidecar_sdk`.
-  - Phase 3: Frontend Bridge Adapter (`c:\Dev\nkai\core\sidecar.js`) with `window.sidecar.agent.sendMessage()`.
-  - Phase 4: Local Installation & Verification Harness (`tools/install_nkai_plugin.py` installing to `%USERPROFILE%\.gemini\config\plugins\nkai\`, `tools/audit_sidecar.py`, `tools/verify_context_clues.py`).
-  - Phase 5: Closeout & Subagent Receipt.
+  - Phase 1: Architectural Specification & Catalog Registration (`docs/specs/nkai_rambles_ingestion_engine.md`, `docs/DOCS_CATALOG.json`, `docs/SYSTEM_MAP.md`).
+  - Phase 2: Pydantic Data Models (`tools/models.py`: `RambleCard`, `RambleExtractionResult`, `to_mail_item()`).
+  - Phase 3: Zero-Dependency Ramble Ingestor CLI (`tools/ramble_ingest.py`, mirrored to `c:\Dev\nkai\tools\ramble_ingest.py` and `c:\Dev\nkai\bundle\tools\ramble_ingest.py`).
+  - Phase 4: Micro-Skill Registration (`.agents/skills/ramble-ingest/SKILL.md`, mirrored to `c:\Dev\nkai\bundle\skills\ramble-ingest\SKILL.md`).
+  - Phase 5: Verification Gauntlet, Backlog Sync, and Clean Commits across `TheKlangSuite` and `nkai`.
