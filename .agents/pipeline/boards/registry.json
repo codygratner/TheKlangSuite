@@ -1,12 +1,15 @@
 {
   "version": "1.0.0",
   "default_board_id": "morning_mail",
+  "active_lab_id": null,
+  "staged_labs": [],
   "boards": [
     {
       "id": "morning_mail",
       "title": "Morning Mail Inbox & Triage Lab",
       "description": "Daily operational triage for developer voice memos, mailbag cards, and backlog tickets",
       "category": "active",
+      "board_type": "custom",
       "file_path": ".agents/sidecar/morning_mail_inbox.html",
       "environment": "PRODUCTION",
       "card_count": 0,
@@ -17,6 +20,7 @@
       "title": "Canonical QA Sandbox Test Board",
       "description": "Deterministic test fixture with 7 synthetic cards for regression testing and UI/UX validation",
       "category": "active",
+      "board_type": "custom",
       "file_path": ".agents/sidecar/sandbox_mail_inbox.html",
       "environment": "SANDBOX",
       "card_count": 7,
@@ -27,6 +31,7 @@
       "title": "System Sanity Audit & Triage Lab",
       "description": "Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory",
       "category": "archived",
+      "board_type": "custom",
       "file_path": ".agents/sidecar/nkai_deep_research.html",
       "environment": "PRODUCTION",
       "card_count": 12,
@@ -37,10 +42,22 @@
       "title": "System Sanity Audit & Triage Lab",
       "description": "Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory",
       "category": "active",
+      "board_type": "custom",
       "file_path": ".agents/sidecar/audit_triage_board.html",
       "environment": "PRODUCTION",
       "card_count": 12,
       "updated_at": "2026-10-12T13:13:13.889306"
+    },
+    {
+      "id": "runway",
+      "title": "Ecosystem Delivery Runway",
+      "description": "Cross-project strategic delivery horizon mapped from docs/BACKLOG.md Act III",
+      "category": "active",
+      "board_type": "evergreen",
+      "file_path": ".agents/sidecar/runway_board.html",
+      "environment": "PRODUCTION",
+      "card_count": 38,
+      "updated_at": "2026-10-12T16:34:02.979297"
     }
   ]
 }

@@ -349,6 +349,19 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **The Rejigger Formula**: $\text{Rejiggering} = \text{TopologicalSort}(\mathcal{G}) \circ \text{HegelianDialectic}(\mathcal{I})$. Resolves the fundamental limitation of standard linear priority bucketing (High/Medium/Low) by ensuring prerequisites always precede polish.
 * **Canonical Specification**: [`C:\Dev\Research\agentic\topological_dialectical_sorting_the_rejigger_pattern.md`](file:///C:/Dev/Research/agentic/topological_dialectical_sorting_the_rejigger_pattern.md) and [`docs/specs/topological_dialectical_sorting_rejigger.md`](file:///c:/Dev/TheKlangSuite/docs/specs/topological_dialectical_sorting_rejigger.md).
 
+---
+
+## 32. Three-Surface Navigation & The Flight Runway (Flight 20)
+
+* **The Three Surfaces**: The unified triage workflow topology that prevents board sprawl across the N'kai sidecar ecosystem:
+  1. **Surface 1 (Evergreen #1: The Mailbag — `morning_mail`)**: The daily human capture and intake stream featuring an in-board quick capture input bar (`#quick-capture-input`) and a debounced mail harvester trigger (`#btn-grab-mail`). Appends timestamped notes to `C:\_\Vault\Inbox/<YYYY-MM-DD>_Quick_Notes.md`.
+  2. **Surface 2 (Evergreen #2: The Flight Runway — `runway`)**: The strategic cross-project delivery horizon mechanically generated from `docs/BACKLOG.md` Act III and ecosystem milestone benchmarks, offering clientside filter rails (`[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, `[ 📋 All ]`).
+  3. **Surface 3 (Session Surface: The Lab — `lab`)**: The single active ephemeral research slot (Grill-Me, Research Spikes, PCDA teardowns). Emits an animated `#lab-all-clear-banner` celebration when untriaged cards hit 0, and triggers `tools/conclude_lab.py` to stage takeaways to `.agents/pipeline/staging/souls/`.
+* **The Scratchpad Protocol**: The dedicated reading-notes file [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) permanently excluded from mailbag intake scans, providing a zero-friction stream-of-consciousness zone linked in chat navigation footers.
+* **Ambient 3-Surface Navigation Line**: The standardized IDE footer navigation anchor:
+  `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
+* **Canonical Specification**: [`docs/specs/nkai_three_surfaces_and_runway_board.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
+
 
 
 

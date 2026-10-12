@@ -323,6 +323,34 @@ def extract_note_metadata(file_path: Path):
     }
 
 
+def scan_note(file_path: Path) -> Optional[MailItem]:
+    """Parses a single Markdown note into a validated MailItem model."""
+    meta = extract_note_metadata(file_path)
+    if not meta:
+        return None
+    return MailItem(
+        id=meta.get("id", file_path.stem),
+        title=meta.get("title", file_path.stem),
+        date=meta.get("date", datetime.date.today().strftime("%Y-%m-%d")),
+        created_at=meta.get("date", datetime.date.today().strftime("%Y-%m-%d")),
+        priority=meta.get("priority", "P2"),
+        status=TriageStatus.PENDING,
+        tags=meta.get("tags", []),
+        target_pillars=meta.get("target_pillars", []),
+        source_file=meta.get("file_name", file_path.name),
+        preview=meta.get("preview", ""),
+        dependencies=meta.get("dependencies", []),
+        char_count=meta.get("char_count", 0),
+        word_count=meta.get("word_count", 0),
+        tier=meta.get("tier", "tier2"),
+        body=meta.get("body", ""),
+        excerpt=meta.get("excerpt", ""),
+        file_name=meta.get("file_name", file_path.name),
+        rel_path=meta.get("rel_path", str(file_path)),
+        frontmatter=meta.get("frontmatter", {}),
+    )
+
+
 def scan_inbox(inbox_dir: Path):
     """Scans directory for .md files and extracts metadata."""
     if not inbox_dir.exists():

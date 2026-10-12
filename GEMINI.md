@@ -43,11 +43,15 @@
     - **`research` (`Model="pro"`)**: Targeted Tier 1 Sprint mode reserved strictly for high-reasoning tasks (DSP differential equations, non-linear saturation proofs, lock-free concurrency proofs, and complex multi-file architectural synthesis).
     - **`explore` (`Model="flash"`)**: Autonomous Tier 2 Marathon mode for broad, goal-oriented sweeps (UI/UX layout explorations, community sentiment analysis across Reddit/KVR/Gearspace, preset browser taxonomy, and broad competitive benchmarking).
     - **`contrarian` (`Model="flash"`)**: The Devil's Advocate adversarial mode paired with exploratory sprints to stress-test proposals, expose edge-case failure modes, and derive the pragmatic 80/20 middle ground.
-  - **Ambient Status Footer Line & Dynamic N'kai Board Launcher**:
-    - Chat responses conclude with a single ambient status line in the footer:
-      `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
-      (e.g. `Focus: N'kai hardening | TKS-0.4.0 · TT-0.1.0 · NK-0.2.0 · TR-Active`).
-    - **Dynamic Board Link Rule**: When an N'kai interactive triage board session is actively open or being worked on, append `· [ 📬 Open N'kai Board ](sidecar://nkai/panel/)` to the end of the line. On routine C++/tooling turns, omit the link to keep chat transcripts clean.
+  - **Ambient Status Footer Line & 3-Surface Navigation Invariant**:
+    - Chat responses conclude with a 2-line ambient status footer:
+      Line 1: `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`  
+      Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md)` *(+ `· [ 🔬 Lab: <topic> ](sidecar://nkai/panel/?board=<lab_id>)` when an active lab board is open)*.
+    - **The 3 Surfaces**:
+      1. `📬 Mailbag`: Daily intake triage stream (`sidecar://nkai/panel/?board=morning_mail`).
+      2. `🛫 Runway`: Strategic delivery roadmap mapped from Act III (`sidecar://nkai/panel/?board=runway`).
+      3. `📝 Scratchpad`: Single unindexed file for raw thoughts, reading memos, and quick notes ([`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md)), permanently excluded from mailbag triage.
+      4. `🔬 Lab`: Active exploratory research/grill-me session board (pinned dynamically when active).
   - **Gentle Re-Centering Nudge Protocol (Compass Check)**: Immediately upon concluding exploratory research sprints, deep PCDA teardowns, or peripheral side quests, the agent outputs a single-sentence re-centering compass check:
     > 🧭 **North Star Check**: Returning from *[Detour Topic]* to active focus: **[Current Pillar & Active Flight]** (per [`docs/FOCUS.md`](file:///c:/Dev/TheKlangSuite/docs/FOCUS.md)).
     *(Nudge invariant: this is a subtle compass check, never a blocking gate).*

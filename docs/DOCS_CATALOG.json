@@ -149,6 +149,11 @@
           "purpose": "In-card agent_reply reasoning, collapsible glassmorphic drawer, procedural Web Audio detent haptics, chat-minimal pair programming, and --reply-card CLI."
         },
         {
+          "path": "docs/specs/nkai_three_surfaces_and_runway_board.md",
+          "title": "N'kai 3-Surface System & Delivery Runway Board Specification (Flight 20)",
+          "purpose": "3-Surface architecture (Mailbag, Runway, Lab), in-board quick capture, debounced mail grab, Act III runway board generator, lab conclusion triumph ceremony, and Scratchpad protocol."
+        },
+        {
           "path": "docs/specs/nkai_rambles_ingestion_engine.md",
           "title": "N'kai Rambles Ingestion Engine Specification (Topic 2, Flight 1)",
           "purpose": "Stream-of-consciousness ramble intake, multi-idea paragraph decomposition, 3-bullet decision cards, and zero-mutation safety invariant."

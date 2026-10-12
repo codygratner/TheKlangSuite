@@ -59,11 +59,14 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Multi-Board Hub & Session Manager](specs/nkai_multi_board_hub_and_session_manager.md) — Multi-board directory modal, BoardRegistry data model, anti-cache HTTP response headers, ?board=<id> routing, and dual-mode operation.
   - [N'kai Mailbag Intake & Triage v2](specs/nkai_mailbag_intake_and_triage_v2.md) — Ramble overflow queue, quick notes, Tabled directory, attention tags, session launchers, and position splice.
   - [N'kai Per-Card Response Drawer](specs/nkai_per_card_response_drawer.md) — In-card agent_reply reasoning, collapsible glassmorphic drawer, procedural Web Audio detent haptics, chat-minimal pair programming, and --reply-card CLI.
+  - [N'kai 3-Surface System & Delivery Runway Board](specs/nkai_three_surfaces_and_runway_board.md) — 3-Surface architecture (Mailbag, Runway, Lab), in-board quick capture, debounced mail grab, Act III runway board generator, lab conclusion triumph ceremony, and Scratchpad protocol.
   - [N'kai Mobile Companion & Touch Ergonomics](specs/nkai_mobile_companion_and_touch_ergonomics.md) — Mobile viewport architecture (100dvh), 44px Touch Target Law, sticky bottom thumb bar, local Wi-Fi auto-detection, zero-dependency QR code generation, and /qr web pairing.
   - [Inter-Project Data Bus & Queue](specs/inter_project_data_bus.md) — Asynchronous handoff conduit across TKS, ToadTracker, N'kai, Research, and The Cosmos. Zero-daemon file queue over NTFS junction.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
 ### 8. 🛠️ Developer Tooling & Data Schemas
+- [build_runway.py](../tools/build_runway.py) — Flight Runway Board builder CLI parsing Act III backlog items and milestones.
+- [conclude_lab.py](../tools/conclude_lab.py) — Lab conclusion ceremony CLI staging markdown harvests and unpinning active labs.
 - [bus.py](../tools/bus.py) — Universal Inter-Project Data Bus CLI tool (post, list, read, ack).
 - [check_lore.py](../tools/check_lore.py) — Lore Dispatch queue inspector across Zenith and Foundry drops.
 - [mail_add.py](../tools/mail_add.py) — Mailbag backlog item splice CLI with contiguous rank renumbering.

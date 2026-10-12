@@ -94,7 +94,11 @@
   * `research` (`Model="pro"`): Targeted Tier 1 Sprint for deep DSP differential equations, non-linear saturation proofs, and multi-file architectural synthesis.
   * `explore` (`Model="flash"`): Autonomous Tier 2 Marathon for broad UI/UX surveys, community sentiment, and competitive benchmarking.
   * `contrarian` (`Model="flash"`): The Devil's Advocate adversarial mode stress-testing proposals, failure modes, and cognitive debt.
-* **Ambient Status Footer**: Responses conclude with a single ambient status line: `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`. When an interactive N'kai board is actively open, appends `· [ 📬 Open N'kai Board ](sidecar://nkai/panel/)`; on routine coding turns, omits the link to keep transcripts clean.
+* **Ambient Status Footer & 3-Surface Navigation Invariant**:
+  Responses conclude with a 2-line ambient status footer:
+  Line 1: `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
+  Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
+* **The Scratchpad Protocol**: Dedicated [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) file for live reading notes and multi-point stream-of-consciousness chat reactions, structured with `# Multi-Point Replies` and `# Quick Notes`, permanently excluded from mailbag scans and directly accessible via the chat footer or *"Check scratchpad"* prompt.
 
 ---
 
@@ -321,6 +325,18 @@
   4. *Contiguous Critical Path*: Assign contiguous ranks `1..N` where every step has an explicit "Why Here?" causal rationale.
 * **When to Call for a Rejigger**: Whenever facing backlog paralysis (>20 unranked tickets), flight deadlocks (missing unbuilt dependencies), or signal-chain aliasing (audio graph out of order).
 * **Reference**: [Topological Dialectical Sorting RFC](file:///C:/Dev/Research/agentic/topological_dialectical_sorting_the_rejigger_pattern.md) | [Spec](file:///c:/Dev/TheKlangSuite/docs/specs/topological_dialectical_sorting_rejigger.md).
+
+---
+
+## 🛫 The 3-Surface System & The Flight Runway (Flight 20)
+
+* **The 3 Triage Surfaces**:
+  1. **Surface 1 (Evergreen #1: The Mailbag — `morning_mail`)**: Daily capture stream with in-board `#quick-capture-input` bar and debounced `#btn-grab-mail` appending to `C:\_\Vault\Inbox/<YYYY-MM-DD>_Quick_Notes.md`.
+  2. **Surface 2 (Evergreen #2: The Flight Runway — `runway`)**: Delivery horizon built by `tools/build_runway.py` from `docs/BACKLOG.md` Act III with `[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, and `[ 📋 All ]` filter rails.
+  3. **Surface 3 (Session Surface: The Lab — `lab`)**: Single active ephemeral research slot. Emits `#lab-all-clear-banner` celebration when cards reach 0; concluded via `tools/conclude_lab.py` staging harvests to `.agents/pipeline/staging/souls/`.
+* **The Scratchpad Protocol**: Stream-of-consciousness reading notes file [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) permanently excluded from mailbag harvesting.
+* **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)`.
+* **Reference**: [Design Spec](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
 
 
 

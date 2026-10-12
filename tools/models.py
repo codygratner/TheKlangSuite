@@ -213,6 +213,24 @@ class MailItem(BaseModel):
     agent_reply_at: Optional[str] = None
     has_reply: bool = False
 
+    @property
+    def pillars(self) -> List[str]:
+        return self.target_pillars
+
+    @pillars.setter
+    def pillars(self, val: List[str]):
+        self.target_pillars = val
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_pillars_input(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "pillars" in data and not data.get("target_pillars"):
+                data["target_pillars"] = data["pillars"]
+            elif "target_pillars" in data and "pillars" not in data:
+                data["pillars"] = data["target_pillars"]
+        return data
+
     @model_validator(mode="after")
     def sync_has_reply(self) -> "MailItem":
         if self.agent_reply and self.agent_reply.strip():
@@ -526,6 +544,7 @@ class BoardSchema(BaseModel):
     title: str = Field(description="Board title in header")
     subtitle: str = Field(default="", description="Optional header subtitle or scope")
     environment: str = Field(default="PRODUCTION", description="Environment mode (PRODUCTION or SANDBOX)")
+    board_type: str = Field(default="custom", description="Board surface type ('evergreen' | 'lab' | 'custom')")
     has_hero_stage: bool = Field(default=False, description="Whether hero showcase panel is enabled")
     hero_items: List[HeroStageItem] = Field(default_factory=list, description="Hero stage items")
     filter_rails: List[FilterRail] = Field(default_factory=list, description="Filter rails (Rail 1, Rail 2, etc.)")
@@ -554,6 +573,7 @@ class BoardMetadata(BaseModel):
     title: str = Field(description="Human-readable title of the board")
     description: str = Field(default="", description="Summary of board purpose")
     category: str = Field(default="active", description="Board category ('active' | 'archived')")
+    board_type: str = Field(default="custom", description="Board surface type ('evergreen' | 'lab' | 'custom')")
     file_path: str = Field(description="Relative or canonical path to HTML file e.g. .agents/sidecar/morning_mail_inbox.html")
     environment: str = Field(default="PRODUCTION", description="Runtime environment ('PRODUCTION' | 'SANDBOX')")
     card_count: int = Field(default=0, description="Total cards or items on the board")
@@ -565,6 +585,8 @@ class BoardRegistry(BaseModel):
 
     version: str = Field(default="1.0.0", description="Board registry schema SemVer")
     default_board_id: str = Field(default="morning_mail", description="Default board ID to load")
+    active_lab_id: Optional[str] = Field(default=None, description="Currently active ephemeral lab board ID")
+    staged_labs: List[str] = Field(default_factory=list, description="List of completed lab board IDs staged for distillation")
     boards: List[BoardMetadata] = Field(default_factory=list, description="Registered boards list")
 
     def get_board(self, board_id: str) -> Optional[BoardMetadata]:

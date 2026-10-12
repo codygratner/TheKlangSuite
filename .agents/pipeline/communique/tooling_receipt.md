@@ -1,18 +1,29 @@
 ## Status: COMPLETED ✅
 
-# Tooling Execution Receipt: Zero-Token Mechanical Automation Suite
-> *Task:* `zero-token-automation-suite`  
+# Tooling Execution Receipt: Flight 20 (The 3-Surface System & Frictionless Triage Ergonomics)
+> *Task:* `flight20_3surfaces_runway_lab`  
 > *Target:* `TARGET: TOOLING_HARNESS`  
-> *Started:* 2026-10-12 12:41  
-> *Completed:* 2026-10-12 12:57  
+> *Completed:* 2026-10-12 16:35  
+> *Status:* `COMPLETED`
 
-All 7 flights completed and verified:
-1. `tools/catalog_sync.py`: Docs Catalog & System Map Auto-Synchronizer (5/5 unit tests pass, 28 specs indexed).
-2. `tools/bus.py` Intent Locks: Concurrency telemetry, blast-radius scope checking, auto-TTL cleanup, state_manager radar integration (7/7 unit tests pass).
-3. `tools/lint_frontmatter.py`: Universal Vault Frontmatter Auditor & Fixer (7/7 unit tests pass, audited 266 vault notes).
-4. `tools/plan_manager.py`: 1-Command Phase Advancement & Telemetry (4/4 unit tests pass, status, check, uncheck, advance).
-5. `tools/sync_templates.py`: Multi-Repo Template & Asset Synchronizer (4/4 unit tests pass, 100% hash parity achieved).
-6. Dynamic Triage Engine (`tools/check_mail.py` & `tools/models.py`): Dynamic multi-key sorting, contiguous 1-based indexing, atomic `--archive-card <id>` (3/3 unit tests pass).
-7. `audiothread-guard` Pre-AST Scan (`tools/audit_audiothread.py` & `tools/audiothread_guard.py`): `--terse` / `--token-shield` mode (<10 tokens on clean, <100 tokens on violation), SKILL.md updated (2/2 unit tests pass).
-
-Regression Gauntlet: 75/75 unit tests pass. 100% Universal UTF-8 compliance verified across 53 Python entrypoints.
+### Execution Summary
+1. **Surface 1: Mailbag In-Board Quick Capture & Daily Catchall (`morning_mail`)**:
+   - Implemented `#quick-capture-container` and `#btn-grab-mail` in `.header-tier-top` in `master_template.html`.
+   - Wired `POST /api/quick-note` and `POST /api/check-mail` with 500ms debounce latch in `main.mjs`.
+   - Automated catchall appending to `C:\_\Vault\Inbox/<YYYY-MM-DD>_Quick_Notes.md`.
+2. **Surface 2: The Flight Runway (`runway_board.html`)**:
+   - Authored `tools/build_runway.py` parsing Act III flights (28 cards) and ecosystem milestones (10 cards).
+   - Generated declarative board with `[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, and `[ 📋 All ]` filter rails.
+   - Registered `runway` in `registry.json` and explicit anti-cache routes in `main.mjs`.
+3. **Surface 3: The Lab (`lab`)**:
+   - Implemented `#lab-all-clear-banner` celebration when untriaged cards reach 0.
+   - Authored `tools/conclude_lab.py` staging takeaways to `.agents/pipeline/staging/souls/` and unpinning active lab.
+4. **Scratchpad Invariant & Ambient Navigation**:
+   - Permanently excluded `SCRATCHPAD.md` from mailbag harvesting in `check_mail.py`.
+   - Codified 3-surface navigation line in `GEMINI.md`, `docs/GLOSSARY.md`, and `docs/CHEAT_SHEET.md`.
+5. **Verification & Delivery**:
+   - 92/92 tests PASS in `tools/tests/` (including `test_runway_board.py` and `test_quick_capture.py`).
+   - Web QA: 100% PASS (0 warnings, 0 errors) across all sidecars via `tools/audit_sidecar.py`.
+   - 100% Universal UTF-8 compliance verified via `tools/verify_utf8.py --strict`.
+   - 100% hyperlink resolution verified via `tools/verify_context_clues.py`.
+   - Deployed and hot-reloaded plugin via `tools/install_nkai_plugin.py`.
