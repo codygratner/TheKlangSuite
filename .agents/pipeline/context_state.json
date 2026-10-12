@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "2c9e44c",
+    "commit": "4125b2d",
     "is_clean": true,
     "dirty_count": 0,
     "staged": 0,
     "modified": 0,
     "untracked": 0,
     "recent_commits": [
-      "2c9e44c chore(mailbag): sync mail queue to 3 active cards",
-      "7d94dd2 chore(context): synchronize clean 0-turn state in ACTIVE_CONTEXT.md",
-      "bde02f7 chore(memory): pre-compaction memory flush before restart"
+      "4125b2d feat(mobile): add mobile companion lifecycle manager and API route handling",
+      "549506c docs(guide): update tailscale guide with machine IP 100.87.196.60",
+      "2d92b46 chore(context): update ACTIVE_CONTEXT.md to 2c9e44c"
     ]
   },
   "plan": {
