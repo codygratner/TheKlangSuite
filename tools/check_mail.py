@@ -64,7 +64,7 @@ DEFAULT_SANDBOX_FIXTURE = Path(r"assets/fixtures/sandbox_mail_queue.json")
 DEFAULT_DOCKET_PATH = Path(r".agents/sidecar/morning_mail_topics.md")
 DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
 DEFAULT_TX_RECEIPT = Path(r".agents/pipeline/staging/mail_tx_latest.json")
-DEFAULT_REJIGGER_PATH = Path(r".agents/pipeline/mailbag/rejigger.json")
+DEFAULT_REJIGGER_PATH = None  # Retired in Audit Item #5: pure dynamic multi-key sorting
 DEFAULT_BACKLOG_PATH = Path("docs/BACKLOG.md")
 if not DEFAULT_BACKLOG_PATH.exists():
     alt_backlog = Path(__file__).resolve().parent.parent / "docs" / "BACKLOG.md"
@@ -551,7 +551,7 @@ def build_mail_queue(
     docket_items: list,
     queue_path: Path,
     rejigger_path: Optional[Any] = None,
-    use_rejigger: bool = True
+    use_rejigger: bool = False
 ) -> MailQueue:
     """
     Constructs a validated MailQueue from raw notes and docket items, applying the
@@ -573,7 +573,7 @@ def build_mail_queue(
                     if cand.exists():
                         overlay_path = cand
                         break
-        else:
+        elif DEFAULT_REJIGGER_PATH:
             for base in [Path.cwd(), Path(__file__).resolve().parent.parent]:
                 cand = base / DEFAULT_REJIGGER_PATH
                 if cand.exists():
@@ -1188,161 +1188,6 @@ def rollback_mail_tx(queue_path: Path, receipt_path: Path) -> bool:
     return True
 
 
-def render_pillar_badges(pillars: list) -> str:
-    """
-    Renders up to 2 pillar badges with dedicated styling, plus a '+N' overflow chip
-    if there are 3 or more pillars (The Rule of Two).
-    Pillars are interactive buttons with onclick="applyPillarFilter('{p}', event)".
-    """
-    if not pillars:
-        pillars = ["TKS"]
-
-    badge_htmls = []
-    visible = pillars[:2]
-    overflow = pillars[2:]
-
-    for p in visible:
-        p_upper = p.upper()
-        meta = PILLAR_METADATA.get(p_upper, {
-            "name": p_upper, "emoji": "🏷️", "desc": p_upper, "color": "#94a3b8"
-        })
-        emoji = meta["emoji"]
-        cls_name = f"pillar-{p_upper.lower().replace('-', '')}"
-        badge_htmls.append(
-            f'<span class="pillar-chip {cls_name}" title="Filter by {html.escape(meta["name"])}: {html.escape(meta["desc"])}" onclick="applyPillarFilter(\'{p_upper}\', event)">{emoji} {p_upper}</span>'
-        )
-
-    if overflow:
-        overflow_titles = ", ".join([PILLAR_METADATA.get(op.upper(), {}).get("name", op) for op in overflow])
-        first_overflow = overflow[0].upper()
-        badge_htmls.append(
-            f'<span class="pillar-chip pillar-overflow" title="Also: {html.escape(overflow_titles)} (Click to filter by {first_overflow})" onclick="applyPillarFilter(\'{first_overflow}\', event)">+{len(overflow)}</span>'
-        )
-
-    return "".join(badge_htmls)
-
-
-def render_markdown_to_html(md_text: str) -> str:
-    """Zero-dependency Markdown to styled HTML renderer for note dossiers."""
-    if not md_text or not md_text.strip():
-        return "<p><em>No content available.</em></p>"
-
-    lines = md_text.strip().splitlines()
-    html_out = []
-    in_code_block = False
-    code_buffer = []
-    in_list = False
-
-    def format_inline(text: str) -> str:
-        escaped = html.escape(text, quote=True)
-        # Links: [label](url)
-        escaped = re.sub(
-            r'\[([^\]]+)\]\(([^)]+)\)',
-            r'<a href="\2" target="_blank" rel="noopener noreferrer">\1</a>',
-            escaped
-        )
-        # Inline code: `code`
-        escaped = re.sub(r'`([^`]+)`', r'<code>\1</code>', escaped)
-        # Bold: **bold**
-        escaped = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', escaped)
-        # Italic: *italic*
-        escaped = re.sub(r'\*([^*]+)\*', r'<em>\1</em>', escaped)
-        return escaped
-
-    for line in lines:
-        stripped = line.strip()
-
-        # Handle fenced code blocks
-        if stripped.startswith("```"):
-            if in_code_block:
-                code_content = html.escape("\n".join(code_buffer))
-                html_out.append(f"<pre><code>{code_content}</code></pre>")
-                code_buffer = []
-                in_code_block = False
-            else:
-                if in_list:
-                    html_out.append("</ul>")
-                    in_list = False
-                in_code_block = True
-            continue
-
-        if in_code_block:
-            code_buffer.append(line)
-            continue
-
-        # Horizontal rule
-        if stripped in ["---", "***", "___"]:
-            if in_list:
-                html_out.append("</ul>")
-                in_list = False
-            html_out.append("<hr />")
-            continue
-
-        # Blank line
-        if not stripped:
-            if in_list:
-                html_out.append("</ul>")
-                in_list = False
-            continue
-
-        # Headings (##, ###, ####, #####)
-        heading_match = re.match(r'^(#{1,6})\s+(.*)', stripped)
-        if heading_match:
-            if in_list:
-                html_out.append("</ul>")
-                in_list = False
-            level = len(heading_match.group(1))
-            heading_text = format_inline(heading_match.group(2))
-            h_tag = f"h{min(level + 2, 6)}"
-            html_out.append(f"<{h_tag}>{heading_text}</{h_tag}>")
-            continue
-
-        # Blockquote
-        if stripped.startswith(">"):
-            if in_list:
-                html_out.append("</ul>")
-                in_list = False
-            bq_text = format_inline(stripped.lstrip("> ").strip())
-            html_out.append(f"<blockquote>{bq_text}</blockquote>")
-            continue
-
-        # Bullet list item (- , * )
-        list_match = re.match(r'^[-*]\s+(.*)', stripped)
-        if list_match:
-            if not in_list:
-                html_out.append("<ul>")
-                in_list = True
-            item_html = format_inline(list_match.group(1))
-            html_out.append(f"  <li>{item_html}</li>")
-            continue
-
-        # Numbered list item (1. , 2. )
-        num_list_match = re.match(r'^\d+\.\s+(.*)', stripped)
-        if num_list_match:
-            if not in_list:
-                html_out.append("<ul>")
-                in_list = True
-            item_html = format_inline(num_list_match.group(1))
-            html_out.append(f"  <li>{item_html}</li>")
-            continue
-
-        # Normal paragraph
-        if in_list:
-            html_out.append("</ul>")
-            in_list = False
-        p_html = format_inline(stripped)
-        html_out.append(f"<p>{p_html}</p>")
-
-    if in_code_block:
-        code_content = html.escape("\n".join(code_buffer))
-        html_out.append(f"<pre><code>{code_content}</code></pre>")
-
-    if in_list:
-        html_out.append("</ul>")
-
-    return "\n".join(html_out)
-
-
 def generate_html_inbox_board(inbox_dir: Path, notes: list, docket_items: list, out_path: Path, queue: MailQueue = None, environment: str = "PRODUCTION"):
     """
     Generates a standalone, unified interactive N'kai triage board with Two-Tier Header,
@@ -1622,8 +1467,8 @@ def main():
     parser.add_argument(
         "--rejigger",
         type=str,
-        default=str(DEFAULT_REJIGGER_PATH),
-        help="Custom path to structural rejigger overlay JSON (default: .agents/pipeline/mailbag/rejigger.json)",
+        default=None,
+        help="Optional path to structural rejigger overlay JSON (default: None, dynamic multi-key sort active)",
     )
     parser.add_argument(
         "--no-rejigger",
@@ -1749,7 +1594,7 @@ def main():
 
     # Resolve rejigger overlay path
     rejigger_path = None
-    if not args.no_rejigger:
+    if not args.no_rejigger and args.rejigger:
         cand_p = Path(args.rejigger)
         if cand_p.is_absolute():
             if cand_p.exists():
@@ -1763,7 +1608,7 @@ def main():
 
     # Build and serialize validated MailQueue ledger (Flight 5 Pydantic engine)
     queue_file = Path(args.queue).resolve()
-    queue = build_mail_queue(notes, docket_items, queue_file, rejigger_path=rejigger_path, use_rejigger=(not args.no_rejigger))
+    queue = build_mail_queue(notes, docket_items, queue_file, rejigger_path=rejigger_path, use_rejigger=bool(rejigger_path and not args.no_rejigger))
     print(f"📦 Validated MailQueue Ledger: {queue_file} ({queue.total_items} items, {queue.p0_count} P0 Top Priority)")
 
     # Execute physical archival if requested and not already scanning Archive

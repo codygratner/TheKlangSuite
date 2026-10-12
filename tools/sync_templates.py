@@ -35,6 +35,16 @@ ROOTS = {
 
 DEFAULT_MAPPINGS = [
     {
+        "id": "shell_template",
+        "description": "Universal Dynamic Shell Template",
+        "source": ("NKAI", "core/shell.html"),
+        "targets": [
+            ("TKS", ".agents/sidecar/shell.html"),
+            ("NKAI", "sidecars/panel/shell.html"),
+            ("NKAI", "bundle/templates/shell.html"),
+        ],
+    },
+    {
         "id": "master_template",
         "description": "Master Sidecar Two-Tier Board Template",
         "source": ("NKAI", "core/master_template.html"),

@@ -32,6 +32,10 @@ except ImportError:
 
 
 DEFAULT_TEMPLATE_PATHS = [
+    Path(r"c:\Dev\nkai\core\shell.html"),
+    Path(__file__).resolve().parent.parent / ".agents" / "sidecar" / "shell.html",
+    Path(__file__).resolve().parent.parent / "core" / "shell.html",
+    Path(r"c:\Dev\nkai\bundle\templates\shell.html"),
     Path(r"c:\Dev\nkai\core\master_template.html"),
     Path(__file__).resolve().parent.parent / ".agents" / "sidecar" / "master_template.html",
     Path(__file__).resolve().parent.parent / "core" / "master_template.html",
@@ -66,7 +70,7 @@ def load_overflow_map(overflow_path: Optional[Path] = None) -> dict:
 
 
 def resolve_master_template(custom_path: Optional[Path] = None) -> Path:
-    """Finds the master_template.html across local workspace or nkai core."""
+    """Finds the shell.html (or fallback master_template.html) across local workspace or nkai core."""
     if custom_path and custom_path.exists():
         return custom_path
 
@@ -74,7 +78,7 @@ def resolve_master_template(custom_path: Optional[Path] = None) -> Path:
         if cand.exists():
             return cand
 
-    raise FileNotFoundError("Could not locate master_template.html in nkai core or sidecar directory.")
+    raise FileNotFoundError("Could not locate shell.html or master_template.html in nkai core or sidecar directory.")
 
 
 def render_markdown_to_html(md_text: str) -> str:
@@ -594,6 +598,7 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     if plugin_panel.parent.exists():
         try:
             plugin_panel.write_text(output_html, encoding="utf-8")
+            (plugin_panel.parent / out_path.name).write_text(output_html, encoding="utf-8")
         except Exception:
             pass
 
@@ -602,6 +607,7 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     if nkai_panel.parent.exists():
         try:
             nkai_panel.write_text(output_html, encoding="utf-8")
+            (nkai_panel.parent / out_path.name).write_text(output_html, encoding="utf-8")
         except Exception:
             pass
 
