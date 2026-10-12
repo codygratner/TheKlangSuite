@@ -62,6 +62,16 @@ Present a clear, structured report:
 - **Blocking Locks:** 0 detected.
 - **I/O & Logging:** 0 detected.
 - **Optimization Suggestions:** 2 calls to `std::pow` detected in `CarrierBlock::processStereo` (can be accelerated via `fastPow2`).
-```
-
 If violations are found, detail the exact file, line number, offending code, and proposed non-allocating fix.
+
+---
+
+### ⚡ Pre-AST Token Shield Protocol (MANDATORY INVARIANT)
+To prevent burning tens of thousands of LLM tokens manually reading 1,000+ lines of C++ files, agents **MUST NEVER** inspect full `.cpp` or `.h` files directly to audit real-time safety.
+
+Instead, always execute the mechanical CLI linter with `--terse`:
+```bash
+python tools/audiothread_guard.py --terse
+```
+- **If Clean**: Emits a single line (`✅ Audio-Thread Safety: 0 critical violations across N files`) consuming ~10 tokens. Proceed immediately without reading source code.
+- **If Violations Detected**: The CLI emits ONLY the exact file path, line number, category, and offending snippet (<100 tokens total). Read and edit **ONLY** the specific reported lines to remediate.

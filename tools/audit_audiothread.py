@@ -211,11 +211,18 @@ def main():
     parser.add_argument("--path", "-p", default=None, help="Directory or file to audit")
     parser.add_argument("--all-paths", action="store_true", help="Audit all code blocks, not just hot audio paths")
     parser.add_argument("--strict", action="store_true", help="Fail with non-zero exit code on any critical violation")
+    parser.add_argument("--terse", "--token-shield", dest="terse", action="store_true", help="Ultra-terse token-shield output (<100 tokens)")
+    parser.add_argument("--json", action="store_true", help="Output audit results as JSON")
     args = parser.parse_args()
 
     files = resolve_files_to_scan(args.path)
     if not files:
-        print("✓ No target DSP files found to audit.")
+        if args.terse:
+            print("✅ Audio-Thread Safety: 0 target DSP files found.")
+        elif args.json:
+            print(json.dumps({"total_files": 0, "violations": 0, "warnings": 0, "results": {}}))
+        else:
+            print("✓ No target DSP files found to audit.")
         sys.exit(0)
 
     total_violations = 0
@@ -231,6 +238,30 @@ def main():
                     total_warnings += 1
                 else:
                     total_violations += 1
+
+    if args.json:
+        payload = {
+            "total_files": len(files),
+            "critical_violations": total_violations,
+            "fastmath_warnings": total_warnings,
+            "results": {
+                str(f): v_list for f, v_list in results_by_file.items()
+            }
+        }
+        print(json.dumps(payload, indent=2))
+        sys.exit(1 if (args.strict and total_violations > 0) else 0)
+
+    if args.terse:
+        if not results_by_file or total_violations == 0:
+            warn_str = f" ({total_warnings} FastMath warnings)" if total_warnings > 0 else ""
+            print(f"✅ Audio-Thread Safety: 0 critical violations across {len(files)} files{warn_str}.")
+            sys.exit(0)
+        else:
+            print(f"🚨 Audio-Thread Violations: {total_violations} critical, {total_warnings} warnings across {len(files)} files:")
+            for f, v_list in results_by_file.items():
+                for v in v_list:
+                    print(f"• {f.name}:{v['line']} [{v['category']}] {v['snippet']}")
+            sys.exit(1 if (args.strict or total_violations > 0) else 0)
 
     print("=" * 70)
     print(f"🛡️ Audio Thread Safety Linter: Audited {len(files)} Core DSP files")

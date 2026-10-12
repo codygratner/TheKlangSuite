@@ -4,8 +4,8 @@
 > **Target Pipeline:** `TARGET: TOOLING_HARNESS`  
 > **Active Milestone:** `TKS v0.4.1 / Ecosystem Tooling Hardening`  
 > **Recommended Model Tier:** `Tier 2 (Gemini 3.8 Flash High)`  
-> **Status:** `IN_PROGRESS` 🔨  
-> **Progress:** `6/7 Flights Completed (86%)`  
+> **Status:** `COMPLETED ✅` 🔨  
+> **Progress:** `7/7 Flights Completed (100%)`  
 
 ---
 
@@ -151,9 +151,9 @@ flowchart TD
   - Zero false positives on pre-allocated containers or audio thread bypass paths.
   - Unit test: `tools/tests/test_audiothread_guard.py`.
 - **Tasks**:
-  - [ ] Add `--terse` output mode to `tools/audiothread_guard.py`.
-  - [ ] Update `.agents/skills/audiothread-guard/SKILL.md`.
-  - [ ] Validate against intentional failure fixture.
+  - [x] Add `--terse` output mode to `tools/audiothread_guard.py`.
+  - [x] Update `.agents/skills/audiothread-guard/SKILL.md`.
+  - [x] Validate against intentional failure fixture.
 
 ---
 
