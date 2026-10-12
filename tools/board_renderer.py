@@ -521,12 +521,12 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     approved_count = sum(1 for it in items if it.status == TriageStatus.APPROVED)
     backlog_count = sum(1 for it in items if it.status == TriageStatus.BACKLOG)
     completed_count = sum(1 for it in items if it.status == TriageStatus.COMPLETED)
-    research_count = sum(1 for it in items if it.status == TriageStatus.RESEARCH)
+    research_count = sum(1 for it in items if it.status in (TriageStatus.RESEARCH, TriageStatus.PCDA))
     graveyard_count = sum(1 for it in items if it.status == TriageStatus.GRAVEYARD)
     pcda_count = sum(1 for it in items if it.status == TriageStatus.PCDA)
     p0_count = sum(1 for it in items if it.priority == PriorityLevel.P0)
     docket_count = sum(1 for it in items if it.id.startswith("docket-"))
-    dispatched_count = approved_count + backlog_count + completed_count + research_count + graveyard_count + pcda_count
+    dispatched_count = approved_count + backlog_count + completed_count + research_count + graveyard_count
 
     # 3. Render Cards
     cards_html = [render_card_html(it, i, overflow_map) for i, it in enumerate(items, 1)]

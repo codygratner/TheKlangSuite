@@ -109,8 +109,9 @@ class TestNkaiSandboxBoard(unittest.TestCase):
         # Deterministic Filter Pill IDs
         self.assertIn('id="pill-pillar-all"', content, "Missing Rail 1 pill-pillar-all filter element")
         self.assertIn('id="pill-status-untriaged"', content, "Missing Rail 2 pill-status-untriaged filter element")
+        self.assertIn('id="pill-status-approved"', content, "Missing Rail 2 pill-status-approved filter element")
         self.assertIn('id="pill-status-all"', content, "Missing Rail 2 pill-status-all filter element")
-        self.assertIn('id="pill-status-p0"', content, "Missing Rail 2 pill-status-p0 filter element")
+        self.assertIn('id="thumb-btn-p0"', content, "Missing mobile thumb-btn-p0 filter element")
 
     def test_production_regression(self):
         """Test 4: Asserts production mode continues functioning with clean isolation and PRODUCTION environment."""
