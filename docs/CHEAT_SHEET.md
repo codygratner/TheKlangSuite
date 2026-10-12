@@ -307,6 +307,22 @@
 * **Code the Invariant, Not Just the Fix**: When an agent detects a regression, invariant violation, or repetitive manual chore, the agent **MUST** update the relevant Python CLI tool (`tools/audit_audiothread.py`, `tools/lint_frontmatter.py`, `tools/catalog_sync.py`, `tools/verify_utf8.py`) and author a unit test in `tools/tests/`.
 * **Zero Token Churn**: Once encoded into Python, the check runs in sub-10ms for 0 LLM tokens, permanently immunizing the codebase against that failure class.
 
+---
+
+## 🔄 Rejiggering: The Topological Dialectical Sorter (TDS)
+
+* **The Metaphor**: "Rejiggering" is our conversational term for transforming a messy, unranked bag of items into a linear, zero-drag execution sequence.
+* **The Formal Pattern**: **Topological Dialectical Sorting (TDS)**:
+  $$\text{Rejiggering} = \text{TopologicalSort}(\mathcal{G}) \circ \text{HegelianDialectic}(\mathcal{I})$$
+* **The 4 Steps**:
+  1. *The Unranked Bag*: Gather candidate items without arbitrary initial ranking.
+  2. *Method B Adversarial Dialectic*: Stress-test each item through Thesis $\to$ Friction $\to$ Antithesis $\to$ 80/20 Resolution (with *"Where I Disagree With The Prompt"*).
+  3. *DAG Prerequisite Extraction*: Identify hard technical dependencies (infrastructure before UI, saturation before filters).
+  4. *Contiguous Critical Path*: Assign contiguous ranks `1..N` where every step has an explicit "Why Here?" causal rationale.
+* **When to Call for a Rejigger**: Whenever facing backlog paralysis (>20 unranked tickets), flight deadlocks (missing unbuilt dependencies), or signal-chain aliasing (audio graph out of order).
+* **Reference**: [Topological Dialectical Sorting RFC](file:///C:/Dev/Research/agentic/topological_dialectical_sorting_the_rejigger_pattern.md) | [Spec](file:///c:/Dev/TheKlangSuite/docs/specs/topological_dialectical_sorting_rejigger.md).
+
+
 
 
 

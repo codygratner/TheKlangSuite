@@ -24,6 +24,8 @@ This guide has graduated to the centralized **The Klang Research Hub** as the ov
    - Stage raw notes and gotchas into `.agents/pipeline/staging/souls/` post-flight (0 token cost). Batch-distill into permanent RFCs during deep docs passes (`/update-docs --deep`).
 7. **The SQA Defense (Pistons vs. Chassis & Velocity Governance):**
    - When AI generative power operates at 100,000 RPM, automated regression shock absorbers (`audiothread-guard`, `ParameterSchemaAuditTest`, `dsp_tests`) prevent chassis fractures. Enforces the "House Foundation" smoke test model (fail fast, fail loud) and end-user simulated UI testing with deterministic selectors.
+8. **The Rejigger Pattern (Topological Dialectical Sorting):**
+   - When facing unranked bags of ideas, backlog bloat, or flight deadlocks, never prioritize by subjective urgency alone. Subject the candidate bag to Method B Hegelian dialectics (Thesis $\to$ Friction $\to$ Antithesis $\to$ 80/20 Resolution), extract the technical prerequisite DAG, and serialize into a contiguous $1..N$ critical path array where every rank has an explicit causal rationale. Prerequisites precede polish.
 
 *For full playbook history, the Strategy Graveyard tombstones, and sidecar architecture, see the canonical [Vibe-Coder's Field Guide](https://github.com/codygratner/TheKlangResearch/blob/main/guides/vibe_coding_field_guide.md).*
 *For native audio thread invariants and DSP engineering, see the [Audio DSP Field Guide](https://github.com/codygratner/TheKlangResearch/blob/main/guides/audio_dsp_field_guide.md).*

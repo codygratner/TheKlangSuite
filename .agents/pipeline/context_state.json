@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "b3fc387",
+    "commit": "706344a",
     "is_clean": false,
-    "dirty_count": 4,
+    "dirty_count": 8,
     "staged": 1,
-    "modified": 4,
-    "untracked": 0,
+    "modified": 7,
+    "untracked": 1,
     "recent_commits": [
-      "b3fc387 docs(standards): document multipoint prompting, intent locks, and base antigravity runtime",
-      "f7bfd23 chore(context): synchronize ACTIVE_CONTEXT.md to 38a0fe4",
-      "38a0fe4 chore(tooling): complete zero-token mechanical automation suite (Flights 1-7)"
+      "706344a feat(hub): add audit_triage board and preserve system_sanity_audit in registry",
+      "1d92ffa feat(hub): add build_audit_board.py and activate system_sanity_audit board",
+      "8c227c9 feat(standards): bind tooling ratchet invariant and antigravity process detection"
     ]
   },
   "plan": {
@@ -31,15 +31,18 @@
   "peer_locks": [
     {
       "pillar": "COSMOS",
-      "activity": "Vault Tag Normalization & Sheared Hierarchy Repairs",
+      "activity": "Simplenote Line Endings & Spacing Normalization",
       "scope": [
         "Codex",
+        "Synth Lab",
         "The Forge",
-        "New Klang City"
+        "New Klang City",
+        "Klang Confidential",
+        "Inbox"
       ],
-      "started_at": "2026-10-12T13:04:02.321407",
+      "started_at": "2026-10-12T13:18:40.506273",
       "ttl_minutes": 30,
-      "expires_at": "2026-10-12T13:34:02.321407",
+      "expires_at": "2026-10-12T13:48:40.506273",
       "_path": "C:\\Dev\\TheKlangVault\\Dispatches\\Locks\\cosmos_lock.json"
     }
   ]

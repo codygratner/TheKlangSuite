@@ -473,6 +473,11 @@
           "purpose": "Specification and architectural design for tbd16 klang seed effects."
         },
         {
+          "path": "docs/specs/topological_dialectical_sorting_rejigger.md",
+          "title": "Topological Dialectical Sorting: The Universal Rejigger Pattern (TDS)",
+          "purpose": "Specification and architectural design for topological dialectical sorting rejigger."
+        },
+        {
           "path": "docs/specs/typography_engine.md",
           "title": "Advanced Typography Engine (JUCE 9)",
           "purpose": "Specification and architectural design for typography engine."

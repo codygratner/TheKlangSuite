@@ -340,6 +340,16 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Multipoint Prompting**: The low-friction human communication pattern using simple numbered blocks (`1)`, `2)`, `3)`) separated by blank lines to convey multi-part feedback, stream-of-consciousness reactions, and approvals while reading agent reports.
 * **1:1 Mirror Ingestion**: The agent responding mirrors the user's exact numbering structure, guaranteeing 100% clause coverage and eliminating accidental omissions or mixed topics without requiring complex Markdown formatting from the human.
 
+---
+
+## 31. Topological Dialectical Sorting (The "Rejigger" Systems Pattern)
+
+* **The Rejigger (Colloquial Metaphor)**: The conversational shorthand used during pair-programming to request a complete re-evaluation and topological re-ordering of a messy collection of items (mailbag notes, flight stages, DSP signal chains, or backlog tickets).
+* **Topological Dialectical Sorter (TDS, Formal Systems Identity)**: The algorithmic and architectural pattern that resolves non-linear human ideation into a serial, zero-drag execution sequence. It takes an unranked bag of $N$ candidate items, subjects each to Method B Hegelian dialectics (Thesis $\to$ Friction $\to$ Antithesis $\to$ 80/20 Resolution), extracts the implicit dependency graph (DAG), and linearizes it into a contiguous $1..N$ critical path array where every position has an explicit causal rationale.
+* **The Rejigger Formula**: $\text{Rejiggering} = \text{TopologicalSort}(\mathcal{G}) \circ \text{HegelianDialectic}(\mathcal{I})$. Resolves the fundamental limitation of standard linear priority bucketing (High/Medium/Low) by ensuring prerequisites always precede polish.
+* **Canonical Specification**: [`C:\Dev\Research\agentic\topological_dialectical_sorting_the_rejigger_pattern.md`](file:///C:/Dev/Research/agentic/topological_dialectical_sorting_the_rejigger_pattern.md) and [`docs/specs/topological_dialectical_sorting_rejigger.md`](file:///c:/Dev/TheKlangSuite/docs/specs/topological_dialectical_sorting_rejigger.md).
+
+
 
 
 
