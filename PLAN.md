@@ -5,7 +5,7 @@
 > **Active Milestone:** `TKS v0.4.1 / Ecosystem Tooling Hardening`  
 > **Recommended Model Tier:** `Tier 2 (Gemini 3.8 Flash High)`  
 > **Status:** `IN_PROGRESS` 🔨  
-> **Progress:** `3/7 Flights Completed (43%)`  
+> **Progress:** `4/7 Flights Completed (57%)`  
 
 ---
 
@@ -97,9 +97,9 @@ flowchart TD
   - Zero regex clobbering; retains all phase notes and code snippets verbatim.
   - Unit test: `tools/tests/test_plan_manager.py`.
 - **Tasks**:
-  - [ ] Author `tools/plan_manager.py`.
-  - [ ] Author unit test `tools/tests/test_plan_manager.py`.
-  - [ ] Verify phase advance against fixture plans.
+  - [x] Author `tools/plan_manager.py`.
+  - [x] Author unit test `tools/tests/test_plan_manager.py`.
+  - [x] Verify phase advance against fixture plans.
 
 ---
 
