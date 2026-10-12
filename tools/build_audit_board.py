@@ -342,7 +342,7 @@ def main():
     
     schema = BoardSchema(
         schema_version="1.0.0",
-        board_id="system_sanity_audit",
+        board_id="audit_triage",
         title="System Sanity Audit & Triage Lab",
         subtitle="Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory",
         environment="PRODUCTION",
@@ -350,14 +350,14 @@ def main():
         cards=items,
     )
     
-    output_path = REPO_ROOT / ".agents" / "sidecar" / "system_sanity_audit.html"
+    output_path = REPO_ROOT / ".agents" / "sidecar" / "audit_triage_board.html"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"[*] Rendering System Sanity Audit Board HTML to {output_path}...")
     render_board(schema, output_path)
     print(f"[+] Wrote board to: {output_path}")
     
     # Mirror to nkai panel
-    nkai_panel_path = Path(r"c:\Dev\nkai\sidecars\panel\system_sanity_audit.html")
+    nkai_panel_path = Path(r"c:\Dev\nkai\sidecars\panel\audit_triage_board.html")
     if nkai_panel_path.parent.exists():
         render_board(schema, nkai_panel_path)
         print(f"[+] Mirrored board to: {nkai_panel_path}")
@@ -366,34 +366,36 @@ def main():
     print("[*] Updating Board Registry...")
     registry = load_registry()
     
-    # Find or update system_sanity_audit
-    found = False
+    # Ensure system_sanity_audit remains archived
     for b in registry.boards:
         if b.id == "system_sanity_audit":
-            b.title = "System Sanity Audit & Triage Lab"
-            b.description = "Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory"
-            b.category = "active"
-            b.file_path = ".agents/sidecar/system_sanity_audit.html"
-            b.environment = "PRODUCTION"
-            b.card_count = len(items)
-            found = True
-            break
+            b.category = "archived"
+            b.file_path = ".agents/sidecar/nkai_deep_research.html"
             
-    if not found:
+    # Find or add audit_triage
+    audit_board = registry.get_board("audit_triage")
+    if audit_board:
+        audit_board.title = "System Sanity Audit & Triage Lab"
+        audit_board.description = "Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory"
+        audit_board.category = "active"
+        audit_board.file_path = ".agents/sidecar/audit_triage_board.html"
+        audit_board.environment = "PRODUCTION"
+        audit_board.card_count = len(items)
+    else:
         registry.boards.append(
             BoardMetadata(
-                id="system_sanity_audit",
+                id="audit_triage",
                 title="System Sanity Audit & Triage Lab",
                 description="Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory",
                 category="active",
-                file_path=".agents/sidecar/system_sanity_audit.html",
+                file_path=".agents/sidecar/audit_triage_board.html",
                 environment="PRODUCTION",
                 card_count=len(items),
             )
         )
         
     save_registry(registry)
-    print(f"[+] Registry updated: 'system_sanity_audit' is now ACTIVE ({len(items)} cards).")
+    print(f"[+] Registry updated: 'audit_triage' is now ACTIVE ({len(items)} cards).")
     print("✅ Audit Board Generation Complete!")
 
 
