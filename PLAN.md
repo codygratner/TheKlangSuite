@@ -5,7 +5,7 @@
 > **Active Milestone:** `TKS v0.4.1 / Ecosystem Tooling Hardening`  
 > **Recommended Model Tier:** `Tier 2 (Gemini 3.8 Flash High)`  
 > **Status:** `IN_PROGRESS` 🔨  
-> **Progress:** `2/7 Flights Completed (28%)`  
+> **Progress:** `3/7 Flights Completed (43%)`  
 
 ---
 
@@ -78,9 +78,9 @@ flowchart TD
   - UTF-8 safe with `errors='replace'` on untrusted external notes.
   - Unit test: `tools/tests/test_lint_frontmatter.py` (tests detection, safe backfilling, and idempotency).
 - **Tasks**:
-  - [ ] Author `tools/lint_frontmatter.py`.
-  - [ ] Author unit test `tools/tests/test_lint_frontmatter.py`.
-  - [ ] Run dry-run audit across `TheKlangVault/` and assert 0 data loss.
+  - [x] Author `tools/lint_frontmatter.py`.
+  - [x] Author unit test `tools/tests/test_lint_frontmatter.py`.
+  - [x] Run dry-run audit across `TheKlangVault/` and assert 0 data loss.
 
 ---
 
