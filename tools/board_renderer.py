@@ -639,15 +639,36 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(output_html, encoding="utf-8")
 
-    # Mirror to Antigravity Artifact directory for interactive side-panel
-    artifact_dir = Path(r"C:\Users\codyg\.gemini\antigravity\brain\9241988e-1227-466e-a0a5-446d61a69d77")
-    if artifact_dir.exists():
-        try:
-            (artifact_dir / out_path.name).write_text(output_html, encoding="utf-8")
-        except Exception:
-            pass
+    # Guard: Check if running inside test suite, or if out_path is a temporary / isolated test file
+    is_test_env = (
+        "unittest" in sys.modules
+        or bool(os.environ.get("NKAI_TEST_MODE"))
+        or bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    )
 
-    # Mirror canonical boards to active Antigravity Extension panel and nkai repository
+    # Check if out_path is a canonical production sidecar directory
+    is_canonical_path = False
+    try:
+        resolved_parent = out_path.resolve().parent
+        allowed_canonical_dirs = [
+            (Path(__file__).resolve().parent.parent / ".agents" / "sidecar").resolve(),
+            Path(r"c:\Dev\TheKlangSuite\.agents\sidecar").resolve(),
+            Path(r"c:\Dev\nkai\sidecars\panel").resolve(),
+        ]
+        is_canonical_path = any(resolved_parent == d for d in allowed_canonical_dirs)
+    except Exception:
+        is_canonical_path = False
+
+    # Mirror to Antigravity Artifact directory for interactive side-panel ONLY if canonical and not in tests
+    if not is_test_env and is_canonical_path:
+        artifact_dir = Path(r"C:\Users\codyg\.gemini\antigravity\brain\9241988e-1227-466e-a0a5-446d61a69d77")
+        if artifact_dir.exists():
+            try:
+                (artifact_dir / out_path.name).write_text(output_html, encoding="utf-8")
+            except Exception:
+                pass
+
+    # Mirror canonical boards to active Antigravity Extension panel and nkai repository ONLY if canonical and not in tests
     canonical_boards = {
         "morning_mail_inbox.html",
         "sandbox_mail_inbox.html",
@@ -657,7 +678,7 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
         "roadmap_sidecar.html",
         "shell.html",
     }
-    if out_path.name in canonical_boards:
+    if not is_test_env and is_canonical_path and out_path.name in canonical_boards:
         plugin_panel = Path(r"C:\Users\codyg\.gemini\config\plugins\nkai\sidecars\panel\index.html")
         if plugin_panel.parent.exists():
             try:

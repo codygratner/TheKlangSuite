@@ -115,21 +115,29 @@ class TestNkaiSandboxBoard(unittest.TestCase):
 
     def test_production_regression(self):
         """Test 4: Asserts production mode continues functioning with clean isolation and PRODUCTION environment."""
-        cmd = [
-            sys.executable,
-            str(self.script_path),
-            "--archive",
-            "--no-browser",
-        ]
-        res = subprocess.run(cmd, cwd=str(self.repo_root), capture_output=True, text=True, encoding="utf-8")
-        self.assertEqual(res.returncode, 0, f"check_mail.py --archive failed:\n{res.stderr}\n{res.stdout}")
-        self.assertTrue(self.prod_html_path.exists(), "morning_mail_inbox.html missing")
+        import tempfile
+        import shutil
+        temp_dir = Path(tempfile.mkdtemp())
+        temp_prod_html = temp_dir / "temp_prod_inbox.html"
+        try:
+            cmd = [
+                sys.executable,
+                str(self.script_path),
+                "--out",
+                str(temp_prod_html),
+                "--no-browser",
+            ]
+            res = subprocess.run(cmd, cwd=str(self.repo_root), capture_output=True, text=True, encoding="utf-8")
+            self.assertEqual(res.returncode, 0, f"check_mail.py failed:\n{res.stderr}\n{res.stdout}")
+            self.assertTrue(temp_prod_html.exists(), "temp_prod_inbox.html missing")
 
-        content = self.prod_html_path.read_text(encoding="utf-8")
+            content = temp_prod_html.read_text(encoding="utf-8")
 
-        self.assertIn('window.NKAI_ENVIRONMENT = "PRODUCTION"', content, "Production HTML missing window.NKAI_ENVIRONMENT='PRODUCTION'")
-        self.assertNotIn('id="sandbox-banner"', content, "Production HTML must NOT contain sandbox-banner element")
-        self.assertNotIn("<title>[SBX]", content, "Production HTML title must NOT contain [SBX]")
+            self.assertIn('window.NKAI_ENVIRONMENT = "PRODUCTION"', content, "Production HTML missing window.NKAI_ENVIRONMENT='PRODUCTION'")
+            self.assertNotIn('id="sandbox-banner"', content, "Production HTML must NOT contain sandbox-banner element")
+            self.assertNotIn("<title>[SBX]", content, "Production HTML title must NOT contain [SBX]")
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
     def test_board_schema_roundtrip(self):
@@ -208,6 +216,30 @@ class TestNkaiSandboxBoard(unittest.TestCase):
         self.assertIn("badge-merged", content)
         self.assertIn("badge-quicknote", content)
         self.assertIn("mail-prereq-badge", content)
+
+    def test_mirroring_immunity_in_test_env(self):
+        """Test 7: Asserts board_renderer never mirrors to plugin or nkai directories when running tests or non-canonical paths."""
+        from tools.board_renderer import render_board
+        from tools.models import BoardSchema
+        import tempfile
+        import shutil
+
+        temp_dir = Path(tempfile.mkdtemp())
+        dummy_out = temp_dir / "morning_mail_inbox.html"
+        try:
+            nkai_target = Path(r"c:\Dev\nkai\sidecars\panel\morning_mail_inbox.html")
+            nkai_mtime_before = nkai_target.stat().st_mtime if nkai_target.exists() else 0
+
+            # Render dummy board to temp file named morning_mail_inbox.html
+            schema = BoardSchema(board_id="test_mock", title="Mock Test Board", environment="SANDBOX")
+            render_board(schema, dummy_out)
+            self.assertTrue(dummy_out.exists())
+
+            # Verify production file was NOT modified
+            if nkai_target.exists():
+                self.assertEqual(nkai_target.stat().st_mtime, nkai_mtime_before, "Production nkai panel must not be touched by test rendering")
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":
