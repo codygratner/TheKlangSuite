@@ -64,6 +64,9 @@
   - **Safe Decoding**: When parsing untrusted or external files, pass `encoding='utf-8', errors='replace'`. NEVER fall back to `latin-1` (which silently produces mojibake).
   - **PowerShell Verification Trap**: Never trust Windows PowerShell 5.1's `Get-Content` terminal rendering of BOM-less UTF-8; verify raw bytes or inspect via Python.
   - **Automated Audit**: Run `python tools/verify_utf8.py --strict` to assert 100% compliance across all scripts.
+- **The Tooling Ratchet Invariant (Zero-Token Immune System)**:
+  - **Code the Invariant, Not Just the Fix**: When an agent detects a regression, invariant violation, or repetitive manual chore (e.g. audiothread safety violation, broken YAML frontmatter, template drift, broken links), the agent MUST update or extend the relevant Python CLI tool (`tools/audit_audiothread.py`, `tools/lint_frontmatter.py`, `tools/sync_templates.py`, `tools/catalog_sync.py`, `tools/verify_utf8.py`, `tools/verify_context_clues.py`) and author a regression unit test in `tools/tests/`.
+  - **Zero Token Churn**: Once encoded into Python, the check executes in sub-10ms for 0 LLM tokens, permanently immunizing the codebase against that failure class and protecting user token quota.
 
 ## Strict TODO & Backlog Handling
 - **Record Only, Do Not Implement**: When the user mentions items "for the todo", "on the backlog", "for later", or lists future features/fixes, you must **ONLY** document them into `docs/BACKLOG.md`.

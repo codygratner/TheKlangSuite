@@ -249,6 +249,7 @@ def render_active_context_markdown(state: Dict[str, Any]) -> str:
 - **Tooling Semaphore:** Dispatch: `{c['tooling_dispatch']}` · Receipt: `{c['tooling_receipt']}`
 - **Peer Intent Locks:** `{locks_str}`
 - **Recent Commit:** `{g['recent_commits'][0] if g['recent_commits'] else "None"}`
+- **Process Runtime:** Base Antigravity (`Antigravity.exe` — companion app, not full IDE)
 """
 
 
