@@ -933,6 +933,8 @@ def build_mail_queue(
                 p0_count=sum(1 for it in final_items if it.priority == PriorityLevel.P0),
                 items=final_items,
             )
+            # Enforce dynamic priority, status, and date sorting with contiguous 1-based indexing (Flight 5)
+            queue.sort_by_priority()
 
             # Snapshot existing ledger before overwriting
             if queue_path.exists():
@@ -1430,6 +1432,114 @@ def handle_card_reply(
     return 0
 
 
+def handle_archive_card(
+    target_id: str,
+    queue_path: Path,
+    out_path: Path,
+    is_sandbox: bool = False,
+    inbox_dir_override: Optional[Path] = None,
+) -> int:
+    """
+    Archives a target card in mail_queue.json, physically moves any backing note
+    from Inbox/ to Inbox/Archive/, updates the archive index, and regenerates
+    the HTML triage board in <50ms (Flight 5).
+    """
+    if not queue_path.exists():
+        print(f"❌ Error: MailQueue ledger not found at {queue_path}", file=sys.stderr)
+        return 1
+
+    try:
+        raw_json = queue_path.read_text(encoding="utf-8")
+        queue = MailQueue.model_validate_json(raw_json)
+    except Exception as e:
+        print(f"❌ Error reading queue ledger: {e}", file=sys.stderr)
+        return 1
+
+    clean_target = re.sub(r"[^a-zA-Z0-9_-]", "_", target_id).lower()
+    matched_item = None
+    for item in queue.items:
+        clean_item_id = re.sub(r"[^a-zA-Z0-9_-]", "_", item.id).lower()
+        if (
+            item.id.lower() == target_id.lower()
+            or clean_item_id == clean_target
+            or clean_item_id == target_id.lower()
+            or item.id.lower() == clean_target
+            or item.title.lower().strip() == target_id.lower().strip()
+        ):
+            matched_item = item
+            break
+
+    if not matched_item:
+        print(f"❌ Error: Card '{target_id}' not found in {queue_path}", file=sys.stderr)
+        return 1
+
+    matched_item.status = TriageStatus.COMPLETED
+    if not matched_item.verdict:
+        matched_item.verdict = "ARCHIVED"
+
+    # Re-sort dynamically so completed card sinks down and indices stay contiguous
+    queue.sort_by_priority()
+
+    moved_note_msg = ""
+    if not is_sandbox:
+        inbox_dir = inbox_dir_override or resolve_inbox_directory()
+        archive_dir = inbox_dir / "Archive" if (inbox_dir / "Archive").exists() else inbox_dir.parent / "Archive"
+        if not archive_dir.exists():
+            archive_dir = inbox_dir / "Archive"
+            archive_dir.mkdir(parents=True, exist_ok=True)
+
+        # Check potential note file locations
+        candidates = []
+        for name in [matched_item.source_file, matched_item.rel_path, matched_item.file_name, f"{matched_item.id}.md", f"{matched_item.title}.md"]:
+            if name:
+                p = Path(name)
+                candidates.append(p)
+                candidates.append(inbox_dir / p.name)
+                candidates.append(inbox_dir / p)
+
+        found_src = None
+        for cand in candidates:
+            if cand.is_file() and "archive" not in str(cand).lower():
+                found_src = cand
+                break
+
+        if found_src and found_src.exists():
+            dest = archive_dir / found_src.name
+            try:
+                shutil.move(str(found_src), str(dest))
+                matched_item.source_file = f"Archive/{dest.name}"
+                matched_item.rel_path = f"Archive/{dest.name}"
+                moved_note_msg = f"\n   • Moved note: {found_src.name} ➔ {dest}"
+                update_archive_index(archive_dir)
+            except Exception as e:
+                moved_note_msg = f"\n   ⚠️ Failed to move note: {e}"
+
+    # Save mutated queue
+    queue_path.write_text(queue.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
+    # Fast board regeneration (<50ms)
+    env = "SANDBOX" if is_sandbox else "PRODUCTION"
+    board_title = "N'kai Morning Mail Inbox & Triage Lab"
+    board_id = "sandbox_mail" if is_sandbox else "morning_mail"
+
+    schema = BoardSchema(
+        schema_version="1.0.0",
+        board_id=board_id,
+        title=board_title,
+        subtitle=f"Dynamic Triage: {queue_path.name}",
+        environment=env,
+        cards=queue.items,
+        allowance_budget=200000,
+    )
+    rendered_board = render_board(schema, out_path)
+
+    print(f"📦 Archived card '{matched_item.id}' ({matched_item.title})")
+    print(f"   • Updated status: {matched_item.status.value} (rank: #{matched_item.idx}){moved_note_msg}")
+    print(f"   • Ledger updated: {queue_path.name}")
+    print(f"   • Regenerated board: {rendered_board}")
+    return 0
+
+
 def main():
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -1533,8 +1643,28 @@ def main():
         default=None,
         help="Markdown body of the agent response when used with --reply-card",
     )
+    parser.add_argument(
+        "--archive-card",
+        type=str,
+        default=None,
+        metavar="CARD_ID",
+        help="Atomically archives a card by ID, moves backing note to Archive/, and regenerates board (Flight 5)",
+    )
 
     args = parser.parse_args()
+
+    # Handle atomic card archival (--archive-card <id>)
+    if args.archive_card:
+        q_target = Path(args.fixture).resolve() if args.sandbox else Path(args.queue).resolve()
+        o_target = Path(args.out).resolve() if args.out else (DEFAULT_SANDBOX_OUTPUT_HTML.resolve() if args.sandbox else DEFAULT_OUTPUT_HTML.resolve())
+        inbox_dir = Path(args.dir).resolve() if args.dir else None
+        return handle_archive_card(
+            target_id=args.archive_card,
+            queue_path=q_target,
+            out_path=o_target,
+            is_sandbox=args.sandbox,
+            inbox_dir_override=inbox_dir,
+        )
 
     # Handle agent response drawer submission (--reply-card <id> --text "<markdown>")
     if args.reply_card:

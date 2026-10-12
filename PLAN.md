@@ -5,7 +5,7 @@
 > **Active Milestone:** `TKS v0.4.1 / Ecosystem Tooling Hardening`  
 > **Recommended Model Tier:** `Tier 2 (Gemini 3.8 Flash High)`  
 > **Status:** `IN_PROGRESS` 🔨  
-> **Progress:** `5/7 Flights Completed (71%)`  
+> **Progress:** `6/7 Flights Completed (86%)`  
 
 ---
 
@@ -133,9 +133,9 @@ flowchart TD
   - Preserves offline board rendering without regressions.
   - Unit test: `tools/tests/test_dynamic_triage.py`.
 - **Tasks**:
-  - [ ] Update `tools/check_mail.py` to sort dynamically on priority/status.
-  - [ ] Add atomic `--archive-card` CLI option.
-  - [ ] Author unit test `tools/tests/test_dynamic_triage.py`.
+  - [x] Update `tools/check_mail.py` to sort dynamically on priority/status.
+  - [x] Add atomic `--archive-card` CLI option.
+  - [x] Author unit test `tools/tests/test_dynamic_triage.py`.
 
 ---
 

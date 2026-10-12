@@ -267,8 +267,9 @@ class MailQueue(BaseModel):
 
     def sort_by_priority(self) -> "MailQueue":
         """
-        Sorts self.items so that all P0 items are placed first (sorted in reverse-chronological
-        order by date, newest first), followed by P1, P2, P3 (also reverse-chronological).
+        Sorts self.items dynamically by (priority_weight, status_weight, date_desc).
+        All P0 items are placed first with untriaged/pending items at the top of each priority band.
+        Dynamically assigns contiguous 1-based index (idx = 1..N).
         Updates self.total_items and self.p0_count.
         """
         priority_rank = {
@@ -277,12 +278,25 @@ class MailQueue(BaseModel):
             PriorityLevel.P2: 2,
             PriorityLevel.P3: 3,
         }
+        status_rank = {
+            TriageStatus.PENDING: 0,
+            TriageStatus.RESEARCH: 1,
+            TriageStatus.BACKLOG: 2,
+            TriageStatus.COMPLETED: 3,
+            TriageStatus.GRAVEYARD: 4,
+        }
 
         # Python's timsort is stable:
-        # First sort by date descending:
+        # 1. Date descending:
         self.items.sort(key=lambda x: str(x.created_at or ""), reverse=True)
-        # Then sort by rank ascending (stable preserve date descending within rank):
+        # 2. Status rank ascending (PENDING before COMPLETED):
+        self.items.sort(key=lambda x: status_rank.get(x.status, 0))
+        # 3. Priority rank ascending (P0 before P1 before P2):
         self.items.sort(key=lambda x: priority_rank.get(x.priority, 2))
+
+        # Dynamically assign contiguous 1-based display index
+        for i, it in enumerate(self.items, 1):
+            it.idx = i
 
         self.total_items = len(self.items)
         self.p0_count = sum(1 for it in self.items if it.priority == PriorityLevel.P0)
