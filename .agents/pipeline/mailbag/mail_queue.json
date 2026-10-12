@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T16:01:01.948885",
+  "last_scanned": "2026-10-12T16:57:23.127694",
   "total_items": 5,
   "p0_count": 0,
   "items": [
@@ -41,7 +41,11 @@
       "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
-      "has_reply": false
+      "has_reply": false,
+      "pillars": [
+        "NK",
+        "AGY"
+      ]
     },
     {
       "id": "Mega_Vault_Consolidation_and_Scoped_Enclave",
@@ -82,7 +86,12 @@
       "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
-      "has_reply": false
+      "has_reply": false,
+      "pillars": [
+        "NK",
+        "AGY",
+        "TKR"
+      ]
     },
     {
       "id": "Live_Reading_Notes_Protocol",
@@ -122,7 +131,12 @@
       "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
-      "has_reply": false
+      "has_reply": false,
+      "pillars": [
+        "NK",
+        "AGY",
+        "TKR"
+      ]
     },
     {
       "id": "Can we make a template that adds the front matter on a new note",
@@ -158,7 +172,11 @@
       "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
-      "has_reply": false
+      "has_reply": false,
+      "pillars": [
+        "NK",
+        "AGY"
+      ]
     },
     {
       "id": "Did we audit the guardrails",
@@ -195,7 +213,12 @@
       "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
-      "has_reply": false
+      "has_reply": false,
+      "pillars": [
+        "NK",
+        "TKR",
+        "AGY"
+      ]
     }
   ]
 }

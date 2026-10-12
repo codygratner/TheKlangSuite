@@ -572,7 +572,7 @@ class BoardMetadata(BaseModel):
     id: str = Field(description="Deterministic board identifier e.g. morning_mail, sandbox_mail")
     title: str = Field(description="Human-readable title of the board")
     description: str = Field(default="", description="Summary of board purpose")
-    category: str = Field(default="active", description="Board category ('active' | 'archived')")
+    category: str = Field(default="active", description="Board category ('active' | 'staging' | 'archived' | 'sandbox')")
     board_type: str = Field(default="custom", description="Board surface type ('evergreen' | 'lab' | 'custom')")
     file_path: str = Field(description="Relative or canonical path to HTML file e.g. .agents/sidecar/morning_mail_inbox.html")
     environment: str = Field(default="PRODUCTION", description="Runtime environment ('PRODUCTION' | 'SANDBOX')")
@@ -596,9 +596,15 @@ class BoardRegistry(BaseModel):
         return None
 
     def active_boards(self) -> List[BoardMetadata]:
-        return [b for b in self.boards if b.category.lower() == "active"]
+        return [b for b in self.boards if b.category.lower() == "active" and b.environment.upper() != "SANDBOX"]
+
+    def staging_boards(self) -> List[BoardMetadata]:
+        return [b for b in self.boards if b.category.lower() == "staging" and b.environment.upper() != "SANDBOX"]
 
     def archived_boards(self) -> List[BoardMetadata]:
-        return [b for b in self.boards if b.category.lower() == "archived"]
+        return [b for b in self.boards if b.category.lower() == "archived" and b.environment.upper() != "SANDBOX"]
+
+    def sandbox_boards(self) -> List[BoardMetadata]:
+        return [b for b in self.boards if b.category.lower() == "sandbox" or b.environment.upper() == "SANDBOX"]
 
 

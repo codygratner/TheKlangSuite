@@ -68,27 +68,40 @@ def load_registry(path: Optional[Path] = None) -> BoardRegistry:
                     title="Morning Mail Inbox & Triage Lab",
                     description="Daily operational triage for developer voice memos and backlog tickets",
                     category="active",
+                    board_type="evergreen",
                     file_path=".agents/sidecar/morning_mail_inbox.html",
                     environment="PRODUCTION",
                     card_count=0,
                 ),
                 BoardMetadata(
-                    id="sandbox_mail",
-                    title="Canonical QA Sandbox Test Board",
-                    description="Deterministic test fixture with 7 synthetic cards for regression testing",
+                    id="runway",
+                    title="Ecosystem Delivery Runway",
+                    description="Cross-project strategic delivery horizon mapped from docs/BACKLOG.md Act III",
                     category="active",
-                    file_path=".agents/sidecar/sandbox_mail_inbox.html",
-                    environment="SANDBOX",
-                    card_count=7,
+                    board_type="evergreen",
+                    file_path=".agents/sidecar/runway_board.html",
+                    environment="PRODUCTION",
+                    card_count=38,
                 ),
                 BoardMetadata(
                     id="system_sanity_audit",
-                    title="System Sanity Audit & Deep Research",
-                    description="Historical deep research and dialectic analysis for ecosystem sanity",
+                    title="System Sanity Audit & Triage Lab",
+                    description="Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory",
                     category="archived",
-                    file_path=".agents/sidecar/nkai_deep_research.html",
+                    board_type="lab",
+                    file_path=".agents/sidecar/audit_triage_board.html",
                     environment="PRODUCTION",
-                    card_count=13,
+                    card_count=12,
+                ),
+                BoardMetadata(
+                    id="sandbox_mail",
+                    title="Canonical QA Sandbox Test Board",
+                    description="Deterministic test fixture with 7 synthetic cards for regression testing",
+                    category="sandbox",
+                    board_type="custom",
+                    file_path=".agents/sidecar/sandbox_mail_inbox.html",
+                    environment="SANDBOX",
+                    card_count=7,
                 ),
             ],
         )
@@ -144,18 +157,24 @@ def cmd_list(args) -> int:
     print("=" * 80)
     print("🗂️  N'kai Multi-Board Hub Registry")
     print(f"   Version: {reg.version} | Default Board: '{reg.default_board_id}'")
-    print(f"   Total Boards: {len(reg.boards)} (Active: {len(reg.active_boards())}, Archived: {len(reg.archived_boards())})")
+    print(f"   Total Boards: {len(reg.boards)} (Active: {len(reg.active_boards())}, Staging: {len(reg.staging_boards())}, Archived: {len(reg.archived_boards())}, Sandbox: {len(reg.sandbox_boards())})")
     print("=" * 80)
 
-    header = f"{'ID':<20} {'Category':<10} {'Env':<11} {'Cards':<6} {'Title'}"
+    header = f"{'ID':<20} {'Category':<12} {'Env':<11} {'Cards':<6} {'Title'}"
     print(header)
     print("-" * 80)
 
+    cat_map = {
+        "active": "🟢 Active",
+        "staging": "🟡 Staging",
+        "archived": "📁 Archived",
+        "sandbox": "🧪 Sandbox",
+    }
     for b in reg.boards:
-        cat_badge = "🟢 Active" if b.category.lower() == "active" else "📁 Archived"
+        cat_badge = cat_map.get(b.category.lower(), b.category)
         env_badge = b.environment.upper()
         cards_str = str(b.card_count)
-        print(f"{b.id:<20} {cat_badge:<10} {env_badge:<11} {cards_str:<6} {b.title}")
+        print(f"{b.id:<20} {cat_badge:<12} {env_badge:<11} {cards_str:<6} {b.title}")
 
     print("=" * 80)
     return 0
@@ -261,7 +280,7 @@ def main() -> int:
     reg_parser.add_argument("id", help="Board identifier (slug)")
     reg_parser.add_argument("title", help="Human-readable title")
     reg_parser.add_argument("file_path", help="Relative path to HTML board file")
-    reg_parser.add_argument("--category", choices=["active", "archived"], default="active", help="Board category")
+    reg_parser.add_argument("--category", choices=["active", "staging", "archived", "sandbox"], default="active", help="Board category")
     reg_parser.add_argument("--environment", choices=["PRODUCTION", "SANDBOX"], default="PRODUCTION", help="Runtime environment")
     reg_parser.add_argument("--description", default="", help="Board summary description")
     reg_parser.add_argument("--card-count", type=int, default=None, help="Explicit card count")

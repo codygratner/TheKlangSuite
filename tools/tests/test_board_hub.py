@@ -50,9 +50,14 @@ class TestBoardHubAndSessionManager(unittest.TestCase):
 
         sandbox = registry.get_board("sandbox_mail")
         self.assertIsNotNone(sandbox)
-        self.assertEqual(sandbox.category, "active")
+        self.assertEqual(sandbox.category, "sandbox")
         self.assertEqual(sandbox.environment, "SANDBOX")
         self.assertEqual(sandbox.card_count, 7)
+
+        runway = registry.get_board("runway")
+        self.assertIsNotNone(runway)
+        self.assertEqual(runway.category, "active")
+        self.assertEqual(runway.board_type, "evergreen")
 
         audit = registry.get_board("system_sanity_audit")
         self.assertIsNotNone(audit)
@@ -61,13 +66,16 @@ class TestBoardHubAndSessionManager(unittest.TestCase):
         nonexistent = registry.get_board("nonexistent_id")
         self.assertIsNone(nonexistent)
 
-        # Method active_boards vs archived_boards
+        # Method active_boards, staging_boards, archived_boards, sandbox_boards
         actives = registry.active_boards()
+        stagings = registry.staging_boards()
         archiveds = registry.archived_boards()
+        sandboxes = registry.sandbox_boards()
         self.assertTrue(any(b.id == "morning_mail" for b in actives))
-        self.assertTrue(any(b.id == "sandbox_mail" for b in actives))
+        self.assertTrue(any(b.id == "runway" for b in actives))
+        self.assertTrue(any(b.id == "sandbox_mail" for b in sandboxes))
         self.assertTrue(any(b.id == "system_sanity_audit" for b in archiveds))
-        self.assertEqual(len(actives) + len(archiveds), len(registry.boards))
+        self.assertEqual(len(actives) + len(stagings) + len(archiveds) + len(sandboxes), len(registry.boards))
 
     def test_sidecar_backend_cache_invalidation_and_routing(self):
         """Test 2: Asserts sidecars/panel/main.mjs defines strict anti-cache headers and board endpoints."""
@@ -99,14 +107,19 @@ class TestBoardHubAndSessionManager(unittest.TestCase):
         self.assertIn("toggleBoardSwitcherModal()", content)
         self.assertIn('id="current-board-title"', content)
 
-        # Accessible Modal Dialog
+        # Accessible Modal Dialog with 4 Category Sections
         self.assertIn('id="board-switcher-modal"', content)
         self.assertIn('class="board-switcher-modal"', content)
         self.assertIn('id="board-search-input"', content)
+        self.assertIn('id="toggle-show-sandbox"', content)
         self.assertIn('id="active-boards-list"', content)
+        self.assertIn('id="staging-boards-list"', content)
         self.assertIn('id="archived-boards-list"', content)
+        self.assertIn('id="sandbox-boards-list"', content)
         self.assertIn('id="active-boards-count"', content)
+        self.assertIn('id="staging-boards-count"', content)
         self.assertIn('id="archived-boards-count"', content)
+        self.assertIn('id="sandbox-boards-count"', content)
 
         # Embedded Registry Data Tag
         self.assertIn('id="nkai-board-registry-data"', content)
@@ -116,6 +129,8 @@ class TestBoardHubAndSessionManager(unittest.TestCase):
         self.assertIn("initBoardRegistry", content)
         self.assertIn("switchBoard", content)
         self.assertIn("filterBoardList", content)
+        self.assertIn("handleToggleSandbox", content)
+        self.assertIn("isSandboxVisible", content)
 
     def test_rendered_board_interpolation(self):
         """Test 4: Asserts rendered boards interpolate BOARD_TITLE and BOARD_REGISTRY_JSON."""
