@@ -119,10 +119,13 @@ class TestNkaiSandboxBoard(unittest.TestCase):
         import shutil
         temp_dir = Path(tempfile.mkdtemp())
         temp_prod_html = temp_dir / "temp_prod_inbox.html"
+        temp_queue_json = temp_dir / "temp_mail_queue.json"
         try:
             cmd = [
                 sys.executable,
                 str(self.script_path),
+                "--queue",
+                str(temp_queue_json),
                 "--out",
                 str(temp_prod_html),
                 "--no-browser",
