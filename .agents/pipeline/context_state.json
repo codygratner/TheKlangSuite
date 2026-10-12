@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "bde02f7",
+    "commit": "2c9e44c",
     "is_clean": true,
     "dirty_count": 0,
     "staged": 0,
     "modified": 0,
     "untracked": 0,
     "recent_commits": [
-      "bde02f7 chore(memory): pre-compaction memory flush before restart",
-      "e03f034 docs(cheat-sheet): add language_server.exe memory check tip and glossary definition",
-      "817288f chore(mailbag): archive cards 1, 2, and 5 to Inbox/Archive"
+      "2c9e44c chore(mailbag): sync mail queue to 3 active cards",
+      "7d94dd2 chore(context): synchronize clean 0-turn state in ACTIVE_CONTEXT.md",
+      "bde02f7 chore(memory): pre-compaction memory flush before restart"
     ]
   },
   "plan": {
