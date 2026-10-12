@@ -60,9 +60,12 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Mailbag Intake & Triage v2](specs/nkai_mailbag_intake_and_triage_v2.md) — Ramble overflow queue, quick notes, Tabled directory, attention tags, session launchers, and position splice.
   - [N'kai Per-Card Response Drawer](specs/nkai_per_card_response_drawer.md) — In-card agent_reply reasoning, collapsible glassmorphic drawer, procedural Web Audio detent haptics, chat-minimal pair programming, and --reply-card CLI.
   - [N'kai Mobile Companion & Touch Ergonomics](specs/nkai_mobile_companion_and_touch_ergonomics.md) — Mobile viewport architecture (100dvh), 44px Touch Target Law, sticky bottom thumb bar, local Wi-Fi auto-detection, zero-dependency QR code generation, and /qr web pairing.
+  - [Inter-Project Data Bus & Queue](specs/inter_project_data_bus.md) — Asynchronous handoff conduit across TKS, ToadTracker, N'kai, Research, and The Cosmos. Zero-daemon file queue over NTFS junction.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
 ### 8. 🛠️ Developer Tooling & Data Schemas
+- [bus.py](../tools/bus.py) — Universal Inter-Project Data Bus CLI tool (post, list, read, ack).
+- [check_lore.py](../tools/check_lore.py) — Lore Dispatch queue inspector across Zenith and Foundry drops.
 - [mail_add.py](../tools/mail_add.py) — Mailbag backlog item splice CLI with contiguous rank renumbering.
 - [board_registry.py](../tools/board_registry.py) — Multi-Board Hub registry manager CLI (list, register, rescan).
 - [board_renderer.py](../tools/board_renderer.py) — Data-driven board renderer engine (Flight 15).
@@ -87,4 +90,4 @@ The Klang ecosystem consists of five interconnected repositories:
 - **ToadTracker** (`c:\Dev\ToadTracker`): 16-step embedded hardware groovebox.
 - **N'kai** (`c:\Dev\nkai`): Asymmetric sidecar framework & interactive triage lab ([github.com/codygratner/nkai](https://github.com/codygratner/nkai)).
 - **The Klang Research** (`c:\Dev\Research`): Centralized research repository, exploratory canvases, and soul harvests ([github.com/codygratner/TheKlangResearch](https://github.com/codygratner/TheKlangResearch)).
-- **The Klang Vault** (`C:\Dev\TheKlangVault`): Private Studio Hub, raw thoughts mailbox, and Pydantic data pipelines.
+- **The Cosmos (Master Vault)** (`C:\_\Vault` / `C:\Dev\TheKlangVault`): Consolidated master Zettelkasten, creative lab, private studio hub, and the Inter-Project Data Bus (`Dispatches/`).

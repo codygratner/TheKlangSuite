@@ -192,6 +192,11 @@
           "path": "docs/specs/nkai_mobile_companion_and_touch_ergonomics.md",
           "title": "N'kai Mobile Companion & Touch Ergonomics Specification (v0.3.0 / Milestone Section 14)",
           "purpose": "Mobile viewport architecture (100dvh), 44px Touch Target Law, sticky bottom thumb bar, local Wi-Fi auto-detection, zero-dependency QR code generation, and /qr web pairing."
+        },
+        {
+          "path": "docs/specs/inter_project_data_bus.md",
+          "title": "Inter-Project Data Bus & Queue Specification",
+          "purpose": "Universal asynchronous handoff conduit across TKS, ToadTracker, N'kai, Research, and The Cosmos. Zero-daemon, zero-lock file queue over NTFS junction with CLI bus.py."
         }
       ]
     },

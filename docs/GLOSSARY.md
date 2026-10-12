@@ -308,6 +308,16 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Air-Gapped Scoped Enclave (`New Klang City`)**: The architectural security pattern where dev tooling, Git repositories, and AI factory harnesses are strictly confined to a scoped subfolder (`C:\_\Vault\🏢 New Klang City`), accessed by external dev tooling via an NTFS directory junction (`C:\Dev\TheKlangVault`). Personal notes, game worlds, and private journals remain 100% blind to Git.
 * **The Lore Dispatch System**: The two-way transmission conduit connecting the Stellar Zenith (*The Cosmos / The Cosmic Codex*) and the Subterranean Foundry (*Mayor Toad / Klang Industries*), routing creative lore and technical folklore through `docs/lore/dispatch/` inspected via `python tools/check_lore.py`.
 
+---
+
+## 27. The Inter-Project Data Bus (`Dispatches/` & `tools/bus.py`)
+
+* **Inter-Project Data Bus**: The universal, zero-daemon, zero-lock asynchronous messaging and handoff queue connecting `TheKlangSuite`, `ToadTracker`, `N'kai`, `TheKlangResearch`, and `The Cosmos` via the local NTFS directory junction (`C:\Dev\TheKlangVault\Dispatches\` $\longleftrightarrow$ `C:\_\Vault\🏢 New Klang City\Dispatches\`).
+* **Standard Handoff Packet**: A human-readable Markdown document with YAML frontmatter (`id`, `date`, `from`, `to`, `tags`, `priority`, `status`, `title`) and optional attached data payloads, eliminating cross-repo context loss.
+* **Packet Lifecycle State Machine**: The deterministic state progression from `PENDING` (new un-ingested handoff) to `ACKNOWLEDGED` (inspected by recipient agent) to `ARCHIVED` (moved to `Dispatches/Archive/` upon milestone completion).
+* **Universal Bus CLI (`tools/bus.py`)**: The standard-library controller mirrored across all repositories enabling `list`, `post`, `read`, and `ack` operations.
+* **Cross-Project Agenda Dashboard (`Agenda.md`)**: The root Obsidian flight deck located at `C:\_\Vault\Agenda.md` reflecting the live state of the data bus and active multi-repository runway.
+
 
 
 

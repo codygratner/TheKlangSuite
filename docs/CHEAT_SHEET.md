@@ -274,6 +274,17 @@
 * **Air-Gapped Scoped Enclave (`New Klang City`)**: Dev tools and Git operate strictly inside `C:\_\Vault\🏢 New Klang City` via junction `C:\Dev\TheKlangVault`. Personal notes remain 100% blind to Git.
 * **Lore Dispatch System**: Conduit between Stellar Zenith (The Cosmos / Codex) and Subterranean Foundry (Mayor Toad / Klang Industries), inspected via `python tools/check_lore.py`.
 
+---
+
+## 🛰️ Inter-Project Data Bus (`Dispatches/` & `tools/bus.py`)
+
+* **Universal Handoff Bus**: Zero-daemon, zero-lock file queue across TKS, TT, NK, TR, and The Cosmos over NTFS junction `C:\Dev\TheKlangVault\Dispatches\` $\longleftrightarrow$ `C:\_\Vault\🏢 New Klang City\Dispatches\`.
+* **Standard Packet Format**: Markdown file with YAML frontmatter (`id`, `date`, `from`, `to`, `tags`, `priority`, `status`, `title`).
+* **Packet Lifecycle**: `PENDING` $\to$ `ACKNOWLEDGED` $\to$ `ARCHIVED` (in `Archive/`).
+* **Universal Bus CLI**: `python tools/bus.py list [--for <PILLAR>]` | `python tools/bus.py post --to <PILLAR> ...` | `python tools/bus.py read <id>` | `python tools/bus.py ack <id> [--archive]`.
+* **Live Agenda Flight Deck**: `C:\_\Vault\Agenda.md` reflects live bus dispatches and active 5-pillar queue.
+
+
 
 
 
