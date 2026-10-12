@@ -30,15 +30,16 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** **Flight 18 (Universal UTF-8 Invariant `rj-02`) COMPLETED ✅**. Next objective: **Flight 16+17: QA Sandbox Board & Sandbox/Production Mode (`rj-03`)**.
-- **Board & Data**:
-  - Mailbag triage 100% complete (Inbox Zero).
-  - Living North Star anchor active: [`docs/FOCUS.md`](file:///c:/Dev/TheKlangSuite/docs/FOCUS.md).
-  - Universal UTF-8 Invariant 100% compliant across 42 Python files (`tools/verify_utf8.py --all --strict`).
-  - Ambient status footer line standardized: `Focus: N'kai hardening | TKS-0.4.0 · TT-0.1.0 · NK-0.2.0 · TR-Active`.
-- **DAW Dilemma Status**: Blind DA stress test & parallel Flash vs. Pro benchmark complete. Opus 5.5 run deferred until rolling 5-hour allowance resets. Task 9 (No-BS DAW Engine Memo) queued in [`.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/plans/drafts/post_milestone_deep_docs_gauntlet.md).
-- **Model State**: Active chat on **Gemini 3.8 Flash (High)**. Opus 5.5 in 5-hour allowance cooldown.
-- **Immediate Next Command**: Execute **Flight 16+17: QA Sandbox Board & Sandbox/Production Mode (`rj-03`)** — implement fixture board (Tsathoggua mocks, echo-only buttons, deterministic IDs) and `--sandbox` runtime switch per active blueprint [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md).
+- **Current Objective:** **Six-Way Devil's Advocate Benchmark (`rj-22`) Stage W1, W2, and W3 COMPLETED ✅**. Stage **HOLD** is now **ACTIVE** awaiting weekly quota reset on Sunday 2026-10-18.
+- **Benchmark Corpus (`C:\Dev\Research\agentic\rj22_da_benchmark\`)**:
+  - All 6 DA reports generated and ingested (`flash-A/B`, `pro-A/B`, `opus-A/B`).
+  - Anonymized reports `R1..R6` generated with `sealed/key.json`.
+  - Flash Judge (`reviews/judge-flash.md`) and Pro Judge (`reviews/judge-pro.md`) completed and verified with 100% blind compliance.
+  - Flash Provisional Meta ([`meta/provisional_flash.md`](file:///C:/Dev/Research/agentic/rj22_da_benchmark/meta/provisional_flash.md)) and Pro Provisional Meta ([`meta/provisional_pro.md`](file:///C:/Dev/Research/agentic/rj22_da_benchmark/meta/provisional_pro.md)) delivered.
+  - Inter-judge concordance: Kendall's $\tau_b = +0.8667$.
+- **Soul Harvest**: All recent subagent sessions staged to [`.agents/pipeline/staging/souls/`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/staging/souls/) (ToadTracker gamepad latency + Renoise `.xrns` format, blind zombie backend PCDA, Opus premise skepticism autopsy).
+- **Mailbag Status**: `opus harvest plan.md` reviewed and codified into the Targeted Opus DSP Swap Protocol.
+- **Immediate Next Command**: On or after Sunday 2026-10-18 reset, execute **Stage W4** (switch IDE footer to `Claude Opus 5.5 High`, run blind Opus Judge, generate aggregate final meta-analysis and real-world impact report).
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
 
 
