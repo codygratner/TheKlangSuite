@@ -331,7 +331,7 @@ def scan_inbox(inbox_dir: Path):
     notes = []
     md_files = sorted(inbox_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
     for f in md_files:
-        if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD"]:
+        if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD", "SCRATCHPAD.MD"]:
             data = extract_note_metadata(f)
             if data:
                 notes.append(data)
