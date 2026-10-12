@@ -56,7 +56,18 @@ except ImportError:
             sys.path.insert(0, str(_script_dir))
         from board_renderer import render_board
 
-DEFAULT_VAULT_INBOX = Path(r"C:\Dev\TheKlangVault\Inbox")
+DEFAULT_VAULT_INBOX = Path(r"C:\_\Vault\Inbox")
+if not DEFAULT_VAULT_INBOX.exists():
+    alt_inbox = Path(r"C:\Dev\TheKlangVault\Inbox")
+    if alt_inbox.exists():
+        DEFAULT_VAULT_INBOX = alt_inbox
+
+DEFAULT_VAULT_ARCHIVE = Path(r"C:\_\Vault\Archive")
+if not DEFAULT_VAULT_ARCHIVE.exists():
+    alt_archive = Path(r"C:\Dev\TheKlangVault\Archive")
+    if alt_archive.exists():
+        DEFAULT_VAULT_ARCHIVE = alt_archive
+
 FALLBACK_LOCAL_INBOX = Path("docs/inbox")
 DEFAULT_OUTPUT_HTML = Path(r".agents/sidecar/morning_mail_inbox.html")
 DEFAULT_SANDBOX_OUTPUT_HTML = Path(r".agents/sidecar/sandbox_mail_inbox.html")
@@ -72,28 +83,44 @@ if not DEFAULT_BACKLOG_PATH.exists():
         DEFAULT_BACKLOG_PATH = alt_backlog
 
 
+def resolve_archive_directory(inbox_dir: Optional[Path] = None) -> Path:
+    """Finds the designated Archive directory outside Inbox."""
+    if inbox_dir and (inbox_dir / "Archive").exists():
+        return inbox_dir / "Archive"
+    if inbox_dir and (inbox_dir.parent / "Archive").exists():
+        return inbox_dir.parent / "Archive"
+    if DEFAULT_VAULT_ARCHIVE.exists():
+        return DEFAULT_VAULT_ARCHIVE
+    if DEFAULT_VAULT_INBOX.exists():
+        cand = DEFAULT_VAULT_INBOX.parent / "Archive"
+        cand.mkdir(parents=True, exist_ok=True)
+        return cand
+    if inbox_dir:
+        cand = inbox_dir.parent / "Archive"
+        cand.mkdir(parents=True, exist_ok=True)
+        return cand
+    return Path.cwd() / "Archive"
+
+
 def resolve_inbox_directory(dir_override=None, scan_archive=False):
     """Resolves target inbox directory with hierarchical fallbacks."""
     if dir_override:
         target = Path(dir_override).resolve()
         if scan_archive:
-            archive_target = target / "Archive"
+            archive_target = resolve_archive_directory(target)
             if archive_target.exists():
                 return archive_target
         return target
 
+    if scan_archive:
+        if DEFAULT_VAULT_ARCHIVE.exists():
+            return DEFAULT_VAULT_ARCHIVE
+        return DEFAULT_VAULT_INBOX
+
     if DEFAULT_VAULT_INBOX.exists():
-        if scan_archive:
-            archive_path = DEFAULT_VAULT_INBOX / "Archive"
-            if archive_path.exists():
-                return archive_path
         return DEFAULT_VAULT_INBOX
 
     if FALLBACK_LOCAL_INBOX.exists():
-        if scan_archive:
-            archive_path = FALLBACK_LOCAL_INBOX / "Archive"
-            if archive_path.exists():
-                return archive_path
         return FALLBACK_LOCAL_INBOX
 
     return Path.cwd()
@@ -261,9 +288,10 @@ def scan_inbox(inbox_dir: Path):
     return notes
 
 
-def scan_all_inbox_notes(inbox_dir: Path) -> list:
+def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
     """
-    Scans root inbox, its Archive/ subfolder, and its Tabled/ subfolder, combining and deduping notes by id.
+    Scans root inbox and its Tabled/ subfolder, combining and deduping notes by id.
+    Only scans Archive/ if scan_archive=True is explicitly passed.
     Live root inbox notes win on content over Archive and Tabled notes.
     """
     if inbox_dir.name.lower() in ["archive", "tabled"]:
@@ -271,18 +299,22 @@ def scan_all_inbox_notes(inbox_dir: Path) -> list:
     else:
         base_dir = inbox_dir
 
-    archive_dir = base_dir / "Archive"
     tabled_dir = base_dir / "Tabled"
     live_dir = base_dir
 
-    arch_notes = scan_inbox(archive_dir) if archive_dir and archive_dir.exists() else []
+    arch_notes = []
+    if scan_archive:
+        archive_dir = resolve_archive_directory(base_dir)
+        if archive_dir and archive_dir.exists():
+            arch_notes = scan_inbox(archive_dir)
+
     tabled_notes = scan_inbox(tabled_dir) if tabled_dir and tabled_dir.exists() else []
     for tn in tabled_notes:
         if "tabled" not in tn.get("tags", []):
             tn["tags"].append("tabled")
         tn["is_tabled"] = True
 
-    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() != archive_dir.resolve() and live_dir.resolve() != tabled_dir.resolve() else []
+    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() != tabled_dir.resolve() else []
 
     notes_by_id = {}
     for n in arch_notes:
@@ -296,13 +328,21 @@ def scan_all_inbox_notes(inbox_dir: Path) -> list:
         if n.get("id"):
             notes_by_id[str(n["id"])] = n
 
-    # Scan Universal Vault Inbox (C:\_\Vault\Inbox) if distinct from base_dir and running default vault scan
+    # Scan secondary vault inbox if distinct and running default vault scan
     if base_dir.resolve() == DEFAULT_VAULT_INBOX.resolve():
-        universal_inbox = Path(r"C:\_\Vault\Inbox")
-        if universal_inbox.exists() and universal_inbox.resolve() != base_dir.resolve():
-            for n in scan_inbox(universal_inbox):
+        alt_inbox = Path(r"C:\Dev\TheKlangVault\Inbox")
+        if alt_inbox.exists() and alt_inbox.resolve() != base_dir.resolve():
+            for n in scan_inbox(alt_inbox):
                 if n.get("id"):
                     notes_by_id[str(n["id"])] = n
+            alt_tabled = alt_inbox / "Tabled"
+            if alt_tabled.exists():
+                for tn in scan_inbox(alt_tabled):
+                    if "tabled" not in tn.get("tags", []):
+                        tn["tags"].append("tabled")
+                    tn["is_tabled"] = True
+                    if tn.get("id"):
+                        notes_by_id[str(tn["id"])] = tn
 
     return list(notes_by_id.values())
 
@@ -1336,10 +1376,8 @@ def handle_archive_card(
     moved_note_msg = ""
     if not is_sandbox:
         inbox_dir = inbox_dir_override or resolve_inbox_directory()
-        archive_dir = inbox_dir / "Archive" if (inbox_dir / "Archive").exists() else inbox_dir.parent / "Archive"
-        if not archive_dir.exists():
-            archive_dir = inbox_dir / "Archive"
-            archive_dir.mkdir(parents=True, exist_ok=True)
+        archive_dir = resolve_archive_directory(inbox_dir)
+        archive_dir.mkdir(parents=True, exist_ok=True)
 
         # Check potential note file locations
         candidates = []
@@ -1349,8 +1387,10 @@ def handle_archive_card(
                 candidates.append(p)
                 candidates.append(inbox_dir / p.name)
                 candidates.append(inbox_dir / p)
+                candidates.append(inbox_dir / "Tabled" / p.name)
                 candidates.append(Path(r"C:\_\Vault\Inbox") / p.name)
                 candidates.append(Path(r"C:\_\Vault\Inbox") / p)
+                candidates.append(Path(r"C:\_\Vault\Inbox\Tabled") / p.name)
 
         found_src = None
         for cand in candidates:
@@ -1586,20 +1626,10 @@ def main():
         return 0
 
     inbox_dir = resolve_inbox_directory(args.dir, scan_archive=args.archive)
-    notes = scan_all_inbox_notes(inbox_dir)
+    notes = scan_all_inbox_notes(inbox_dir, scan_archive=args.archive)
 
-    # Locate curated docket
-    docket_path = None
-    if args.docket:
-        docket_path = Path(args.docket).resolve()
-    elif DEFAULT_DOCKET_PATH.exists():
-        docket_path = DEFAULT_DOCKET_PATH
-    else:
-        # Check artifact folder
-        alt_docket = Path(r"C:\Users\codyg\.gemini\antigravity\brain\9241988e-1227-466e-a0a5-446d61a69d77\morning_mail_topics.md")
-        if alt_docket.exists():
-            docket_path = alt_docket
-
+    # Locate curated docket (strictly opt-in via --docket so daily mail checks only reflect active incoming notes)
+    docket_path = Path(args.docket).resolve() if args.docket else None
     docket_items = parse_docket_file(docket_path) if docket_path else []
 
     # Resolve rejigger overlay path
@@ -1626,8 +1656,8 @@ def main():
         archive_harvested_notes(inbox_dir, notes, Path(args.receipt), queue, queue_file)
 
     # Always maintain lean, zero-token Archive/INDEX.md if Archive directory exists (Option A)
-    target_archive = inbox_dir if "archive" in inbox_dir.name.lower() else (inbox_dir / "Archive")
-    if target_archive.exists():
+    target_archive = resolve_archive_directory(inbox_dir)
+    if target_archive and target_archive.exists():
         try:
             update_archive_index(target_archive)
         except Exception as e:
