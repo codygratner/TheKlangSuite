@@ -36,7 +36,7 @@ except ImportError:
             sys.path.insert(0, str(_script_dir))
         from models import EcosystemPillar, PriorityLevel, PILLAR_METADATA
 
-DEFAULT_VAULT_INBOX = Path(r"C:\Dev\TheKlangVault\Inbox")
+DEFAULT_VAULT_INBOX = Path(r"C:\_\Vault\Inbox") if Path(r"C:\_\Vault\Inbox").exists() else Path(r"C:\Dev\TheKlangVault\Inbox")
 FALLBACK_LOCAL_INBOX = Path("docs/inbox")
 DEFAULT_REJIGGER_PATH = Path(r".agents/pipeline/mailbag/rejigger.json")
 
