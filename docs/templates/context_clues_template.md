@@ -15,9 +15,11 @@
   - [The Klang Suite v0.4.0 Roadmap](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tks-v0.4.0)
   - [ToadTracker v0.1.0 Milestone](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tt-v0.1.0)
   - [N'kai v0.1.0 Sidecar Framework](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#nk-v0.1.0)
-  - [The Klang Research Central Hub](https://github.com/codygratner/TheKlangResearch)
 - **Active Working Milestone:** [Current milestone name and status]
 - **Upcoming Target Milestone:** [Next scheduled milestone]
+- **Active Runtime Process Environment:**
+  - **Host Application:** Base Antigravity (`C:\Users\codyg\AppData\Local\Programs\antigravity\Antigravity.exe`), NOT the full Antigravity IDE (`C:\Users\codyg\AppData\Local\Programs\Antigravity IDE\Antigravity IDE.exe`).
+  - **Process Verification Rule:** If an agent ever needs to check its hosting process tree, inspect via PowerShell: `Get-Process Antigravity* | Select-Object Id, ProcessName, Path`.
 
 ---
 

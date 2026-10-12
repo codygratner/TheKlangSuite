@@ -283,6 +283,29 @@
 * **Packet Lifecycle**: `PENDING` $\to$ `ACKNOWLEDGED` $\to$ `ARCHIVED` (in `Archive/`).
 * **Universal Bus CLI**: `python tools/bus.py list [--for <PILLAR>]` | `python tools/bus.py post --to <PILLAR> ...` | `python tools/bus.py read <id>` | `python tools/bus.py ack <id> [--archive]`.
 * **Live Agenda Flight Deck**: `C:\_\Vault\Agenda.md` reflects live bus dispatches and active 5-pillar queue.
+* **Intent Locks & Concurrency Telemetry**: Ephemeral multi-agent filesystem locks with dead-man's auto-TTL: `python tools/bus.py lock --scope <paths> --activity "<desc>" [--ttl <min>]` | `python tools/bus.py unlock` | `python tools/bus.py locks` | `python tools/bus.py check-scope --scope <paths>`. Emits collision warnings directly into `tools/state_manager.py` 0-turn cold boot state card.
+
+---
+
+## ✍️ Multipoint Prompting Protocol ("Reading & Responding")
+
+* **Format**: Simple numbered blocks separated by a blank line:
+  ```markdown
+  1)
+  First topic or feedback on a section...
+
+  2)
+  Second thought, question, or approval...
+  ```
+* **Optional Excerpts**: Quote the agent's prior text with `> "quote"` directly below the number.
+* **Zero Formatting Tax**: No need for markdown headers or bold titles—simple `1)`, `2)`, `3)` allows the agent to address every point with 1:1 fidelity without missing sub-clauses or getting confused.
+
+---
+
+## 🔧 The Tooling Ratchet Invariant (Zero-Token Immune System)
+
+* **Code the Invariant, Not Just the Fix**: When an agent detects a regression, invariant violation, or repetitive manual chore, the agent **MUST** update the relevant Python CLI tool (`tools/audit_audiothread.py`, `tools/lint_frontmatter.py`, `tools/catalog_sync.py`, `tools/verify_utf8.py`) and author a unit test in `tools/tests/`.
+* **Zero Token Churn**: Once encoded into Python, the check runs in sub-10ms for 0 LLM tokens, permanently immunizing the codebase against that failure class.
 
 
 

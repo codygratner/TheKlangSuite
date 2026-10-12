@@ -318,6 +318,28 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Universal Bus CLI (`tools/bus.py`)**: The standard-library controller mirrored across all repositories enabling `list`, `post`, `read`, and `ack` operations.
 * **Cross-Project Agenda Dashboard (`Agenda.md`)**: The root Obsidian flight deck located at `C:\_\Vault\Agenda.md` reflecting the live state of the data bus and active multi-repository runway.
 
+---
+
+## 28. Intent Locks & Blast-Radius Concurrency Telemetry (Flight 1B)
+
+* **Intent Lock (`Dispatches/Locks/<pillar>_lock.json`)**: An ephemeral filesystem token broadcast across the data bus declaring an agent's active mutation scope (e.g. `TheKlangVault/Docs`) and activity description, eliminating race conditions without distributed locks.
+* **Dead-Man's TTL**: An automatic expiration timestamp (default 30 min) guaranteeing that crashed agent sessions or unexpected `/clear` events never deadlock filesystem paths.
+* **Blast-Radius Collision Radar**: Subcommand `tools/bus.py check-scope --scope <paths>` returning exit code 0 on clear paths or alerting on peer collisions, wired directly into `tools/state_manager.py` 0-turn cold boot state cards.
+
+---
+
+## 29. The Zero-Token Tooling Ratchet Invariant
+
+* **The Tooling Ratchet**: The core development discipline where discovered edge cases, invariant violations, or repetitive manual clerk chores are never merely fixed in chat; they must be encoded into deterministic Python CLI tools (`tools/audit_audiothread.py`, `tools/lint_frontmatter.py`, `tools/catalog_sync.py`, `tools/verify_utf8.py`) backed by unit tests.
+* **Zero-Token Regression Defense**: By offloading invariant validation to sub-10ms native scripts, future agent sessions verify safety for 0 LLM tokens, permanently eliminating regression risk.
+
+---
+
+## 30. Multipoint Human-to-Agent Prompting Protocol
+
+* **Multipoint Prompting**: The low-friction human communication pattern using simple numbered blocks (`1)`, `2)`, `3)`) separated by blank lines to convey multi-part feedback, stream-of-consciousness reactions, and approvals while reading agent reports.
+* **1:1 Mirror Ingestion**: The agent responding mirrors the user's exact numbering structure, guaranteeing 100% clause coverage and eliminating accidental omissions or mixed topics without requiring complex Markdown formatting from the human.
+
 
 
 
