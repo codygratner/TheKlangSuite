@@ -5,7 +5,7 @@
 > **Active Milestone:** `TKS v0.4.1 / Ecosystem Tooling Hardening`  
 > **Recommended Model Tier:** `Tier 2 (Gemini 3.8 Flash High)`  
 > **Status:** `IN_PROGRESS` 🔨  
-> **Progress:** `4/7 Flights Completed (57%)`  
+> **Progress:** `5/7 Flights Completed (71%)`  
 
 ---
 
@@ -116,9 +116,9 @@ flowchart TD
   - Never overwrites if destination is uncommitted/dirty without `--force`.
   - Unit test: `tools/tests/test_sync_templates.py`.
 - **Tasks**:
-  - [ ] Author `tools/sync_templates.py`.
-  - [ ] Author unit test `tools/tests/test_sync_templates.py`.
-  - [ ] Assert 100% hash parity across all template mirrors.
+  - [x] Author `tools/sync_templates.py`.
+  - [x] Author unit test `tools/tests/test_sync_templates.py`.
+  - [x] Assert 100% hash parity across all template mirrors.
 
 ---
 
