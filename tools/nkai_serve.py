@@ -18,10 +18,12 @@ import mimetypes
 import os
 import socket
 import socketserver
+import struct
 import subprocess
 import sys
 from typing import Optional
 import webbrowser
+import zlib
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -105,6 +107,79 @@ def get_tailscale_ip() -> Optional[str]:
         pass
 
     return None
+
+
+def generate_touch_icon(mode: str = "lan") -> bytes:
+    """Generates a dynamic 180x180 PNG touch icon for iOS Safari / Android homescreen bookmarks.
+
+    Provides instant visual contrast:
+    - 'lan' / 'home': Warm Amber & Sky Blue palette with 'H' (Home / Studio) glyph.
+    - 'remote' / 'tailscale': Neon Emerald & Cyan palette with 'R' (Remote / Mesh) glyph.
+    - 'codex' / 'forge': Royal Amethyst & Cosmic Violet palette with 'C' (Cosmic Codex) glyph.
+    Zero third-party dependencies; 100% standard library struct & zlib.
+    """
+    w, h = 180, 180
+    bg = (9, 13, 19, 255)       # #090d13 deep basalt
+    card = (24, 32, 44, 255)    # #18202c panel
+
+    mode_lower = (mode or "").lower()
+    if "remote" in mode_lower or "tailscale" in mode_lower:
+        accent = (52, 211, 153, 255)   # #34d399 emerald
+        badge_bg = (16, 185, 129, 255) # emerald-600
+        text_char = "R"
+    elif "codex" in mode_lower or "forge" in mode_lower:
+        accent = (168, 85, 247, 255)   # #a855f7 purple
+        badge_bg = (126, 34, 206, 255) # purple-700
+        text_char = "C"
+    else:  # lan / home
+        accent = (251, 191, 36, 255)   # #fbbf24 amber
+        badge_bg = (56, 189, 248, 255) # sky-400
+        text_char = "H"
+
+    pixels = []
+    # 5x7 bitmap font for H, R, C
+    font = {
+        "H": [0b10001, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b10001],
+        "R": [0b11110, 0b10001, 0b10001, 0b11110, 0b10100, 0b10010, 0b10001],
+        "C": [0b01111, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b01111],
+    }
+    glyph = font.get(text_char, font["H"])
+
+    for y in range(h):
+        row = [0]  # filter byte (None)
+        for x in range(w):
+            border_dist = min(x, w - 1 - x, y, h - 1 - y)
+            is_border = (border_dist < 6)
+
+            # Center badge: scale 12x (5*12=60w, 7*12=84h)
+            gx = (x - 60) // 12
+            gy = (y - 48) // 12
+            in_glyph = False
+            if 0 <= gx < 5 and 0 <= gy < 7:
+                if (glyph[gy] >> (4 - gx)) & 1:
+                    in_glyph = True
+
+            if in_glyph:
+                row.extend(accent)
+            elif is_border:
+                row.extend(accent)
+            elif border_dist < 10:
+                row.extend(card)
+            else:
+                row.extend(bg)
+        pixels.append(bytes(row))
+
+    raw = b"".join(pixels)
+
+    def chunk(tag, data):
+        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0))
+        + chunk(b"IDAT", zlib.compress(raw, 9))
+        + chunk(b"IEND", b"")
+    )
 
 
 class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -361,6 +436,69 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.end_headers()
             self.wfile.write(json.dumps(data).encode("utf-8"))
+            return
+
+        if clean_path in (
+            "/apple-touch-icon.png",
+            "/apple-touch-icon-precomposed.png",
+            "/favicon.png",
+            "/favicon.ico",
+            "/apple-touch-icon",
+        ):
+            mode = "lan"
+            if "?" in self.path:
+                q = self.path.split("?", 1)[1].lower()
+                if "remote" in q or "tailscale" in q:
+                    mode = "remote"
+                elif "codex" in q or "forge" in q:
+                    mode = "codex"
+            host = self.headers.get("Host", "")
+            if host.startswith("100."):
+                mode = "remote"
+
+            icon_data = generate_touch_icon(mode)
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(icon_data)))
+            self.send_header("Cache-Control", "public, max-age=86400")
+            self.end_headers()
+            self.wfile.write(icon_data)
+            return
+
+        if clean_path == "/manifest.json":
+            mode = "lan"
+            if "?" in self.path:
+                q = self.path.split("?", 1)[1].lower()
+                if "remote" in q or "tailscale" in q:
+                    mode = "remote"
+                elif "codex" in q or "forge" in q:
+                    mode = "codex"
+            host = self.headers.get("Host", "")
+            if host.startswith("100."):
+                mode = "remote"
+
+            app_title = "N'kai (Remote)" if mode == "remote" else "N'kai (Home)"
+            manifest = {
+                "name": f"N'kai Triage Companion - {app_title}",
+                "short_name": app_title,
+                "start_url": f"/?mode={mode}",
+                "display": "standalone",
+                "background_color": "#090d13",
+                "theme_color": "#090d13",
+                "icons": [
+                    {
+                        "src": f"/apple-touch-icon.png?mode={mode}",
+                        "sizes": "180x180",
+                        "type": "image/png",
+                    }
+                ],
+            }
+            manifest_bytes = json.dumps(manifest, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/manifest+json; charset=utf-8")
+            self.send_header("Content-Length", str(len(manifest_bytes)))
+            self.end_headers()
+            self.wfile.write(manifest_bytes)
             return
 
         super().do_GET()
