@@ -12,15 +12,22 @@ RFC MIME mapping, terminal ASCII/Unicode QR pairing, and SVG pairing endpoints.
 
 import argparse
 import http.server
+from datetime import datetime
 import json
 import mimetypes
 import os
 import socket
 import socketserver
+import subprocess
 import sys
+from typing import Optional
 import webbrowser
 from pathlib import Path
 from urllib.parse import unquote
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 # Configure UTF-8 streams for Windows console compatibility (Universal UTF-8 Invariant)
 if hasattr(sys.stdout, 'reconfigure'):
@@ -71,6 +78,35 @@ def get_local_ip() -> str:
             return "127.0.0.1"
 
 
+def get_tailscale_ip() -> Optional[str]:
+    """Detects Tailscale IPv4 address via CLI or interface scan."""
+    tailscale_exe = Path(r"C:\Program Files\Tailscale\tailscale.exe")
+    if tailscale_exe.exists():
+        try:
+            res = subprocess.run(
+                [str(tailscale_exe), "ip", "-4"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                check=False,
+            )
+            ip = res.stdout.strip()
+            if ip and ip.startswith("100."):
+                return ip
+        except Exception:
+            pass
+
+    try:
+        host_ips = socket.gethostbyname_ex(socket.gethostname())[2]
+        for ip in host_ips:
+            if ip.startswith("100."):
+                return ip
+    except Exception:
+        pass
+
+    return None
+
+
 class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     """Specialized HTTP handler with audio/web MIME types, CORS, and mobile QR routes."""
 
@@ -96,6 +132,38 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         """Handles pre-flight CORS checks."""
         self.send_response(204)
         self.end_headers()
+
+    def translate_path(self, path):
+        """Translates virtual URL routes and sidecar aliases to physical files."""
+        clean_path = path.split("?")[0].split("#")[0]
+        if clean_path in ("", "/"):
+            clean_path = "/morning_mail_inbox.html"
+
+        sidecar_map = {
+            "/morning_mail_inbox.html": [
+                REPO_ROOT / ".agents" / "sidecar" / "morning_mail_inbox.html",
+                Path(r"c:\Dev\nkai\sidecars\panel\morning_mail_inbox.html"),
+            ],
+            "/runway_board.html": [
+                REPO_ROOT / ".agents" / "sidecar" / "runway_board.html",
+                Path(r"c:\Dev\nkai\sidecars\panel\runway_board.html"),
+            ],
+            "/sandbox_mail_inbox.html": [
+                REPO_ROOT / ".agents" / "sidecar" / "sandbox_mail_inbox.html",
+                Path(r"c:\Dev\nkai\sidecars\panel\sandbox_mail_inbox.html"),
+            ],
+            "/audit_triage_board.html": [
+                REPO_ROOT / ".agents" / "sidecar" / "audit_triage_board.html",
+                Path(r"c:\Dev\nkai\sidecars\panel\audit_triage_board.html"),
+            ],
+        }
+
+        if clean_path in sidecar_map:
+            for cand in sidecar_map[clean_path]:
+                if cand.exists():
+                    return str(cand)
+
+        return super().translate_path(path)
 
     def do_GET(self):
         """Serves mobile QR code vector graphics and pairing page on /qr and /mobile."""
@@ -262,31 +330,114 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(html_page.encode("utf-8"))
             return
 
+        if clean_path == "/api/status":
+            ts_ip = getattr(self.server, "tailscale_ip", None) or get_tailscale_ip() or get_local_ip()
+            status_data = {
+                "status": "online",
+                "service": "nkai_mobile_companion",
+                "version": "0.3.0",
+                "tailscale_ip": ts_ip,
+                "port": self.server.server_address[1],
+                "active_boards": ["morning_mail", "runway", "sandbox_mail"]
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(status_data, indent=2).encode("utf-8"))
+            return
+
+        if clean_path == "/api/boards":
+            try:
+                from tools.board_registry import load_registry
+                reg = load_registry()
+                data = reg.model_dump()
+            except Exception:
+                reg_file = REPO_ROOT / ".agents" / "pipeline" / "boards" / "registry.json"
+                if reg_file.exists():
+                    data = json.loads(reg_file.read_text(encoding="utf-8"))
+                else:
+                    data = {"boards": []}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+            return
+
         super().do_GET()
 
     def do_POST(self):
-        """Captures /api/dispatch actions from sidecars for terminal CLI harness pairing."""
-        if self.path == "/api/dispatch":
-            content_length = int(self.headers.get("Content-Length", 0))
-            post_body = self.rfile.read(content_length)
-            try:
-                data = json.loads(post_body.decode("utf-8"))
-                action = data.get("action", "")
-                print(f"\n[N'KAI CLI DISPATCH] Action received from sidecar UI:")
-                print(f"--------------------------------------------------")
-                if isinstance(action, str):
-                    print(action)
-                else:
-                    print(json.dumps(action, indent=2))
-                print(f"--------------------------------------------------\n")
-            except Exception as e:
-                print(f"\n[N'KAI CLI DISPATCH] Raw payload: {post_body.decode('utf-8', errors='ignore')}")
+        """Captures mobile UI action requests, quick notes, and mail sync."""
+        clean_path = self.path.split("?")[0].rstrip("/")
+        content_length = int(self.headers.get("Content-Length", 0))
+        post_body = self.rfile.read(content_length) if content_length > 0 else b""
+
+        try:
+            body_json = json.loads(post_body.decode("utf-8")) if post_body else {}
+        except Exception:
+            body_json = {}
+
+        if clean_path == "/api/quick-note":
+            text = body_json.get("text", "").strip()
+            if not text:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": "Empty note text"}).encode("utf-8"))
+                return
+
+            now = datetime.now()
+            date_str = now.strftime("%Y-%m-%d")
+            time_str = now.strftime("%H:%M")
+            inbox_dir = Path(r"C:\_\Vault\Inbox")
+            if not inbox_dir.exists():
+                inbox_dir = REPO_ROOT / "docs" / "inbox"
+            inbox_dir.mkdir(parents=True, exist_ok=True)
+
+            catchall_path = inbox_dir / f"{date_str}_Quick_Notes.md"
+            if not catchall_path.exists():
+                header = f'---\ntitle: "Daily Quick Notes ({date_str})"\ndate: {date_str}\ntags: [quick-notes, daily-catchall]\npriority: P2\npillars: []\n---\n\n# Daily Quick Notes ({date_str})\n\n'
+                catchall_path.write_text(header, encoding="utf-8")
+
+            with open(catchall_path, "a", encoding="utf-8") as f:
+                f.write(f"- [{time_str}] {text}\n")
+
+            check_mail_script = REPO_ROOT / "tools" / "check_mail.py"
+            if check_mail_script.exists():
+                subprocess.run([sys.executable, str(check_mail_script), "--no-browser"], cwd=REPO_ROOT, check=False)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            response = json.dumps({"status": "ok", "source": "nkai_cli_server"}).encode("utf-8")
-            self.wfile.write(response)
+            self.wfile.write(json.dumps({"ok": True, "file": str(catchall_path)}).encode("utf-8"))
+            return
+
+        if clean_path == "/api/check-mail":
+            check_mail_script = REPO_ROOT / "tools" / "check_mail.py"
+            if check_mail_script.exists():
+                subprocess.run([sys.executable, str(check_mail_script), "--no-browser"], cwd=REPO_ROOT, check=False)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "message": "Mail checked"}).encode("utf-8"))
+            return
+
+        if clean_path in ("/api/action", "/api/dispatch"):
+            print(f"\n[N'KAI MOBILE ACTION] Received from mobile UI: {body_json}")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "status": "action_recorded"}).encode("utf-8"))
+            return
+
+        if clean_path == "/api/conclude-lab":
+            slug = body_json.get("slug", "mobile_lab")
+            conclude_script = REPO_ROOT / "tools" / "conclude_lab.py"
+            if conclude_script.exists():
+                subprocess.run([sys.executable, str(conclude_script), "--slug", slug], cwd=REPO_ROOT, check=False)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True}).encode("utf-8"))
             return
 
         self.send_response(404)
@@ -397,9 +548,11 @@ Examples:
         sys.exit(1)
 
     local_ip = get_local_ip()
+    tailscale_ip = get_tailscale_ip()
     host_display = "127.0.0.1" if args.host == "0.0.0.0" else args.host
     url = f"http://{host_display}:{active_port}/{file_name}".rstrip("/")
     mobile_url = f"http://{local_ip}:{active_port}/{file_name}".rstrip("/")
+    tailscale_url = f"http://{tailscale_ip}:{active_port}/{file_name}".rstrip("/") if tailscale_ip else None
     qr_web_url = f"http://{local_ip}:{active_port}/qr"
 
     print("=" * 64)
@@ -409,11 +562,13 @@ Examples:
     print(f"  📂 Serving Directory: {directory_to_serve}")
     print(f"  🌐 Local Host URL:    {url}")
     print(f"  📶 Local Wi-Fi URL:   {mobile_url}")
+    if tailscale_url:
+        print(f"  🔒 Tailscale Mesh:    {tailscale_url}")
     print(f"  📱 Web Pairing Route: {qr_web_url}")
     if active_port != args.port:
         print(f"  ⚡ Note: Port {args.port} was occupied, bound to {active_port}")
     if args.host == "0.0.0.0":
-        print(f"  🛡️ Bound to 0.0.0.0 (Accessible across local Wi-Fi LAN)")
+        print(f"  🛡️ Bound to 0.0.0.0 (Accessible across local Wi-Fi & Tailnet)")
     print("=" * 64)
 
     if show_qr:
@@ -435,6 +590,7 @@ Examples:
             # Attach mobile url to server instance for /qr route
             httpd.mobile_url = mobile_url
             httpd.local_ip = local_ip
+            httpd.tailscale_ip = tailscale_ip
 
             if not args.no_browser:
                 print(f"  🌐 Opening browser to {url} ...")

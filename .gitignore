@@ -59,4 +59,6 @@ test_artifacts/
 .agents/sidecar/packages/
 .agents/pipeline/inbox/
 .agents/pipeline/staging/
+*.pid
+.agents/pipeline/*.pid
 
