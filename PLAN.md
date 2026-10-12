@@ -1,94 +1,71 @@
-# 🎨 Flight 19: Per-Card Response Drawer (`rj-08` split)
+# rj-22 Six-Way Devil's Advocate Benchmark (rev 4: allowance-aware split, hold until Sunday)
 
-> **ID:** plan-013  
-> **TARGET:** TOOLING_HARNESS (New Klang City → Flash Builder Subagent) 🚀  
-> **Topic Target:** Mailbag Card `rj-08` (split) / BACKLOG Section 15 (Flight 19: Per-Card Response Drawer)  
-> **Status:** COMPLETED ✅  
-> **Priority:** P1 (Small, High Velocity)  
-> **Target Branch:** `0.4.0-dev` (TheKlangSuite) / `main` (nkai)  
-> **Recommended Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE  
-> **Source Note:** [`C:\Dev\TheKlangVault\Inbox\Archive\Fullscreen Sidecar.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Fullscreen%20Sidecar.md) + [`Second Monitor and Other Uses for the Nkai Sidecar Integration.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Second%20Monitor%20and%20Other%20Uses%20for%20the%20Nkai%20Sidecar%20Integration.md)  
-> **Prerequisites:** Flight 15 (Master Template) ✅, Flight 14 (Multi-Board Hub) ✅, Flight 7 (Intake v2) ✅  
-> **Dependents:** Flight 20 (Vault Graph & Naming Hygiene) ⏳, Flight 21 (Checkpoint Resumption Engine & Opus Deep Audit) ⏳  
+> **TARGET:** TOOLING_HARNESS (research and evaluation only) · Mailbag card `rj-22`
+> **Durable data home:** `C:\Dev\Research\agentic\rj22_da_benchmark\`
+> **Active Model Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE
+> **Allowance at planning time:** 51% of the 5-hour window, 25% of the week (Opus-capable plan). Weekly reset: **Sunday 2026-10-18**.
 
----
+## Goal
 
-## 🎯 Architectural Intent & Storyline
+Benchmark our three DA engines as **writers** (two prompt methods each) and as **judges**, under real-workflow conditions. This week, finish
+everything that doesn't need further Opus judging or analysis, deliver **two provisional meta-analyses** written by Flash and Pro, then **hold**
+until the weekly reset for the Opus judge, the final Opus meta-analysis, and the real-world impact report.
 
-During live interactive triage, agents currently output multi-paragraph rationales, PCDA trade-offs, and next actions directly into the chat transcript. This creates two distinct problems:
-1. **Chat Transcript Bloat**: Long-form triage text burns valuable context tokens and accelerates compaction amnesia.
-2. **Context Fragmentation**: The human review surface is separated from the agent's explanation—the user looks at the board in the side pane, then has to scroll chat to read the agent's reasoning.
+### Engines (real-workflow definitions)
+| Cell | Produced by | Dispatching main chat (verified) |
+| :--- | :--- | :--- |
+| **Flash** | `research` subagent, `Model="flash"` (whatever version the platform supplies) | `Gemini 3.8 Flash (High)` |
+| **Pro** | `research` subagent, `Model="pro"` (whatever version the platform supplies) | `Gemini 3.8 Flash (High)` |
+| **Opus** | `research` subagent, `Model="inherit"` | `Claude Opus 5.5 (High)` |
 
-**Flight 19** introduces the **Per-Card Response Drawer**:
-- **Rich In-Card Responses**: `MailItem` gains an optional `agent_reply: Optional[str] = None` field containing formatted Markdown.
-- **Collapsible Glassmorphic Drawer**: When `agent_reply` is present, the card renders an accessible expandable drawer (`#drawer-<id>`) with smooth CSS height transitions, syntax-highlighted code blocks, and markdown formatting.
-- **Chat-Minimal Pair Programming**: The agent writes full reasoning, PCDA matrices, and code snippets into `agent_reply` on the card, and emits only 1-2 lines in chat: *"Triaged to Backlog. Architectural breakdown committed to card drawer."*
-- **Mobile-Ready Architecture**: When N'kai v0.3.0 mobile companion or browser tabs view the board, the complete decision log lives on the card itself without requiring chat connection.
+### Methods
+- **Method A, "Original":** the original Pro prompt, byte-for-byte.
+- **Method B, "Hardened":** the `opus-B` prompt, byte-for-byte: Method A plus the blindness rule, fact-check web search, and the "Where I Disagree With The Prompt" section.
+
+### The six cells
+| | Method A | Method B |
+| :--- | :--- | :--- |
+| **Flash** | `flash-A` ✅ existing | **`flash-B`**: W3 |
+| **Pro** | `pro-A` ✅ existing | **`pro-B`**: W3 |
+| **Opus** | **`opus-A`**: W1 ✅ completed | `opus-B` ✅ existing |
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Phase 1: Data Model Expansion (`tools/models.py`)
-- [x] In `tools/models.py`, add fields to `MailItem`:
-  - `agent_reply: Optional[str] = None` (markdown body of agent response)
-  - `agent_reply_at: Optional[str] = None` (ISO timestamp of reply)
-  - `has_reply: bool = False` (computed property or validator setting `True` if `agent_reply` is non-empty)
-- [x] In `tools/models.py`, update `RambleCard` with optional `agent_reply` passthrough to `to_mail_item()`.
-- [x] Mirror models to `c:\Dev\nkai\tools/models.py` and `nkai/bundle/tools/models.py`.
+### Stage W1: Prompt freeze + `opus-A` (Opus)
+- [x] Freeze prompts `method_A.txt` and `method_B.txt` with SHA-256 hashes
+- [x] Run `opus-A` subagent with Method A instructions (`b2b1b96b-a69d-464d-9282-f9af6f95c612`)
 
-### Phase 2: Response Drawer Markup & Styling (`master_template.html` & `sidecar.css`)
-- [x] In `c:\Dev\nkai\core\master_template.html` (and `.agents/sidecar/master_template.html`):
-  - On cards where `item.agent_reply` is present, render:
-    ```html
-    <div class="card-drawer-container" id="drawer-container-{{CARD_ID}}">
-      <button class="card-drawer-toggle" id="btn-drawer-{{CARD_ID}}" onclick="toggleResponseDrawer('{{CARD_ID}}')" aria-expanded="false">
-        <span class="drawer-toggle-icon">💬</span>
-        <span class="drawer-toggle-label">Agent Assessment & Rationale</span>
-        <span class="drawer-toggle-caret">▾</span>
-      </button>
-      <div class="card-drawer-content" id="drawer-{{CARD_ID}}" hidden>
-        <div class="drawer-inner markdown-body">
-          {{AGENT_REPLY_HTML}}
-        </div>
-      </div>
-    </div>
-    ```
-- [x] In `c:\Dev\nkai\core\sidecar.css`:
-  - Style `.card-drawer-container`, `.card-drawer-toggle`, and `.card-drawer-content`.
-  - Add smooth transition, dark slate card contrast background, and subtle emerald/purple left border indicator.
-  - Style `.drawer-inner` with clean typography, code block styling, and markdown spacing.
+### Stage W2: Prep & Tooling Harness (Flash Builder Subagent)
+- [x] Extract `opus-A.md` raw report from subagent transcript to `C:\Dev\Research\agentic\rj22_da_benchmark\reports\opus-A.md`
+- [x] Setup `C:\Dev\Research\agentic\rj22_da_benchmark\` directories: `prompts/`, `reports/`, `anonymized/`, `reviews/`, `meta/`, `sealed/`
+- [x] Copy existing reports (`flash-A.md`, `pro-A.md`, `opus-B.md`) and `ground_truth.md`
+- [x] Copy frozen prompts and write `prompts.sha256`
+- [x] Author `tools/da_bench.py` (CLI with `extract`, `sanitize`, `audit-blindness`, `aggregate`, `manifest`)
+- [x] Author `tools/tests/test_da_bench.py` and verify all tests pass
+- [x] Initialize `manifest.json` with Stage W2 complete
 
-### Phase 3: Drawer Controller & CLI Reply Tooling (`sidecar.js` & `check_mail.py`)
-- [x] In `c:\Dev\nkai\core\sidecar.js`:
-  - Implement `toggleResponseDrawer(cardId)`:
-    - Toggles `hidden` attribute and `.is-open` class.
-    - Updates `aria-expanded` attribute.
-    - Plays audio haptic tick (`playHaptic('tick')`).
-- [x] In `tools/board_renderer.py`:
-  - Convert `agent_reply` markdown to safe HTML using lightweight markdown-to-HTML parser.
-  - Inject drawer markup conditionally.
-- [x] In `tools/check_mail.py`:
-  - Add CLI option `--reply-card <id> --text "<markdown>"` to record an agent reply on a card and regenerate the board in <50ms.
-- [x] Add fixture with an `agent_reply` to `assets/fixtures/sandbox_mail_queue.json` (`sbx-02`).
+### Stage W3: Runs, Blind Judges & Provisional Metas (Flash)
+- [x] Launch `flash-B` (`Model="flash"`) and `pro-B` (`Model="pro"`) with Method B prompt
+- [x] Save outputs to `reports/flash-B.md` and `reports/pro-B.md`
+- [x] Run `python tools/da_bench.py sanitize` -> generate `R1.md` through `R6.md` and `sealed/key.json`
+- [x] Launch Blind Flash Judge (`Model="flash"`) on R1..R6 -> `reviews/judge-flash.md`
+- [x] Launch Blind Pro Judge (`Model="pro"`) on R1..R6 -> `reviews/judge-pro.md`
+- [x] Run `python tools/da_bench.py audit-blindness` on judge transcripts (100% blind compliance PASS)
+- [x] Author Provisional Flash Meta-Analysis -> `meta/provisional_flash.md`
+- [x] Author Provisional Pro Meta-Analysis -> `meta/provisional_pro.md`
+- [x] Transition manifest to `HOLD` state
+- [x] Present summary scorecard to user
 
-### Phase 4: Automated Verification Gauntlet
-- [x] Author `tools/tests/test_response_drawer.py`:
-  - Asserts `MailItem` serializes and validates `agent_reply` and `agent_reply_at`.
-  - Asserts `board_renderer.py` renders drawer container, toggle button, and content with deterministic IDs (`btn-drawer-<id>`, `drawer-<id>`).
-  - Asserts `--reply-card` CLI updates the ledger and regenerates HTML cleanly.
-- [x] Run test suites:
-  - `python -m unittest tools/tests/test_response_drawer.py tools/tests/test_intake_v2.py tools/tests/test_board_hub.py tools/tests/test_sandbox_board.py` (assert 100% PASS).
-- [x] Run Web QA linter `tools/audit_sidecar.py` across updated templates (assert 0 errors).
-- [x] Run `python tools/verify_utf8.py --all --strict` (assert 100% compliance).
-- [x] Run `python tools/verify_context_clues.py` (assert 100% pass).
-- [x] Run `python tools/install_nkai_plugin.py` and verify extension assets.
+### Stage ⏸️ HOLD (Until Sunday 2026-10-18 weekly reset)
+- [x] Benchmark data, tools, and provisional metas frozen on disk
+- [ ] Await weekly allowance reset to execute Stage W4
 
-### Phase 5: Design Spec, Documentation & Multi-Repo Commits
-- [x] Author design spec `docs/specs/nkai_per_card_response_drawer.md`.
-- [x] Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-- [x] Update `docs/GLOSSARY.md` (§23: Per-Card Response Drawer) and `docs/CHEAT_SHEET.md`.
-- [x] Mark Flight 19 complete in `docs/BACKLOG.md` and Card `rj-08` in `.agents/pipeline/mailbag/rejigger.json`.
-- [x] Check off all `[x]` in `PLAN.md` and set `Status: COMPLETED ✅`.
-- [x] Append execution receipt to `subagent_receipt.md` and set dispatch `STATUS: COMPLETED`.
-- [x] Commit cleanly across `TheKlangSuite` and `nkai`.
+### Stage W4: Opus Judge, Final Meta & Real-World Impact (Opus, Sunday+)
+- [ ] Run Blind Opus Judge (`Model="inherit"` on Claude Opus 5.5 High)
+- [ ] Run `da_bench.py audit-blindness`
+- [ ] Run `da_bench.py aggregate`
+- [ ] Author Final Meta-Analysis
+- [ ] Author Real-World Impact Report
+- [ ] Emit Downgrade Chime

@@ -477,3 +477,58 @@ STATUS: COMPLETED
 
 
 
+
+
+---
+
+# Subagent Execution Receipt: Six-Way Devil's Advocate Benchmark Stage W2 (Card rj-22)
+> *Pipeline Target:* Dual-Track Communiqué — Tooling Pipeline Handshake (`TARGET: TOOLING_HARNESS`)  
+> *Active Branch:* `0.4.0-dev`  
+> *Consumer:* Antigravity Main Chat Orchestrator (New Klang City)  
+
+---
+
+## 1. Execution Header
+- **STATUS**: `COMPLETED`
+- **ROLE EXECUTED**: `Flash Tooling Builder`
+- **TASK SLUG**: `rj22-da-bench-tooling` (Card `rj-22`: Stage W2)
+- **COMPLETED AT**: `2026-10-11T23:55:00Z`
+- **MODEL TIER**: `Tier 2 Flash (High)`
+- **SOURCE PLAN**: [`c:\Dev\TheKlangSuite\PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
+- **TARGET REPOSITORIES**: `TheKlangSuite`, `TheKlangResearch` (`C:\Dev\Research`)
+
+---
+
+## 2. Deliverables & Artifacts
+1. **Corpus Setup & Ingestion (`C:\Dev\Research\agentic\rj22_da_benchmark\`)**:
+   - Created standardized benchmark directory hierarchy: `prompts/`, `reports/`, `anonymized/`, `reviews/`, `meta/`, `sealed/`.
+   - Extracted `reports/opus-A.md` verbatim from subagent transcript `b2b1b96b-a69d-464d-9282-f9af6f95c612` (Parts 1/2 and 2/2 concatenated).
+   - Ingested existing reports: `reports/flash-A.md`, `reports/pro-A.md`, `reports/opus-B.md`, and `ground_truth.md`.
+   - Frozen prompts: `prompts/method_A.txt`, `prompts/method_B.txt`, and generated `prompts/prompts.sha256`.
+2. **Benchmark Tooling Harness (`tools/da_bench.py`)**:
+   - Python standard library only, zero external dependencies.
+   - Universal UTF-8 stream hardening (`sys.stdout/stderr.reconfigure(encoding='utf-8')`).
+   - Modular CLI subcommands:
+     - `extract`: validates presence and SHA-256 of report corpus; supports transcript extraction.
+     - `sanitize`: strips blindness preambles, removes multi-part markers/continuations, and redacts model names to `[MODEL]` while strictly preserving `Pro Tools`, `ProTools`, `Apple ProRes`, `Logic Pro`, `Mac Pro`, `Final Cut Pro`, and `Pro Audio`. Supports seeded deterministic shuffling and output of `sealed/key.json`.
+     - `audit-blindness`: parses subagent `.jsonl` transcripts to verify zero access to un-anonymized benchmark reports, keys, or ground truth files.
+     - `aggregate`: parses judge markdown scorecards, computes composite scores, rank improvements, prompt method deltas ($B - A$), pairwise Kendall tau-b concordance, self-preference bias, and length stats.
+     - `manifest`: supports `show`, `check [--through W2|W3|W4]`, and `set <key> <val>` (supporting dotted paths and HOLD state transitions).
+3. **Comprehensive Test Suite (`tools/tests/test_da_bench.py`)**:
+   - 8 unit tests covering all benchmark harness capabilities with zero test pollution and fast execution.
+4. **Canonical Manifest Registration (`C:\Dev\Research\agentic\rj22_da_benchmark\manifest.json`)**:
+   - Initialized benchmark metadata, stage definitions, cell readiness, prompt checksums, and marked Stage W2 as `COMPLETED`.
+
+---
+
+## 3. Verification Gauntlet Results
+- `python -m unittest tools/tests/test_da_bench.py`:
+  - **PASS**: 8/8 tests passed in ~0.11s (100% PASS).
+- `python tools/verify_utf8.py --strict`:
+  - **PASS**: 29/29 files compliant (100% Universal UTF-8 Invariant compliance).
+- `python tools/da_bench.py manifest check --through W2`:
+  - **PASS**: All Stage W2 artifacts and prompt SHA-256 hashes verified.
+- `python tools/da_bench.py extract --allow-partial`:
+  - **PASS**: 4/6 reports verified present (`flash-A`, `pro-A`, `opus-A`, `opus-B`).
+- `c:\Dev\TheKlangSuite\PLAN.md`:
+  - **PASS**: All Stage W2 checklist items marked `[x]`.
