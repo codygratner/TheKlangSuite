@@ -300,6 +300,14 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Zero-Dependency Terminal QR Pairing**: The pure Python standard-library QR generator (`tools/qr_code.py`) implementing ISO/IEC 18004 bytecode encoding and Galois Field $GF(256)$ Reed-Solomon error correction, rendering scan-friendly Unicode half-block characters directly into terminal consoles on `--lan` or `--qr` server launch.
 * **Web Pairing Routes (`/qr` and `/mobile`)**: Dedicated zero-dependency HTTP endpoints in `nkai_serve.py` serving a clean dark-theme pairing page with a high-contrast SVG vector QR code for second-monitor scanning.
 
+---
+
+## 26. The Cosmos & Scoped Enclave Architecture (`rj-44`)
+
+* **The Cosmos (`C:\_\Vault`)**: The master personal Obsidian Sync vault consolidating all personal, creative, solo TTRPG, and technical knowledge. Replaces multi-vault fragmentation (`Solo TTRPG`, `Forged in Obsidian`, `LYT Kit`, `main`, `random`, `TheKlangVault`) with a unified Zettelkasten.
+* **Air-Gapped Scoped Enclave (`New Klang City`)**: The architectural security pattern where dev tooling, Git repositories, and AI factory harnesses are strictly confined to a scoped subfolder (`C:\_\Vault\🏢 New Klang City`), accessed by external dev tooling via an NTFS directory junction (`C:\Dev\TheKlangVault`). Personal notes, game worlds, and private journals remain 100% blind to Git.
+* **The Lore Dispatch System**: The two-way transmission conduit connecting the Stellar Zenith (*The Cosmos / The Cosmic Codex*) and the Subterranean Foundry (*Mayor Toad / Klang Industries*), routing creative lore and technical folklore through `docs/lore/dispatch/` inspected via `python tools/check_lore.py`.
+
 
 
 

@@ -266,6 +266,14 @@
 * **100dvh Viewport Stability**: Dynamic viewport height fallback eliminating mobile browser URL bar jumps.
 * **Zero-Dependency Terminal & Web QR Pairing**: `python tools/nkai_serve.py --lan` detects local Wi-Fi IP, prints Unicode half-block QR code in terminal, and serves `/qr` SVG pairing endpoint for second monitors.
 
+---
+
+## 🌌 The Cosmos & Scoped Enclave (`rj-44`)
+
+* **The Cosmos (`C:\_\Vault`)**: Unified master Obsidian Sync vault consolidating all personal, creative, solo TTRPG, and technical knowledge.
+* **Air-Gapped Scoped Enclave (`New Klang City`)**: Dev tools and Git operate strictly inside `C:\_\Vault\🏢 New Klang City` via junction `C:\Dev\TheKlangVault`. Personal notes remain 100% blind to Git.
+* **Lore Dispatch System**: Conduit between Stellar Zenith (The Cosmos / Codex) and Subterranean Foundry (Mayor Toad / Klang Industries), inspected via `python tools/check_lore.py`.
+
 
 
 
