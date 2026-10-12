@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "cf3f29b",
+    "commit": "aae1828",
     "is_clean": false,
-    "dirty_count": 7,
+    "dirty_count": 4,
     "staged": 1,
-    "modified": 7,
+    "modified": 4,
     "untracked": 0,
     "recent_commits": [
-      "cf3f29b test(qa): add sidecar navigation safety audit, hot-reload, and test_audit_sidecar",
-      "8993d36 fix(boards): sync templates and regenerate boards with safe navigation",
-      "a2a07d6 docs(standards): harden ironclad factory air-gap guardrail and codify Rejigger TDS pattern"
+      "aae1828 fix(state): handle bare command line in state_manager and add regression test",
+      "3060c41 fix(renderer): guard panel mirroring to canonical boards to prevent test clutter",
+      "ace3dfc refactor(mail): streamline check_mail, retire rejigger overlay, and integrate shell.html"
     ]
   },
   "plan": {

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T14:11:31.063861",
+  "last_scanned": "2026-10-12T14:13:33.291914",
   "total_items": 87,
   "p0_count": 8,
   "items": [
@@ -270,8 +270,8 @@
       "priority": "P1",
       "status": "PENDING",
       "tags": [
-        "nk-v0",
-        "tks-v0"
+        "tks-v0",
+        "nk-v0"
       ],
       "target_pillars": [
         "NK"
