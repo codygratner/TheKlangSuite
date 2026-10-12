@@ -362,13 +362,10 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
   `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
 * **Canonical Specification**: [`docs/specs/nkai_three_surfaces_and_runway_board.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
 
+---
 
+## 33. Antigravity Core Daemons vs. Sidecar Architecture
 
-
-
-
-
-
-
-
+* **`language_server.exe`**: The core background Language Server Protocol (LSP) and agent supervisor daemon shipped with Google Antigravity (`resources\bin\language_server.exe`). It indexes C++ headers, JUCE 9 class trees, Python scripts, and Markdown files across the open workspace, executes model tool calls, and bridges IPC sockets (`--enable_sidecars`). Its RAM footprint naturally scales to ~1.0–1.5 GB+ during multi-hour pair-programming sessions due to in-memory AST symbol caching; restarting the IDE or running `/clear` drops its working set back to ~300 MB.
+* **Sidecar Memory Footprint**: N'kai sidecars run as standard HTML5/CSS/JavaScript webviews in an isolated Electron renderer pane. They use **zero native C++ binaries**, zero background compile daemons, and consume only ~30–50 MB of RAM. N'kai does not own or run `language_server.exe`.
 

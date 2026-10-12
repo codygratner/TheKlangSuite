@@ -2,6 +2,9 @@
 
 > **Single-Page Developer Reference Card**: The essential mental model, acronyms, aviation metaphors, and toolchain commands across The Klang Suite ecosystem.
 
+> [!TIP] 🧠 Memory & Process Check: What is `language_server.exe`?
+> If Windows Task Manager reports `language_server.exe` consuming ~1.5 GB+ RAM, **it is NOT N'kai**! It is Google Antigravity's core background Language Server Protocol (LSP) daemon indexing C++ symbols and powering the agent runtime. N'kai's sidecar is a pure HTML5/JS webview taking only ~30–50 MB. To flush the LSP symbol cache back to ~300 MB after multi-hour flights, simply restart Antigravity or execute a clean `/clear`.
+
 ---
 
 ## 🏛️ The Five Ecosystem Pillars
