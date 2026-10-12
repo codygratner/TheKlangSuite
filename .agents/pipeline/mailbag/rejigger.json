@@ -1272,6 +1272,50 @@
         "2026-10-11_pro_mailbag_rejigger",
         "Morning Mail Archive Audit"
       ]
+    },
+    {
+      "id": "rj-43",
+      "rank": 43,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "Interactive Stream-of-Consciousness Feedback & Live Reading Notes Protocol",
+      "summary": "Codify an interactive pair-programming mechanism that allows the developer to capture incremental, stream-of-consciousness reactions as they read long architectural teardowns (PCDAs, specs, audit reports) before reaching discussion, without losing thoughts or feeling constrained by linear reading.",
+      "angles": [
+        "Live Reading Note Capture: Developer reads long dialectics section-by-section and dumps gut reactions as they read ('presentation notes mode')",
+        "Non-Judgmental Buffer: Agent explicitly buffers and reconciles incremental user feedback against later sections without patronizing or dismissing early reactions",
+        "UI Sidecar Tooling: Potential future N'kai widget or chat command (/stream-notes or inline margin notes) allowing paragraph-level reactions"
+      ],
+      "next_action": "Approve -> document protocol in docs/history/vibe_coding_field_guide.md and AGY prompt rules.",
+      "sources": [
+        "Live_Reading_Notes_Protocol"
+      ]
+    },
+    {
+      "id": "rj-44",
+      "rank": 44,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "Mega-Vault Consolidation & Scoped Vault Enclave Architecture (Zettelkasten)",
+      "summary": "Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (TheKlangVault/New Klang City/ or similar) while providing unified global access and pre-migration health scanning for plugins/cruft.",
+      "angles": [
+        "Single Unified Obsidian Vault: Merge multi-vault sprawl into one unified Zettelkasten, increasing daily usage and cognitive cohesion",
+        "Sub-Enclave Boundary: Restrict TheKlangSuite/N'kai AI harness strictly to a scoped folder (e.g. vault/New Klang City/) so agents never touch or leak personal/creative notes",
+        "Vault Pre-Migration Health Scanner: Tooling script to audit external vaults before merge (checking for broken plugins, bloated cache, circular links, and filename hazards)"
+      ],
+      "next_action": "Approve -> author migration RFC in TheKlangResearch and design enclave boundary.",
+      "sources": [
+        "Mega_Vault_Consolidation_and_Scoped_Enclave"
+      ]
     }
   ]
 }
