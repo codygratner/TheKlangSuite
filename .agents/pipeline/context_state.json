@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "de73be4",
-    "is_clean": false,
-    "dirty_count": 25,
-    "staged": 7,
-    "modified": 12,
-    "untracked": 6,
+    "commit": "237d9b3",
+    "is_clean": true,
+    "dirty_count": 0,
+    "staged": 0,
+    "modified": 0,
+    "untracked": 0,
     "recent_commits": [
+      "237d9b3 feat(blackbox): automate 0-turn cold boot and memory flush via state_manager and flush_memory, normalize communique names",
       "de73be4 docs(plan): stage systemic agent audit blueprint in drafts",
-      "aedc948 build(factory): rebuild multi-target suite and deploy fresh VST3 and standalones",
-      "6a65084 fix(vault): update path constants for emoji-stripped New Klang City vault folder"
+      "aedc948 build(factory): rebuild multi-target suite and deploy fresh VST3 and standalones"
     ]
   },
   "plan": {
