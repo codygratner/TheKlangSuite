@@ -1,68 +1,54 @@
-# rj-22 Six-Way Devil's Advocate Benchmark (rev 4: allowance-aware split, hold until Sunday)
+# N'kai v0.3.0: Mobile Companion & Touch Ergonomics Update
 
-> **TARGET:** TOOLING_HARNESS (research and evaluation only) · Mailbag card `rj-22`
-> **Durable data home:** `C:\Dev\Research\agentic\rj22_da_benchmark\`
+> **TARGET:** TOOLING_HARNESS · Milestone v0.3.0 · Backlog Section 14
 > **Active Model Setting:** Gemini 3.8 Flash (Thinking: High) — 🟢 SUSTAINABLE
-> **Allowance at planning time:** 51% of the 5-hour window, 25% of the week (Opus-capable plan). Weekly reset: **Sunday 2026-10-18**.
+> **Enforced Kill-Gate:** Strict 1-day hard cap (vanilla responsive CSS, pure Python stdlib, zero heavy PWA frameworks)
+> **Status:** COMPLETED ✅
 
 ## Goal
-
-Benchmark our three DA engines as **writers** (two prompt methods each) and as **judges**, under real-workflow conditions. This week, finish
-everything that doesn't need further Opus judging or analysis, deliver **two provisional meta-analyses** written by Flash and Pro, then **hold**
-until the weekly reset for the Opus judge, the final Opus meta-analysis, and the real-world impact report.
-
-### Engines (real-workflow definitions)
-| Cell | Produced by | Dispatching main chat (verified) |
-| :--- | :--- | :--- |
-| **Flash** | `research` subagent, `Model="flash"` (whatever version the platform supplies) | `Gemini 3.8 Flash (High)` |
-| **Pro** | `research` subagent, `Model="pro"` (whatever version the platform supplies) | `Gemini 3.8 Flash (High)` |
-| **Opus** | `research` subagent, `Model="inherit"` | `Claude Opus 5.5 (High)` |
-
-### Methods
-- **Method A, "Original":** the original Pro prompt, byte-for-byte.
-- **Method B, "Hardened":** the `opus-B` prompt, byte-for-byte: Method A plus the blindness rule, fact-check web search, and the "Where I Disagree With The Prompt" section.
-
-### The six cells
-| | Method A | Method B |
-| :--- | :--- | :--- |
-| **Flash** | `flash-A` ✅ existing | **`flash-B`**: W3 |
-| **Pro** | `pro-A` ✅ existing | **`pro-B`**: W3 |
-| **Opus** | **`opus-A`**: W1 ✅ completed | `opus-B` ✅ existing |
+Transform N'kai into a multi-device interactive AI pair-programming companion, enabling frictionless couch and studio triage from mobile devices (iOS Safari & Android Chrome) over local LAN Wi-Fi with native touch ergonomics, minimum 44px tap targets, a sticky bottom thumb bar, and zero-config terminal QR pairing.
 
 ---
 
 ## 📋 Phase Breakdown
 
-### Stage W1: Prompt freeze + `opus-A` (Opus)
-- [x] Freeze prompts `method_A.txt` and `method_B.txt` with SHA-256 hashes
-- [x] Run `opus-A` subagent with Method A instructions (`b2b1b96b-a69d-464d-9282-f9af6f95c612`)
+### Phase 1: Touch-First Mobile CSS & Viewport Architecture
+- [x] Update `<meta name="viewport">` with `viewport-fit=cover` and dynamic viewport scaling.
+- [x] Add `100dvh` dynamic viewport height fallback to eliminate mobile browser URL bar layout jumps.
+- [x] Implement responsive media queries (`max-width: 640px` and `max-width: 480px`) in `core/sidecar.css`.
+- [x] Enforce the 44px Tap Target Law on all interactive controls (`.card-btn`, filter pills, drawer toggles).
+- [x] Style smooth horizontal touch-scrolling with snap points for Two-Tier filter rails.
+- [x] Implement sticky bottom thumb navigation bar (`.mobile-thumb-bar`) for one-handed card filtering.
 
-### Stage W2: Prep & Tooling Harness (Flash Builder Subagent)
-- [x] Extract `opus-A.md` raw report from subagent transcript to `C:\Dev\Research\agentic\rj22_da_benchmark\reports\opus-A.md`
-- [x] Setup `C:\Dev\Research\agentic\rj22_da_benchmark\` directories: `prompts/`, `reports/`, `anonymized/`, `reviews/`, `meta/`, `sealed/`
-- [x] Copy existing reports (`flash-A.md`, `pro-A.md`, `opus-B.md`) and `ground_truth.md`
-- [x] Copy frozen prompts and write `prompts.sha256`
-- [x] Author `tools/da_bench.py` (CLI with `extract`, `sanitize`, `audit-blindness`, `aggregate`, `manifest`)
-- [x] Author `tools/tests/test_da_bench.py` and verify all tests pass
-- [x] Initialize `manifest.json` with Stage W2 complete
+### Phase 2: Zero-Dependency LAN Server & Terminal QR Code (`tools/nkai_serve.py`)
+- [x] Add local Wi-Fi IP address auto-detection (`get_local_ip()`).
+- [x] Author standard-library ASCII/Unicode QR Code generator (`tools/qr_code.py` or inline).
+- [x] Update `tools/nkai_serve.py` with `--lan` and `--qr` flags, displaying clickable local URL and terminal QR code.
+- [x] Add `/mobile` and `/qr` web endpoints in `nkai_serve.py` serving graphical SVG QR codes for second-monitor pairing.
 
-### Stage W3: Runs, Blind Judges & Provisional Metas (Flash)
-- [x] Launch `flash-B` (`Model="flash"`) and `pro-B` (`Model="pro"`) with Method B prompt
-- [x] Save outputs to `reports/flash-B.md` and `reports/pro-B.md`
-- [x] Run `python tools/da_bench.py sanitize` -> generate `R1.md` through `R6.md` and `sealed/key.json`
-- [x] Launch Blind Flash Judge (`Model="flash"`) on R1..R6 -> `reviews/judge-flash.md`
-- [x] Launch Blind Pro Judge (`Model="pro"`) on R1..R6 -> `reviews/judge-pro.md`
-- [x] Run `python tools/da_bench.py audit-blindness` on judge transcripts (100% blind compliance PASS)
-- [x] Author Provisional Flash Meta-Analysis -> `meta/provisional_flash.md`
-- [x] Author Provisional Pro Meta-Analysis -> `meta/provisional_pro.md`
-- [x] Transition manifest to `HOLD` state
-- [x] Present summary scorecard to user
+### Phase 3: Master Template & Frontend Controller Integration
+- [x] In `core/master_template.html`, integrate `.mobile-thumb-bar` markup with 4 core thumb targets:
+  - `[ ⚪ Untriaged ]`
+  - `[ 🚨 P0 Active ]`
+  - `[ 📋 All Cards ]`
+  - `[ 🔍 Search / Board Hub ]`
+- [x] In `core/sidecar.js`, bind thumb navigation actions and add `navigator.vibrate` haptic support on mobile touch.
+- [x] Update `tools/board_renderer.py` to support mobile template tags.
+- [x] Synchronize templates and assets across `c:\Dev\nkai` and `c:\Dev\TheKlangSuite`.
 
-### Stage ⏸️ HOLD & W4: Conclusive Synthesis & Closeout
-- [x] Benchmark data, tools, and provisional metas frozen on disk
-- [x] Blind evaluation completed with high concordance (Kendall's $\tau_b = +0.8667$, unanimous Opus pick)
-- [x] Ground Truth verified (developer friend replaced Ardour with Tracktion Engine; confirmed better)
-- [x] Final Meta-Analysis and Real-World Impact Report synthesized ([`da_methodology_six_way_benchmark_2026-10.md`](file:///C:/Dev/Research/agentic/da_methodology_six_way_benchmark_2026-10.md))
-- [x] Method B Adversarial Prompting and Pre-Downgrade Soul Harvest codified in `GEMINI.md`, `GLOSSARY.md`, and `CHEAT_SHEET.md`
-- [x] 100% of upcoming Sunday Opus allowance preserved for audio DSP and ToadTracker engine work
-- [x] Status: COMPLETED ✅
+### Phase 4: Automated Verification Gauntlet
+- [x] Author `tools/tests/test_mobile_companion.py` testing responsive CSS rules, tap targets, and LAN/QR generation.
+- [x] Run full test suite: `python -m unittest discover tools/tests/`.
+- [x] Regenerate `morning_mail_inbox.html` and sandbox board via `python tools/check_mail.py --no-browser`.
+- [x] Run `python tools/audit_sidecar.py` across all HTML templates (assert 0 errors, 100% tag balance).
+- [x] Run `python tools/verify_utf8.py --strict` (assert 100% compliance).
+- [x] Run `python tools/verify_context_clues.py` (assert 100% pass).
+- [x] Run `python tools/install_nkai_plugin.py` to synchronize `%USERPROFILE%\.gemini\config\plugins\nkai\`.
+
+### Phase 5: Design Spec, Documentation & Multi-Repo Commits
+- [x] Author design specification `docs/specs/nkai_mobile_companion_and_touch_ergonomics.md`.
+- [x] Register spec in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
+- [x] Update `docs/GLOSSARY.md` (§25: Mobile Companion & Touch Ergonomics) and `docs/CHEAT_SHEET.md`.
+- [x] Mark Section 14 as `[x] COMPLETED` in `docs/BACKLOG.md`.
+- [x] Update `context_clues_plan.md` and `context_clues_build.md`.
+- [x] Commit cleanly across `TheKlangSuite` and `nkai`.

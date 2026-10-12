@@ -1,0 +1,1 @@
+﻿Can you be like a man in the middle between the M8 and M8.run and record what I do? Maybe like some kind of Python and SQLite thing to do all the data capture and you can analyze how it works? Maybe also watch my workflow and try to make sure what I do really is polished once you analyze it? There might be an m8.run GitHub as well?

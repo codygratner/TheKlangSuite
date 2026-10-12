@@ -10,7 +10,7 @@
 - **Ecosystem SemVer Matrix:**
   - `The Klang Suite (TKS)`: `v0.4.0-dev`
   - `ToadTracker (TT)`: `v0.1.0`
-  - `N'kai (NK)`: `v0.2.0`
+  - `N'kai (NK)`: `v0.3.0` (Mobile Companion & Touch Ergonomics)
   - `The Klang Research (TKR)`: Continuous Living Archive (Zero SemVer)
 - **Roadmap Sidecar Deep Links**:
   - [The Klang Suite v0.4.0 Roadmap](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tks-v0.4.0)
@@ -26,21 +26,22 @@
   - `v0.3.1` Editor Quality & Data Schema — ✅ COMPLETED
   - `v0.3.2` Agent Infrastructure & Logging — ✅ COMPLETED
   - `v0.3.3` The Hardening Gauntlet — ✅ COMPLETED
+  - `NK v0.3.0` Mobile Companion & Touch Ergonomics — ✅ COMPLETED
 
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** **Stage 2: Mobile N'kai v0.3.0 ("The Mobile Companion & Touch Ergonomics Update")**.
-- **Preceding Flight Completed**: **Act III Deep Docs Update (Bookend #1) FULLY MERGED & CANONICAL ✅**.
+- **Current Objective:** **Stage 3: TKS v0.4.1 Release (Finish UI shells & APVTS parameter wiring)**.
+- **Preceding Milestone Completed**: **Mobile N'kai v0.3.0 (Touch Ergonomics, Thumb Bar & QR Pairing) FULLY VERIFIED & COMPLETED ✅**.
 - **Next Flight Path (Option Beta with Pro Stress-Tested Kill-Gates)**:
   1. `[x] Act III Deep Docs Update (Bookend #1)` (Completed & Merged)
-  2. `[ ] Mobile N'kai v0.3.0` (Touch layouts + LAN Wi-Fi QR pairing — **Active Focus**, 1-day kill-gate)
-  3. `[ ] TKS v0.4.1 Release` (Finish UI shells & APVTS parameter wiring)
+  2. `[x] Mobile N'kai v0.3.0` (Touch layouts + LAN Wi-Fi QR pairing — Completed & Verified ✅)
+  3. `[ ] TKS v0.4.1 Release` (Finish UI shells & APVTS parameter wiring — **Next Active Target**)
   4. `[ ] TKS v0.5.0: Sound & Chaos` (2-op FM, Bass Mode, Phase Smear DSP)
   5. `[ ] ToadTracker PoC Pivot` (GPLv3 ToadCore, 500Hz SteamOS Gamepad + Renoise `.xrns` export)
   6. `[ ] TKS v0.6.0: FX Rack 2.0` (Modular Reverb/Delay/Chorus Engine)
   7. `[ ] Act III Deep Docs Update (Bookend #2)` (End-of-week master reconciliation)
-- **Active Blueprint:** `PLAN.md` (Stage 2: Mobile N'kai v0.3.0)
+- **Active Blueprint:** `PLAN.md` (Stage 2: Mobile N'kai v0.3.0 — Completed)
 
 
 ---

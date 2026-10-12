@@ -289,6 +289,18 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Pre-Downgrade Soul Harvest**: The mandatory single-turn capture of raw Opus working hypotheses, gotchas, and failure-mode discoveries into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md` immediately before emitting the downgrade chime to Flash, capturing peak reasoning at near-zero token cost before returning to sustainable Flash High.
 * **Audio Strangler Fallacy**: The proven architectural finding that standard web-style Strangler Fig migrations (running two backends concurrently at runtime) fail in digital audio workstations because multiple audio engines cannot concurrently claim exclusive hardware leases on a single ASIO/CoreAudio device stream. Real-time audio migrations must instead use Branch by Abstraction at the data interface verified by offline-bounce golden null tests.
 
+---
+
+## 25. Mobile Companion & Touch Ergonomics (Milestone v0.3.0 / Section 14)
+
+* **Mobile Companion**: The responsive multi-device mode of N'kai allowing zero-friction inbox triage, PCDA reviewing, and backlog ranking from iOS Safari or Android Chrome over local Wi-Fi LAN without desktop mouse/monitor tethering.
+* **Touch Target Law**: The strict mobile ergonomic requirement enforcing a minimum 44px x 44px tap target size across all actionable controls (`.card-btn`, `.action-chip`, `#btn-approve-*`, `#btn-backlog-*`, `#btn-research-*`, `#btn-graveyard-*`, `#btn-pcda-*`, `.card-drawer-toggle`, `.mail-body-toggle`) on viewports $\le$ 640px.
+* **Sticky Bottom Thumb Bar (`.mobile-thumb-bar`)**: The fixed bottom navigation bar on mobile viewports providing 4 one-handed thumb targets (`⚪ Untriaged`, `🚨 P0`, `📋 All`, `🗂 Switch Board`) paired with physical device haptics (`navigator.vibrate(15)`), automatically suppressed (`display: none !important;`) on desktop screens > 640px.
+* **100dvh Viewport Stability**: The dynamic viewport height fallback (`min-height: 100vh; min-height: 100dvh;`) implemented across root and scroll containers to completely eliminate mobile browser URL bar expansion reflows.
+* **Zero-Dependency Terminal QR Pairing**: The pure Python standard-library QR generator (`tools/qr_code.py`) implementing ISO/IEC 18004 bytecode encoding and Galois Field $GF(256)$ Reed-Solomon error correction, rendering scan-friendly Unicode half-block characters directly into terminal consoles on `--lan` or `--qr` server launch.
+* **Web Pairing Routes (`/qr` and `/mobile`)**: Dedicated zero-dependency HTTP endpoints in `nkai_serve.py` serving a clean dark-theme pairing page with a high-contrast SVG vector QR code for second-monitor scanning.
+
+
 
 
 

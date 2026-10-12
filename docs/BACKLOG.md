@@ -36,7 +36,7 @@
 - [v1.1.0 "The Klang Box Hardware Universe (Post-1.0)"](#-milestone-v110-the-klang-box-hardware-universe-post-10)
 - [N'kai (NKAI) Asymmetric Sidecar Framework](#-nkai-nkai-asymmetric-sidecar-framework)
   - [N'kai v0.2.0 Milestone (UI Extension & Native Bridge)](#13-nkai-v020-milestone-the-ui-extension--native-bridge-update---completed)
-  - [N'kai v0.3.0 Milestone (Mobile Companion & Touch Ergonomics)](#14-nkai-v030-milestone-the-mobile-companion--touch-ergonomics-update---deferred)
+  - [N'kai v0.3.0 Milestone (Mobile Companion & Touch Ergonomics) — COMPLETED](#14-nkai-v030-milestone-the-mobile-companion--touch-ergonomics-update---completed)
   - [N'kai Sidecar Architecture Roadmap (Act III)](#15-nkai-sidecar-architecture-roadmap-the-rejiggered-runway--act-iii)
   - [Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)](#16-flight-2-nkai-to-high-reasoning-prompt-compiler-p1--top-active-priority)
   - [Flight 3: N'kai Automode & Multi-Drawer Dossier Cards (P1 — TOP PRIORITY)](#17-flight-3-nkai-automode-2-pass-iterative-research-daemon--multi-drawer-dossier-cards-p1--top-priority)
@@ -1049,18 +1049,23 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Preserved Decoupled Offline Mode**:
   - Maintained 100% standalone offline `file:///` fallback and CLI runner parity for non-Antigravity environments.
 
-### 14. N'kai v0.3.0 Milestone ("The Mobile Companion & Touch Ergonomics Update") — ⏳ QUEUED (TOP ACTIVE IMMEDIATE FOCUS)
-*(Un-deferred per user burning desire & Pro roadmap stress-test; strictly bound by 1-day kill-gate).*
+### 14. N'kai v0.3.0 Milestone ("The Mobile Companion & Touch Ergonomics Update") — ✅ COMPLETED
+*(Completed 2026-10-12 within strict 1-day kill-gate using pure responsive CSS3, vanilla ES6 haptics, standard-library Python LAN serving, and zero heavy PWA frameworks).*
 *Goal: Evolve N'kai from a desktop IDE sidecar into a multi-device, interactive AI pair-programming companion with mobile ergonomics and zero-config LAN pairing.*
-- **Mobile Formatting & Touch Ergonomics**:
-  - **Phone-Optimized Layouts**: Responsive breakpoints down to 320px–390px (iPhone & Android mobile viewports).
-  - **Touch Target Ergonomics**: Minimum 44px tap targets for all interactive elements (`[ APPROVE ]`, `[ TABLE ]`, `[ KILL ]`, tab pills, filter chips) preventing accidental mis-taps.
-  - **Bottom-Sheet & Thumb Navigation**: Sticky bottom action bar / drawer for one-handed mobile triage, scorecard review, and prompt copying while holding the phone.
-  - **Touch-Scroll Optimization**: Smooth hardware-accelerated momentum scrolling (`-webkit-overflow-scrolling: touch`), overscroll boundary containment, and sticky top headers.
-- **Mobile Testing & LAN Pairing**:
-  - Zero-config mobile pairing via `python tools/nkai_serve.py --host 0.0.0.0` or `npx nkai serve --host 0.0.0.0` (with local network IP output and optional terminal QR code) to instantly load and test N'kai triage sessions on phone over local Wi-Fi from the studio or the couch!
-- **Strict 1-Day Kill-Gate (Enforced by Pro Roadmap Stress-Test)**:
-  - Vanilla CSS media queries, zero heavy PWA frameworks, simple Python/Node HTTP LAN server, and terminal QR code. If mobile styling exceeds 8 hours, freeze and advance to C++ DSP.
+- [x] **Mobile Formatting & Touch Ergonomics**:
+  - **Phone-Optimized Layouts**: Viewport stability with `min-height: 100dvh` preventing mobile URL bar expansion reflows, and `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>`.
+  - **Touch Target Law**: Enforced minimum 44px x 44px tap targets across all interactive elements (`.card-btn`, `.action-chip`, `#btn-approve-*`, `#btn-backlog-*`, `#btn-research-*`, `#btn-graveyard-*`, `#btn-pcda-*`, `.card-drawer-toggle`, `.mail-body-toggle`). Card actions wrap into an ergonomic 2-column touch grid.
+  - **Bottom-Sheet & Thumb Navigation**: Fixed/sticky bottom navigation bar (`.mobile-thumb-bar`) with 4 one-handed thumb targets (`⚪ Untriaged`, `🚨 P0`, `📋 All`, `🗂 Switch Board`) paired with physical device haptics (`navigator.vibrate(15)`), automatically hidden on desktop (`> 640px`).
+  - **Touch-Scroll Optimization**: Smooth hardware-accelerated momentum scrolling (`-webkit-overflow-scrolling: touch; scrollbar-width: none;`) on Two-Tier filter rails with 38px pill touch targets.
+- [x] **Mobile Testing & LAN Pairing**:
+  - Local Wi-Fi IP auto-detection via `get_local_ip()` dummy UDP connection to `8.8.8.8`.
+  - Zero-dependency pure Python QR code generator (`tools/qr_code.py`) implementing ISO/IEC 18004 for terminal ASCII/Unicode half-block characters (`█`, `▀`, `▄`, ` `) and SVG vectors.
+  - Zero-config mobile pairing in `tools/nkai_serve.py` via `--lan` (binds to `0.0.0.0` and displays terminal QR code) and `/qr` / `/mobile` browser routes serving crisp SVG vector QR codes for second-monitor scanning.
+- [x] **Automated Verification Gauntlet & Spec**:
+  - Authored `tools/tests/test_mobile_companion.py` (7 tests, all passing; 37/37 test suite total).
+  - 100% Universal UTF-8 compliance (`verify_utf8.py --strict`), 0 Web QA errors (`audit_sidecar.py`).
+  - Synchronized across `TheKlangSuite`, `nkai` repo, and `%USERPROFILE%\.gemini\config\plugins\nkai\`.
+  - Authored design specification [`docs/specs/nkai_mobile_companion_and_touch_ergonomics.md`](specs/nkai_mobile_companion_and_touch_ergonomics.md).
 
 ### 15. N'kai Sidecar Architecture Roadmap (The Rejiggered Runway — Act III)
 > **🛫 Post-Mailbag Execution Order (set 2026-10-11):** finish mailbag triage first, then fly **Flight 0 (FOCUS) → 18 (UTF-8) → 16+17 (Sandbox) → 15 (Template) → 14 (Hub)**, with 19 (Response Drawer) and 7 (Intake v2) slotting in after 16+17.

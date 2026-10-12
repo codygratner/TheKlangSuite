@@ -1,0 +1,1 @@
+﻿There’s a rejigger skill to redo the sequence. Should there be a skill the auto research all the items twice (using the idea we saw before about how loops and how you go through twice and not more)

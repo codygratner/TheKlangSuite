@@ -1,0 +1,441 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "title": "The Klang Suite Documentation & Knowledge Catalog",
+  "description": "Comprehensive index and navigation manifest for all documentation, specs, research archives, institutional lore, and agent workflows.",
+  "catalogs": {
+    "core_governance": {
+      "description": "Foundational architectural rules, taxonomy, licensing, and work queues.",
+      "items": [
+        {
+          "path": "GEMINI.md",
+          "title": "Master Agent Guidelines & Guardrails",
+          "purpose": "Primary source of truth for audio thread invariants, model tiers, coding style, and workflow gates."
+        },
+        {
+          "path": "docs/BACKLOG.md",
+          "title": "Universal Project Backlog",
+          "purpose": "Single source of truth for active and future milestones, features, bugs, and non-goals."
+        },
+        {
+          "path": "docs/FOCUS.md",
+          "title": "North Star Focus Anchor",
+          "purpose": "Living compass for active mission precedence (N'kai -> TKS -> ToadTracker), four pillars matrix, and negative architecture."
+        },
+        {
+          "path": "docs/GLOSSARY.md",
+          "title": "Architectural Taxonomy & Terminology",
+          "purpose": "Defines canonical UI taxonomy (Cards, Modules, Sliders, Knobs) and DSP terms."
+        },
+        {
+          "path": "docs/THIRD_PARTY_LICENSES.md",
+          "title": "FOSS Licenses & Upstream Attribution Ledger",
+          "purpose": "GPLv3 compliance records, permissive component licenses, and inline docblock standards."
+        },
+        {
+          "path": "docs/SYSTEM_MAP.md",
+          "title": "High-Level System Map & Links",
+          "purpose": "Quick-navigation index linking core documentation, history, specs, and pipeline queues."
+        },
+        {
+          "path": "docs/CHEAT_SHEET.md",
+          "title": "Master Workflow & Architecture Cheat Sheet",
+          "purpose": "Single-page reference card for ecosystem pillars, acronyms, flight-deck metaphors, slash commands, and audio invariants."
+        },
+        {
+          "path": "docs/WORKFLOW_CHEAT_SHEET.md",
+          "title": "Developer Workflow Cheat Sheet",
+          "purpose": "1-page high-density operational reference for facility spheres, model tiers, subagents, and N'kai CLI tools."
+        },
+        {
+          "path": "docs/README.md",
+          "title": "Documentation Directory Guide",
+          "purpose": "Overview of the docs directory layout and contribution protocols."
+        },
+        {
+          "path": "context_clues_plan.md",
+          "title": "Planning Context Clues (New Klang City)",
+          "purpose": "Step 0 pre-flight index for architectural planning, active milestones, and roadmap context."
+        },
+        {
+          "path": "context_clues_build.md",
+          "title": "Build Context Clues (Klang Industries)",
+          "purpose": "Step 0 pre-flight index for factory implementation, active directives, and test targets."
+        },
+        {
+          "path": "context_clues_subagent.md",
+          "title": "Subagent Context Clues & Quick-Reference Index",
+          "purpose": "Step 0 pre-flight index for spawned subagents (research, explore, contrarian) to bootstrap taxonomy and invariants."
+        }
+      ]
+    },
+    "ecosystem_architecture": {
+      "description": "Hardware and spin-off product lineup architectures across The Klang Suite.",
+      "items": [
+        {
+          "path": "docs/architecture/product_lineup.md",
+          "title": "The Klang Suite Product Lineup",
+          "purpose": "High-level overview of TKF, TKP, TKR-1, TKM, TKC, and TKB (hardware groovebox)."
+        },
+        {
+          "path": "docs/specs/spinoffs/the_klang_r1.md",
+          "title": "The Klang R1 (TKR-1) Spec",
+          "purpose": "Specification for the 7-voice spin-off modular drum synthesizer and sequencer."
+        },
+        {
+          "path": "docs/architecture/the_klang_vault_studio_hub.md",
+          "title": "The Klang Vault: Private Studio Hub & Architecture",
+          "purpose": "Decoupling studio communications, raw thoughts, and Pydantic data pipelines from native audio code."
+        }
+      ]
+    },
+    "technical_specs": {
+      "description": "In-depth engineering specifications for DSP, UI, and quality assurance.",
+      "directory": "docs/specs/",
+      "items": [
+        {
+          "path": "docs/specs/v040_neo_slate_ux.md",
+          "title": "v0.4.0 Neo-Slate UI/UX & Modulation Layout",
+          "purpose": "3-tier card layout, lower dock strip, and tracer cables."
+        },
+        {
+          "path": "docs/specs/fx_catalog_expansion.md",
+          "title": "FX Catalog Expansion & The Thresher",
+          "purpose": "13 new effect blocks, transfer-function waveshaping, and parallel routing."
+        },
+        {
+          "path": "docs/specs/gated_bass_glide.md",
+          "title": "Voice Articulation & Gated Bass",
+          "purpose": "Noise Engineering-inspired gate hold, pitch glide, and envelope overrides."
+        },
+        {
+          "path": "docs/specs/sqa_automation_hardening.md",
+          "title": "SQA Hardening & Automated Testing",
+          "purpose": "Test harnesses, pluginval integration, timeouts, and fuzzing."
+        },
+        {
+          "path": "docs/specs/wav_sf2_export.md",
+          "title": "Direct-to-DAW Sample Export",
+          "purpose": "Background thread rendering and drag-and-drop WAV/SF2 export."
+        },
+        {
+          "path": "docs/specs/nkai_canonical_state_architecture.md",
+          "title": "N'kai Canonical State & Persistence Architecture (Topic 6.16)",
+          "purpose": "3-tier hybrid persistence model (Markdown frontmatter, JSON session packages, browser localStorage), zero-binary database invariant, and offline file:/// compliance."
+        },
+        {
+          "path": "docs/specs/nkai_distribution_bundle_architecture.md",
+          "title": "N'kai Distribution Bundle & Deployment Architecture (Topic 6.12)",
+          "purpose": "Monolithic all-in-one distribution bundle topology, universal pairing core, optional audio guardrails add-on, and automated installer contract."
+        },
+        {
+          "path": "docs/specs/nkai_universal_harness_portability.md",
+          "title": "N'kai Universal AI Harness Portability (Topic 6.13)",
+          "purpose": "Tri-mode environment detection ('extension', 'file', 'server'), zero-dependency CLI server architecture (nkai_serve.py & npx nkai serve), and terminal agent pairing protocols (Claude Code CLI, Cursor, Windsurf, Aider)."
+        },
+        {
+          "path": "docs/specs/nkai_skill_taxonomy_and_invocation_architecture.md",
+          "title": "N'kai Skill Taxonomy & Invocation Architecture (Topics 6.4 & 6.14)",
+          "purpose": "3-layer skill hierarchy (micro-skills, macro orchestrators, interactive visual experiences), N'kai-first visual default, --chat fallback standard, and domain dispatch routing."
+        },
+        {
+          "path": "docs/specs/nkai_header_ergonomics_and_spatial_density.md",
+          "title": "N'kai Header Ergonomics & Spatial Density (Topics 6.9 & 6.10)",
+          "purpose": "Two-tier header geometry, persistent utility cluster, hybrid compact tabs with hover tooltips, audio haptics protocol, and responsive breakpoints."
+        },
+        {
+          "path": "docs/specs/nkai_interactive_triage_views_and_inbox_workflow.md",
+          "title": "N'kai Interactive Triage Views & Inbox Workflow (Topics 6.8 & 6.11)",
+          "purpose": "Ongoing autopsy view, filterable scoreboard, 1-click cross-tab jump mechanics, and 'Check the Mail' vault inbox harvester tooling."
+        },
+        {
+          "path": "docs/specs/nkai_pcda_governance_and_sota_benchmarks.md",
+          "title": "N'kai PCDA Dialectic Governance & SOTA Benchmarks (Topics 6.1, 6.2 & 6.15)",
+          "purpose": "Continuous live triage contracts, 4-part PCDA dialectic standard (Thesis, Friction, Antithesis, Synthesis), acronym disambiguation, on-demand progressive disclosure, and SOTA competitive teardowns."
+        },
+        {
+          "path": "docs/specs/nkai_allowance_ledger_and_token_governance.md",
+          "title": "N'kai Allowance Ledger & Token Governance (Topics 6.3 & 6.19)",
+          "purpose": "Deep-linked monolithic board URL routing (#t1, #t2, scroll-margin-top offset, anchor highlight), model tier token burn heuristics (Tier 1 Pro vs Tier 2 Flash vs Tier 3), cumulative allowance ledger, and offline CLI auditor."
+        },
+        {
+          "path": "docs/specs/nkai_rambles_ingestion_engine.md",
+          "title": "N'kai Rambles Ingestion Engine Specification (Topic 2, Flight 1)",
+          "purpose": "Stream-of-consciousness ramble intake, multi-idea paragraph decomposition, 3-bullet decision cards, and zero-mutation safety invariant."
+        },
+        {
+          "path": "docs/specs/nkai_sandbox_and_multistage_environments.md",
+          "title": "N'kai QA Sandbox Board & Multi-Stage Environments (Flight 16+17 / rj-03)",
+          "purpose": "2-mode architecture (SANDBOX vs PRODUCTION), Lovecraftian synthetic fixtures, zero-mutation guarantee, mock action dispatch, and deterministic DOM element IDs."
+        },
+        {
+          "path": "docs/specs/nkai_unified_master_template_and_schema.md",
+          "title": "N'kai Unified Master Template & Schema-Driven Boards (Flight 15 / rj-04)",
+          "purpose": "Data-driven BoardSchema architecture, consolidated master_template.html, board_renderer engine, and zero-HTML-edit board generation."
+        },
+        {
+          "path": "docs/specs/nkai_multi_board_hub_and_session_manager.md",
+          "title": "N'kai Multi-Board Hub & Session Manager (Flight 14 / rj-05)",
+          "purpose": "Multi-board directory modal, BoardRegistry data model, anti-cache HTTP response headers, ?board=<id> routing, and dual-mode offline/extension operation."
+        },
+        {
+          "path": "docs/specs/nkai_mailbag_intake_and_triage_v2.md",
+          "title": "N'kai Mailbag Intake & Triage v2 Specification (Flight 7 / rj-07 & rj-17)",
+          "purpose": "Ramble overflow queue, filename-only quick notes, Inbox/Tabled/ directory, attention tags with session launchers, and /mail-add position splice CLI."
+        },
+        {
+          "path": "docs/specs/nkai_per_card_response_drawer.md",
+          "title": "N'kai Per-Card Response Drawer Specification (Flight 19 / rj-08)",
+          "purpose": "In-card agent_reply reasoning, collapsible glassmorphic drawer, procedural Web Audio detent haptics, chat-minimal pair programming, and --reply-card CLI."
+        }
+      ]
+    },
+    "institutional_memory": {
+      "description": "Historical engineering lore, operational post-mortems, and developer manuals.",
+      "directory": "docs/history/",
+      "items": [
+        {
+          "path": "docs/history/DEV_HISTORY.md",
+          "title": "Developer Journal & Milestone Log",
+          "purpose": "Milestone-by-milestone synthesis of technical decisions and takeaways."
+        },
+        {
+          "path": "docs/history/vibe_coding_field_guide.md",
+          "title": "The Vibe-Coder's Field Guide Pointer",
+          "purpose": "Local pointer stub to canonical AI pair-programming protocols in TheKlangResearch/guides/."
+        },
+        {
+          "path": "docs/history/audio_dsp_field_guide.md",
+          "title": "The Audio DSP & C++ Field Guide Pointer",
+          "purpose": "Local pointer stub to canonical real-time audio thread invariants in TheKlangResearch/guides/."
+        }
+      ]
+    },
+    "deep_research_archive": {
+      "description": "Cross-project research repository hosting extensive UI/UX boards, DSP proofs, and subagent extractions.",
+      "repository": "https://github.com/codygratner/TheKlangResearch",
+      "local_hub": "C:\\Dev\\Research",
+      "pointer": "docs/history/research/README.md",
+      "items": [
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/tree/main/qa_autopsies",
+          "title": "QA Autopsies Domain",
+          "purpose": "Post-mortem analysis of critical bugs and platform traps (e.g. N'kai Webview IPC & Buried Toast)."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-08_Subagent_Deep_Research_Harvest.md",
+          "title": "Subagent Deep DSP & Architecture Soul Harvest",
+          "purpose": "Permanent transcript harvest of all 6 Pro subagents (aliasing, filters, comb/APF, decoupling, sequencers)."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/ui_ux/2026-10-08_UI_UX_DSP_Research.html",
+          "title": "Master Visual Research Board",
+          "purpose": "Interactive HTML research board for v0.5.0/v0.6.0 DSP, UI, and TBD-16 features."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/ui_ux/2026-10-08_Research_Post_Mortem_Results.html",
+          "title": "Research Post-Mortem & Triage Results",
+          "purpose": "Interactive classification of research topics into Backlog, Future, or Graveyard."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/dsp/2026-10-08_Research_DSP_Architecture.html",
+          "title": "DSP Architecture Research Snippets",
+          "purpose": "Oversampling, Alpha Juno, wavetable anti-aliasing, and RTNeural."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/ui_ux/2026-10-08_Research_UI_UX.html",
+          "title": "UI & UX Research Snippets",
+          "purpose": "Microtonal tunings, patch browser, d6 randomization, and colorblind rings."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/hardware/2026-10-08_Research_TBD16_Hardware.html",
+          "title": "TBD-16 Hardware & ToadTracker Synergy",
+          "purpose": "ESP32-P4 + RP2350B specs, 4-control OLED mapping, and FastMath."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/ui_ux/2026-10-08_Research_Blue_Sky.html",
+          "title": "Blue Sky Research Snippets",
+          "purpose": "Neural DSP, cellular automata, Euclidean rhythms, and HRTF spatialization."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/agentic/2026-10-08_Agentic_Architecture_Deep_Research.md",
+          "title": "Agentic Architecture Deep Research",
+          "purpose": "Deep Docs Mode Workflow audit and 2026 Agentic Architecture Research."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-08_Layouts_and_Ergonomics_Deep_Research_Harvest.md",
+          "title": "UI/UX Layout Topologies, Monolithic Faceplates & Rhythm Ergonomics Harvest",
+          "purpose": "Comprehensive soul harvest of 5 subagents exploring breaking 4-control rule, monolithic sculpted faceplates, 45\u00b0 signal traces, TE game feel vector glyphs, TR-8S vertical rhythm faders, and C++ class hierarchy."
+        },
+        {
+          "path": "https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-04_ToadTracker_Genesis_and_Architecture_Harvest.md",
+          "title": "ToadTracker Genesis & Architecture Harvest (v0.1.0 - v0.2.0)",
+          "purpose": "Complete architectural and chat transcript harvest of ToadTracker's 1,678-step genesis, multi-target HAL, Alpha Juno engine, and TBD-16 integration."
+        }
+      ]
+    },
+    "agent_workflows_and_skills": {
+      "description": "Agent capabilities, automated pipelines, and communiqu\u00e9 state machines.",
+      "directories": [
+        ".agents/skills/",
+        ".agents/pipeline/"
+      ],
+      "skills": [
+        "update-docs",
+        "deep-research",
+        "post-mortem",
+        "visual-grill-me",
+        "audiothread-guard",
+        "build-validate",
+        "step-verify",
+        "execute-task",
+        "task-finish",
+        "compat-check",
+        "cut-release",
+        "refresh-context",
+        "clean-plan",
+        "clear",
+        "web-qa",
+        "rollback-plan",
+        "audit-reorder",
+        "ramble-ingest"
+      ]
+    },
+    "interactive_sidecars": {
+      "description": "Reusable HTML canvases paired with agent workflows for visual decision making.",
+      "directory": ".agents/sidecar/",
+      "template": ".agents/sidecar/template.html",
+      "active_instances": [
+        ".agents/sidecar/visual_grill_me.html",
+        ".agents/sidecar/roadmap_sidecar.html",
+        ".agents/sidecar/ui_ux_research_board.html",
+        ".agents/sidecar/ecosystem_ideas_research_board.html",
+        ".agents/sidecar/nkai_deep_research.html"
+      ],
+      "rendering_rule": "To render visually in Antigravity's interactive panel, copy/write to brain artifact path with ArtifactMetadata."
+    },
+    "developer_tooling": {
+      "description": "Cross-project automation, linting, sidecar servers, and synchronization utilities.",
+      "directory": "tools/",
+      "items": [
+        {
+          "path": "tools/preset_audit.py",
+          "title": "TKPL: The Klang Preset Linter CLI",
+          "purpose": "Validates JSON presets against Pydantic PresetPayload and master control schema, fixes metadata, exports schemas, and scaffolds test presets."
+        },
+        {
+          "path": "tools/nkai_api.py",
+          "title": "N'kai FastAPI Local Bridge",
+          "purpose": "Lightweight FastAPI server running on localhost:8000 handling /health, /api/mail, /api/action, and /api/plan/rollback with universal CORS and PNA."
+        },
+        {
+          "path": "tools/plan_queue.py",
+          "title": "Multi-Plan Queue & Atomic Rollback CLI",
+          "purpose": "Manages .agents/pipeline/plans/queue.json, snapshots active plans, promotes queued drafts, and executes 5ms atomic rollbacks."
+        },
+        {
+          "path": "tools/check_mail.py",
+          "title": "Morning Mail Vault Harvester",
+          "purpose": "Scans TheKlangVault/Inbox/ for notes, validates via Pydantic MailItem/MailQueue models, and builds interactive triage boards."
+        },
+        {
+          "path": "tools/pcda_format.py",
+          "title": "PCDA Dialectic Formatter & Validator",
+          "purpose": "Parses and validates 4-part PCDA dialectic blocks (Pros, Cons, Devil's Advocate, 80/20 Resolution) with CLI linting."
+        },
+        {
+          "path": "tools/nkai_ledger.py",
+          "title": "N'kai Allowance Ledger & Token Estimator",
+          "purpose": "Audits HTML sidecar boards, tallies approved cards by model tier, and estimates cumulative token burn."
+        },
+        {
+          "path": "tools/nkai_serve.py",
+          "title": "N'kai Zero-Dependency CLI Server",
+          "purpose": "Serves interactive N'kai sidecars locally over HTTP with automatic browser launching and proper MIME typing."
+        },
+        {
+          "path": "tools/verify_context_clues.py",
+          "title": "Context Clues Link Integrity Validator",
+          "purpose": "Audits all markdown links in context clues files to ensure 100% path resolution."
+        },
+        {
+          "path": "tools/verify_utf8.py",
+          "title": "Universal UTF-8 Invariant Auditor",
+          "purpose": "Audits Python entrypoints for UTF-8 stream reconfiguration and enforces explicit encoding='utf-8' on all file I/O operations."
+        },
+        {
+          "path": "tools/sync_roadmap_sidecar.py",
+          "title": "Roadmap Sidecar Compiler",
+          "purpose": "Compiles multi-repo BACKLOG.md files into an offline, hash-routed N'kai roadmap sidecar."
+        },
+        {
+          "path": "tools/sync_obsidian_vault.ps1",
+          "title": "Obsidian Vault Mirror Bridge",
+          "purpose": "Synchronizes documentation, field guides, and research into TheKlangVault."
+        }
+      ]
+    },
+    "data_schemas": {
+      "description": "JSON Schemas and contracts governing DSP parameter bindings and presets.",
+      "items": [
+        {
+          "path": "assets/controls/master_control_schema.json",
+          "title": "Master DSP Control Schema",
+          "purpose": "Compiled registry of all 202 DSP parameter contracts across all 8 modules (TKF & TKP)."
+        },
+        {
+          "path": "assets/presets/$schema/preset.schema.json",
+          "title": "Universal Preset JSON Schema",
+          "purpose": "Pydantic-derived JSON Schema enforcing PresetPayload, PresetMetadata, and normalized [0.0, 1.0] parameter values."
+        }
+      ]
+    },
+    "community_and_lore": {
+      "description": "In-universe chronicles, worldbuilding, and creative mythology (gitignored locally).",
+      "directory": "docs/lore/",
+      "gitignored": true,
+      "items": [
+        {
+          "path": "docs/lore/README.md",
+          "title": "Creative Lore & Worldbuilding Anchor",
+          "purpose": "Overview of the gitignored lore staging directory."
+        },
+        {
+          "path": "docs/lore/2026-10-08_the_mayoral_coup_of_mayor_toad.md",
+          "title": "The Chronicle of Mayor Toad: The Great Mayoral Coup",
+          "purpose": "How Tsathoggua took City Hall via a 20 MHz SPI DMA data bus and a 55 Hz resonant pulse."
+        }
+      ]
+    },
+    "five_pillar_ecosystem": {
+      "description": "The Five Pillars of the Klang Ecosystem.",
+      "items": [
+        {
+          "path": "C:\\Dev\\TheKlangSuite",
+          "title": "The Klang Suite",
+          "purpose": "JUCE 9.0.3 polyphonic synthesizers and VST3 plugins."
+        },
+        {
+          "path": "C:\\Dev\\ToadTracker",
+          "title": "ToadTracker Hardware Groovebox",
+          "purpose": "16-step embedded hardware tracker."
+        },
+        {
+          "path": "C:\\Dev\\nkai",
+          "title": "N'kai Sidecar Framework",
+          "purpose": "Asymmetric sidecar framework & triage lab (https://github.com/codygratner/nkai)."
+        },
+        {
+          "path": "C:\\Dev\\Research",
+          "title": "The Klang Research Hub",
+          "purpose": "Centralized cross-project research repository, surveys, and soul harvests (https://github.com/codygratner/TheKlangResearch)."
+        },
+        {
+          "path": "C:\\Dev\\TheKlangVault",
+          "title": "The Klang Vault",
+          "purpose": "Private Studio Hub, raw thoughts mailbox, and Pydantic data pipelines."
+        }
+      ]
+    }
+  }
+}

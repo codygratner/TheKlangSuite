@@ -1,0 +1,1 @@
+﻿oh, yeah, I have a planned preset system with tags and all the usual stuff. so that saving that sorta thing is absolutely on the books!! I should make component presets as well, so I can load up the CyDrums voice and save JUST that part, instead of a full voice preset!!

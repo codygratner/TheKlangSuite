@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Klang Farmer & Planter — v0.2.0 Legacy Parity Audit</title>
+<style>
+  :root {
+    --bg-dark: #0f1117;
+    --card-bg: #181b24;
+    --border-color: #2a3040;
+    --text-main: #f0f4fc;
+    --text-muted: #8c9bb3;
+    --accent-green: #00e676;
+    --accent-blue: #00d2ff;
+    --accent-yellow: #ffb300;
+    --accent-red: #ff1744;
+    --accent-purple: #d500f9;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 24px;
+    font-size: 20px;
+    line-height: 1.45;
+  }
+
+  h1, h2, h3, h4 { margin-top: 0; color: #ffffff; }
+  h1 { font-size: 40px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 3px solid var(--accent-blue); padding-bottom: 12px; margin-bottom: 8px; }
+  h2 { font-size: 30px; margin-bottom: 12px; }
+  h3 { font-size: 24px; color: var(--accent-blue); margin-bottom: 8px; }
+
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 44px; font-weight: 800; margin-bottom: 4px; }
+  .stat-card .label { font-size: 15px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+  .badge-match { color: var(--accent-green); border-color: var(--accent-green); }
+  .badge-purged { color: var(--accent-blue); border-color: var(--accent-blue); }
+  .badge-addition { color: var(--accent-yellow); border-color: var(--accent-yellow); }
+  .badge-discrepancy { color: var(--accent-red); border-color: var(--accent-red); }
+
+  /* Card Slide Page */
+  .card-page {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 36px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .visual-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    background: #111319;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #222633;
+  }
+  .shot-box { text-align: center; }
+  .shot-box img { max-width: 100%; height: auto; border: 1px solid #333a4d; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  .shot-box .caption { font-size: 16px; color: var(--text-muted); margin-top: 8px; font-weight: 600; }
+
+  /* Table formatting */
+  table.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 20px;
+  }
+  table.audit-table th, table.audit-table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  table.audit-table th {
+    background-color: #222736;
+    color: var(--text-muted);
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag-match { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+  .tag-purged { background: rgba(0, 210, 255, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+  .tag-addition { background: rgba(255, 179, 0, 0.15); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
+  .tag-discrepancy { background: rgba(255, 23, 68, 0.25); color: var(--accent-red); border: 1px solid var(--accent-red); font-weight: 800; }
+
+  mark.diff {
+    background-color: #ff1744;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+
+  /* Print Media Query: 1 Card per page, full bleed */
+  @media print {
+    body { background: #fff !important; color: #000 !important; padding: 0 !important; font-size: 14pt !important; }
+    .card-page {
+      page-break-after: always;
+      break-after: page;
+      border: none !important;
+      margin: 0 !important;
+      padding: 16pt !important;
+      height: 100vh !important;
+      background: #fff !important;
+      color: #000 !important;
+    }
+    .dashboard { display: none !important; }
+    table.audit-table { font-size: 12pt !important; }
+    table.audit-table th { background: #eee !important; color: #333 !important; }
+    table.audit-table td { border-bottom: 1px solid #ccc !important; }
+    .visual-comparison { background: #fafafa !important; border: 1px solid #ddd !important; }
+    .shot-box img { max-height: 160pt !important; width: auto !important; box-shadow: none !important; }
+    mark.diff { background-color: #ffcccc !important; color: #990000 !important; }
+  }
+</style>
+</head>
+<body>
+
+<h1>The Klang Farmer & Planter — v0.2.0 Legacy Parity Audit</h1>
+<p style="color: var(--text-muted); font-size: 18px; margin-bottom: 24px;">
+  Automated cross-reference audit: Legacy C++ Hardcoded APVTS Parameters (v0.2.0) vs. Modern JSON Architecture (v0.3.0).
+</p>
+
+<div class="dashboard">
+  <div class="stat-card">
+    <div class="num">234</div>
+    <div class="label">Total Audited</div>
+  </div>
+  <div class="stat-card">
+    <div class="num badge-match">160</div>
+    <div class="label">Exact Matches</div>
+  </div>
+  <div class="stat-card">
+    <div class="num badge-purged">44</div>
+    <div class="label">FX Slot Migrations</div>
+  </div>
+  <div class="stat-card">
+    <div class="num badge-addition">30</div>
+    <div class="label">Safe Additions</div>
+  </div>
+  <div class="stat-card">
+    <div class="num badge-discrepancy">0</div>
+    <div class="label">Discrepancies</div>
+  </div>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 1: Carrier 1</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.2.0: Page 0 (Voice 1)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.3.0: Page 0 (Voice 1)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Carrier 1: Pitch / Freq</strong><br><small style='color:var(--text-muted);'>carrier1_pitch</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier 1: Shape</strong><br><small style='color:var(--text-muted);'>carrier1_shape</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)<br><small style='color:var(--text-muted);'>Fmt: waveshape</small></td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier 1: Modulation Depth</strong><br><small style='color:var(--text-muted);'>carrier1_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier 1: Tracking</strong><br><small style='color:var(--text-muted);'>carrier1_tracking</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 1: Modulator 1</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.2.0: Page 0 (Voice 1)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.3.0: Page 0 (Voice 1)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Modulator 1: Shape</strong><br><small style='color:var(--text-muted);'>mod1_shape</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)<br><small style='color:var(--text-muted);'>Fmt: waveshape</small></td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator 1: Speed</strong><br><small style='color:var(--text-muted);'>mod1_speed</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator 1: Pitch Tracking</strong><br><small style='color:var(--text-muted);'>mod1_track</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator 1: Type</strong><br><small style='color:var(--text-muted);'>mod1_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 1: Pitch Envelope 1</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.2.0: Page 0 (Voice 1)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.3.0: Page 0 (Voice 1)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>PitchEnv 1: Slope</strong><br><small style='color:var(--text-muted);'>pitchenv1_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv 1: Depth</strong><br><small style='color:var(--text-muted);'>pitchenv1_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv 1: Decay</strong><br><small style='color:var(--text-muted);'>pitchenv1_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv 1: Target</strong><br><small style='color:var(--text-muted);'>pitchenv1_target</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 2: Carrier 2</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.2.0: Page 1 (Voice 2)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.3.0: Page 1 (Voice 2)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Carrier 2: Pitch / Freq</strong><br><small style='color:var(--text-muted);'>carrier2_pitch</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier 2: Shape</strong><br><small style='color:var(--text-muted);'>carrier2_shape</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)<br><small style='color:var(--text-muted);'>Fmt: waveshape</small></td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier 2: Modulation Depth</strong><br><small style='color:var(--text-muted);'>carrier2_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier 2: Tracking</strong><br><small style='color:var(--text-muted);'>carrier2_tracking</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 2: Modulator 2</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.2.0: Page 1 (Voice 2)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.3.0: Page 1 (Voice 2)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Modulator 2: Shape</strong><br><small style='color:var(--text-muted);'>mod2_shape</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)<br><small style='color:var(--text-muted);'>Fmt: waveshape</small></td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator 2: Speed</strong><br><small style='color:var(--text-muted);'>mod2_speed</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator 2: Pitch Tracking</strong><br><small style='color:var(--text-muted);'>mod2_track</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator 2: Type</strong><br><small style='color:var(--text-muted);'>mod2_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 2: Pitch Envelope 2</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.2.0: Page 1 (Voice 2)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.3.0: Page 1 (Voice 2)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>PitchEnv 2: Slope</strong><br><small style='color:var(--text-muted);'>pitchenv2_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv 2: Depth</strong><br><small style='color:var(--text-muted);'>pitchenv2_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv 2: Decay</strong><br><small style='color:var(--text-muted);'>pitchenv2_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv 2: Target</strong><br><small style='color:var(--text-muted);'>pitchenv2_target</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Transients & Mixer</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.2.0: The Klang Farmer</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.3.0: The Klang Farmer</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Noise: S&H Rate</strong><br><small style='color:var(--text-muted);'>noise_sh_rate</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Noise: Filter</strong><br><small style='color:var(--text-muted);'>noise_filter</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Noise: Drive</strong><br><small style='color:var(--text-muted);'>noise_drive</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Noise: Decay</strong><br><small style='color:var(--text-muted);'>noise_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.308)</td>
+        <td>Float (def: 0.308)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mixer: Carrier 1 Level</strong><br><small style='color:var(--text-muted);'>mixer_carrier1_level</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mixer: Carrier 2 Level</strong><br><small style='color:var(--text-muted);'>mixer_carrier2_level</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mixer: Ring Mod Level</strong><br><small style='color:var(--text-muted);'>mixer_ringmod</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mixer: Noise Level</strong><br><small style='color:var(--text-muted);'>mixer_noise_level</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Legacy Static FX (Purged in v0.3.0)</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.2.0: The Klang Farmer</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.3.0: The Klang Farmer</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Drive: Amount</strong><br><small style='color:var(--text-muted);'>drive_amount</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.400)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Drive: Bias</strong><br><small style='color:var(--text-muted);'>drive_bias</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Drive: Filter</strong><br><small style='color:var(--text-muted);'>drive_filter</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FX Filter: Cutoff</strong><br><small style='color:var(--text-muted);'>fxfilter_cutoff</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FX Filter: Resonance</strong><br><small style='color:var(--text-muted);'>fxfilter_resonance</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre-Limiter: Input Gain</strong><br><small style='color:var(--text-muted);'>pre_limiter_gain</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.333)</td>
+        <td>Float (def: 0.333)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre-Limiter: Threshold</strong><br><small style='color:var(--text-muted);'>pre_limiter_thresh</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre-Limiter: Release</strong><br><small style='color:var(--text-muted);'>pre_limiter_release</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.630)</td>
+        <td>Float (def: 0.630)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post-Limiter: Input Gain</strong><br><small style='color:var(--text-muted);'>post_limiter_gain</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.333)</td>
+        <td>Float (def: 0.333)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post-Limiter: Threshold</strong><br><small style='color:var(--text-muted);'>post_limiter_thresh</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post-Limiter: Release</strong><br><small style='color:var(--text-muted);'>post_limiter_release</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.630)</td>
+        <td>Float (def: 0.630)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>WaveFolder: Fold</strong><br><small style='color:var(--text-muted);'>wavefolder_fold</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>WaveFolder: Bias</strong><br><small style='color:var(--text-muted);'>wavefolder_bias</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>WaveFolder: Filter</strong><br><small style='color:var(--text-muted);'>wavefolder_filter</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>RingMod: Waveform</strong><br><small style='color:var(--text-muted);'>ringmod_shape</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)<br><small style='color:var(--text-muted);'>Fmt: waveshape</small></td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>RingMod: Rate</strong><br><small style='color:var(--text-muted);'>ringmod_rate</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.509)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>RingMod: Amount</strong><br><small style='color:var(--text-muted);'>ringmod_amount</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>RingMod: Width</strong><br><small style='color:var(--text-muted);'>ringmod_width</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FreqShift: Shift</strong><br><small style='color:var(--text-muted);'>freqshift_shift</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FreqShift: Range</strong><br><small style='color:var(--text-muted);'>freqshift_range</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.038)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FreqShift: Blend</strong><br><small style='color:var(--text-muted);'>freqshift_blend</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.750)</td>
+        <td>Float (def: 0.750)<br><small style='color:var(--text-muted);'>Fmt: wet_dry</small></td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FreqShift: Width</strong><br><small style='color:var(--text-muted);'>freqshift_width</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Grit: Bit Reduction</strong><br><small style='color:var(--text-muted);'>grit_bits</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Grit: Sample Rate</strong><br><small style='color:var(--text-muted);'>grit_rate</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Grit: Low Shelf</strong><br><small style='color:var(--text-muted);'>grit_low</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Grit: High Shelf</strong><br><small style='color:var(--text-muted);'>grit_high</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Comb: Dampening</strong><br><small style='color:var(--text-muted);'>comb_dampening</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Comb: Cutoff</strong><br><small style='color:var(--text-muted);'>comb_cutoff</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Comb: Resonance</strong><br><small style='color:var(--text-muted);'>comb_resonance</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Comb: Mix</strong><br><small style='color:var(--text-muted);'>comb_mix</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.750)</td>
+        <td>Float (def: 0.750)<br><small style='color:var(--text-muted);'>Fmt: wet_dry</small></td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Phase Smear: Amount</strong><br><small style='color:var(--text-muted);'>disperser_amount</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.125)</td>
+        <td>—</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Phase Smear: Cutoff</strong><br><small style='color:var(--text-muted);'>disperser_cutoff</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.621)</td>
+        <td>—</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Phase Smear: Resonance</strong><br><small style='color:var(--text-muted);'>disperser_resonance</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>—</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>EQ: Frequency</strong><br><small style='color:var(--text-muted);'>eq_freq</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>EQ: Width</strong><br><small style='color:var(--text-muted);'>eq_width</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>EQ: Gain</strong><br><small style='color:var(--text-muted);'>eq_gain</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>EQ: DJ Filter</strong><br><small style='color:var(--text-muted);'>eq_filter</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.000)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Drive: Limiter</strong><br><small style='color:var(--text-muted);'>drive_limiter</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Choice [2] (def: 1)</td>
+        <td>Choice [2] (def: 0)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FX Filter: Type</strong><br><small style='color:var(--text-muted);'>fxfilter_type</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FX Filter: Slope</strong><br><small style='color:var(--text-muted);'>fxfilter_slope</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Choice [5] (def: 1)</td>
+        <td>Choice [5] (def: 1)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre-Limiter: Enable</strong><br><small style='color:var(--text-muted);'>pre_limiter_enable</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Choice [2] (def: 1)</td>
+        <td>Choice [2] (def: 0)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post-Limiter: Enable</strong><br><small style='color:var(--text-muted);'>post_limiter_enable</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Choice [2] (def: 1)</td>
+        <td>Choice [2] (def: 0)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>WaveFolder: Type</strong><br><small style='color:var(--text-muted);'>wavefolder_type</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Choice [2] (def: 0)</td>
+        <td>Choice [2] (def: 0)</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Phase Smear: Order</strong><br><small style='color:var(--text-muted);'>disperser_type</small></td>
+        <td><span class="tag tag-purged">FX Slot Migration</span></td>
+        <td>Choice [2] (def: 0)</td>
+        <td>—</td>
+        <td>Static FX block purged in Item 4 (commit 4001296); superseded by 8 Multi-Instance FX slots in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Cutoff</strong><br><small style='color:var(--text-muted);'>phasesmear_cutoff</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.621)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Resonance</strong><br><small style='color:var(--text-muted);'>phasesmear_resonance</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.500)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Stages</strong><br><small style='color:var(--text-muted);'>phasesmear_type</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Choice [2] (def: 0)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Amount</strong><br><small style='color:var(--text-muted);'>phasesmear_amount</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.125)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 1: Filter 1</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.2.0: Page 0 (Voice 1)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.3.0: Page 0 (Voice 1)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Filter 1: Cutoff</strong><br><small style='color:var(--text-muted);'>filter1_cutoff</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 1: Resonance</strong><br><small style='color:var(--text-muted);'>filter1_resonance</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 1: Type</strong><br><small style='color:var(--text-muted);'>filter1_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 1: Slope</strong><br><small style='color:var(--text-muted);'>filter1_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [5] (def: 1)</td>
+        <td>Choice [5] (def: 1)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 1: Filter Envelope 1</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.2.0: Page 0 (Voice 1)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page0_voice1.png'><div class='caption'>v0.3.0: Page 0 (Voice 1)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>FilterEnv 1: Slope</strong><br><small style='color:var(--text-muted);'>filterenv1_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 1: Depth</strong><br><small style='color:var(--text-muted);'>filterenv1_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 1: Decay</strong><br><small style='color:var(--text-muted);'>filterenv1_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 1: Post-Drive</strong><br><small style='color:var(--text-muted);'>filterenv1_postdrive</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 2: Filter 2</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.2.0: Page 1 (Voice 2)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.3.0: Page 1 (Voice 2)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Filter 2: Cutoff</strong><br><small style='color:var(--text-muted);'>filter2_cutoff</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 2: Resonance</strong><br><small style='color:var(--text-muted);'>filter2_resonance</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 2: Type</strong><br><small style='color:var(--text-muted);'>filter2_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 2: Slope</strong><br><small style='color:var(--text-muted);'>filter2_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [5] (def: 1)</td>
+        <td>Choice [5] (def: 1)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Voice 2: Filter Envelope 2</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.2.0: Page 1 (Voice 2)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page1_voice2.png'><div class='caption'>v0.3.0: Page 1 (Voice 2)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>FilterEnv 2: Slope</strong><br><small style='color:var(--text-muted);'>filterenv2_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 2: Depth</strong><br><small style='color:var(--text-muted);'>filterenv2_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 2: Decay</strong><br><small style='color:var(--text-muted);'>filterenv2_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 2: Post-Drive</strong><br><small style='color:var(--text-muted);'>filterenv2_postdrive</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Transients: Filter 3</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.2.0: The Klang Farmer</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.3.0: The Klang Farmer</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Filter 3: Cutoff</strong><br><small style='color:var(--text-muted);'>filter3_cutoff</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 3: Resonance</strong><br><small style='color:var(--text-muted);'>filter3_resonance</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 3: Slope</strong><br><small style='color:var(--text-muted);'>filterenv3_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 3: Depth</strong><br><small style='color:var(--text-muted);'>filterenv3_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 3: Decay</strong><br><small style='color:var(--text-muted);'>filterenv3_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.308)</td>
+        <td>Float (def: 0.308)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv 3: Post-Drive</strong><br><small style='color:var(--text-muted);'>filterenv3_postdrive</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 3: Type</strong><br><small style='color:var(--text-muted);'>filter3_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter 3: Slope</strong><br><small style='color:var(--text-muted);'>filter3_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [5] (def: 1)</td>
+        <td>Choice [5] (def: 1)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Amplifier: Global & Tracking</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page4_amplifier.png'><div class='caption'>v0.2.0: Page 4 (Amplifier)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page4_amplifier.png'><div class='caption'>v0.3.0: Page 4 (Amplifier)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Amp: Level</strong><br><small style='color:var(--text-muted);'>amp_level</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Amp: Pan</strong><br><small style='color:var(--text-muted);'>amp_pan</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Amp: Drive</strong><br><small style='color:var(--text-muted);'>amp_drive</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Velocity: Slope</strong><br><small style='color:var(--text-muted);'>vel_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Velocity: Depth</strong><br><small style='color:var(--text-muted);'>vel_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Velocity: Decay</strong><br><small style='color:var(--text-muted);'>vel_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Velocity: Volume</strong><br><small style='color:var(--text-muted);'>vel_volume</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>KeyTrack: Slope</strong><br><small style='color:var(--text-muted);'>key_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>KeyTrack: Depth</strong><br><small style='color:var(--text-muted);'>key_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>KeyTrack: Decay</strong><br><small style='color:var(--text-muted);'>key_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>KeyTrack: Volume</strong><br><small style='color:var(--text-muted);'>key_volume</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Slop: Frequency</strong><br><small style='color:var(--text-muted);'>slop_freq</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Slop: Depth</strong><br><small style='color:var(--text-muted);'>slop_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Slop: Decay</strong><br><small style='color:var(--text-muted);'>slop_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Slop: Pan</strong><br><small style='color:var(--text-muted);'>slop_pan</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Amp: Limiter</strong><br><small style='color:var(--text-muted);'>amp_limiter</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [2] (def: 1)</td>
+        <td>Choice [2] (def: 1)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Amplifier: Amp Envelope</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page4_amplifier.png'><div class='caption'>v0.2.0: Page 4 (Amplifier)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page4_amplifier.png'><div class='caption'>v0.3.0: Page 4 (Amplifier)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>AmpEnv: Claps</strong><br><small style='color:var(--text-muted);'>ampenv_claps</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>AmpEnv: Clap Speed</strong><br><small style='color:var(--text-muted);'>ampenv_clapspeed</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.143)</td>
+        <td>Float (def: 0.143)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>AmpEnv: Slope</strong><br><small style='color:var(--text-muted);'>ampenv_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>AmpEnv: Decay</strong><br><small style='color:var(--text-muted);'>ampenv_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Modulations: Mod Envelopes</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page6_modulations.png'><div class='caption'>v0.2.0: Page 6 (Modulations)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page6_modulations.png'><div class='caption'>v0.3.0: Page 6 (Modulations)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>ModEnv 1: Slope</strong><br><small style='color:var(--text-muted);'>modenv1_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 1: Depth</strong><br><small style='color:var(--text-muted);'>modenv1_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 1: Decay</strong><br><small style='color:var(--text-muted);'>modenv1_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 2: Slope</strong><br><small style='color:var(--text-muted);'>modenv2_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 2: Depth</strong><br><small style='color:var(--text-muted);'>modenv2_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 2: Decay</strong><br><small style='color:var(--text-muted);'>modenv2_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 3: Slope</strong><br><small style='color:var(--text-muted);'>modenv3_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 3: Depth</strong><br><small style='color:var(--text-muted);'>modenv3_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 3: Decay</strong><br><small style='color:var(--text-muted);'>modenv3_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 1: Destination</strong><br><small style='color:var(--text-muted);'>modenv1_target</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [11] (def: 0)</td>
+        <td>Choice [11] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 2: Destination</strong><br><small style='color:var(--text-muted);'>modenv2_target</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [11] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>ModEnv 3: Destination</strong><br><small style='color:var(--text-muted);'>modenv3_target</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [11] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>Dynamic Multi-Instance FX Slots</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.2.0: The Klang Farmer</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.3.0: The Klang Farmer</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Pre FX 1: Type</strong><br><small style='color:var(--text-muted);'>pre_fx_1_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 4)</td>
+        <td>Choice [14] (def: 4)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 2: Type</strong><br><small style='color:var(--text-muted);'>pre_fx_2_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 13)</td>
+        <td>Choice [14] (def: 13)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 3: Type</strong><br><small style='color:var(--text-muted);'>pre_fx_3_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 11)</td>
+        <td>Choice [14] (def: 11)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 4: Type</strong><br><small style='color:var(--text-muted);'>pre_fx_4_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 7)</td>
+        <td>Choice [14] (def: 7)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 1: Type</strong><br><small style='color:var(--text-muted);'>post_fx_1_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 8)</td>
+        <td>Choice [14] (def: 8)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 2: Type</strong><br><small style='color:var(--text-muted);'>post_fx_2_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 3)</td>
+        <td>Choice [14] (def: 3)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 3: Type</strong><br><small style='color:var(--text-muted);'>post_fx_3_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 9)</td>
+        <td>Choice [14] (def: 9)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 4: Type</strong><br><small style='color:var(--text-muted);'>post_fx_4_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [14] (def: 1)</td>
+        <td>Choice [14] (def: 1)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 1: Param 1</strong><br><small style='color:var(--text-muted);'>pre_fx_1_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.400)</td>
+        <td>Float (def: 0.400)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 1: Param 1</strong><br><small style='color:var(--text-muted);'>post_fx_1_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 1: Param 2</strong><br><small style='color:var(--text-muted);'>pre_fx_1_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 1: Param 2</strong><br><small style='color:var(--text-muted);'>post_fx_1_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 1: Param 3</strong><br><small style='color:var(--text-muted);'>pre_fx_1_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 1: Param 3</strong><br><small style='color:var(--text-muted);'>post_fx_1_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 1: Param 4</strong><br><small style='color:var(--text-muted);'>pre_fx_1_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 1: Param 4</strong><br><small style='color:var(--text-muted);'>post_fx_1_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 2: Param 1</strong><br><small style='color:var(--text-muted);'>pre_fx_2_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 2: Param 1</strong><br><small style='color:var(--text-muted);'>post_fx_2_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 2: Param 2</strong><br><small style='color:var(--text-muted);'>pre_fx_2_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 2: Param 2</strong><br><small style='color:var(--text-muted);'>post_fx_2_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 2: Param 3</strong><br><small style='color:var(--text-muted);'>pre_fx_2_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 2: Param 3</strong><br><small style='color:var(--text-muted);'>post_fx_2_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 2: Param 4</strong><br><small style='color:var(--text-muted);'>pre_fx_2_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 2: Param 4</strong><br><small style='color:var(--text-muted);'>post_fx_2_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.750)</td>
+        <td>Float (def: 0.750)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 3: Param 1</strong><br><small style='color:var(--text-muted);'>pre_fx_3_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 3: Param 1</strong><br><small style='color:var(--text-muted);'>post_fx_3_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 3: Param 2</strong><br><small style='color:var(--text-muted);'>pre_fx_3_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.509)</td>
+        <td>Float (def: 0.509)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 3: Param 2</strong><br><small style='color:var(--text-muted);'>post_fx_3_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.125)</td>
+        <td>Float (def: 0.125)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 3: Param 3</strong><br><small style='color:var(--text-muted);'>pre_fx_3_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 3: Param 3</strong><br><small style='color:var(--text-muted);'>post_fx_3_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.621)</td>
+        <td>Float (def: 0.621)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 3: Param 4</strong><br><small style='color:var(--text-muted);'>pre_fx_3_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 3: Param 4</strong><br><small style='color:var(--text-muted);'>post_fx_3_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 4: Param 1</strong><br><small style='color:var(--text-muted);'>pre_fx_4_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 4: Param 1</strong><br><small style='color:var(--text-muted);'>post_fx_4_p1</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 4: Param 2</strong><br><small style='color:var(--text-muted);'>pre_fx_4_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.158)</td>
+        <td>Float (def: 0.158)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 4: Param 2</strong><br><small style='color:var(--text-muted);'>post_fx_4_p2</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 4: Param 3</strong><br><small style='color:var(--text-muted);'>pre_fx_4_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.750)</td>
+        <td>Float (def: 0.750)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 4: Param 3</strong><br><small style='color:var(--text-muted);'>post_fx_4_p3</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Pre FX 4: Param 4</strong><br><small style='color:var(--text-muted);'>pre_fx_4_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Post FX 4: Param 4</strong><br><small style='color:var(--text-muted);'>post_fx_4_p4</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 1: Carrier</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Carrier: Pitch</strong><br><small style='color:var(--text-muted);'>planter_carrier_pitch</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier: Shape</strong><br><small style='color:var(--text-muted);'>planter_carrier_shape</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)<br><small style='color:var(--text-muted);'>Fmt: waveshape</small></td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier: Mod Depth</strong><br><small style='color:var(--text-muted);'>planter_carrier_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Carrier: Tracking</strong><br><small style='color:var(--text-muted);'>planter_carrier_tracking</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 2: Modulator</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Modulator: Shape</strong><br><small style='color:var(--text-muted);'>planter_mod_shape</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)<br><small style='color:var(--text-muted);'>Fmt: waveshape</small></td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator: Speed</strong><br><small style='color:var(--text-muted);'>planter_mod_speed</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator: Tracking</strong><br><small style='color:var(--text-muted);'>planter_mod_track</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 2)</td>
+        <td>Choice [3] (def: 2)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Modulator: Type</strong><br><small style='color:var(--text-muted);'>planter_mod_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [3] (def: 0)</td>
+        <td>Choice [3] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 3: Pitch Envelope</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>PitchEnv: Slope</strong><br><small style='color:var(--text-muted);'>planter_pitchenv_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv: Depth</strong><br><small style='color:var(--text-muted);'>planter_pitchenv_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv: Decay</strong><br><small style='color:var(--text-muted);'>planter_pitchenv_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>PitchEnv: Target</strong><br><small style='color:var(--text-muted);'>planter_pitchenv_target</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 4: Noise Transient</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Noise: S&H Rate</strong><br><small style='color:var(--text-muted);'>planter_noise_sh_rate</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Noise: DJ Filter</strong><br><small style='color:var(--text-muted);'>planter_noise_filter</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Noise: Decay</strong><br><small style='color:var(--text-muted);'>planter_noise_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.308)</td>
+        <td>Float (def: 0.308)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Noise: FM / Noise</strong><br><small style='color:var(--text-muted);'>planter_noise_crossfade</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 5: Resonant Filter</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Filter: Cutoff</strong><br><small style='color:var(--text-muted);'>planter_filter_cutoff</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 1.000)</td>
+        <td>Float (def: 1.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter: Resonance</strong><br><small style='color:var(--text-muted);'>planter_filter_reso</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter: Type</strong><br><small style='color:var(--text-muted);'>planter_filter_type</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [4] (def: 0)</td>
+        <td>Choice [4] (def: 0)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Filter: Slope</strong><br><small style='color:var(--text-muted);'>planter_filter_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Choice [5] (def: 1)</td>
+        <td>Choice [5] (def: 1)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 6: Filter Envelope</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>FilterEnv: Slope</strong><br><small style='color:var(--text-muted);'>planter_filterenv_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv: Depth</strong><br><small style='color:var(--text-muted);'>planter_filterenv_depth</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv: Decay</strong><br><small style='color:var(--text-muted);'>planter_filterenv_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>FilterEnv: Drive</strong><br><small style='color:var(--text-muted);'>planter_filterenv_drive</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 7: Amplifier & Velocity</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/page4_amplifier.png'><div class='caption'>v0.2.0: Page 4 (Amplifier)</div></div>
+    <div class="shot-box"><img src='../../screenshots/page4_amplifier.png'><div class='caption'>v0.3.0: Page 4 (Amplifier)</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Amp: Drive</strong><br><small style='color:var(--text-muted);'>planter_amp_drive</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Amp: Pan</strong><br><small style='color:var(--text-muted);'>planter_amp_pan</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Amp: Vel Slope</strong><br><small style='color:var(--text-muted);'>planter_amp_vel_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.750)</td>
+        <td>Float (def: 0.750)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Amp: Velocity</strong><br><small style='color:var(--text-muted);'>planter_amp_vel_floor</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.500)</td>
+        <td>Float (def: 0.500)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Card 8: Amp Envelope</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>AmpEnv: Claps</strong><br><small style='color:var(--text-muted);'>planter_ampenv_claps</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.000)</td>
+        <td>Float (def: 0.000)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>AmpEnv: Clap Speed</strong><br><small style='color:var(--text-muted);'>planter_ampenv_clapspeed</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.143)</td>
+        <td>Float (def: 0.143)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>AmpEnv: Slope</strong><br><small style='color:var(--text-muted);'>planter_ampenv_slope</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.589)</td>
+        <td>Float (def: 0.589)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+      <tr>
+        <td><strong>AmpEnv: Decay</strong><br><small style='color:var(--text-muted);'>planter_ampenv_decay</small></td>
+        <td><span class="tag tag-match">Exact Match</span></td>
+        <td>Float (def: 0.381)</td>
+        <td>Float (def: 0.381)</td>
+        <td>100% parameter match across bounds, type, and calibrated defaults.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Farmer</span>
+      <h2>General Parameters</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.2.0: The Klang Farmer</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangFarmer_GUI.png'><div class='caption'>v0.3.0: The Klang Farmer</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Center Frequency</strong><br><small style='color:var(--text-muted);'>bell_eq_freq</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Width</strong><br><small style='color:var(--text-muted);'>bell_eq_width</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Gain</strong><br><small style='color:var(--text-muted);'>bell_eq_gain</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>DJ Filter</strong><br><small style='color:var(--text-muted);'>bell_eq_djfilter</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Rate</strong><br><small style='color:var(--text-muted);'>chorus_rate</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Depth</strong><br><small style='color:var(--text-muted);'>chorus_depth</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Feedback</strong><br><small style='color:var(--text-muted);'>chorus_feedback</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mix</strong><br><small style='color:var(--text-muted);'>chorus_mix</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Rate</strong><br><small style='color:var(--text-muted);'>flanger_rate</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Depth</strong><br><small style='color:var(--text-muted);'>flanger_depth</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Feedback</strong><br><small style='color:var(--text-muted);'>flanger_feedback</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mix</strong><br><small style='color:var(--text-muted);'>flanger_mix</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Rate</strong><br><small style='color:var(--text-muted);'>phaser_rate</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Depth</strong><br><small style='color:var(--text-muted);'>phaser_depth</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Feedback</strong><br><small style='color:var(--text-muted);'>phaser_feedback</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mix</strong><br><small style='color:var(--text-muted);'>phaser_mix</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Waveform</strong><br><small style='color:var(--text-muted);'>ringmod_wave</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Division</strong><br><small style='color:var(--text-muted);'>delay_div</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Feedback</strong><br><small style='color:var(--text-muted);'>delay_feedback</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Tone</strong><br><small style='color:var(--text-muted);'>delay_tone</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Mix</strong><br><small style='color:var(--text-muted);'>delay_mix</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Limiter</strong><br><small style='color:var(--text-muted);'>wavefolder_limiter</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.000)</td>
+        <td>New parameter introduced in v0.3.0 in fx.json.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<div class="card-page">
+  <div class="card-header">
+    <div>
+      <span style="font-size: 16px; color: var(--accent-blue); text-transform: uppercase; font-weight: bold;">The Klang Planter</span>
+      <h2>Planter Main</h2>
+    </div>
+  </div>
+
+  <div class="visual-comparison">
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.2.0: The Klang Planter</div></div>
+    <div class="shot-box"><img src='../../screenshots/TheKlangPlanter_GUI.png'><div class='caption'>v0.3.0: The Klang Planter</div></div>
+  </div>
+
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Parameter</th>
+        <th style="width: 14%;">Status</th>
+        <th style="width: 16%;">Legacy v0.2.0</th>
+        <th style="width: 22%;">Current v0.3.0 (JSON)</th>
+        <th style="width: 26%;">Audit Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><strong>Limiter: Enable</strong><br><small style='color:var(--text-muted);'>planter_limiter_enable</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Choice [2] (def: 1)</td>
+        <td>New parameter introduced in v0.3.0 in planter.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Limiter: Gain</strong><br><small style='color:var(--text-muted);'>planter_limiter_gain</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.333)</td>
+        <td>New parameter introduced in v0.3.0 in planter.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Limiter: Threshold</strong><br><small style='color:var(--text-muted);'>planter_limiter_thresh</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 1.000)</td>
+        <td>New parameter introduced in v0.3.0 in planter.json.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Limiter: Release</strong><br><small style='color:var(--text-muted);'>planter_limiter_release</small></td>
+        <td><span class="tag tag-addition">Safe Addition</span></td>
+        <td>—</td>
+        <td>Float (def: 0.630)</td>
+        <td>New parameter introduced in v0.3.0 in planter.json.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+﻿My dev friend couldn’t make out to hang out. But, in that other note with me just pasting from an ai mode conversation, it mentioned pydantic. My friend is a HUGE proponent of pydantic. I don’t really understand it’s used and if it’s useful here (and if it’d be useful at my work as well). Can you give me a run down on pydantic and the PCDA on using it here

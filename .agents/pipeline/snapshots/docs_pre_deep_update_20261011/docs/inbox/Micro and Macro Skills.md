@@ -1,0 +1,5 @@
+﻿So we have grill lab, deep research and a couple other ways to summon Nkai. This is probably part of the research assistant  variant idea, but what about a few more ways to use Nkai? Like we have some disparate stuff for dealing with the inbox, but maybe a mailbag micro skill or macro skill suite makes sense. We could have a code audit or agent settings audit suite. There’s probably some more of these that make sense for more context specific use cases.
+
+How often should we audit the skills and guardrails and all that jazz? Also, how what else is there but skills and guard rails? Can you give me like a good run down on what antigravity (and agentic AIs in general) can do with their like Gemini.md or agents.md or whatever
+
+Are there any skills or guard rails we should look into incorporating? 

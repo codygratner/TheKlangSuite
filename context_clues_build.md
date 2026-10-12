@@ -10,7 +10,7 @@
 - **Ecosystem SemVer Matrix:**
   - `The Klang Suite (TKS)`: `v0.4.0-dev`
   - `ToadTracker (TT)`: `v0.1.0`
-  - `N'kai (NK)`: `v0.2.0`
+  - `N'kai (NK)`: `v0.3.0`
   - `The Klang Research (TKR)`: Continuous Living Archive (Zero SemVer)
 - **Roadmap Sidecar Deep Links**:
   - [The Klang Suite v0.4.0 Roadmap](file:///c:/Dev/TheKlangSuite/.agents/sidecar/roadmap_sidecar.html#tks-v0.4.0)

@@ -187,6 +187,11 @@
           "path": "docs/specs/nkai_per_card_response_drawer.md",
           "title": "N'kai Per-Card Response Drawer Specification (Flight 19 / rj-08)",
           "purpose": "In-card agent_reply reasoning, collapsible glassmorphic drawer, procedural Web Audio detent haptics, chat-minimal pair programming, and --reply-card CLI."
+        },
+        {
+          "path": "docs/specs/nkai_mobile_companion_and_touch_ergonomics.md",
+          "title": "N'kai Mobile Companion & Touch Ergonomics Specification (v0.3.0 / Milestone Section 14)",
+          "purpose": "Mobile viewport architecture (100dvh), 44px Touch Target Law, sticky bottom thumb bar, local Wi-Fi auto-detection, zero-dependency QR code generation, and /qr web pairing."
         }
       ]
     },

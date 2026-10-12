@@ -59,6 +59,7 @@ This is the central directory for all high-level documentation, rules, and histo
   - [N'kai Multi-Board Hub & Session Manager](specs/nkai_multi_board_hub_and_session_manager.md) — Multi-board directory modal, BoardRegistry data model, anti-cache HTTP response headers, ?board=<id> routing, and dual-mode operation.
   - [N'kai Mailbag Intake & Triage v2](specs/nkai_mailbag_intake_and_triage_v2.md) — Ramble overflow queue, quick notes, Tabled directory, attention tags, session launchers, and position splice.
   - [N'kai Per-Card Response Drawer](specs/nkai_per_card_response_drawer.md) — In-card agent_reply reasoning, collapsible glassmorphic drawer, procedural Web Audio detent haptics, chat-minimal pair programming, and --reply-card CLI.
+  - [N'kai Mobile Companion & Touch Ergonomics](specs/nkai_mobile_companion_and_touch_ergonomics.md) — Mobile viewport architecture (100dvh), 44px Touch Target Law, sticky bottom thumb bar, local Wi-Fi auto-detection, zero-dependency QR code generation, and /qr web pairing.
   - [The Klang Vault: Private Studio Hub Architecture](architecture/the_klang_vault_studio_hub.md) — Decoupled studio hub, Git synchronization safety, and Pydantic data engineering.
 
 ### 8. 🛠️ Developer Tooling & Data Schemas

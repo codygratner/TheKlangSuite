@@ -256,6 +256,17 @@
 * **Audio Strangler Fallacy**: Real-time audio engines cannot use runtime Strangler Fig routing because multiple engines cannot concurrently own a hardware ASIO/CoreAudio device stream; migrations must use Branch by Abstraction verified by offline-bounce golden null tests.
 * **Benchmark Tooling**: `python tools/da_bench.py` provides `sanitize` (seeded anonymization & key sealing), `audit-blindness` (zero-leak transcript verification), `aggregate` (multi-judge Kendall's tau & composite scoring), and `manifest` lifecycle governance.
 
+---
+
+## 📱 Mobile Companion & Touch Ergonomics (Milestone v0.3.0 / Section 14)
+
+* **Multi-Device Companion**: Zero-friction pair-programming, note triage, and PCDA reviewing on iOS Safari or Android Chrome over local Wi-Fi LAN.
+* **44px Touch Target Law**: Minimum 44px x 44px tap targets on all card actions (`.card-btn`, `.action-chip`, `#btn-approve-*`, drawer toggles) on screens $\le$ 640px.
+* **Sticky Bottom Thumb Bar**: Docked 4-target bar (`[ ⚪ Untriaged ]`, `[ 🚨 P0 ]`, `[ 📋 All ]`, `[ 🗂 Switch Board ]`) with `navigator.vibrate(15)` device haptics; hidden on desktop.
+* **100dvh Viewport Stability**: Dynamic viewport height fallback eliminating mobile browser URL bar jumps.
+* **Zero-Dependency Terminal & Web QR Pairing**: `python tools/nkai_serve.py --lan` detects local Wi-Fi IP, prints Unicode half-block QR code in terminal, and serves `/qr` SVG pairing endpoint for second monitors.
+
+
 
 
 
