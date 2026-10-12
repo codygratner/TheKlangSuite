@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "237d9b3",
+    "commit": "43138c8",
     "is_clean": true,
     "dirty_count": 0,
     "staged": 0,
     "modified": 0,
     "untracked": 0,
     "recent_commits": [
-      "237d9b3 feat(blackbox): automate 0-turn cold boot and memory flush via state_manager and flush_memory, normalize communique names",
-      "de73be4 docs(plan): stage systemic agent audit blueprint in drafts",
-      "aedc948 build(factory): rebuild multi-target suite and deploy fresh VST3 and standalones"
+      "43138c8 chore(mailbag): update mail_queue with archived Simplenote and sync dispatches",
+      "a9c552b chore(context): synchronize ACTIVE_CONTEXT.md to 237d9b3",
+      "237d9b3 feat(blackbox): automate 0-turn cold boot and memory flush via state_manager and flush_memory, normalize communique names"
     ]
   },
   "plan": {
