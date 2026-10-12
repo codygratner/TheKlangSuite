@@ -123,14 +123,22 @@ class TestBoardHubAndSessionManager(unittest.TestCase):
         sbx_content = self.rendered_sandbox_path.read_text(encoding="utf-8")
         self.assertNotIn("{{BOARD_TITLE}}", sbx_content, "Unsubstituted {{BOARD_TITLE}} found in sandbox board")
         self.assertNotIn("{{BOARD_REGISTRY_JSON}}", sbx_content, "Unsubstituted {{BOARD_REGISTRY_JSON}} found in sandbox board")
+        self.assertNotIn("{{SOURCE_PATH}}", sbx_content, "Unsubstituted {{SOURCE_PATH}} found in sandbox board")
+        self.assertNotIn("{inbox_dir_esc}", sbx_content, "Unsubstituted {inbox_dir_esc} found in sandbox board")
+        self.assertNotIn('Number("{{', sbx_content, "Unsubstituted Number('{{') expression found in sandbox board")
         self.assertIn('id="btn-board-switcher"', sbx_content)
+        self.assertIn('id="header-source-path"', sbx_content)
         self.assertIn("Canonical QA Sandbox Test Board", sbx_content)
 
         self.assertTrue(self.rendered_morning_path.exists(), "morning_mail_inbox.html missing")
         morn_content = self.rendered_morning_path.read_text(encoding="utf-8")
         self.assertNotIn("{{BOARD_TITLE}}", morn_content, "Unsubstituted {{BOARD_TITLE}} found in morning board")
         self.assertNotIn("{{BOARD_REGISTRY_JSON}}", morn_content, "Unsubstituted {{BOARD_REGISTRY_JSON}} found in morning board")
+        self.assertNotIn("{{SOURCE_PATH}}", morn_content, "Unsubstituted {{SOURCE_PATH}} found in morning board")
+        self.assertNotIn("{inbox_dir_esc}", morn_content, "Unsubstituted {inbox_dir_esc} found in morning board")
+        self.assertNotIn('Number("{{', morn_content, "Unsubstituted Number('{{') expression found in morning board")
         self.assertIn('id="btn-board-switcher"', morn_content)
+        self.assertIn('id="header-source-path"', morn_content)
 
     def test_board_registry_cli_execution(self):
         """Test 5: Asserts board_registry.py CLI commands execute successfully and output valid data."""

@@ -400,8 +400,11 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
         </div>"""
         reply_badge = '<span class="badge badge-reply" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent assessment attached">💬 Agent Reply</span>'
 
+    is_pending = (it.status == TriageStatus.PENDING)
+    initial_display = "" if is_pending else ' style="display: none;"'
+
     return f"""
-      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}" id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}" data-has-reply="{str(has_reply).lower()}">
+      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}"{initial_display} id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}" data-has-reply="{str(has_reply).lower()}">
         <div class="mail-card-header">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{rank_val}</span>
@@ -562,6 +565,9 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     # Flight 14: Board Title & Injected Registry Manifest
     board_title = f"[SBX] {schema.title}" if is_sandbox else schema.title
     output_html = output_html.replace("{{BOARD_TITLE}}", html.escape(board_title))
+
+    source_path_str = schema.subtitle if schema.subtitle else "TheKlangVault/Inbox"
+    output_html = output_html.replace("{{SOURCE_PATH}}", html.escape(source_path_str))
 
     registry_path = Path(__file__).resolve().parent.parent / ".agents" / "pipeline" / "boards" / "registry.json"
     if not registry_path.exists():
