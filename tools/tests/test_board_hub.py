@@ -153,6 +153,54 @@ class TestBoardHubAndSessionManager(unittest.TestCase):
         self.assertIn("sandbox_mail", res.stdout)
         self.assertIn("system_sanity_audit", res.stdout)
 
+    def test_switch_board_omits_query_string_on_file_protocol(self):
+        """Test 6 (Regression): Asserts switchBoard omits ?_t= on file:// to prevent Windows Chromium 404s."""
+        files_to_check = [
+            self.template_path,
+            Path(r"c:\Dev\nkai\core\sidecar.js"),
+            self.rendered_sandbox_path,
+            self.rendered_morning_path,
+        ]
+        for fpath in files_to_check:
+            self.assertTrue(fpath.exists(), f"Target file missing: {fpath}")
+            text = fpath.read_text(encoding="utf-8")
+            self.assertIn("function switchBoard", text, f"switchBoard function missing in {fpath.name}")
+            # Assert file branch uses bare targetFile
+            self.assertIn("window.location.href = targetFile;", text,
+                          f"Regression detected in {fpath.name}: file protocol must navigate strictly to bare targetFile without query strings")
+            # Assert isServer check exists
+            self.assertIn("isServer", text, f"Missing isServer protocol check in {fpath.name}")
+
+    def test_sidecar_main_mjs_routes_all_registry_boards(self):
+        """Test 7 (Regression): Asserts main.mjs registers explicit routes for every board in registry.json."""
+        self.assertTrue(self.registry_path.exists(), "registry.json missing")
+        self.assertTrue(self.main_mjs_path.exists(), "main.mjs missing")
+
+        raw_json = self.registry_path.read_text(encoding="utf-8")
+        registry = BoardRegistry.model_validate_json(raw_json)
+        main_mjs_content = self.main_mjs_path.read_text(encoding="utf-8")
+
+        for board in registry.boards:
+            target_filename = board.file_path.split("/")[-1]
+            route_str = f"/{target_filename}"
+            self.assertIn(route_str, main_mjs_content,
+                          f"Board '{board.id}' ({target_filename}) lacks an explicit route in main.mjs, risking 404s in SidecarApp")
+
+    def test_board_files_mirrored_across_nkai_and_tks(self):
+        """Test 8 (Regression): Asserts all boards in registry.json exist in both TKS and nkai sidecars/panel."""
+        raw_json = self.registry_path.read_text(encoding="utf-8")
+        registry = BoardRegistry.model_validate_json(raw_json)
+        nkai_panel_dir = Path(r"c:\Dev\nkai\sidecars\panel")
+        tks_sidecar_dir = self.repo_root / ".agents" / "sidecar"
+
+        for board in registry.boards:
+            target_filename = board.file_path.split("/")[-1]
+            tks_file = tks_sidecar_dir / target_filename
+            nkai_file = nkai_panel_dir / target_filename
+            self.assertTrue(tks_file.exists(), f"Board file '{target_filename}' missing in TKS sidecar dir: {tks_file}")
+            self.assertTrue(nkai_file.exists(), f"Board file '{target_filename}' missing in nkai panel dir: {nkai_file}")
+
 
 if __name__ == "__main__":
     unittest.main()
+

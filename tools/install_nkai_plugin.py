@@ -189,12 +189,43 @@ def validate_plugin(dest: Path) -> bool:
     return True
 
 
+def restart_running_sidecar():
+    """Restarts any currently running supervised sidecar process so it loads new code immediately."""
+    user_home = Path(os.environ.get("USERPROFILE", os.path.expanduser("~")))
+    log_path = user_home / ".gemini" / "antigravity" / "sidecar_data" / "nkai" / "panel" / "logs" / "sidecar.log"
+    if not log_path.exists():
+        return
+    try:
+        lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        port = None
+        for line in reversed(lines):
+            if "listening on 127.0.0.1:" in line:
+                port = line.split(":")[-1].strip()
+                break
+        if not port:
+            return
+
+        cmd = ["powershell", "-NoProfile", "-Command", f"(Get-NetTCPConnection -LocalPort {port} -State Listen -ErrorAction SilentlyContinue).OwningProcess"]
+        res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+        pid_str = res.stdout.strip()
+        if pid_str and pid_str.isdigit() and int(pid_str) > 0:
+            pid = int(pid_str)
+            print(f"\n[*] Hot-reloading active sidecar (PID {pid} on port {port})...")
+            kill_cmd = ["powershell", "-NoProfile", "-Command", f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue"]
+            subprocess.run(kill_cmd, capture_output=True, check=False)
+            print(f"    [✓] Terminated PID {pid}. Antigravity supervisor will auto-restart sidecar with fresh code.")
+    except Exception as e:
+        print(f"    [i] Auto-restart notice: {e}")
+
+
 def main():
     try:
         src = resolve_source_root()
         dest = get_target_dir()
         install_plugin(src, dest)
         success = validate_plugin(dest)
+        if success:
+            restart_running_sidecar()
         sys.exit(0 if success else 1)
     except Exception as e:
         print(f"\n❌ FATAL INSTALLATION ERROR: {e}", file=sys.stderr)
