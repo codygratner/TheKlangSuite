@@ -1,98 +1,9 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T16:57:23.127694",
-  "total_items": 5,
+  "last_scanned": "2026-10-12T17:34:15.118947",
+  "total_items": 4,
   "p0_count": 0,
   "items": [
-    {
-      "id": "Codify Mailbag and Flight Runway as Evergreen Permanent Boards",
-      "title": "Codify Mailbag and Flight Runway as Evergreen Permanent Boards",
-      "created_at": "2026-10-12",
-      "priority": "P1",
-      "status": "PENDING",
-      "tags": [
-        "untriaged",
-        "sidecar",
-        "hub",
-        "runway"
-      ],
-      "target_pillars": [
-        "NK",
-        "AGY"
-      ],
-      "source_file": "C:\\_\\Vault\\Inbox\\Codify Mailbag and Flight Runway as Evergreen Permanent Boards.md",
-      "preview": "Codify The Mail Bag and The Flight Runway as permanent, evergreen boards that we fill on demand. Key architectural points: - Evergreen boards: Mail Bag (has note-level archive already) and Flight Runway (lives on roadmaps/plans, doesn't need board archive). - Ephemeral exploratio...",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 809,
-      "word_count": 122,
-      "tier": "tier2",
-      "body": "# Codify Mailbag and Flight Runway as Evergreen Permanent Boards\n\nCodify The Mail Bag and The Flight Runway as permanent, evergreen boards that we fill on demand.\n\nKey architectural points:\n- Evergreen boards: Mail Bag (has note-level archive already) and Flight Runway (lives on roadmaps/plans, doesn't need board archive).\n- Ephemeral exploration boards (like Grill Labs, Spikes, Deep Research) get archived to `.agents/pipeline/boards/archive/` and pruned during `/update-docs --deep` sweeps to harvest insights/anti-patterns into docs and prevent archive bloat.\n- Permanent footer links for instant access: `[ 📬 Mailbag ]` and `[ 🛫 Runway ]`.\n- Header controls: Add button to grab new incoming mail on demand.\n- Re-sequencing: Add re-sequence / rejigger controls on boards to adjust card order on the fly.",
-      "excerpt": "Codify The Mail Bag and The Flight Runway as permanent, evergreen boards that we fill on demand. Key architectural points: - Evergreen boards: Mail Bag (has note-level archive already) and Flight Runway (lives on roadmaps/plans, doesn't need board archive). - Ephemeral exploratio...",
-      "file_name": "Codify Mailbag and Flight Runway as Evergreen Permanent Boards.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\Codify Mailbag and Flight Runway as Evergreen Permanent Boards.md",
-      "source_note": "",
-      "idx": 1,
-      "merged_count": 0,
-      "source_ids": [],
-      "split_group": "",
-      "frontmatter": {},
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false,
-      "pillars": [
-        "NK",
-        "AGY"
-      ]
-    },
-    {
-      "id": "Mega_Vault_Consolidation_and_Scoped_Enclave",
-      "title": "Mega-Vault Consolidation & Scoped Vault Enclave Architecture (Zettelkasten)",
-      "created_at": "2026-10-12",
-      "priority": "P2",
-      "status": "PENDING",
-      "tags": [
-        "tabled",
-        "nkai",
-        "agy",
-        "obsidian",
-        "architecture"
-      ],
-      "target_pillars": [
-        "NK",
-        "AGY",
-        "TKR"
-      ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Mega_Vault_Consolidation_and_Scoped_Enclave.md",
-      "preview": "Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (TheKlangVault/New Klang City/ or similar) while providing unifie...",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 1069,
-      "word_count": 139,
-      "tier": "tier2",
-      "body": "# Mega-Vault Consolidation & Scoped Vault Enclave Architecture (Zettelkasten)\n\n## Core Intent\nArchitectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (`TheKlangVault/New Klang City/` or similar) while providing unified global access and pre-migration health scanning for plugins/cruft.\n\n## Proposed Mechanism\n1. **Single Unified Obsidian Vault**: Merge multi-vault sprawl into one unified Zettelkasten, increasing daily usage and cognitive cohesion.\n2. **Sub-Enclave Boundary**: Restrict TheKlangSuite/N'kai AI harness strictly to a scoped folder (e.g. `vault/New Klang City/`) so agents never touch or leak personal/creative notes.\n3. **Vault Pre-Migration Health Scanner**: Tooling script to audit external vaults before merge (checking for broken plugins, bloated cache, circular links, and filename hazards).\n\n## Action Route\nApprove -> author migration RFC in TheKlangResearch and design enclave boundary.",
-      "excerpt": "Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (TheKlangVault/New Klang City/ or similar) while providing unifie...",
-      "file_name": "Mega_Vault_Consolidation_and_Scoped_Enclave.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Mega_Vault_Consolidation_and_Scoped_Enclave.md",
-      "source_note": "",
-      "idx": 2,
-      "merged_count": 0,
-      "source_ids": [],
-      "split_group": "",
-      "frontmatter": {},
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false,
-      "pillars": [
-        "NK",
-        "AGY",
-        "TKR"
-      ]
-    },
     {
       "id": "Live_Reading_Notes_Protocol",
       "title": "Interactive Stream-of-Consciousness Feedback & Live Reading Notes Protocol",
@@ -124,7 +35,7 @@
       "file_name": "Live_Reading_Notes_Protocol.md",
       "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Live_Reading_Notes_Protocol.md",
       "source_note": "",
-      "idx": 3,
+      "idx": 1,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -136,6 +47,42 @@
         "NK",
         "AGY",
         "TKR"
+      ]
+    },
+    {
+      "id": "Korg Logue SDK Stuff and CTAG DSP",
+      "title": "Korg Logue SDK Stuff and CTAG DSP",
+      "created_at": "2026-10-12",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "target_pillars": [
+        "TKS"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\Korg Logue SDK Stuff and CTAG DSP.md",
+      "preview": "for TKS can we integrate any of the \"logue sdk\" stuff for the Korg product range? only ones that are FOSS from the community, not paid ones or official korg ones (unless they're foss) can we include the synth stuff from the CTAG TBD DSP stuff as osc types?",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 258,
+      "word_count": 49,
+      "tier": "tier1",
+      "body": "for TKS\n\ncan we integrate any of the \"logue sdk\" stuff for the Korg product range? only ones that are FOSS from the community, not paid ones or official korg ones (unless they're foss)\n\ncan we include the synth stuff from the CTAG TBD DSP stuff as osc types?",
+      "excerpt": "for TKS can we integrate any of the \"logue sdk\" stuff for the Korg product range? only ones that are FOSS from the community, not paid ones or official korg ones (unless they're foss) can we include the synth stuff from the CTAG TBD DSP stuff as osc types?",
+      "file_name": "Korg Logue SDK Stuff and CTAG DSP.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Korg Logue SDK Stuff and CTAG DSP.md",
+      "source_note": "",
+      "idx": 2,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "pillars": [
+        "TKS"
       ]
     },
     {
@@ -165,7 +112,7 @@
       "file_name": "Can we make a template that adds the front matter on a new note.md",
       "rel_path": "C:\\_\\Vault\\Inbox\\Can we make a template that adds the front matter on a new note.md",
       "source_note": "",
-      "idx": 4,
+      "idx": 3,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -179,34 +126,38 @@
       ]
     },
     {
-      "id": "Did we audit the guardrails",
-      "title": "Did we audit the guardrails",
+      "id": "Mega_Vault_Consolidation_and_Scoped_Enclave",
+      "title": "Mega-Vault Consolidation & Scoped Vault Enclave Architecture (Zettelkasten)",
       "created_at": "2026-10-12",
       "priority": "P2",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tags": [
-        "quick-note"
+        "tabled",
+        "nkai",
+        "agy",
+        "obsidian",
+        "architecture"
       ],
       "target_pillars": [
         "NK",
-        "TKR",
-        "AGY"
+        "AGY",
+        "TKR"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\Did we audit the guardrails.md",
-      "preview": "(quick note — title only)",
+      "source_file": "C:\\_\\Vault\\Inbox\\Tabled\\Mega_Vault_Consolidation_and_Scoped_Enclave.md",
+      "preview": "Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (TheKlangVault/New Klang City/ or similar) while providing unifie...",
       "dependencies": [],
-      "verdict": null,
+      "verdict": "ARCHIVED",
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 25,
-      "word_count": 5,
+      "char_count": 1069,
+      "word_count": 139,
       "tier": "tier2",
-      "body": "(quick note — title only)",
-      "excerpt": "(quick note — title only)",
-      "file_name": "Did we audit the guardrails.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\Did we audit the guardrails.md",
+      "body": "# Mega-Vault Consolidation & Scoped Vault Enclave Architecture (Zettelkasten)\n\n## Core Intent\nArchitectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (`TheKlangVault/New Klang City/` or similar) while providing unified global access and pre-migration health scanning for plugins/cruft.\n\n## Proposed Mechanism\n1. **Single Unified Obsidian Vault**: Merge multi-vault sprawl into one unified Zettelkasten, increasing daily usage and cognitive cohesion.\n2. **Sub-Enclave Boundary**: Restrict TheKlangSuite/N'kai AI harness strictly to a scoped folder (e.g. `vault/New Klang City/`) so agents never touch or leak personal/creative notes.\n3. **Vault Pre-Migration Health Scanner**: Tooling script to audit external vaults before merge (checking for broken plugins, bloated cache, circular links, and filename hazards).\n\n## Action Route\nApprove -> author migration RFC in TheKlangResearch and design enclave boundary.",
+      "excerpt": "Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (TheKlangVault/New Klang City/ or similar) while providing unifie...",
+      "file_name": "Mega_Vault_Consolidation_and_Scoped_Enclave.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Tabled\\Mega_Vault_Consolidation_and_Scoped_Enclave.md",
       "source_note": "",
-      "idx": 5,
+      "idx": 4,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -216,8 +167,8 @@
       "has_reply": false,
       "pillars": [
         "NK",
-        "TKR",
-        "AGY"
+        "AGY",
+        "TKR"
       ]
     }
   ]
