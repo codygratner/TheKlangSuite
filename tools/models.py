@@ -116,15 +116,16 @@ def infer_pillars(title: str, tags: Optional[List[str]] = None, body: str = "") 
         ],
         "NK": [
             "nkai", "sidecar", "triage", "canvas", "webview", "dossier", "mailbag",
-            "action-chip", "two-tier header", "scoreboard", "haptic"
+            "action-chip", "two-tier header", "scoreboard", "haptic", "inbox", "quick note", "quick-note"
         ],
         "TKR": [
             "rfc", "dsp paper", "math proof", "autopsy", "benchmark", "tradeoff",
-            "differential equation", "transfer function", "saturation model"
+            "differential equation", "transfer function", "saturation model", "audit"
         ],
         "AGY": [
             "antigravity", "subagent", "gemini.md", "prompt compiler", "allowance",
-            "token budget", "slash command", "skill", "orchestrator", "opus", "pro 3.1"
+            "token budget", "slash command", "skill", "orchestrator", "opus", "pro 3.1",
+            "guardrail", "guardrails", "frontmatter", "front matter", "template"
         ],
         "TBD-16": [
             "esp32", "p4", "i2s", "codec", "rotary encoder", "teensy", "firmware",

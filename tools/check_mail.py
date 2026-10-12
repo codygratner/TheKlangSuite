@@ -254,7 +254,7 @@ def scan_inbox(inbox_dir: Path):
     notes = []
     md_files = sorted(inbox_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
     for f in md_files:
-        if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD"]:
+        if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD"]:
             data = extract_note_metadata(f)
             if data:
                 notes.append(data)
@@ -295,6 +295,14 @@ def scan_all_inbox_notes(inbox_dir: Path) -> list:
     for n in live_notes:
         if n.get("id"):
             notes_by_id[str(n["id"])] = n
+
+    # Scan Universal Vault Inbox (C:\_\Vault\Inbox) if distinct from base_dir and running default vault scan
+    if base_dir.resolve() == DEFAULT_VAULT_INBOX.resolve():
+        universal_inbox = Path(r"C:\_\Vault\Inbox")
+        if universal_inbox.exists() and universal_inbox.resolve() != base_dir.resolve():
+            for n in scan_inbox(universal_inbox):
+                if n.get("id"):
+                    notes_by_id[str(n["id"])] = n
 
     return list(notes_by_id.values())
 
@@ -1341,6 +1349,8 @@ def handle_archive_card(
                 candidates.append(p)
                 candidates.append(inbox_dir / p.name)
                 candidates.append(inbox_dir / p)
+                candidates.append(Path(r"C:\_\Vault\Inbox") / p.name)
+                candidates.append(Path(r"C:\_\Vault\Inbox") / p)
 
         found_src = None
         for cand in candidates:
