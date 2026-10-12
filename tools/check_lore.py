@@ -18,7 +18,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-VAULT_DISPATCH = Path(r"C:\_\Vault\🏢 New Klang City\Lore\Dispatch")
+VAULT_DISPATCH = Path(r"C:\_\Vault\New Klang City\Lore\Dispatch")
 LOCAL_DISPATCH = REPO_ROOT / "docs" / "lore" / "dispatch"
 
 

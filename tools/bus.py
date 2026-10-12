@@ -26,7 +26,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 CANDIDATE_BUS_PATHS = [
     Path(r"C:\Dev\TheKlangVault\Dispatches"),
-    Path(r"C:\_\Vault\🏢 New Klang City\Dispatches"),
+    Path(r"C:\_\Vault\New Klang City\Dispatches"),
     Path(__file__).resolve().parent.parent / "docs" / "dispatches",
 ]
 
