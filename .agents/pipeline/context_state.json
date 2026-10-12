@@ -1,25 +1,25 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "aae1828",
+    "commit": "e03f034",
     "is_clean": false,
-    "dirty_count": 4,
+    "dirty_count": 1,
     "staged": 1,
-    "modified": 4,
+    "modified": 1,
     "untracked": 0,
     "recent_commits": [
-      "aae1828 fix(state): handle bare command line in state_manager and add regression test",
-      "3060c41 fix(renderer): guard panel mirroring to canonical boards to prevent test clutter",
-      "ace3dfc refactor(mail): streamline check_mail, retire rejigger overlay, and integrate shell.html"
+      "e03f034 docs(cheat-sheet): add language_server.exe memory check tip and glossary definition",
+      "817288f chore(mailbag): archive cards 1, 2, and 5 to Inbox/Archive",
+      "02095d2 feat(hub): add 4-way category switcher and hide-by-default sandbox toggle"
     ]
   },
   "plan": {
     "has_plan": true,
     "is_idle": true,
-    "title": "Implementation Plan: Zero-Token Mechanical Automation Suite (Flights 1\u20137)",
+    "title": "Implementation Plan: Flight 20 (The 3-Surface System & Frictionless Triage Ergonomics)",
     "target": "TOOLING_HARNESS",
     "status": "COMPLETED",
-    "progress": "23/25",
+    "progress": "28/28",
     "active_phase": "Idle / Standby"
   },
   "communique": {
