@@ -255,7 +255,7 @@ def render_active_context_markdown(state: Dict[str, Any]) -> str:
 
 def cmd_dump(args: argparse.Namespace) -> int:
     state = compute_workspace_state()
-    if args.json:
+    if getattr(args, "json", False):
         print(json.dumps(state, indent=2))
     else:
         print(render_console_card(state))

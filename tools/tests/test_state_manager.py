@@ -51,6 +51,13 @@ class TestStateManager(unittest.TestCase):
         self.assertIn("BLACK BOX WORKSPACE STATE", card)
         self.assertIn("Branch:", card)
 
+    def test_cmd_dump_default_args(self):
+        import argparse
+        parser = argparse.ArgumentParser()
+        args = parser.parse_args([])
+        res = state_manager.cmd_dump(args)
+        self.assertEqual(res, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
