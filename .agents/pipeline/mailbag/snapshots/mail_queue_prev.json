@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T12:22:42.757708",
+  "last_scanned": "2026-10-12T12:52:25.931311",
   "total_items": 64,
   "p0_count": 6,
   "items": [
@@ -2136,8 +2136,8 @@
       "priority": "P2",
       "status": "PENDING",
       "tags": [
-        "include",
-        "define"
+        "define",
+        "include"
       ],
       "target_pillars": [
         "TKS",

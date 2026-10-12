@@ -1,31 +1,32 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "43138c8",
-    "is_clean": true,
-    "dirty_count": 0,
-    "staged": 0,
-    "modified": 0,
+    "commit": "3469b39",
+    "is_clean": false,
+    "dirty_count": 6,
+    "staged": 1,
+    "modified": 6,
     "untracked": 0,
     "recent_commits": [
-      "43138c8 chore(mailbag): update mail_queue with archived Simplenote and sync dispatches",
-      "a9c552b chore(context): synchronize ACTIVE_CONTEXT.md to 237d9b3",
-      "237d9b3 feat(blackbox): automate 0-turn cold boot and memory flush via state_manager and flush_memory, normalize communique names"
+      "3469b39 feat(safety): integrate --terse token-shield mode and Pre-AST filter into audiothread-guard (Flight 6)",
+      "5992cfd feat(triage): implement dynamic multi-key sorting and 1-command card archival (Flight 5)",
+      "fe4f46d feat(sync): implement multi-repo template and asset synchronizer (Flight 4)"
     ]
   },
   "plan": {
     "has_plan": true,
     "is_idle": true,
-    "title": "Implementation Plan",
-    "target": "FACTORY_FLOOR",
-    "status": "UNKNOWN",
-    "progress": "0/0",
+    "title": "Implementation Plan: Zero-Token Mechanical Automation Suite (Flights 1\u20137)",
+    "target": "TOOLING_HARNESS",
+    "status": "COMPLETED",
+    "progress": "23/25",
     "active_phase": "Idle / Standby"
   },
   "communique": {
     "factory_dispatch": "COMPLETED",
     "factory_receipt": "COMPLETED",
     "tooling_dispatch": "COMPLETED",
-    "tooling_receipt": "IDLE"
-  }
+    "tooling_receipt": "COMPLETED"
+  },
+  "peer_locks": []
 }
