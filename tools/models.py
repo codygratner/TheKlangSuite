@@ -206,6 +206,7 @@ class MailItem(BaseModel):
     merged_count: int = 0
     source_ids: List[str] = Field(default_factory=list)
     split_group: str = ""
+    frontmatter: Dict[str, Any] = Field(default_factory=dict)
 
     # Per-Card Response Drawer (Flight 19 / rj-08)
     agent_reply: Optional[str] = None

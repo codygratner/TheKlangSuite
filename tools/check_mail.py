@@ -136,20 +136,56 @@ def extract_note_metadata(file_path: Path):
     title = None
     date_str = None
     body = content
+    fm_dict = {}
 
     # 1. Parse YAML frontmatter if present
-    fm_match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)
+    fm_match = re.match(r"^---\s*\r?\n(.*?)\r?\n---\s*\r?\n?(.*)$", content, re.DOTALL)
     if fm_match:
         fm_text = fm_match.group(1)
         body = fm_match.group(2)
 
-        title_m = re.search(r"^title:\s*[\"']?(.*?)[\"']?\s*$", fm_text, re.MULTILINE | re.IGNORECASE)
-        if title_m:
-            title = title_m.group(1).strip()
+        for line in fm_text.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            km = re.match(r"^([a-zA-Z0-9_\-\.]+)\s*:\s*(.*)$", line)
+            if km:
+                k = km.group(1).lower()
+                v = km.group(2).strip().strip("'\"")
+                if v.startswith("[") and v.endswith("]"):
+                    items = [x.strip().strip("'\"") for x in v[1:-1].split(",") if x.strip()]
+                    fm_dict[k] = items
+                else:
+                    fm_dict[k] = v
 
-        date_m = re.search(r"^date:\s*[\"']?(.*?)[\"']?\s*$", fm_text, re.MULTILINE | re.IGNORECASE)
-        if date_m:
-            date_str = date_m.group(1).strip()
+        if "title" in fm_dict and isinstance(fm_dict["title"], str):
+            title = fm_dict["title"].strip()
+        if "date" in fm_dict and isinstance(fm_dict["date"], str):
+            date_str = fm_dict["date"].strip()
+
+    # 1b. Parse and strip loose/pseudo-frontmatter lines from body
+    METADATA_KEYS = {
+        "tags", "tag", "date", "priority", "pillars", "pillar", "status",
+        "author", "type", "tier", "version", "prereq", "prerequisites", "depends", "depends_on"
+    }
+
+    body_clean_lines = []
+    for line in body.splitlines():
+        trimmed = line.strip()
+        km = re.match(r"^([a-zA-Z0-9_\-]+)\s*:\s*(.*)$", trimmed)
+        if km and km.group(1).lower() in METADATA_KEYS:
+            k = km.group(1).lower()
+            v = km.group(2).strip().strip("'\"")
+            if v.startswith("[") and v.endswith("]"):
+                items = [x.strip().strip("'\"") for x in v[1:-1].split(",") if x.strip()]
+                fm_dict[k] = items
+            else:
+                fm_dict[k] = v
+            if k == "date" and not date_str:
+                date_str = v
+            continue  # Strip metadata line so it never leaks into message text
+        body_clean_lines.append(line)
+    body = "\n".join(body_clean_lines)
 
     # Phase 2 Quick Notes: Check if body is empty or whitespace only
     is_quick_note = (not body.strip())
@@ -196,10 +232,8 @@ def extract_note_metadata(file_path: Path):
     priority = "P2"
     all_text = (title + " " + body).lower()
     fm_priority = None
-    if fm_match:
-        pm = re.search(r"^priority:\s*[\"']?(.*?)[\"']?\s*$", fm_match.group(1), re.MULTILINE | re.IGNORECASE)
-        if pm:
-            fm_priority = pm.group(1).strip().upper()
+    if "priority" in fm_dict:
+        fm_priority = str(fm_dict["priority"]).strip().upper()
 
     if fm_priority in ["P0", "P1", "P2", "P3"]:
         priority = fm_priority
@@ -212,6 +246,19 @@ def extract_note_metadata(file_path: Path):
 
     # Extract tags
     tags = list(set(re.findall(r"#([a-zA-Z0-9_\-/]+)", content)))
+    fm_tags = fm_dict.get("tags") or fm_dict.get("tag")
+    if fm_tags:
+        if isinstance(fm_tags, list):
+            for t in fm_tags:
+                cleaned = str(t).strip().lstrip("#").lower()
+                if cleaned and cleaned not in tags:
+                    tags.append(cleaned)
+        elif isinstance(fm_tags, str):
+            for t in re.split(r"[, ]+", fm_tags):
+                cleaned = t.strip().lstrip("#").lower()
+                if cleaned and cleaned not in tags:
+                    tags.append(cleaned)
+
     if is_quick_note and "quick-note" not in tags:
         tags.append("quick-note")
 
@@ -246,10 +293,12 @@ def extract_note_metadata(file_path: Path):
 
     # Extract or infer ecosystem target pillars (Flight 6)
     pillars = []
-    if fm_match:
-        fm_pil = re.search(r"^pillars?:\s*\[?(.*?)\]?\s*$", fm_match.group(1), re.MULTILINE | re.IGNORECASE)
-        if fm_pil:
-            p_items = [p.strip().strip("'\"").upper() for p in fm_pil.group(1).split(",") if p.strip()]
+    fm_pil = fm_dict.get("pillars") or fm_dict.get("pillar")
+    if fm_pil:
+        if isinstance(fm_pil, list):
+            pillars = [str(p).strip().upper() for p in fm_pil if str(p).strip().upper() in PILLAR_METADATA]
+        elif isinstance(fm_pil, str):
+            p_items = [p.strip().strip("'\"").upper() for p in fm_pil.split(",") if p.strip()]
             pillars = [p for p in p_items if p in PILLAR_METADATA]
     if not pillars:
         pillars = infer_pillars(title, tags, body)
@@ -270,6 +319,7 @@ def extract_note_metadata(file_path: Path):
         "tags": tags,
         "dependencies": dependencies,
         "target_pillars": pillars,
+        "frontmatter": fm_dict,
     }
 
 
@@ -695,6 +745,7 @@ def build_mail_queue(
             "agent_reply": agent_reply,
             "agent_reply_at": agent_reply_at,
             "has_reply": has_reply,
+            "frontmatter": it.get("frontmatter", {}),
         })
 
     # Collect known docket source note names to avoid duplicate cards
@@ -761,6 +812,7 @@ def build_mail_queue(
             "agent_reply": agent_reply,
             "agent_reply_at": agent_reply_at,
             "has_reply": has_reply,
+            "frontmatter": n.get("frontmatter", {}),
         })
 
     # 3. Check for rejigger overlay

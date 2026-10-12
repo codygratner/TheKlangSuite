@@ -404,6 +404,59 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
         </div>"""
         reply_badge = '<span class="badge badge-reply" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent assessment attached">💬 Agent Reply</span>'
 
+    # Card frontmatter and tag chips
+    fm_obj = getattr(it, "frontmatter", {}) or {}
+    display_tags = [t for t in (it.tags or []) if t.lower() not in ("quick-note", "tabled")]
+    if isinstance(fm_obj.get("tags"), list):
+        for t in fm_obj["tags"]:
+            t_clean = str(t).strip().lstrip("#")
+            if t_clean and t_clean.lower() not in ("quick-note", "tabled") and t_clean not in display_tags:
+                display_tags.append(t_clean)
+
+    tag_chips_html = ""
+    if display_tags:
+        tag_chips_html = "".join([
+            f'<span class="mail-tag-chip" onclick="applyTagFilter(\'{html.escape(t, quote=True)}\', event)" title="Filter by #{html.escape(t)}">#{html.escape(t)}</span>'
+            for t in display_tags
+        ])
+
+    fm_pills = []
+    excluded_fm_keys = {"title", "tags", "tag", "body", "excerpt", "preview", "pillars", "pillar", "priority", "date", "status"}
+    for k, v in fm_obj.items():
+        if k.lower() not in excluded_fm_keys and v:
+            v_str = ", ".join(v) if isinstance(v, list) else str(v)
+            fm_pills.append(
+                f'<span class="mail-fm-pill" title="{html.escape(k)}: {html.escape(v_str)}"><span class="fm-key">{html.escape(k)}:</span> {html.escape(v_str)}</span>'
+            )
+    fm_pills_html = "".join(fm_pills)
+
+    meta_row_html = ""
+    if tag_chips_html or fm_pills_html:
+        meta_row_html = f'<div class="mail-card-meta-row">{tag_chips_html}{fm_pills_html}</div>'
+
+    # Structured frontmatter box inside details view
+    grid_items = []
+    if date_esc:
+        grid_items.append(f'<div class="fm-grid-item"><span class="fm-key">Date</span><span class="fm-val">{date_esc}</span></div>')
+    if priority:
+        grid_items.append(f'<div class="fm-grid-item"><span class="fm-key">Priority</span><span class="fm-val">{priority}</span></div>')
+    if pillars:
+        grid_items.append(f'<div class="fm-grid-item"><span class="fm-key">Pillars</span><span class="fm-val">{html.escape(", ".join(pillars))}</span></div>')
+    if it.tags:
+        tags_str = ", ".join([f"#{t}" for t in it.tags])
+        grid_items.append(f'<div class="fm-grid-item"><span class="fm-key">Tags</span><span class="fm-val">{html.escape(tags_str)}</span></div>')
+    for k, v in fm_obj.items():
+        if k.lower() not in {"title", "date", "priority", "pillars", "pillar", "tags", "tag", "body", "excerpt", "preview", "status"} and v:
+            v_str = ", ".join(v) if isinstance(v, list) else str(v)
+            grid_items.append(f'<div class="fm-grid-item"><span class="fm-key">{html.escape(k.title())}</span><span class="fm-val">{html.escape(v_str)}</span></div>')
+
+    fm_box_html = ""
+    if grid_items:
+        fm_box_html = f"""<div class="mail-frontmatter-box">
+              <div class="mail-frontmatter-title">📋 Front Matter & Metadata</div>
+              <div class="mail-frontmatter-grid">{"".join(grid_items)}</div>
+            </div>"""
+
     is_pending = (it.status == TriageStatus.PENDING)
     initial_display = "" if is_pending else ' style="display: none;"'
 
@@ -433,10 +486,11 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
           </div>
         </div>
         <div class="mail-card-title">{title_esc}</div>
+        {meta_row_html}
         <div class="mail-card-excerpt">{excerpt_esc}</div>
         <details class="mail-body-details">
           <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({it.word_count} words)</summary>
-          <div class="mail-body-rendered">{body_rendered}</div>
+          <div class="mail-body-rendered">{fm_box_html}{body_rendered}</div>
         </details>
         {drawer_html}
         {dispatch_banner_html}

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T14:35:25.754999",
+  "last_scanned": "2026-10-12T14:44:53.888650",
   "total_items": 4,
   "p0_count": 0,
   "items": [
@@ -11,23 +11,28 @@
       "priority": "P2",
       "status": "PENDING",
       "tags": [
-        "tabled"
+        "tabled",
+        "nkai",
+        "agy",
+        "obsidian",
+        "architecture"
       ],
       "target_pillars": [
         "NK",
+        "AGY",
         "TKR"
       ],
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Mega_Vault_Consolidation_and_Scoped_Enclave.md",
-      "preview": "tags: [tabled, nkai, agy, obsidian, architecture] date: 2026-10-12 priority: P2 Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scop...",
+      "preview": "Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (TheKlangVault/New Klang City/ or similar) while providing unifie...",
       "dependencies": [],
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 1149,
-      "word_count": 149,
+      "char_count": 1069,
+      "word_count": 139,
       "tier": "tier2",
-      "body": "# Mega-Vault Consolidation & Scoped Vault Enclave Architecture (Zettelkasten)\ntags: [tabled, nkai, agy, obsidian, architecture]\ndate: 2026-10-12\npriority: P2\n\n## Core Intent\nArchitectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (`TheKlangVault/New Klang City/` or similar) while providing unified global access and pre-migration health scanning for plugins/cruft.\n\n## Proposed Mechanism\n1. **Single Unified Obsidian Vault**: Merge multi-vault sprawl into one unified Zettelkasten, increasing daily usage and cognitive cohesion.\n2. **Sub-Enclave Boundary**: Restrict TheKlangSuite/N'kai AI harness strictly to a scoped folder (e.g. `vault/New Klang City/`) so agents never touch or leak personal/creative notes.\n3. **Vault Pre-Migration Health Scanner**: Tooling script to audit external vaults before merge (checking for broken plugins, bloated cache, circular links, and filename hazards).\n\n## Action Route\nApprove -> author migration RFC in TheKlangResearch and design enclave boundary.",
-      "excerpt": "tags: [tabled, nkai, agy, obsidian, architecture] date: 2026-10-12 priority: P2 Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scop...",
+      "body": "# Mega-Vault Consolidation & Scoped Vault Enclave Architecture (Zettelkasten)\n\n## Core Intent\nArchitectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (`TheKlangVault/New Klang City/` or similar) while providing unified global access and pre-migration health scanning for plugins/cruft.\n\n## Proposed Mechanism\n1. **Single Unified Obsidian Vault**: Merge multi-vault sprawl into one unified Zettelkasten, increasing daily usage and cognitive cohesion.\n2. **Sub-Enclave Boundary**: Restrict TheKlangSuite/N'kai AI harness strictly to a scoped folder (e.g. `vault/New Klang City/`) so agents never touch or leak personal/creative notes.\n3. **Vault Pre-Migration Health Scanner**: Tooling script to audit external vaults before merge (checking for broken plugins, bloated cache, circular links, and filename hazards).\n\n## Action Route\nApprove -> author migration RFC in TheKlangResearch and design enclave boundary.",
+      "excerpt": "Architectural blueprint for consolidating multiple fragmented Obsidian vaults into a single unified personal knowledge base (PKB / Zettelkasten), restricting the developer AI tooling harness to a scoped sub-enclave (TheKlangVault/New Klang City/ or similar) while providing unifie...",
       "file_name": "Mega_Vault_Consolidation_and_Scoped_Enclave.md",
       "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Mega_Vault_Consolidation_and_Scoped_Enclave.md",
       "source_note": "",
@@ -35,6 +40,7 @@
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
+      "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false
@@ -46,23 +52,27 @@
       "priority": "P2",
       "status": "PENDING",
       "tags": [
-        "tabled"
+        "tabled",
+        "nkai",
+        "agy",
+        "pair-programming"
       ],
       "target_pillars": [
         "NK",
+        "AGY",
         "TKR"
       ],
       "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Live_Reading_Notes_Protocol.md",
-      "preview": "tags: [tabled, nkai, agy, pair-programming] date: 2026-10-12 priority: P2 Codify an interactive pair-programming mechanism that allows the developer to capture incremental, stream-of-consciousness reactions as they read long architectural teardowns (PCDAs, specs, audit reports) b...",
+      "preview": "Codify an interactive pair-programming mechanism that allows the developer to capture incremental, stream-of-consciousness reactions as they read long architectural teardowns (PCDAs, specs, audit reports) before reaching discussion, without losing thoughts or feeling constrained ...",
       "dependencies": [],
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 1070,
-      "word_count": 132,
+      "char_count": 996,
+      "word_count": 123,
       "tier": "tier2",
-      "body": "# Interactive Stream-of-Consciousness Feedback & Live Reading Notes Protocol\ntags: [tabled, nkai, agy, pair-programming]\ndate: 2026-10-12\npriority: P2\n\n## Core Intent\nCodify an interactive pair-programming mechanism that allows the developer to capture incremental, stream-of-consciousness reactions as they read long architectural teardowns (PCDAs, specs, audit reports) before reaching discussion, without losing thoughts or feeling constrained by linear reading.\n\n## Proposed Mechanism\n1. **Live Reading Note Capture**: Developer reads long dialectics section-by-section and dumps gut reactions as they read (\"presentation notes mode\").\n2. **Non-Judgmental Buffer**: Agent explicitly buffers and reconciles incremental user feedback against later sections without patronizing or dismissing early reactions.\n3. **UI Sidecar Tooling**: Potential future N'kai widget or chat command (`/stream-notes` or inline margin notes) allowing paragraph-level reactions.\n\n## Action Route\nApprove -> document protocol in docs/history/vibe_coding_field_guide.md and AGY prompt rules.",
-      "excerpt": "tags: [tabled, nkai, agy, pair-programming] date: 2026-10-12 priority: P2 Codify an interactive pair-programming mechanism that allows the developer to capture incremental, stream-of-consciousness reactions as they read long architectural teardowns (PCDAs, specs, audit reports) b...",
+      "body": "# Interactive Stream-of-Consciousness Feedback & Live Reading Notes Protocol\n\n## Core Intent\nCodify an interactive pair-programming mechanism that allows the developer to capture incremental, stream-of-consciousness reactions as they read long architectural teardowns (PCDAs, specs, audit reports) before reaching discussion, without losing thoughts or feeling constrained by linear reading.\n\n## Proposed Mechanism\n1. **Live Reading Note Capture**: Developer reads long dialectics section-by-section and dumps gut reactions as they read (\"presentation notes mode\").\n2. **Non-Judgmental Buffer**: Agent explicitly buffers and reconciles incremental user feedback against later sections without patronizing or dismissing early reactions.\n3. **UI Sidecar Tooling**: Potential future N'kai widget or chat command (`/stream-notes` or inline margin notes) allowing paragraph-level reactions.\n\n## Action Route\nApprove -> document protocol in docs/history/vibe_coding_field_guide.md and AGY prompt rules.",
+      "excerpt": "Codify an interactive pair-programming mechanism that allows the developer to capture incremental, stream-of-consciousness reactions as they read long architectural teardowns (PCDAs, specs, audit reports) before reaching discussion, without losing thoughts or feeling constrained ...",
       "file_name": "Live_Reading_Notes_Protocol.md",
       "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Live_Reading_Notes_Protocol.md",
       "source_note": "",
@@ -70,6 +80,7 @@
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
+      "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false
@@ -105,6 +116,7 @@
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
+      "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false
@@ -141,6 +153,7 @@
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
+      "frontmatter": {},
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false

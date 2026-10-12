@@ -216,6 +216,62 @@ title: Complex Synthesizer Spec
         self.assertIn("Draft Plan", html_output, "Missing Draft Plan launcher button")
         self.assertIn("launchSessionAction", html_output, "Missing launchSessionAction onclick handler")
 
+    def test_frontmatter_extraction_and_card_rendering(self):
+        """Test 7: Frontmatter & pseudo-metadata are parsed, stripped from message body/excerpt, and rendered on card."""
+        note_content = """---
+title: "Custom Synthesizer Frontmatter Test"
+date: 2026-10-12
+author: "Lead Architect"
+---
+
+# Custom Synthesizer Frontmatter Test
+tags: [synthesizer, dsp, modular, audio]
+priority: P1
+pillars: [TKS, TKR]
+
+## Core Architecture
+This is the genuine human message text describing the modular DSP architecture.
+It should not be polluted by frontmatter lines.
+"""
+        note_path = self.temp_dir / "Frontmatter_Test.md"
+        note_path.write_text(note_content, encoding="utf-8")
+
+        meta = extract_note_metadata(note_path)
+        self.assertIsNotNone(meta)
+        self.assertEqual(meta["priority"], "P1")
+        self.assertIn("synthesizer", meta["tags"])
+        self.assertIn("dsp", meta["tags"])
+        self.assertEqual(meta["frontmatter"].get("author"), "Lead Architect")
+
+        # Assert frontmatter lines stripped from message text
+        self.assertNotIn("tags:", meta["excerpt"])
+        self.assertNotIn("priority:", meta["excerpt"])
+        self.assertTrue(meta["excerpt"].startswith("This is the genuine human message text"))
+        self.assertNotIn("tags: [synthesizer", meta["body"])
+
+        # Render card and assert frontmatter display
+        item = MailItem(
+            id="fm-card-01",
+            title=meta["title"],
+            priority=PriorityLevel.P1,
+            status=TriageStatus.PENDING,
+            tags=meta["tags"],
+            target_pillars=meta["target_pillars"],
+            source_file=str(note_path),
+            preview=meta["preview"],
+            excerpt=meta["excerpt"],
+            body=meta["body"],
+            frontmatter=meta["frontmatter"],
+        )
+
+        card_html = render_card_html(item, 1)
+        self.assertIn("mail-card-meta-row", card_html, "Missing meta row on card")
+        self.assertIn("#synthesizer", card_html, "Missing tag chip #synthesizer")
+        self.assertIn("#modular", card_html, "Missing tag chip #modular")
+        self.assertIn("author:", card_html, "Missing author frontmatter pill")
+        self.assertIn("Lead Architect", card_html, "Missing author value")
+        self.assertIn("mail-frontmatter-box", card_html, "Missing structured frontmatter box in details")
+
 
 if __name__ == "__main__":
     unittest.main()
