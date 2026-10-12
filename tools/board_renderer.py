@@ -593,22 +593,33 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
         except Exception:
             pass
 
-    # Mirror to active Antigravity Extension panel
-    plugin_panel = Path(r"C:\Users\codyg\.gemini\config\plugins\nkai\sidecars\panel\index.html")
-    if plugin_panel.parent.exists():
-        try:
-            plugin_panel.write_text(output_html, encoding="utf-8")
-            (plugin_panel.parent / out_path.name).write_text(output_html, encoding="utf-8")
-        except Exception:
-            pass
+    # Mirror canonical boards to active Antigravity Extension panel and nkai repository
+    canonical_boards = {
+        "morning_mail_inbox.html",
+        "sandbox_mail_inbox.html",
+        "audit_triage_board.html",
+        "system_sanity_audit.html",
+        "nkai_deep_research.html",
+        "roadmap_sidecar.html",
+        "shell.html",
+    }
+    if out_path.name in canonical_boards:
+        plugin_panel = Path(r"C:\Users\codyg\.gemini\config\plugins\nkai\sidecars\panel\index.html")
+        if plugin_panel.parent.exists():
+            try:
+                (plugin_panel.parent / out_path.name).write_text(output_html, encoding="utf-8")
+                if out_path.name == "morning_mail_inbox.html":
+                    plugin_panel.write_text(output_html, encoding="utf-8")
+            except Exception:
+                pass
 
-    # Mirror to nkai repository sidecar panel
-    nkai_panel = Path(r"c:\Dev\nkai\sidecars\panel\index.html")
-    if nkai_panel.parent.exists():
-        try:
-            nkai_panel.write_text(output_html, encoding="utf-8")
-            (nkai_panel.parent / out_path.name).write_text(output_html, encoding="utf-8")
-        except Exception:
-            pass
+        nkai_panel = Path(r"c:\Dev\nkai\sidecars\panel\index.html")
+        if nkai_panel.parent.exists():
+            try:
+                (nkai_panel.parent / out_path.name).write_text(output_html, encoding="utf-8")
+                if out_path.name == "morning_mail_inbox.html":
+                    nkai_panel.write_text(output_html, encoding="utf-8")
+            except Exception:
+                pass
 
     return out_path
