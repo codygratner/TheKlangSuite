@@ -1257,18 +1257,20 @@
         "NK",
         "AGY"
       ],
-      "title": "Modular Split of check_mail.py Monolith (3-File Architecture)",
-      "summary": "Opus identified check_mail.py as a 1,670+ line monolith burning up to ~196k subagent context tokens per view; proposes splitting into clean modules (scan.py, overlay.py, cli.py) with backward-compatible facades.",
+      "title": "Mailbag System Architecture: Modular 3-File Split & Audit Hardening",
+      "summary": "Unified proposal merging Opus's 3-file modular refactor of the check_mail.py monolith with the architectural enhancements identified in the morning archive audit: decomposing into tools/mailbag/ (scan, overlay, cli), dual-stage vault scanning (Inbox + Archive) with deterministic deduplication, incremental mtime/hash caching, and multi-vault contained directory routing for personal research.",
       "angles": [
-        "Subagent Context Tax: Every time a Flash or Pro builder inspects check_mail.py, reading the 1,670+ lines taxes context window and slows tool turnaround",
-        "Proposed 3-Module Decomposition: (1) tools/mailbag/scan.py for inbox/archive discovery & frontmatter parsing; (2) tools/mailbag/overlay.py for rejigger overlay & ledger state; (3) tools/check_mail.py as a lightweight CLI runner",
-        "Render Decoupling: tools/board_renderer.py already absorbed HTML templates; completing the split isolates scanning from queue reconciliation",
-        "Preserve Entrypoint: Keep tools/check_mail.py as the official CLI entrypoint so existing skills, tests, and workflows work without breaking changes"
+        "Modular 3-File Decomposition (Opus): Split 1,600+ line check_mail.py into tools/mailbag/scan.py (vault discovery & frontmatter), tools/mailbag/overlay.py (rejigger reconciliation & status preservation), and tools/check_mail.py (backward-compatible CLI facade) to slash ~196k subagent context overhead",
+        "Dual-Stage Zero-Loss Reconciliation (Audit Gap): Unify active Inbox/ and historical Inbox/Archive/ into a persistent, dual-index ledger with deterministic note hashing so moving notes to Archive never wipes verdicts or metadata",
+        "Incremental MTime/Hash Caching: Cache note parse trees by file mtime and SHA-256 so re-scanning 80+ notes drops from seconds to sub-10ms",
+        "Multi-Vault & Contained Directory Routing: Decouple scanner from hardcoded TheKlangVault/Inbox to support arbitrary folders (--dir <path>) for isolated personal/creative research without git sync",
+        "Multi-Source Provenance & Deep Links: Render clickable file:/// links and word counts for all merged source notes directly in card response drawers"
       ],
-      "next_action": "Approve -> dispatch to Flash Builder to modularize into tools/mailbag/ package.",
+      "next_action": "Approve -> dispatch to Flash Builder to implement tools/mailbag/ package and hardened scanner.",
       "sources": [
         "check_mail.py is too long",
-        "2026-10-11_pro_mailbag_rejigger"
+        "2026-10-11_pro_mailbag_rejigger",
+        "Morning Mail Archive Audit"
       ]
     }
   ]
