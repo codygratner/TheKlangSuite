@@ -281,7 +281,13 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **Chat-Minimal Pair Programming**: The workflow protocol where agents commit multi-paragraph assessments, code signatures, and dialectical trade-offs directly into in-card drawers while emitting only 1–2 summary lines in the active chat transcript (`"Triaged to Backlog. Architectural breakdown committed to card drawer."`), preserving context window capacity and eliminating compaction amnesia.
 * **Deterministic Drawer IDs & ARIA Semantics**: The standardized DOM hierarchy (`#drawer-container-<id>`, `#btn-drawer-<id>`, `#drawer-<id>`) pairing an accessible `<button>` toggle with dynamic `aria-expanded="false|true"` attributes and a `<div hidden>` content wrapper, ensuring robust headless testing and assistive accessibility.
 * **Fast CLI Reply Tooling (`--reply-card`)**: The command-line option in `tools/check_mail.py` (`--reply-card <id> --text "<markdown>"`) that updates `agent_reply` and `agent_reply_at` on matching items in `mail_queue.json` and immediately regenerates the HTML board in under 50ms without re-scanning vault notes.
-* **Procedural Detent Audio Haptic**: The Web Audio procedural sine detent click (`playHaptic('tick')`, 800Hz → 400Hz exponential ramp) triggered on drawer expansion/collapse, simulating a physical tactile detent while respecting localStorage audio mute preferences.
+---
+
+## 24. Devil's Advocate Methodology & Prompt Hardening (Benchmark `rj-22`)
+
+* **Method B Adversarial Prompting**: A prompt hardening standard requiring an explicit blindness invariant, permitted web fact-checking, and a mandatory *"Where I Disagree With The Prompt"* section in all architectural reviews, PCDA teardowns, and `/grill-me` sessions. Empirically proven in the `rj-22` benchmark to produce a +1.44 quality leap on Flash (elevating Flash-B to 3.88, beating Pro) and +1.06 on Pro by eliminating sycophantic agreement and forcing explicit premise skepticism.
+* **Pre-Downgrade Soul Harvest**: The mandatory single-turn capture of raw Opus working hypotheses, gotchas, and failure-mode discoveries into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md` immediately before emitting the downgrade chime to Flash, capturing peak reasoning at near-zero token cost before returning to sustainable Flash High.
+* **Audio Strangler Fallacy**: The proven architectural finding that standard web-style Strangler Fig migrations (running two backends concurrently at runtime) fail in digital audio workstations because multiple audio engines cannot concurrently claim exclusive hardware leases on a single ASIO/CoreAudio device stream. Real-time audio migrations must instead use Branch by Abstraction at the data interface verified by offline-bounce golden null tests.
 
 
 

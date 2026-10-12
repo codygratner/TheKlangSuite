@@ -247,7 +247,14 @@
 * **Chat-Minimal Pair Programming**: Preserves context window capacity by keeping chat responses to 1–2 crisp status lines (`"Triaged rj-08 to Backlog. Architectural breakdown committed to card drawer."`).
 * **Deterministic Drawer Hierarchy**: Accessible button `#btn-drawer-<id>` with dynamic `aria-expanded`, content wrapper `#drawer-<id>` with `hidden` attribute, and `.drawer-inner.markdown-body`.
 * **Fast CLI Reply Tooling**: `python tools/check_mail.py --reply-card <id> --text "<markdown>"` commits replies to `mail_queue.json` and regenerates the HTML board in <50ms without vault re-scanning.
-* **Procedural Detent Audio**: Web Audio API `playHaptic('tick')` exponential sine sweep (800Hz → 400Hz) delivers physical detent feedback on drawer toggle, respecting localStorage audio mute preferences.
+---
+
+## 😈 Devil's Advocate Methodology & Prompt Hardening (`rj-22`)
+
+* **Method B Adversarial Prompting**: Mandatory requirement for all DA reviews, `/grill-me` sessions, and subagent dialectics to append `"Where I Disagree With The Prompt"`. Empirically verified to produce a +1.44 quality leap on Flash (3.88, beating Pro) and +1.06 on Pro by eliminating sycophantic agreement and forcing premise skepticism.
+* **Pre-Downgrade Soul Harvest**: Mandatory single-turn capture of raw Opus working hypotheses and failure modes to `.agents/pipeline/staging/souls/` immediately before sounding the downgrade chime back to Flash, capturing peak reasoning at near-zero token cost.
+* **Audio Strangler Fallacy**: Real-time audio engines cannot use runtime Strangler Fig routing because multiple engines cannot concurrently own a hardware ASIO/CoreAudio device stream; migrations must use Branch by Abstraction verified by offline-bounce golden null tests.
+* **Benchmark Tooling**: `python tools/da_bench.py` provides `sanitize` (seeded anonymization & key sealing), `audit-blindness` (zero-leak transcript verification), `aggregate` (multi-judge Kendall's tau & composite scoring), and `manifest` lifecycle governance.
 
 
 

@@ -30,17 +30,18 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** **Six-Way Devil's Advocate Benchmark (`rj-22`) Stage W1, W2, and W3 COMPLETED ✅**. Stage **HOLD** is now **ACTIVE** awaiting weekly quota reset on Sunday 2026-10-18.
-- **Benchmark Corpus (`C:\Dev\Research\agentic\rj22_da_benchmark\`)**:
-  - All 6 DA reports generated and ingested (`flash-A/B`, `pro-A/B`, `opus-A/B`).
-  - Anonymized reports `R1..R6` generated with `sealed/key.json`.
-  - Flash Judge (`reviews/judge-flash.md`) and Pro Judge (`reviews/judge-pro.md`) completed and verified with 100% blind compliance.
-  - Flash Provisional Meta ([`meta/provisional_flash.md`](file:///C:/Dev/Research/agentic/rj22_da_benchmark/meta/provisional_flash.md)) and Pro Provisional Meta ([`meta/provisional_pro.md`](file:///C:/Dev/Research/agentic/rj22_da_benchmark/meta/provisional_pro.md)) delivered.
-  - Inter-judge concordance: Kendall's $\tau_b = +0.8667$.
-- **Soul Harvest**: All recent subagent sessions staged to [`.agents/pipeline/staging/souls/`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/staging/souls/) (ToadTracker gamepad latency + Renoise `.xrns` format, blind zombie backend PCDA, Opus premise skepticism autopsy).
-- **Mailbag Status**: `opus harvest plan.md` reviewed and codified into the Targeted Opus DSP Swap Protocol.
-- **Immediate Next Command**: On or after Sunday 2026-10-18 reset, execute **Stage W4** (switch IDE footer to `Claude Opus 5.5 High`, run blind Opus Judge, generate aggregate final meta-analysis and real-world impact report).
-- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Branch: `0.4.0-dev`)
+- **Current Objective:** **Six-Way Devil's Advocate Benchmark (`rj-22`) FULLY COMPLETED & CANONICAL ✅**.
+- **Canonical Synthesis Published**: [`C:\Dev\Research\agentic\da_methodology_six_way_benchmark_2026-10.md`](file:///C:/Dev/Research/agentic/da_methodology_six_way_benchmark_2026-10.md).
+- **Core Findings**:
+  - **Methodology Trumps Model Tier**: Method B (+1.44 Flash, +1.06 Pro) forces premise skepticism and eliminates sycophancy.
+  - **Flash-B is the Bang-for-Buck Champion**: Flash-B (3.88) beat Pro-B (3.06) and crushed Pro-A (2.00) at near-zero token cost.
+  - **Opus 5.5 is Irreplaceable for Foundational Pivots**: Opus-B (5.00) and Opus-A (4.75) swept the board, uniquely catching the audio Strangler fallacy, GPLv2+ licensing contagion, and try-lock concurrency.
+  - **Ground Truth Verified**: Friend's real-world Tracktion swap is already succeeding.
+  - **Allowance Conserved**: Redundant Stage W4 waived to preserve 100% of upcoming Sunday Opus allowance for native C++ DSP.
+- **Rules Codified in `GEMINI.md`, `GLOSSARY.md`, `CHEAT_SHEET.md`**:
+  - Mandatory Method B Adversarial Prompting Invariant (*"Where I Disagree With The Prompt"*).
+  - Pre-Downgrade Soul Harvest Protocol.
+- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Status: `COMPLETED ✅`)
 
 
 ---

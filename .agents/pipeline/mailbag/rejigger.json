@@ -268,7 +268,7 @@
         "Multiple Repos"
       ],
       "verdict": "BACKLOG",
-      "verdict_notes": "2026-10-11: Backlogged as BACKLOG N'kai Flight 0 — FIRST flight after mailbag triage (user: want this done SOON). Single merged footer line."
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG N'kai Flight 0 \u2014 FIRST flight after mailbag triage (user: want this done SOON). Single merged footer line."
     },
     {
       "id": "rj-10",
@@ -569,13 +569,13 @@
         "docket-12"
       ],
       "verdict": "APPROVED",
-      "verdict_notes": "Approved as an on-demand research spike in docs/BACKLOG.md under Milestone v0.7.0 §3.5."
+      "verdict_notes": "Approved as an on-demand research spike in docs/BACKLOG.md under Milestone v0.7.0 \u00a73.5."
     },
     {
       "id": "rj-22",
       "rank": 22,
       "priority": "P2",
-      "status": "APPROVED",
+      "status": "COMPLETED",
       "tier": "tier2",
       "pillars": [
         "NK"
@@ -593,8 +593,8 @@
       "sources": [
         "Research Demo"
       ],
-      "verdict": "APPROVED",
-      "verdict_notes": "Blind prompt: \"we keep patching back end bugs in a project that's not even what we want, instead of moving forward on the front end.\" (Zero mention of Tracktion). Scheduled to run immediately after mailbag triage concludes."
+      "verdict": "COMPLETED",
+      "verdict_notes": "Six-Way Devil's Advocate Benchmark fully completed and verified against real-world ground truth (friend's Tracktion swap is succeeding). Final report published at C:/Dev/Research/agentic/da_methodology_six_way_benchmark_2026-10.md."
     },
     {
       "id": "rj-23",

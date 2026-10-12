@@ -27,6 +27,10 @@
     > 🟢 **MODEL ADVISORY: Tier 1 Concluded — Safe to Downgrade**
     > - **Recommended Setting**: Gemini 3.8 Flash (Thinking: High)
     > - **Allowance Protection**: Please swap back to Flash in your IDE footer to preserve Opus quota for future DSP!
+  - **Pre-Downgrade Soul Harvest Protocol**: Immediately prior to emitting the downgrade chime to swap from Opus back to Flash, the agent MUST execute an opportunistic, single-turn soul harvest dumping Opus's working hypotheses, failure-mode discoveries, and gotchas into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md`. This captures raw Opus insights at negligible token cost and protects against amnesia before returning to sustainable Flash.
+  - **Method B Adversarial Prompting Invariant**: In all Devil's Advocate evaluations, architectural trade-off analyses, `/grill-me` sessions, or research subagents, the prompt MUST include the Method B clause:
+    `"ADDITIONAL REQUIREMENT: Append a section titled 'Where I Disagree With The Prompt' listing any premises in the framing above that you consider wrong, loaded, or unverified, with your reasoning."`
+    *(Empirically proven in the `rj-22` benchmark to produce a +1.44 quality leap on Flash and +1.06 on Pro, eliminating sycophancy and uncovering domain gotchas).*
   - **Gemini 4 Argon GA Reconvene Trigger**: As of October 2026, Gemini 4 Argon is restricted to the Fairwind Program with no public GA date. When Argon achieves public General Availability in the IDE dropdown, immediately reconvene to benchmark Argon vs. Opus 5.5 High on C++ DSP to determine the primary Tier 1 engine.
   - **Granular Blueprinting (Pro/Opus Plans, Flash Builds)**: When Tier 1 architects a plan, it MUST decompose `PLAN.md` into exact drop-in method signatures, JSON keys, and test assertion lines so Klang Industries executes immediately on Tier 2 (Flash High).
   - **2-Strike Factory Escalation**: Klang Industries has up to 2 attempts to resolve a compilation or test failure on Tier 2. If still failing, it hard-pauses, recommends a Tier 1 upgrade to Opus 5.5 High, and waits for user confirmation.

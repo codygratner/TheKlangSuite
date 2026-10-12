@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T17:31:31.551664",
-  "total_items": 43,
+  "last_scanned": "2026-10-11T19:18:51.812922",
+  "total_items": 44,
   "p0_count": 6,
   "items": [
     {
@@ -1360,6 +1360,41 @@
       "merged_count": 1,
       "source_ids": [
         "docket-8"
+      ],
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
+    },
+    {
+      "id": "opus harvest plan",
+      "title": "🆕 opus harvest plan",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "target_pillars": [
+        "TKS",
+        "AGY"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\opus harvest plan.md",
+      "preview": "when you are working in opus, please make sure to soul harvest sub agents often. and if you're gonna prompt me to return to gemini, please do a harvest right before then, since it's super cheap on allowance. yeah, this makes more noise, but worth the risk when I have such little ...",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 385,
+      "word_count": 72,
+      "tier": "tier2",
+      "body": "when you are working in opus, please make sure to soul harvest sub agents often. and if you're gonna prompt me to return to gemini, please do a harvest right before then, since it's super cheap on allowance. yeah, this makes more noise, but worth the risk when I have such little opus 5.5 allowance. we can always filter it out in gemini after the fact. what you your thoughts on this?",
+      "excerpt": "when you are working in opus, please make sure to soul harvest sub agents often. and if you're gonna prompt me to return to gemini, please do a harvest right before then, since it's super cheap on allowance. yeah, this makes more noise, but worth the risk when I have such little ...",
+      "file_name": "opus harvest plan.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\opus harvest plan.md",
+      "source_note": "",
+      "idx": 0,
+      "merged_count": 1,
+      "source_ids": [
+        "opus harvest plan"
       ],
       "split_group": "",
       "agent_reply": null,
