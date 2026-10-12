@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-11T17:31:31.551664",
-  "total_items": 43,
+  "last_scanned": "2026-10-11T19:37:45.551529",
+  "total_items": 42,
   "p0_count": 6,
   "items": [
     {
@@ -11,7 +11,7 @@
       "priority": "P0",
       "status": "COMPLETED",
       "tags": [
-        "merged:14"
+        "merged:16"
       ],
       "target_pillars": [
         "NK",
@@ -24,16 +24,16 @@
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: User confirmed all 14 notes already shipped/covered. Residual halves live on in rj-05 (session manager), rj-07 (missed FX list), rj-11 (audit cadence). Roster correction: embedded build is TKB.",
       "estimated_tokens": 10000,
-      "char_count": 2645,
-      "word_count": 298,
+      "char_count": 3079,
+      "word_count": 361,
       "tier": "tier3",
-      "body": "One-click inbox reduction. Each note below is already answered by shipped work or an existing doc; approve to close all 14 at once, or pull any one back out.\n\n- Pydantic -> shipped (Topic 7, tools/models.py)\n- Planter Rebuild -> codified as v0.5.5 in BACKLOG (Topic 11)\n- Pros And Cons -> 4-Lens + PCDA standard in GEMINI.md, in-canvas accordions on boards\n- Deep Research Subagents + Deep Research -> Tri-Engine pattern (2 explore + 1 contrarian, parallel) in the field guide\n- Nkai (Node app?) -> shipped as N'kai v0.2.0 UI extension with Node sidecar; session-manager half moves to rj-05\n- Research and Field Guides -> TheKlangResearch repo exists\n- Vibe-Coding Journey -> vibe_coding_field_guide.md\n- backlog formatting -> BACKLOG index + DOCS_CATALOG.json + SYSTEM_MAP.md\n- Inbox archive -> Archive/INDEX.md auto-maintained + deferred note enrichment rule; the missed-FX-list half moves to rj-07\n- Micro and Macro Skills -> Flight 3 skill taxonomy; the audit-cadence half moves to rj-11\n- next paste (N'kai terms) -> Topic 8 lexicon calibration, GLOSSARY section 6\n- The Klang Suite roster -> docs/architecture/product_lineup.md (correction: the embedded build is TKB, not TKS)\n- 2026-10-09 Morning Mail Batch Docket -> superseded by this rejigger\n\n**Next action:** Approve to mark all 14 COMPLETED.\n\n**Source notes:**\n- [Pydantic](file:///C:/Dev/TheKlangVault/Inbox/Archive/Pydantic.md)\n- [Planter Rebuild](file:///C:/Dev/TheKlangVault/Inbox/Archive/Planter Rebuild.md)\n- [Pros And Cons](file:///C:/Dev/TheKlangVault/Inbox/Archive/Pros And Cons.md)\n- [Deep Research Subagents](file:///C:/Dev/TheKlangVault/Inbox/Archive/Deep Research Subagents.md)\n- [Deep Research](file:///C:/Dev/TheKlangVault/Inbox/Archive/Deep Research.md)\n- [Nkai](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai.md)\n- [Research and Field Guides](file:///C:/Dev/TheKlangVault/Inbox/Archive/Research and Field Guides.md)\n- [Vibe-Coding Journey](file:///C:/Dev/TheKlangVault/Inbox/Archive/Vibe-Coding Journey.md)\n- [backlog formatting](file:///C:/Dev/TheKlangVault/Inbox/Archive/backlog formatting.md)\n- [Inbox archive](file:///C:/Dev/TheKlangVault/Inbox/Archive/Inbox archive.md)\n- [Micro and Macro Skills](file:///C:/Dev/TheKlangVault/Inbox/Archive/Micro and Macro Skills.md)\n- [next paste](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai terms and if they’re right for me … and some Python bridge nonsense from ai mode on a google search.md)\n- [The Klang Suite](file:///C:/Dev/TheKlangVault/Inbox/Archive/The Klang Suite.md)\n- [📬 Morning Mail Topics & Future N'kai Test-Drive Docket](file:///C:/Dev/TheKlangVault/Inbox/Archive/2026-10-09_Morning_Mail_Batch_Docket.md)",
+      "body": "One-click inbox reduction. Each note below is already answered by shipped work or an existing doc; approve to close all 14 at once, or pull any one back out.\n\n- Pydantic -> shipped (Topic 7, tools/models.py)\n- Planter Rebuild -> codified as v0.5.5 in BACKLOG (Topic 11)\n- Pros And Cons -> 4-Lens + PCDA standard in GEMINI.md, in-canvas accordions on boards\n- Deep Research Subagents + Deep Research -> Tri-Engine pattern (2 explore + 1 contrarian, parallel) in the field guide\n- Nkai (Node app?) -> shipped as N'kai v0.2.0 UI extension with Node sidecar; session-manager half moves to rj-05\n- Research and Field Guides -> TheKlangResearch repo exists\n- Vibe-Coding Journey -> vibe_coding_field_guide.md\n- backlog formatting -> BACKLOG index + DOCS_CATALOG.json + SYSTEM_MAP.md\n- Inbox archive -> Archive/INDEX.md auto-maintained + deferred note enrichment rule; the missed-FX-list half moves to rj-07\n- Micro and Macro Skills -> Flight 3 skill taxonomy; the audit-cadence half moves to rj-11\n- next paste (N'kai terms) -> Topic 8 lexicon calibration, GLOSSARY section 6\n- The Klang Suite roster -> docs/architecture/product_lineup.md (correction: the embedded build is TKB, not TKS)\n- 2026-10-09 Morning Mail Batch Docket -> superseded by this rejigger\n- opus harvest plan -> codified as Pre-Downgrade Soul Harvest Protocol in GEMINI.md\n- Can you map out reasonable roadmaps for nkai and tt -> mapped to Act III Deep Docs update & post-reset Opus roadmap audit\n\n**Next action:** Approve to mark all 14 COMPLETED.\n\n**Source notes:**\n- [Pydantic](file:///C:/Dev/TheKlangVault/Inbox/Archive/Pydantic.md)\n- [Planter Rebuild](file:///C:/Dev/TheKlangVault/Inbox/Archive/Planter Rebuild.md)\n- [Pros And Cons](file:///C:/Dev/TheKlangVault/Inbox/Archive/Pros And Cons.md)\n- [Deep Research Subagents](file:///C:/Dev/TheKlangVault/Inbox/Archive/Deep Research Subagents.md)\n- [Deep Research](file:///C:/Dev/TheKlangVault/Inbox/Archive/Deep Research.md)\n- [Nkai](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai.md)\n- [Research and Field Guides](file:///C:/Dev/TheKlangVault/Inbox/Archive/Research and Field Guides.md)\n- [Vibe-Coding Journey](file:///C:/Dev/TheKlangVault/Inbox/Archive/Vibe-Coding Journey.md)\n- [backlog formatting](file:///C:/Dev/TheKlangVault/Inbox/Archive/backlog formatting.md)\n- [Inbox archive](file:///C:/Dev/TheKlangVault/Inbox/Archive/Inbox archive.md)\n- [Micro and Macro Skills](file:///C:/Dev/TheKlangVault/Inbox/Archive/Micro and Macro Skills.md)\n- [next paste](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai terms and if they’re right for me … and some Python bridge nonsense from ai mode on a google search.md)\n- [The Klang Suite](file:///C:/Dev/TheKlangVault/Inbox/Archive/The Klang Suite.md)\n- [📬 Morning Mail Topics & Future N'kai Test-Drive Docket](file:///C:/Dev/TheKlangVault/Inbox/Archive/2026-10-09_Morning_Mail_Batch_Docket.md)\n- [opus harvest plan](file:///C:/Dev/TheKlangVault/Inbox/opus harvest plan.md)\n- [Can you map out reasonable roadmaps for nkai and tt](file:///C:/Dev/TheKlangVault/Inbox/Can you map out reasonable roadmaps for nkai and tt.md)",
       "excerpt": "One-click inbox reduction. Each note below is already answered by shipped work or an existing doc; approve to close all 14 at once, or pull any one back out.",
       "file_name": "Pydantic.md",
       "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Pydantic.md",
       "source_note": "",
       "idx": 1,
-      "merged_count": 14,
+      "merged_count": 16,
       "source_ids": [
         "Pydantic",
         "Planter Rebuild",
@@ -48,7 +48,9 @@
         "Micro and Macro Skills",
         "Nkai terms and if they’re right for me … and some Python bridge nonsense from ai mode on a google search",
         "The Klang Suite",
-        "2026-10-09_Morning_Mail_Batch_Docket"
+        "2026-10-09_Morning_Mail_Batch_Docket",
+        "opus harvest plan",
+        "Can you map out reasonable roadmaps for nkai and tt"
       ],
       "split_group": "",
       "agent_reply": null,
@@ -959,6 +961,180 @@
       "has_reply": false
     },
     {
+      "id": "rj-26",
+      "title": "N'kai Minimal: Headless Zero-Dependency CLI & Chat-Only Distribution",
+      "created_at": "2026-10-11",
+      "priority": "P1",
+      "status": "BACKLOG",
+      "tags": [],
+      "target_pillars": [
+        "NK"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
+      "preview": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 705,
+      "word_count": 91,
+      "tier": "tier2",
+      "body": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.\n\n- Zero-dependency nkai-core: pure Python stdlib + Pydantic v2\n- Runs anywhere: VS Code, Cursor, Neovim, terminal SSH, headless CI\n- check_mail.py --chat and ramble_ingest.py --chat provide instant in-chat triage\n- Visual sidecars and boards become an optional presentation layer on top of headless core\n\n**Next action:** Draft nkai-core packaging spec and 1-command installer script for v0.3.0.\n\n**Source notes:**\n- [Nkai Minimal](file:///C:/Dev/TheKlangVault/Inbox/Nkai Minimal.md)",
+      "excerpt": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.",
+      "file_name": "Nkai Minimal.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
+      "source_note": "",
+      "idx": 26,
+      "merged_count": 1,
+      "source_ids": [
+        "Nkai Minimal"
+      ],
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
+    },
+    {
+      "id": "rj-27",
+      "title": "Selective Dialectic Gate: On-Demand Quick PCDA via Card Launcher & Attention Tags",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tags": [],
+      "target_pillars": [
+        "NK"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
+      "preview": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 676,
+      "word_count": 101,
+      "tier": "tier2",
+      "body": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.\n\n- Blanket batch PCDA on whole inbox moved to Graveyard\n- Smart heuristic: obvious items -> Backlog; opaque items -> Research; dilemmas/trade-offs -> PCDA\n- [ ⚖️ Quick PCDA ] launcher button on cards and --pcda <id> CLI\n\n**Next action:** Add [ ⚖️ Quick PCDA ] card action chip and !DILEMMA detection to mailbag parser.\n\n**Source notes:**\n- [Single fast PCDA on mail ingestion](file:///C:/Dev/TheKlangVault/Inbox/Single fast PCDA on mail ingestion.md)",
+      "excerpt": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.",
+      "file_name": "Single fast PCDA on mail ingestion.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
+      "source_note": "",
+      "idx": 27,
+      "merged_count": 1,
+      "source_ids": [
+        "Single fast PCDA on mail ingestion"
+      ],
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
+    },
+    {
+      "id": "rj-28",
+      "title": "Act III Deep Docs Update: Flash High Execution Engine with Atomic Git Quarantine & Snapshot Rollback",
+      "created_at": "2026-10-11",
+      "priority": "P1",
+      "status": "BACKLOG",
+      "tags": [],
+      "target_pillars": [
+        "TKS",
+        "NK",
+        "TT",
+        "TKR"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
+      "preview": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 780,
+      "word_count": 104,
+      "tier": "tier2",
+      "body": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.\n\n- Flash High handles all mechanical doc syncing, link verification, and historical reconciliation with zero quota anxiety\n- Claude Opus / Gemini Pro strictly reserved for 1-turn targeted architectural RFC reviews\n- Git branch quarantine (docs/deep-update-YYYYMMDD) guarantees clean rollback if interrupted\n- Field Guides Always Last invariant: sync specs, backlogs, and bug autopsies first; synthesize field guides last\n\n**Next action:** Kick off Act III Deep Docs pass on git quarantine branch.\n\n**Source notes:**\n- [Deep docs update](file:///C:/Dev/TheKlangVault/Inbox/Deep docs update.md)",
+      "excerpt": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.",
+      "file_name": "Deep docs update.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
+      "source_note": "",
+      "idx": 28,
+      "merged_count": 1,
+      "source_ids": [
+        "Deep docs update"
+      ],
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
+    },
+    {
+      "id": "rj-29",
+      "title": "PicoTracker (LGPT) Architectural Teardown: Compact Tracker Data Models & Controller Ergonomics",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "RESEARCH",
+      "tags": [],
+      "target_pillars": [
+        "TT",
+        "TBD-16"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
+      "preview": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 696,
+      "word_count": 85,
+      "tier": "tier2",
+      "body": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.\n\n- Quarantine clone to C:\\\\Dev\\\\Research\\\\external\\\\picotracker\\\\ (never pollute product repos)\n- Study bit-packed tracker data structures running in 264 KB RAM\n- Analyze gamepad modal navigation and button debouncing for Steam Deck / TBD-16\n\n**Next action:** Clone to Research/external and produce an architectural autopsy in TheKlangResearch.\n\n**Source notes:**\n- [Should we download the picotracker repo for reference](file:///C:/Dev/TheKlangVault/Inbox/Should we download the picotracker repo for reference.md)",
+      "excerpt": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.",
+      "file_name": "Should we download the picotracker repo for reference.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
+      "source_note": "",
+      "idx": 29,
+      "merged_count": 1,
+      "source_ids": [
+        "Should we download the picotracker repo for reference"
+      ],
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
+    },
+    {
+      "id": "rj-30",
+      "title": "Batch Vault Note YAML Frontmatter Enrichment (tools/enrich_archive_notes.py)",
+      "created_at": "2026-10-11",
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tags": [],
+      "target_pillars": [
+        "NK"
+      ],
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
+      "preview": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 763,
+      "word_count": 98,
+      "tier": "tier3",
+      "body": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.\n\n- Single source of truth remains docs/BACKLOG.md and mail_queue.json; vault is historical provenance\n- Curator's Trap Defense: never rewrite raw notes during live chat; execute in batch subagent pass\n- tools/enrich_archive_notes.py safely prepends YAML frontmatter without altering note content\n\n**Next action:** Author tools/enrich_archive_notes.py and execute during Act III Deep Docs subagent pass.\n\n**Source notes:**\n- [Update all archived inbox items with front matter](file:///C:/Dev/TheKlangVault/Inbox/Update all archived inbox items with front matter.md)",
+      "excerpt": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.",
+      "file_name": "Update all archived inbox items with front matter.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
+      "source_note": "",
+      "idx": 30,
+      "merged_count": 1,
+      "source_ids": [
+        "Update all archived inbox items with front matter"
+      ],
+      "split_group": "",
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false
+    },
+    {
       "id": "docket-1",
       "title": "The \"Rambles\" Ingestion Engine (P0 — TOP PRIORITY)",
       "created_at": "2026-10-09",
@@ -1360,216 +1536,6 @@
       "merged_count": 1,
       "source_ids": [
         "docket-8"
-      ],
-      "split_group": "",
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false
-    },
-    {
-      "id": "Can you map out reasonable roadmaps for nkai and tt",
-      "title": "🆕 Can you map out reasonable roadmaps for nkai and tt",
-      "created_at": "2026-10-11",
-      "priority": "P2",
-      "status": "PENDING",
-      "tags": [],
-      "target_pillars": [
-        "TT",
-        "NK",
-        "AGY"
-      ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Can you map out reasonable roadmaps for nkai and tt.md",
-      "preview": "I want to run my current roadmap through opus to see if I can find anything that needs addressing. Can you map out reasonable roadmaps for nkai and toadtracker to reach a 1.0 release. That way I can test out opus again, since it did such a good job on the rejigger this morning",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 277,
-      "word_count": 54,
-      "tier": "tier2",
-      "body": "I want to run my current roadmap through opus to see if I can find anything that needs addressing. Can you map out reasonable roadmaps for nkai and toadtracker to reach a 1.0 release. That way I can test out opus again, since it did such a good job on the rejigger this morning",
-      "excerpt": "I want to run my current roadmap through opus to see if I can find anything that needs addressing. Can you map out reasonable roadmaps for nkai and toadtracker to reach a 1.0 release. That way I can test out opus again, since it did such a good job on the rejigger this morning",
-      "file_name": "Can you map out reasonable roadmaps for nkai and tt.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Can you map out reasonable roadmaps for nkai and tt.md",
-      "source_note": "",
-      "idx": 0,
-      "merged_count": 1,
-      "source_ids": [
-        "Can you map out reasonable roadmaps for nkai and tt"
-      ],
-      "split_group": "",
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false
-    },
-    {
-      "id": "Nkai Minimal",
-      "title": "🆕 Nkai Minimal",
-      "created_at": "2026-10-11",
-      "priority": "P2",
-      "status": "PENDING",
-      "tags": [],
-      "target_pillars": [
-        "NK"
-      ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
-      "preview": "Should we make a package variant that’s just a “how to make most of nkai work just in the chat” without the actual nkai board system? The whole agent (skills, guardrails, etc) system, like mailbox system, research system, PCDA system, ticket queue system, etc etc So this can be r...",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 737,
-      "word_count": 132,
-      "tier": "tier2",
-      "body": "Should we make a package variant that’s just a “how to make most of nkai work just in the chat” without the actual nkai board system? The whole agent (skills, guardrails, etc) system, like mailbox system, research system, PCDA system, ticket queue system, etc etc\n\nSo this can be run even more “anywhere” and anyone who doesn’t want to use the sidecar can get the same benefits?\n\nShould all this sorta stuff be incorporated into the nkai repo? Since the magic is the integration with the agent, not the actual boards? The boards make it WAY better, but a chat only interface was seemingly working out earlier today\n\nSeems like an easy thing to try out in a project and not like murder the whole agent settings you have already fine tuned",
-      "excerpt": "Should we make a package variant that’s just a “how to make most of nkai work just in the chat” without the actual nkai board system? The whole agent (skills, guardrails, etc) system, like mailbox system, research system, PCDA system, ticket queue system, etc etc So this can be r...",
-      "file_name": "Nkai Minimal.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
-      "source_note": "",
-      "idx": 0,
-      "merged_count": 1,
-      "source_ids": [
-        "Nkai Minimal"
-      ],
-      "split_group": "",
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false
-    },
-    {
-      "id": "Single fast PCDA on mail ingestion",
-      "title": "🆕 Single fast PCDA on mail ingestion",
-      "created_at": "2026-10-11",
-      "priority": "P2",
-      "status": "PENDING",
-      "tags": [],
-      "target_pillars": [
-        "TKS"
-      ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
-      "preview": "Is there any benefit to having parallel flash agents run light PCDA on the entire inbox once they’ve been analyzed? Like, batched jobs of a single agent per mail piece? Cons: token churn for things that take no decision time. Pros, it’s all queued up, so I say do it and can walk ...",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 579,
-      "word_count": 111,
-      "tier": "tier2",
-      "body": "Is there any benefit to having parallel flash agents run light PCDA on the entire inbox once they’ve been analyzed? Like, batched jobs of a single agent per mail piece? Cons: token churn for things that take no decision time. Pros, it’s all queued up, so I say do it and can walk away.\n\nMaybe a smart decision maker? Like, if it’s super easy and we should definitely do it, don’t bother, I’ll pull full PCDA later if I want it. If it’s like “this definitely needs more context” then we also don’t do it. But, if it’s like “I understood but this is a little opaque” then we do it.",
-      "excerpt": "Is there any benefit to having parallel flash agents run light PCDA on the entire inbox once they’ve been analyzed? Like, batched jobs of a single agent per mail piece? Cons: token churn for things that take no decision time. Pros, it’s all queued up, so I say do it and can walk ...",
-      "file_name": "Single fast PCDA on mail ingestion.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
-      "source_note": "",
-      "idx": 0,
-      "merged_count": 1,
-      "source_ids": [
-        "Single fast PCDA on mail ingestion"
-      ],
-      "split_group": "",
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false
-    },
-    {
-      "id": "Deep docs update",
-      "title": "🆕 Deep docs update",
-      "created_at": "2026-10-11",
-      "priority": "P2",
-      "status": "PENDING",
-      "tags": [],
-      "target_pillars": [
-        "AGY"
-      ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
-      "preview": "Should we use flash, pro or opus? Should we make this atomic and rollback enabled, so if I do this and there’s not enough allowance, another model or waiting for a refresh won’t screw anything up? Should any more things be atomic and rollback enabled like this? Please gst PCDA in...",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 291,
-      "word_count": 52,
-      "tier": "tier3",
-      "body": "Should we use flash, pro or opus? Should we make this atomic and rollback enabled, so if I do this and there’s not enough allowance, another model or waiting for a refresh won’t screw anything up?\n\nShould any more things be atomic and rollback enabled like this? \n\nPlease gst PCDA in advance",
-      "excerpt": "Should we use flash, pro or opus? Should we make this atomic and rollback enabled, so if I do this and there’s not enough allowance, another model or waiting for a refresh won’t screw anything up? Should any more things be atomic and rollback enabled like this? Please gst PCDA in...",
-      "file_name": "Deep docs update.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
-      "source_note": "",
-      "idx": 0,
-      "merged_count": 1,
-      "source_ids": [
-        "Deep docs update"
-      ],
-      "split_group": "",
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false
-    },
-    {
-      "id": "Should we download the picotracker repo for reference",
-      "title": "🆕 Should we download the picotracker repo for reference",
-      "created_at": "2026-10-11",
-      "priority": "P2",
-      "status": "PENDING",
-      "tags": [
-        "quick-note"
-      ],
-      "target_pillars": [
-        "TKS"
-      ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
-      "preview": "(quick note — title only)",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 25,
-      "word_count": 5,
-      "tier": "tier2",
-      "body": "(quick note — title only)",
-      "excerpt": "(quick note — title only)",
-      "file_name": "Should we download the picotracker repo for reference.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
-      "source_note": "",
-      "idx": 0,
-      "merged_count": 1,
-      "source_ids": [
-        "Should we download the picotracker repo for reference"
-      ],
-      "split_group": "",
-      "agent_reply": null,
-      "agent_reply_at": null,
-      "has_reply": false
-    },
-    {
-      "id": "Update all archived inbox items with front matter",
-      "title": "🆕 Update all archived inbox items with front matter",
-      "created_at": "2026-10-11",
-      "priority": "P2",
-      "status": "PENDING",
-      "tags": [
-        "quick-note"
-      ],
-      "target_pillars": [
-        "TKS"
-      ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
-      "preview": "(quick note — title only)",
-      "dependencies": [],
-      "verdict": null,
-      "verdict_notes": null,
-      "estimated_tokens": 10000,
-      "char_count": 25,
-      "word_count": 5,
-      "tier": "tier2",
-      "body": "(quick note — title only)",
-      "excerpt": "(quick note — title only)",
-      "file_name": "Update all archived inbox items with front matter.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
-      "source_note": "",
-      "idx": 0,
-      "merged_count": 1,
-      "source_ids": [
-        "Update all archived inbox items with front matter"
       ],
       "split_group": "",
       "agent_reply": null,

@@ -30,7 +30,9 @@
         "Micro and Macro Skills -> Flight 3 skill taxonomy; the audit-cadence half moves to rj-11",
         "next paste (N'kai terms) -> Topic 8 lexicon calibration, GLOSSARY section 6",
         "The Klang Suite roster -> docs/architecture/product_lineup.md (correction: the embedded build is TKB, not TKS)",
-        "2026-10-09 Morning Mail Batch Docket -> superseded by this rejigger"
+        "2026-10-09 Morning Mail Batch Docket -> superseded by this rejigger",
+        "opus harvest plan -> codified as Pre-Downgrade Soul Harvest Protocol in GEMINI.md",
+        "Can you map out reasonable roadmaps for nkai and tt -> mapped to Act III Deep Docs update & post-reset Opus roadmap audit"
       ],
       "next_action": "Approve to mark all 14 COMPLETED.",
       "sources": [
@@ -47,7 +49,9 @@
         "Micro and Macro Skills",
         "next paste",
         "The Klang Suite",
-        "2026-10-09_Morning_Mail_Batch_Docket"
+        "2026-10-09_Morning_Mail_Batch_Docket",
+        "opus harvest plan",
+        "Can you map out reasonable roadmaps for nkai and tt"
       ],
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: User confirmed all 14 notes already shipped/covered. Residual halves live on in rj-05 (session manager), rj-07 (missed FX list), rj-11 (audit cadence). Roster correction: embedded build is TKB."
@@ -268,7 +272,7 @@
         "Multiple Repos"
       ],
       "verdict": "BACKLOG",
-      "verdict_notes": "2026-10-11: Backlogged as BACKLOG N'kai Flight 0 \u2014 FIRST flight after mailbag triage (user: want this done SOON). Single merged footer line."
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG N'kai Flight 0 — FIRST flight after mailbag triage (user: want this done SOON). Single merged footer line."
     },
     {
       "id": "rj-10",
@@ -569,7 +573,7 @@
         "docket-12"
       ],
       "verdict": "APPROVED",
-      "verdict_notes": "Approved as an on-demand research spike in docs/BACKLOG.md under Milestone v0.7.0 \u00a73.5."
+      "verdict_notes": "Approved as an on-demand research spike in docs/BACKLOG.md under Milestone v0.7.0 §3.5."
     },
     {
       "id": "rj-22",
@@ -664,6 +668,117 @@
       ],
       "verdict": "APPROVED",
       "verdict_notes": "Approved as 'The Klang Blip' (MeeBlip SE Standalone Plugin sidequest with TKS JSON Preset Browser). Backlogged in docs/BACKLOG.md as a scheduled palette-cleanser milestone."
+    },
+    {
+      "id": "rj-26",
+      "rank": 26,
+      "priority": "P1",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "N'kai Minimal: Headless Zero-Dependency CLI & Chat-Only Distribution",
+      "summary": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.",
+      "angles": [
+        "Zero-dependency nkai-core: pure Python stdlib + Pydantic v2",
+        "Runs anywhere: VS Code, Cursor, Neovim, terminal SSH, headless CI",
+        "check_mail.py --chat and ramble_ingest.py --chat provide instant in-chat triage",
+        "Visual sidecars and boards become an optional presentation layer on top of headless core"
+      ],
+      "next_action": "Draft nkai-core packaging spec and 1-command installer script for v0.3.0.",
+      "sources": [
+        "Nkai Minimal"
+      ]
+    },
+    {
+      "id": "rj-27",
+      "rank": 27,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Selective Dialectic Gate: On-Demand Quick PCDA via Card Launcher & Attention Tags",
+      "summary": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.",
+      "angles": [
+        "Blanket batch PCDA on whole inbox moved to Graveyard",
+        "Smart heuristic: obvious items -> Backlog; opaque items -> Research; dilemmas/trade-offs -> PCDA",
+        "[ ⚖️ Quick PCDA ] launcher button on cards and --pcda <id> CLI"
+      ],
+      "next_action": "Add [ ⚖️ Quick PCDA ] card action chip and !DILEMMA detection to mailbag parser.",
+      "sources": [
+        "Single fast PCDA on mail ingestion"
+      ]
+    },
+    {
+      "id": "rj-28",
+      "rank": 28,
+      "priority": "P1",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "TKS",
+        "NK",
+        "TT",
+        "TKR"
+      ],
+      "title": "Act III Deep Docs Update: Flash High Execution Engine with Atomic Git Quarantine & Snapshot Rollback",
+      "summary": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.",
+      "angles": [
+        "Flash High handles all mechanical doc syncing, link verification, and historical reconciliation with zero quota anxiety",
+        "Claude Opus / Gemini Pro strictly reserved for 1-turn targeted architectural RFC reviews",
+        "Git branch quarantine (docs/deep-update-YYYYMMDD) guarantees clean rollback if interrupted",
+        "Field Guides Always Last invariant: sync specs, backlogs, and bug autopsies first; synthesize field guides last"
+      ],
+      "next_action": "Kick off Act III Deep Docs pass on git quarantine branch.",
+      "sources": [
+        "Deep docs update"
+      ]
+    },
+    {
+      "id": "rj-29",
+      "rank": 29,
+      "priority": "P2",
+      "status": "RESEARCH",
+      "tier": "tier2",
+      "pillars": [
+        "TT",
+        "TBD-16"
+      ],
+      "title": "PicoTracker (LGPT) Architectural Teardown: Compact Tracker Data Models & Controller Ergonomics",
+      "summary": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.",
+      "angles": [
+        "Quarantine clone to C:\\\\Dev\\\\Research\\\\external\\\\picotracker\\\\ (never pollute product repos)",
+        "Study bit-packed tracker data structures running in 264 KB RAM",
+        "Analyze gamepad modal navigation and button debouncing for Steam Deck / TBD-16"
+      ],
+      "next_action": "Clone to Research/external and produce an architectural autopsy in TheKlangResearch.",
+      "sources": [
+        "Should we download the picotracker repo for reference"
+      ]
+    },
+    {
+      "id": "rj-30",
+      "rank": 30,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier3",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Batch Vault Note YAML Frontmatter Enrichment (tools/enrich_archive_notes.py)",
+      "summary": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.",
+      "angles": [
+        "Single source of truth remains docs/BACKLOG.md and mail_queue.json; vault is historical provenance",
+        "Curator's Trap Defense: never rewrite raw notes during live chat; execute in batch subagent pass",
+        "tools/enrich_archive_notes.py safely prepends YAML frontmatter without altering note content"
+      ],
+      "next_action": "Author tools/enrich_archive_notes.py and execute during Act III Deep Docs subagent pass.",
+      "sources": [
+        "Update all archived inbox items with front matter"
+      ]
     },
     {
       "id": "docket-1",
