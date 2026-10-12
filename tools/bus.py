@@ -12,18 +12,19 @@ Asynchronously transports tagged data packets and handoffs between:
 
 import argparse
 import datetime
+import json
 import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 # Enforce Universal UTF-8 Console Streams for Windows
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
- 
+
 CANDIDATE_BUS_PATHS = [
     Path(r"C:\Dev\TheKlangVault\Dispatches"),
     Path(r"C:\_\Vault\New Klang City\Dispatches"),
@@ -36,7 +37,6 @@ def check_junction_integrity() -> bool:
     vault_junction = Path(r"C:\Dev\TheKlangVault")
     if vault_junction.is_symlink() or vault_junction.is_junction():
         try:
-            # Resolving should point to existing directory
             resolved = vault_junction.resolve()
             if not resolved.exists():
                 print(f"⚠️ JUNCTION ALERT: C:\\Dev\\TheKlangVault points to missing target: {resolved}", file=sys.stderr)
@@ -151,6 +151,48 @@ def load_dispatches(bus_dir: Path, include_archived: bool = False) -> List[Dict]
                 print(f"⚠️ Error reading {f.name}: {e}", file=sys.stderr)
 
     return sorted(dispatches, key=lambda x: str(x.get("date", "")), reverse=True)
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    """Ultra-fast, zero-token status checker for agent hooks and response footers.
+    Emits zero bytes when the queue has no pending dispatches for the target pillar.
+    """
+    bus_dir = resolve_bus_dir()
+    dispatches = load_dispatches(bus_dir, include_archived=False)
+
+    target_pillar = (args.for_pillar or detect_current_pillar()).upper()
+
+    pending = []
+    for d in dispatches:
+        status = str(d.get("status", "")).upper()
+        if status != "PENDING":
+            continue
+
+        to_pillar = str(d.get("to", "")).upper()
+        from_pillar = str(d.get("from", "")).upper()
+
+        if to_pillar in [target_pillar, "ALL"]:
+            # Self-sender exclusion: do not alert on dispatches we authored for another pillar
+            if from_pillar == target_pillar and to_pillar != target_pillar:
+                continue
+            pending.append(d)
+
+    if not pending:
+        # Zero-token quiet invariant: emit nothing
+        return 0
+
+    if getattr(args, "json", False):
+        import json
+        print(json.dumps([{"id": d.get("id"), "title": d.get("title"), "from": d.get("from"), "priority": d.get("priority")} for d in pending], ensure_ascii=False))
+        return 0
+
+    count = len(pending)
+    items_summary = ", ".join(f"{d.get('id')} ({d.get('priority', 'P1')})" for d in pending[:3])
+    if count > 3:
+        items_summary += f", ... +{count - 3} more"
+
+    print(f"📬 [DISPATCH PENDING] {count} unread dispatch(es) for {target_pillar}: {items_summary}")
+    return 0
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -307,11 +349,150 @@ def cmd_ack(args: argparse.Namespace) -> int:
     return 0
 
 
+def get_locks_dir(bus_dir: Path) -> Path:
+    d = bus_dir / "Locks"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def load_active_locks(bus_dir: Path) -> List[Dict[str, Any]]:
+    locks_dir = get_locks_dir(bus_dir)
+    active = []
+    now = datetime.datetime.now()
+
+    for p in locks_dir.glob("*_lock.json"):
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+            expires_at_str = data.get("expires_at")
+            if expires_at_str:
+                exp = datetime.datetime.fromisoformat(expires_at_str)
+                if now > exp:
+                    # Stale lock expired: auto garbage collect
+                    try:
+                        p.unlink()
+                    except Exception:
+                        pass
+                    continue
+            data["_path"] = str(p)
+            active.append(data)
+        except Exception:
+            continue
+    return active
+
+
+def cmd_lock(args: argparse.Namespace) -> int:
+    bus_dir = resolve_bus_dir()
+    locks_dir = get_locks_dir(bus_dir)
+    pillar = (args.pillar or detect_current_pillar()).upper()
+    now = datetime.datetime.now()
+    ttl = args.ttl if args.ttl else 30
+    expires = now + datetime.timedelta(minutes=ttl)
+
+    scopes = [s.strip().replace("\\", "/").rstrip("/") for s in args.scope.split(",") if s.strip()]
+
+    lock_data = {
+        "pillar": pillar,
+        "activity": args.activity,
+        "scope": scopes,
+        "started_at": now.isoformat(),
+        "ttl_minutes": ttl,
+        "expires_at": expires.isoformat(),
+    }
+
+    lock_file = locks_dir / f"{pillar.lower()}_lock.json"
+    lock_file.write_text(json.dumps(lock_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"🔒 Acquired intent lock for {pillar}: {args.activity}")
+    print(f"   • Scopes:  {', '.join(scopes)}")
+    print(f"   • Expires: {expires.strftime('%H:%M:%S')} ({ttl}m TTL)")
+    return 0
+
+
+def cmd_unlock(args: argparse.Namespace) -> int:
+    bus_dir = resolve_bus_dir()
+    locks_dir = get_locks_dir(bus_dir)
+    pillar = (args.pillar or detect_current_pillar()).upper()
+    lock_file = locks_dir / f"{pillar.lower()}_lock.json"
+
+    if lock_file.exists():
+        try:
+            lock_file.unlink()
+            print(f"🔓 Released active lock for {pillar}.")
+        except Exception as e:
+            print(f"⚠️ Failed to release lock: {e}", file=sys.stderr)
+            return 1
+    else:
+        print(f"ℹ️ No active lock found for {pillar}.")
+    return 0
+
+
+def cmd_locks(args: argparse.Namespace) -> int:
+    bus_dir = resolve_bus_dir()
+    active = load_active_locks(bus_dir)
+
+    if getattr(args, "json", False):
+        print(json.dumps(active, indent=2, ensure_ascii=False))
+        return 0
+
+    print("=" * 80)
+    print("🔒 ACTIVE PEER INTENT LOCKS & CONCURRENCY RADAR")
+    print("=" * 80)
+
+    if not active:
+        print("🌌 All peer channels clear. Zero active filesystem locks.")
+        print("=" * 80)
+        return 0
+
+    print(f"{'PILLAR':<10} | {'EXPIRES':<10} | {'ACTIVITY':<30} | {'SCOPES'}")
+    print("-" * 80)
+    for l in active:
+        pil = l.get("pillar", "?")
+        exp = l.get("expires_at", "")[:19].split("T")[-1]
+        act = l.get("activity", "")[:30]
+        scopes = ", ".join(l.get("scope", []))
+        print(f"{pil:<10} | {exp:<10} | {act:<30} | {scopes}")
+    print("=" * 80)
+    return 0
+
+
+def cmd_check_scope(args: argparse.Namespace) -> int:
+    bus_dir = resolve_bus_dir()
+    active = load_active_locks(bus_dir)
+    current_pillar = (getattr(args, "pillar", None) or detect_current_pillar()).upper()
+    target_scopes = [s.strip().replace("\\", "/").rstrip("/").lower() for s in args.scope.split(",") if s.strip()]
+
+    collisions = []
+    for l in active:
+        if l.get("pillar", "").upper() == current_pillar:
+            # Ignore own locks
+            continue
+        peer_scopes = [s.lower() for s in l.get("scope", [])]
+        for t in target_scopes:
+            for p in peer_scopes:
+                if t == p or t.startswith(p + "/") or p.startswith(t + "/"):
+                    collisions.append((l, t, p))
+
+    if collisions:
+        print("⚠️ SCOPE COLLISION DETECTED:", file=sys.stderr)
+        for lock, target, peer in collisions:
+            print(f"   • {lock.get('pillar')} is actively locking '{peer}' for: {lock.get('activity')}", file=sys.stderr)
+            print(f"     (Lock expires at {lock.get('expires_at')})", file=sys.stderr)
+        return 1
+
+    if not getattr(args, "quiet", False):
+        print("✅ Scope clear. Zero peer lock collisions.")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="🛰️ Inter-Project Data Bus & Queue for The Klang Suite, ToadTracker, N'kai & The Cosmos"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # status (zero-token quiet checker)
+    p_status = subparsers.add_parser("status", help="Quick zero-token check for pending dispatches")
+    p_status.add_argument("--for", dest="for_pillar", help="Check for a specific pillar (default: auto-detected)")
+    p_status.add_argument("--json", action="store_true", help="Output JSON array instead of single line")
 
     # list
     p_list = subparsers.add_parser("list", help="List active dispatches on the bus")
@@ -339,9 +520,32 @@ def main() -> int:
     p_ack.add_argument("id", help="Dispatch ID or substring of filename")
     p_ack.add_argument("--archive", action="store_true", help="Move dispatch to Archive/ after acknowledging")
 
+    # lock
+    p_lock = subparsers.add_parser("lock", help="Acquire an ephemeral intent lock declaring active blast radius")
+    p_lock.add_argument("--scope", required=True, help="Comma-separated directory or file paths being modified")
+    p_lock.add_argument("--activity", required=True, help="Description of operation (e.g. 'Tag audit and frontmatter backfill')")
+    p_lock.add_argument("--ttl", type=int, default=30, help="Time to live in minutes (default: 30)")
+    p_lock.add_argument("--pillar", help="Pillar acquiring the lock (default: auto-detected)")
+
+    # unlock
+    p_unlock = subparsers.add_parser("unlock", help="Release active intent lock for the host pillar")
+    p_unlock.add_argument("--pillar", help="Pillar releasing the lock (default: auto-detected)")
+
+    # locks
+    p_locks = subparsers.add_parser("locks", help="List active peer intent locks across the ecosystem")
+    p_locks.add_argument("--json", action="store_true", help="Output JSON array")
+
+    # check-scope
+    p_check = subparsers.add_parser("check-scope", help="Check if target scope collides with active peer locks")
+    p_check.add_argument("--scope", required=True, help="Comma-separated paths to check against active locks")
+    p_check.add_argument("--pillar", help="Current host pillar (locks by this pillar are ignored)")
+    p_check.add_argument("--quiet", action="store_true", help="Omit success output")
+
     args = parser.parse_args()
 
-    if args.command == "list":
+    if args.command == "status":
+        return cmd_status(args)
+    elif args.command == "list":
         return cmd_list(args)
     elif args.command == "post":
         return cmd_post(args)
@@ -349,6 +553,14 @@ def main() -> int:
         return cmd_read(args)
     elif args.command == "ack":
         return cmd_ack(args)
+    elif args.command == "lock":
+        return cmd_lock(args)
+    elif args.command == "unlock":
+        return cmd_unlock(args)
+    elif args.command == "locks":
+        return cmd_locks(args)
+    elif args.command == "check-scope":
+        return cmd_check_scope(args)
 
     return 0
 

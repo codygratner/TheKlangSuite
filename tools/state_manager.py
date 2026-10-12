@@ -23,6 +23,19 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+
+def get_peer_locks() -> List[Dict[str, Any]]:
+    """Sniffs active peer intent locks across the data bus."""
+    try:
+        from tools.bus import resolve_bus_dir, load_active_locks
+        bus_dir = resolve_bus_dir()
+        locks = load_active_locks(bus_dir)
+        return [l for l in locks if l.get("pillar", "").upper() != "TKS"]
+    except Exception:
+        return []
 
 
 def run_git(args: List[str]) -> str:
@@ -83,11 +96,11 @@ def parse_plan_state() -> Dict[str, Any]:
     title = title_match.group(1).strip() if title_match else "Untitled Plan"
 
     # Extract Target
-    target_match = re.search(r">\s*\*\*TARGET:\*\*\s*([A-Z_]+)", content)
-    target = target_match.group(1).strip() if target_match else "FACTORY_FLOOR"
+    target_match = re.search(r"\*\*(?:TARGET|Target Pipeline):\*\*\s*(?:`?TARGET:\s*)?`?([A-Z_]+)", content, re.IGNORECASE)
+    target = target_match.group(1).strip().upper() if target_match else "FACTORY_FLOOR"
 
     # Extract Status
-    status_match = re.search(r">\s*\*\*Status:\*\*\s*([A-Za-z_]+)", content)
+    status_match = re.search(r">\s*\*\*Status:\*\*\s*`?([A-Za-z_]+)", content)
     status = status_match.group(1).strip() if status_match else "UNKNOWN"
     if "COMPLETED" in status.upper():
         status = "COMPLETED"
@@ -100,19 +113,14 @@ def parse_plan_state() -> Dict[str, Any]:
     total_items = len(re.findall(r"-\s+\[[ xX]\]", content))
     completed_items = len(re.findall(r"-\s+\[[xX]\]", content))
 
-    # Active Phase Detection
-    phases = re.findall(r"###\s+(Phase\s+\d+[^:\n]*):?([^\n]*)", content)
+    # Active Phase / Flight Detection
+    matches = list(re.finditer(r"^###\s+((?:Phase|Flight)\s+\d+[^:\n]*):?([^\n]*)", content, re.MULTILINE))
     active_phase = "All phases complete"
-    for phase_name, phase_desc in phases:
-        # Check if phase has any unchecked items following it
-        p_name = f"{phase_name.strip()} {phase_desc.strip()}".strip()
-        phase_idx = content.find(phase_name)
-        next_phase_idx = len(content)
-        # find next phase
-        next_match = re.search(r"###\s+Phase\s+\d+", content[phase_idx + len(phase_name):])
-        if next_match:
-            next_phase_idx = phase_idx + len(phase_name) + next_match.start()
-        phase_chunk = content[phase_idx:next_phase_idx]
+    for i, m in enumerate(matches):
+        p_name = f"{m.group(1).strip()} {m.group(2).strip()}".strip()
+        start_idx = m.start()
+        end_idx = matches[i + 1].start() if i + 1 < len(matches) else len(content)
+        phase_chunk = content[start_idx:end_idx]
         if "- [ ]" in phase_chunk:
             active_phase = p_name
             break
@@ -175,19 +183,21 @@ def parse_communique_state() -> Dict[str, Any]:
 
 
 def compute_workspace_state() -> Dict[str, Any]:
-    """Aggregates git, plan, and communique telemetry into unified state dict."""
+    """Aggregates git, plan, communique, and peer bus locks into unified state dict."""
     return {
         "git": get_git_state(),
         "plan": parse_plan_state(),
         "communique": parse_communique_state(),
+        "peer_locks": get_peer_locks(),
     }
 
 
 def render_console_card(state: Dict[str, Any]) -> str:
-    """Formats the state dict into a high-density, 15-line console card."""
+    """Formats the state dict into a high-density console card."""
     g = state["git"]
     p = state["plan"]
     c = state["communique"]
+    locks = state.get("peer_locks", [])
 
     clean_icon = "🟢 Clean" if g["is_clean"] else f"🟡 Dirty ({g['dirty_count']} files)"
     
@@ -202,8 +212,15 @@ def render_console_card(state: Dict[str, Any]) -> str:
         "-" * 70,
         f"🏭 Factory:    Dispatch: {c['factory_dispatch']} | Receipt: {c['factory_receipt']}",
         f"🛠️  Tooling:    Dispatch: {c['tooling_dispatch']} | Receipt: {c['tooling_receipt']}",
-        "-" * 70,
     ]
+
+    if locks:
+        lines.append("-" * 70)
+        lines.append("🔒 Active Peer Locks:")
+        for l in locks:
+            lines.append(f"   • {l.get('pillar')}: {l.get('activity')} [{', '.join(l.get('scope', []))}]")
+
+    lines.append("-" * 70)
 
     # Recent commit
     if g["recent_commits"]:
@@ -218,6 +235,8 @@ def render_active_context_markdown(state: Dict[str, Any]) -> str:
     g = state["git"]
     p = state["plan"]
     c = state["communique"]
+    locks = state.get("peer_locks", [])
+    locks_str = "None" if not locks else "; ".join(f"{l.get('pillar')}: {l.get('activity')} [{', '.join(l.get('scope', []))}]" for l in locks)
 
     return f"""# Active Workspace Context (0-Turn Cold Boot)
 > *Generated mechanically by `tools/state_manager.py` at zero token cost.*
@@ -228,6 +247,7 @@ def render_active_context_markdown(state: Dict[str, Any]) -> str:
 - **Active Phase:** {p['active_phase']}
 - **Factory Semaphore:** Dispatch: `{c['factory_dispatch']}` · Receipt: `{c['factory_receipt']}`
 - **Tooling Semaphore:** Dispatch: `{c['tooling_dispatch']}` · Receipt: `{c['tooling_receipt']}`
+- **Peer Intent Locks:** `{locks_str}`
 - **Recent Commit:** `{g['recent_commits'][0] if g['recent_commits'] else "None"}`
 """
 
