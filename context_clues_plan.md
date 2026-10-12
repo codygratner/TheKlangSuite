@@ -30,18 +30,17 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** **Six-Way Devil's Advocate Benchmark (`rj-22`) FULLY COMPLETED & CANONICAL ✅**.
-- **Canonical Synthesis Published**: [`C:\Dev\Research\agentic\da_methodology_six_way_benchmark_2026-10.md`](file:///C:/Dev/Research/agentic/da_methodology_six_way_benchmark_2026-10.md).
-- **Core Findings**:
-  - **Methodology Trumps Model Tier**: Method B (+1.44 Flash, +1.06 Pro) forces premise skepticism and eliminates sycophancy.
-  - **Flash-B is the Bang-for-Buck Champion**: Flash-B (3.88) beat Pro-B (3.06) and crushed Pro-A (2.00) at near-zero token cost.
-  - **Opus 5.5 is Irreplaceable for Foundational Pivots**: Opus-B (5.00) and Opus-A (4.75) swept the board, uniquely catching the audio Strangler fallacy, GPLv2+ licensing contagion, and try-lock concurrency.
-  - **Ground Truth Verified**: Friend's real-world Tracktion swap is already succeeding.
-  - **Allowance Conserved**: Redundant Stage W4 waived to preserve 100% of upcoming Sunday Opus allowance for native C++ DSP.
-- **Rules Codified in `GEMINI.md`, `GLOSSARY.md`, `CHEAT_SHEET.md`**:
-  - Mandatory Method B Adversarial Prompting Invariant (*"Where I Disagree With The Prompt"*).
-  - Pre-Downgrade Soul Harvest Protocol.
-- **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) (Status: `COMPLETED ✅`)
+- **Current Objective:** **Stage 2: Mobile N'kai v0.3.0 ("The Mobile Companion & Touch Ergonomics Update")**.
+- **Preceding Flight Completed**: **Act III Deep Docs Update (Bookend #1) FULLY MERGED & CANONICAL ✅**.
+- **Next Flight Path (Option Beta with Pro Stress-Tested Kill-Gates)**:
+  1. `[x] Act III Deep Docs Update (Bookend #1)` (Completed & Merged)
+  2. `[ ] Mobile N'kai v0.3.0` (Touch layouts + LAN Wi-Fi QR pairing — **Active Focus**, 1-day kill-gate)
+  3. `[ ] TKS v0.4.1 Release` (Finish UI shells & APVTS parameter wiring)
+  4. `[ ] TKS v0.5.0: Sound & Chaos` (2-op FM, Bass Mode, Phase Smear DSP)
+  5. `[ ] ToadTracker PoC Pivot` (GPLv3 ToadCore, 500Hz SteamOS Gamepad + Renoise `.xrns` export)
+  6. `[ ] TKS v0.6.0: FX Rack 2.0` (Modular Reverb/Delay/Chorus Engine)
+  7. `[ ] Act III Deep Docs Update (Bookend #2)` (End-of-week master reconciliation)
+- **Active Blueprint:** `PLAN.md` (Stage 2: Mobile N'kai v0.3.0)
 
 
 ---
