@@ -55,7 +55,12 @@ def inspect_dispatch():
             content = f.read_text(encoding="utf-8", errors="replace")
             lines = content.strip().splitlines()
             preview = lines[0] if lines else "(empty)"
-            print(f"   Preview: {preview[:80]}")
+            for line in lines:
+                sline = line.strip()
+                if sline.startswith("# ") or sline.startswith("title:"):
+                    preview = sline
+                    break
+            print(f"   Transmission: {preview[:80]}")
         except Exception as e:
             print(f"   Error reading preview: {e}")
 
