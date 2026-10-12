@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "e03f034",
-    "is_clean": false,
-    "dirty_count": 1,
-    "staged": 1,
-    "modified": 1,
+    "commit": "bde02f7",
+    "is_clean": true,
+    "dirty_count": 0,
+    "staged": 0,
+    "modified": 0,
     "untracked": 0,
     "recent_commits": [
+      "bde02f7 chore(memory): pre-compaction memory flush before restart",
       "e03f034 docs(cheat-sheet): add language_server.exe memory check tip and glossary definition",
-      "817288f chore(mailbag): archive cards 1, 2, and 5 to Inbox/Archive",
-      "02095d2 feat(hub): add 4-way category switcher and hide-by-default sandbox toggle"
+      "817288f chore(mailbag): archive cards 1, 2, and 5 to Inbox/Archive"
     ]
   },
   "plan": {
