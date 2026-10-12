@@ -1,0 +1,31 @@
+{
+  "git": {
+    "branch": "0.4.0-dev",
+    "commit": "de73be4",
+    "is_clean": false,
+    "dirty_count": 25,
+    "staged": 7,
+    "modified": 12,
+    "untracked": 6,
+    "recent_commits": [
+      "de73be4 docs(plan): stage systemic agent audit blueprint in drafts",
+      "aedc948 build(factory): rebuild multi-target suite and deploy fresh VST3 and standalones",
+      "6a65084 fix(vault): update path constants for emoji-stripped New Klang City vault folder"
+    ]
+  },
+  "plan": {
+    "has_plan": true,
+    "is_idle": true,
+    "title": "Implementation Plan",
+    "target": "FACTORY_FLOOR",
+    "status": "UNKNOWN",
+    "progress": "0/0",
+    "active_phase": "Idle / Standby"
+  },
+  "communique": {
+    "factory_dispatch": "COMPLETED",
+    "factory_receipt": "COMPLETED",
+    "tooling_dispatch": "COMPLETED",
+    "tooling_receipt": "IDLE"
+  }
+}

@@ -74,11 +74,11 @@ Close out a completed engineering milestone with absolute discipline: verify 100
 
 ### 4. Dual Communiqué Mailbox Synchronization
 If `.agents/pipeline/communique/` exists in the repository:
-1. Update [`.agents/pipeline/communique/build_to_plan.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/build_to_plan.md):
+1. Update [`.agents/pipeline/communique/factory_receipt.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/factory_receipt.md):
    - Set `Status: COMPLETE ✅`
    - Include test metrics (GUI tests passed, DSP tests passed).
    - Link to the archived plan in `.agents/pipeline/plans/completed/`.
-2. Update [`.agents/pipeline/communique/plan_to_build.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/plan_to_build.md):
+2. Update [`.agents/pipeline/communique/factory_dispatch.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/factory_dispatch.md):
    - Set `Status: COMPLETED` (with completion timestamp and link to archived plan).
 
 ---
@@ -91,7 +91,7 @@ Conclude your turn with the prominent handoff chime:
 
 - **Git Commit:** Committed to branch `<branch>`.
 - **Archived Plan:** [`.agents/pipeline/plans/completed/<archive_name>.md`](file:///.agents/pipeline/plans/completed/<archive_name>.md)
-- **Communiqué Status:** Both `build_to_plan.md` and `plan_to_build.md` updated to `COMPLETED`.
+- **Communiqué Status:** Both `factory_receipt.md` and `factory_dispatch.md` updated to `COMPLETED`.
 
 > 🔔 **JOB'S DONE!** `<Task Name>` is fully built, tested, and deployed. Switch to New Klang City to review and advance!
 ```

@@ -43,6 +43,7 @@ def check_file(file_path: Path, workspace_root: Path) -> dict:
     rel_path = file_path.relative_to(workspace_root)
     result = {
         "file": str(rel_path),
+        "is_active_context": file_path.name == "ACTIVE_CONTEXT.md",
         "missing_sections": [],
         "broken_links": [],
         "total_links": 0,
@@ -58,17 +59,21 @@ def check_file(file_path: Path, workspace_root: Path) -> dict:
 
     lines = content.splitlines()
 
-    # 1. Section Heading Validation
-    headings = []
-    for line in lines:
-        m = HEADING_REGEX.match(line.strip())
-        if m:
-            headings.append(m.group(1))
+    # 1. Section Heading Validation (only for legacy context clues or templates)
+    if not result["is_active_context"]:
+        headings = []
+        for line in lines:
+            m = HEADING_REGEX.match(line.strip())
+            if m:
+                headings.append(m.group(1))
 
-    for sec in MANDATORY_SECTIONS:
-        found = any(sec.lower() in h.lower() for h in headings)
-        if not found:
-            result["missing_sections"].append(sec)
+        for sec in MANDATORY_SECTIONS:
+            found = any(sec.lower() in h.lower() for h in headings)
+            if not found:
+                result["missing_sections"].append(sec)
+    else:
+        if not any("Active Workspace Context" in line for line in lines):
+            result["missing_sections"].append("Active Workspace Context")
 
     # 2. Hyperlink Resolution
     for line_num, line in enumerate(lines, start=1):
@@ -145,8 +150,11 @@ def main() -> int:
     print(f"📁 Workspace Root: {workspace_root}")
     print("=" * 70)
 
-    # Locate all context clues files in root
+    # Locate all context clues files in root, plus ACTIVE_CONTEXT.md
     target_files = sorted(workspace_root.glob("context_clues_*.md"))
+    active_context = workspace_root / "ACTIVE_CONTEXT.md"
+    if active_context.exists():
+        target_files.insert(0, active_context)
 
     # Also include canonical template if present
     template_path = workspace_root / "docs" / "templates" / "context_clues_template.md"
@@ -154,7 +162,7 @@ def main() -> int:
         target_files.append(template_path)
 
     if not target_files:
-        print("❌ Error: No context_clues_*.md files found in workspace root.")
+        print("❌ Error: Neither ACTIVE_CONTEXT.md nor context_clues_*.md found in workspace root.")
         return 1
 
     total_files = len(target_files)
@@ -174,7 +182,10 @@ def main() -> int:
         status_icon = "❌ FAIL" if has_errors else "✅ PASS"
 
         print(f"\n[{status_icon}] {file_name}")
-        print(f"  • Headings: {5 - len(missing_sec)}/5 mandatory sections present")
+        if res["is_active_context"]:
+            print(f"  • Format: 0-Turn Cold Boot Header verified")
+        else:
+            print(f"  • Headings: {5 - len(missing_sec)}/5 mandatory sections present")
         print(f"  • Links: {res['local_links']} local files checked ({res['remote_links']} remote skipped)")
 
         if missing_sec:

@@ -8,37 +8,26 @@ description: Executes the Rolling Blackbox Context Compaction flush (harvests to
 ## 1. Scope & Purpose
 The `/refresh-context` workflow executes the **4-Step Pre-Compaction Memory Flush** to guarantee that architectural state, flight progress, and key decisions are permanently recorded before chat context compaction or truncation.
 
-## 2. The 4-Step Pre-Compaction Flush Protocol
+## 2. The Automated 4-Step Pre-Compaction Flush
 
-### Step 1: Dev History Ingestion
-Append a structured summary of the session's accomplishments to [`docs/history/DEV_HISTORY.md`](file:///c:/Dev/TheKlangSuite/docs/history/DEV_HISTORY.md) using the canonical layout:
-```markdown
-### Session: YYYY-MM-DD HH:MM (<conversation_id>)
-- **Chat Role:** [Strategic Planning (New Klang City) | Factory Floor (Klang Industries) | Tooling Builder]
-- **Primary Objectives:** <Summary of tasks tackled>
-- **Key Decisions & Deliverables:** <Concrete deliverables, architectural breakthroughs, files touched>
+The entire memory flush protocol is automated via `tools/flush_memory.py` at zero token cost:
+```powershell
+python tools/flush_memory.py --role "[Role]" --summary "[Objective]"
 ```
 
-### Step 2: Soul Harvest Staging
-If any non-trivial platform gotchas, bug autopsies, or novel PCDA dialectic resolutions occurred during the session, stage a raw capture file into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md`.
+### What It Executes Mechanically:
+1. **Dev History Ingestion**: Appends structured summary, recent git commits, and active plan target to [`docs/history/DEV_HISTORY.md`](file:///c:/Dev/TheKlangSuite/docs/history/DEV_HISTORY.md).
+2. **Soul Harvest Staging Audit**: Scans `.agents/pipeline/staging/souls/` for pending soul captures.
+3. **Workspace State Synchronization**: Runs `tools/state_manager.py` to regenerate [`.agents/pipeline/context_state.json`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/context_state.json) and [`ACTIVE_CONTEXT.md`](file:///c:/Dev/TheKlangSuite/ACTIVE_CONTEXT.md) (<600 bytes).
+4. **Workspace State & Link Verification**: Audits that communiqués, active targets, and links are 100% consistent and intact.
 
-### Step 3: Context Clues Hardening
-Update the role's context clues reference at the workspace root:
-- For Planning Chats (New Klang City): update [`context_clues_plan.md`](file:///c:/Dev/TheKlangSuite/context_clues_plan.md).
-- For Factory Chats (Klang Industries): update [`context_clues_build.md`](file:///c:/Dev/TheKlangSuite/context_clues_build.md).
-- For Subagents: update [`context_clues_subagent.md`](file:///c:/Dev/TheKlangSuite/context_clues_subagent.md).
-
-Ensure the following 4 sections are completely accurate:
-1. **Active SemVer & Branch State** (branch name, active milestone).
-2. **Immediate Return Agenda & Status** (exact current flight/phase and immediate next command).
-3. **Architectural Memory & "Unforgettables"** (critical invariants).
-4. **Active Specs & Links**.
-
-### Step 4: Link Integrity Verification
-Execute `python tools/verify_context_clues.py` to assert 100% link resolution and 0 broken anchors.
+*(Optional)* To archive a completed plan simultaneously:
+```powershell
+python tools/flush_memory.py --role "[Role]" --summary "[Objective]" --archive-plan <slug>
+```
 
 ---
 
 ## 3. The 0-Turn Cold Boot Invariant
-Following `/refresh-context` and `/clear`, when the fresh session starts (or if the user says "resume" / "continue"):
-The agent MUST read the appropriate `context_clues_*.md` file on Turn 1 and immediately resume operations in **0 turns**, with zero orientation questions or repetitive prompts.
+Following `/refresh-context` and `/clear`, when a fresh session boots (or if the user says "resume" / "continue"):
+The agent MUST read [`ACTIVE_CONTEXT.md`](file:///c:/Dev/TheKlangSuite/ACTIVE_CONTEXT.md) on Turn 1 and immediately resume operations in **0 turns**, with zero orientation questions or repetitive prompts.

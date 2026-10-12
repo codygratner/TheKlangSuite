@@ -76,8 +76,8 @@
 - **New Klang City (Tooling Harness)**: Owns ecosystem architecture, N'kai sidecars, Python/PowerShell automation, and documentation.
 - **The Context Shield Rule**: When New Klang City executes tooling implementation, it must delegate mechanical file-writing and testing to a dedicated Flash subagent (`invoke_subagent(Model="flash")`) to prevent chat transcript bloat and protect user allowance.
 - **Dual-Track Communiqué Routing (Anti-Snatching Guard)**:
-  - **Factory Pipeline (C++/DSP)**: Sourced through `plan_to_build.md` ➔ `build_to_plan.md` ➔ Klang Industries (`TARGET: FACTORY_FLOOR`).
-  - **Tooling Pipeline (Web/Docs/Scripts)**: Sourced through `subagent_dispatch.md` ➔ `subagent_receipt.md` ➔ Flash Builder Subagent (`TARGET: TOOLING_HARNESS`).
+  - **Factory Pipeline (C++/DSP)**: Sourced through `factory_dispatch.md` ➔ `factory_receipt.md` ➔ Klang Industries (`TARGET: FACTORY_FLOOR`). *(Legacy aliases `plan_to_build.md` / `build_to_plan.md` supported via backwards compatibility).*
+  - **Tooling Pipeline (Web/Docs/Scripts)**: Sourced through `tooling_dispatch.md` ➔ `tooling_receipt.md` ➔ Flash Builder Subagent (`TARGET: TOOLING_HARNESS`). *(Legacy aliases `subagent_dispatch.md` / `subagent_receipt.md` supported).*
   - Under no circumstances should Klang Industries ingest tickets marked `TARGET: TOOLING_HARNESS`.
   - Root `PLAN.md` must declare `TARGET: [FACTORY_FLOOR | TOOLING_HARNESS]` to prevent concurrent file clobbering.
 
@@ -115,14 +115,15 @@
   - **Tripwire Triggers**:
     1. *Act / Flight Completion*: Immediately upon completing a major flight or full Act in `PLAN.md`.
     2. *Context Weight Tripwire*: When the active chat session approaches ~150,000 tokens or when the user invokes `/refresh-context`.
-    3. *Pre-Clear Flush Gate*: Under NO circumstances should `/clear` be executed without first performing the 4-Step Pre-Compaction Memory Flush.
-- **The 4-Step Pre-Compaction Flush Protocol**:
-  1. **Dev History Ingestion**: Append structured session achievements to `docs/history/DEV_HISTORY.md` using the canonical session template.
-  2. **Soul Harvest Staging**: Stage any unexpected platform gotchas, bug autopsies, or PCDA dialectic resolutions into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md`.
-  3. **Context Clues Hardening**: Update the role-specific context clues index (`context_clues_plan.md`, `context_clues_build.md`, or `context_clues_subagent.md`) with the active flight, target repository, uncommitted state, and immediate next command.
-  4. **Link Integrity Gate**: Run `python tools/verify_context_clues.py` to confirm 100% link resolution.
+    3. *Pre-Clear Flush Gate*: Under NO circumstances should `/clear` be executed without first performing the Automated 4-Step Pre-Compaction Memory Flush.
+- **The Automated 4-Step Pre-Compaction Flush Protocol**:
+  - Run `python tools/flush_memory.py --role "<Role>" --summary "<Objective>"` at zero token cost.
+  1. **Dev History Ingestion**: Append structured session achievements to `docs/history/DEV_HISTORY.md` automatically scraping git commits and active plan progress.
+  2. **Soul Harvest Staging Audit**: Scan `.agents/pipeline/staging/souls/` for pending soul captures.
+  3. **Context State Synchronization**: Run `tools/state_manager.py` to regenerate `.agents/pipeline/context_state.json` and `ACTIVE_CONTEXT.md` (<600 bytes).
+  4. **Workspace State & Link Integrity Gate**: Run `python tools/verify_context_clues.py` to confirm 100% link resolution and communiqué integrity.
 - **The 0-Turn Cold Boot Invariant**:
-  - Following a context refresh, `/clear`, or fresh conversation boot, an agent reading `context_clues_*.md` MUST resume operations in exactly **0 turns**, seamlessly picking up the next immediate task without asking redundant orientation questions ("What should we work on?") or forcing the user to repeat prior context.
+  - Following a context refresh, `/clear`, or fresh conversation boot, an agent reading `ACTIVE_CONTEXT.md` MUST resume operations in exactly **0 turns**, seamlessly picking up the next immediate task without asking redundant orientation questions ("What should we work on?") or forcing the user to repeat prior context.
 
 
 ## Strict Planning Guardrails
@@ -138,7 +139,7 @@
 - **The Staged Planning Buffer (`.agents/pipeline/plans/drafts/`)**:
   - While Klang Industries is executing an active task, New Klang City MUST author all new plans, brainstorming, and `/grill-me` blueprints into `.agents/pipeline/plans/drafts/<task_slug>.md`.
   - Under no circumstances should New Klang City overwrite the active `PLAN.md` or set `READY_FOR_EXECUTION` while Klang Industries is in progress (`STATUS: IN_PROGRESS`).
-  - **The Factory-Idle Promotion Gate**: Only after Klang Industries concludes its task, sounds the "JOB'S DONE" chime, and archives the previous plan, may New Klang City promote the approved draft to `PLAN.md`, remove it from `.agents/pipeline/plans/drafts/` (acting as a clean inbox queue), and dispatch via `plan_to_build.md`.
+  - **The Factory-Idle Promotion Gate**: Only after Klang Industries concludes its task, sounds the "JOB'S DONE" chime, and archives the previous plan, may New Klang City promote the approved draft to `PLAN.md`, remove it from `.agents/pipeline/plans/drafts/` (acting as a clean inbox queue), and dispatch via `factory_dispatch.md`.
 
 ## Strict Background Task Etiquette & Watchdog Timer Policy
 - **No Polling or Pinging**: When a command goes to the background, NEVER use `manage_task` to poll its status in a loop or spam the chat.
@@ -265,17 +266,17 @@
 
 ## Strict Inter-Chat Communique Protocol & "Job's Done" Handshake
 - **Mailbox Protocol (`.agents/pipeline/communique/`)**:
-  - `plan_to_build.md`: Authored strictly by New Klang City. Declares dispatch state machine:
+  - `factory_dispatch.md`: Authored strictly by New Klang City. Declares dispatch state machine:
     `STATUS: DRAFTING` ➔ `STATUS: READY_FOR_EXECUTION` ➔ `STATUS: IN_PROGRESS` ➔ `STATUS: PLAN_AMENDED ⚠️` ➔ `STATUS: COMPLETED ✅`.
     *(When New Klang City injects mid-flight additions, it sets `STATUS: PLAN_AMENDED ⚠️` with a brief changelog so the factory re-ingests the plan at its next `step-verify` checkpoint).*
-  - `build_to_plan.md`: Authored strictly by Klang Industries. Declares factory execution state machine:
+  - `factory_receipt.md`: Authored strictly by Klang Industries. Declares factory execution state machine:
     `STATUS: IDLE 💤` ➔ `STATUS: BUILDING 🔨 (Phase <N>: <Name>)` ➔ `STATUS: COMPLETE ✅`.
-    *(Klang Industries updates `build_to_plan.md` to `STATUS: BUILDING 🔨` immediately upon `/read-plan` intake and at each `/step-verify` progression, giving the Ivory Tower real-time factory telemetry).*
+    *(Klang Industries updates `factory_receipt.md` to `STATUS: BUILDING 🔨` immediately upon `/read-plan` intake and at each `/step-verify` progression, giving the Ivory Tower real-time factory telemetry).*
 - **Zero-Polling Discipline**: No terminal status loops waiting for the other chat. Handoffs are event-driven.
-- **The "Job's Done" Chime & Dual Mailbox Closure**: When Klang Industries finishes compilation, test passes, and artifact deployment, it MUST update BOTH `build_to_plan.md` (to `Status: COMPLETE ✅`) and `plan_to_build.md` (to `Status: COMPLETED ✅`), archive `PLAN.md` to `.agents/pipeline/plans/completed/`, and conclude its turn with this prominent handoff chime:
+- **The "Job's Done" Chime & Dual Mailbox Closure**: When Klang Industries finishes compilation, test passes, and artifact deployment, it MUST update BOTH `factory_receipt.md` (to `Status: COMPLETE ✅`) and `factory_dispatch.md` (to `Status: COMPLETED ✅`), archive `PLAN.md` to `.agents/pipeline/plans/completed/`, and conclude its turn with this prominent handoff chime:
   > 🔔 **JOB'S DONE!** `<Task Name>` is fully built, tested, and deployed. Switch to New Klang City to review and advance!
-- **Single-Read Ingest**: Returning to New Klang City triggers **exactly ONE read** of `build_to_plan.md` to confirm completion.
-- **Mandatory Backlog Reconciliation upon Ingestion**: When New Klang City ingests a `Status: COMPLETE ✅` report from `build_to_plan.md`, its FIRST mandatory action before discussing or drafting new features is to update `docs/BACKLOG.md` (marking the matching task `— ✅ COMPLETED`, updating any `PLAN.md` references to the permanent archive path in `.agents/pipeline/plans/completed/`, and documenting verification metrics).
+- **Single-Read Ingest**: Returning to New Klang City triggers **exactly ONE read** of `factory_receipt.md` to confirm completion.
+- **Mandatory Backlog Reconciliation upon Ingestion**: When New Klang City ingests a `Status: COMPLETE ✅` report from `factory_receipt.md`, its FIRST mandatory action before discussing or drafting new features is to update `docs/BACKLOG.md` (marking the matching task `— ✅ COMPLETED`, updating any `PLAN.md` references to the permanent archive path in `.agents/pipeline/plans/completed/`, and documenting verification metrics).
 - **Auto-Archive & Reset on Task Finish**: Klang Industries must immediately archive `PLAN.md` to `.agents/pipeline/plans/completed/<YYYY-MM-DD>_<task_slug>.md` and reset `PLAN.md` to an idle state (`# No Active Plan`).
 
 ## Strict Semantic Versioning & Milestone Progression Protocol
@@ -300,7 +301,7 @@
   4. **GLOBAL_TEMPORARY**: User replies "ok globally". Access is granted indefinitely for the duration of the current context window. Reverts to RESTRICTED upon `/clear`.
 - **Mandatory Web Security Footer**: If the state machine is elevated to `SKILL_SESSION` or `GLOBAL_TEMPORARY`, the agent MUST append a highly visible security badge to the bottom of EVERY chat response so the user does not forget the agent is live on the internet.
   > `[ 🌐 Web Access: ACTIVE (<Scope>) | 🧠 Model: <Tier> ]`
-- **Local-Only Plan Priority**: All plans, tasks, and communique documents MUST come exclusively from local workspace files (e.g. `PLAN.md`, `.agents/pipeline/communique/plan_to_build.md`) or direct text provided by user.
+- **Local-Only Plan Priority**: All plans, tasks, and communique documents MUST come exclusively from local workspace files (e.g. `PLAN.md`, `.agents/pipeline/communique/factory_dispatch.md`) or direct text provided by user.
 - **Privacy & Context Boundary**: The host system clipboard may contain private, out-of-band user data from other applications (notes, meeting links, passwords, tokens). Respect context boundaries at all times.
 
 ## Strict FOSS Attribution & External Code Hygiene Guardrail ("FOSS Forever")

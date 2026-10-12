@@ -53,19 +53,9 @@
           "purpose": "Overview of the docs directory layout and contribution protocols."
         },
         {
-          "path": "context_clues_plan.md",
-          "title": "Planning Context Clues (New Klang City)",
-          "purpose": "Step 0 pre-flight index for architectural planning, active milestones, and roadmap context."
-        },
-        {
-          "path": "context_clues_build.md",
-          "title": "Build Context Clues (Klang Industries)",
-          "purpose": "Step 0 pre-flight index for factory implementation, active directives, and test targets."
-        },
-        {
-          "path": "context_clues_subagent.md",
-          "title": "Subagent Context Clues & Quick-Reference Index",
-          "purpose": "Step 0 pre-flight index for spawned subagents (research, explore, contrarian) to bootstrap taxonomy and invariants."
+          "path": "ACTIVE_CONTEXT.md",
+          "title": "Active Workspace Context (0-Turn Cold Boot)",
+          "purpose": "Machine-generated 0-turn cold boot state snapshot produced mechanically by tools/state_manager.py."
         }
       ]
     },

@@ -195,12 +195,12 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 ## 13. Rolling Blackbox Context Compaction & Institutional Memory (Topic #7)
 
 * **The Amnesia Prevention Tripwire**: Deep multi-flight pair programming generates nuanced architectural context. To prevent catastrophic amnesia when a chat session reaches context limits or prior to running `/clear`, agents trigger the 4-step memory flush.
-* **The 4-Step Pre-Compaction Flush Protocol**:
-  1. *Dev History Ingestion*: Append session accomplishments to `docs/history/DEV_HISTORY.md`.
+* **The Automated 4-Step Pre-Compaction Flush Protocol**:
+  1. *Dev History Ingestion*: Append session accomplishments to `docs/history/DEV_HISTORY.md` (automated via `tools/flush_memory.py`).
   2. *Soul Harvest Staging*: Drop unexpected gotchas, autopsies, and PCDA dialectics into `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>.md`.
-  3. *Context Clues Hardening*: Update role-specific context clues index (`context_clues_plan.md`, `context_clues_build.md`, or `context_clues_subagent.md`) with active flights, branches, targets, and uncommitted files.
+  3. *Context State Synchronization*: Run `tools/state_manager.py` to regenerate `.agents/pipeline/context_state.json` and `ACTIVE_CONTEXT.md` (<600 bytes).
   4. *Link Integrity Gate*: Execute `python tools/verify_context_clues.py` to ensure 100% link resolution.
-* **The 0-Turn Cold Boot Invariant**: Following `/clear` or starting a fresh session, reading `context_clues_*.md` allows the agent to boot in **0 turns**, seamlessly resuming the active task without asking redundant orientation questions ("What should we work on?").
+* **The 0-Turn Cold Boot Invariant**: Following `/clear` or starting a fresh session, reading `ACTIVE_CONTEXT.md` allows the agent to boot in **0 turns**, seamlessly resuming the active task without asking redundant orientation questions ("What should we work on?").
 * **Obsidian Vault Archive Index & Asynchronous Enrichment Standard**: The knowledge management pattern where `TheKlangVault/Inbox/Archive/INDEX.md` is maintained mechanically by zero-token Python automation (`tools/check_mail.py`), paired with zero-rewrite live triage and deferred batch enrichment under `/update-docs --deep`.
 * **The Curator's Trap**: The agentic failure mode of pausing active engineering/triage sessions to re-read, rewrite, and format raw historical notes one-by-one in real-time, burning expensive LLM tokens instead of deferring to zero-cost mechanical tools or async batch sweeps.
 

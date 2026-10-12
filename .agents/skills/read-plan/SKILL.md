@@ -12,28 +12,28 @@ Ingest architectural blueprints and signed dispatch contracts published by New K
 
 ## Workflow
 
-### 1. Inspect Communiqué Mailbox (`.agents/pipeline/communique/plan_to_build.md`)
-1. Open and parse `.agents/pipeline/communique/plan_to_build.md` at project root.
+### 1. Inspect Communiqué Mailbox (`.agents/pipeline/communique/factory_dispatch.md`)
+1. Open and parse `.agents/pipeline/communique/factory_dispatch.md` (or legacy `plan_to_build.md`) at project root.
 2. **Facility Check (Domain Boundary Guard)**:
-   - Inspect the `TARGET:` or `EXECUTOR:` header in `plan_to_build.md` and `PLAN.md`.
+   - Inspect the `TARGET:` or `EXECUTOR:` header in `factory_dispatch.md` and `PLAN.md`.
    - If `TARGET:` is `TOOLING_HARNESS`, `IVORY_TOWER`, or `NEW_KLANG_CITY`:
      - Output:
        > 📬 **Facility Stand-Down**: Active dispatch is routed to **New Klang City (Tooling Harness)**. Klang Industries is reserved strictly for native C++ DSP and remains idle 💤.
-     - Halt execution immediately. Do NOT transition contract status to `IN_PROGRESS` or touch `build_to_plan.md`.
+     - Halt execution immediately. Do NOT transition contract status to `IN_PROGRESS` or touch `factory_receipt.md`.
 3. Check the `Status:` field:
    - **Case A: `STATUS: READY_FOR_EXECUTION` or `STATUS: PLAN_AMENDED` (Active or Amended Contract)**:
      - Extract **Task Name**, **Active Milestone**, **Recommended Model Tier**, **Strategic Objective**, and **Directives**.
      - If `STATUS: PLAN_AMENDED`, highlight the amendment changelog prominently in the terminal.
      - Verify that [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) at root matches this task. If `PLAN.md` is empty or holds an older blueprint, synchronize the directives into `PLAN.md`.
-     - Update `.agents/pipeline/communique/plan_to_build.md` setting:
+     - Update `.agents/pipeline/communique/factory_dispatch.md` setting:
        `Status: IN_PROGRESS` (with timestamp).
-     - Update `.agents/pipeline/communique/build_to_plan.md` setting:
+     - Update `.agents/pipeline/communique/factory_receipt.md` setting:
        `## Status: BUILDING 🔨 (Phase 1: <Phase Name>)` (ensuring New Klang City has real-time factory telemetry).
      - Proceed directly to **Section 3 (Briefing & Model Gate)**.
    - **Case B: `STATUS: COMPLETED` or `STATUS: DRAFTING` (No Pending Dispatch)**:
      - Check [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) on disk.
      - If `PLAN.md` exists, contains active unchecked items (`- [ ]`), and is NOT designated for `TOOLING_HARNESS`, load `PLAN.md` and proceed to Section 3.
-     - If both `plan_to_build.md` and `PLAN.md` are idle/completed or belong to tooling:
+     - If both `factory_dispatch.md` and `PLAN.md` are idle/completed or belong to tooling:
        - Proceed to **Section 2 (Workspace Fallback Discovery)**.
 
 ---

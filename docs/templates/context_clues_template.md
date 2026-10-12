@@ -73,8 +73,8 @@
    - **Zero Blocking I/O**: Zero filesystem, network, or console output (`DBG`, `printf`, `std::cout`) on the audio thread.
    - **FastMath**: Prefer `TbdAudio::FastMath` over CRT transcendentals (`std::pow`, `std::sin`, `std::tanh`).
 2. **Factory Handshake Gate**:
-   - Inspect `.agents/pipeline/communique/plan_to_build.md` $\rightarrow$ Transition status to `IN_PROGRESS`.
-   - Execute phase by phase, validating acceptance criteria before updating `.agents/pipeline/communique/build_to_plan.md`.
+   - Inspect `.agents/pipeline/communique/factory_dispatch.md` $\rightarrow$ Transition status to `IN_PROGRESS`.
+   - Execute phase by phase, validating acceptance criteria before updating `.agents/pipeline/communique/factory_receipt.md`.
    - Conclude task: archive `PLAN.md` to `.agents/pipeline/plans/completed/`, transition communique to `COMPLETED ✅`, and emit the "JOB'S DONE" signal.
 3. **Subagent Delegation Protocol (The 20-Line / 1-File Rule)**:
    - *< 20 lines, 1 file*: Execute directly in-chat (Tier 2 Flash active).

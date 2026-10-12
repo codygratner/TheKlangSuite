@@ -23,7 +23,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
-
+ 
 CANDIDATE_BUS_PATHS = [
     Path(r"C:\Dev\TheKlangVault\Dispatches"),
     Path(r"C:\_\Vault\New Klang City\Dispatches"),
@@ -31,11 +31,31 @@ CANDIDATE_BUS_PATHS = [
 ]
 
 
+def check_junction_integrity() -> bool:
+    """Verifies that the primary NTFS junction C:\\Dev\\TheKlangVault is alive and healthy."""
+    vault_junction = Path(r"C:\Dev\TheKlangVault")
+    if vault_junction.is_symlink() or vault_junction.is_junction():
+        try:
+            # Resolving should point to existing directory
+            resolved = vault_junction.resolve()
+            if not resolved.exists():
+                print(f"⚠️ JUNCTION ALERT: C:\\Dev\\TheKlangVault points to missing target: {resolved}", file=sys.stderr)
+                return False
+        except Exception as e:
+            print(f"⚠️ JUNCTION ERROR: Failed to resolve C:\\Dev\\TheKlangVault: {e}", file=sys.stderr)
+            return False
+    return True
+
+
 def resolve_bus_dir() -> Path:
-    """Finds the active cross-project Dispatches directory."""
+    """Finds the active cross-project Dispatches directory with junction health checks."""
+    check_junction_integrity()
     for p in CANDIDATE_BUS_PATHS:
-        if p.exists():
-            return p
+        try:
+            if p.exists():
+                return p
+        except Exception:
+            continue
     # Fallback: create in primary location if accessible
     for p in CANDIDATE_BUS_PATHS[:2]:
         try:

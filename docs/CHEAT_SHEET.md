@@ -150,12 +150,12 @@
 ## 💾 Rolling Blackbox Context Compaction (Topic #7)
 
 * **Compaction Tripwires**: Triggered at Act/Flight boundaries, when chat transcript exceeds ~150k tokens, or strictly *before* executing `/clear`.
-* **The 4-Step Flush Protocol**:
-  1. Record achievements in `docs/history/DEV_HISTORY.md`.
+* **The Automated 4-Step Flush**: Run `python tools/flush_memory.py --role "<Role>" --summary "<Objective>"` (0 tokens).
+  1. Record achievements in `docs/history/DEV_HISTORY.md` (auto-scrapes git & plan).
   2. Stage gotchas/autopsies in `.agents/pipeline/staging/souls/`.
-  3. Harden `context_clues_plan.md`, `context_clues_build.md`, or `context_clues_subagent.md`.
+  3. Synchronize `ACTIVE_CONTEXT.md` (<600 bytes) and `.agents/pipeline/context_state.json` via `tools/state_manager.py`.
   4. Validate links via `python tools/verify_context_clues.py`.
-* **The 0-Turn Cold Boot Invariant**: Boot fresh sessions cold from `context_clues_*.md` in exactly **0 turns** without asking orientation questions.
+* **The 0-Turn Cold Boot Invariant**: Boot fresh sessions cold from `ACTIVE_CONTEXT.md` in exactly **0 turns** without asking orientation questions.
 
 ---
 
