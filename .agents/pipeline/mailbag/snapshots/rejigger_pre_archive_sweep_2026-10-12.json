@@ -1,0 +1,988 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-10-11T12:40:00-05:00",
+  "generated_by": "Claude Opus 5.5 (High) - Full Pro Rejigger",
+  "notes": "Structural overlay for the mailbag. Each card absorbs raw notes listed in `sources` (matched by item id, then title). Live triage state stays in mail_queue.json; `status` here is the initial state only. Raw notes not referenced by any card render as unsorted cards after the ranked list.",
+  "cards": [
+    {
+      "id": "rj-01",
+      "rank": 1,
+      "priority": "P0",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "NK",
+        "AGY",
+        "TKS"
+      ],
+      "title": "Confirm-to-Close: 14 notes already shipped",
+      "summary": "One-click inbox reduction. Each note below is already answered by shipped work or an existing doc; approve to close all 14 at once, or pull any one back out.",
+      "angles": [
+        "Pydantic -> shipped (Topic 7, tools/models.py)",
+        "Planter Rebuild -> codified as v0.5.5 in BACKLOG (Topic 11)",
+        "Pros And Cons -> 4-Lens + PCDA standard in GEMINI.md, in-canvas accordions on boards",
+        "Deep Research Subagents + Deep Research -> Tri-Engine pattern (2 explore + 1 contrarian, parallel) in the field guide",
+        "Nkai (Node app?) -> shipped as N'kai v0.2.0 UI extension with Node sidecar; session-manager half moves to rj-05",
+        "Research and Field Guides -> TheKlangResearch repo exists",
+        "Vibe-Coding Journey -> vibe_coding_field_guide.md",
+        "backlog formatting -> BACKLOG index + DOCS_CATALOG.json + SYSTEM_MAP.md",
+        "Inbox archive -> Archive/INDEX.md auto-maintained + deferred note enrichment rule; the missed-FX-list half moves to rj-07",
+        "Micro and Macro Skills -> Flight 3 skill taxonomy; the audit-cadence half moves to rj-11",
+        "next paste (N'kai terms) -> Topic 8 lexicon calibration, GLOSSARY section 6",
+        "The Klang Suite roster -> docs/architecture/product_lineup.md (correction: the embedded build is TKB, not TKS)",
+        "2026-10-09 Morning Mail Batch Docket -> superseded by this rejigger",
+        "opus harvest plan -> codified as Pre-Downgrade Soul Harvest Protocol in GEMINI.md",
+        "Can you map out reasonable roadmaps for nkai and tt -> mapped to Act III Deep Docs update & post-reset Opus roadmap audit"
+      ],
+      "next_action": "Approve to mark all 14 COMPLETED.",
+      "sources": [
+        "Pydantic",
+        "Planter Rebuild",
+        "Pros And Cons",
+        "Deep Research Subagents",
+        "Deep Research",
+        "Nkai",
+        "Research and Field Guides",
+        "Vibe-Coding Journey",
+        "backlog formatting",
+        "Inbox archive",
+        "Micro and Macro Skills",
+        "next paste",
+        "The Klang Suite",
+        "2026-10-09_Morning_Mail_Batch_Docket",
+        "opus harvest plan",
+        "Can you map out reasonable roadmaps for nkai and tt"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: User confirmed all 14 notes already shipped/covered. Residual halves live on in rj-05 (session manager), rj-07 (missed FX list), rj-11 (audit cadence). Roster correction: embedded build is TKB."
+    },
+    {
+      "id": "rj-02",
+      "rank": 2,
+      "priority": "P0",
+      "status": "BACKLOG",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "NK",
+        "TKS"
+      ],
+      "title": "Universal UTF-8 Invariant (quick win)",
+      "summary": "Promoted P1 -> P0. Windows cp1252 crashes hit every tooling session (three times today alone). Tiny fix, removes daily friction for everything downstream.",
+      "angles": [
+        "sys.stdout/stderr.reconfigure(encoding='utf-8') in every tools/*.py entrypoint",
+        "PYTHONUTF8=1 in harness wrappers",
+        "One-line rule in GEMINI.md"
+      ],
+      "next_action": "Dispatch to Flash builder: sweep tools/ + nkai/tools, add rule.",
+      "sources": [
+        "docket-18"
+      ],
+      "verdict": "BACKLOG",
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG.md N'kai Flight 18 (P0 quick win, next up)."
+    },
+    {
+      "id": "rj-03",
+      "rank": 3,
+      "priority": "P0",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "QA Sandbox Board + Sandbox/Production Mode",
+      "summary": "Merged: the sandbox test board IS the 80/20 answer to 'do we need dev/qa/prod?'. Build the chassis before the pistons: every later N'kai UI card gets validated here first.",
+      "angles": [
+        "Mock cards (Tsathoggua statue) whose buttons only echo [QA_TEST_MOCK] to chat",
+        "ENVIRONMENT: SANDBOX | PRODUCTION switch instead of multi-server envs",
+        "Tom's dev/cert/prod note maps to git branches + this switch",
+        "Deterministic element IDs for headless checks"
+      ],
+      "next_action": "Completed in Flight 16+17.",
+      "depends_on": [
+        "rj-02"
+      ],
+      "sources": [
+        "docket-16",
+        "docket-17",
+        "SQA meeting with Tom about vibe coding QA"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped in Flight 16+17. Fixture assets/fixtures/sandbox_mail_queue.json, check_mail.py --sandbox mode, sidecar.js sandbox mock dispatch, deterministic element IDs, tools/tests/test_sandbox_board.py, and design spec docs/specs/nkai_sandbox_and_multistage_environments.md."
+    },
+    {
+      "id": "rj-04",
+      "rank": 4,
+      "priority": "P0",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Unified Master Template + Schema-Driven Boards",
+      "summary": "Merged: 'best of both UIs' plus 'should N'kai be data-driven like TKS?'. Answer: yes, lightly. Pydantic models already define the data; add one board-schema JSON so new board types need zero HTML edits.",
+      "angles": [
+        "Keep: hero stage, in-canvas 4-lens accordions, native IPC buttons, two-rail filters",
+        "Cut: localhost bridges, buried toasts, fake 'sent' claims",
+        "Guard against over-engineering: one schema file, not a framework"
+      ],
+      "next_action": "Completed in Flight 15.",
+      "depends_on": [
+        "rj-03"
+      ],
+      "sources": [
+        "docket-15",
+        "how stupid is it to make nkai's backend data driven like TKS"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Completed & verified in Flight 15. Unified master template, BoardSchema, board_renderer.py, and deep docs queue operational."
+    },
+    {
+      "id": "rj-05",
+      "rank": 5,
+      "priority": "P0",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Multi-Board Hub & Session Manager",
+      "summary": "Merged: board directory, 'archived boards need their own space', and the old 'session manager to reopen unfinished sessions' wish. One switcher: active boards on top, read-only archive below.",
+      "angles": [
+        "Active vs archived sections",
+        "Cache-busting so stale boards never show",
+        "Sandbox board (rj-03) becomes the second board that proves the switcher"
+      ],
+      "next_action": "Completed in Flight 14.",
+      "depends_on": [
+        "rj-04"
+      ],
+      "sources": [
+        "docket-14",
+        "archived nkai boards probably need their own space",
+        "Nkai"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Completed Flight 14. Board Switcher modal, BoardRegistry models, anti-cache HTTP headers in main.mjs, ?board=<id> routing, board_registry.py CLI, test suite tools/tests/test_board_hub.py, and spec docs/specs/nkai_multi_board_hub_and_session_manager.md."
+    },
+    {
+      "id": "rj-06",
+      "rank": 6,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "NK"
+      ],
+      "title": "Trust, But Verify: Pre-Flight Grounding Rule",
+      "summary": "Before adopting a premise (JUCE 8 vs 9, 'Pro 3.8 is Argon'), check local files first, then the web. Small rule, high value: it would have caught both whoopsies.",
+      "angles": [
+        "Local check: CMakeLists, GEMINI.md, version headers",
+        "Web check for model/vendor claims",
+        "Polite one-line reality check before answering"
+      ],
+      "next_action": "Approve -> add rule to GEMINI.md + GLOSSARY/CHEAT_SHEET.",
+      "sources": [
+        "docket-19"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped. Rule added to GEMINI.md (Strict Debugging Heuristics), GLOSSARY section 14, CHEAT_SHEET."
+    },
+    {
+      "id": "rj-07",
+      "rank": 7,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "Mailbag Intake v2: Overflow, Quick Notes & Tabled Topics",
+      "summary": "Merged everything about how items ENTER the mailbag: long rambles get an overflow queue so throwaway-line ideas (like the FX/osc list) are not lost; filename-only quick notes; agent-tabled topics go to their own folder with an explicit 'tabling this' callout; add-at-position-X from chat.",
+      "angles": [
+        "Overflow queue only for rambles with more than 3 topics",
+        "Split cards link one shared original note instead of copying it",
+        "Inbox/Tabled/ folder for agent-authored notes (like the Nkai*.md files in Inbox)",
+        "Verify filename-only notes in the rj-03 sandbox",
+        "/mail-add with position splice"
+      ],
+      "next_action": "Shipped in Flight 7.",
+      "sources": [
+        "Ramble Engine",
+        "docket-7",
+        "Those Nkai Files in the Inbox",
+        "archived nkai boards probably need their own space",
+        "Inbox archive"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped in Flight 7 (Mailbag Intake & Triage v2). Overflow queue (>3 ideas) with split_group, filename-only quick notes, Inbox/Tabled/ agent folder with chip, attention tags (!IMPORTANT, !BLOATED, !INCOMPLETE, !SPIKE) with session launchers, and /mail-add CLI with position splice."
+    },
+    {
+      "id": "rj-08",
+      "rank": 8,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Chat-Minimal Surfaces: Fullscreen, Second Monitor & Response Drawer",
+      "summary": "Merged: fullscreen sidecar plus second-monitor ideas. Full board in a browser tab (nkai_serve.py), a compact HUD in the IDE pane, and a per-card drawer showing formatted agent replies so the chat can stay closed. Same drawer pattern carries to mobile.",
+      "angles": [
+        "Note: the plugin pane only runs inside Antigravity; the browser tab uses the server mode",
+        "HUD candidates: current topic, QA diagnostics, allowance",
+        "Response drawer = mobile-ready pattern"
+      ],
+      "next_action": "Approve -> design after rj-04 template.",
+      "depends_on": [
+        "rj-04"
+      ],
+      "sources": [
+        "Fullscreen Sidecar",
+        "Second Monitor and Other Uses for the Nkai Sidecar Integration"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Flight 19 completed. Per-card response drawer implemented (agent_reply schema field, collapsible accessible glassmorphic drawer, procedural Web Audio detent haptics, and --reply-card CLI). Fullscreen spike resolved via widened pane/nkai_serve.py. HUD tabled into rj-24."
+    },
+    {
+      "id": "rj-09",
+      "rank": 9,
+      "priority": "P1",
+      "status": "BACKLOG",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "NK",
+        "TKS",
+        "TT"
+      ],
+      "title": "North Star Focus Doc + Status Footer",
+      "summary": "Merged: your priority list (N'kai solid -> TKS 0.5.0-dev -> Toad PoC) plus the semver footer idea. One living FOCUS doc, a footer line like 'Focus: N'kai hardening | TKS-0.4.0 TT-0.1.0 NK-0.2.0', and a gentle back-on-track nudge after side quests.",
+      "angles": [
+        "Bouncing between 3 projects is fine solo if one is 'current' at a time",
+        "Nudge, not a gate: one sentence after research detours",
+        "Footer replaces remembering versions"
+      ],
+      "next_action": "Approve -> write docs/FOCUS.md + footer rule.",
+      "sources": [
+        "Priorities",
+        "Multiple Repos"
+      ],
+      "verdict": "BACKLOG",
+      "verdict_notes": "2026-10-11: Backlogged as BACKLOG N'kai Flight 0 — FIRST flight after mailbag triage (user: want this done SOON). Single merged footer line."
+    },
+    {
+      "id": "rj-10",
+      "rank": 10,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "TKS",
+        "TBD-16"
+      ],
+      "title": "Lightning Round: 4 one-line decisions",
+      "summary": "Small questions bundled so they clear in one sitting.",
+      "angles": [
+        "Context Clues lore -> suggest yes, cap at 2-3 lines (negligible tokens)",
+        "git update -> run winget upgrade Git.Git now (BACKLOG section 14)",
+        "Wiki-link docs rewrite -> suggest no; the Obsidian mirror already gives wiki navigation",
+        "TBD-16 reference links -> file into a reference doc for the TBD-16 pillar"
+      ],
+      "next_action": "Answer each with yes/no in chat.",
+      "sources": [
+        "Context Clues",
+        "git update",
+        "Reorganize docs and make it all wiki linked",
+        "TBD-16"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: All 4 lightning round items resolved: (a) Lore added to context clues; (b) winget verified git is up to date; (c) Flight 20 backlogged; (d) TBD-16 links filed in spec."
+    },
+    {
+      "id": "rj-11",
+      "rank": 11,
+      "priority": "P1",
+      "status": "APPROVED",
+      "tier": "tier1",
+      "pillars": [
+        "AGY",
+        "TKS",
+        "TT",
+        "NK"
+      ],
+      "title": "Audit Cadence + Opus Deep Audit with Checkpoints",
+      "summary": "Merged: 'how often should we audit code and skills?' plus the Opus cross-repo audit. Proposed cadence: light audit at every milestone tag, deep Opus audit once per minor version. Each run checkpoints per repo so a quota cutoff resumes cleanly.",
+      "angles": [
+        "More often now (early setup), taper later",
+        "audit_checkpoint.json per repo",
+        "Findings land on a N'kai board (needs rj-05)"
+      ],
+      "next_action": "Approve -> schedule first deep audit after N'kai P0s.",
+      "depends_on": [
+        "rj-02",
+        "rj-05"
+      ],
+      "sources": [
+        "docket-20",
+        "how often should we be doing code reviews",
+        "Micro and Macro Skills"
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "2026-10-11: Approved. Backlogged as Flight 21 (Tier 1 Targeted Opus Swap). Cadence policy codified in GEMINI.md, GLOSSARY sec 16, CHEAT_SHEET."
+    },
+    {
+      "id": "rj-12",
+      "rank": 12,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Finish SQA Automation Hardening (Tom's spec)",
+      "summary": "Split out of Tom's meeting notes: the C++ test side (5 min suite / 30 s test timeouts, failure screenshots in their own folder, failures-first reports) is drafted in sqa_automation_hardening.md but still DRAFTING. Factory-floor work.",
+      "angles": [
+        "TARGET: FACTORY_FLOOR",
+        "Spec: docs/specs/sqa_automation_hardening.md"
+      ],
+      "next_action": "Approve -> promote spec to PLAN when the factory is idle.",
+      "sources": [
+        "SQA meeting with Tom about vibe coding QA"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped & verified. Pre-flight grounding audit revealed test/GuiTestHelpers.h & BACKLOG sec 5.2 already implemented the full watchdog, locator, failure snapshots, and leaderboard on 2026-10-07. Spec status updated to COMPLETED."
+    },
+    {
+      "id": "rj-13",
+      "rank": 13,
+      "priority": "P1",
+      "status": "APPROVED",
+      "tier": "tier2",
+      "pillars": [
+        "TT"
+      ],
+      "title": "ToadTracker Platform Fork: Steam-Deck-first PCDA",
+      "summary": "Merged Steam Deck + 'Tracktion for Reference'. Steam Deck is already a target in TRACKER_SPEC; the open question is Linux plugin hosting and a Renoise-style export path. Tracktion stays a read-only OS-interface reference only; ToadCore remains pure C++20 (Tracktion backend already killed in docket-8).",
+      "angles": [
+        "Linux VST3/LV2 hosting on SteamOS",
+        "Renoise-ish export for desktop round-trips",
+        "Clone Tracktion read-only for OS/device glue patterns, never link it"
+      ],
+      "next_action": "Run a PCDA on Steam-Deck-first vs desktop-first.",
+      "sources": [
+        "The Toad on Stam Deck",
+        "Tracktion for Reference"
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Steam Deck prioritized as primary platform. SNES baseline controls + SDL3 direct input, safe resume halt, built-in TKS synth voices (no VST hosting), Renoise .xrns export. Spec committed to ToadTracker."
+    },
+    {
+      "id": "rj-14",
+      "rank": 14,
+      "priority": "P1",
+      "status": "TABLED",
+      "tier": "tier1",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Modulation System Overhaul",
+      "summary": "SnapHeap-style envelopes/LFOs/random, Hydra meta-modulation, and a scrollable mod matrix. Flagship candidate for v0.5.0; BACKLOG already holds mod matrix/Hydra stubs to merge into.",
+      "angles": [
+        "Meta-mod (mod of mod) via Hydra",
+        "Scrollable matrix vs per-card mod lanes",
+        "Tier 1: voice-level mod routing is DSP-heavy"
+      ],
+      "next_action": "Approve -> fold into v0.5.0 BACKLOG section.",
+      "sources": [
+        "Modulations UX"
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Deferred for dedicated deep research and plan drafting when returning to active TKS coding (prior to v0.5.0 DSP execution)."
+    },
+    {
+      "id": "rj-15",
+      "rank": 15,
+      "priority": "P1",
+      "status": "TABLED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "FX Rack 2.0",
+      "summary": "Merged FX rack ideas: mega modules with 4 macros plus a popover for deep params, drive/thickener unification (Faturator / Mega Drive already in BACKLOG), drag-and-drop slot reordering instead of picker swaps, with the limiter pinned to stage 5 and the pre-amp gain fixed in place.",
+      "angles": [
+        "Fixed: post-amp limiter (slot 5), pre-amp gain",
+        "FX picker drops modules pre-set to a mode",
+        "Per-effect presets (links rj-16)"
+      ],
+      "next_action": "Approve -> merge into BACKLOG FX section for v0.4.x/v0.5.0.",
+      "sources": [
+        "docket-11",
+        "FX UX Ideas",
+        "Future ideas while I fall asleep"
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Bundled with rj-14 (Modulation System Overhaul) for joint deep research and plan drafting when returning to active TKS coding."
+    },
+    {
+      "id": "rj-16",
+      "rank": 16,
+      "priority": "P1",
+      "status": "TABLED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Component Presets & Morphing",
+      "summary": "Per-card/per-effect presets plus preset morphing between snapshots. Shares the 'Future ideas while I fall asleep' note with rj-15.",
+      "angles": [
+        "Component preset JSON layered under full-patch presets",
+        "Morph = parameter interpolation, needs smoothing on the audio thread"
+      ],
+      "next_action": "Approve -> BACKLOG; schedule after FX Rack 2.0 slot model lands.",
+      "depends_on": [
+        "rj-15"
+      ],
+      "sources": [
+        "docket-10",
+        "Future ideas while I fall asleep"
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Bundled with rj-14 (Modulation System Overhaul) and rj-15 (FX Rack 2.0) into the TKS Sound & FX Research Cluster for joint deep research and plan drafting when returning to active TKS coding."
+    },
+    {
+      "id": "rj-17",
+      "rank": 17,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "Mailbag Triage v2: attention tags + session routing",
+      "summary": "Pillar filters already shipped. What remains: !IMPORTANT / !BLOATED / !INCOMPLETE attention tags on notes, and routing a card straight into a grill-lab / deep-research / research-assistant session.",
+      "angles": [
+        "Tags parsed from note body, rendered as chips",
+        "!BLOATED auto-suggests a split (like this rejigger)",
+        "Session routing = prefilled prompt per variant"
+      ],
+      "next_action": "Shipped in Flight 7 alongside rj-07.",
+      "sources": [
+        "Mailbag Feature (and a nkai ramble)"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-11: Shipped in Flight 7 alongside rj-07. Attention markers parsed, semantic badges rendered, and one-click session routing launchers ([Grill-Lab], [Deep Research], [Draft Plan]) deployed with extension IPC / clipboard fallback."
+    },
+    {
+      "id": "rj-18",
+      "rank": 18,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Moonshot Shelf & Personal Parking Lot",
+      "summary": "Merged five out-of-scope notes (Tracktion musings, N'kai scope creep, firmware hacking, Obsidian manager app, Obsidian plugins). Recommendation: no new app. A Vault Personal/ folder plus a Moonshots.md list with Dataview queries keeps them captured without scope creep.",
+      "angles": [
+        "Moonshots.md = one line per idea + link",
+        "Dataview for the index, zero code",
+        "Obsidian manager app -> graveyard unless MCP need appears"
+      ],
+      "next_action": "Approve -> create Vault Moonshots.md and move these notes' summaries there.",
+      "sources": [
+        "Tracktion",
+        "Nkai Scope Creep",
+        "Firmware Hacking",
+        "Obsidian Manager App",
+        "Obsidian Plugins"
+      ],
+      "verdict": "PARKED",
+      "verdict_notes": "Parked to docs/MOONSHOTS.md. Original notes preserved in TheKlangVault/Inbox/Archive/."
+    },
+    {
+      "id": "rj-19",
+      "rank": 19,
+      "priority": "P2",
+      "status": "APPROVED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Aesthetic Direction & Typography",
+      "summary": "Merged the VST UI tips video and the unified FX/Mod card look. Bespoke card chrome, open-licensed fonts, and a text-truncation test suite. Targets v0.7 polish.",
+      "angles": [
+        "Open fonts only (OFL)",
+        "Truncation suite in gui_tests",
+        "Cards stay cards, but share one visual grammar"
+      ],
+      "next_action": "Approve -> BACKLOG v0.7 UI polish.",
+      "sources": [
+        "VST UI Tips Video",
+        "FX and Mod Cards"
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Folded into Milestone v0.7.0 in docs/BACKLOG.md (Aesthetic Direction, OFL Typography, Text-Truncation Suite, Unified Card Grammar)."
+    },
+    {
+      "id": "rj-20",
+      "rank": 20,
+      "priority": "P2",
+      "status": "APPROVED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Planter Bass Mode, Phase Smear & Expanded Oscillator Engines",
+      "summary": "Planter variant where the 2-op FM becomes dual-osc for bass/percussion, plus phase smear 2nd/4th order switch questions. Phase smear is already in BACKLOG; bass mode is new. Target v0.5.5.",
+      "angles": [
+        "Bass mode as a Planter engine switch, not a new plugin",
+        "Phase smear: test 8x 2nd-order vs 4x 4th-order by ear first"
+      ],
+      "next_action": "Approve -> add bass mode next to phase smear in BACKLOG.",
+      "sources": [
+        "Bass mode!",
+        "Phase Smear Idea"
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Approved with Expanded Oscillator Engines rolled in (Chiptune/VRC/SID/PCE, M8 wave synth, Mask1 bitmasking, Plaits models, and Planter dual-osc bass mode with portamento). Reconciled in docs/BACKLOG.md under v0.5.5/v0.7.0."
+    },
+    {
+      "id": "rj-21",
+      "rank": 21,
+      "priority": "P2",
+      "status": "APPROVED",
+      "tier": "tier1",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "CyDrums Structure Mapping",
+      "summary": "From the synth discord: feed a manual to the agent and map the drum machine's structure. Research spike before any DSP.",
+      "angles": [
+        "Manual-to-schema extraction",
+        "Tier 1 if it reaches voice architecture"
+      ],
+      "next_action": "Approve -> research spike via explore subagent.",
+      "sources": [
+        "docket-12"
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Approved as an on-demand research spike in docs/BACKLOG.md under Milestone v0.7.0 §3.5."
+    },
+    {
+      "id": "rj-22",
+      "rank": 22,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "DA Engine Stress Test: Blind Backend Trap Scenario",
+      "summary": "Run the devil's-advocate engine blind on your friend's Ardour-to-Tracktion DAW decision and compare against what he actually did. Doubles as a demo you can show him.",
+      "angles": [
+        "Blind = no hint of his outcome",
+        "Scores the PCDA engine against a real decision"
+      ],
+      "next_action": "Approve -> run after docket-3 lands.",
+      "depends_on": [
+        "docket-3"
+      ],
+      "sources": [
+        "Research Demo"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "Six-Way Devil's Advocate Benchmark fully completed and verified against real-world ground truth (friend's Tracktion swap is succeeding). Final report published at C:/Dev/Research/agentic/da_methodology_six_way_benchmark_2026-10.md."
+    },
+    {
+      "id": "rj-23",
+      "rank": 23,
+      "priority": "P2",
+      "status": "TABLED",
+      "tier": "tier2",
+      "pillars": [
+        "AGY"
+      ],
+      "title": "Remote Antigravity Access",
+      "summary": "Check status/usage and launch the daemon from your phone. Options: Tailscale + SSH (zero code) vs a tiny authenticated status daemon.",
+      "angles": [
+        "Tailscale + SSH first (80/20)",
+        "Daemon only if a phone UI is really needed"
+      ],
+      "next_action": "Approve -> try Tailscale + SSH.",
+      "sources": [
+        "Remote Antigravity"
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Tabled for later. Task 8 queued in post_milestone_deep_docs_gauntlet.md to author an ELI5 visual tutorial for Tailscale + SSH / mobile webview access during the next deep docs pass."
+    },
+    {
+      "id": "rj-24",
+      "rank": 24,
+      "priority": "P3",
+      "status": "TABLED",
+      "tier": "tier2",
+      "pillars": [
+        "TT",
+        "NK"
+      ],
+      "title": "M8 Telemetry Bridge & Second-Monitor Sidecar",
+      "summary": "Merged ToadTracker vs M8 web bridge with second-monitor uses for the N'kai sidecar (dashboards, ramble overflow queue).",
+      "angles": [
+        "M8 headless display protocol as reference",
+        "Second monitor = always-on board",
+        "Tabled from rj-08: compact HUD (current topic, QA diagnostics, allowance) once a second monitor exists"
+      ],
+      "next_action": "Table until ToadTracker makes sound.",
+      "sources": [
+        "docket-9",
+        "Second Monitor and Other Uses for the Nkai Sidecar Integration"
+      ],
+      "verdict": "TABLED",
+      "verdict_notes": "Tabled until ToadTracker makes sound and core playback engine is operational."
+    },
+    {
+      "id": "rj-25",
+      "rank": 25,
+      "priority": "P3",
+      "status": "APPROVED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Meeblip SE Port feasibility",
+      "summary": "Port the open-source Meeblip SE engine to a plugin. Looks straightforward, but the license must be checked first (firmware vs hardware licenses differ).",
+      "angles": [
+        "License check gates everything",
+        "8-bit character worth preserving"
+      ],
+      "next_action": "Verify the license, then decide.",
+      "sources": [
+        "Meeblip SE Engine"
+      ],
+      "verdict": "APPROVED",
+      "verdict_notes": "Approved as 'The Klang Blip' (MeeBlip SE Standalone Plugin sidequest with TKS JSON Preset Browser). Backlogged in docs/BACKLOG.md as a scheduled palette-cleanser milestone."
+    },
+    {
+      "id": "rj-26",
+      "rank": 26,
+      "priority": "P1",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "N'kai Minimal: Headless Zero-Dependency CLI & Chat-Only Distribution",
+      "summary": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.",
+      "angles": [
+        "Zero-dependency nkai-core: pure Python stdlib + Pydantic v2",
+        "Runs anywhere: VS Code, Cursor, Neovim, terminal SSH, headless CI",
+        "check_mail.py --chat and ramble_ingest.py --chat provide instant in-chat triage",
+        "Visual sidecars and boards become an optional presentation layer on top of headless core"
+      ],
+      "next_action": "Draft nkai-core packaging spec and 1-command installer script for v0.3.0.",
+      "sources": [
+        "Nkai Minimal"
+      ]
+    },
+    {
+      "id": "rj-27",
+      "rank": 27,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Selective Dialectic Gate: On-Demand Quick PCDA via Card Launcher & Attention Tags",
+      "summary": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.",
+      "angles": [
+        "Blanket batch PCDA on whole inbox moved to Graveyard",
+        "Smart heuristic: obvious items -> Backlog; opaque items -> Research; dilemmas/trade-offs -> PCDA",
+        "[ ⚖️ Quick PCDA ] launcher button on cards and --pcda <id> CLI"
+      ],
+      "next_action": "Add [ ⚖️ Quick PCDA ] card action chip and !DILEMMA detection to mailbag parser.",
+      "sources": [
+        "Single fast PCDA on mail ingestion"
+      ]
+    },
+    {
+      "id": "rj-28",
+      "rank": 28,
+      "priority": "P1",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "TKS",
+        "NK",
+        "TT",
+        "TKR"
+      ],
+      "title": "Act III Deep Docs Update: Flash High Execution Engine with Atomic Git Quarantine & Snapshot Rollback",
+      "summary": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.",
+      "angles": [
+        "Flash High handles all mechanical doc syncing, link verification, and historical reconciliation with zero quota anxiety",
+        "Claude Opus / Gemini Pro strictly reserved for 1-turn targeted architectural RFC reviews",
+        "Git branch quarantine (docs/deep-update-YYYYMMDD) guarantees clean rollback if interrupted",
+        "Field Guides Always Last invariant: sync specs, backlogs, and bug autopsies first; synthesize field guides last"
+      ],
+      "next_action": "Kick off Act III Deep Docs pass on git quarantine branch.",
+      "sources": [
+        "Deep docs update"
+      ]
+    },
+    {
+      "id": "rj-29",
+      "rank": 29,
+      "priority": "P2",
+      "status": "RESEARCH",
+      "tier": "tier2",
+      "pillars": [
+        "TT",
+        "TBD-16"
+      ],
+      "title": "PicoTracker (LGPT) Architectural Teardown: Compact Tracker Data Models & Controller Ergonomics",
+      "summary": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.",
+      "angles": [
+        "Quarantine clone to C:\\\\Dev\\\\Research\\\\external\\\\picotracker\\\\ (never pollute product repos)",
+        "Study bit-packed tracker data structures running in 264 KB RAM",
+        "Analyze gamepad modal navigation and button debouncing for Steam Deck / TBD-16"
+      ],
+      "next_action": "Clone to Research/external and produce an architectural autopsy in TheKlangResearch.",
+      "sources": [
+        "Should we download the picotracker repo for reference"
+      ]
+    },
+    {
+      "id": "rj-30",
+      "rank": 30,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier3",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Batch Vault Note YAML Frontmatter Enrichment (tools/enrich_archive_notes.py)",
+      "summary": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.",
+      "angles": [
+        "Single source of truth remains docs/BACKLOG.md and mail_queue.json; vault is historical provenance",
+        "Curator's Trap Defense: never rewrite raw notes during live chat; execute in batch subagent pass",
+        "tools/enrich_archive_notes.py safely prepends YAML frontmatter without altering note content"
+      ],
+      "next_action": "Author tools/enrich_archive_notes.py and execute during Act III Deep Docs subagent pass.",
+      "sources": [
+        "Update all archived inbox items with front matter"
+      ]
+    },
+    {
+      "id": "docket-1",
+      "rank": 101,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-1",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-1"
+      ]
+    },
+    {
+      "id": "docket-6",
+      "rank": 102,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Streamlined Mailbag Ingestion & Dynamic Positioning",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-6"
+      ]
+    },
+    {
+      "id": "docket-13",
+      "rank": 103,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-13",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-13"
+      ]
+    },
+    {
+      "id": "Opus 5.5",
+      "rank": 104,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "AGY"
+      ],
+      "title": "Opus 5.5",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Opus 5.5"
+      ]
+    },
+    {
+      "id": "Anti-Slop in Open Source",
+      "rank": 105,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "AGY"
+      ],
+      "title": "Anti-Slop in Open Source",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Anti-Slop in Open Source"
+      ]
+    },
+    {
+      "id": "Mailbag Queue",
+      "rank": 106,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "Mailbag Queue",
+      "summary": "Completed.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Mailbag Queue"
+      ]
+    },
+    {
+      "id": "Response from my SQA Friend",
+      "rank": 107,
+      "priority": "P0",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "TKS"
+      ],
+      "title": "Response from my SQA Friend",
+      "summary": "Completed: Pistons vs Chassis section added to the vibe coding field guide.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "Response from my SQA Friend"
+      ]
+    },
+    {
+      "id": "docket-2",
+      "rank": 111,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-2",
+      "summary": "In BACKLOG.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-2"
+      ]
+    },
+    {
+      "id": "docket-3",
+      "rank": 112,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-3",
+      "summary": "In BACKLOG.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-3"
+      ]
+    },
+    {
+      "id": "docket-4",
+      "rank": 113,
+      "priority": "P2",
+      "status": "BACKLOG",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-4",
+      "summary": "In BACKLOG.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-4"
+      ]
+    },
+    {
+      "id": "docket-5",
+      "rank": 121,
+      "priority": "P2",
+      "status": "GRAVEYARD",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "docket-5",
+      "summary": "Graveyard.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-5"
+      ]
+    },
+    {
+      "id": "docket-8",
+      "rank": 122,
+      "priority": "P2",
+      "status": "GRAVEYARD",
+      "tier": "tier2",
+      "pillars": [
+        "TT"
+      ],
+      "title": "Tracktion Engine Backend Evaluation for ToadTracker",
+      "summary": "Killed: Tracktion is a linear DAW engine; ToadCore stays pure C++20.",
+      "angles": [],
+      "next_action": "None.",
+      "sources": [
+        "docket-8"
+      ]
+    }
+  ]
+}

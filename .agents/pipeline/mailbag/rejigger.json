@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-10-11T12:40:00-05:00",
-  "generated_by": "Claude Opus 5.5 (High) - Full Pro Rejigger",
-  "notes": "Structural overlay for the mailbag. Each card absorbs raw notes listed in `sources` (matched by item id, then title). Live triage state stays in mail_queue.json; `status` here is the initial state only. Raw notes not referenced by any card render as unsorted cards after the ranked list.",
+  "generated_at": "2026-10-12T06:30:00-05:00",
+  "generated_by": "Flash High - Complete Archive Audit & Rejigger",
+  "notes": "Structural overlay covering 100% of archived mail (77 notes -> 53 cards). 11 newly surfaced topics added (rj-31 through rj-41) for user review.",
   "cards": [
     {
       "id": "rj-01",
@@ -76,7 +76,8 @@
       ],
       "next_action": "Dispatch to Flash builder: sweep tools/ + nkai/tools, add rule.",
       "sources": [
-        "docket-18"
+        "docket-18",
+        "UTF-8"
       ],
       "verdict": "BACKLOG",
       "verdict_notes": "2026-10-11: Backlogged as BACKLOG.md N'kai Flight 18 (P0 quick win, next up)."
@@ -106,7 +107,9 @@
       "sources": [
         "docket-16",
         "docket-17",
-        "SQA meeting with Tom about vibe coding QA"
+        "SQA meeting with Tom about vibe coding QA",
+        "Nkai Canonical Sandbox and QA Test Board",
+        "Nkai Multi-Stage Environment Architecture PCDA"
       ],
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: Shipped in Flight 16+17. Fixture assets/fixtures/sandbox_mail_queue.json, check_mail.py --sandbox mode, sidecar.js sandbox mock dispatch, deterministic element IDs, tools/tests/test_sandbox_board.py, and design spec docs/specs/nkai_sandbox_and_multistage_environments.md."
@@ -133,7 +136,8 @@
       ],
       "sources": [
         "docket-15",
-        "how stupid is it to make nkai's backend data driven like TKS"
+        "how stupid is it to make nkai's backend data driven like TKS",
+        "Nkai Unified UI-UX Master Template Synthesis"
       ],
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: Completed & verified in Flight 15. Unified master template, BoardSchema, board_renderer.py, and deep docs queue operational."
@@ -161,7 +165,8 @@
       "sources": [
         "docket-14",
         "archived nkai boards probably need their own space",
-        "Nkai"
+        "Nkai",
+        "Nkai Multi-Board Hub and Archive Catalog"
       ],
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: Completed Flight 14. Board Switcher modal, BoardRegistry models, anti-cache HTTP headers in main.mjs, ?board=<id> routing, board_registry.py CLI, test suite tools/tests/test_board_hub.py, and spec docs/specs/nkai_multi_board_hub_and_session_manager.md."
@@ -185,7 +190,8 @@
       ],
       "next_action": "Approve -> add rule to GEMINI.md + GLOSSARY/CHEAT_SHEET.",
       "sources": [
-        "docket-19"
+        "docket-19",
+        "Trust, But Verify"
       ],
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: Shipped. Rule added to GEMINI.md (Strict Debugging Heuristics), GLOSSARY section 14, CHEAT_SHEET."
@@ -215,7 +221,9 @@
         "docket-7",
         "Those Nkai Files in the Inbox",
         "archived nkai boards probably need their own space",
-        "Inbox archive"
+        "Inbox archive",
+        "Nkai Streamlined Mailbag Ingestion",
+        "Rambles"
       ],
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: Shipped in Flight 7 (Mailbag Intake & Triage v2). Overflow queue (>3 ideas) with split_group, filename-only quick notes, Inbox/Tabled/ agent folder with chip, attention tags (!IMPORTANT, !BLOATED, !INCOMPLETE, !SPIKE) with session launchers, and /mail-add CLI with position splice."
@@ -376,7 +384,8 @@
       "next_action": "Run a PCDA on Steam-Deck-first vs desktop-first.",
       "sources": [
         "The Toad on Stam Deck",
-        "Tracktion for Reference"
+        "Tracktion for Reference",
+        "Tracktion Backend for The Toad"
       ],
       "verdict": "APPROVED",
       "verdict_notes": "Steam Deck prioritized as primary platform. SNES baseline controls + SDL3 direct input, safe resume halt, built-in TKS synth voices (no VST hosting), Renoise .xrns export. Spec committed to ToadTracker."
@@ -474,7 +483,8 @@
       ],
       "next_action": "Shipped in Flight 7 alongside rj-07.",
       "sources": [
-        "Mailbag Feature (and a nkai ramble)"
+        "Mailbag Feature (and a nkai ramble)",
+        "Nkai Platform Pillar Badges"
       ],
       "verdict": "COMPLETED",
       "verdict_notes": "2026-10-11: Shipped in Flight 7 alongside rj-07. Attention markers parsed, semantic badges rendered, and one-click session routing launchers ([Grill-Lab], [Deep Research], [Draft Plan]) deployed with extension IPC / clipboard fallback."
@@ -982,6 +992,259 @@
       "next_action": "None.",
       "sources": [
         "docket-8"
+      ]
+    },
+    {
+      "id": "rj-31",
+      "rank": 31,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier1",
+      "pillars": [
+        "TKS",
+        "TT"
+      ],
+      "title": "Effects & Oscillators Mega-Palette: 22-Engine Catalog & Meta-Containers",
+      "summary": "Exhaustive breakdown of 22+ proposed synthesis and FX engines from archive notes into modular meta-containers (Filters, Vintage Digital, Texture/Degradation, Modulation/Time, Dynamics, Physical Modeling).",
+      "angles": [
+        "Chiptune & Digital: Game Boy, NES (VRC6/7, MMC5, FDS), C64 SID, PC-Engine HuC6280, Kodoma Mask1",
+        "Degradation & Textures: GoodHertz Lossy (mp3 compression), Ableton Erosion, RC-20 color, Extreme OTT multiband",
+        "Physical Modeling & Lab Drums: MachineDrum percussion, 808/606/DR-110 laboratory cymbal generator (detuned carriers -> APF -> wavefolder), K5/Razor macro additive",
+        "Time & Modulation: Roland Alpha Juno Chorus, Kilohearts Ensemble, Auto-wah, Beat Repeat / Audio Damage buffer glitcher, granular interleaving (Clouds)",
+        "M8 & Eurorack: M8 4-op FM, M8 Wave Synth, Mutable Instruments (Plaits, Braids, Rings), TipTop matrix, Make Noise René Cartesian sequencer",
+        "Meta-Containers: 4 macro knobs + deep popover drawer (SnapHeap/Slice EQ style) grouping related algorithms under shared parameter surfaces"
+      ],
+      "next_action": "Triage into TKS v0.5.0 and v0.6.0 roadmap tiers.",
+      "sources": [
+        "Effects and Oscillators and More",
+        "Inbox archive"
+      ]
+    },
+    {
+      "id": "rj-32",
+      "rank": 32,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS",
+        "TT"
+      ],
+      "title": "Component Presets & Sub-Voice Tagged Browser",
+      "summary": "Granular sub-component preset saving and loading (e.g. saving just a CyDrums drum voice, an oscillator patch, or an FX chain) with metadata tags, distinct from full-plugin states.",
+      "angles": [
+        "Component JSON layer (assets/presets/components/<module>/) under full-patch presets",
+        "Tagged browser search: browse by tag, timbre, or engine across modules",
+        "Cross-plugin portability: load Planter sub-voices into Farmer or future ToadTracker modular channels"
+      ],
+      "next_action": "Approve -> add component preset schema layer to assets/controls/.",
+      "sources": [
+        "Component Presets As Well",
+        "docket-10"
+      ]
+    },
+    {
+      "id": "rj-33",
+      "rank": 33,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier1",
+      "pillars": [
+        "AGY",
+        "TKS",
+        "NK",
+        "TT"
+      ],
+      "title": "Opus Multi-Repo Deep Audit Swarm Protocol",
+      "summary": "Standardized orchestration protocol for temporarily swapping to Opus 5.5 High to launch parallel subagents auditing all repos (TheKlangSuite, nkai, ToadTracker, TheKlangResearch), generating structured audit cards directly into a fresh N'kai board, then swapping back to Flash High.",
+      "angles": [
+        "Targeted DSP Swap Protocol alignment: display Tier 1 banner, execute audit swarm, dump soul harvest, emit downgrade chime",
+        "Checkpointed execution: audit_checkpoint.json per repo protects against quota interrupts",
+        "Auto-generates an actionable audit board in N'kai for sustainable Flash triage"
+      ],
+      "next_action": "Triage -> schedule after minor version milestones.",
+      "sources": [
+        "Opus Audit",
+        "docket-20"
+      ]
+    },
+    {
+      "id": "rj-34",
+      "rank": 34,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier1",
+      "pillars": [
+        "TKS",
+        "TT"
+      ],
+      "title": "CyDrums Deep Voice Architecture Spike",
+      "summary": "Targeted research spike directly translating Sonicware LIVEN CyDrums hardware architecture into C++ DSP models: 2x wavetables, noise and tick generators, bidirectional wavetable scanning (p.47), comprehensive modulation matrix (p.65), and proposed dual-LFO expansion.",
+      "angles": [
+        "Voice topology: 2x wavetable oscillators + transient tick/noise generator",
+        "Modulation targets: wavetable index, structure morphing, filter cutoffs",
+        "Overcoming hardware limits: adding 2 full-rate LFOs per voice for polymetric modulation"
+      ],
+      "next_action": "Dispatch exploratory research subagent to produce C++ voice header blueprints.",
+      "sources": [
+        "CyDrums Research",
+        "docket-12"
+      ]
+    },
+    {
+      "id": "rj-35",
+      "rank": 35,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TT",
+        "TBD-16"
+      ],
+      "title": "ToadTracker Gamepad Ergonomics & M8 Serial Telemetry",
+      "summary": "Teardown of Dirtywave M8 SLIP serial protocol; build lightweight telemetry proxy/logger to capture real-world tracker button heatmaps, chords, and dwell times to guide ToadTracker Steam Deck & TBD-16 microswitch layout.",
+      "angles": [
+        "USB CDC ACM serial protocol + SLIP framing (0xC0 boundary, 0xDB escape)",
+        "Heatmap analysis: quantifying 80% button usage (D-pad vs Opt/Edit vs Shift)",
+        "Informing Steam Deck rear paddle assignments and physical TBD-16 enclosure ergonomics"
+      ],
+      "next_action": "Triage into ToadTracker Phase 2 research.",
+      "sources": [
+        "Toad vs M8",
+        "docket-9"
+      ]
+    },
+    {
+      "id": "rj-36",
+      "rank": 36,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK"
+      ],
+      "title": "N'kai Universal Research Assistant: Declarative Profiles Beyond Dev",
+      "summary": "Expands N'kai beyond software engineering into a versatile general research assistant with domain-specific declarative profile configurations.",
+      "angles": [
+        "Studio Rewiring Planner: Gear wishlist evaluation, signal paths, patchbay mapping, and studio ergonomics",
+        "Eurorack Modular Layout Optimizer: Rack planning, ModularGrid import/export, and physical module arrangement",
+        "Creative Ideation: TTRPG worldbuilding and rules research, songwriting and lyric prosody assistant",
+        "NotebookLM / Gemini Notebook Corpus Builder: Curating and formatting dense technical research libraries",
+        "Hardware Firmware Hacking: Reverse-engineering briefs (e.g. M-VAVE FM-1)"
+      ],
+      "next_action": "Approve -> design declarative profile JSON schema in nkai/config/profiles/.",
+      "sources": [
+        "Nkai Use Cases"
+      ]
+    },
+    {
+      "id": "rj-37",
+      "rank": 37,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "N'kai Automode: 2-Pass Autonomous Research Engine",
+      "summary": "Automated 2-pass iterative research workflow (Pass 1: Broad exploratory survey + friction identification -> Pass 2: Sharp dialectic synthesis and 80/20 resolution) capped strictly at 2 passes to eliminate token runaway.",
+      "angles": [
+        "Two-pass convergence rule: never loop > 2 iterations",
+        "Pass 1 outputs structured tension points; Pass 2 resolves them into concrete blueprints",
+        "Integrates with deep-research skill via --automode flag"
+      ],
+      "next_action": "Approve -> author scripts/automode.py in deep-research skill.",
+      "sources": [
+        "Nkai Automode"
+      ]
+    },
+    {
+      "id": "rj-38",
+      "rank": 38,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "N'kai External High-Reasoning Clipboard Bridge",
+      "summary": "Seamless one-click compiler bundling N'kai research nodes and adversarial contrarian friction metrics into a high-density markdown payload, automatically sent to the OS clipboard (Win32 GlobalAlloc / pbcopy / xclip) or Obsidian vault drop for external web reasoning models (Gemini Web 2.5 Pro / Claude 3.7 Thinking).",
+      "angles": [
+        "Eliminates manual formatting when consulting external flagship web LLMs",
+        "Dual transport: Native OS clipboard injection (--clip) or Obsidian Vault drop (TheKlangVault/Inbox/Tabled/)",
+        "Includes structured obsidian callouts (> [!danger], > [!info])"
+      ],
+      "next_action": "Approve -> add --clip and --vault-drop export to tools/check_mail.py.",
+      "sources": [
+        "Nkai to High Reasoning Prompt",
+        "Nkai terms and if they’re right for me … and some Python bridge nonsense from ai mode on a google search"
+      ]
+    },
+    {
+      "id": "rj-39",
+      "rank": 39,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "NK"
+      ],
+      "title": "N'kai Consolidated Filter-Counter Pills",
+      "summary": "Space-saving UI optimization merging separate scorecard counters with filter buttons into unified compact glowing pills ([ 📋 All (13) ], [ ⚪ Untriaged (9) ], [ 📥 Backlog (3) ]) to reclaim 30–50px vertical header space in narrow sidecars and mobile viewports.",
+      "angles": [
+        "Spatial ergonomics: eliminates redundant scorecard banner row",
+        "Live reactive tallies: counter badges inside pills update automatically upon triage clicks",
+        "Mobile friendly: works smoothly with the mobile sticky thumb bar"
+      ],
+      "next_action": "Approve -> dispatch to Flash Builder to update sidecar.css and master_template.html.",
+      "sources": [
+        "Nkai Filter Counter Pills"
+      ]
+    },
+    {
+      "id": "rj-40",
+      "rank": 40,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "TKS",
+        "TBD-16"
+      ],
+      "title": "The Klang Suite Product Lineup Intent & Scope Alignment",
+      "summary": "Canonical architectural alignment defining the distinct scope, purpose, and engine constraints for each product in the lineup: TKF (flagship percussion), TKP (lean drum & bass), TKE (deep patch editor), TKM (FX playground), TKR (ER-1 FM drums), and TKB (embedded hardware synth).",
+      "angles": [
+        "TKF vs TKP: TKP is NOT a stripped-down TKF; it is a dedicated dual-voice drum/bass synth with Note Off and fast envelope response",
+        "TKR: Electribe ER-1 style instant FM drum synth with minimal controls",
+        "Embedded build naming: canonical code is TKB (The Klang Box), avoiding TKS name collision"
+      ],
+      "next_action": "Reconcile with docs/architecture/product_lineup.md.",
+      "sources": [
+        "The Klang Suite"
+      ]
+    },
+    {
+      "id": "rj-41",
+      "rank": 41,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "N'kai Button Interaction: Native IPC vs Flash Subagent PCDA",
+      "summary": "Formal architectural verdict on whether to use a background Flash LLM subagent for button routing. Verdict: REJECT the LLM subagent (🪦 GRAVEYARD); use Antigravity Native UI Extension IPC (window.sidecar.agent.sendMessage) in 0ms with 0 tokens, keeping the clipboard composer for standalone browser boards.",
+      "angles": [
+        "Thesis: Hands-free background routing via lightweight LLM",
+        "Antithesis: LLM for plumbing burns 2x tokens, adds 1-2s latency, risks prompt drift",
+        "Synthesis: Zero-cost native IPC for official extension; instant clipboard fallback for external browser"
+      ],
+      "next_action": "Mark GRAVEYARD in ledger.",
+      "sources": [
+        "Nkai Button Flash Routing Agent"
       ]
     }
   ]
