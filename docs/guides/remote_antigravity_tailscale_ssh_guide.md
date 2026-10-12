@@ -57,7 +57,7 @@ Want to browse your Morning Mailbag or Flight Runway from your phone with smooth
 2. The terminal will print a scannable ASCII QR code and a local URL:
    ```
    📱 N'KAI MOBILE COMPANION READY!
-   🌐 Local URL: http://100.80.25.10:3030/morning_mail_inbox.html
+   🌐 Local URL: http://100.87.196.60:3030/morning_mail_inbox.html
    ```
 3. **On your Phone**:
    - Open your browser (Safari, Chrome) and type the Tailscale URL (or scan the QR code).
@@ -92,9 +92,9 @@ Want to run git commands, check builds, or run `check_mail.py` from your phone?
 1. Open **Termius** on your phone.
 2. Tap **New Host**:
    - **Label**: `Klang PC`
-   - **Hostname**: Your PC's Tailscale IP (e.g. `100.80.25.10`)
+   - **Hostname**: `100.87.196.60`
    - **Port**: `22` (default)
-   - **Username**: Your Windows username (e.g. `codyg`)
+   - **Username**: `codyg`
    - **Password**: Your Windows account password or PIN
 3. Tap **Save** and then tap **Connect**.
 4. Accept the host key fingerprint.
