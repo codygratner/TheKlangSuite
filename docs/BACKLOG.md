@@ -1049,8 +1049,8 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Preserved Decoupled Offline Mode**:
   - Maintained 100% standalone offline `file:///` fallback and CLI runner parity for non-Antigravity environments.
 
-### 14. N'kai v0.3.0 Milestone ("The Mobile Companion & Touch Ergonomics Update") — ⏳ DEFERRED
-*(Formally deferred to protect the 1-Week Bounded Tooling Box and unblock the return to native C++ DSP in Klang Industries).*
+### 14. N'kai v0.3.0 Milestone ("The Mobile Companion & Touch Ergonomics Update") — ⏳ QUEUED (TOP ACTIVE IMMEDIATE FOCUS)
+*(Un-deferred per user burning desire & Pro roadmap stress-test; strictly bound by 1-day kill-gate).*
 *Goal: Evolve N'kai from a desktop IDE sidecar into a multi-device, interactive AI pair-programming companion with mobile ergonomics and zero-config LAN pairing.*
 - **Mobile Formatting & Touch Ergonomics**:
   - **Phone-Optimized Layouts**: Responsive breakpoints down to 320px–390px (iPhone & Android mobile viewports).
@@ -1059,6 +1059,8 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
   - **Touch-Scroll Optimization**: Smooth hardware-accelerated momentum scrolling (`-webkit-overflow-scrolling: touch`), overscroll boundary containment, and sticky top headers.
 - **Mobile Testing & LAN Pairing**:
   - Zero-config mobile pairing via `python tools/nkai_serve.py --host 0.0.0.0` or `npx nkai serve --host 0.0.0.0` (with local network IP output and optional terminal QR code) to instantly load and test N'kai triage sessions on phone over local Wi-Fi from the studio or the couch!
+- **Strict 1-Day Kill-Gate (Enforced by Pro Roadmap Stress-Test)**:
+  - Vanilla CSS media queries, zero heavy PWA frameworks, simple Python/Node HTTP LAN server, and terminal QR code. If mobile styling exceeds 8 hours, freeze and advance to C++ DSP.
 
 ### 15. N'kai Sidecar Architecture Roadmap (The Rejiggered Runway — Act III)
 > **🛫 Post-Mailbag Execution Order (set 2026-10-11):** finish mailbag triage first, then fly **Flight 0 (FOCUS) → 18 (UTF-8) → 16+17 (Sandbox) → 15 (Template) → 14 (Hub)**, with 19 (Response Drawer) and 7 (Intake v2) slotting in after 16+17.
@@ -1088,6 +1090,12 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
   3. **`related:` captured at birth (c2-lite)**: when an agent creates a spec / backlog entry / research doc from a mailbag card, it writes `related:` frontmatter (source note, card id, spec, RFC) while the links are already in context — near-zero marginal cost. No retroactive LLM footer sweeps; Obsidian backlinks + local graph cover the rest.
   4. **Resolve `docs/inbox/`** (12 copies of vault Inbox notes inside TKS): conflicts with the one-way rule — confirm with user, then delete and drop the `docs/inbox` fallback from `check_mail.py`.
 - [ ] **Flight 21: Checkpoint Resumption Engine & Opus Deep Audit (Mailbag `rj-11`, P1, Tier 1 Targeted Opus Swap)** — ✅ APPROVED 2026-10-11: Build `tools/audit_checkpoint.py` (per-repo progress persistence in `audit_checkpoint.json`), schedule first Deep Opus Audit across TKS, TT, NK after N'kai P0s land. Results surface on an N'kai review board (depends on Flight 14 Multi-Board Hub). Cadence: light audit at every patch tag; deep audit once per minor release (`v0.4.0`, `v0.5.0`) or before weekly quota reset. Codified in `GEMINI.md` / GLOSSARY §16 / CHEAT_SHEET.
+- [x] **Flight 22: Six-Way Devil's Advocate Benchmark (Mailbag `rj-22`, P0)** — ✅ COMPLETED 2026-10-11: Completed exhaustive 6-report DA benchmark (Flash-A/B, Pro-A/B, Opus-A/B) evaluating the real-world DAW audio backend trap. Codified the **Method B Adversarial Clause** (`Where I Disagree With The Prompt`), proving +1.44 quality leap on Flash and +1.06 on Pro. Sealed corpus in `TheKlangResearch/agentic/rj22_da_benchmark/` and published canonical report `TheKlangResearch/agentic/da_methodology_six_way_benchmark_2026-10.md` with Kendall's tau-b of +0.8667.
+- [ ] **Card `rj-26`: N'kai Minimal: Headless Zero-Dependency CLI & Chat-Only Distribution (P1, Tier 2)** — ⏳ QUEUED: Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.
+- [ ] **Card `rj-27`: Selective Dialectic Gate: On-Demand Quick PCDA via Card Launcher & Attention Tags (P2, Tier 2)** — ⏳ QUEUED: Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or `!DILEMMA` attention tags.
+- [x] **Card `rj-28` / `rj-40`: Act III Deep Docs Update: Flash High Execution Engine with Atomic Git Quarantine & Snapshot Rollback (P1, Tier 2)** — 🔨 IN PROGRESS: Comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch (`docs/deep-update-20261011`) with pre-flight snapshot rollback.
+- [ ] **Card `rj-29`: PicoTracker (LGPT) Architectural Teardown (P2, Tier 2)** — ⏳ QUEUED: Clone and analyze the picotracker (LittleGPTracker fork) codebase into `Research/external/` as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.
+- [ ] **Card `rj-30`: Batch Vault Note YAML Frontmatter Enrichment (P2, Tier 3)** — ⏳ QUEUED: Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in `TheKlangVault/Inbox/Archive/` using a dedicated Flash subagent script `tools/enrich_archive_notes.py`.
 
 ### 16. Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — TOP ACTIVE PRIORITY)
 *Source Note:* [`TheKlangVault/Inbox/Archive/Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)  
@@ -1240,13 +1248,26 @@ Extract a clean, standalone GitHub Template Repository incorporating all lessons
 - **Boutique UI & Theme System**: JSON theme palettes (*Cyberpunk Neon*, *Cykranosh*, *Dracula*, *Monokai Pro*), vector LookAndFeel, high-DPI scaling, and JUCE 9.0.3 timer hygiene.
 - **Developer Onboarding CLI (`init_plugin.py`)**: One-command wizard to rename targets, bundle IDs, C++ namespaces, and parameter prefixes in seconds.
 
-### 3. ToadTracker Core Migration & Architectural Port
-*Detailed Plan: [`docs/toadtracker_migration_plan.md`](specs/spinoffs/toadtracker_migration.md)*  
-*Priority: Super Low (Post-1.0)*
-Port the battle-tested, data-driven architecture from *The Klang Farmer* over to the `ToadTracker` codebase to unify DSP and UI workflows:
-- **JSON APVTS & UI Builder**: Drop `ParameterManager` and the JSON control schema into ToadTracker's JUCE HAL to instantly generate UI and parameters without hardcoding.
-- **Audio Thread Guardrails**: Transplant `TbdAudio::FastMath`, `GEMINI.md` audio invariants, and the `audiothread-guard` skill to guarantee zero-allocation/zero-lock safety.
-- **Testing Parity**: Migrate the headless `ReflectionGuardrailSuite.h` and automated GUI smoke testing harness to validate ToadTracker's JUCE layer.
+### 3. ToadTracker (`TT` v0.1.0) PoC Pivot & Architecture Roadmap
+*Detailed Specifications: [`C:\Dev\ToadTracker\TRACKER_SPEC.md`](file:///c:/Dev/ToadTracker/TRACKER_SPEC.md) & [`docs/specs/toadtracker_gamepad_latency_and_renoise_spec.md`](file:///c:/Dev/Research/hardware/2026-10-11_toadtracker_gamepad_latency_and_renoise_spec.md)*  
+*Priority: P1 — Active Horizon Target (Stage 5 PoC Pivot immediately following TKS v0.5.0)*
+*Goal: Stand up the core headless tracker engine (`ToadCore`), 500Hz SteamOS / Linux gamepad input pipeline, and Renoise `.xrns` project export referencing TKS plugins.*
+- **Strict GPLv3 "FOSS Forever" Invariant**:
+  - Full copyleft reciprocity across all engine code (`core/`, `hal/`, `apps/`). Zero closed-source or GPL-incompatible dependencies.
+  - Universal SPDX headers: `// SPDX-License-Identifier: GPL-3.0-or-later` and `// Copyright (C) 2026 Cody Gratner & ToadTracker Contributors`.
+  - Mandatory inline provenance docblocks for any algorithms adapted from open-source references (PicoTracker/LGPT, Renoise specs, libremidi).
+  - Third-party ledger maintained at `ToadTracker/docs/THIRD_PARTY_LICENSES.md`.
+  - Strict zero-trademark policy for tracker commands and FX.
+- **500Hz SteamOS / Linux Gamepad Input Pipeline**:
+  - Direct low-latency SDL3 / Linux `evdev` event polling loop running on a dedicated high-priority input thread.
+  - Zero-jitter SPSC lock-free ring buffer feeding the tracker state machine, timestamping events against audio buffer boundaries.
+  - Ergonomic mapping centered on D-pad + ABXY + L1/R1, with L4/R4 back paddles for octave/track shifts.
+- **Renoise `.xrns` Project File Export**:
+  - Clean C++ zip compression and streaming XML serialization for `Song.xml`.
+  - Exports tracks, pattern matrices, and `<PluginDevice>` blocks targeting *The Klang Farmer* and *The Klang Planter* VST3 plugins with v0.5.0 DSP sound presets.
+- **Enforced Kill-Gate (Pro Roadmap Stress-Test)**:
+  - Headless CLI PoC first: SDL3 reads Gamepad ➔ updates tracker state ➔ writes `.xrns` ➔ exits.
+  - Zero premature UI rendering until input timing and project serialization are verified 100% stable.
 
 ### 4. The Klang R1 (TKR-1) — 7-Voice Rhythm Synthesizer (Electribe ER-1 Tribute)
 *Detailed Plan: [`docs/specs/spinoffs/the_klang_r1.md`](specs/spinoffs/the_klang_r1.md)*  

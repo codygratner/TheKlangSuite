@@ -970,7 +970,7 @@
       "target_pillars": [
         "NK"
       ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Nkai Minimal.md",
       "preview": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.",
       "dependencies": [],
       "verdict": null,
@@ -982,7 +982,7 @@
       "body": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.\n\n- Zero-dependency nkai-core: pure Python stdlib + Pydantic v2\n- Runs anywhere: VS Code, Cursor, Neovim, terminal SSH, headless CI\n- check_mail.py --chat and ramble_ingest.py --chat provide instant in-chat triage\n- Visual sidecars and boards become an optional presentation layer on top of headless core\n\n**Next action:** Draft nkai-core packaging spec and 1-command installer script for v0.3.0.\n\n**Source notes:**\n- [Nkai Minimal](file:///C:/Dev/TheKlangVault/Inbox/Nkai Minimal.md)",
       "excerpt": "Package N'kai core skills, guardrails, stream-of-consciousness mailbag, PCDA dialectic, and transaction ledgers for pure CLI / chat pair-programming without requiring the Electron sidecar webview panel or Node.js runtime.",
       "file_name": "Nkai Minimal.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Nkai Minimal.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Nkai Minimal.md",
       "source_note": "",
       "idx": 26,
       "merged_count": 1,
@@ -1004,7 +1004,7 @@
       "target_pillars": [
         "NK"
       ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Single fast PCDA on mail ingestion.md",
       "preview": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.",
       "dependencies": [],
       "verdict": null,
@@ -1016,7 +1016,7 @@
       "body": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.\n\n- Blanket batch PCDA on whole inbox moved to Graveyard\n- Smart heuristic: obvious items -> Backlog; opaque items -> Research; dilemmas/trade-offs -> PCDA\n- [ ⚖️ Quick PCDA ] launcher button on cards and --pcda <id> CLI\n\n**Next action:** Add [ ⚖️ Quick PCDA ] card action chip and !DILEMMA detection to mailbag parser.\n\n**Source notes:**\n- [Single fast PCDA on mail ingestion](file:///C:/Dev/TheKlangVault/Inbox/Single fast PCDA on mail ingestion.md)",
       "excerpt": "Killed blanket batch auto-PCDA on all inbox items (avoids token churn and artificial dialectics on clear-cut notes). Instead, implement selective on-demand quick PCDA triggered via board card chips or !DILEMMA attention tags.",
       "file_name": "Single fast PCDA on mail ingestion.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Single fast PCDA on mail ingestion.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Single fast PCDA on mail ingestion.md",
       "source_note": "",
       "idx": 27,
       "merged_count": 1,
@@ -1041,7 +1041,7 @@
         "TT",
         "TKR"
       ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Deep docs update.md",
       "preview": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.",
       "dependencies": [],
       "verdict": null,
@@ -1053,7 +1053,7 @@
       "body": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.\n\n- Flash High handles all mechanical doc syncing, link verification, and historical reconciliation with zero quota anxiety\n- Claude Opus / Gemini Pro strictly reserved for 1-turn targeted architectural RFC reviews\n- Git branch quarantine (docs/deep-update-YYYYMMDD) guarantees clean rollback if interrupted\n- Field Guides Always Last invariant: sync specs, backlogs, and bug autopsies first; synthesize field guides last\n\n**Next action:** Kick off Act III Deep Docs pass on git quarantine branch.\n\n**Source notes:**\n- [Deep docs update](file:///C:/Dev/TheKlangVault/Inbox/Deep docs update.md)",
       "excerpt": "Structure the comprehensive documentation update across all repositories using sustainable Gemini 3.8 Flash High, isolated on a dedicated git quarantine branch with 5ms snapshot rollback.",
       "file_name": "Deep docs update.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Deep docs update.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Deep docs update.md",
       "source_note": "",
       "idx": 28,
       "merged_count": 1,
@@ -1076,7 +1076,7 @@
         "TT",
         "TBD-16"
       ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Should we download the picotracker repo for reference.md",
       "preview": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.",
       "dependencies": [],
       "verdict": null,
@@ -1088,7 +1088,7 @@
       "body": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.\n\n- Quarantine clone to C:\\\\Dev\\\\Research\\\\external\\\\picotracker\\\\ (never pollute product repos)\n- Study bit-packed tracker data structures running in 264 KB RAM\n- Analyze gamepad modal navigation and button debouncing for Steam Deck / TBD-16\n\n**Next action:** Clone to Research/external and produce an architectural autopsy in TheKlangResearch.\n\n**Source notes:**\n- [Should we download the picotracker repo for reference](file:///C:/Dev/TheKlangVault/Inbox/Should we download the picotracker repo for reference.md)",
       "excerpt": "Clone and analyze the picotracker (LittleGPTracker fork) codebase as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.",
       "file_name": "Should we download the picotracker repo for reference.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Should we download the picotracker repo for reference.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Should we download the picotracker repo for reference.md",
       "source_note": "",
       "idx": 29,
       "merged_count": 1,
@@ -1110,7 +1110,7 @@
       "target_pillars": [
         "NK"
       ],
-      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
+      "source_file": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Update all archived inbox items with front matter.md",
       "preview": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.",
       "dependencies": [],
       "verdict": null,
@@ -1122,7 +1122,7 @@
       "body": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.\n\n- Single source of truth remains docs/BACKLOG.md and mail_queue.json; vault is historical provenance\n- Curator's Trap Defense: never rewrite raw notes during live chat; execute in batch subagent pass\n- tools/enrich_archive_notes.py safely prepends YAML frontmatter without altering note content\n\n**Next action:** Author tools/enrich_archive_notes.py and execute during Act III Deep Docs subagent pass.\n\n**Source notes:**\n- [Update all archived inbox items with front matter](file:///C:/Dev/TheKlangVault/Inbox/Update all archived inbox items with front matter.md)",
       "excerpt": "Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in TheKlangVault/Inbox/Archive/ using a dedicated Flash subagent pass during the Act III Deep Docs update.",
       "file_name": "Update all archived inbox items with front matter.md",
-      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Update all archived inbox items with front matter.md",
+      "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Archive\\Update all archived inbox items with front matter.md",
       "source_note": "",
       "idx": 30,
       "merged_count": 1,
