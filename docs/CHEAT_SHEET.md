@@ -355,6 +355,15 @@
   - **Native AGY Sidecar Extension (`sidecar://nkai/panel`)**: Uses Native Zero-Copy IPC (`window.sidecar.agent.sendMessage`) to directly trigger the active workspace agent turn.
   - **External Browser & Mobile (`nkai_serve.py`, port 3030)**: Standard browser sandbox blocks IDE IPC; automatically falls back to HTTP `/api/action` queueing (`tools/bus.py` in `Dispatches/`) and clipboard banner for 0-token passive safety.
 
+---
+
+## 🌪️ Heavy PCDA Crucible & The Physical Workshop Stage (`rj-25`)
+
+* **2-Round Heavy PCDA Crucible Protocol**: Strictly 2-round online dialectic (Round 1: Divergence with Assumption Inversion ➔ Round 2: Empirical Cross-Critique) concluding with battle-tested 80/20 resolution. Hard-capped at 2 rounds to eliminate token exhaustion.
+* **The Physical Workshop Cutting Mat Metaphor**: Spatial separation between the rapid-fire In-Tray (`morning_mail`) and the central Cutting Mat (`🛠️ Active Workshop`). The active workshop card is locked in place and cannot be dismissed without explicit physical filing (`[ 📥 Backlog ]`, `[ 🗂️ Tabled ]`, `[ 🪦 Graveyard ]`).
+* **Zero-Token Scratchpad Sentinel**: Sub-0.1ms filesystem watcher in `tools/nkai_serve.py` tracking `SCRATCHPAD.md` byte size and line count, rendering live urgency pills (`📝 SP: 12 lines` $\to$ `⚠️ SP: 114 lines`) on the Pinned Top Card with conditional zero-token ingest.
+
+
 
 
 

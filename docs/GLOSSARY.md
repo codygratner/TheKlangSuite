@@ -379,4 +379,16 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
   1. *Native AGY Extension (`sidecar://nkai/panel`)*: Uses Native Zero-Copy IPC (`window.sidecar.agent.sendMessage`) to trigger the active workspace agent immediately.
   2. *External Web & Mobile (`nkai_serve.py`, port 3030)*: Runs inside a standard browser sandbox where IDE IPC is unavailable; automatically falls back to HTTP `/api/action` logging to the inter-project data bus (`tools/bus.py` in `Dispatches/`) and clipboard banner for 0-token passive safety.
 
+---
+
+## 35. The 2-Round Heavy PCDA Crucible & The Physical Workshop Stage
+
+* **2-Round Heavy PCDA Crucible Protocol**: The high-stakes dialectic protocol reserved exclusively for deep architectural decisions. Authorizes web search access (`search_web`), enforces exactly 2 iterative rounds (Round 1: Divergent Theses with Assumption Inversion ➔ Round 2: Empirical Cross-Critique & Falsification), and concludes with a pragmatic 80/20 resolution. Hard-capped at 2 rounds to prevent runaway token exhaustion.
+* **The Physical Workshop Cutting Mat Metaphor**: The spatial mental model separating high-velocity triage from intensive single-topic focus:
+  1. *In-Tray (`morning_mail`)*: The rapid-fire conveyor belt where incoming mail cards are quickly sorted to Backlog, Graveyard, or Workshop.
+  2. *Cutting Mat (`🛠️ Active Workshop`)*: The central workbench where exactly ONE card is laid down at a time for deep research, parameter simulation, and Method B+ debate. The card is locked in place (non-dismissible).
+  3. *Physical Exit Gate*: To clear the cutting mat, the user must physically file the item (`[ 📥 Backlog ]`, `[ 🗂️ Tabled ]`, or `[ 🪦 Graveyard ]`). Once filed, the workbench is clear, and the user returns to the In-Tray.
+* **Zero-Token Scratchpad Sentinel**: The sub-0.1ms filesystem watcher in `tools/nkai_serve.py` monitoring `C:\_\Vault\Inbox\SCRATCHPAD.md` via `mtime` and byte/line metrics, projecting live visual urgency states (green/amber/coral) onto the Pinned Intercom Top Card (Card #0) with conditional zero-token ingest.
+
+
 
