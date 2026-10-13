@@ -355,3 +355,11 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
   - Recent Commits: a7a17fc feat(sentinel): complete Flight 21 Intercom HUD, Workshop Mat, and Heavy PCDA engine, 99985ef feat(sentinel): implement Zero-Token ScratchpadSentinel and API endpoints (Flight 21 Phase 1)
   - Branch: `0.4.0-dev` (a7a17fc)
   - Active Plan Target: `TOOLING_HARNESS` · Status: `COMPLETED`
+
+### Session: 2026-10-13 00:34 (manual_run)
+- **Chat Role:** New Klang City Architecture & Tooling Engineering
+- **Primary Objectives:** Mobile intercom viewport & send pipeline overhaul, PCDACore v1.0.0 standalone package, Inbox Staging shelf with Templater auto-frontmatter, and Korg Logue/CTAG DSP oscillator spec
+- **Key Decisions & Deliverables:**
+  - Recent Commits: f2d9c5a feat(mobile-chat-pcda): fix mobile viewport & send pipeline, package PCDACore standalone repo, deploy Inbox Staging shelf, and catalog Logue/CTAG oscillators, 8a854bc feat(lens-profiles): implement configurable declarative lens dictionary, tag auto-detection, and multi-domain PCDA synthesis (Flight 4)
+  - Branch: `0.4.0-dev` (f2d9c5a)
+  - Active Plan Target: `TOOLING_HARNESS` · Status: `COMPLETED`

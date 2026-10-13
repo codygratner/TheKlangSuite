@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-10-13T00:27:32.860503",
-  "briefing_title": "Mobile Prompt: Self-test verification of mobile prompt ",
-  "briefing_text": "Self-test verification of mobile prompt note persistence",
-  "status_badge": "DISPATCHED \ud83d\ude80",
+  "updated_at": "2026-10-13 00:34:51",
+  "briefing_title": "Flight 4: General Research Assistant & Configurable Lens Profiles",
+  "briefing_text": "Mobile intercom viewport & send pipeline overhaul, PCDACore v1.0.0 standalone package, Inbox Staging shelf with Templater auto-frontmatter, and Korg Logue/CTAG DSP oscillator spec",
+  "status_badge": "IDLE \ud83d\udfe2",
   "pending_decisions_count": 0,
-  "last_flight": "Flight 22",
+  "last_flight": "Flight 4: General Research Assistant & Configurable Lens Profiles",
   "git_branch": "0.4.0-dev",
-  "target_pipeline": "TARGET: TOOLING_HARNESS"
+  "target_pipeline": "TOOLING_HARNESS"
 }

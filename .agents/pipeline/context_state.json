@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "8a854bc",
+    "commit": "f2d9c5a",
     "is_clean": false,
-    "dirty_count": 3,
+    "dirty_count": 1,
     "staged": 1,
-    "modified": 3,
+    "modified": 1,
     "untracked": 0,
     "recent_commits": [
+      "f2d9c5a feat(mobile-chat-pcda): fix mobile viewport & send pipeline, package PCDACore standalone repo, deploy Inbox Staging shelf, and catalog Logue/CTAG oscillators",
       "8a854bc feat(lens-profiles): implement configurable declarative lens dictionary, tag auto-detection, and multi-domain PCDA synthesis (Flight 4)",
-      "e594e75 feat(vault-hygiene): implement sync-time link rewriter, underscore archive naming, and inbox decoupling (Flight 23)",
-      "bea7e8e feat(automode): implement 2-pass iterative research daemon, DossierDrawer models, and 3-tab card drawer (Flight 3)"
+      "e594e75 feat(vault-hygiene): implement sync-time link rewriter, underscore archive naming, and inbox decoupling (Flight 23)"
     ]
   },
   "plan": {
