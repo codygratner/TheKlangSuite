@@ -50,7 +50,7 @@
     },
     {
       "id": "tackle_first",
-      "title": "🌌 What Would You Like to Tackle First?",
+      "title": "\ud83c\udf0c What Would You Like to Tackle First?",
       "description": "Cosmic Codex Priority Radar: Interactive triage for Google Drive, Vault Ingestion & Active Flights",
       "category": "active",
       "board_type": "custom",
@@ -61,14 +61,14 @@
     },
     {
       "id": "chat",
-      "title": "💬 Agent Chat & Live Intercom",
+      "title": "\ud83d\udcac Agent Chat & Live Intercom",
       "description": "Real-time conversation feed, tool execution telemetry, and mobile prompt dispatch",
       "category": "active",
       "board_type": "evergreen",
       "file_path": ".agents/sidecar/chat_board.html",
       "environment": "PRODUCTION",
       "card_count": 1,
-      "updated_at": "2026-10-13T00:26:31.519683"
+      "updated_at": "2026-10-13T06:09:41.545149"
     }
   ]
 }

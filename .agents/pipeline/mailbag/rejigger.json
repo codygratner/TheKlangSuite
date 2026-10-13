@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-10-12T06:30:00-05:00",
+  "generated_at": "2026-10-13T06:15:00-05:00",
   "generated_by": "Flash High - Complete Archive Audit & Rejigger",
-  "notes": "Structural overlay covering 100% of archived mail (77 notes -> 54 cards). 12 newly surfaced topics added (rj-31 through rj-42) for user review.",
+  "notes": "Structural overlay covering 100% of archived mail & fresh inbox (54 primary cards rj-01 through rj-54). Includes multi-source provenance and relational cross-card linking.",
   "cards": [
     {
       "id": "rj-01",
@@ -1318,6 +1318,305 @@
       "next_action": "Approve -> author migration RFC in TheKlangResearch and design enclave boundary.",
       "sources": [
         "Mega_Vault_Consolidation_and_Scoped_Enclave"
+      ]
+    },
+    {
+      "id": "rj-45",
+      "rank": 45,
+      "priority": "P0",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "NK",
+        "AGY",
+        "TKS"
+      ],
+      "title": "Confirm-to-Close: 8 Notes Shipped in Oct 12-13 Flight",
+      "summary": "One-click batch resolution. All 8 notes and 5 test notes below are completely shipped, implemented, and verified in git commits. Approve to close and archive.",
+      "angles": [
+        "Nkai Mobile -> Shipped: 100dvh flex-column app-shell, sticky thumb bar, header collision fix, keyboard focus blur protection on iOS, and quick-note chat send pipeline",
+        "PCDACore GitHub -> Shipped: Standalone Git repo at C:\\Dev\\PCDACore (codygratner/pcda-core) with GPLv3 license and full specs",
+        "PCDACore and lenses -> Shipped: Pluggable lenses profile schema (lenses.json) with 4 domain lenses",
+        "NkaiCore -> Shipped: Decoupled into standalone PCDACore package",
+        "Staging area for inbox -> Shipped: C:\\_\\Vault\\Inbox\\Staging/ workbench shelf with Templater auto-tagging",
+        "Can we make a template that adds the front matter on a new note -> Shipped: Templater trigger_on_file_creation active",
+        "Korg Logue SDK Stuff and CTAG DSP -> Shipped: Architectural catalog spec delivered in docs/specs/spinoffs/logue_and_ctag_oscillator_catalog.md",
+        "normal vs heavy pcda -> Shipped: 4-Cell empirical benchmark completed (.agents/pipeline/benchmarks/pcda_4cell/)",
+        "Mobile chat send test notes (5 items) -> Shipped: Verified end-to-end mobile prompt note creation"
+      ],
+      "next_action": "Mark COMPLETED in ledger.",
+      "sources": [
+        "Can we make a template that adds the front matter on a new note",
+        "Korg Logue SDK Stuff and CTAG DSP",
+        "Nkai Mobile",
+        "NkaiCore",
+        "normal vs heavy pcda",
+        "PCDACore and lenses",
+        "PCDACore GitHub",
+        "Staging area for inbox",
+        "20261013_002259_Testing_chat_send_from_mobile",
+        "20261013_002631_Testing_chat_send_from_mobile",
+        "20261013_002732_Self-test_verification_of_mobi",
+        "20261013_054902_Testing_chat_send_from_mobile",
+        "20261013_055441_Testing_chat_send_from_mobile",
+        "20261013_060709_Testing_chat_send_from_mobile"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-13: All 8 features and test notes shipped and verified in git commits a8c9b00, 0f0e900, 21fae1f."
+    },
+    {
+      "id": "rj-46",
+      "rank": 46,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS",
+        "NK",
+        "TT",
+        "AGY"
+      ],
+      "title": "Unfinished Business Audit: Cross-Ecosystem In-Progress & Tabled Inventory",
+      "summary": "Comprehensive cross-repository audit scanning TKS, nkai, ToadTracker, PCDACore, and TheKlangVault to catalog all partially implemented features, unfinished plan phases, stranded quick-notes, and open backlog items into a single actionable immediate 'to-do now' checklist.",
+      "angles": [
+        "🎯 Core Intent: Clear the air by establishing a ground-truth inventory of immediate unfinished commitments before opening new horizon projects",
+        "🛠️ Proposed Mechanism: Dedicated cross-repo sweep script scanning git status, BACKLOG.md active flights, .agents/pipeline/ staging items, and unbuilt specs",
+        "🚦 Action Route: Approve -> run automated cross-repo audit and publish consolidated checklist to active context and morning mail"
+      ],
+      "next_action": "Approve -> execute cross-repo unfinished business audit.",
+      "sources": [
+        "What is currently unfinished across everything"
+      ],
+      "related_cards": [
+        "rj-28",
+        "rj-30"
+      ]
+    },
+    {
+      "id": "rj-47",
+      "rank": 47,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "COSMOS",
+        "AGY",
+        "NK"
+      ],
+      "title": "Command Bridge Architecture: Cosmic Codex Central Hub vs Repository Pair-Programming",
+      "summary": "Method B+ architectural synthesis evaluating whether to make the Cosmic Codex (Vault) the primary chat session ('Starlord Mission Control') dispatching headless subagents to repos, versus keeping repo-specific chat sessions with an air-gapped strategic bridge.",
+      "angles": [
+        "🎯 Core Intent: A single unified command surface with panoramic visibility across personal life ops, research, and codebases",
+        "⚠️ Where I Disagree (Antithesis): A single monolithic chat context burns tokens rapidly on mixed logs, lacks direct compile/terminal feedback for C++ DSP, and violates the Ironclad Factory Latch Air-Gap",
+        "🛠️ Steel-Manned Lateral Alternative: Dual-layer command bridge. The Cosmic Codex chat acts as the Strategic Mission Control (managing runway, mailbag, and RFC dispatches), transmitting bus dispatches to dedicated local repo agents (New Klang City) that execute builds locally and beam back concise 2-sentence lore status updates",
+        "🚦 Action Route: Approve -> author Command Bridge Architecture RFC"
+      ],
+      "next_action": "Approve -> author Command Bridge Architecture RFC.",
+      "sources": [
+        "Should I move to the cosmic codex as my main chat"
+      ],
+      "depends_on": [
+        "rj-44"
+      ],
+      "related_cards": [
+        "rj-23",
+        "rj-44"
+      ]
+    },
+    {
+      "id": "rj-48",
+      "rank": 48,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "AGY",
+        "NK",
+        "TKS"
+      ],
+      "title": "Subagent Delegation Boundary: Context Shield vs Interactive Plan Authoring",
+      "summary": "Method B+ evaluation of whether all building AND plan writing should be delegated 100% to background subagents, transforming the primary chat into a pure hands-off orchestrator.",
+      "angles": [
+        "🎯 Core Intent: Protect the developer's chat context window from massive code diffs, terminal outputs, and repetitive planning churn",
+        "⚠️ Where I Disagree (Antithesis): Pure subagent plan-writing disconnects the developer from high-level architectural nuance and forces review of massive unaligned blueprints after the fact",
+        "🛠️ Steel-Manned Lateral Alternative: Strict 2-Phase Protocol. Primary chat (Flash High Orchestrator) pair-programs interactively with the developer to shape intent, design constraints, and approve the plan skeleton; then 100% of mechanical file edits, test validation, and compiler loops are dispatched to Flash Builder subagents",
+        "🚦 Action Route: Approve -> codify in GEMINI.md as the Strict Subagent Builder Protocol"
+      ],
+      "next_action": "Approve -> codify in GEMINI.md.",
+      "sources": [
+        "Should all building and plan writing be done by subagents"
+      ],
+      "related_cards": [
+        "rj-41",
+        "rj-47"
+      ]
+    },
+    {
+      "id": "rj-49",
+      "rank": 49,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "AGY",
+        "NK",
+        "COSMOS"
+      ],
+      "title": "Obsidian Sidecar & AGY SDK Extensibility: Webview Panel & Quick-Dispatch",
+      "summary": "Investigating custom Obsidian integrations: embedding the N'kai sidecar webview directly into an Obsidian sidebar tab, and authoring a bespoke Obsidian quick-action ribbon plugin to dispatch vault notes directly to the N'kai intercom bus.",
+      "angles": [
+        "Split-Screen Ergonomics: Side-by-side AGY IDE and Obsidian with persistent N'kai intercom panel embedded in Obsidian sidebar",
+        "Direct Note Dispatch: One-click 'Send to N'kai' ribbon icon in Obsidian that captures current active note and writes to C:\\_\\Vault\\Inbox\\QuickNotes\\",
+        "Zero-Token IPC: Connects over localhost HTTP (tools/nkai_serve.py) with authenticated cookie session"
+      ],
+      "next_action": "Approve -> prototype Obsidian webview iframe and ribbon dispatch.",
+      "sources": [
+        "What else can we do with the AGY SDK and bespoke obsidian plugins"
+      ],
+      "related_cards": [
+        "rj-23",
+        "rj-47"
+      ]
+    },
+    {
+      "id": "rj-50",
+      "rank": 50,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier3",
+      "pillars": [
+        "COSMOS",
+        "NK"
+      ],
+      "title": "Vault Hygiene: Hidden Dot-Folders for Tooling, Scripts & Scratch Files",
+      "summary": "Clean up C:\\_\\Vault\\ by migrating non-knowledge directories (tools/, scratch/, virtualenvs, pipeline ledgers) into hidden dot-directories (.tools/, .scratch/, .agents/) which Obsidian natively ignores, keeping the vault graph, quick switcher, and search index 100% pure markdown.",
+      "angles": [
+        "Graph View Purification: Removes non-note clutter, Python modules, and JSON artifacts from Obsidian's graph view and file tree",
+        "Zero Tooling Friction: Python entrypoints and PowerShell harnesses continue executing transparently from dot-directories",
+        "Automated Migration Script: Safe rename script with path verification across check_mail.py and nkai_serve.py"
+      ],
+      "next_action": "Approve -> dispatch to Flash Builder to migrate vault directories to dot-folders.",
+      "sources": [
+        "Dot files and folders"
+      ],
+      "related_cards": [
+        "rj-44",
+        "rj-47"
+      ]
+    },
+    {
+      "id": "rj-51",
+      "rank": 51,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "AGY",
+        "NK",
+        "TKS"
+      ],
+      "title": "PCDA Governance & Nomenclature: Tiered Engine Branding & Gauntlet Policy",
+      "summary": "Establishes snappy, standardized names for the PCDA engines, benchmarks against external prompt frameworks (Anthropic Constitutional AI, OpenAI CriticGPT), and defines an explicit Gauntlet Deployment Policy to prevent the 'Over-Auditing Trap'.",
+      "angles": [
+        "Tiered Nomenclature: Standardize into snappy tiers: PCDA Lite (1-Loop Dialectic), PCDA Crucible (2-Loop Heavy Online), PCDA Gauntlet (Cross-Model Stress-Test)",
+        "Gauntlet Deployment Law: Reserve Heavy PCDA strictly for high-impact architectural forks, irreversible platform commitments, and core DSP invariants; ban Heavy PCDA on trivial chores to protect user allowance",
+        "Framework Benchmark: Compare PCDACore Method B+ against Anthropic Constitutional / OpenAI CriticGPT patterns to assert state-of-the-art dialectic rigor"
+      ],
+      "next_action": "Approve -> update PCDACore docs and GEMINI.md prompt rules.",
+      "sources": [
+        "PCDA Engine Names",
+        "Mega PCDA Gauntlet",
+        "Should we see it there’s already a better PCDA engine that’s easier to use"
+      ],
+      "related_cards": [
+        "rj-22",
+        "rj-27"
+      ]
+    },
+    {
+      "id": "rj-52",
+      "rank": 52,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS",
+        "DSP"
+      ],
+      "title": "TKS v0.4 Architecture Crucible: Heavy PCDA on Core Assumptions",
+      "summary": "Executes a structured, constructive adversarial audit (PCDA Crucible / Method B+) across all fundamental architectural assumptions of The Klang Suite v0.4: APVTS parameter schemas, voice allocation contracts, SIMD fast-math boundaries, and UI callout layering.",
+      "angles": [
+        "🎯 Core Intent: Expose hidden assumptions, potential memory contention, and architectural fragility before locking the v0.4 release",
+        "⚠️ 'Where I Disagree With Our Assumptions': Scrutinize APVTS lock contention, parameter listener overhead, and UI-audio thread messaging",
+        "🛠️ Steel-Manned Synthesis: Derive concrete C++ invariants and automated audit tests to permanently protect v0.4 stability",
+        "🚦 Action Route: Approve -> launch PCDA Crucible subagent on v0.4 assumptions"
+      ],
+      "next_action": "Approve -> launch PCDA Crucible subagent on v0.4 assumptions.",
+      "sources": [
+        "I really want to heavy online PCDA all our TKS 0.4 assumptions"
+      ],
+      "depends_on": [
+        "rj-51"
+      ],
+      "related_cards": [
+        "rj-40",
+        "rj-51"
+      ]
+    },
+    {
+      "id": "rj-53",
+      "rank": 53,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKS",
+        "NK",
+        "DSP"
+      ],
+      "title": "Synth Lab Interactive Research Board: 22-Engine Oscillator & FX Showcase",
+      "summary": "Spins up an interactive N'kai sidecar research board (sidecar://nkai/panel/?board=synth_lab or synth_lab_board.html) displaying the complete 22-engine oscillator and FX catalog (Korg Logue, CTAG, Plaits, Meeblip, Serge wavefolding, Casio CZ, ER-1 FM drums) with interactive category filters, real-time safety badges, and prototype status chips.",
+      "angles": [
+        "Visual Companion: Realizes rj-31 as an interactive board directly connected to docs/specs/spinoffs/logue_and_ctag_oscillator_catalog.md",
+        "Filter by Engine Family: Virtual Analog, FM/Additive, Wavefolding/West Coast, Wavetable/Vector, Noise/Physical Modeling",
+        "One-Click Prototype Dispatch: Generates factory floor test tickets to prototype individual engines in TKM (The Klang Modulator)"
+      ],
+      "next_action": "Approve -> generate synth_lab_board.html and register in Board Hub.",
+      "sources": [
+        "Can we test a research board with all the osc and fx ideas"
+      ],
+      "depends_on": [
+        "rj-31"
+      ],
+      "related_cards": [
+        "rj-31",
+        "rj-20",
+        "rj-21"
+      ]
+    },
+    {
+      "id": "rj-54",
+      "rank": 54,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "Mailbag Rejigger Intelligence & Multi-Source Card Provenance",
+      "summary": "Upgrades the mailbag rejigger engine with enhanced topological synthesis, multi-source note provenance (guaranteeing that every consolidated card explicitly lists all source notes with clickable deep links), and explicit bidirectional cross-referencing between related cards.",
+      "angles": [
+        "🎯 Core Intent: Transparent provenance and relational linking so the user can trace every synthesis back to its original raw notes",
+        "🛠️ Proposed Mechanism: Hardened rejigger schema requiring sources: [...], related_cards: [...], and in-drawer clickable markdown link lists across live and archived notes",
+        "🚦 Action Route: Codify in tools/check_mail.py and update board_renderer.py to display relational chips"
+      ],
+      "next_action": "Approve -> harden check_mail.py source notes and cross-card linking.",
+      "sources": [
+        "rejiggering the mail"
+      ],
+      "related_cards": [
+        "rj-42"
       ]
     }
   ]

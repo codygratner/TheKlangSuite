@@ -67,7 +67,7 @@ except ImportError:
             TriageStatus,
         )
 
-DEFAULT_VAULT_INBOX = Path(r"C:\Dev\TheKlangVault\Inbox")
+DEFAULT_VAULT_INBOX = Path(r"C:\_\Vault\Inbox") if Path(r"C:\_\Vault\Inbox").exists() else Path(r"C:\Dev\TheKlangVault\Inbox")
 FALLBACK_LOCAL_INBOX = Path("docs/inbox")
 DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
 DEFAULT_OVERFLOW_FILE = Path(r".agents/pipeline/mailbag/overflow.json")
@@ -608,7 +608,10 @@ def main():
         if not inbox_dir.exists():
             print(f"❌ Error: Inbox directory not found: {inbox_dir}", file=sys.stderr)
             sys.exit(1)
-        files_to_process = sorted(inbox_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
+        files_to_process = [
+            f for f in sorted(inbox_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
+            if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD", "SCRATCHPAD.MD"]
+        ]
 
     if not files_to_process:
         if args.json:

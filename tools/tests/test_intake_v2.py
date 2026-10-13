@@ -272,6 +272,20 @@ It should not be polluted by frontmatter lines.
         self.assertIn("Lead Architect", card_html, "Missing author value")
         self.assertIn("mail-frontmatter-box", card_html, "Missing structured frontmatter box in details")
 
+    def test_quicknotes_directory_scanning_and_tagging(self):
+        """Test 8: Notes inside QuickNotes/ directory receive the 'quick-note' tag and are scanned."""
+        inbox_dir = self.temp_dir / "Inbox"
+        quick_dir = inbox_dir / "QuickNotes"
+        quick_dir.mkdir(parents=True)
+
+        note_file = quick_dir / "20261013_mobile_prompt.md"
+        note_file.write_text("# Mobile Prompt\nQuick idea captured from mobile intercom.\n", encoding="utf-8")
+
+        scanned = scan_all_inbox_notes(inbox_dir)
+        self.assertEqual(len(scanned), 1)
+        self.assertIn("quick-note", scanned[0]["tags"])
+        self.assertTrue(scanned[0].get("is_quick_note", False))
+
 
 if __name__ == "__main__":
     unittest.main()

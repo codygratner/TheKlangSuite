@@ -372,13 +372,14 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
     Only scans Archive/ if scan_archive=True is explicitly passed.
     Live root inbox notes win on content over Archive and Tabled notes.
     """
-    if inbox_dir.name.lower() in ["archive", "tabled", "staging"]:
+    if inbox_dir.name.lower() in ["archive", "tabled", "staging", "quicknotes"]:
         base_dir = inbox_dir.parent
     else:
         base_dir = inbox_dir
 
     tabled_dir = base_dir / "Tabled"
     staging_dir = base_dir / "Staging"
+    quick_dir = base_dir / "QuickNotes"
     live_dir = base_dir
 
     arch_notes = []
@@ -399,7 +400,13 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
             sn["tags"].append("staged")
         sn["is_staged"] = True
 
-    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() not in (tabled_dir.resolve(), staging_dir.resolve()) else []
+    quick_notes = scan_inbox(quick_dir) if quick_dir and quick_dir.exists() else []
+    for qn in quick_notes:
+        if "quick-note" not in qn.get("tags", []):
+            qn["tags"].append("quick-note")
+        qn["is_quick_note"] = True
+
+    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() not in (tabled_dir.resolve(), staging_dir.resolve(), quick_dir.resolve()) else []
 
     notes_by_id = {}
     for n in arch_notes:
@@ -409,6 +416,9 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
         if n.get("id"):
             notes_by_id[str(n["id"])] = n
     for n in staging_notes:
+        if n.get("id"):
+            notes_by_id[str(n["id"])] = n
+    for n in quick_notes:
         if n.get("id"):
             notes_by_id[str(n["id"])] = n
     # Live notes overwrite on content
@@ -439,6 +449,14 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
                     sn["is_staged"] = True
                     if sn.get("id"):
                         notes_by_id[str(sn["id"])] = sn
+            alt_quick = alt_inbox / "QuickNotes"
+            if alt_quick.exists():
+                for qn in scan_inbox(alt_quick):
+                    if "quick-note" not in qn.get("tags", []):
+                        qn["tags"].append("quick-note")
+                    qn["is_quick_note"] = True
+                    if qn.get("id"):
+                        notes_by_id[str(qn["id"])] = qn
 
     return list(notes_by_id.values())
 
@@ -920,23 +938,77 @@ def build_mail_queue(
                         body_parts.append("\n".join(f"- {a}" for a in angles))
                     if next_action:
                         body_parts.append(f"**Next action:** {next_action}")
-                    if matched_raw_items:
+                    all_sources = card.get("sources", [])
+                    if all_sources or matched_raw_items:
                         source_lines = ["**Source notes:**"]
+                        matched_by_key = {}
                         for r in matched_raw_items:
-                            r_title = str(r.get("title") or r.get("id") or "Note")
-                            r_path = str(r.get("rel_path") or r.get("source_file") or "")
-                            m_link = re.search(r'\((file:///[^)]+)\)', r_path)
-                            if m_link:
-                                file_url = m_link.group(1)
-                            elif r_path:
-                                file_url = "file:///" + r_path.replace("\\", "/")
+                            r_id = str(r.get("id") or "").lower().strip()
+                            r_title = str(r.get("title") or "").lower().strip()
+                            r_fn = Path(str(r.get("file_name") or "")).stem.lower().strip()
+                            matched_by_key[r_id] = r
+                            matched_by_key[r_title] = r
+                            if r_fn:
+                                matched_by_key[r_fn] = r
+
+                        seen_sources = set()
+                        for src in all_sources:
+                            src_str = str(src).strip()
+                            if not src_str or src_str.lower() in seen_sources:
+                                continue
+                            seen_sources.add(src_str.lower())
+                            r = matched_by_key.get(src_str.lower())
+                            if r:
+                                r_title = str(r.get("title") or r.get("id") or src_str)
+                                r_path = str(r.get("rel_path") or r.get("source_file") or "")
+                                m_link = re.search(r'\((file:///[^)]+)\)', r_path)
+                                file_url = m_link.group(1) if m_link else ("file:///" + r_path.replace("\\", "/") if r_path else "")
+                                if file_url:
+                                    source_lines.append(f"- [{r_title}]({file_url})")
+                                else:
+                                    source_lines.append(f"- {r_title}")
                             else:
-                                file_url = ""
-                            if file_url:
-                                source_lines.append(f"- [{r_title}]({file_url})")
-                            else:
-                                source_lines.append(f"- {r_title}")
+                                # Check Archive locations
+                                cand_paths = [
+                                    Path(r"C:\_\Vault\Archive") / f"{src_str}.md",
+                                    Path(r"C:\_\Vault\Archive") / src_str,
+                                    Path(r"C:\Dev\TheKlangVault\Archive") / f"{src_str}.md",
+                                    Path(r"C:\Dev\TheKlangVault\Archive") / src_str,
+                                ]
+                                found_path = None
+                                for cp in cand_paths:
+                                    if cp.exists():
+                                        found_path = cp
+                                        break
+                                if found_path:
+                                    file_url = "file:///" + str(found_path).replace("\\", "/")
+                                    source_lines.append(f"- [{src_str}]({file_url}) *(archived)*")
+                                else:
+                                    source_lines.append(f"- {src_str}")
+
+                        for r in matched_raw_items:
+                            r_id = str(r.get("id") or "")
+                            if r_id.lower() not in seen_sources:
+                                seen_sources.add(r_id.lower())
+                                r_title = str(r.get("title") or r_id)
+                                r_path = str(r.get("rel_path") or r.get("source_file") or "")
+                                file_url = "file:///" + r_path.replace("\\", "/") if r_path else ""
+                                source_lines.append(f"- [{r_title}]({file_url})" if file_url else f"- {r_title}")
+
                         body_parts.append("\n".join(source_lines))
+
+                    # Relational cross-card linking (Phase 5 / rejiggering feedback)
+                    related = card.get("related_cards", [])
+                    deps = card.get("depends_on", [])
+                    if related or deps:
+                        rel_lines = ["**Related topics:**"]
+                        for d in deps:
+                            rel_lines.append(f"- ⚠️ Prereq: `{d}`")
+                        for rc in related:
+                            if rc not in deps:
+                                rel_lines.append(f"- 🔗 Related: `{rc}`")
+                        body_parts.append("\n".join(rel_lines))
+
                     body = "\n\n".join(p for p in body_parts if p.strip())
                     preview = card_summary
                     excerpt = card_summary
@@ -952,14 +1024,16 @@ def build_mail_queue(
                 old_it = existing_by_id.get(card_id)
                 card_status = card.get("status", "PENDING")
                 final_status = card_status
-                verdict = None
-                verdict_notes = None
+                verdict = card.get("verdict")
+                verdict_notes = card.get("verdict_notes")
                 if old_it:
                     old_st = old_it.get("status")
                     if old_st and old_st != "PENDING":
                         final_status = old_st
-                    verdict = old_it.get("verdict")
-                    verdict_notes = old_it.get("verdict_notes")
+                    if old_it.get("verdict"):
+                        verdict = old_it.get("verdict")
+                    if old_it.get("verdict_notes"):
+                        verdict_notes = old_it.get("verdict_notes")
 
                 try:
                     status_enum = TriageStatus(final_status)
