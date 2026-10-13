@@ -310,6 +310,7 @@
   2. **QUERY_ONLY**: User replies "ok" / "yes". Access is granted for the immediate action, then instantly reverts to RESTRICTED.
   3. **SKILL_SESSION**: User replies "ok for this session" / "for this skill". Access is granted for the duration of the active skill (e.g., `/deep-research`). It reverts to RESTRICTED upon skill completion or archival.
   4. **GLOBAL_TEMPORARY**: User replies "ok globally". Access is granted indefinitely for the duration of the current context window. Reverts to RESTRICTED upon `/clear`.
+  5. **Heavy / Aggressive PCDA Auto-Elevation**: Whenever the user explicitly asks for a "heavy", "aggressive", "deep", or "strongest" PCDA, dialectic, forensic audit, or research sprint (e.g., "heavy PCDA", "aggressive PCDA", "deep research"), web access is automatically elevated to `SKILL_SESSION` for the duration of that sprint without pausing for interactive confirmation, while continuing to emit the mandatory `[ 🌐 Web Access: ACTIVE (SKILL_SESSION) ]` security footer.
 - **Mandatory Web Security Footer**: If the state machine is elevated to `SKILL_SESSION` or `GLOBAL_TEMPORARY`, the agent MUST append a highly visible security badge to the bottom of EVERY chat response so the user does not forget the agent is live on the internet.
   > `[ 🌐 Web Access: ACTIVE (<Scope>) | 🧠 Model: <Tier> ]`
 - **Local-Only Plan Priority**: All plans, tasks, and communique documents MUST come exclusively from local workspace files (e.g. `PLAN.md`, `.agents/pipeline/communique/factory_dispatch.md`) or direct text provided by user.

@@ -341,6 +341,21 @@
 * **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)`.
 * **Reference**: [Design Spec](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
 
+---
+
+## 🌐 Web Access State Machine & Dual-Track Dispatch (Flight 20 / PCDA)
+
+* **Web Access State Machine**:
+  1. `RESTRICTED` (Default): All web calls (`search_web`, `read_url_content`, `curl`) blocked.
+  2. `QUERY_ONLY`: Single-query approval ("ok" / "yes").
+  3. `SKILL_SESSION`: Session-wide approval ("ok for this session" / during `/deep-research`).
+  4. `GLOBAL_TEMPORARY`: Permanent window approval ("ok globally").
+  5. **Heavy / Aggressive PCDA Auto-Elevation**: Explicit requests for "heavy", "aggressive", "deep", or "strongest" PCDA, dialectic, or audit automatically elevate to `SKILL_SESSION` without prompt fatigue, displaying the mandatory `[ 🌐 Web Access: ACTIVE (SKILL_SESSION) ]` security footer.
+* **Dual-Track Dispatch Contract**:
+  - **Native AGY Sidecar Extension (`sidecar://nkai/panel`)**: Uses Native Zero-Copy IPC (`window.sidecar.agent.sendMessage`) to directly trigger the active workspace agent turn.
+  - **External Browser & Mobile (`nkai_serve.py`, port 3030)**: Standard browser sandbox blocks IDE IPC; automatically falls back to HTTP `/api/action` queueing (`tools/bus.py` in `Dispatches/`) and clipboard banner for 0-token passive safety.
+
+
 
 
 

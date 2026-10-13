@@ -369,3 +369,14 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 * **`language_server.exe`**: The core background Language Server Protocol (LSP) and agent supervisor daemon shipped with Google Antigravity (`resources\bin\language_server.exe`). It indexes C++ headers, JUCE 9 class trees, Python scripts, and Markdown files across the open workspace, executes model tool calls, and bridges IPC sockets (`--enable_sidecars`). Its RAM footprint naturally scales to ~1.0–1.5 GB+ during multi-hour pair-programming sessions due to in-memory AST symbol caching; restarting the IDE or running `/clear` drops its working set back to ~300 MB.
 * **Sidecar Memory Footprint**: N'kai sidecars run as standard HTML5/CSS/JavaScript webviews in an isolated Electron renderer pane. They use **zero native C++ binaries**, zero background compile daemons, and consume only ~30–50 MB of RAM. N'kai does not own or run `language_server.exe`.
 
+---
+
+## 34. Web Access State Machine & Heavy PCDA Auto-Elevation
+
+* **Web Access State Machine**: The 4-tier security lattice governing external HTTP calls (`search_web`, `read_url_content`, `curl`) to protect privacy and token economics while eliminating prompt fatigue: `RESTRICTED` (default lock), `QUERY_ONLY` (1-shot), `SKILL_SESSION` (active skill/research duration), and `GLOBAL_TEMPORARY` (full context window).
+* **Heavy / Aggressive PCDA Auto-Elevation**: The explicit conversational trigger rule where user requests for "heavy", "aggressive", "deep", or "strongest" PCDAs, dialectics, or audits automatically elevate web access to `SKILL_SESSION` for that sprint without pausing for interactive confirmation, while continuing to emit the mandatory `[ 🌐 Web Access: ACTIVE (SKILL_SESSION) ]` security footer.
+* **Dual-Track Dispatch Contract**: The environmental boundary separating native IDE execution from mobile web triage:
+  1. *Native AGY Extension (`sidecar://nkai/panel`)*: Uses Native Zero-Copy IPC (`window.sidecar.agent.sendMessage`) to trigger the active workspace agent immediately.
+  2. *External Web & Mobile (`nkai_serve.py`, port 3030)*: Runs inside a standard browser sandbox where IDE IPC is unavailable; automatically falls back to HTTP `/api/action` logging to the inter-project data bus (`tools/bus.py` in `Dispatches/`) and clipboard banner for 0-token passive safety.
+
+
