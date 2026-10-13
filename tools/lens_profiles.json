@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "default_profile": "audio_dev",
+  "profiles": {
+    "audio_dev": {
+      "display_name": "Audio Plugin & DSP Engineering",
+      "tags": [
+        "audio",
+        "dsp",
+        "vst",
+        "synth",
+        "juce",
+        "tks"
+      ],
+      "lenses": [
+        {
+          "id": "ergonomics",
+          "name": "Real-World / Daily Ergonomics",
+          "prompt": "Practical day-to-day developer friction, velocity, cognitive load, and maintenance realities."
+        },
+        {
+          "id": "industry",
+          "name": "Audio Software Industry",
+          "prompt": "How top synth/plugin developers (Vital, Kilohearts, FabFilter, Elektron, Bitwig, Reaper) solve it."
+        },
+        {
+          "id": "sota",
+          "name": "Wider Software Industry / SOTA",
+          "prompt": "Modern systems, agent harnesses, and web architectures (Anthropic, OpenAI, GitHub, Linux)."
+        },
+        {
+          "id": "best_practices",
+          "name": "Best Practices & Sustainability",
+          "prompt": "Audio thread safety, zero-allocations, token economics, and avoiding premature optimization."
+        }
+      ]
+    },
+    "studio_hardware": {
+      "display_name": "Studio, Hardware & Eurorack Ergonomics",
+      "tags": [
+        "studio",
+        "hardware",
+        "eurorack",
+        "patchbay",
+        "wiring",
+        "m8",
+        "tbd-16"
+      ],
+      "lenses": [
+        {
+          "id": "signal_flow",
+          "name": "Signal Flow, Latency & Impedance",
+          "prompt": "Acoustic signal path, conversion stages, normalled patchbay routing, and monitoring latency."
+        },
+        {
+          "id": "physical_ergonomics",
+          "name": "Physical Ergonomics & Patchability",
+          "prompt": "Reachable knob/slider layouts, cable obstruction, ModularGrid 3U/1U spacing, and tactile flow."
+        },
+        {
+          "id": "power_noise",
+          "name": "Power Draw, Heat & Noise Floor",
+          "prompt": "mA load on +12V/-12V rails, ground loops, analog noise bleed, and thermal dissipation."
+        },
+        {
+          "id": "bom_budget",
+          "name": "Modularity, Sourcing & Budget",
+          "prompt": "Bill of materials, DIY feasibility, component availability, and 80/20 cost efficiency."
+        }
+      ]
+    },
+    "creative_general": {
+      "display_name": "General Research, TTRPG & Creative Writing",
+      "tags": [
+        "ttrpg",
+        "writing",
+        "lyrics",
+        "gamedesign",
+        "general",
+        "creative"
+      ],
+      "lenses": [
+        {
+          "id": "intent_narrative",
+          "name": "Creative Intent & Narrative Resonance",
+          "prompt": "Emotional core, thematic consistency, and poetic or fictional impact."
+        },
+        {
+          "id": "user_experience",
+          "name": "User / Player Experience",
+          "prompt": "Player agency, DM cognitive burden, lyric vocal rhythm, and intuitive clarity."
+        },
+        {
+          "id": "feasibility",
+          "name": "Structural / Technical Feasibility",
+          "prompt": "Ruleset coherence, systemic math balance, or practical execution constraints."
+        },
+        {
+          "id": "elegance",
+          "name": "Elegance & The 80/20 Rule",
+          "prompt": "Maximizing evocative depth while eliminating unnecessary mechanical crunch or clunky prose."
+        }
+      ]
+    }
+  }
+}

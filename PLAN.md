@@ -1,4 +1,4 @@
-# Flight 23: Vault Graph & Naming Hygiene
+# Flight 4: General Research Assistant & Configurable Lens Profiles
 
 **TARGET:** TOOLING_HARNESS  
 **Role:** New Klang City Architecture & Tooling Engineering  
@@ -8,55 +8,65 @@
 ---
 
 ### Executive Overview & Architectural Dialectic
-- **The One-Way Vault Mirror Law**: `TheKlangVault` is a generated, read-only mirror of the repositories. Content flows **repo ➔ vault ONLY**. Vault-side edits outside `Inbox/` are disposable and overwritten on the next sync.
-- **Sync-Time Link Rewriting**:
-  - `file:///` links that point to files mirrored into the vault (`docs/*.md`, `PLAN.md`) are converted during sync to vault links, joining the Obsidian graph and backlinks.
-  - Links to non-mirrored native code assets (`.cpp`, `.h`, `.json`, `.py`, `.png`) are strictly left as `file:///` links.
-  - Strips fragile `#L123-L145` line anchors (which break Obsidian markdown navigation), while preserving `#heading` anchors.
-  - Defensively decodes `%20` into clean spaces.
-- **Underscore Naming Invariant**:
-  - Human captures on mobile retain loose phone-typed names with spaces in `TheKlangVault/Inbox/`.
-  - When notes are archived by `tools/check_mail.py`, spaces are systematically converted to underscores (`safe_name = note.name.replace(" ", "_")`).
-  - Title derivation converts `_` back to spaces so title-matching (`rejigger.json` sources) remains completely uninterrupted.
-- **Inbox Decoupling & Dead Copy Elimination**:
-  - Eliminates the legacy reverse-copy of vault notes into `docs/inbox/` in `tools/sync_obsidian_vault.ps1`.
-  - Purges duplicate stale copies from `docs/inbox/` (preserving `docs/inbox/README.md`).
+- **Anti-Yak-Shaving Invariant (Never Fork the Product)**:
+  - N'kai remains ONE unified sidecar tool. Rejects building separate spin-off apps or multi-tenant plugin engines ("The Second-System Effect") to avoid derailment from core audio products (*The Klang Farmer*, *ToadTracker*).
+- **Invariant Dialectic Core**:
+  - The underlying Hegelian Dialectic Triad (Thesis ➔ Antithesis ➔ Synthesis) and the 3-Bullet Decision Card (🎯 Core Intent, 🛠️ Proposed Mechanism, 🚦 Action Route) remain permanently invariant across all domains.
+  - Only the 4 domain-specific evaluation lenses adapt based on declarative JSON profiles.
+- **Zero-Click Auto-Detection**:
+  - Automatically matches note/card tags to specialized profiles:
+    - `#studio`, `#hardware`, `#eurorack`, `#wiring`, `#m8`, `#tbd-16` ➔ `studio_hardware`
+    - `#ttrpg`, `#writing`, `#lyrics`, `#gamedesign`, `#creative` ➔ `creative_general`
+    - `#audio`, `#dsp`, `#vst`, `#juce`, `#tks`, or untagged ➔ `audio_dev` (default)
+- **CLI & Sidecar Overrides**:
+  - Full override support via `--profile <id>` across CLI tools (`check_mail.py`, `research_daemon.py`, `compile_prompt.py`).
+  - Visual lens profile badge in the PCDA tab of the dossier drawer.
 
 ---
 
-### Phase 1: Sync-Time Link Rewriter (`tools/vault_link_rewriter.py`)
-- [x] Create `tools/vault_link_rewriter.py`:
-  - `rewrite_links_for_vault(markdown_text: str, source_rel_path: str = "") -> str`
-  - Converts `file:///.../docs/X.md` to `Docs/X.md` or `[[Docs/X|Label]]`
-  - Strips line anchors (`#L\d+(-L\d+)?`)
-  - Preserves heading anchors (`#heading-slug`)
-  - Leaves non-markdown links (`.cpp`, `.h`, `.json`, `.png`) as `file:///`
-  - Strict UTF-8 console stream reconfigures.
-- [x] Update `tools/sync_obsidian_vault.ps1`:
-  - Restate the One-Way Vault Mirror rule in the script header.
-  - Apply link rewriting during the Repo -> Vault sync pass for `.md` files.
+### Phase 1: Declarative Lens Dictionary Schema (`tools/lens_profiles.json`)
+- [x] Create `tools/lens_profiles.json`:
+  - Profiles: `audio_dev`, `studio_hardware`, `creative_general`.
+  - 4 specialized lenses per profile with `id`, `name`, and `prompt`.
+  - Tag lists for zero-click automatic detection.
 
 ---
 
-### Phase 2: Underscore Naming Invariant on Archive (`tools/check_mail.py`)
-- [x] Update `tools/check_mail.py`:
-  - Ensure `shutil.move` uses `found_src.name.replace(" ", "_")` when moving notes to `Archive/`.
-  - Ensure note title resolution converts `_` to spaces when reading archived notes.
+### Phase 2: Pydantic Data Models & Profile Resolver (`tools/models.py`)
+- [x] Implement in `tools/models.py`:
+  - `LensDefinition`, `LensProfile`, and `LensProfilesConfig` Pydantic models.
+  - `load_lens_profiles(config_path: Optional[Path] = None) -> LensProfilesConfig`
+  - `detect_lens_profile(tags: List[str], text: str = "", config: Optional[LensProfilesConfig] = None) -> str`
+  - Strict UTF-8 and graceful error fallbacks.
 
 ---
 
-### Phase 3: Purge Duplicate `docs/inbox/` Copies
-- [x] Remove Vault -> Repo copying from `tools/sync_obsidian_vault.ps1`.
-- [x] Remove duplicate stale files in `docs/inbox/`, keeping `docs/inbox/README.md`.
+### Phase 3: Research Daemon & Prompt Compiler Lens Integration
+- [x] Update `tools/research_daemon.py`:
+  - Add `--profile` CLI option.
+  - Auto-detect profile when synthesizing Pass 2 PCDA metrics.
+  - Generate profile-tailored lenses and store `profile` and `profile_name` in PCDA metrics.
+- [x] Update `tools/compile_prompt.py`:
+  - Add `--profile` CLI option and tag auto-detection.
+  - Inject active profile lens prompts into the compiled prompt handoff payload.
 
 ---
 
-### Phase 4: Unit Test Suite & Verification Gauntlet
-- [x] Author `tools/tests/test_vault_link_rewriter.py`:
-  - Test link rewriting for mirrored docs.
-  - Test preservation of native code file links (`.cpp`, `.h`).
-  - Test line anchor stripping (`#L10-L20` stripped, `#heading` preserved).
-  - Test `%20` space decoding.
+### Phase 4: Sidecar Visual Badge & Template Sync
+- [x] Update `tools/board_renderer.py`:
+  - Render dynamic `[ 🔬 Lens: <Profile Name> ]` pill badge in the PCDA tab header.
+- [x] Sync templates using `python tools/sync_templates.py sync`.
+
+---
+
+### Phase 5: Unit Test Suite & Verification Gauntlet
+- [x] Author `tools/tests/test_lens_profiles.py`:
+  - Test profile loading from JSON.
+  - Test tag auto-detection across all 3 profiles and fallback.
+  - Test explicit `--profile` override.
+  - Test `research_daemon.py` Pass 2 generation under multiple profiles.
+  - Test `compile_prompt.py` profile injection.
 - [x] Run `python -m unittest discover tools/tests/` (100% pass rate).
 - [x] Run `python tools/verify_utf8.py --strict` (100% compliant).
-- [x] Update `docs/BACKLOG.md` marking Flight 23 as COMPLETED.
+- [x] Update `docs/BACKLOG.md` marking Flight 4 as COMPLETED.
+- [x] Rebuild runway board (`python tools/build_runway.py`).

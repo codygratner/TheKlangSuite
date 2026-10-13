@@ -6,6 +6,7 @@ Provides schema validation, priority queue sorting, and atomic transaction recei
 
 from datetime import datetime
 from enum import Enum
+import json
 from pathlib import Path
 import re
 from typing import Any, Dict, List, Optional
@@ -748,5 +749,117 @@ class PromptHandoffPayload(BaseModel):
         target_path.parent.mkdir(parents=True, exist_ok=True)
         target_path.write_text(self.to_markdown(), encoding="utf-8")
         return target_path
+
+
+# ==============================================================================
+# Configurable Lens Profiles (Flight 4 / Topic 9)
+# ==============================================================================
+
+
+class LensDefinition(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(description="Unique identifier for the lens (e.g. ergonomics, signal_flow)")
+    name: str = Field(description="Human-readable title of the evaluation lens")
+    prompt: str = Field(description="Detailed evaluation instructions or guiding criteria")
+
+
+class LensProfile(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(default="", description="Unique profile identifier (e.g. audio_dev, studio_hardware)")
+    display_name: str = Field(description="Human-readable name of the profile")
+    tags: List[str] = Field(default_factory=list, description="Descriptive tags used for automatic profile detection")
+    lenses: List[LensDefinition] = Field(description="List of 4 specialized evaluation lenses")
+
+
+class LensProfilesConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    version: str = Field(default="1.0.0", description="SemVer version of the lens profiles configuration")
+    default_profile: str = Field(default="audio_dev", description="Default profile id if no tags match")
+    profiles: Dict[str, LensProfile] = Field(default_factory=dict, description="Dictionary of available lens profiles")
+
+
+DEFAULT_LENS_PROFILES_PATH = Path(__file__).resolve().parent / "lens_profiles.json"
+
+
+def load_lens_profiles(config_path: Optional[Path] = None) -> LensProfilesConfig:
+    """
+    Loads and validates the declarative lens profiles configuration from JSON.
+    Falls back to embedded defaults if file is missing or invalid.
+    """
+    target = config_path or DEFAULT_LENS_PROFILES_PATH
+    if target.exists():
+        try:
+            content = target.read_text(encoding="utf-8", errors="replace")
+            data = json.loads(content)
+            # Ensure profile id matches dict key if missing
+            if "profiles" in data and isinstance(data["profiles"], dict):
+                for k, v in data["profiles"].items():
+                    if isinstance(v, dict) and "id" not in v:
+                        v["id"] = k
+            return LensProfilesConfig.model_validate(data)
+        except Exception as e:
+            print(f"⚠️ Warning: Could not parse lens profiles from {target}: {e}")
+
+    # Fallback default configuration
+    return LensProfilesConfig(
+        version="1.0.0",
+        default_profile="audio_dev",
+        profiles={
+            "audio_dev": LensProfile(
+                id="audio_dev",
+                display_name="Audio Plugin & DSP Engineering",
+                tags=["audio", "dsp", "vst", "synth", "juce", "tks"],
+                lenses=[
+                    LensDefinition(id="ergonomics", name="Real-World / Daily Ergonomics", prompt="Practical day-to-day developer friction, velocity, cognitive load, and maintenance realities."),
+                    LensDefinition(id="industry", name="Audio Software Industry", prompt="How top synth/plugin developers (Vital, Kilohearts, FabFilter, Elektron, Bitwig, Reaper) solve it."),
+                    LensDefinition(id="sota", name="Wider Software Industry / SOTA", prompt="Modern systems, agent harnesses, and web architectures (Anthropic, OpenAI, GitHub, Linux)."),
+                    LensDefinition(id="best_practices", name="Best Practices & Sustainability", prompt="Audio thread safety, zero-allocations, token economics, and avoiding premature optimization."),
+                ],
+            )
+        },
+    )
+
+
+def detect_lens_profile(
+    tags: Optional[List[str]] = None,
+    text: str = "",
+    config: Optional[LensProfilesConfig] = None,
+) -> str:
+    """
+    Auto-detects the optimal lens profile based on tags and text keywords.
+    - Tags containing studio, hardware, eurorack, wiring, m8, tbd-16 -> studio_hardware
+    - Tags containing ttrpg, writing, lyrics, gamedesign, creative -> creative_general
+    - Default: audio_dev
+    """
+    cfg = config or load_lens_profiles()
+    tag_set = {str(t).lower().lstrip("#").strip() for t in (tags or [])}
+
+    # Also extract inline hashtag markers from text (e.g. #hardware, #ttrpg)
+    if text:
+        inline_tags = re.findall(r"#([a-zA-Z0-9_\-]+)", text.lower())
+        tag_set.update(inline_tags)
+
+    # 1. Check profiles in config for tag overlap
+    for profile_id, profile in cfg.profiles.items():
+        if profile_id == cfg.default_profile:
+            continue
+        p_tags = {t.lower() for t in profile.tags}
+        if tag_set.intersection(p_tags):
+            return profile_id
+
+    # 2. Text keyword scan if tags didn't match non-default
+    text_lower = text.lower()
+    for profile_id, profile in cfg.profiles.items():
+        if profile_id == cfg.default_profile:
+            continue
+        for t in profile.tags:
+            if t in text_lower:
+                return profile_id
+
+    return cfg.default_profile
+
 
 

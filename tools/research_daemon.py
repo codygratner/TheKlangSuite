@@ -28,7 +28,14 @@ if hasattr(sys.stderr, "reconfigure"):
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from tools.models import DossierDrawer, MailItem, MailQueue, TriageStatus
+from tools.models import (
+    DossierDrawer,
+    MailItem,
+    MailQueue,
+    TriageStatus,
+    detect_lens_profile,
+    load_lens_profiles,
+)
 
 
 def execute_pass_1_divergence(
@@ -72,17 +79,58 @@ def execute_pass_2_synthesis(
     antithesis: str,
     source_note: Optional[str] = None,
     source_markdown: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    profile_override: Optional[str] = None,
 ) -> DossierDrawer:
     """
     Pass 2: Convergent Synthesis (Tier 2 Flash).
     Reconciles Thesis and Antithesis into:
     - 3-bullet decision summary (Core Intent, Proposed Mechanism, Action Route)
-    - 4-lens PCDA dialectic matrix (Ergonomics, Audio Software, Wider SOTA, Best Practices)
+    - 4-lens PCDA dialectic matrix adapted to active Lens Profile (Flight 4)
     - Curated technical research dossier (Citations, Benchmarks, Precedents)
     """
     now_iso = datetime.now().isoformat()
 
+    cfg = load_lens_profiles()
+    active_profile_id = (
+        profile_override
+        if (profile_override and profile_override in cfg.profiles)
+        else detect_lens_profile(tags, f"{topic}\n{source_markdown or ''}", cfg)
+    )
+    active_profile = cfg.profiles.get(active_profile_id) or cfg.profiles[cfg.default_profile]
+
+    # Generate domain-adapted lens values based on profile
+    lenses_output = {}
+    if active_profile_id == "studio_hardware":
+        lenses_output = {
+            "signal_flow": f"Acoustic & electrical signal path for {topic}: balanced XLR/TRS normalled through patchbay, sub-2ms latency.",
+            "physical_ergonomics": "Front-panel 44px tactile knobs/sliders, clear vertical cable drape, zero jack obstruction.",
+            "power_noise": "Strict mA load monitoring on +12V/-12V rails; star grounding to eliminate analog ground hum.",
+            "bom_budget": "80/20 component sourcing; standard Eurorack/19-inch rack footprint for maximum modular reuse.",
+        }
+    elif active_profile_id == "creative_general":
+        lenses_output = {
+            "intent_narrative": f"Emotional core of '{topic}': crisp thematic clarity and evocative poetic resonance.",
+            "user_experience": "Frictionless reader/player agency; minimizes cognitive load while delivering rich immersion.",
+            "feasibility": "Structural coherence; elegant ruleset or rhythmic cadence without clunky procedural overhead.",
+            "elegance": "Pragmatic 80/20 design: cut redundant mechanical clutter to let the core vision shine.",
+        }
+    else:  # audio_dev (default)
+        lenses_output = {
+            "ergonomics": f"Front-hero 15-second scanning with collapsible bottom sheet on mobile for {topic}.",
+            "industry": "Clean separation of DSP state vs UI; matches FabFilter / Kilohearts zero-leak architecture.",
+            "sota": "Mirrors modern 2-loop reflection benchmarks (plateau after loop 2) with zero chat bloat.",
+            "best_practices": "Method B+ adversarial clause; zero allocations, zero mutex locks in real-time paths.",
+        }
+
+    # Ensure all lenses in the profile are present
+    for lens in active_profile.lenses:
+        if lens.id not in lenses_output:
+            lenses_output[lens.id] = f"Evaluation under {lens.name}: {lens.prompt}"
+
     pcda_metrics = {
+        "profile": active_profile_id,
+        "profile_name": active_profile.display_name,
         "pros": [
             f"Zero-token offline execution guarantees no API quota incinerations for {topic}.",
             "Strict finite batch limit (max 3 items) prevents unattended runaway loops.",
@@ -99,12 +147,7 @@ def execute_pass_2_synthesis(
             "The Sleepy Architecture compromise: Apply 2-pass automode strictly to items tagged RESEARCH or !DILEMMA; "
             "clear-cut tasks skip directly to standard implementation."
         ),
-        "lenses": {
-            "ergonomics": "Front-hero 15-second scanning with collapsible bottom sheet on mobile.",
-            "audio_software": "Zero locks, zero allocations in audio threads; 100% tooling harness domain.",
-            "wider_sota": "Mirrors Anthropic/Google 2-loop reflection benchmarks (plateau after loop 2).",
-            "best_practices": "Method B+ adversarial clause ensures constructive lateral alternatives.",
-        },
+        "lenses": lenses_output,
     }
 
     research_dossier = {
@@ -137,6 +180,7 @@ def run_automode_batch(
     target_id: Optional[str] = None,
     dry_run: bool = False,
     force: bool = False,
+    profile: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Executes a finite, bounded automode batch across queued research items.
@@ -225,6 +269,8 @@ def run_automode_batch(
             antithesis=antithesis,
             source_note=item.source_note or item.source_file,
             source_markdown=item.body or item.preview,
+            tags=item.tags,
+            profile_override=profile,
         )
 
         item.dossier = dossier
@@ -276,6 +322,12 @@ def main():
         help="Specific card ID or title substring to research",
     )
     parser.add_argument(
+        "--profile",
+        "-p",
+        choices=["audio_dev", "studio_hardware", "creative_general"],
+        help="Explicit lens profile override (audio_dev, studio_hardware, creative_general)",
+    )
+    parser.add_argument(
         "--force",
         "-f",
         action="store_true",
@@ -294,6 +346,7 @@ def main():
         target_id=args.topic,
         dry_run=args.dry_run,
         force=args.force,
+        profile=args.profile,
     )
 
 

@@ -203,6 +203,14 @@ def render_dossier_drawer_html(clean_id: str, dossier: DossierDrawer) -> str:
     da = pcda.get("devils_advocate", "")
     res = pcda.get("resolution", "")
     lenses = pcda.get("lenses", {})
+    profile_name = pcda.get("profile_name", "")
+    profile_badge = (
+        f'<div style="margin-bottom: 8px;">'
+        f'<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; '
+        f'color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); '
+        f'padding: 2px 8px; border-radius: 12px;">'
+        f'🔬 Active Lens: {html.escape(profile_name)}</span></div>'
+    ) if profile_name else ""
 
     pros_html = "".join([f"<li>✅ {html.escape(str(p))}</li>" for p in pros])
     cons_html = "".join([f"<li>⚠️ {html.escape(str(c))}</li>" for c in cons])
@@ -254,6 +262,7 @@ def render_dossier_drawer_html(clean_id: str, dossier: DossierDrawer) -> str:
           <div class="markdown-body" style="font-size: 11px; line-height: 1.5;">{src_rendered}</div>
         </div>
         <div class="dossier-pane" id="pane-{clean_id}-pcda" style="display: none; font-size: 11px;">
+          {profile_badge}
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
             <div style="background: rgba(16, 185, 129, 0.08); border-left: 2px solid #10b981; padding: 8px 10px; border-radius: 4px;">
               <strong style="color: #10b981;">Pros & Capabilities:</strong>

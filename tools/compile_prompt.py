@@ -36,6 +36,8 @@ from tools.models import (
     PromptHandoffPayload,
     SynthesisTargetConfig,
     ThesisBlock,
+    detect_lens_profile,
+    load_lens_profiles,
 )
 
 
@@ -207,7 +209,7 @@ def parse_markdown_note(note_path: Path) -> Tuple[Dict[str, Any], str]:
     return frontmatter, body
 
 
-def compile_payload_from_card(card: Dict[str, Any]) -> PromptHandoffPayload:
+def compile_payload_from_card(card: Dict[str, Any], profile_override: Optional[str] = None) -> PromptHandoffPayload:
     """
     Transforms a card dictionary into a PromptHandoffPayload.
     """
@@ -290,10 +292,26 @@ def compile_payload_from_card(card: Dict[str, Any]) -> PromptHandoffPayload:
         status="PENDING_REASONING",
     )
 
+    # Resolve lens profile (Flight 4)
+    cfg = load_lens_profiles()
+    tags = card.get("tags", [])
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",") if t.strip()]
+    active_profile_id = (
+        profile_override
+        if (profile_override and profile_override in cfg.profiles)
+        else detect_lens_profile(tags, f"{title}\n{card.get('body', '')}", cfg)
+    )
+    active_profile = cfg.profiles.get(active_profile_id) or cfg.profiles[cfg.default_profile]
+
+    lenses_summary = "\n".join([f"- **{lens.name}**: {lens.prompt}" for lens in active_profile.lenses])
+
     mandate = (
         f"Analyze the structural tension between my core intent for '{title}' (Thesis) "
         "and the adversarial vulnerabilities/traps (Antithesis). "
-        "Using your extended deep-thinking reasoning mode, reconcile these perspectives into a definitive software architecture spec. "
+        f"Using your extended deep-thinking reasoning mode, evaluate through the 4 specialized lenses of the '{active_profile.display_name}' profile:\n"
+        f"{lenses_summary}\n\n"
+        "Reconcile these perspectives into a definitive software architecture spec. "
         "Ensure the final blueprint strictly optimizes for Sleepy Architecture principles: achieve MAXIMUM feature leverage with MINIMAL coding execution overhead."
     )
 
@@ -307,7 +325,7 @@ def compile_payload_from_card(card: Dict[str, Any]) -> PromptHandoffPayload:
     )
 
 
-def compile_payload_from_note(note_path: Path) -> PromptHandoffPayload:
+def compile_payload_from_note(note_path: Path, profile_override: Optional[str] = None) -> PromptHandoffPayload:
     """
     Transforms a markdown note file into a PromptHandoffPayload.
     """
@@ -329,7 +347,7 @@ def compile_payload_from_note(note_path: Path) -> PromptHandoffPayload:
         "pillar": pillar,
         "body": body,
     }
-    return compile_payload_from_card(card)
+    return compile_payload_from_card(card, profile_override=profile_override)
 
 
 def compile_prompt(
@@ -338,6 +356,7 @@ def compile_prompt(
     clipboard: bool = False,
     out_file: Optional[str] = None,
     to_vault: bool = False,
+    profile: Optional[str] = None,
 ) -> PromptHandoffPayload:
     """
     Core compiler entrypoint. Resolves topic or file, formats payload,
@@ -354,20 +373,20 @@ def compile_prompt(
             if "thesis" in data and "thread_id" in data:
                 payload = PromptHandoffPayload.model_validate(data)
             else:
-                payload = compile_payload_from_card(data)
+                payload = compile_payload_from_card(data, profile_override=profile)
         else:
-            payload = compile_payload_from_note(p)
+            payload = compile_payload_from_note(p, profile_override=profile)
 
     elif topic:
         # Check card data in pipeline
         card = find_card_data(topic)
         if card:
-            payload = compile_payload_from_card(card)
+            payload = compile_payload_from_card(card, profile_override=profile)
         else:
             # Check vault note
             note = find_vault_note(topic)
             if note:
-                payload = compile_payload_from_note(note)
+                payload = compile_payload_from_note(note, profile_override=profile)
             else:
                 # Ad-hoc topic
                 card = {
@@ -377,7 +396,7 @@ def compile_prompt(
                     "synthesis_mechanism": "Standard engineering execution",
                     "pillar": "NK",
                 }
-                payload = compile_payload_from_card(card)
+                payload = compile_payload_from_card(card, profile_override=profile)
     else:
         raise ValueError("Must provide either --topic or --file.")
 
@@ -424,6 +443,12 @@ def main():
         help="Path to markdown note or JSON card file",
     )
     parser.add_argument(
+        "--profile",
+        "-p",
+        choices=["audio_dev", "studio_hardware", "creative_general"],
+        help="Explicit lens profile override (audio_dev, studio_hardware, creative_general)",
+    )
+    parser.add_argument(
         "--clipboard",
         "-c",
         action="store_true",
@@ -462,6 +487,7 @@ def main():
             clipboard=args.clipboard,
             out_file=args.out,
             to_vault=args.vault,
+            profile=args.profile,
         )
 
         if args.stdout:
