@@ -196,7 +196,7 @@ def extract_note_metadata(file_path: Path):
         if heading_m and not is_quick_note:
             title = heading_m.group(1).strip()
         else:
-            title = file_path.stem
+            title = file_path.stem.replace("_", " ")
 
     # 3. Extract creation / modification date
     if not date_str:
@@ -1152,7 +1152,7 @@ def update_archive_index(archive_dir: Path):
     for f in real_files:
         meta = extract_note_metadata(f)
         if meta:
-            title = meta.get("title") or f.stem
+            title = meta.get("title") or f.stem.replace("_", " ")
             date_str = meta.get("date") or ""
             pri = meta.get("priority") or "P2"
             pillars = meta.get("target_pillars") or ["TKS"]
@@ -1189,13 +1189,14 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
         src = Path(rel_p).resolve()
         # Only archive files that are directly in live_dir (not already in Archive)
         if src.parent.resolve() == live_dir.resolve() and src.parent.resolve() != archive_dir.resolve():
-            dst = archive_dir / src.name
+            safe_name = src.name.replace(" ", "_")
+            dst = archive_dir / safe_name
             try:
                 # 1. Inject clean YAML frontmatter if missing
                 text_content = src.read_text(encoding="utf-8", errors="replace")
 
                 if not re.match(r"^---\s*\n.*?\n---\s*\n", text_content, re.DOTALL):
-                    clean_title = note.get("title") or src.stem
+                    clean_title = note.get("title") or src.stem.replace("_", " ")
                     note_date = note.get("date") or datetime.date.today().strftime("%Y-%m-%d")
                     note_pri = note.get("priority") or "P2"
                     note_pillars = note.get("target_pillars") or infer_pillars(clean_title, note.get("tags", []), text_content)
@@ -1204,14 +1205,15 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
                     src.write_text(frontmatter + text_content, encoding="utf-8")
 
                 shutil.move(str(src), str(dst))
-                moved_files.append({"src": str(src), "dst": str(dst), "name": src.name})
+                moved_files.append({"src": str(src), "dst": str(dst), "name": safe_name})
                 note["rel_path"] = str(dst)
                 note["source_file"] = str(dst)
                 # Update item in queue as well
                 for it in queue.items:
-                    if it.file_name == src.name or it.id == src.stem or it.title == note.get("title"):
+                    if it.file_name in [src.name, safe_name] or it.id in [src.stem, dst.stem] or it.title == note.get("title"):
                         it.source_file = str(dst)
                         it.rel_path = str(dst)
+                        it.file_name = safe_name
             except Exception as e:
                 print(f"⚠️ Failed to move {src.name} to archive: {e}")
 
@@ -1489,6 +1491,12 @@ def handle_archive_card(
                 candidates.append(Path(r"C:\_\Vault\Inbox") / p.name)
                 candidates.append(Path(r"C:\_\Vault\Inbox") / p)
                 candidates.append(Path(r"C:\_\Vault\Inbox\Tabled") / p.name)
+                if " " in p.name:
+                    p_safe = Path(p.name.replace(" ", "_"))
+                    candidates.append(inbox_dir / p_safe)
+                    candidates.append(inbox_dir / "Tabled" / p_safe)
+                    candidates.append(Path(r"C:\_\Vault\Inbox") / p_safe)
+                    candidates.append(Path(r"C:\_\Vault\Inbox\Tabled") / p_safe)
 
         found_src = None
         for cand in candidates:
@@ -1497,11 +1505,13 @@ def handle_archive_card(
                 break
 
         if found_src and found_src.exists():
-            dest = archive_dir / found_src.name
+            safe_name = found_src.name.replace(" ", "_")
+            dest = archive_dir / safe_name
             try:
                 shutil.move(str(found_src), str(dest))
                 matched_item.source_file = f"Archive/{dest.name}"
                 matched_item.rel_path = f"Archive/{dest.name}"
+                matched_item.file_name = dest.name
                 moved_note_msg = f"\n   • Moved note: {found_src.name} ➔ {dest}"
                 update_archive_index(archive_dir)
             except Exception as e:

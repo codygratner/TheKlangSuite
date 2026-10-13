@@ -2,10 +2,19 @@
 .SYNOPSIS
     Asymmetric Sync Bridge between The Klang Suite repository and a dedicated Obsidian Vault.
 
+    ========================================================================================
+    ONE-WAY VAULT MIRROR RULE (ABSOLUTE — NEVER VIOLATE per GEMINI.md / GLOSSARY §15):
+    TheKlangVault is a generated, read-only mirror of the repositories.
+    Content flows REPO ➔ VAULT ONLY. Under NO circumstances may any script copy, sync, merge,
+    or write vault content back into any repository. Vault-side edits outside Inbox/ are
+    disposable and overwritten on the next sync.
+    Sole exception: Human-authored Inbox notes are read in-place by check_mail.py and
+    ramble_ingest.py — never duplicated into repo directories.
+    ========================================================================================
+
 .DESCRIPTION
     Decouples Obsidian Sync (mobile/desktop) from Git.
-    - Inbox (Vault -> Repo): Pulls mobile-captured notes from Vault/Inbox to docs/inbox/.
-    - Docs (Repo -> Vault): Mirrors docs/ to Vault/Docs/ (excluding inbox/).
+    - Docs (Repo -> Vault): Mirrors docs/ to Vault/Docs/ with sync-time link rewriting (Flight 23).
     - Telemetry: Generates real-time project dashboards and error logs in Vault/Telemetry/.
     - Heartbeat: Updates _sync_heartbeat.md in Vault root.
 
@@ -92,65 +101,23 @@ function Sync-Once {
         }
     }
 
-    # 1. SYNC INBOX: Vault -> Repo (Never deletes from Vault, ignores Archive/)
-    if (Test-Path $VaultInbox) {
-        $inboxFiles = Get-ChildItem -Path $VaultInbox -File -Recurse | Where-Object { 
-            -not ($_.Name.StartsWith("_sync_")) -and -not ($_.Name.StartsWith(".")) -and
-            $_.FullName -notmatch '[\\/]Archive([\\/]|$)'
+    # 1. INBOX DECOUPLING (One-Way Vault Mirror Invariant — Flight 23)
+    # TheKlangVault/Inbox/ is read directly by check_mail.py and ramble_ingest.py.
+    # Notes are NEVER copied into docs/inbox/ to prevent duplicate stale files.
+    if (Test-Path $RepoInbox) {
+        $repoInboxFiles = Get-ChildItem -Path $RepoInbox -File -Recurse | Where-Object {
+            $_.Name -ne "README.md" -and $_.Name -ne ".gitkeep"
         }
-        foreach ($file in $inboxFiles) {
-            $relPath = $file.FullName.Substring($VaultInbox.Length).TrimStart('\', '/')
-            $destPath = Join-Path $RepoInbox $relPath
-            $destDir = Split-Path $destPath
-
-            if (-not (Test-Path $destDir)) {
-                New-Item -ItemType Directory -Path $destDir -Force | Out-Null
-            }
-
-            $shouldCopy = $false
-            if (-not (Test-Path $destPath)) {
-                $shouldCopy = $true
-            } else {
-                $destItem = Get-Item $destPath
-                if ($file.LastWriteTimeUtc -gt $destItem.LastWriteTimeUtc) {
-                    $shouldCopy = $true
-                }
-            }
-
-            if ($shouldCopy) {
-                if ($file.Extension -eq ".md") {
-                    $raw = Get-Content -Path $file.FullName -Raw -Encoding UTF8
-                    $converted = Convert-WikiLinksToMarkdown $raw
-                    Set-Content -Path $destPath -Value $converted -Encoding UTF8 -NoNewline
-                } else {
-                    Copy-Item -Path $file.FullName -Destination $destPath -Force
-                }
-                $inboxSynced++
-                Write-Host "[INBOX -> REPO] $($file.Name)" -ForegroundColor Cyan
-            }
+        foreach ($repoFile in $repoInboxFiles) {
+            Remove-Item -Path $repoFile.FullName -Force
+            Write-Host "[INBOX CLEANUP] Removed stale duplicate $($repoFile.Name) from docs/inbox/" -ForegroundColor DarkYellow
         }
 
-        # Clean up stale files in RepoInbox that were moved or deleted in VaultInbox (protecting README.md and .gitkeep)
-        if (Test-Path $RepoInbox) {
-            $repoInboxFiles = Get-ChildItem -Path $RepoInbox -File -Recurse | Where-Object {
-                $_.Name -ne "README.md" -and $_.Name -ne ".gitkeep"
-            }
-            foreach ($repoFile in $repoInboxFiles) {
-                $relPath = $repoFile.FullName.Substring($RepoInbox.Length).TrimStart('\', '/')
-                $vaultCounterpart = Join-Path $VaultInbox $relPath
-                $isArchivedOrStale = ($relPath -match '(?i)^Archive([\\/]|$)' -or (-not (Test-Path $vaultCounterpart)) -or ($vaultCounterpart -match '(?i)[\\/]Archive([\\/]|$)'))
-                if ($isArchivedOrStale) {
-                    Remove-Item -Path $repoFile.FullName -Force
-                    Write-Host "[INBOX CLEANUP] Removed stale $relPath from docs/inbox/" -ForegroundColor DarkYellow
-                }
-            }
-
-            # Remove empty directories in RepoInbox (e.g. docs/inbox/Archive/)
-            Get-ChildItem -Path $RepoInbox -Directory -Recurse | Where-Object {
-                (Get-ChildItem -Path $_.FullName -Recurse -File | Measure-Object).Count -eq 0
-            } | ForEach-Object {
-                Remove-Item -Path $_.FullName -Recurse -Force
-            }
+        # Remove empty directories in RepoInbox
+        Get-ChildItem -Path $RepoInbox -Directory -Recurse | Where-Object {
+            (Get-ChildItem -Path $_.FullName -Recurse -File | Measure-Object).Count -eq 0
+        } | ForEach-Object {
+            Remove-Item -Path $_.FullName -Recurse -Force
         }
     }
 
@@ -184,9 +151,31 @@ function Sync-Once {
             }
 
             if ($shouldCopy) {
-                Copy-Item -Path $file.FullName -Destination $destPath -Force
+                if ($file.Extension -eq ".md") {
+                    $rawContent = Get-Content -Path $file.FullName -Raw -Encoding UTF8
+                    $rewriterScript = Join-Path $RepoRoot "tools\vault_link_rewriter.py"
+                    if (Test-Path $rewriterScript) {
+                        try {
+                            $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                            $pinfo.FileName = "python"
+                            $pinfo.Arguments = "`"$rewriterScript`" `"$($file.FullName)`""
+                            $pinfo.RedirectStandardOutput = $true
+                            $pinfo.UseShellExecute = $false
+                            $pinfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+                            $p = [System.Diagnostics.Process]::Start($pinfo)
+                            $rewritten = $p.StandardOutput.ReadToEnd()
+                            $p.WaitForExit()
+                            if ($p.ExitCode -eq 0 -and (-not [string]::IsNullOrEmpty($rewritten))) {
+                                $rawContent = $rewritten
+                            }
+                        } catch {}
+                    }
+                    Set-Content -Path $destPath -Value $rawContent -Encoding UTF8 -NoNewline
+                } else {
+                    Copy-Item -Path $file.FullName -Destination $destPath -Force
+                }
                 $docsSynced++
-                Write-Host "[REPO -> DOCS] $relPath" -ForegroundColor DarkGray
+                Write-Host "[REPO -> DOCS] $relPath (links rewritten)" -ForegroundColor DarkGray
             }
         }
 

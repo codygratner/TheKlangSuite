@@ -1,80 +1,62 @@
-# Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards
+# Flight 23: Vault Graph & Naming Hygiene
 
 **TARGET:** TOOLING_HARNESS  
-**Role:** New Klang City Architecture & Web Engineering  
+**Role:** New Klang City Architecture & Tooling Engineering  
 **Recommended Model:** Gemini 3.8 Flash (Thinking: High) — Tier 2 (Balanced Engineering & UI)  
-> **Status:** IN_PROGRESS 🔨  
+> **Status:** COMPLETED ✅  
 
 ---
 
 ### Executive Overview & Architectural Dialectic
-- **The "Rule of 2" Bounded Convergence Architecture**:
-  - Multi-agent reflection research demonstrates that gains steeply plateau after iteration 2. Pass 3+ yields negative returns (semantic churn, hallucination compounding, and token waste).
-  - Automode strictly enforces the 2-Pass law:
-    - **Pass 1 (Parallel Divergent Sweep — Tier 2 Flash)**: Generates affirmative thesis/SOTA precedents and adversarial contrarian stress-tests (`Where I Disagree With The Prompt`).
-    - **Pass 2 (Convergent Synthesis — Tier 2 Flash)**: Reconciles Thesis and Antithesis into standard 3-bullet decision cards, 4-lens PCDA matrices, and curated technical citations.
-  - **Zero Pro Burn**: Automode runs 100% on Tier 2 Flash. Tier 1 Pro models are strictly prohibited.
-- **The Human Triage Gate**:
-  - Automode NEVER autonomously touches raw notes in `TheKlangVault/Inbox/`. It executes strictly on items explicitly triaged with `[ 🔬 Research ]` in `morning_mail_inbox.html` or marked `status: "research"` in `.agents/pipeline/mailbag/mail_queue.json`.
-  - Strictly bounded batch execution: `--limit 3` (default), finite execution, NEVER an infinite `while True:` loop.
-- **The "Hero Front + 3-Tab Drawer" UI Standard**:
-  - The 3-bullet synthesis (🎯 Core Intent, 🛠️ Proposed Mechanism, 🚦 Action Route) remains permanently visible on the front face of each card.
-  - Single unified drawer toggle: `[ 📂 View Full Dossier (3) ]`.
-  - 3-Segmented Tab Strip:
-    - `[ 📄 Source Note ]`
-    - `[ ⚖️ PCDA Dialectic ]`
-    - `[ 🔬 Research Dossier ]`
-  - Mobile bottom-sheet layout on viewports $\le 640\text{px}$.
+- **The One-Way Vault Mirror Law**: `TheKlangVault` is a generated, read-only mirror of the repositories. Content flows **repo ➔ vault ONLY**. Vault-side edits outside `Inbox/` are disposable and overwritten on the next sync.
+- **Sync-Time Link Rewriting**:
+  - `file:///` links that point to files mirrored into the vault (`docs/*.md`, `PLAN.md`) are converted during sync to vault links, joining the Obsidian graph and backlinks.
+  - Links to non-mirrored native code assets (`.cpp`, `.h`, `.json`, `.py`, `.png`) are strictly left as `file:///` links.
+  - Strips fragile `#L123-L145` line anchors (which break Obsidian markdown navigation), while preserving `#heading` anchors.
+  - Defensively decodes `%20` into clean spaces.
+- **Underscore Naming Invariant**:
+  - Human captures on mobile retain loose phone-typed names with spaces in `TheKlangVault/Inbox/`.
+  - When notes are archived by `tools/check_mail.py`, spaces are systematically converted to underscores (`safe_name = note.name.replace(" ", "_")`).
+  - Title derivation converts `_` back to spaces so title-matching (`rejigger.json` sources) remains completely uninterrupted.
+- **Inbox Decoupling & Dead Copy Elimination**:
+  - Eliminates the legacy reverse-copy of vault notes into `docs/inbox/` in `tools/sync_obsidian_vault.ps1`.
+  - Purges duplicate stale copies from `docs/inbox/` (preserving `docs/inbox/README.md`).
 
 ---
 
-### Phase 1: Dossier Data Models & Schema Extension (`tools/models.py`)
-- [x] Define `DossierDrawer` Pydantic model:
-  - `source_note`: Optional[str]
-  - `source_markdown`: Optional[str]
-  - `pcda_dialectic`: Optional[Dict[str, Any]]
-  - `research_dossier`: Optional[Dict[str, Any]]
-  - `pass_count`: int = 2
-  - `researched_at`: Optional[str]
-- [x] Extend `MailItem` model with `dossier: Optional[DossierDrawer] = None`.
-- [x] Verify serialization and backwards compatibility.
-
----
-
-### Phase 2: 2-Pass Research Engine (`tools/research_daemon.py`)
-- [x] Create `tools/research_daemon.py`:
-  - `execute_pass_1_divergence(topic: str, note_text: str) -> Tuple[str, str]`: Generates Affirmative SOTA precedents & Adversarial Contrarian Stress-Test.
-  - `execute_pass_2_synthesis(topic: str, thesis: str, antithesis: str) -> DossierDrawer`: Synthesizes 3-bullet card, 4-lens PCDA, and research citations.
-  - `run_automode_batch(limit: int = 3, target_id: Optional[str] = None) -> List[Dict[str, Any]]`:
-    - Reads `mail_queue.json`, filters for items marked `status: "research"`.
-    - Enforces hard limit (`--limit N`, default 3).
-    - Writes results to `.agents/pipeline/mailbag/researched/<id>.json` and updates `mail_queue.json`.
-    - Regenerates triage boards via `check_mail.py --no-browser`.
-  - CLI arguments: `--limit`, `--topic`, `--dry-run`, `--force`.
+### Phase 1: Sync-Time Link Rewriter (`tools/vault_link_rewriter.py`)
+- [x] Create `tools/vault_link_rewriter.py`:
+  - `rewrite_links_for_vault(markdown_text: str, source_rel_path: str = "") -> str`
+  - Converts `file:///.../docs/X.md` to `Docs/X.md` or `[[Docs/X|Label]]`
+  - Strips line anchors (`#L\d+(-L\d+)?`)
+  - Preserves heading anchors (`#heading-slug`)
+  - Leaves non-markdown links (`.cpp`, `.h`, `.json`, `.png`) as `file:///`
   - Strict UTF-8 console stream reconfigures.
+- [x] Update `tools/sync_obsidian_vault.ps1`:
+  - Restate the One-Way Vault Mirror rule in the script header.
+  - Apply link rewriting during the Repo -> Vault sync pass for `.md` files.
 
 ---
 
-### Phase 3: In-Card Unified Dossier Drawer (`tools/board_renderer.py` & templates)
-- [x] Update `tools/board_renderer.py`:
-  - Render `.mail-dossier-drawer` container when `card.dossier` exists or provide on-demand trigger.
-  - Render 3-segmented tab strip: `[ 📄 Source Note ]`, `[ ⚖️ PCDA Dialectic ]`, `[ 🔬 Research Dossier ]`.
-  - Style clean tab transitions and mobile bottom-sheet ergonomics.
-- [x] Sync templates across `TheKlangSuite` and `nkai` via `python tools/sync_templates.py sync`.
+### Phase 2: Underscore Naming Invariant on Archive (`tools/check_mail.py`)
+- [x] Update `tools/check_mail.py`:
+  - Ensure `shutil.move` uses `found_src.name.replace(" ", "_")` when moving notes to `Archive/`.
+  - Ensure note title resolution converts `_` to spaces when reading archived notes.
 
 ---
 
-### Phase 4: Skill Definition & Automode Slash Command
-- [x] Create `.agents/skills/automode/SKILL.md` documenting the 2-pass bounded research protocol.
+### Phase 3: Purge Duplicate `docs/inbox/` Copies
+- [x] Remove Vault -> Repo copying from `tools/sync_obsidian_vault.ps1`.
+- [x] Remove duplicate stale files in `docs/inbox/`, keeping `docs/inbox/README.md`.
 
 ---
 
-### Phase 5: Unit Tests, Audits & Verification
-- [x] Author `tools/tests/test_research_daemon.py`:
-  - Test Pass 1 & Pass 2 convergence mechanics.
-  - Test Rule-of-2 hard boundary (`max_iterations = 2`).
-  - Test batch limit enforcement (`--limit 3`).
-  - Test MailItem dossier serialization.
-- [x] Run full test suite `python -m unittest discover tools/tests/` (100% pass rate).
+### Phase 4: Unit Test Suite & Verification Gauntlet
+- [x] Author `tools/tests/test_vault_link_rewriter.py`:
+  - Test link rewriting for mirrored docs.
+  - Test preservation of native code file links (`.cpp`, `.h`).
+  - Test line anchor stripping (`#L10-L20` stripped, `#heading` preserved).
+  - Test `%20` space decoding.
+- [x] Run `python -m unittest discover tools/tests/` (100% pass rate).
 - [x] Run `python tools/verify_utf8.py --strict` (100% compliant).
-- [x] Update `docs/BACKLOG.md` marking Flight 3 as COMPLETED.
+- [x] Update `docs/BACKLOG.md` marking Flight 23 as COMPLETED.
