@@ -1,83 +1,98 @@
-# Implementation Plan: Flight 20 (The 3-Surface System & Frictionless Triage Ergonomics)
+# Implementation Plan: Flight 21 (Physical Workshop Cutting Mat, Intercom HUD & Zero-Token Scratchpad Sentinel)
 
-> **Task Name:** `nkai-3surfaces-runway-lab`
+> **Task Name:** `nkai-workshop-intercom-scratchpad-sentinel`
 > **Target Pipeline:** `TARGET: TOOLING_HARNESS`
-> **Active Milestone:** `N'kai v0.3.5 / Ecosystem Tooling Hardening`
+> **Active Milestone:** `N'kai v0.3.6 / Ergonomics & Dialectic Suite`
 > **Recommended Model Tier:** `Tier 2 (Gemini 3.8 Flash High)`
-> **Status:** `COMPLETED ✅`
+> **Status:** `DRAFT / READY_FOR_PCDA 📋`
 
 ---
 
 ## 1. Flight Overview & Architecture
-This flight unifies the N'kai sidecar ecosystem into a clean, 3-surface workflow that eliminates context switching, prevents board sprawl, and delivers instant, zero-friction capture and triage:
-1. **Evergreen #1: The Mailbag (`morning_mail`)** — Daily human intake stream with an in-board Quick Capture input bar and debounced "Grab New Mail" button.
-2. **Evergreen #2: The Flight Runway (`runway`)** — Cross-project delivery horizon mapped directly from `docs/BACKLOG.md` Act III with `[ Active Flights | Shipped / Milestones | All ]` filter rails and Git-backed versioning.
-3. **Session Surface: The Lab (`lab`)** — A single active ephemeral slot (Grill-Me, Research, Spikes) pinned in the chat footer with an "ALL CLEAR" triumph banner and 3-state lifecycle (`ACTIVE` ➔ `STAGED` ➔ `ARCHIVED`).
-4. **Chat-Driven Re-sequencing** — Zero UI drag-and-drop complexity; strategic roadmap ordering is executed via chat commands (`/audit-reorder`, `/rejigger`).
-5. **The Scratchpad Protocol** — Dedicated [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) file for stream-of-consciousness reading notes, permanently excluded from mailbag scans and linked in chat footers.
+This flight transforms the N'kai companion ecosystem into a physical desktop analog, pairs it with a living two-way intercom HUD, and completely eliminates friction in mobile capturing and reading note workflows:
+1. **The Physical Workshop Cutting Mat (`🛠️ Active Workshop`)** — Implements the physical desktop analog where the In-Tray (`morning_mail`) is a rapid-fire conveyor belt to zero, while the Cutting Mat (`workshop`) locks exactly ONE card on stage for deep Option A/B/C research. Exiting the cutting mat strictly requires a physical filing decision (`[ 📥 Backlog ]`, `[ 🗂️ Tabled ]`, `[ 🪦 Graveyard ]`).
+2. **Card #0: Pinned Agent Intercom HUD Banner** — An expandable status banner docked below the header displaying the latest agent briefing, flight completion notes, pending human approval counts, and live Scratchpad urgency telemetry.
+3. **Zero-Token Scratchpad Sentinel (`tools/nkai_serve.py`)** — Sub-0.1ms filesystem watcher tracking `C:\_\Vault\Inbox\SCRATCHPAD.md` line count and byte size for 0 LLM tokens, providing live urgency pills (`clean` ➔ `growing` ➔ `urgent`) and conditional delta ingestion.
+4. **Mobile Touch Ergonomics & Native Keyboard Sheet** — Collapsible cards (saving 60% vertical space on mobile), per-card state refresh, and a native slide-out `<textarea>` sheet that reliably summons iOS Safari / iPad virtual keyboards without Monaco or webview focus traps.
+5. **2-Round Heavy PCDA Automation Harness (`tools/heavy_pcda.py`)** — Codified CLI runner implementing the 2-round online dialectic crucible.
 
 ---
 
 ## 2. Phase-by-Phase Execution Checklist
 
-### Phase 1: Scratchpad & 3-Surface Ambient Navigation
-- [x] 1.1. Codify ambient footer navigation rule in `GEMINI.md`:
-  `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
-- [x] 1.2. In `tools/models.py`, add `board_type: str = "custom"` to `BoardSchema` (`"evergreen"`, `"lab"`, `"custom"`).
-- [x] 1.3. In `tools/models.py`, update `BoardRegistry` with `active_lab_id: Optional[str] = None` and `staged_labs: List[str] = []`.
-- [x] 1.4. Mirror `tools/models.py` to `c:\Dev\nkai\tools/models.py` and `nkai/bundle/tools/models.py`.
+### Phase 1: Zero-Token Scratchpad Sentinel & API Suite (`nkai_serve.py`)
+- [ ] 1.1. In `tools/nkai_serve.py`, implement `ScratchpadSentinel`:
+  - `inspect_scratchpad()`: Performs `os.stat()` on `C:\_\Vault\Inbox\SCRATCHPAD.md` (fallback to `docs/inbox/SCRATCHPAD.md`).
+  - Implements `safe_file_stat()` with 3-retry 50ms exponential backoff to eliminate Windows `PermissionError [WinError 32]` during background Obsidian Sync.
+  - Calculates line count, byte size, hash, and urgency level (`clean` < 25 lines, `growing` 25-80 lines, `urgent` > 80 lines).
+  - Compute cost: `<0.1ms` CPU, 0 LLM tokens.
+- [ ] 1.2. Implement REST endpoints in `nkai_serve.py`:
+  - `GET /api/scratchpad/status`: Returns `{ exists, lines, bytes, mtime, urgency, has_unread }`.
+  - `GET /api/scratchpad/content`: Returns raw text payload for the slide-out sheet.
+  - `POST /api/scratchpad/append`: Receives `{ text }`, appends `- [<HH:MM>] <text>` to `SCRATCHPAD.md`.
+  - `POST /api/scratchpad/triage`: Records current mtime as read, triggers agent ingest of delta lines.
+- [ ] 1.3. Update `/api/quick-note` to append to `SCRATCHPAD.md` by default (with optional `{ target: "inbox" }` override).
+- [ ] 1.4. Author unit test suite `tools/tests/test_scratchpad_sentinel.py` (assert 100% pass for status, delta detection, and zero-token behavior).
 
-### Phase 2: Mailbag In-Board Quick Capture & Daily Catchall
-- [x] 2.1. In `c:\Dev\nkai\sidecars\panel\main.mjs`, implement `POST /api/quick-note`:
-  - Receives `{ text: "..." }`.
-  - Determines today's catchall file path: `C:\_\Vault\Inbox/<YYYY-MM-DD>_Quick_Notes.md`.
-  - Initializes file with valid YAML frontmatter if missing; appends `- [<HH:MM>] <text>`.
-  - Ingests new item into `mail_queue.json` and returns created item payload.
-- [x] 2.2. In `c:\Dev\nkai\sidecars\panel\main.mjs`, implement `POST /api/check-mail`:
-  - Enforces 500ms debounce latch.
-  - Executes `python tools/check_mail.py --no-browser` and returns status.
-- [x] 2.3. In `c:\Dev\nkai\core\master_template.html` & `.agents/sidecar/master_template.html`:
-  - Add `#quick-capture-container` with `#quick-capture-input` and `#btn-quick-capture` in header tier.
-  - Add debounced `#btn-grab-mail` in header tier.
-  - Guard both elements to render strictly when `window.NKAI_EXTENSION_MODE === true`.
-- [x] 2.4. In `c:\Dev\nkai\core\sidecar.css` & `sidecar.js`:
-  - Add responsive styling for quick capture bar and grab button.
-  - Implement client-side `submitQuickNote()` and `triggerMailGrab()`.
-- [x] 2.5. Mirror templates across `TheKlangSuite`, `nkai/core`, and `nkai/bundle`.
+### Phase 2: Card #0 Pinned Agent Intercom HUD Banner
+- [ ] 2.1. In `.agents/pipeline/mailbag/`, define `agent_bulletin.json` schema (`briefing_title`, `briefing_text`, `status_badge`, `updated_at`, `pending_decisions_count`, `last_flight`).
+- [ ] 2.2. In `c:\Dev\nkai\core\master_template.html`:
+  - Insert `#agent-intercom-hud` container docked immediately beneath `.header-tier-bottom`.
+  - Structure as a compact ticker (28px height) with glowing Emerald/Cyan border, displaying:
+    - `🤖 Agent Briefing: <briefing_title>`
+    - Dynamic Scratchpad Urgency Pill: `<span id="hud-sp-pill" class="pill-sp">📝 SP: N lines</span>`
+    - Quick Action Buttons: `[ 👁️ Peek SP ]` · `[ 📖 Ingest ]` · `[ 💬 Expand ]`
+  - Clicking `[ 💬 Expand ]` toggles full markdown briefing accordion.
+- [ ] 2.3. In `c:\Dev\nkai\core\sidecar.css` & `sidecar.js`:
+  - Style `#agent-intercom-hud` with responsive styling and dynamic urgency color shifts (green/amber/coral).
+  - Implement polling/fetch for `/api/scratchpad/status` on board load and window focus.
+- [ ] 2.4. In `tools/flush_memory.py` and `tools/check_mail.py`:
+  - Auto-update `agent_bulletin.json` whenever memory flush, task finish, or mail reply runs.
 
-### Phase 3: The Flight Runway Board (`runway_board.html`)
-- [x] 3.1. Author `tools/build_runway.py`:
-  - Scans `docs/BACKLOG.md` Act III flights, milestone headers, and git tags.
-  - Generates declarative `BoardSchema(board_id="runway", title="Ecosystem Delivery Runway")`.
-  - Produces card hierarchy with Pillar, Status, and Action tags.
-  - Configures Filter Rails: `[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, `[ 📋 All ]`.
-  - Outputs to `.agents/sidecar/runway_board.html`.
-- [x] 3.2. Register `runway` in `.agents/pipeline/boards/registry.json` as `type: "evergreen"`.
-- [x] 3.3. Verify canonical mirroring to `nkai/sidecars/panel/runway_board.html`.
+### Phase 3: Mobile Ergonomics & Native Touch Input
+- [ ] 3.1. In `c:\Dev\nkai\core\master_template.html` & `sidecar.css`:
+  - Update card rendering for screens $\le$ 640px:
+    - Default to collapsed view: Header, priority, pillar, title, 1-line excerpt, and action chips visible.
+    - Card body/frontmatter/PCDA accordion collapsed by default.
+    - Tap card header to toggle expand/collapse with CSS height animation.
+- [ ] 3.2. Add per-card refresh button `#btn-card-refresh-<id>`:
+  - Re-fetches single card status from `/api/card/<id>` or local ledger without reloading entire DOM.
+- [ ] 3.3. Implement Native Mobile Scratchpad Sheet (`#scratchpad-drawer`):
+  - DOM-Resident Architecture: `<div id="scratchpad-drawer">` kept permanently rendered in the DOM (hidden via CSS `transform: translateY(100%)`) to satisfy iOS WebKit user-gesture security policies.
+  - Zero Monaco, zero hidden buffers; triggers `textarea.focus()` synchronously inside the user's tap handler, guaranteeing 100% reliable iOS Safari virtual keyboard invocation.
+  - Buttons: `[ ➕ Add Thought ]`, `[ 📋 Copy All ]`, `[ ✕ Close ]`.
 
-### Phase 4: Lab Board Lifecycle & "ALL CLEAR" Triumph
-- [x] 4.1. In `c:\Dev\nkai\core\master_template.html` & `sidecar.css`:
-  - Add `#lab-all-clear-banner` container with triumph styling, copy, and `[ 🏁 Conclude Lab & Stage Insights ]` button.
-- [x] 4.2. In `c:\Dev\nkai\core\sidecar.js`:
-  - Implement `checkAllClearState()` dynamically checking untriaged card counts.
-  - Implement `concludeCurrentLab()` posting to `/api/conclude-lab`.
-- [x] 4.3. Author `tools/conclude_lab.py`:
-  - Stages markdown takeaways to `.agents/pipeline/staging/souls/<YYYY-MM-DD>_<slug>_harvest.md`.
-  - Updates `registry.json` transitioning active lab to `staged_labs` and unpinning footer link.
-- [x] 4.4. In `main.mjs`, support `POST /api/conclude-lab` executing `tools/conclude_lab.py`.
+### Phase 4: The Physical Workshop Cutting Mat Metaphor
+- [ ] 4.1. In `c:\Dev\nkai\core\master_template.html`:
+  - Add primary named mode switcher to bottom rail: `[ 📬 INBOX ]` (`#mode-inbox`) and `[ 🛠️ WORKSHOP ]` (`#mode-workshop`).
+- [ ] 4.2. In `c:\Dev\nkai\core\sidecar.js`:
+  - Implement Workshop latching logic:
+    - Clicking `[ 🔬 Research ]` or `[ ⚖️ PCDA ]` on an inbox card sets `activeWorkshopCardId = cardId`, persists to `localStorage['nkai_active_workshop_item']`, and switches active mode to `workshop`.
+    - In `workshop` mode, all other cards are hidden; only the active workshop card is rendered in the center of the screen ("The Cutting Mat").
+    - Swipe-to-dismiss is strictly disabled on the Cutting Mat.
+- [ ] 4.3. Implement Physical Exit Gate & Ambient Return Hatch:
+  - Render prominent routing exit buttons on the Cutting Mat:
+    `[ 📥 Route to Backlog ]` · `[ 🗂️ Move to Tabled ]` · `[ 🪦 Send to Graveyard ]`
+  - Render ambient `[ ↩ In-Tray ]` button allowing user to step away to the In-Tray without archiving the active card (card remains safely pinned on the Cutting Mat until filed).
+  - Clicking any exit button executes the ledger update, clears `activeWorkshopCardId`, and smoothly transitions the view back to `[ 📬 INBOX ]`.
+- [ ] 4.4. In `tools/board_renderer.py`:
+  - Support rendering cards with a `[ 🛠️ Send to Workshop ]` action button when viewing Backlog or Tabled archives.
 
-### Phase 5: Automated Verification Gauntlet & Documentation
-- [x] 5.1. Author `tools/tests/test_runway_board.py`:
-  - Asserts schema validation, filter rail rendering, and clean generation.
-- [x] 5.2. Author `tools/tests/test_quick_capture.py`:
-  - Asserts catchall file creation, timestamped appending, and zero-mutation on other notes.
-- [x] 5.3. Run full test suite: `python -m unittest discover tools/tests/` (assert 100% PASS).
-- [x] 5.4. Run `python tools/audit_sidecar.py` across updated templates and boards (assert 0 errors).
-- [x] 5.5. Run `python tools/verify_utf8.py --strict` (assert 100% compliance).
-- [x] 5.6. Run `python tools/verify_context_clues.py` (assert 100% pass).
-- [x] 5.7. Author design specification: `docs/specs/nkai_three_surfaces_and_runway_board.md`.
-- [x] 5.8. Register in `docs/DOCS_CATALOG.json` and `docs/SYSTEM_MAP.md`.
-- [x] 5.9. Update `docs/GLOSSARY.md` (§26: Three-Surface Navigation & The Flight Runway) and `docs/CHEAT_SHEET.md`.
-- [x] 5.10. Mark Flight 20 complete in `docs/BACKLOG.md`.
-- [x] 5.11. Run `python tools/install_nkai_plugin.py` and restart supervisor.
-- [x] 5.12. Check all boxes `[x]` in `PLAN.md` and commit across `TheKlangSuite` and `nkai`.
+### Phase 5: 2-Round Heavy PCDA Automation Engine
+- [ ] 5.1. Author `tools/heavy_pcda.py`:
+  - CLI command: `python tools/heavy_pcda.py "<topic_or_plan_path>" [--online]`
+  - Enforces the 2-Round Dialectic Crucible:
+    - Round 1: Divergence with Assumption Inversion (Proposer vs Critic).
+    - Round 2: Cross-Critique with empirical grounding (`search_web`).
+    - Final Synthesis: 80/20 pragmatic resolution.
+  - Outputs structured Markdown and interactive HTML report to `.agents/sidecar/` and artifacts directory.
+- [ ] 5.2. Author unit test `tools/tests/test_heavy_pcda.py` asserting 2-round cap and proper schema output.
+
+---
+
+## 3. Verification & Acceptance Criteria
+1. **Zero-Token Sentinel**: `GET /api/scratchpad/status` executes in <1ms and consumes 0 LLM tokens; urgency pills shift from green to amber at 25 lines and coral at 80 lines.
+2. **Keyboard Reliability**: Mobile Scratchpad sheet opens with a real `<textarea>` that reliably triggers software keyboards on touch devices without focus traps.
+3. **Physical Workshop Gate**: Clicking `[ 🔬 Research ]` latches the card to `#mode-workshop`; leaving workshop mode is strictly impossible without selecting `[Backlog]`, `[Tabled]`, or `[Graveyard]`.
+4. **Card #0 HUD**: Docked intercom banner renders briefing and live scratchpad count; expands and collapses cleanly on tap.
+5. **Unit Tests**: 100% test pass across all new test files (`python -m unittest discover tools/tests/`).
