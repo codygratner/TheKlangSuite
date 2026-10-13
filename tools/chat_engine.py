@@ -184,6 +184,36 @@ def parse_transcript_turns(
                 current_turn["agent_response"] = content
                 current_turn["status"] = "done"
 
+    # Check for recent pending mobile prompt dispatches from action_history.jsonl (only in live workspace)
+    if conv_dir is None:
+        action_log = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "action_history.jsonl"
+        if action_log.exists():
+            try:
+                lines = action_log.read_text(encoding="utf-8").strip().splitlines()
+                for line in lines[-5:]:
+                    act = json.loads(line)
+                    if act.get("action") == "PROMPT_DISPATCH":
+                        p_text = act.get("prompt", "").strip()
+                        if p_text == "Testing chat send from mobile":
+                            continue
+                        already_in = any(
+                            p_text[:30] in t.get("user_prompt", "") or t.get("user_prompt", "")[:30] in p_text
+                            for t in turns[-5:]
+                        )
+                        if not already_in and p_text:
+                            turns.append({
+                                "turn_index": len(turns) + 1,
+                                "step_index": 999999,
+                                "timestamp": act.get("timestamp", ""),
+                                "user_prompt": p_text,
+                                "agent_response": "",
+                                "thinking": "",
+                                "tool_calls": [],
+                                "status": "pending"
+                            })
+            except Exception:
+                pass
+
     # Determine if agent is currently working
     is_running = False
     if turns:
@@ -218,8 +248,32 @@ def render_markdown_simple(md_text: str) -> str:
         return f'<pre class="chat-code-block"><code>{code_body}</code></pre>'
     escaped = re.sub(r'```(?:[a-zA-Z0-9_\-]+)?\n([\s\S]*?)```', code_repl, escaped)
 
+    # Inline images: ![alt](url)
+    def img_repl(m):
+        alt = m.group(1)
+        src = m.group(2).strip().replace("\\", "/")
+        if "/uploads/" in src:
+            fn = src.split("/uploads/")[1].split("?")[0]
+            src = f"/uploads/{fn}"
+        elif "/.user_uploaded/" in src:
+            fn = src.split("/.user_uploaded/")[1].split("?")[0]
+            src = f"/uploads/{fn}"
+        return f'<div class="chat-img-wrap"><img src="{src}" alt="{alt}" class="chat-inline-img" onclick="window.open(this.src)" title="Tap to expand"/><div class="chat-img-caption">📷 {alt or "Attached Photo"}</div></div>'
+
+    escaped = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', img_repl, escaped)
+
+    # Inline file attachments: [📎 label](url) or [label](url)
+    def file_repl(m):
+        label = m.group(2)
+        href = m.group(3).strip().replace("\\", "/")
+        if "/uploads/" in href:
+            fn = href.split("/uploads/")[1].split("?")[0]
+            href = f"/uploads/{fn}"
+        return f'<a href="{href}" target="_blank" class="chat-file-pill">📎 {label}</a>'
+
+    escaped = re.sub(r'\[(📎\s*)?([^\]]+)\]\(([^)]+)\)', file_repl, escaped)
+
     # Inline formatting
-    escaped = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank" rel="noopener noreferrer" class="chat-link">\1</a>', escaped)
     escaped = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', escaped)
     escaped = re.sub(r'`([^`]+)`', r'<code class="chat-inline-code">\1</code>', escaped)
 
@@ -288,7 +342,20 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      padding-bottom: 96px;
+      padding-bottom: 110px;
+    }}
+
+    /* Universal Mobile / iOS Ergonomics & Safe Area Insets */
+    @supports (-webkit-touch-callout: none) {{
+      .chat-header {{
+        padding-top: max(48px, calc(10px + env(safe-area-inset-top, 0px))) !important;
+      }}
+      .bottom-bar {{
+        padding-bottom: max(28px, calc(8px + env(safe-area-inset-bottom, 0px))) !important;
+      }}
+      body {{
+        padding-bottom: 140px !important;
+      }}
     }}
 
     /* Top Glassmorphic Navigation Header */
@@ -306,7 +373,8 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }}
     .header-title-group {{
       display: flex;
@@ -360,7 +428,10 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       margin-top: 8px;
       overflow-x: auto;
       padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }}
+    .header-actions::-webkit-scrollbar {{ display: none; }}
     .btn-pill {{
       background: var(--panel);
       border: 1px solid var(--border);
@@ -569,6 +640,7 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       gap: 6px;
       overflow-x: auto;
       padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }}
     .quick-chips-row::-webkit-scrollbar {{ display: none; }}
@@ -610,7 +682,7 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       padding: 10px 12px;
       color: #fff;
       font-family: var(--font-sans);
-      font-size: 14px;
+      font-size: 16px; /* 16px prevents iOS Safari auto-zoom on input focus */
       resize: none;
       outline: none;
       line-height: 1.4;
@@ -955,15 +1027,23 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       }}
     }}
 
+    let lastRenderedTurnsSig = '';
+
     function renderTurns(turns) {{
       const stream = document.getElementById('chat-stream');
       if (!stream || !turns || turns.length === 0) return;
 
-      if (turns.length === lastRenderedTurnsCount) {{
-        // State unchanged
+      const lastTurn = turns[turns.length - 1];
+      const lastSig = turns.length + ':' + (lastTurn ? (lastTurn.agent_response ? lastTurn.agent_response.length : 0) + ':' + (lastTurn.status || '') : '');
+      if (lastSig === lastRenderedTurnsSig) {{
         return;
       }}
-      lastRenderedTurnsCount = turns.length;
+      lastRenderedTurnsSig = lastSig;
+
+      const inp = document.getElementById('prompt-input');
+      const isInputFocused = (document.activeElement === inp);
+      const selStart = (isInputFocused && inp) ? inp.selectionStart : null;
+      const selEnd = (isInputFocused && inp) ? inp.selectionEnd : null;
 
       let htmlOut = '';
       turns.forEach(t => {{
@@ -1018,7 +1098,17 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       }});
 
       stream.innerHTML = htmlOut;
-      window.scrollTo({{ top: document.body.scrollHeight, behavior: 'smooth' }});
+
+      if (!isInputFocused) {{
+        window.scrollTo({{ top: document.body.scrollHeight, behavior: 'smooth' }});
+      }} else if (inp) {{
+        try {{
+          inp.focus({{ preventScroll: true }});
+          if (selStart !== null && selEnd !== null) {{
+            inp.setSelectionRange(selStart, selEnd);
+          }}
+        }} catch (e) {{}}
+      }}
     }}
 
     function escapeHtml(str) {{
@@ -1032,7 +1122,7 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
 
       // Inline Images: ![alt](url)
       escaped = escaped.replace(/!\\[([^\\]]*)\\]\\(([^)]+)\\)/g, (match, alt, src) => {{
-        let cleanSrc = src.trim();
+        let cleanSrc = src.trim().split('\\\\').join('/');
         if (cleanSrc.includes('/uploads/')) {{
           const fn = cleanSrc.split('/uploads/')[1].split('?')[0];
           cleanSrc = '/uploads/' + fn;
@@ -1045,7 +1135,7 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
 
       // Inline File attachments: [📎 label](url) or [label](url)
       escaped = escaped.replace(/\\[(📎\\s*)?([^\\]]+)\\]\\(([^)]+)\\)/g, (match, icon, label, href) => {{
-        let cleanHref = href.trim();
+        let cleanHref = href.trim().split('\\\\').join('/');
         if (cleanHref.includes('/uploads/')) {{
           const fn = cleanHref.split('/uploads/')[1].split('?')[0];
           cleanHref = '/uploads/' + fn;
