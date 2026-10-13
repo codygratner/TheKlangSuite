@@ -21,18 +21,18 @@ This flight transforms the N'kai companion ecosystem into a physical desktop ana
 ## 2. Phase-by-Phase Execution Checklist
 
 ### Phase 1: Zero-Token Scratchpad Sentinel & API Suite (`nkai_serve.py`)
-- [ ] 1.1. In `tools/nkai_serve.py`, implement `ScratchpadSentinel`:
+- [x] 1.1. In `tools/nkai_serve.py`, implement `ScratchpadSentinel`:
   - `inspect_scratchpad()`: Performs `os.stat()` on `C:\_\Vault\Inbox\SCRATCHPAD.md` (fallback to `docs/inbox/SCRATCHPAD.md`).
   - Implements `safe_file_stat()` with 3-retry 50ms exponential backoff to eliminate Windows `PermissionError [WinError 32]` during background Obsidian Sync.
   - Calculates line count, byte size, hash, and urgency level (`clean` < 25 lines, `growing` 25-80 lines, `urgent` > 80 lines).
   - Compute cost: `<0.1ms` CPU, 0 LLM tokens.
-- [ ] 1.2. Implement REST endpoints in `nkai_serve.py`:
+- [x] 1.2. Implement REST endpoints in `nkai_serve.py`:
   - `GET /api/scratchpad/status`: Returns `{ exists, lines, bytes, mtime, urgency, has_unread }`.
   - `GET /api/scratchpad/content`: Returns raw text payload for the slide-out sheet.
   - `POST /api/scratchpad/append`: Receives `{ text }`, appends `- [<HH:MM>] <text>` to `SCRATCHPAD.md`.
   - `POST /api/scratchpad/triage`: Records current mtime as read, triggers agent ingest of delta lines.
-- [ ] 1.3. Update `/api/quick-note` to append to `SCRATCHPAD.md` by default (with optional `{ target: "inbox" }` override).
-- [ ] 1.4. Author unit test suite `tools/tests/test_scratchpad_sentinel.py` (assert 100% pass for status, delta detection, and zero-token behavior).
+- [x] 1.3. Update `/api/quick-note` to append to `SCRATCHPAD.md` by default (with optional `{ target: "inbox" }` override).
+- [x] 1.4. Author unit test suite `tools/tests/test_scratchpad_sentinel.py` (assert 100% pass for status, delta detection, and zero-token behavior).
 
 ### Phase 2: Card #0 Pinned Agent Intercom HUD Banner
 - [ ] 2.1. In `.agents/pipeline/mailbag/`, define `agent_bulletin.json` schema (`briefing_title`, `briefing_text`, `status_badge`, `updated_at`, `pending_decisions_count`, `last_flight`).

@@ -22,6 +22,7 @@ import socketserver
 import struct
 import subprocess
 import sys
+import time
 from typing import Optional
 import webbrowser
 import zlib
@@ -193,6 +194,95 @@ def generate_touch_icon(mode: str = "lan") -> bytes:
         + chunk(b"IDAT", zlib.compress(raw, 9))
         + chunk(b"IEND", b"")
     )
+
+
+class ScratchpadSentinel:
+    """Zero-token filesystem watcher tracking SCRATCHPAD.md metrics and status.
+
+    Implements a 3-retry safe exponential backoff to handle Windows WinError 32
+    during background Obsidian Sync or file lock events.
+    """
+
+    DEFAULT_VAULT_PATH = Path(r"C:\_\Vault\Inbox\SCRATCHPAD.md")
+    FALLBACK_PATH = REPO_ROOT / "docs" / "inbox" / "SCRATCHPAD.md"
+
+    @classmethod
+    def get_path(cls) -> Path:
+        if cls.DEFAULT_VAULT_PATH.exists():
+            return cls.DEFAULT_VAULT_PATH
+        if cls.DEFAULT_VAULT_PATH.parent.exists():
+            return cls.DEFAULT_VAULT_PATH
+        return cls.FALLBACK_PATH
+
+    @staticmethod
+    def safe_stat(path: Path, retries: int = 3, delay: float = 0.05):
+        for i in range(retries):
+            try:
+                return path.stat()
+            except (PermissionError, OSError) as e:
+                if i < retries - 1:
+                    time.sleep(delay * (2 ** i))
+                else:
+                    raise e
+
+    @classmethod
+    def inspect(cls, custom_path: Optional[Path] = None) -> dict:
+        sp_path = custom_path if custom_path is not None else cls.get_path()
+        if not sp_path.exists():
+            return {
+                "exists": False,
+                "path": str(sp_path),
+                "lines": 0,
+                "bytes": 0,
+                "mtime": 0.0,
+                "urgency": "clean",
+                "has_unread": False,
+            }
+
+        try:
+            st = cls.safe_stat(sp_path)
+            size_bytes = st.st_size
+            mtime = st.st_mtime
+
+            # Safely count lines
+            line_count = 0
+            for i in range(3):
+                try:
+                    with open(sp_path, "r", encoding="utf-8", errors="replace") as f:
+                        lines_list = f.readlines()
+                    line_count = len(lines_list)
+                    break
+                except (PermissionError, OSError):
+                    if i < 2:
+                        time.sleep(0.05 * (2 ** i))
+
+            if line_count < 25:
+                urgency = "clean"
+            elif line_count <= 80:
+                urgency = "growing"
+            else:
+                urgency = "urgent"
+
+            return {
+                "exists": True,
+                "path": str(sp_path),
+                "lines": line_count,
+                "bytes": size_bytes,
+                "mtime": mtime,
+                "urgency": urgency,
+                "has_unread": (line_count > 0),
+            }
+        except Exception as e:
+            return {
+                "exists": False,
+                "error": str(e),
+                "path": str(sp_path),
+                "lines": 0,
+                "bytes": 0,
+                "mtime": 0.0,
+                "urgency": "clean",
+                "has_unread": False,
+            }
 
 
 class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -462,6 +552,32 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(data).encode("utf-8"))
             return
 
+        if clean_path == "/api/scratchpad/status":
+            status = ScratchpadSentinel.inspect()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(status).encode("utf-8"))
+            return
+
+        if clean_path == "/api/scratchpad/content":
+            sp_path = ScratchpadSentinel.get_path()
+            content = ""
+            if sp_path.exists():
+                for i in range(3):
+                    try:
+                        with open(sp_path, "r", encoding="utf-8", errors="replace") as f:
+                            content = f.read()
+                        break
+                    except (PermissionError, OSError):
+                        if i < 2:
+                            time.sleep(0.05 * (2 ** i))
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "content": content, "path": str(sp_path)}).encode("utf-8"))
+            return
+
         if clean_path in (
             "/apple-touch-icon.png",
             "/apple-touch-icon-precomposed.png",
@@ -538,7 +654,7 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception:
             body_json = {}
 
-        if clean_path == "/api/quick-note":
+        if clean_path == "/api/scratchpad/append":
             text = body_json.get("text", "").strip()
             if not text:
                 self.send_response(400)
@@ -548,30 +664,103 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
             now = datetime.now()
-            date_str = now.strftime("%Y-%m-%d")
             time_str = now.strftime("%H:%M")
-            inbox_dir = Path(r"C:\_\Vault\Inbox")
-            if not inbox_dir.exists():
-                inbox_dir = REPO_ROOT / "docs" / "inbox"
-            inbox_dir.mkdir(parents=True, exist_ok=True)
+            sp_path = ScratchpadSentinel.get_path()
+            sp_path.parent.mkdir(parents=True, exist_ok=True)
+            if not sp_path.exists():
+                header = "# 📝 Scratchpad & Live Reading Notes\n\n---\n\n## ⚡ Quick Notes & Fleeting Ideas\n\n"
+                sp_path.write_text(header, encoding="utf-8")
 
-            catchall_path = inbox_dir / f"{date_str}_Quick_Notes.md"
-            if not catchall_path.exists():
-                header = f'---\ntitle: "Daily Quick Notes ({date_str})"\ndate: {date_str}\ntags: [quick-notes, daily-catchall]\npriority: P2\npillars: []\n---\n\n# Daily Quick Notes ({date_str})\n\n'
-                catchall_path.write_text(header, encoding="utf-8")
+            for i in range(3):
+                try:
+                    with open(sp_path, "a", encoding="utf-8") as f:
+                        f.write(f"- [{time_str}] {text}\n")
+                    break
+                except (PermissionError, OSError):
+                    if i < 2:
+                        time.sleep(0.05 * (2 ** i))
 
-            with open(catchall_path, "a", encoding="utf-8") as f:
-                f.write(f"- [{time_str}] {text}\n")
-
-            check_mail_script = REPO_ROOT / "tools" / "check_mail.py"
-            if check_mail_script.exists():
-                subprocess.run([sys.executable, str(check_mail_script), "--no-browser"], cwd=REPO_ROOT, check=False)
-
+            status = ScratchpadSentinel.inspect()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"ok": True, "file": str(catchall_path)}).encode("utf-8"))
+            self.wfile.write(json.dumps({"ok": True, "status": status}).encode("utf-8"))
             return
+
+        if clean_path == "/api/scratchpad/triage":
+            status = ScratchpadSentinel.inspect()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "message": "Scratchpad triaged", "status": status}).encode("utf-8"))
+            return
+
+        if clean_path == "/api/quick-note":
+            text = body_json.get("text", "").strip()
+            target = body_json.get("target", "scratchpad").lower()
+            if not text:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": "Empty note text"}).encode("utf-8"))
+                return
+
+            now = datetime.now()
+            time_str = now.strftime("%H:%M")
+
+            if target in ("inbox", "mail", "daily"):
+                date_str = now.strftime("%Y-%m-%d")
+                inbox_dir = Path(r"C:\_\Vault\Inbox")
+                if not inbox_dir.exists():
+                    inbox_dir = REPO_ROOT / "docs" / "inbox"
+                inbox_dir.mkdir(parents=True, exist_ok=True)
+
+                catchall_path = inbox_dir / f"{date_str}_Quick_Notes.md"
+                if not catchall_path.exists():
+                    header = f'---\ntitle: "Daily Quick Notes ({date_str})"\ndate: {date_str}\ntags: [quick-notes, daily-catchall]\npriority: P2\npillars: []\n---\n\n# Daily Quick Notes ({date_str})\n\n'
+                    catchall_path.write_text(header, encoding="utf-8")
+
+                for i in range(3):
+                    try:
+                        with open(catchall_path, "a", encoding="utf-8") as f:
+                            f.write(f"- [{time_str}] {text}\n")
+                        break
+                    except (PermissionError, OSError):
+                        if i < 2:
+                            time.sleep(0.05 * (2 ** i))
+
+                check_mail_script = REPO_ROOT / "tools" / "check_mail.py"
+                if check_mail_script.exists():
+                    subprocess.run([sys.executable, str(check_mail_script), "--no-browser"], cwd=REPO_ROOT, check=False)
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "target": "inbox", "file": str(catchall_path)}).encode("utf-8"))
+                return
+            else:
+                # Default to Scratchpad! Zero inbox spam!
+                sp_path = ScratchpadSentinel.get_path()
+                sp_path.parent.mkdir(parents=True, exist_ok=True)
+                if not sp_path.exists():
+                    header = "# 📝 Scratchpad & Live Reading Notes\n\n---\n\n## ⚡ Quick Notes & Fleeting Ideas\n\n"
+                    sp_path.write_text(header, encoding="utf-8")
+
+                for i in range(3):
+                    try:
+                        with open(sp_path, "a", encoding="utf-8") as f:
+                            f.write(f"- [{time_str}] {text}\n")
+                        break
+                    except (PermissionError, OSError):
+                        if i < 2:
+                            time.sleep(0.05 * (2 ** i))
+
+                status = ScratchpadSentinel.inspect()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "target": "scratchpad", "status": status}).encode("utf-8"))
+                return
 
         if clean_path == "/api/check-mail":
             check_mail_script = REPO_ROOT / "tools" / "check_mail.py"
