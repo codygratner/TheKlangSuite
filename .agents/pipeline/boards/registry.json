@@ -24,7 +24,7 @@
       "file_path": ".agents/sidecar/runway_board.html",
       "environment": "PRODUCTION",
       "card_count": 39,
-      "updated_at": "2026-10-12T23:48:05.878660"
+      "updated_at": "2026-10-13T00:27:04.095275"
     },
     {
       "id": "system_sanity_audit",
@@ -68,7 +68,7 @@
       "file_path": ".agents/sidecar/chat_board.html",
       "environment": "PRODUCTION",
       "card_count": 1,
-      "updated_at": "2026-10-12T23:47:35.437301"
+      "updated_at": "2026-10-13T00:26:31.519683"
     }
   ]
 }

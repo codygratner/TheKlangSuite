@@ -69,6 +69,15 @@ DEFAULT_MAPPINGS = [
             ("NKAI", "bundle/templates/context_clues_template.md"),
         ],
     },
+    {
+        "id": "chat_board",
+        "description": "N'kai Agent Intercom & Live Chat Board",
+        "source": ("TKS", ".agents/sidecar/chat_board.html"),
+        "targets": [
+            ("NKAI", "sidecars/panel/chat_board.html"),
+            ("NKAI", "plugin/sidecars/panel/chat_board.html"),
+        ],
+    },
 ]
 
 

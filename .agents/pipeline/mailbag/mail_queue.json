@@ -1,9 +1,127 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T23:41:21.143360",
-  "total_items": 8,
+  "last_scanned": "2026-10-13T00:25:36.394022",
+  "total_items": 13,
   "p0_count": 0,
   "items": [
+    {
+      "id": "Should all building and plan writing be done by subagents",
+      "title": "Should all building and plan writing be done by subagents",
+      "created_at": "2026-10-13",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "quick-note",
+        "staged"
+      ],
+      "target_pillars": [
+        "NK"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\Should all building and plan writing be done by subagents.md",
+      "preview": "(quick note — title only)",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 25,
+      "word_count": 5,
+      "tier": "tier2",
+      "body": "(quick note — title only)",
+      "excerpt": "(quick note — title only)",
+      "file_name": "Should all building and plan writing be done by subagents.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\Should all building and plan writing be done by subagents.md",
+      "source_note": "",
+      "idx": 1,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "dossier": null,
+      "pillars": [
+        "NK"
+      ]
+    },
+    {
+      "id": "Dot files and folders",
+      "title": "Dot files and folders",
+      "created_at": "2026-10-13",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "staged"
+      ],
+      "target_pillars": [
+        "TKS"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\Dot files and folders.md",
+      "preview": "I think you said obsidian ignores them. Can we use those for the “non-vault” stuff in the vault, like tools and scratch?",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 120,
+      "word_count": 22,
+      "tier": "tier2",
+      "body": "I think you said obsidian ignores them. Can we use those for the “non-vault” stuff in the vault, like tools and scratch?",
+      "excerpt": "I think you said obsidian ignores them. Can we use those for the “non-vault” stuff in the vault, like tools and scratch?",
+      "file_name": "Dot files and folders.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\Dot files and folders.md",
+      "source_note": "",
+      "idx": 2,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "dossier": null,
+      "pillars": [
+        "TKS"
+      ]
+    },
+    {
+      "id": "PCDACore and lenses",
+      "title": "PCDACore and lenses",
+      "created_at": "2026-10-13",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "staged"
+      ],
+      "target_pillars": [
+        "TKS"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\PCDACore and lenses.md",
+      "preview": "Should it include the lenses and how to set them? And some options for different use cases?",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 91,
+      "word_count": 17,
+      "tier": "tier2",
+      "body": "Should it include the lenses and how to set them? And some options for different use cases?",
+      "excerpt": "Should it include the lenses and how to set them? And some options for different use cases?",
+      "file_name": "PCDACore and lenses.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\PCDACore and lenses.md",
+      "source_note": "",
+      "idx": 3,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "dossier": null,
+      "pillars": [
+        "TKS"
+      ]
+    },
     {
       "id": "Live_Reading_Notes_Protocol",
       "title": "Interactive Stream-of-Consciousness Feedback & Live Reading Notes Protocol",
@@ -35,7 +153,7 @@
       "file_name": "Live_Reading_Notes_Protocol.md",
       "rel_path": "C:\\Dev\\TheKlangVault\\Inbox\\Tabled\\Live_Reading_Notes_Protocol.md",
       "source_note": "",
-      "idx": 1,
+      "idx": 4,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -43,6 +161,7 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
       "pillars": [
         "NK",
         "AGY",
@@ -50,32 +169,32 @@
       ]
     },
     {
-      "id": "Untitled",
-      "title": "Untitled",
+      "id": "PCDACore GitHub",
+      "title": "PCDACore GitHub",
       "created_at": "2026-10-12",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
-        "quick-note"
+        "staged"
       ],
       "target_pillars": [
         "NK"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\Untitled.md",
-      "preview": "(quick note — title only)",
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\PCDACore GitHub.md",
+      "preview": "Should we make a public PCDACore GitHub repo, so we can use semver for it. And, is isolated for sharing? If it’s part of Nkai, it might scare some people off? If it’s JUST the engines, it probably seems less sketchy? Not sure. But, if so? GPLv3 and contribution stuff and all the ...",
       "dependencies": [],
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 25,
-      "word_count": 5,
+      "char_count": 287,
+      "word_count": 54,
       "tier": "tier2",
-      "body": "(quick note — title only)",
-      "excerpt": "(quick note — title only)",
-      "file_name": "Untitled.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\Untitled.md",
+      "body": "Should we make a public PCDACore GitHub repo, so we can use semver for it. And, is isolated for sharing? If it’s part of Nkai, it might scare some people off? If it’s JUST the  engines, it probably seems less sketchy? Not sure. But, if so? GPLv3 and contribution stuff and all the things",
+      "excerpt": "Should we make a public PCDACore GitHub repo, so we can use semver for it. And, is isolated for sharing? If it’s part of Nkai, it might scare some people off? If it’s JUST the engines, it probably seems less sketchy? Not sure. But, if so? GPLv3 and contribution stuff and all the ...",
+      "file_name": "PCDACore GitHub.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\PCDACore GitHub.md",
       "source_note": "",
-      "idx": 2,
+      "idx": 5,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -83,6 +202,85 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
+      "pillars": [
+        "NK"
+      ]
+    },
+    {
+      "id": "Nkai Mobile",
+      "title": "Nkai Mobile",
+      "created_at": "2026-10-12",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "staged"
+      ],
+      "target_pillars": [
+        "NK"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\Nkai Mobile.md",
+      "preview": "Can we fix the scrolling and overflow and the header and footer moving. I have mobile screenshots to add if they didn’t get uploaded from the mobile chat when you were building the rest of the flight paths last night",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 216,
+      "word_count": 40,
+      "tier": "tier2",
+      "body": "Can we fix the scrolling and overflow and the header and footer moving. I have mobile screenshots to add if they didn’t get uploaded from the mobile chat when you were building the rest of the flight paths last night",
+      "excerpt": "Can we fix the scrolling and overflow and the header and footer moving. I have mobile screenshots to add if they didn’t get uploaded from the mobile chat when you were building the rest of the flight paths last night",
+      "file_name": "Nkai Mobile.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\Nkai Mobile.md",
+      "source_note": "",
+      "idx": 6,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "dossier": null,
+      "pillars": [
+        "NK"
+      ]
+    },
+    {
+      "id": "Staging area for inbox",
+      "title": "Staging area for inbox",
+      "created_at": "2026-10-12",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [
+        "staged"
+      ],
+      "target_pillars": [
+        "NK"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\Staging area for inbox.md",
+      "preview": "Since we don’t archive immediately, can we make a staging area to move them to, so they’re not in the inbox, but not lost in the archive already?",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 145,
+      "word_count": 28,
+      "tier": "tier2",
+      "body": "Since we don’t archive immediately, can we make a staging area to move them to, so they’re not in the inbox, but not lost in the archive already?",
+      "excerpt": "Since we don’t archive immediately, can we make a staging area to move them to, so they’re not in the inbox, but not lost in the archive already?",
+      "file_name": "Staging area for inbox.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\Staging area for inbox.md",
+      "source_note": "",
+      "idx": 7,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "dossier": null,
       "pillars": [
         "NK"
       ]
@@ -93,11 +291,13 @@
       "created_at": "2026-10-12",
       "priority": "P2",
       "status": "PENDING",
-      "tags": [],
+      "tags": [
+        "staged"
+      ],
       "target_pillars": [
         "TKR"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\Mega PCDA Gauntlet.md",
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\Mega PCDA Gauntlet.md",
       "preview": "Should we run heavy online PCDA on all outstanding plans and close to running backlog items and a lot of our current code (as an audit of what we’ve done so far with all projects)? Is this a waste of time?",
       "dependencies": [],
       "verdict": null,
@@ -109,9 +309,9 @@
       "body": "Should we run heavy online PCDA on all outstanding plans and close to running backlog items and a lot of our current code (as an audit of what we’ve done so far with all projects)?\n\nIs this a waste of time?",
       "excerpt": "Should we run heavy online PCDA on all outstanding plans and close to running backlog items and a lot of our current code (as an audit of what we’ve done so far with all projects)? Is this a waste of time?",
       "file_name": "Mega PCDA Gauntlet.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\Mega PCDA Gauntlet.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\Mega PCDA Gauntlet.md",
       "source_note": "",
-      "idx": 3,
+      "idx": 8,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -119,6 +319,7 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
       "pillars": [
         "TKR"
       ]
@@ -129,11 +330,13 @@
       "created_at": "2026-10-12",
       "priority": "P2",
       "status": "PENDING",
-      "tags": [],
+      "tags": [
+        "staged"
+      ],
       "target_pillars": [
         "TKS"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\PCDA Engine Names.md",
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\PCDA Engine Names.md",
       "preview": "We need better names that are short and snappy for the 4 engines. Maybe like tiered? Or better acronyms. Probably good ones for me and reasonable ones for the PCDA Core (for sharing)",
       "dependencies": [],
       "verdict": null,
@@ -145,9 +348,9 @@
       "body": "We need better names that are short and snappy for the 4 engines. Maybe like tiered? Or better acronyms. Probably good ones for me and reasonable ones for the PCDA Core (for sharing)",
       "excerpt": "We need better names that are short and snappy for the 4 engines. Maybe like tiered? Or better acronyms. Probably good ones for me and reasonable ones for the PCDA Core (for sharing)",
       "file_name": "PCDA Engine Names.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\PCDA Engine Names.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\PCDA Engine Names.md",
       "source_note": "",
-      "idx": 4,
+      "idx": 9,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -155,6 +358,7 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
       "pillars": [
         "TKS"
       ]
@@ -165,11 +369,13 @@
       "created_at": "2026-10-12",
       "priority": "P2",
       "status": "PENDING",
-      "tags": [],
+      "tags": [
+        "staged"
+      ],
       "target_pillars": [
         "TKR"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\normal vs heavy pcda.md",
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\normal vs heavy pcda.md",
       "preview": "can we benchmark normal vs heavy pcda? based on effectiveness and token churn? do we need to really have two when just heavy is probably the better option even WITH more token churn? maybe we have PCDA and \"lite PCDA\"? maybe you can do some research and see what would be good top...",
       "dependencies": [],
       "verdict": null,
@@ -181,9 +387,9 @@
       "body": "can we benchmark normal vs heavy pcda? based on effectiveness and token churn? do we need to really have two when just heavy is probably the better option even WITH more token churn? maybe we have PCDA and \"lite PCDA\"?\n\nmaybe you can do some research and see what would be good topics to benchmark this with?",
       "excerpt": "can we benchmark normal vs heavy pcda? based on effectiveness and token churn? do we need to really have two when just heavy is probably the better option even WITH more token churn? maybe we have PCDA and \"lite PCDA\"? maybe you can do some research and see what would be good top...",
       "file_name": "normal vs heavy pcda.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\normal vs heavy pcda.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\normal vs heavy pcda.md",
       "source_note": "",
-      "idx": 5,
+      "idx": 10,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -191,6 +397,7 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
       "pillars": [
         "TKR"
       ]
@@ -201,11 +408,13 @@
       "created_at": "2026-10-12",
       "priority": "P2",
       "status": "PENDING",
-      "tags": [],
+      "tags": [
+        "staged"
+      ],
       "target_pillars": [
         "AGY"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\NkaiCore.md",
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\NkaiCore.md",
       "preview": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDACore to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to hopefully test it?",
       "dependencies": [],
       "verdict": null,
@@ -217,9 +426,9 @@
       "body": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDACore to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to hopefully test it?",
       "excerpt": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDACore to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to hopefully test it?",
       "file_name": "NkaiCore.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\NkaiCore.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\NkaiCore.md",
       "source_note": "",
-      "idx": 6,
+      "idx": 11,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -227,6 +436,7 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
       "pillars": [
         "AGY"
       ]
@@ -237,11 +447,13 @@
       "created_at": "2026-10-12",
       "priority": "P2",
       "status": "PENDING",
-      "tags": [],
+      "tags": [
+        "staged"
+      ],
       "target_pillars": [
         "TKS"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\Korg Logue SDK Stuff and CTAG DSP.md",
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\Korg Logue SDK Stuff and CTAG DSP.md",
       "preview": "for TKS can we integrate any of the \"logue sdk\" stuff for the Korg product range? only ones that are FOSS from the community, not paid ones or official korg ones (unless they're foss) can we include the synth stuff from the CTAG TBD DSP stuff as osc types?",
       "dependencies": [],
       "verdict": null,
@@ -253,9 +465,9 @@
       "body": "for TKS\n\ncan we integrate any of the \"logue sdk\" stuff for the Korg product range? only ones that are FOSS from the community, not paid ones or official korg ones (unless they're foss)\n\ncan we include the synth stuff from the CTAG TBD DSP stuff as osc types?",
       "excerpt": "for TKS can we integrate any of the \"logue sdk\" stuff for the Korg product range? only ones that are FOSS from the community, not paid ones or official korg ones (unless they're foss) can we include the synth stuff from the CTAG TBD DSP stuff as osc types?",
       "file_name": "Korg Logue SDK Stuff and CTAG DSP.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\Korg Logue SDK Stuff and CTAG DSP.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\Korg Logue SDK Stuff and CTAG DSP.md",
       "source_note": "",
-      "idx": 7,
+      "idx": 12,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -263,6 +475,7 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
       "pillars": [
         "TKS"
       ]
@@ -274,13 +487,14 @@
       "priority": "P2",
       "status": "PENDING",
       "tags": [
-        "quick-note"
+        "quick-note",
+        "staged"
       ],
       "target_pillars": [
         "NK",
         "AGY"
       ],
-      "source_file": "C:\\_\\Vault\\Inbox\\Can we make a template that adds the front matter on a new note.md",
+      "source_file": "C:\\_\\Vault\\Inbox\\Staging\\Can we make a template that adds the front matter on a new note.md",
       "preview": "(quick note — title only)",
       "dependencies": [],
       "verdict": null,
@@ -292,9 +506,9 @@
       "body": "(quick note — title only)",
       "excerpt": "(quick note — title only)",
       "file_name": "Can we make a template that adds the front matter on a new note.md",
-      "rel_path": "C:\\_\\Vault\\Inbox\\Can we make a template that adds the front matter on a new note.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\Staging\\Can we make a template that adds the front matter on a new note.md",
       "source_note": "",
-      "idx": 8,
+      "idx": 13,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -302,6 +516,7 @@
       "agent_reply": null,
       "agent_reply_at": null,
       "has_reply": false,
+      "dossier": null,
       "pillars": [
         "NK",
         "AGY"

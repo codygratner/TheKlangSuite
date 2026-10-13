@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-10-12T23:47:35.126425",
-  "briefing_title": "Mobile Prompt: Testing chat send from mobile",
-  "briefing_text": "Testing chat send from mobile",
+  "updated_at": "2026-10-13T00:27:32.860503",
+  "briefing_title": "Mobile Prompt: Self-test verification of mobile prompt ",
+  "briefing_text": "Self-test verification of mobile prompt note persistence",
   "status_badge": "DISPATCHED \ud83d\ude80",
   "pending_decisions_count": 0,
   "last_flight": "Flight 22",

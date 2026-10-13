@@ -1415,6 +1415,43 @@ Extract a clean, standalone GitHub Template Repository incorporating all lessons
 - [x] **Cross-Pillar Governance Sync**: Authored universal `CONTRIBUTING.md` and `.github/PULL_REQUEST_TEMPLATE.md` across `TheKlangSuite`, `ToadTracker`, and `nkai`.
 - [x] **10/10 EXCEED Audit Scorecard**: Re-evaluated all 10 criteria against `https://www.opensourceprojects.dev/post/anti-slop`, achieving 10/10 EXCEED / SOTA ratings across the ecosystem.
 
+### 16. PCDACore Standalone Repo Package (v1.0.0) — ✅ COMPLETED
+*Goal: Provide a standalone, zero-dependency cognitive shield for AI pair-programming enforcing Method B+ Hegelian Dialectics.*
+- [x] **Standalone Git Repository (`C:\Dev\PCDACore`)**: Initialized clean git repository ready for GitHub (`codygratner/pcda-core`).
+- [x] **Canonical Rule (`PCDACore.md`)**: Engineered <50-line Method B+ prompt rule enforcing *"Where I Disagree With The Prompt"* and *"Steel-Manned Intent & Constructive Lateral Alternatives"*.
+- [x] **Pluggable Domain Lenses (`lenses.json`)**: Configured 4 domain profiles: Systems Engineering, Audio & DSP, Studio & Hardware, Creative & Narrative.
+- [x] **Multi-Agent Configurations**: Authored drop-in `.cursorrules`, `GEMINI.md`, and `CLAUDE.md`.
+- [x] **Architecture Spec**: Documented in `docs/specs/spinoffs/pcda_core_spec.md`.
+
+---
+
+### 17. N'kai Mobile Layout Polish & Touch Viewport Hardening — ✅ COMPLETED
+*Goal: Fix mobile Safari scrolling, overflow, jumping headers, keyboard dismiss, and send pipeline.*
+- [x] **100dvh Flex-Column App-Shell**: Replaced floating fixed/sticky elements in `chat_board.html` with a strict `100dvh` flex-column structure (`.chat-header` flex-shrink 0, `#chat-stream` flex 1 overflow-y auto, `.bottom-bar` flex-shrink 0). Text physically cannot scroll behind or over headers/footers.
+- [x] **Surgical Typing Guard (Keyboard Protection)**: Prevented DOM destruction while `prompt-input` is focused. Only updates the last turn in-place, eliminating iOS Safari soft keyboard dismiss.
+- [x] **Instant Message Send & Robust Fallback**: Immediately appends user prompt to the chat feed with a `🚀 Queued` status chip. Attempts Sentry stream and automatically falls back to `POST /api/chat/send` on 401 or network drop.
+- [x] **Incoming Prompt Disk Persistence**: Updated `tools/nkai_serve.py` `/api/chat/send` to immediately write timestamped notes to `TheKlangVault/Inbox/QuickNotes/` and local fallback.
+- [x] **30-Day Authentication Cookie**: Overrode `end_headers` in `tools/nkai_serve.py` to inject `Set-Cookie: nkai_auth=<token>; Max-Age=2592000` on any request with `?auth=`, ensuring mobile requests never drop authentication when navigating between boards.
+- [x] **Morning Mail Mobile Fix**: Added `overflow-x: hidden;` and set `.header-tier-bottom` to `position: relative !important; top: auto !important;` on mobile (`max-width: 640px`) to prevent header collisions.
+
+---
+
+### 18. The Workbench Staging Shelf (`Inbox/Staging/`) & Templater Trigger Fix — ✅ COMPLETED
+*Goal: Provide a holding shelf for triaged notes before archival and ensure automatic frontmatter on new Obsidian notes.*
+- [x] **Staging Directories**: Created `C:\_\Vault\Inbox\Staging` and `docs/inbox/staging/`.
+- [x] **Templater Automation Fix**: Enabled `"trigger_on_file_creation": true` in `C:\_\Vault\.obsidian\plugins\templater-obsidian\data.json` and assigned `Templates/Inbox_Note_Template.md` to `Inbox` and `Inbox/Staging`.
+- [x] **Mailbag Harvester & Board Integration**: Updated `tools/check_mail.py` to scan `Inbox/Staging/` and `tools/board_renderer.py` to render `📦 Staged` badge chips.
+- [x] **Shelf Migration**: Moved 13 triaged notes into `Inbox/Staging/`.
+
+---
+
+### 19. Korg Logue SDK & CTAG DSP Oscillator Catalog — ✅ COMPLETED
+*Goal: Catalog permissive FOSS community oscillators and architect an integration path for The Klang Farmer & The Klang Planter.*
+- [x] **Permissive FOSS Exclusivity**: Screened all algorithms against MIT, BSD-3, Apache 2.0, and GPLv3 licenses.
+- [x] **Oscillator Catalog**: Cataloged Mutable Instruments Plaits ports (VA, FM, Chords, Grain, Additive), Casio CZ Phase Distortion (Resonant Saw, Resonant Triangle, Double Sine), Serge Wavefolding, Chebyshev Harmonics, and CTAG Wavetable/Vector models.
+- [x] **Real-Time Safety Guarantee**: Validated that embedded MCU code (zero heap allocations, zero locks, zero I/O) adheres 100% to TKS audio thread invariants.
+- [x] **Architectural Spec**: Delivered production specification at `docs/specs/spinoffs/logue_and_ctag_oscillator_catalog.md` with C++ `LogueOscillatorAdapter<T>` and data-driven `assets/controls/oscillator.json` binding.
+
 ---
 
 ## 🪦 The Strategy Graveyard

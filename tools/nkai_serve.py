@@ -340,11 +340,28 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         return super().guess_type(path)
 
     def end_headers(self):
-        """Appends permissive development CORS headers."""
+        """Appends permissive development CORS headers and auth cookie injection."""
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie")
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+
+        # Inject 30-day authentication cookie if ?auth= is in request path
+        sentry_token = getattr(self.server, "sentry_token", None)
+        if sentry_token and "?" in self.path:
+            try:
+                qs = parse_qs(urlparse(self.path).query)
+                if "auth" in qs and qs["auth"]:
+                    token_val = qs["auth"][0].strip()
+                    import hmac
+                    if hmac.compare_digest(token_val, sentry_token.strip()):
+                        self.send_header(
+                            "Set-Cookie",
+                            f"nkai_auth={token_val}; Path=/; SameSite=Lax; Max-Age=2592000"
+                        )
+            except Exception:
+                pass
+
         super().end_headers()
 
     def do_OPTIONS(self):
@@ -353,7 +370,7 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def is_authorized(self) -> bool:
-        """Validates Bearer token from header, query param (?auth=), or localhost."""
+        """Validates Bearer token from header, query param (?auth=), cookie, or localhost."""
         sentry_token = getattr(self.server, "sentry_token", None)
         if not sentry_token:
             return True
@@ -362,6 +379,20 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         auth_header = self.headers.get("Authorization")
         if auth_header and verify_sentry_token(auth_header, sentry_token):
             return True
+
+        # Check Cookie (nkai_auth=<token>)
+        cookie_header = self.headers.get("Cookie")
+        if cookie_header:
+            from http.cookies import SimpleCookie
+            try:
+                cookie = SimpleCookie(cookie_header)
+                if "nkai_auth" in cookie and cookie["nkai_auth"].value:
+                    token_val = cookie["nkai_auth"].value.strip()
+                    import hmac
+                    if hmac.compare_digest(token_val, sentry_token.strip()):
+                        return True
+            except Exception:
+                pass
 
         # Check query param ?auth=<token>
         try:
@@ -1079,6 +1110,41 @@ window.sidecar = window.sidecar || {
                     "target_pipeline": "TARGET: TOOLING_HARNESS"
                 }
                 bulletin_file.write_text(json.dumps(b_data, indent=2), encoding="utf-8")
+            except Exception:
+                pass
+
+            # Persist incoming mobile prompt as a quick note for immediate mail intake & zero loss
+            try:
+                now_dt = datetime.now()
+                ts_slug = now_dt.strftime("%Y%m%d_%H%M%S")
+                title_snippet = prompt.split("\n")[0][:45].strip()
+                clean_title = re.sub(r'[^a-zA-Z0-9_\- ]', '', title_snippet).strip() or "Mobile Prompt"
+                note_content = f"""---
+title: "Mobile Chat: {clean_title}"
+date: {now_dt.strftime("%Y-%m-%d %H:%M:%S")}
+source: mobile_intercom
+client_ip: {client_ip}
+tags: [mobile, intercom, prompt]
+priority: P2
+status: pending
+---
+
+# Mobile Intercom Message
+
+> Dispatched from `{client_ip}` via N'kai Mobile Intercom.
+
+{prompt}
+"""
+                for qn_dir in [
+                    Path(r"C:\_\Vault\Inbox\QuickNotes"),
+                    REPO_ROOT / "docs" / "inbox" / "quicknotes",
+                ]:
+                    try:
+                        qn_dir.mkdir(parents=True, exist_ok=True)
+                        note_path = qn_dir / f"{ts_slug}_{clean_title[:30].replace(' ', '_')}.md"
+                        note_path.write_text(note_content, encoding="utf-8")
+                    except Exception:
+                        pass
             except Exception:
                 pass
 

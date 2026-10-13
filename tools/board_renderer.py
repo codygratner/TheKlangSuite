@@ -392,6 +392,9 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     # Tabled chip (Phase 3)
     tabled_chip = '<span class="badge badge-tabled" style="background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent-authored note tabled in Inbox/Tabled/">🗂 Tabled by agent</span>' if "tabled" in tags_lower else ""
 
+    # Staged chip (Phase 3 Staging Shelf)
+    staged_chip = '<span class="badge badge-staged" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Note held on Inbox/Staging workbench">📦 Staged</span>' if "staged" in tags_lower else ""
+
     # Overflow chip (Phase 1)
     overflow_chip = ""
     overflow_count = 0
@@ -507,11 +510,11 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
 
     # Card frontmatter and tag chips
     fm_obj = getattr(it, "frontmatter", {}) or {}
-    display_tags = [t for t in (it.tags or []) if t.lower() not in ("quick-note", "tabled")]
+    display_tags = [t for t in (it.tags or []) if t.lower() not in ("quick-note", "tabled", "staged")]
     if isinstance(fm_obj.get("tags"), list):
         for t in fm_obj["tags"]:
             t_clean = str(t).strip().lstrip("#")
-            if t_clean and t_clean.lower() not in ("quick-note", "tabled") and t_clean not in display_tags:
+            if t_clean and t_clean.lower() not in ("quick-note", "tabled", "staged") and t_clean not in display_tags:
                 display_tags.append(t_clean)
 
     tag_chips_html = ""
@@ -573,6 +576,7 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
             {merged_chip}
             {quicknote_chip}
             {tabled_chip}
+            {staged_chip}
             {overflow_chip}
             {docket_badge}
             {reply_badge}

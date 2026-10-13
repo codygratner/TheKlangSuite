@@ -372,12 +372,13 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
     Only scans Archive/ if scan_archive=True is explicitly passed.
     Live root inbox notes win on content over Archive and Tabled notes.
     """
-    if inbox_dir.name.lower() in ["archive", "tabled"]:
+    if inbox_dir.name.lower() in ["archive", "tabled", "staging"]:
         base_dir = inbox_dir.parent
     else:
         base_dir = inbox_dir
 
     tabled_dir = base_dir / "Tabled"
+    staging_dir = base_dir / "Staging"
     live_dir = base_dir
 
     arch_notes = []
@@ -392,13 +393,22 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
             tn["tags"].append("tabled")
         tn["is_tabled"] = True
 
-    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() != tabled_dir.resolve() else []
+    staging_notes = scan_inbox(staging_dir) if staging_dir and staging_dir.exists() else []
+    for sn in staging_notes:
+        if "staged" not in sn.get("tags", []):
+            sn["tags"].append("staged")
+        sn["is_staged"] = True
+
+    live_notes = scan_inbox(live_dir) if live_dir and live_dir.exists() and live_dir.resolve() not in (tabled_dir.resolve(), staging_dir.resolve()) else []
 
     notes_by_id = {}
     for n in arch_notes:
         if n.get("id"):
             notes_by_id[str(n["id"])] = n
     for n in tabled_notes:
+        if n.get("id"):
+            notes_by_id[str(n["id"])] = n
+    for n in staging_notes:
         if n.get("id"):
             notes_by_id[str(n["id"])] = n
     # Live notes overwrite on content
@@ -421,6 +431,14 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
                     tn["is_tabled"] = True
                     if tn.get("id"):
                         notes_by_id[str(tn["id"])] = tn
+            alt_staging = alt_inbox / "Staging"
+            if alt_staging.exists():
+                for sn in scan_inbox(alt_staging):
+                    if "staged" not in sn.get("tags", []):
+                        sn["tags"].append("staged")
+                    sn["is_staged"] = True
+                    if sn.get("id"):
+                        notes_by_id[str(sn["id"])] = sn
 
     return list(notes_by_id.values())
 
