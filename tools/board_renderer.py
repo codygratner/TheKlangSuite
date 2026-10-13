@@ -625,6 +625,15 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
         </div>
         <div class="mail-session-launchers" style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(38, 51, 69, 0.6); flex-wrap: wrap;">
           <span class="actions-label" style="font-size: 10px; color: var(--text-muted);">Session Launch:</span>
+          <button id="btn-discuss-{clean_id}" class="action-chip chip-session-discuss" 
+            onclick="handleDiscussCardClick('{card_id}', event)" 
+            oncontextmenu="handleDiscussCardLongPress('{card_id}', event)" 
+            ontouchstart="handleDiscussCardTouchStart('{card_id}', event)" 
+            ontouchend="handleDiscussCardTouchEnd('{card_id}', event)" 
+            ontouchmove="handleDiscussCardTouchMove('{card_id}', event)" 
+            title="Tap: Auto-Send to Chat | Long-Press / Right-Click: Pre-fill Chat Input">
+            <span>💬</span> Discuss in Chat
+          </button>
           <button id="btn-workshop-{clean_id}" class="action-chip chip-session-workshop" onclick="latchCardToWorkshop('{card_id}')" title="Send to Active Workshop Cutting Mat">
             <span>🛠️</span> Workshop
           </button>

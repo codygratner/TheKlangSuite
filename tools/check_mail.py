@@ -1782,6 +1782,8 @@ def main():
         type=str,
         default=None,
         metavar="CARD_ID",
+        help="Atomically archives a card by ID, moves backing note to Archive/, and regenerates board (Flight 5)",
+    )
     parser.add_argument(
         "--obsidian-preflight",
         action="store_true",
