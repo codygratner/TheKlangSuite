@@ -25,7 +25,7 @@ from typing import Optional
 import webbrowser
 import zlib
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import unquote, parse_qs, urlparse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -210,33 +210,44 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def translate_path(self, path):
         """Translates virtual URL routes and sidecar aliases to physical files."""
-        clean_path = path.split("?")[0].split("#")[0]
+        parsed = urlparse(path)
+        clean_path = parsed.path
+        query = parse_qs(parsed.query)
+
+        # Handle ?board=<id> parameter on root or default to morning_mail
         if clean_path in ("", "/"):
+            board_id = query.get("board", [None])[0]
+            if board_id:
+                try:
+                    reg_file = REPO_ROOT / ".agents" / "pipeline" / "boards" / "registry.json"
+                    if reg_file.exists():
+                        reg_data = json.loads(reg_file.read_text(encoding="utf-8"))
+                        for b in reg_data.get("boards", []):
+                            if b.get("id") == board_id:
+                                fname = b.get("file_path", "").split("/")[-1]
+                                for cand in [
+                                    REPO_ROOT / ".agents" / "sidecar" / fname,
+                                    Path(r"c:\Dev\nkai\sidecars\panel") / fname,
+                                    Path(r"c:\Dev\nkai\plugin\sidecars\panel") / fname,
+                                ]:
+                                    if cand.exists():
+                                        return str(cand)
+                except Exception:
+                    pass
             clean_path = "/morning_mail_inbox.html"
 
-        sidecar_map = {
-            "/morning_mail_inbox.html": [
-                REPO_ROOT / ".agents" / "sidecar" / "morning_mail_inbox.html",
-                Path(r"c:\Dev\nkai\sidecars\panel\morning_mail_inbox.html"),
-            ],
-            "/runway_board.html": [
-                REPO_ROOT / ".agents" / "sidecar" / "runway_board.html",
-                Path(r"c:\Dev\nkai\sidecars\panel\runway_board.html"),
-            ],
-            "/sandbox_mail_inbox.html": [
-                REPO_ROOT / ".agents" / "sidecar" / "sandbox_mail_inbox.html",
-                Path(r"c:\Dev\nkai\sidecars\panel\sandbox_mail_inbox.html"),
-            ],
-            "/audit_triage_board.html": [
-                REPO_ROOT / ".agents" / "sidecar" / "audit_triage_board.html",
-                Path(r"c:\Dev\nkai\sidecars\panel\audit_triage_board.html"),
-            ],
-        }
+        filename = clean_path.lstrip("/")
 
-        if clean_path in sidecar_map:
-            for cand in sidecar_map[clean_path]:
-                if cand.exists():
-                    return str(cand)
+        # Check known sidecar locations dynamically
+        sidecar_candidates = [
+            REPO_ROOT / ".agents" / "sidecar" / filename,
+            Path(r"c:\Dev\nkai\sidecars\panel") / filename,
+            Path(r"c:\Dev\nkai\plugin\sidecars\panel") / filename,
+            Path(r"c:\Dev\TheKlangSuite") / filename,
+        ]
+        for cand in sidecar_candidates:
+            if cand.is_file():
+                return str(cand)
 
         return super().translate_path(path)
 
