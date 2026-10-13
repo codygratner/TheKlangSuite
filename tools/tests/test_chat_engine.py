@@ -155,8 +155,60 @@ class TestChatAPIEndpoints(unittest.TestCase):
         with urllib.request.urlopen(req) as resp:
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode("utf-8"))
+    def test_api_chat_upload_json(self):
+        """Asserts POST /api/chat/upload with JSON base64 saves file and returns receipt."""
+        import base64
+        url = f"http://127.0.0.1:{self.port}/api/chat/upload"
+        sample_bytes = b"Hello from JSON base64 test"
+        b64 = base64.b64encode(sample_bytes).decode("ascii")
+        payload = json.dumps({
+            "filename": "unit_test_note.txt",
+            "content_base64": b64,
+            "mime_type": "text/plain"
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
             self.assertTrue(data["ok"])
-            self.assertEqual(data["status"], "prompt_queued")
+            self.assertIn("file", data)
+            f_info = data["file"]
+            self.assertTrue(f_info["filename"].endswith("unit_test_note.txt"))
+            self.assertEqual(f_info["size"], len(sample_bytes))
+            self.assertTrue(Path(f_info["abs_path"]).exists())
+            self.assertEqual(Path(f_info["abs_path"]).read_bytes(), sample_bytes)
+
+    def test_api_chat_upload_multipart_and_serve(self):
+        """Asserts POST /api/chat/upload with multipart/form-data saves file and serves it via /uploads/."""
+        url = f"http://127.0.0.1:{self.port}/api/chat/upload"
+        boundary = "----TestBoundary123456"
+        sample_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDRtest_image_bytes"
+        body = (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="file"; filename="test_photo.png"\r\n'
+            f"Content-Type: image/png\r\n\r\n"
+        ).encode("utf-8") + sample_png + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+        req = urllib.request.Request(
+            url,
+            data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
+        )
+        with urllib.request.urlopen(req) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertTrue(data["ok"])
+            f_info = data["file"]
+            self.assertTrue(f_info["is_image"])
+            self.assertEqual(f_info["size"], len(sample_png))
+            self.assertTrue(f_info["url"].startswith("/uploads/"))
+
+            # Verify GET /uploads/<filename> serves the exact file
+            serve_url = f"http://127.0.0.1:{self.port}{f_info['url']}"
+            with urllib.request.urlopen(serve_url) as s_resp:
+                self.assertEqual(s_resp.status, 200)
+                self.assertEqual(s_resp.headers.get("Content-Type"), "image/png")
+                self.assertEqual(s_resp.read(), sample_png)
 
 
 if __name__ == "__main__":

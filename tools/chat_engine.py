@@ -639,6 +639,109 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
     .btn-send:active {{
       opacity: 0.8;
     }}
+    .btn-attach {{
+      min-height: 42px;
+      min-width: 42px;
+      width: 42px;
+      padding: 0;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }}
+    .btn-attach:active, .btn-attach:hover {{
+      border-color: var(--green);
+      color: #fff;
+    }}
+    .staged-files-tray {{
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 4px 0;
+    }}
+    .staged-file-chip {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      color: var(--text);
+      max-width: 260px;
+    }}
+    .staged-file-thumb {{
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      object-fit: cover;
+    }}
+    .staged-file-name {{
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 160px;
+    }}
+    .staged-file-remove {{
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 2px;
+      line-height: 1;
+    }}
+    .staged-file-remove:hover {{
+      color: #ef4444;
+    }}
+    .chat-img-wrap {{
+      margin: 8px 0;
+      max-width: 100%;
+    }}
+    .chat-inline-img {{
+      max-width: 100%;
+      max-height: 380px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: block;
+      object-fit: contain;
+      background: #000;
+    }}
+    .chat-img-caption {{
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      margin-top: 3px;
+    }}
+    .chat-file-pill {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--green);
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 12px;
+      margin: 4px 0;
+      font-family: var(--font-mono);
+    }}
+    .chat-file-pill:hover {{
+      text-decoration: underline;
+    }}
 
     /* Toast Notification */
     .chat-toast {{
@@ -696,7 +799,10 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       <button class="chip-action" onclick="sendQuickPrompt('Rollback plan')">🔄 Rollback</button>
       <button class="chip-action" onclick="sendQuickPrompt('Run tests')">🧪 Run Tests</button>
     </div>
+    <div class="staged-files-tray" id="staged-files-tray"></div>
     <div class="input-row">
+      <input type="file" id="chat-file-input" multiple accept="image/*,video/*,audio/*,.pdf,.txt,.md,.json,.zip,.cpp,.h" style="display:none;" onchange="handleFileSelection(event)">
+      <button class="btn-attach" type="button" title="Attach file or photo (iOS Camera / Photo Library supported)" onclick="document.getElementById('chat-file-input').click()">📎</button>
       <textarea id="prompt-input" class="chat-textarea" placeholder="Send prompt to agent (Voice dictation supported)..." rows="1"></textarea>
       <button id="btn-submit-prompt" class="btn-send" onclick="submitUserPrompt()">Send</button>
     </div>
@@ -709,6 +815,66 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
     let pollInterval = null;
     let isPolling = true;
     let lastRenderedTurnsCount = 0;
+    let stagedFiles = [];
+
+    function handleFileSelection(event) {{
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+
+      files.forEach(f => {{
+        const item = {{
+          file: f,
+          name: f.name,
+          size: f.size,
+          type: f.type || 'application/octet-stream',
+          dataUrl: null
+        }};
+        if (f.type && f.type.startsWith('image/')) {{
+          const reader = new FileReader();
+          reader.onload = (e) => {{
+            item.dataUrl = e.target.result;
+            renderStagedFiles();
+          }};
+          reader.readAsDataURL(f);
+        }}
+        stagedFiles.push(item);
+      }});
+      renderStagedFiles();
+      event.target.value = '';
+    }}
+
+    function removeStagedFile(idx) {{
+      if (idx >= 0 && idx < stagedFiles.length) {{
+        stagedFiles.splice(idx, 1);
+        renderStagedFiles();
+      }}
+    }}
+
+    function renderStagedFiles() {{
+      const tray = document.getElementById('staged-files-tray');
+      if (!tray) return;
+      if (stagedFiles.length === 0) {{
+        tray.style.display = 'none';
+        tray.innerHTML = '';
+        return;
+      }}
+      tray.style.display = 'flex';
+      tray.innerHTML = stagedFiles.map((sf, i) => {{
+        const sizeStr = sf.size > 1048576 
+          ? (sf.size / 1048576).toFixed(1) + ' MB'
+          : (sf.size / 1024).toFixed(0) + ' KB';
+        const thumb = sf.dataUrl 
+          ? `<img src="${{sf.dataUrl}}" class="staged-file-thumb">`
+          : `<span>📎</span>`;
+        return `
+          <div class="staged-file-chip">
+            ${{thumb}}
+            <span class="staged-file-name" title="${{escapeHtml(sf.name)}}">${{escapeHtml(sf.name)}} (${{sizeStr}})</span>
+            <button type="button" class="staged-file-remove" onclick="removeStagedFile(${{i}})" title="Remove">✕</button>
+          </div>
+        `;
+      }}).join('');
+    }}
 
     function showToast(msg) {{
       const t = document.getElementById('chat-toast');
@@ -842,7 +1008,7 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
             </div>
             <div class="user-bubble">
               <div class="user-label"><span>👤</span> USER</div>
-              <div>${{escapeHtml(userPrompt)}}</div>
+              <div>${{formatMarkdownSimple(userPrompt)}}</div>
             </div>
             ${{thinkingHtml}}
             ${{toolsHtml}}
@@ -863,6 +1029,30 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
     function formatMarkdownSimple(text) {{
       if (!text) return '';
       let escaped = escapeHtml(text);
+
+      // Inline Images: ![alt](url)
+      escaped = escaped.replace(/!\\[([^\\]]*)\\]\\(([^)]+)\\)/g, (match, alt, src) => {{
+        let cleanSrc = src.trim();
+        if (cleanSrc.includes('/uploads/')) {{
+          const fn = cleanSrc.split('/uploads/')[1].split('?')[0];
+          cleanSrc = '/uploads/' + fn;
+        }} else if (cleanSrc.includes('/.user_uploaded/')) {{
+          const fn = cleanSrc.split('/.user_uploaded/')[1].split('?')[0];
+          cleanSrc = '/uploads/' + fn;
+        }}
+        return `<div class="chat-img-wrap"><img src="${{cleanSrc}}" alt="${{alt}}" class="chat-inline-img" onclick="window.open(this.src)" title="Tap to expand"><div class="chat-img-caption">📷 ${{alt || 'Attached Photo'}}</div></div>`;
+      }});
+
+      // Inline File attachments: [📎 label](url) or [label](url)
+      escaped = escaped.replace(/\\[(📎\\s*)?([^\\]]+)\\]\\(([^)]+)\\)/g, (match, icon, label, href) => {{
+        let cleanHref = href.trim();
+        if (cleanHref.includes('/uploads/')) {{
+          const fn = cleanHref.split('/uploads/')[1].split('?')[0];
+          cleanHref = '/uploads/' + fn;
+        }}
+        return `<a href="${{cleanHref}}" target="_blank" class="chat-file-pill">📎 ${{label}}</a>`;
+      }});
+
       escaped = escaped.replace(/```([\\s\\S]*?)```/g, '<pre class="chat-code-block"><code>$1</code></pre>');
       escaped = escaped.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<strong>$1</strong>');
       escaped = escaped.replace(/`([^`]+)`/g, '<code class="chat-inline-code">$1</code>');
@@ -875,42 +1065,86 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       submitUserPrompt();
     }}
 
-    function submitUserPrompt() {{
+    async function submitUserPrompt() {{
       const inp = document.getElementById('prompt-input');
+      const btn = document.getElementById('btn-submit-prompt');
       if (!inp) return;
-      const text = inp.value.trim();
-      if (!text) return;
+      let text = inp.value.trim();
+      if (!text && stagedFiles.length === 0) return;
+
+      if (btn) {{
+        btn.disabled = true;
+        btn.textContent = '...';
+      }}
+
+      let attachmentMarkdown = '';
+      if (stagedFiles.length > 0) {{
+        showToast(`Uploading ${{stagedFiles.length}} file(s)...`);
+        for (const item of stagedFiles) {{
+          try {{
+            const formData = new FormData();
+            formData.append('file', item.file, item.name);
+            const upRes = await fetch('/api/chat/upload', {{
+              method: 'POST',
+              body: formData
+            }});
+            const upData = await upRes.json();
+            if (upData && upData.ok && upData.file) {{
+              const f = upData.file;
+              if (f.is_image) {{
+                attachmentMarkdown += `\\n\\n![${{f.original_name}}](file:///${{f.abs_path}})\\n`;
+              }} else {{
+                attachmentMarkdown += `\\n\\n[📎 ${{f.original_name}}](file:///${{f.abs_path}})\\n`;
+              }}
+            }}
+          }} catch (e) {{
+            console.error('File upload error:', e);
+          }}
+        }}
+        stagedFiles = [];
+        renderStagedFiles();
+      }}
+
+      const fullPrompt = (text + attachmentMarkdown).trim();
+      if (!fullPrompt) {{
+        if (btn) {{ btn.disabled = false; btn.textContent = 'Send'; }}
+        return;
+      }}
 
       // 1. If running in Antigravity side pane extension:
       if (window.sidecar && window.sidecar.agent && typeof window.sidecar.agent.sendMessage === 'function') {{
         try {{
-          window.sidecar.agent.sendMessage(text);
+          window.sidecar.agent.sendMessage(fullPrompt);
           showToast('⚡ Prompt sent directly to Agent!');
           inp.value = '';
+          inp.style.height = 'auto';
+          if (btn) {{ btn.disabled = false; btn.textContent = 'Send'; }}
           setTimeout(() => refreshChatHistory(), 500);
           return;
         }} catch (e) {{}}
       }}
 
-      // 2. Mobile / External Web: dispatch to /api/chat/send or /api/action
-      fetch('/api/chat/send', {{
-        method: 'POST',
-        headers: {{ 'Content-Type': 'application/json' }},
-        body: JSON.stringify({{ prompt: text, source: 'chat_board' }})
-      }})
-      .then(res => res.json())
-      .then(data => {{
+      // 2. Mobile / External Web: dispatch to /api/chat/send
+      try {{
+        const res = await fetch('/api/chat/send', {{
+          method: 'POST',
+          headers: {{ 'Content-Type': 'application/json' }},
+          body: JSON.stringify({{ prompt: fullPrompt, source: 'chat_board' }})
+        }});
+        const data = await res.json();
         if (data && data.ok) {{
           showToast('🚀 Prompt queued for Agent!');
           inp.value = '';
+          inp.style.height = 'auto';
           setTimeout(() => refreshChatHistory(), 500);
         }} else {{
           showToast('Could not send prompt');
         }}
-      }})
-      .catch(() => {{
+      }} catch (err) {{
         showToast('Daemon offline (:3030)');
-      }});
+      }} finally {{
+        if (btn) {{ btn.disabled = false; btn.textContent = 'Send'; }}
+      }}
     }}
 
     // Auto-expand textarea on typing

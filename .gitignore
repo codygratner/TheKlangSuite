@@ -61,4 +61,5 @@ test_artifacts/
 .agents/pipeline/staging/
 *.pid
 .agents/pipeline/*.pid
+.agents/pipeline/uploads/
 

@@ -11,12 +11,16 @@ RFC MIME mapping, terminal ASCII/Unicode QR pairing, and SVG pairing endpoints.
 """
 
 import argparse
+import base64
+import email
+import email.policy
 import http.server
 from datetime import datetime
 import json
 import mimetypes
 import os
 import re
+import shutil
 import socket
 import socketserver
 import struct
@@ -640,6 +644,26 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"ok": False, "error": f"Card '{card_id}' not found"}).encode("utf-8"))
             return
 
+        if clean_path.startswith("/uploads/"):
+            fn = Path(clean_path[len("/uploads/"):].lstrip("/")).name
+            upload_file = REPO_ROOT / ".agents" / "pipeline" / "uploads" / fn
+            if upload_file.exists() and upload_file.is_file():
+                mime, _ = mimetypes.guess_type(str(upload_file))
+                self.send_response(200)
+                self.send_header("Content-Type", mime or "application/octet-stream")
+                self.send_header("Content-Length", str(upload_file.stat().st_size))
+                self.send_header("Cache-Control", "public, max-age=3600")
+                self.end_headers()
+                with open(upload_file, "rb") as f:
+                    shutil.copyfileobj(f, self.wfile)
+                return
+            else:
+                self.send_response(404)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": f"Upload '{fn}' not found"}).encode("utf-8"))
+                return
+
         if clean_path in (
             "/apple-touch-icon.png",
             "/apple-touch-icon-precomposed.png",
@@ -715,6 +739,118 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             body_json = json.loads(post_body.decode("utf-8")) if post_body else {}
         except Exception:
             body_json = {}
+
+        if clean_path == "/api/chat/upload":
+            content_type_header = self.headers.get("Content-Type", "")
+            saved_files = []
+            now_prefix = datetime.now().strftime("%Y%m%d_%H%M%S")
+            upload_dir = REPO_ROOT / ".agents" / "pipeline" / "uploads"
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            brain_upload_dir = None
+            try:
+                from tools.chat_engine import get_active_conversation_path
+                active_conv = get_active_conversation_path()
+                if active_conv:
+                    brain_upload_dir = active_conv / ".user_uploaded"
+                    brain_upload_dir.mkdir(parents=True, exist_ok=True)
+            except Exception:
+                pass
+
+            if "multipart/form-data" in content_type_header:
+                msg = email.message_from_bytes(
+                    f"Content-Type: {content_type_header}\r\n\r\n".encode("utf-8") + post_body,
+                    policy=email.policy.default
+                )
+                parts = list(msg.iter_parts()) if msg.is_multipart() else [msg]
+                for part in parts:
+                    fn = part.get_filename()
+                    if not fn:
+                        continue
+                    safe_fn = re.sub(r"[^\w\s.-]", "", Path(fn).name).strip().replace(" ", "_")
+                    if not safe_fn:
+                        safe_fn = "upload.bin"
+                    target_fn = f"{now_prefix}_{safe_fn}"
+                    file_data = part.get_payload(decode=True)
+                    if file_data is None:
+                        continue
+
+                    target_path = upload_dir / target_fn
+                    target_path.write_bytes(file_data)
+
+                    if brain_upload_dir:
+                        try:
+                            (brain_upload_dir / target_fn).write_bytes(file_data)
+                        except Exception:
+                            pass
+
+                    ct = part.get_content_type()
+                    saved_files.append({
+                        "filename": target_fn,
+                        "original_name": fn,
+                        "abs_path": str(target_path.resolve()),
+                        "rel_path": f".agents/pipeline/uploads/{target_fn}",
+                        "url": f"/uploads/{target_fn}",
+                        "size": len(file_data),
+                        "mime_type": ct,
+                        "is_image": ct.startswith("image/")
+                    })
+
+            elif "application/json" in content_type_header or body_json:
+                fn = body_json.get("filename", "upload.bin")
+                b64_data = body_json.get("content_base64", "")
+                ct = body_json.get("mime_type", "application/octet-stream")
+                safe_fn = re.sub(r"[^\w\s.-]", "", Path(fn).name).strip().replace(" ", "_")
+                if not safe_fn:
+                    safe_fn = "upload.bin"
+                target_fn = f"{now_prefix}_{safe_fn}"
+
+                try:
+                    file_data = base64.b64decode(b64_data)
+                    target_path = upload_dir / target_fn
+                    target_path.write_bytes(file_data)
+
+                    if brain_upload_dir:
+                        try:
+                            (brain_upload_dir / target_fn).write_bytes(file_data)
+                        except Exception:
+                            pass
+
+                    saved_files.append({
+                        "filename": target_fn,
+                        "original_name": fn,
+                        "abs_path": str(target_path.resolve()),
+                        "rel_path": f".agents/pipeline/uploads/{target_fn}",
+                        "url": f"/uploads/{target_fn}",
+                        "size": len(file_data),
+                        "mime_type": ct,
+                        "is_image": ct.startswith("image/")
+                    })
+                except Exception as e:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"ok": False, "error": f"Base64 decode failed: {e}"}).encode("utf-8"))
+                    return
+
+            if not saved_files:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": "No files uploaded"}).encode("utf-8"))
+                return
+
+            res_payload = {
+                "ok": True,
+                "count": len(saved_files),
+                "file": saved_files[0],
+                "files": saved_files
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(res_payload, indent=2).encode("utf-8"))
+            return
 
         if clean_path == "/api/chat/send":
             prompt = body_json.get("prompt", "").strip()
