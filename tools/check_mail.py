@@ -126,6 +126,45 @@ def resolve_inbox_directory(dir_override=None, scan_archive=False):
     return Path.cwd()
 
 
+def is_obsidian_running() -> bool:
+    """Checks if Obsidian desktop app is currently running on Windows."""
+    if sys.platform != "win32":
+        return True
+    try:
+        import subprocess
+        res = subprocess.run(["tasklist", "/FI", "IMAGENAME eq Obsidian.exe"], capture_output=True, text=True, check=False)
+        return "Obsidian.exe" in res.stdout
+    except Exception:
+        return False
+
+
+def prewarm_obsidian_sync(vault_name: str = "Vault", wait_seconds: int = 300) -> bool:
+    """
+    If Obsidian is closed, launches it via URI protocol and pauses to allow
+    Obsidian Sync to pull down latest mobile notes into the local inbox.
+    """
+    if sys.platform != "win32":
+        return False
+    if is_obsidian_running():
+        return False
+
+    print(f"🔄 [PRE-FLIGHT] Obsidian desktop is closed. Launching Obsidian ({vault_name}) to sync mobile notes...")
+    try:
+        import os
+        import time
+        # Open vault via native Obsidian URI protocol
+        os.startfile(f"obsidian://open?vault={vault_name}")
+        print(f"⏳ [PRE-FLIGHT] Waiting {wait_seconds}s ({wait_seconds//60}m) for Obsidian Sync to reconcile remote changes & PDFs...")
+        for remaining in range(wait_seconds, 0, -15):
+            print(f"   Syncing... {remaining}s remaining")
+            time.sleep(min(15, remaining))
+        print("✅ [PRE-FLIGHT] Obsidian is running and synchronized.")
+        return True
+    except Exception as e:
+        print(f"⚠️ [PRE-FLIGHT] Could not launch Obsidian automatically: {e}")
+        return False
+
+
 def extract_note_metadata(file_path: Path):
     """Parses frontmatter, title, date, excerpt, and raw body from a Markdown note."""
     try:
@@ -1743,7 +1782,23 @@ def main():
         type=str,
         default=None,
         metavar="CARD_ID",
-        help="Atomically archives a card by ID, moves backing note to Archive/, and regenerates board (Flight 5)",
+    parser.add_argument(
+        "--obsidian-preflight",
+        action="store_true",
+        default=True,
+        help="Checks if Obsidian is open; if closed, launches it and pauses to allow Obsidian Sync to download mobile notes (default: True)",
+    )
+    parser.add_argument(
+        "--no-obsidian-preflight",
+        action="store_false",
+        dest="obsidian_preflight",
+        help="Skip Obsidian pre-flight sync check",
+    )
+    parser.add_argument(
+        "--sync-wait",
+        type=int,
+        default=300,
+        help="Seconds to wait for Obsidian Sync if Obsidian was launched (default: 300 / 5 mins)",
     )
 
     args = parser.parse_args()
@@ -1824,6 +1879,9 @@ def main():
                 print(f"⚠️ Could not launch browser: {e}")
 
         return 0
+
+    if getattr(args, "obsidian_preflight", True) and not args.sandbox:
+        prewarm_obsidian_sync(vault_name="Vault", wait_seconds=args.sync_wait)
 
     inbox_dir = resolve_inbox_directory(args.dir, scan_archive=args.archive)
     notes = scan_all_inbox_notes(inbox_dir, scan_archive=args.archive)

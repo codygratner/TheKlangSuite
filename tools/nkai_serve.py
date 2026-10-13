@@ -99,6 +99,44 @@ CUSTOM_MIME_TYPES = {
 for ext, mime in CUSTOM_MIME_TYPES.items():
     mimetypes.add_type(mime, ext)
 
+PRESENCE_FILE = REPO_ROOT / ".agents" / "pipeline" / "active_presence.json"
+PRESENCE_STATE = {
+    "is_active": False,
+    "last_heartbeat": 0.0,
+    "client": None,
+    "board": None
+}
+
+
+def record_presence(client: str, board: str, focused: bool):
+    global PRESENCE_STATE
+    now = time.time()
+    PRESENCE_STATE = {
+        "is_active": bool(focused),
+        "last_heartbeat": now,
+        "client": client,
+        "board": board,
+        "updated_at": datetime.now().isoformat()
+    }
+    try:
+        PRESENCE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        PRESENCE_FILE.write_text(json.dumps(PRESENCE_STATE, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def get_presence_state() -> dict:
+    global PRESENCE_STATE
+    now = time.time()
+    # Heartbeat expires after 12 seconds
+    is_live = PRESENCE_STATE.get("is_active", False) and (now - PRESENCE_STATE.get("last_heartbeat", 0.0) < 12.0)
+    return {
+        "is_active": is_live,
+        "client": PRESENCE_STATE.get("client") if is_live else None,
+        "board": PRESENCE_STATE.get("board") if is_live else None,
+        "last_seen_seconds_ago": round(now - PRESENCE_STATE.get("last_heartbeat", 0.0), 1) if PRESENCE_STATE.get("last_heartbeat") else None
+    }
+
 
 def get_local_ip() -> str:
     """Detects local LAN / Wi-Fi IP address, avoiding VPN tunnel interfaces."""
@@ -418,10 +456,16 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         clean_path = parsed.path
         query = parse_qs(parsed.query)
 
+        # Handle /cockpit route
+        if clean_path in ("/cockpit", "/cockpit/"):
+            clean_path = "/cockpit.html"
+
         # Handle ?board=<id> parameter on root or default to morning_mail
         if clean_path in ("", "/"):
             board_id = query.get("board", [None])[0]
-            if board_id:
+            if board_id == "cockpit":
+                clean_path = "/cockpit.html"
+            elif board_id:
                 try:
                     reg_file = REPO_ROOT / ".agents" / "pipeline" / "boards" / "registry.json"
                     if reg_file.exists():
@@ -438,7 +482,8 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                                         return str(cand)
                 except Exception:
                     pass
-            clean_path = "/morning_mail_inbox.html"
+            if clean_path in ("", "/"):
+                clean_path = "/morning_mail_inbox.html"
 
         filename = clean_path.lstrip("/")
 
@@ -629,20 +674,31 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(html_page.encode("utf-8"))
             return
 
-        if clean_path == "/api/status":
+        if clean_path in ("/api/status", "/api/health"):
+            try:
+                from tools.nkai_daemon import evaluate_system_health
+                health = evaluate_system_health(assume_online=True)
+            except Exception as e:
+                health = {"state_code": 0, "state_name": "NOMINAL", "error": str(e), "is_online": True}
+
             ts_ip = getattr(self.server, "tailscale_ip", None) or get_tailscale_ip() or get_local_ip()
-            status_data = {
-                "status": "online",
-                "service": "nkai_mobile_companion",
-                "version": "0.3.0",
-                "tailscale_ip": ts_ip,
-                "port": self.server.server_address[1],
-                "active_boards": ["morning_mail", "runway", "sandbox_mail"]
-            }
+            health["tailscale_ip"] = ts_ip
+            health["port"] = self.server.server_address[1]
+            health["version"] = "0.4.0"
+
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
-            self.wfile.write(json.dumps(status_data, indent=2).encode("utf-8"))
+            self.wfile.write(json.dumps(health, indent=2).encode("utf-8"))
+            return
+
+        if clean_path == "/api/presence":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(get_presence_state()).encode("utf-8"))
             return
 
         if clean_path == "/api/boards":
@@ -913,6 +969,8 @@ window.sidecar = window.sidecar || {
             "/api/quick-note",
             "/api/dispatch",
             "/api/sentry/stream",
+            "/api/flush",
+            "/api/context/flush",
         )
         if clean_path in protected_routes or clean_path.startswith("/api/sentry/"):
             if not self.is_authorized():
@@ -926,6 +984,21 @@ window.sidecar = window.sidecar || {
                     "hint": "Provide 'Authorization: Bearer <token>' or scan QR pairing code at /qr"
                 }).encode("utf-8"))
                 return
+
+        # Context Flush & Session Harvest Endpoint
+        if clean_path in ("/api/flush", "/api/context/flush"):
+            try:
+                from tools.flush_context import run_flush
+                flush_res = run_flush()
+            except Exception as e:
+                flush_res = {"ok": False, "error": str(e)}
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(flush_res, indent=2).encode("utf-8"))
+            return
 
         # Sentry SSE Streaming Route
         if clean_path == "/api/sentry/stream":
@@ -1071,6 +1144,18 @@ window.sidecar = window.sidecar || {
             self.wfile.write(json.dumps(res_payload, indent=2).encode("utf-8"))
             return
 
+        if clean_path == "/api/presence":
+            client = body_json.get("client", "web_client")
+            board = body_json.get("board", "unknown")
+            focused = body_json.get("focused", True)
+            record_presence(client, board, focused)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "active": focused}).encode("utf-8"))
+            return
+
         if clean_path == "/api/chat/send":
             prompt = body_json.get("prompt", "").strip()
             if not prompt:
@@ -1113,45 +1198,52 @@ window.sidecar = window.sidecar || {
             except Exception:
                 pass
 
-            # Persist incoming mobile prompt as a quick note for immediate mail intake & zero loss
+            # Autonomous Mobile Relay: Post dispatch packet to Inter-Project Data Bus for COSMOS
+            dispatch_id = None
             try:
-                now_dt = datetime.now()
-                ts_slug = now_dt.strftime("%Y%m%d_%H%M%S")
-                title_snippet = prompt.split("\n")[0][:45].strip()
-                clean_title = re.sub(r'[^a-zA-Z0-9_\- ]', '', title_snippet).strip() or "Mobile Prompt"
-                note_content = f"""---
-title: "Mobile Chat: {clean_title}"
-date: {now_dt.strftime("%Y-%m-%d %H:%M:%S")}
-source: mobile_intercom
-client_ip: {client_ip}
-tags: [mobile, intercom, prompt]
-priority: P2
-status: pending
----
+                from tools.bus import resolve_bus_dir, serialize_dispatch
+                bus_dir = resolve_bus_dir()
+                today_str = datetime.now().strftime("%Y-%m-%d")
+                now_slug = datetime.now().strftime("%Y%m%d_%H%M%S")
+                clean_title = re.sub(r"[^a-zA-Z0-9_\- ]", " ", prompt).strip()
+                prompt_slug = re.sub(r"[^a-zA-Z0-9_\-]", "_", clean_title[:24].lower()).strip("_") or "prompt"
+                dispatch_id = f"{today_str}_mobile_to_cosmos_{prompt_slug}_{now_slug[-6:]}"
+                
+                meta = {
+                    "id": dispatch_id,
+                    "date": today_str,
+                    "from": "MOBILE",
+                    "to": "COSMOS",
+                    "tags": ["mobile", "intercom", "prompt"],
+                    "priority": "P1",
+                    "status": "PENDING",
+                    "title": f"Mobile Intercom Prompt: {clean_title[:35]}",
+                }
+                body = (
+                    f"# 📱 Mobile Intercom Prompt\n\n"
+                    f"**Received At**: `{now_iso}`  \n"
+                    f"**Origin IP**: `{client_ip}`  \n"
+                    f"**Client Surface**: N'kai Intercom Companion  \n\n"
+                    f"### 💬 User Prompt:\n\n{prompt}\n"
+                )
+                dispatch_content = serialize_dispatch(meta, body)
+                (bus_dir / f"{dispatch_id}.md").write_text(dispatch_content, encoding="utf-8")
+                print(f"🚀 [RELAY] Dispatched mobile prompt to Data Bus: {dispatch_id}")
+            except Exception as e:
+                print(f"⚠️ [RELAY] Could not post mobile dispatch to Data Bus: {e}")
 
-# Mobile Intercom Message
-
-> Dispatched from `{client_ip}` via N'kai Mobile Intercom.
-
-{prompt}
-"""
-                for qn_dir in [
-                    Path(r"C:\_\Vault\Inbox\QuickNotes"),
-                    REPO_ROOT / "docs" / "inbox" / "quicknotes",
-                ]:
-                    try:
-                        qn_dir.mkdir(parents=True, exist_ok=True)
-                        note_path = qn_dir / f"{ts_slug}_{clean_title[:30].replace(' ', '_')}.md"
-                        note_path.write_text(note_content, encoding="utf-8")
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+            # Note: Chat prompt is dispatched to action_history, agent_bulletin, and Data Bus.
+            # QuickNotes creation is intentionally decoupled and reserved for explicit quick-note intake.
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"ok": True, "status": "prompt_queued", "prompt": prompt}).encode("utf-8"))
+            self.wfile.write(json.dumps({
+                "ok": True,
+                "status": "prompt_queued",
+                "dispatch_id": dispatch_id,
+                "prompt": prompt
+            }).encode("utf-8"))
             return
 
         if clean_path == "/api/scratchpad/append":
@@ -1426,7 +1518,7 @@ status: pending
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    allow_reuse_address = True
+    allow_reuse_address = (sys.platform != "win32")
     daemon_threads = True
 
 
@@ -1434,7 +1526,8 @@ def find_available_port(host: str, starting_port: int, max_attempts: int = 50) -
     """Finds the next available local port starting from starting_port."""
     for port in range(starting_port, starting_port + max_attempts):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            if sys.platform != "win32":
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 sock.bind((host, port))
                 return port
@@ -1566,7 +1659,10 @@ Examples:
         *h_args, directory=str(directory_to_serve), **h_kwargs
     )
 
+    pid_file = REPO_ROOT / ".agents" / "pipeline" / "nkai_daemon.pid"
     try:
+        pid_file.parent.mkdir(parents=True, exist_ok=True)
+        pid_file.write_text(str(os.getpid()), encoding="utf-8")
         set_thread_execution_state(True)
         with ThreadedTCPServer((args.host, active_port), handler) as httpd:
             # Attach mobile url and auth token to server instance
@@ -1589,6 +1685,11 @@ Examples:
         sys.exit(1)
     finally:
         set_thread_execution_state(False)
+        try:
+            if pid_file.exists() and pid_file.read_text(encoding="utf-8").strip() == str(os.getpid()):
+                pid_file.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
