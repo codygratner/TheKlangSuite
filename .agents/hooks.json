@@ -1,0 +1,11 @@
+{
+  "mobile-companion-ensure": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python tools/manage_mobile_companion.py ensure",
+        "timeout": 5
+      }
+    ]
+  }
+}
