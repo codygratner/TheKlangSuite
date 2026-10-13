@@ -258,7 +258,7 @@
 
 ## 😈 Devil's Advocate Methodology & Prompt Hardening (`rj-22`)
 
-* **Method B Adversarial Prompting**: Mandatory requirement for all DA reviews, `/grill-me` sessions, and subagent dialectics to append `"Where I Disagree With The Prompt"`. Empirically verified to produce a +1.44 quality leap on Flash (3.88, beating Pro) and +1.06 on Pro by eliminating sycophantic agreement and forcing premise skepticism.
+* **Method B+ Constructive Adversarial Invariant (Dialectical Inquiry)**: Mandatory requirement for all DA reviews, `/grill-me` sessions, and subagent dialectics to append both: (1) `"Where I Disagree With The Prompt"` (skepticism of flawed premises), and (2) `"Steel-Manned Intent & Constructive Lateral Alternatives"` (inventing viable, low-cost or zero-token architectural solutions). Eliminates the "Cynical Auditor Trap" where critics tear down a proposal without offering a path forward.
 * **Pre-Downgrade Soul Harvest**: Mandatory single-turn capture of raw Opus working hypotheses and failure modes to `.agents/pipeline/staging/souls/` immediately before sounding the downgrade chime back to Flash, capturing peak reasoning at near-zero token cost.
 * **Audio Strangler Fallacy**: Real-time audio engines cannot use runtime Strangler Fig routing because multiple engines cannot concurrently own a hardware ASIO/CoreAudio device stream; migrations must use Branch by Abstraction verified by offline-bounce golden null tests.
 * **Benchmark Tooling**: `python tools/da_bench.py` provides `sanitize` (seeded anonymization & key sealing), `audit-blindness` (zero-leak transcript verification), `aggregate` (multi-judge Kendall's tau & composite scoring), and `manifest` lifecycle governance.
