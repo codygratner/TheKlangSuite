@@ -62,4 +62,5 @@ test_artifacts/
 *.pid
 .agents/pipeline/*.pid
 .agents/pipeline/uploads/
+.agents/pipeline/*auth*.json
 

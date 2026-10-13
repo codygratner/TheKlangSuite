@@ -1000,8 +1000,22 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       }}
     }});
 
+    function getAuthHeaders() {{
+      const token = localStorage.getItem('nkai_sentry_auth') || '';
+      return token ? {{ 'Authorization': 'Bearer ' + token }} : {{}};
+    }}
+
+    // Extract and cache ?auth= token from URL on page load
+    try {{
+      const urlParams = new URLSearchParams(window.location.search);
+      const auth = urlParams.get('auth');
+      if (auth) {{
+        localStorage.setItem('nkai_sentry_auth', auth);
+      }}
+    }} catch (e) {{}}
+
     function refreshChatHistory(isSilent = false) {{
-      fetch('/api/chat/history')
+      fetch('/api/chat/history', {{ headers: getAuthHeaders() }})
         .then(res => res.json())
         .then(data => {{
           if (data && data.ok) {{
@@ -1176,6 +1190,7 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
             formData.append('file', item.file, item.name);
             const upRes = await fetch('/api/chat/upload', {{
               method: 'POST',
+              headers: {{ ...getAuthHeaders() }},
               body: formData
             }});
             const upData = await upRes.json();
@@ -1214,11 +1229,122 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
         }} catch (e) {{}}
       }}
 
-      // 2. Mobile / External Web: dispatch to /api/chat/send
+      // 2. Mobile / External Web: Stream via Sentry (/api/sentry/stream) with fallback
+      try {{
+        showToast('🛰️ Sentry processing...');
+        const res = await fetch('/api/sentry/stream', {{
+          method: 'POST',
+          headers: {{
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          }},
+          body: JSON.stringify({{ prompt: fullPrompt, attachments: [] }})
+        }});
+
+        if (res.status === 401) {{
+          showToast('🔒 Unauthorized: Sentry token required. Re-pair at /qr');
+          if (btn) {{ btn.disabled = false; btn.textContent = 'Send'; }}
+          return;
+        }}
+
+        if (res.ok && res.body) {{
+          inp.value = '';
+          inp.style.height = 'auto';
+
+          // Append User turn immediately to DOM
+          const chatList = document.getElementById('chat-stream-list');
+          if (chatList) {{
+            const userCard = document.createElement('div');
+            userCard.className = 'chat-card';
+            userCard.innerHTML = `
+              <div class="user-bubble">
+                <div class="user-label"><span>👤</span> You (Mobile Intercom)</div>
+                <div class="user-text">${{formatMarkdownSimple(fullPrompt)}}</div>
+              </div>
+            `;
+            chatList.appendChild(userCard);
+
+            // Create Assistant stream card
+            const streamCard = document.createElement('div');
+            streamCard.className = 'chat-card';
+            streamCard.innerHTML = `
+              <div class="agent-bubble">
+                <div class="agent-label"><span>🛰️</span> N'kai Sentry (Mobile Relay)</div>
+                <div class="thinking-accordion" id="stream-thinking-box" style="display:none; margin-bottom:8px;">
+                  <div class="thinking-summary">🧠 Reasoning...</div>
+                  <div class="thinking-text" id="stream-thinking-text" style="font-size:12px; color:var(--purple); margin-top:4px; font-family:var(--font-mono);"></div>
+                </div>
+                <div id="stream-tools-box" style="display:none; margin-bottom:8px;"></div>
+                <div class="agent-text markdown-body" id="stream-agent-text"></div>
+              </div>
+            `;
+            chatList.appendChild(streamCard);
+            window.scrollTo({{ top: document.body.scrollHeight, behavior: 'smooth' }});
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+            let fullText = '';
+            let fullThought = '';
+
+            const agentTextEl = document.getElementById('stream-agent-text');
+            const thinkingBox = document.getElementById('stream-thinking-box');
+            const thinkingTextEl = document.getElementById('stream-thinking-text');
+            const toolsBox = document.getElementById('stream-tools-box');
+
+            while (true) {{
+              const {{ value, done }} = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, {{ stream: true }});
+              const blocks = buffer.split('\\n\\n');
+              buffer = blocks.pop(); // keep trailing partial
+
+              for (const block of blocks) {{
+                if (!block.trim()) continue;
+                const match = block.match(/event:\\s*([a-zA-Z0-9_-]+)\\ndata:\\s*(.+)/s);
+                if (match) {{
+                  const evType = match[1];
+                  try {{
+                    const data = JSON.parse(match[2]);
+                    if (evType === 'thought' && data.content) {{
+                      fullThought += data.content + ' ';
+                      if (thinkingBox) thinkingBox.style.display = 'block';
+                      if (thinkingTextEl) thinkingTextEl.textContent = fullThought;
+                    }} else if (evType === 'tool_start' && data.tool) {{
+                      if (toolsBox) {{
+                        toolsBox.style.display = 'block';
+                        toolsBox.innerHTML += `<span class="tool-chip" style="margin-right:4px;">⚙️ ${{escapeHtml(data.tool)}}</span>`;
+                      }}
+                    }} else if (evType === 'token' && data.content) {{
+                      fullText += data.content;
+                      if (agentTextEl) agentTextEl.innerHTML = formatMarkdownSimple(fullText);
+                      window.scrollTo({{ top: document.body.scrollHeight }});
+                    }} else if (evType === 'done') {{
+                      if (navigator.vibrate) navigator.vibrate(15);
+                      showToast('✅ Sentry response complete');
+                    }}
+                  }} catch (err) {{}}
+                }}
+              }}
+            }}
+          }}
+
+          if (btn) {{ btn.disabled = false; btn.textContent = 'Send'; }}
+          setTimeout(() => refreshChatHistory(true), 1500);
+          return;
+        }}
+      }} catch (err) {{
+        console.warn('Sentry streaming failed, falling back to /api/chat/send:', err);
+      }}
+
+      // 3. Fallback: dispatch to /api/chat/send for desktop queueing
       try {{
         const res = await fetch('/api/chat/send', {{
           method: 'POST',
-          headers: {{ 'Content-Type': 'application/json' }},
+          headers: {{
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          }},
           body: JSON.stringify({{ prompt: fullPrompt, source: 'chat_board' }})
         }});
         const data = await res.json();

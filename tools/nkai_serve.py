@@ -67,6 +67,21 @@ except ImportError:
             sys.path.insert(0, str(_tools_dir))
         from qr_code import QRCode, generate_qr_terminal, generate_qr_svg
 
+# Sentry Bearer Token Auth & Streaming Engine
+try:
+    from tools.sentry_auth import get_or_create_sentry_token, verify_sentry_token
+    from tools.sentry_engine import stream_sentry_response
+except ImportError:
+    try:
+        from sentry_auth import get_or_create_sentry_token, verify_sentry_token
+        from sentry_engine import stream_sentry_response
+    except ImportError:
+        _tools_dir = Path(__file__).resolve().parent
+        if str(_tools_dir) not in sys.path:
+            sys.path.insert(0, str(_tools_dir))
+        from sentry_auth import get_or_create_sentry_token, verify_sentry_token
+        from sentry_engine import stream_sentry_response
+
 # Register canonical MIME types
 CUSTOM_MIME_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -337,6 +352,35 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(204)
         self.end_headers()
 
+    def is_authorized(self) -> bool:
+        """Validates Bearer token from header, query param (?auth=), or localhost."""
+        sentry_token = getattr(self.server, "sentry_token", None)
+        if not sentry_token:
+            return True
+
+        # Check Authorization header (Bearer <token>)
+        auth_header = self.headers.get("Authorization")
+        if auth_header and verify_sentry_token(auth_header, sentry_token):
+            return True
+
+        # Check query param ?auth=<token>
+        try:
+            qs = parse_qs(urlparse(self.path).query)
+            if "auth" in qs and qs["auth"]:
+                import hmac
+                if hmac.compare_digest(qs["auth"][0].strip(), sentry_token.strip()):
+                    return True
+        except Exception:
+            pass
+
+        # Allow localhost / loopback for local dev and automated tests
+        allow_local = getattr(self.server, "allow_unauthenticated_localhost", True)
+        client_ip = self.client_address[0]
+        if allow_local and client_ip in ("127.0.0.1", "::1", "localhost"):
+            return True
+
+        return False
+
     def translate_path(self, path):
         """Translates virtual URL routes and sidecar aliases to physical files."""
         parsed = urlparse(path)
@@ -537,6 +581,15 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
       <button onclick="navigator.clipboard.writeText('{target_url}'); alert('URL copied!');" class="btn btn-secondary">📋 Copy URL</button>
     </div>
   </div>
+  <script>
+    try {{
+      const urlParams = new URLSearchParams(window.location.search);
+      const auth = urlParams.get('auth');
+      if (auth) {{
+        localStorage.setItem('nkai_sentry_auth', auth);
+      }}
+    }} catch (e) {{}}
+  </script>
 </body>
 </html>"""
             self.send_response(200)
@@ -785,6 +838,60 @@ window.sidecar = window.sidecar || {
             body_json = json.loads(post_body.decode("utf-8")) if post_body else {}
         except Exception:
             body_json = {}
+
+        # Sentry Authorization Check on protected API endpoints
+        protected_routes = (
+            "/api/chat/upload",
+            "/api/chat/send",
+            "/api/action",
+            "/api/quick-note",
+            "/api/dispatch",
+            "/api/sentry/stream",
+        )
+        if clean_path in protected_routes or clean_path.startswith("/api/sentry/"):
+            if not self.is_authorized():
+                self.send_response(401)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "ok": False,
+                    "error": "Unauthorized: Sentry Bearer token required or invalid.",
+                    "hint": "Provide 'Authorization: Bearer <token>' or scan QR pairing code at /qr"
+                }).encode("utf-8"))
+                return
+
+        # Sentry SSE Streaming Route
+        if clean_path == "/api/sentry/stream":
+            prompt = body_json.get("prompt", "").strip()
+            attachments = body_json.get("attachments", [])
+            api_key = getattr(self.server, "gemini_api_key", None)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache, no-transform")
+            self.send_header("Connection", "keep-alive")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+
+            import asyncio
+            loop = asyncio.new_event_loop()
+            try:
+                gen = stream_sentry_response(prompt, attachments, api_key=api_key)
+                while True:
+                    try:
+                        ev = loop.run_until_complete(gen.__anext__())
+                        ev_type = ev.get("type", "message")
+                        msg = f"event: {ev_type}\ndata: {json.dumps(ev, ensure_ascii=False)}\n\n"
+                        self.wfile.write(msg.encode("utf-8"))
+                        self.wfile.flush()
+                    except StopAsyncIteration:
+                        break
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            finally:
+                loop.close()
+            return
 
         if clean_path == "/api/chat/upload":
             content_type_header = self.headers.get("Content-Type", "")
@@ -1290,7 +1397,10 @@ Examples:
     url = f"http://{host_display}:{active_port}/{file_name}".rstrip("/")
     mobile_url = f"http://{local_ip}:{active_port}/{file_name}".rstrip("/")
     tailscale_url = f"http://{tailscale_ip}:{active_port}/{file_name}".rstrip("/") if tailscale_ip else None
-    qr_web_url = f"http://{local_ip}:{active_port}/qr"
+    sentry_token = get_or_create_sentry_token()
+    mobile_url_with_auth = f"{mobile_url}?auth={sentry_token}"
+    tailscale_url_with_auth = f"{tailscale_url}?auth={sentry_token}" if tailscale_url else None
+    qr_web_url = f"http://{local_ip}:{active_port}/qr?auth={sentry_token}"
 
     print("=" * 64)
     print("  📱 N'KAI MOBILE COMPANION READY!")
@@ -1302,6 +1412,7 @@ Examples:
     if tailscale_url:
         print(f"  🔒 Tailscale Mesh:    {tailscale_url}")
     print(f"  📱 Web Pairing Route: {qr_web_url}")
+    print(f"  🛡️ Sentry Auth Token: {sentry_token[:8]}...{sentry_token[-8:]}")
     if active_port != args.port:
         print(f"  ⚡ Note: Port {args.port} was occupied, bound to {active_port}")
     if args.host == "0.0.0.0":
@@ -1311,7 +1422,7 @@ Examples:
     if show_qr:
         print("\n  📱 SCAN TO PAIR WITH MOBILE COMPANION:\n")
         try:
-            print(generate_qr_terminal(mobile_url, border=2))
+            print(generate_qr_terminal(mobile_url_with_auth, border=2))
         except Exception as e:
             print(f"  (Could not render terminal QR: {e})")
         print("\n" + "=" * 64)
@@ -1325,8 +1436,10 @@ Examples:
     try:
         set_thread_execution_state(True)
         with ThreadedTCPServer((args.host, active_port), handler) as httpd:
-            # Attach mobile url to server instance for /qr route
-            httpd.mobile_url = mobile_url
+            # Attach mobile url and auth token to server instance
+            httpd.sentry_token = sentry_token
+            httpd.allow_unauthenticated_localhost = True
+            httpd.mobile_url = mobile_url_with_auth
             httpd.local_ip = local_ip
             httpd.tailscale_ip = tailscale_ip
 

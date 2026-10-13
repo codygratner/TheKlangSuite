@@ -613,24 +613,27 @@
     {
       "id": "rj-23",
       "rank": 23,
-      "priority": "P2",
-      "status": "TABLED",
+      "priority": "P1",
+      "status": "APPROVED",
       "tier": "tier2",
       "pillars": [
-        "AGY"
+        "AGY",
+        "NK"
       ],
-      "title": "Remote Antigravity Access",
-      "summary": "Check status/usage and launch the daemon from your phone. Options: Tailscale + SSH (zero code) vs a tiny authenticated status daemon.",
+      "title": "The Stateless Sentry: AGY SDK Satellite Relay & Mobile Companion Gateway",
+      "summary": "On-demand, stateless AGY SDK worker inside nkai_serve.py for mobile streaming, pre-shared bearer auth, read-only/append-only tools, and zero shell execution.",
       "angles": [
-        "Tailscale + SSH first (80/20)",
-        "Daemon only if a phone UI is really needed"
+        "Pre-shared bearer token auth on port 3030 for LAN/Tailscale",
+        "Ephemeral single-turn AGY SDK agent (max_turns=2, hard budget caps)",
+        "Strictly scoped tools (read-only vault search, gdrive readonly, append-only to Inbox/QuickNotes/)",
+        "Zero shell execution (run_command banned)"
       ],
-      "next_action": "Approve -> try Tailscale + SSH.",
+      "next_action": "Draft Flight 24 implementation plan in PLAN.md",
       "sources": [
         "Remote Antigravity"
       ],
-      "verdict": "TABLED",
-      "verdict_notes": "Tabled for later. Task 8 queued in post_milestone_deep_docs_gauntlet.md to author an ELI5 visual tutorial for Tailscale + SSH / mobile webview access during the next deep docs pass."
+      "verdict": "APPROVED",
+      "verdict_notes": "Approved via 2-Round Heavy Online PCDA on 2026-10-13. Replaces autonomous 24/7 daemon with the 80/20 Stateless Sentry pattern: on-demand ephemeral agent, pre-shared bearer token, max_turns=2, zero shell tools, and append-only note staging."
     },
     {
       "id": "rj-24",
