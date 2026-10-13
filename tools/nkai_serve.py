@@ -719,6 +719,41 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"ok": False, "error": f"Card '{card_id}' not found"}).encode("utf-8"))
             return
 
+        if clean_path == "/api/compile-prompt":
+            from urllib.parse import parse_qs, urlparse
+            parsed = parse_qs(urlparse(self.path).query)
+            topic = parsed.get("topic", [None])[0] or parsed.get("id", [None])[0]
+            to_clipboard = parsed.get("clipboard", ["true"])[0].lower() in ("true", "1", "yes")
+
+            if not topic:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": "Missing 'topic' or 'id' query parameter"}).encode("utf-8"))
+                return
+
+            try:
+                from tools.compile_prompt import compile_prompt
+                payload = compile_prompt(topic=topic, clipboard=to_clipboard)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "ok": True,
+                    "thread_id": payload.thread_id,
+                    "markdown": payload.to_markdown(),
+                    "copied": to_clipboard
+                }, ensure_ascii=False).encode("utf-8"))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode("utf-8"))
+            return
+
         if clean_path == "/preload.js":
             shim = b"""// Standalone Mobile/LAN Webview Shim for N'kai Sidecar SDK
 window.sidecar = window.sidecar || {
@@ -1169,6 +1204,38 @@ window.sidecar = window.sidecar || {
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"ok": True, "message": "Mail checked"}).encode("utf-8"))
+            return
+
+        if clean_path == "/api/compile-prompt":
+            topic = body_json.get("topic") or body_json.get("topic_id") or body_json.get("id") or body_json.get("card_id")
+            to_clipboard = body_json.get("clipboard", True)
+
+            if not topic:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": "Missing topic identifier"}).encode("utf-8"))
+                return
+
+            try:
+                from tools.compile_prompt import compile_prompt
+                payload = compile_prompt(topic=str(topic), clipboard=bool(to_clipboard))
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "ok": True,
+                    "thread_id": payload.thread_id,
+                    "markdown": payload.to_markdown(),
+                    "copied": bool(to_clipboard)
+                }, ensure_ascii=False).encode("utf-8"))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode("utf-8"))
             return
 
         if clean_path in ("/api/action", "/api/dispatch"):

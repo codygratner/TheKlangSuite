@@ -608,3 +608,131 @@ class BoardRegistry(BaseModel):
         return [b for b in self.boards if b.category.lower() == "sandbox" or b.environment.upper() == "SANDBOX"]
 
 
+# ==============================================================================
+# Prompt Compiler & Dialectical Handoff Models (Flight 2 / Topic 16 / rj-24)
+# ==============================================================================
+
+
+class ThesisBlock(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    core_intent: str = Field(description="Primary user objective or architectural thesis")
+    user_goals: List[str] = Field(default_factory=list, description="Explicit bulleted user goals")
+    source_note: Optional[str] = Field(default=None, description="Path or title of the original source note")
+
+
+class AntithesisBlock(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    reviewer_persona: str = Field(
+        default="The Dissolution / Adversarial Auditor",
+        description="Persona framing for adversarial stress-testing",
+    )
+    echo_chamber_shatter: str = Field(
+        default="Direct confrontation with real-world implementation traps",
+        description="Friction summary breaking confirmation bias",
+    )
+    structural_vulnerabilities: List[str] = Field(
+        default_factory=list,
+        description="Identified risks, traps, or failure modes",
+    )
+    orthogonal_vectors: List[str] = Field(
+        default_factory=list,
+        description="Constructive lateral alternatives and architectural resolutions",
+    )
+
+
+class SynthesisTargetConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    materialization: str = Field(
+        default="Python Tooling / Antigravity Sidecar Component",
+        description="Concrete materialization target (e.g., C++ JUCE DSP, Sidecar Component, CLI Tool)",
+    )
+    the_blueprint: str = Field(
+        default="Definitive drop-in implementation plan adhering to Sleepy Architecture",
+        description="Expected deliverable structure and format",
+    )
+    effort_level: str = Field(default="MINIMAL", description="Expected coding effort level (MINIMAL / MODERATE)")
+    impact_level: str = Field(default="MAXIMUM", description="Expected feature leverage (MAXIMUM / HIGH)")
+    status: str = Field(default="PENDING_REASONING", description="Clearance status")
+
+
+class PromptHandoffPayload(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    thread_id: str = Field(description="Unique session or topic identifier")
+    reconciliation_protocol: str = Field(
+        default="Standard Dialectical (Method B+)",
+        description="Protocol directing model reasoning",
+    )
+    thesis: ThesisBlock = Field(description="Core intent and goals")
+    antithesis: AntithesisBlock = Field(default_factory=AntithesisBlock, description="Adversarial stress-test")
+    targets: SynthesisTargetConfig = Field(default_factory=SynthesisTargetConfig, description="Target constraints")
+    prompt_mandate: str = Field(
+        default=(
+            "Analyze the structural tension between my core intent (Thesis) and the subagent's counterarguments (Antithesis). "
+            "Using your extended deep-thinking reasoning mode, reconcile these perspectives into a definitive software architecture spec. "
+            "Ensure the final blueprint strictly optimizes for the Sleepy Architecture principles: achieve MAXIMUM feature leverage with MINIMAL coding execution overhead."
+        ),
+        description="Command directive for the flagship reasoning model",
+    )
+
+    def to_markdown(self) -> str:
+        lines = []
+        lines.append("# SYSTEM HANDOFF: DIALECTICAL SYNTHESIS ENGINE")
+        lines.append(f"**Thread Identity:** `{self.thread_id}`")
+        lines.append(f"**Reconciliation Protocol:** `{self.reconciliation_protocol}`\n")
+
+        lines.append("## [THESIS: CORE INTENT]")
+        if self.thesis.source_note:
+            lines.append(f"*Source Note:* `{self.thesis.source_note}`\n")
+        lines.append(self.thesis.core_intent)
+        if self.thesis.user_goals:
+            lines.append("\n### Key Objectives")
+            for goal in self.thesis.user_goals:
+                lines.append(f"- {goal}")
+        lines.append("")
+
+        lines.append("## [ANTITHESIS: ADVERSARIAL STRESS-TEST]")
+        lines.append(f"**Reviewer Persona:** {self.antithesis.reviewer_persona}")
+        lines.append(f"**Shatter Metric:** {self.antithesis.echo_chamber_shatter}\n")
+
+        lines.append("### Identified Structural Vulnerabilities")
+        if self.antithesis.structural_vulnerabilities:
+            for v in self.antithesis.structural_vulnerabilities:
+                lines.append(f"- [!] {v}")
+        else:
+            lines.append("- No immediate vulnerabilities exposed.")
+        lines.append("")
+
+        lines.append("### Orthogonal Vectors & Alternatives")
+        if self.antithesis.orthogonal_vectors:
+            for vec in self.antithesis.orthogonal_vectors:
+                lines.append(f"- [x] {vec}")
+        else:
+            lines.append("- No alternative architectural trajectories recommended.")
+        lines.append("")
+
+        lines.append("## [CONSTRAINTS & TARGETS]")
+        lines.append(f"- **Materialization Target:** {self.targets.materialization}")
+        lines.append(f"- **The Blueprint Context:** `{self.targets.the_blueprint}`")
+        lines.append(f"- **Sleepy Architecture Metric:** Effort: `{self.targets.effort_level}` / Impact: `{self.targets.impact_level}`")
+        lines.append(f"- **Mayor Clearance Status:** `{self.targets.status}`\n")
+
+        lines.append("---")
+        lines.append("## PROMPT / COMMAND TO EXECUTE")
+        lines.append(self.prompt_mandate)
+
+        return "\n".join(lines)
+
+    def to_clipboard(self) -> bool:
+        from tools.compile_prompt import copy_to_clipboard
+        return copy_to_clipboard(self.to_markdown())
+
+    def to_vault_file(self, target_path: Path) -> Path:
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        target_path.write_text(self.to_markdown(), encoding="utf-8")
+        return target_path
+
+

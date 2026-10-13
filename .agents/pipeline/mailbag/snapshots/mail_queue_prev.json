@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T22:15:18.646640",
-  "total_items": 4,
+  "last_scanned": "2026-10-12T22:32:29.745539",
+  "total_items": 5,
   "p0_count": 0,
   "items": [
     {
@@ -50,6 +50,42 @@
       ]
     },
     {
+      "id": "normal vs heavy pcda",
+      "title": "normal vs heavy pcda",
+      "created_at": "2026-10-12",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "target_pillars": [
+        "TKR"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\normal vs heavy pcda.md",
+      "preview": "can we benchmark normal vs heavy pcda? based on effectiveness and token churn? do we need to really have two when just heavy is probably the better option even WITH more token churn? maybe we have PCDA and \"lite PCDA\"? maybe you can do some research and see what would be good top...",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 308,
+      "word_count": 57,
+      "tier": "tier2",
+      "body": "can we benchmark normal vs heavy pcda? based on effectiveness and token churn? do we need to really have two when just heavy is probably the better option even WITH more token churn? maybe we have PCDA and \"lite PCDA\"?\n\nmaybe you can do some research and see what would be good topics to benchmark this with?",
+      "excerpt": "can we benchmark normal vs heavy pcda? based on effectiveness and token churn? do we need to really have two when just heavy is probably the better option even WITH more token churn? maybe we have PCDA and \"lite PCDA\"? maybe you can do some research and see what would be good top...",
+      "file_name": "normal vs heavy pcda.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\normal vs heavy pcda.md",
+      "source_note": "",
+      "idx": 2,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "pillars": [
+        "TKR"
+      ]
+    },
+    {
       "id": "NkaiCore",
       "title": "NkaiCore",
       "created_at": "2026-10-12",
@@ -73,7 +109,7 @@
       "file_name": "NkaiCore.md",
       "rel_path": "C:\\_\\Vault\\Inbox\\NkaiCore.md",
       "source_note": "",
-      "idx": 2,
+      "idx": 3,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -109,7 +145,7 @@
       "file_name": "Korg Logue SDK Stuff and CTAG DSP.md",
       "rel_path": "C:\\_\\Vault\\Inbox\\Korg Logue SDK Stuff and CTAG DSP.md",
       "source_note": "",
-      "idx": 3,
+      "idx": 4,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -148,7 +184,7 @@
       "file_name": "Can we make a template that adds the front matter on a new note.md",
       "rel_path": "C:\\_\\Vault\\Inbox\\Can we make a template that adds the front matter on a new note.md",
       "source_note": "",
-      "idx": 4,
+      "idx": 5,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",

@@ -530,6 +530,9 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
           <button id="btn-launch-plan-{clean_id}" class="action-chip chip-session-plan" onclick="launchSessionAction('{card_id}', 'draft-plan')" title="Draft implementation plan in Antigravity">
             <span>🔨</span> Draft Plan
           </button>
+          <button id="btn-compile-prompt-{clean_id}" class="action-chip chip-session-compile" onclick="compileReasoningPrompt('{card_id}')" title="Compile dense dialectical prompt for flagship reasoning model & copy to clipboard">
+            <span>🧠</span> Compile Prompt
+          </button>
         </div>
       </div>
 """
