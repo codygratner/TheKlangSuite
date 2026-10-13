@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "a8c9b00",
-    "is_clean": false,
-    "dirty_count": 1,
-    "staged": 1,
-    "modified": 1,
+    "commit": "0653ec4",
+    "is_clean": true,
+    "dirty_count": 0,
+    "staged": 0,
+    "modified": 0,
     "untracked": 0,
     "recent_commits": [
+      "0653ec4 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
       "a8c9b00 chore(memory): execute automated pre-compaction memory flush and state synchronization",
-      "f2d9c5a feat(mobile-chat-pcda): fix mobile viewport & send pipeline, package PCDACore standalone repo, deploy Inbox Staging shelf, and catalog Logue/CTAG oscillators",
-      "8a854bc feat(lens-profiles): implement configurable declarative lens dictionary, tag auto-detection, and multi-domain PCDA synthesis (Flight 4)"
+      "f2d9c5a feat(mobile-chat-pcda): fix mobile viewport & send pipeline, package PCDACore standalone repo, deploy Inbox Staging shelf, and catalog Logue/CTAG oscillators"
     ]
   },
   "plan": {
