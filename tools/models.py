@@ -176,6 +176,17 @@ class TriageActionType(str, Enum):
     KILL = "KILL"
 
 
+class DossierDrawer(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    source_note: Optional[str] = Field(default=None, description="Path or filename of the source note")
+    source_markdown: Optional[str] = Field(default="", description="Original raw markdown content from the note")
+    pcda_dialectic: Optional[Dict[str, Any]] = Field(default_factory=dict, description="PCDA 4-part triad & 4-lens metrics")
+    research_dossier: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Citations, benchmarks, and precedents")
+    pass_count: int = Field(default=2, description="Number of iterative research passes executed (strictly <= 2)")
+    researched_at: Optional[str] = Field(default=None, description="ISO timestamp of research completion")
+
+
 class MailItem(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -212,6 +223,9 @@ class MailItem(BaseModel):
     agent_reply: Optional[str] = None
     agent_reply_at: Optional[str] = None
     has_reply: bool = False
+
+    # Multi-Drawer Dossier (Flight 3 / Topic 17 / rj-25)
+    dossier: Optional[DossierDrawer] = None
 
     @property
     def pillars(self) -> List[str]:

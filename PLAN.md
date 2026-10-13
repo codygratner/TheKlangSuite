@@ -1,4 +1,4 @@
-# Flight 2: N'kai to High Reasoning Prompt Compiler
+# Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards
 
 **TARGET:** TOOLING_HARNESS  
 **Role:** New Klang City Architecture & Web Engineering  
@@ -8,73 +8,73 @@
 ---
 
 ### Executive Overview & Architectural Dialectic
-- **The "Master Architect" Principle**: Passing raw notes or unstructured rambles to expensive flagship reasoning models (Claude 3.7 Sonnet Thinking, Gemini 3.1 Pro High, ChatGPT o3) wastes valuable context window tokens on basic noise extraction and disambiguation.
-- **Local Structural Filter**: N'kai acts as the zero-token local data miner, structuring the thesis (user intent), antithesis (adversarial stress-tests, friction metrics, failure modes), constraints, and sleepy architecture metrics.
-- **Dense Dialectical Handoff**: `tools/compile_prompt.py` formats this dense dossier into an undeniable markdown blueprint mandate and transports it via OS clipboard (Win32 ctypes, macOS pbcopy, Linux xclip) or local file drop.
-- **Dual Mode**:
-  - **Mode A (In-IDE Subagent Dispatch)**: Generates a Pro subagent dispatch charter for `invoke_subagent(Model="pro")`.
-  - **Mode B (External Web & Clipboard Exporter)**: Populates OS system clipboard for instantaneous 1-click pasting into external AI web interfaces.
+- **The "Rule of 2" Bounded Convergence Architecture**:
+  - Multi-agent reflection research demonstrates that gains steeply plateau after iteration 2. Pass 3+ yields negative returns (semantic churn, hallucination compounding, and token waste).
+  - Automode strictly enforces the 2-Pass law:
+    - **Pass 1 (Parallel Divergent Sweep — Tier 2 Flash)**: Generates affirmative thesis/SOTA precedents and adversarial contrarian stress-tests (`Where I Disagree With The Prompt`).
+    - **Pass 2 (Convergent Synthesis — Tier 2 Flash)**: Reconciles Thesis and Antithesis into standard 3-bullet decision cards, 4-lens PCDA matrices, and curated technical citations.
+  - **Zero Pro Burn**: Automode runs 100% on Tier 2 Flash. Tier 1 Pro models are strictly prohibited.
+- **The Human Triage Gate**:
+  - Automode NEVER autonomously touches raw notes in `TheKlangVault/Inbox/`. It executes strictly on items explicitly triaged with `[ 🔬 Research ]` in `morning_mail_inbox.html` or marked `status: "research"` in `.agents/pipeline/mailbag/mail_queue.json`.
+  - Strictly bounded batch execution: `--limit 3` (default), finite execution, NEVER an infinite `while True:` loop.
+- **The "Hero Front + 3-Tab Drawer" UI Standard**:
+  - The 3-bullet synthesis (🎯 Core Intent, 🛠️ Proposed Mechanism, 🚦 Action Route) remains permanently visible on the front face of each card.
+  - Single unified drawer toggle: `[ 📂 View Full Dossier (3) ]`.
+  - 3-Segmented Tab Strip:
+    - `[ 📄 Source Note ]`
+    - `[ ⚖️ PCDA Dialectic ]`
+    - `[ 🔬 Research Dossier ]`
+  - Mobile bottom-sheet layout on viewports $\le 640\text{px}$.
 
 ---
 
-### Phase 1: Structured Pydantic Models (`tools/models.py`)
-- [x] Define `ThesisBlock`:
-  - `core_intent`: str
-  - `user_goals`: List[str]
+### Phase 1: Dossier Data Models & Schema Extension (`tools/models.py`)
+- [x] Define `DossierDrawer` Pydantic model:
   - `source_note`: Optional[str]
-- [x] Define `AntithesisBlock`:
-  - `reviewer_persona`: str (default: "The Dissolution / Adversarial Auditor")
-  - `echo_chamber_shatter`: str
-  - `structural_vulnerabilities`: List[str]
-  - `orthogonal_vectors`: List[str]
-- [x] Define `SynthesisTargetConfig`:
-  - `materialization`: str (e.g., "Python CLI / Sidecar Component / C++ DSP")
-  - `the_blueprint`: str
-  - `effort_level`: str (default: "MINIMAL")
-  - `impact_level`: str (default: "MAXIMUM")
-  - `status`: str (default: "PENDING_REASONING")
-- [x] Define `PromptHandoffPayload`:
-  - `thread_id`: str
-  - `reconciliation_protocol`: str (default: "Standard Dialectical")
-  - `thesis`: ThesisBlock
-  - `antithesis`: AntithesisBlock
-  - `targets`: SynthesisTargetConfig
-  - `prompt_mandate`: str
-  - Methods: `to_markdown()`, `to_clipboard()`, `to_vault_file(path)`.
+  - `source_markdown`: Optional[str]
+  - `pcda_dialectic`: Optional[Dict[str, Any]]
+  - `research_dossier`: Optional[Dict[str, Any]]
+  - `pass_count`: int = 2
+  - `researched_at`: Optional[str]
+- [x] Extend `MailItem` model with `dossier: Optional[DossierDrawer] = None`.
+- [x] Verify serialization and backwards compatibility.
 
 ---
 
-### Phase 2: CLI Compiler Engine (`tools/compile_prompt.py`)
-- [x] Build `tools/compile_prompt.py` entrypoint:
-  - Supports `--topic <id_or_title>` (pulls from `mail_queue.json` or `rejigger.json` or vault note).
-  - Supports `--file <path>` (parses existing note or JSON matrix).
-  - Supports `--clipboard` (auto-copies compiled markdown to OS clipboard).
-  - Supports `--out <file>` and `--stdout`.
-  - Supports `--vault` (drops compiled markdown into `TheKlangVault/Dispatches/reasoning/` or specified vault folder).
-  - Cross-platform clipboard implementation:
-    - Windows: Win32 API via `ctypes` (`GlobalAlloc`, `OpenClipboard`, `EmptyClipboard`, `SetClipboardData`, `CloseClipboard`).
-    - macOS: `pbcopy` subprocess.
-    - Linux: `xclip` or `wl-copy`.
-  - Strict UTF-8 console stream reconfigures (`sys.stdout.reconfigure(encoding='utf-8')`).
+### Phase 2: 2-Pass Research Engine (`tools/research_daemon.py`)
+- [x] Create `tools/research_daemon.py`:
+  - `execute_pass_1_divergence(topic: str, note_text: str) -> Tuple[str, str]`: Generates Affirmative SOTA precedents & Adversarial Contrarian Stress-Test.
+  - `execute_pass_2_synthesis(topic: str, thesis: str, antithesis: str) -> DossierDrawer`: Synthesizes 3-bullet card, 4-lens PCDA, and research citations.
+  - `run_automode_batch(limit: int = 3, target_id: Optional[str] = None) -> List[Dict[str, Any]]`:
+    - Reads `mail_queue.json`, filters for items marked `status: "research"`.
+    - Enforces hard limit (`--limit N`, default 3).
+    - Writes results to `.agents/pipeline/mailbag/researched/<id>.json` and updates `mail_queue.json`.
+    - Regenerates triage boards via `check_mail.py --no-browser`.
+  - CLI arguments: `--limit`, `--topic`, `--dry-run`, `--force`.
+  - Strict UTF-8 console stream reconfigures.
 
 ---
 
-### Phase 3: N'kai Server & Sidecar Action Integration (`tools/nkai_serve.py` & `tools/chat_engine.py`)
-- [x] Add endpoint in `tools/nkai_serve.py`:
-  - `POST /api/compile-prompt`: Accepts `{"topic_id": str, "clipboard": bool}` and returns `{"ok": bool, "markdown": str, "copied": bool}`.
-- [x] Add 1-Click Action Chip to `morning_mail_inbox.html` and `chat_board.html`:
-  - `[ 🧠 Compile Reasoning Prompt ]` button.
-  - Clicking calls `/api/compile-prompt` and shows visual toast feedback ("📋 Copied Prompt to Clipboard! Ready for Claude/Gemini Web").
+### Phase 3: In-Card Unified Dossier Drawer (`tools/board_renderer.py` & templates)
+- [x] Update `tools/board_renderer.py`:
+  - Render `.mail-dossier-drawer` container when `card.dossier` exists or provide on-demand trigger.
+  - Render 3-segmented tab strip: `[ 📄 Source Note ]`, `[ ⚖️ PCDA Dialectic ]`, `[ 🔬 Research Dossier ]`.
+  - Style clean tab transitions and mobile bottom-sheet ergonomics.
+- [x] Sync templates across `TheKlangSuite` and `nkai` via `python tools/sync_templates.py sync`.
 
 ---
 
-### Phase 4: Unit Test Suite & Regression Verification
-- [x] Author `tools/tests/test_compile_prompt.py`:
-  - Test Pydantic model serialization and markdown rendering.
-  - Test compiling from mail queue item.
-  - Test fallback handling for missing antithesis / default blocks.
-  - Test clipboard mock / execution.
-  - Test CLI invocation `--stdout` and `--out`.
-- [x] Run `python -m unittest discover tools/tests/` (assert 100% passing).
-- [x] Run `python tools/verify_utf8.py --strict` (assert 0 violations).
-- [x] Update `docs/BACKLOG.md` marking Flight 2 as COMPLETED.
+### Phase 4: Skill Definition & Automode Slash Command
+- [x] Create `.agents/skills/automode/SKILL.md` documenting the 2-pass bounded research protocol.
+
+---
+
+### Phase 5: Unit Tests, Audits & Verification
+- [x] Author `tools/tests/test_research_daemon.py`:
+  - Test Pass 1 & Pass 2 convergence mechanics.
+  - Test Rule-of-2 hard boundary (`max_iterations = 2`).
+  - Test batch limit enforcement (`--limit 3`).
+  - Test MailItem dossier serialization.
+- [x] Run full test suite `python -m unittest discover tools/tests/` (100% pass rate).
+- [x] Run `python tools/verify_utf8.py --strict` (100% compliant).
+- [x] Update `docs/BACKLOG.md` marking Flight 3 as COMPLETED.

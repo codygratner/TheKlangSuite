@@ -1148,9 +1148,9 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **1-Click Action Chip**: Integrates `[ 🧠 Compile Reasoning Prompt ]` chip into `morning_mail_inbox.html` and N'kai sidecars.
 - **Readonly Prompt Composer**: Pre-renders the compiled payload into a selectable, highlighted container with dedicated `[ 📋 Copy ]` button, eliminating webview clipboard sandbox permission traps.
 
-### 17. Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (P1 — TOP PRIORITY)
+### 17. Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (P1 — COMPLETED)
 *Source Note:* [`TheKlangVault/Inbox/Archive/Nkai Automode.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md) ("Should there be a skill to auto-research all the items twice using the idea about loops and going through twice and not more?")  
-*Status: ⏳ QUEUED (Top Immediate Priority for Execution upon Weekly Quota Reset)*  
+*Status: ✅ COMPLETED 2026-10-13 (via tools/research_daemon.py, DossierDrawer, and 3-tab card drawer)*  
 *Priority: P1 — TOP PRIORITY*  
 *Target Pillar: N'kai Sidecar Architecture Roadmap*  
 *Related Architecture:* [`audit-reorder` Skill (2-Pass Convergence Gate)](file:///c:/Dev/TheKlangSuite/.agents/skills/audit-reorder/SKILL.md)  

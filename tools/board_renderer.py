@@ -20,15 +20,15 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 try:
-    from tools.models import BoardSchema, MailItem, PriorityLevel, TriageStatus, PILLAR_METADATA, infer_pillars
+    from tools.models import BoardSchema, DossierDrawer, MailItem, PriorityLevel, TriageStatus, PILLAR_METADATA, infer_pillars
 except ImportError:
     try:
-        from models import BoardSchema, MailItem, PriorityLevel, TriageStatus, PILLAR_METADATA, infer_pillars
+        from models import BoardSchema, DossierDrawer, MailItem, PriorityLevel, TriageStatus, PILLAR_METADATA, infer_pillars
     except ImportError:
         _script_dir = Path(__file__).resolve().parent
         if str(_script_dir) not in sys.path:
             sys.path.insert(0, str(_script_dir))
-        from models import BoardSchema, MailItem, PriorityLevel, TriageStatus, PILLAR_METADATA, infer_pillars
+        from models import BoardSchema, DossierDrawer, MailItem, PriorityLevel, TriageStatus, PILLAR_METADATA, infer_pillars
 
 
 DEFAULT_TEMPLATE_PATHS = [
@@ -190,6 +190,91 @@ def render_markdown_to_html(md_text: str) -> str:
         html_out.append("</ul>")
 
     return "\n".join(html_out)
+
+
+def render_dossier_drawer_html(clean_id: str, dossier: DossierDrawer) -> str:
+    """Renders the 3-tab unified dossier drawer (Flight 3 / Topic 17 / rj-25)."""
+    src_md = dossier.source_markdown or "No source markdown recorded."
+    src_rendered = render_markdown_to_html(src_md)
+
+    pcda = dossier.pcda_dialectic or {}
+    pros = pcda.get("pros", [])
+    cons = pcda.get("cons", [])
+    da = pcda.get("devils_advocate", "")
+    res = pcda.get("resolution", "")
+    lenses = pcda.get("lenses", {})
+
+    pros_html = "".join([f"<li>✅ {html.escape(str(p))}</li>" for p in pros])
+    cons_html = "".join([f"<li>⚠️ {html.escape(str(c))}</li>" for c in cons])
+
+    lenses_html = ""
+    if lenses:
+        lenses_items = []
+        for lk, lv in lenses.items():
+            lenses_items.append(
+                f'<div style="background: rgba(30, 41, 59, 0.4); padding: 6px 10px; border-radius: 4px; border-left: 2px solid #38bdf8;">'
+                f'<div style="font-size: 10px; font-weight: 700; color: #38bdf8; text-transform: uppercase;">{html.escape(lk.replace("_", " ").title())}</div>'
+                f'<div style="font-size: 11px; color: var(--text-main); margin-top: 2px;">{html.escape(str(lv))}</div></div>'
+            )
+        lenses_html = f'<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 10px;">{"".join(lenses_items)}</div>'
+
+    rd = dossier.research_dossier or {}
+    citations = rd.get("citations", [])
+    precedents = rd.get("precedents", [])
+    gotchas = rd.get("gotchas", [])
+
+    c_html = "".join([
+        f'<li><strong>{html.escape(str(c.get("title", "")))}</strong> ({html.escape(str(c.get("source", "")))})</li>'
+        for c in citations if isinstance(c, dict)
+    ])
+    p_html = "".join([f"<li>🏛️ {html.escape(str(p))}</li>" for p in precedents])
+    g_html = "".join([f"<li>⚡ {html.escape(str(g))}</li>" for g in gotchas])
+
+    da_html = f'<div style="background: rgba(239, 68, 68, 0.08); border-left: 2px solid #ef4444; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px;"><strong style="color: #ef4444;">🔥 Devil\'s Advocate:</strong><p style="margin: 4px 0 0 0;">{html.escape(da)}</p></div>' if da else ""
+    res_html = f'<div style="background: rgba(139, 92, 246, 0.08); border-left: 2px solid #8b5cf6; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px;"><strong style="color: #a78bfa;">⚖️ Sleepy Architecture Resolution:</strong><p style="margin: 4px 0 0 0;">{html.escape(res)}</p></div>' if res else ""
+
+    citations_block = f'<div style="margin-bottom: 8px;"><strong style="color: #38bdf8;">Citations & Benchmarks:</strong><ul style="margin: 4px 0 0 16px; padding: 0;">{c_html}</ul></div>' if c_html else ""
+    precedents_block = f'<div style="margin-bottom: 8px;"><strong style="color: #38bdf8;">Upstream SOTA Precedents:</strong><ul style="margin: 4px 0 0 16px; padding: 0;">{p_html}</ul></div>' if p_html else ""
+    gotchas_block = f'<div style="margin-bottom: 8px;"><strong style="color: #fbbf24;">Platform Gotchas:</strong><ul style="margin: 4px 0 0 16px; padding: 0;">{g_html}</ul></div>' if g_html else ""
+
+    return f"""
+    <div class="card-drawer-container mail-dossier-drawer" id="dossier-container-{clean_id}" style="margin-top: 8px;">
+      <button class="card-drawer-toggle dossier-toggle" id="btn-dossier-{clean_id}" onclick="toggleDossierDrawer('{clean_id}')" aria-expanded="false" style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3);">
+        <span class="drawer-toggle-icon">📂</span>
+        <span class="drawer-toggle-label" style="color: #38bdf8; font-weight: 600;">View Full Dossier (3-Tab Bounded Research)</span>
+        <span class="drawer-toggle-caret">▾</span>
+      </button>
+      <div class="card-drawer-content dossier-content" id="dossier-{clean_id}" hidden style="padding: 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px; margin-top: 6px;">
+        <div class="dossier-tab-strip" style="display: flex; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 12px;">
+          <button class="action-chip active" id="tab-src-{clean_id}" onclick="switchDossierTab('{clean_id}', 'source', event)" style="cursor: pointer;">📄 Source Note</button>
+          <button class="action-chip" id="tab-pcda-{clean_id}" onclick="switchDossierTab('{clean_id}', 'pcda', event)" style="cursor: pointer;">⚖️ PCDA Dialectic</button>
+          <button class="action-chip" id="tab-res-{clean_id}" onclick="switchDossierTab('{clean_id}', 'research', event)" style="cursor: pointer;">🔬 Research Dossier</button>
+        </div>
+        <div class="dossier-pane" id="pane-{clean_id}-source">
+          <div class="markdown-body" style="font-size: 11px; line-height: 1.5;">{src_rendered}</div>
+        </div>
+        <div class="dossier-pane" id="pane-{clean_id}-pcda" style="display: none; font-size: 11px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+            <div style="background: rgba(16, 185, 129, 0.08); border-left: 2px solid #10b981; padding: 8px 10px; border-radius: 4px;">
+              <strong style="color: #10b981;">Pros & Capabilities:</strong>
+              <ul style="margin: 4px 0 0 16px; padding: 0;">{pros_html}</ul>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.08); border-left: 2px solid #f59e0b; padding: 8px 10px; border-radius: 4px;">
+              <strong style="color: #f59e0b;">Cons & Friction:</strong>
+              <ul style="margin: 4px 0 0 16px; padding: 0;">{cons_html}</ul>
+            </div>
+          </div>
+          {da_html}
+          {res_html}
+          {lenses_html}
+        </div>
+        <div class="dossier-pane" id="pane-{clean_id}-research" style="display: none; font-size: 11px;">
+          {citations_block}
+          {precedents_block}
+          {gotchas_block}
+        </div>
+      </div>
+    </div>"""
 
 
 def render_pillar_badges(pillars: list) -> str:
@@ -404,6 +489,13 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
         </div>"""
         reply_badge = '<span class="badge badge-reply" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent assessment attached">💬 Agent Reply</span>'
 
+    # Multi-Drawer Dossier (Flight 3 / Topic 17 / rj-25)
+    dossier_html = ""
+    dossier_badge = ""
+    if getattr(it, "dossier", None):
+        dossier_html = render_dossier_drawer_html(clean_id, it.dossier)
+        dossier_badge = '<span class="badge badge-dossier" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="2-Pass Bounded Research Dossier Available">🔬 Dossier Ready</span>'
+
     # Card frontmatter and tag chips
     fm_obj = getattr(it, "frontmatter", {}) or {}
     display_tags = [t for t in (it.tags or []) if t.lower() not in ("quick-note", "tabled")]
@@ -475,6 +567,7 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
             {overflow_chip}
             {docket_badge}
             {reply_badge}
+            {dossier_badge}
           </div>
           <div class="mail-header-right">
             <div class="mail-pill-group">
@@ -494,6 +587,7 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
           <div class="mail-body-rendered">{fm_box_html}{body_rendered}</div>
         </details>
         {drawer_html}
+        {dossier_html}
         {dispatch_banner_html}
         <div class="mail-card-actions">
           <span class="actions-label">Dispatch Action:</span>
