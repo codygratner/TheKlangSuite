@@ -390,5 +390,29 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
   3. *Physical Exit Gate*: To clear the cutting mat, the user must physically file the item (`[ 📥 Backlog ]`, `[ 🗂️ Tabled ]`, or `[ 🪦 Graveyard ]`). Once filed, the workbench is clear, and the user returns to the In-Tray.
 * **Zero-Token Scratchpad Sentinel**: The sub-0.1ms filesystem watcher in `tools/nkai_serve.py` monitoring `C:\_\Vault\Inbox\SCRATCHPAD.md` via `mtime` and byte/line metrics, projecting live visual urgency states (green/amber/coral) onto the Pinned Intercom Top Card (Card #0) with conditional zero-token ingest.
 
+---
 
+## 36. The Resequencer: Dual-Tier Topological Dialectical Sorting (`PCDA-TDS`)
 
+* **`PCDA-TDS` Engine**: The 5th canonical PCDA engine fusing directed graph analysis with Hegelian dialectics:
+  $$\text{Resequence} = \text{TopologicalSort}(\mathcal{G}) \circ \text{HegelianDialectic}(\mathcal{I})$$
+* **`PCDA-TDS-Lite`**: Fast in-memory Kahn's algorithm (BFS) extracting Wave 0 (zero in-degree / actionable now) vs Wave 1+ in $<5\text{ms}$ for daily morning mailbag triage and scratchpad intake.
+* **`PCDA-TDS-Heavy`**: Full Critical Path Method (CPM) with Forward Pass ($ES, EF$), Backward Pass ($LS, LF$), Total Float calculation ($Float = LS - ES$), and dialectical cycle-breaking for multi-flight Runways and real-time audio DSP rendering graphs. Nodes with $Float = 0$ constitute the unyielding **Critical Path**.
+* **Canonical Specification**: [`C:\Dev\PCDACore\Resequence.md`](file:///C:/Dev/PCDACore/Resequence.md).
+
+---
+
+## 37. Cockpit Metaphors & Command Triggers
+
+* **The Three Cockpits**: The three specialized operational environments across The Klang Suite ecosystem, each with dedicated lore and human voice trigger phrases:
+  1. **🔥🏗️ Klang Industries (The Factory Floor)**:
+     - *Role*: Subterranean manufacturing floor (C++20, JUCE 9.0.3, VST3/AU audio plugins, embedded firmware).
+     - *Execution Trigger*: `"engage"` (authorizes C++ compilation, test execution, and audio-thread audits).
+  2. **🗼 The Tower (Ivory Tower Communications Spire & Planner)**:
+     - *Role*: High-altitude planning observatory, inter-project dispatch routing, and morning mailbag triage.
+     - *Execution Trigger*: `"wheels up"` (initiates flight plan execution, morning mail triage, and runway launch).
+  3. **🌌 The Astral Abyss (Supreme Command Bridge & Sovereign HQ)**:
+     - *Role*: Master sovereign Zettelkasten, creative worldbuilding laboratory, and knowledge repository (`The Cosmic Codex`).
+     - *Planning Trigger*: `"unfurl the star-maps"` (initiates high-level architectural or campaign planning).
+     - *Research Trigger*: `"align the void-lenses"` (initiates deep research, RFC synthesis, or dialectical inquiry).
+     - *Execution Trigger*: `"make it so"` (authorizes macro execution, system realignment, or bus dispatches).

@@ -48,7 +48,7 @@
   - **Ambient Status Footer Line & 3-Surface Navigation Invariant**:
     - Chat responses conclude with a 2-line ambient status footer:
       Line 1: `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`  
-      Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md)` *(+ `· [ 🔬 Lab: <topic> ](sidecar://nkai/panel/?board=<lab_id>)` when an active lab board is open)*.
+      Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📖 Cheat Sheet ](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md)` *(+ `· [ 🔬 Lab: <topic> ](sidecar://nkai/panel/?board=<lab_id>)` when an active lab board is open)*.
     - **The 3 Surfaces**:
       1. `📬 Mailbag`: Daily intake triage stream (`sidecar://nkai/panel/?board=morning_mail`).
       2. `🛫 Runway`: Strategic delivery roadmap mapped from Act III (`sidecar://nkai/panel/?board=runway`).

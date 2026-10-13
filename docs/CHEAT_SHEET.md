@@ -338,7 +338,7 @@
   2. **Surface 2 (Evergreen #2: The Flight Runway — `runway`)**: Delivery horizon built by `tools/build_runway.py` from `docs/BACKLOG.md` Act III with `[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, and `[ 📋 All ]` filter rails.
   3. **Surface 3 (Session Surface: The Lab — `lab`)**: Single active ephemeral research slot. Emits `#lab-all-clear-banner` celebration when cards reach 0; concluded via `tools/conclude_lab.py` staging harvests to `.agents/pipeline/staging/souls/`.
 * **The Scratchpad Protocol**: Stream-of-consciousness reading notes file [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) permanently excluded from mailbag harvesting.
-* **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)`.
+* **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📖 Cheat Sheet ](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md)`.
 * **Reference**: [Design Spec](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
 
 ---
@@ -363,16 +363,40 @@
 * **The Physical Workshop Cutting Mat Metaphor**: Spatial separation between the rapid-fire In-Tray (`morning_mail`) and the central Cutting Mat (`🛠️ Active Workshop`). The active workshop card is locked in place and cannot be dismissed without explicit physical filing (`[ 📥 Backlog ]`, `[ 🗂️ Tabled ]`, `[ 🪦 Graveyard ]`).
 * **Zero-Token Scratchpad Sentinel**: Sub-0.1ms filesystem watcher in `tools/nkai_serve.py` tracking `SCRATCHPAD.md` byte size and line count, rendering live urgency pills (`📝 SP: 12 lines` $\to$ `⚠️ SP: 114 lines`) on the Pinned Top Card with conditional zero-token ingest.
 
+---
 
+## 🧭 The Canonical 5-Engine PCDA Taxonomy
 
+* **`PCDA-A` (Naive PCDA)**: Quick Pros, Cons, Risks, and Next Steps for low-stakes chores and routine bug fixes.
+* **`PCDA-B` (Hegelian PCDA)**: Strict 4-part triad: Thesis $\to$ Thesis Friction $\to$ Antithesis $\to$ 80/20 Synthesis.
+* **`PCDA-B+` (Constructive Adversary)**: Hegelian PCDA + Mandatory *"Where I Disagree With The Prompt"* + *"Steel-Manned Intent & Lateral Alternatives"*.
+* **`PCDA-4L` (4-Lens Dialectic)**: PCDA-B+ systematically evaluated across 4 domains (`Ergonomics`, `Audio Industry`, `Wider SOTA`, `Sustainability`).
+* **`PCDA-TDS` (Topological Sorter / The Resequencer)**: Hegelian Friction $\to$ DAG Dependency Extraction $\to$ Linearized $1..N$ Contiguous Execution Array.
+  * **`PCDA-TDS-Lite`**: Fast in-memory Kahn's algorithm (BFS) extracting Wave 0 (now) vs Wave 1+ in $<5\text{ms}$ for daily mailbag triage.
+  * **`PCDA-TDS-Heavy`**: Full Critical Path Method (CPM) with Forward/Backward passes, Float calculation ($Float = 0$), and dialectical cycle-breaking for multi-flight Runways and DSP signal chains.
+* **Reference**: [PCDACore Specification](file:///C:/Dev/PCDACore/PCDACore.md) | [Resequence Specification](file:///C:/Dev/PCDACore/Resequence.md).
 
+---
 
+## 🛸 Cockpit Metaphors & Command Triggers
 
+Each cockpit in the ecosystem has dedicated lore, purpose, and vocalized command triggers:
 
+| Cockpit | Role & Territory | Planning Trigger | Research Trigger | Execution Trigger |
+| :--- | :--- | :--- | :--- | :--- |
+| **🔥🏗️ Klang Industries** | Subterranean Factory Floor (C++ / JUCE) | — | — | `"engage"` |
+| **🗼 The Tower** | Ivory Tower Communications Spire & Operations | — | — | `"wheels up"` |
+| **🌌 The Astral Abyss** | Supreme Command Bridge & Sovereign HQ | `"unfurl the star-maps"` | `"align the void-lenses"` | `"make it so"` |
 
+---
 
+## 🛰️ The 2-Tier Communication Architecture (Macro Bus vs. Micro Latch)
 
-
-
-
+* **Tier 1: Macro-Comms (Inter-Pillar Sovereign Transport)** $\longrightarrow$ **The Inter-Project Data Bus (`tools/bus.py`)**:
+  - Connects **The Astral Abyss** (HQ) $\longleftrightarrow$ **The Tower** (Operations) across all 5 pillars (`COSMOS`, `TKS`, `TT`, `NK`, `TR`).
+  - Decoupled, asynchronous, tagged, archived, multi-item queue in `Dispatches/`.
+* **Tier 2: Micro-Comms (Intra-Workspace Execution Latch)** $\longrightarrow$ **The Communiqué Safety Latch (`.agents/communique/`)**:
+  - Connects **The Tower** (Planner) $\longleftrightarrow$ **Klang Industries** (Builder).
+  - Synchronous, single-ticket execution barrier governing active `PLAN.md` phases and the "JOB'S DONE" handshake.
+  - Enforces the **Ironclad Factory Air-Gap Law**: C++ builds cannot be triggered by external bus packets; requires local human confirmation at the latch.
 

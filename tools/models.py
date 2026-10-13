@@ -177,11 +177,28 @@ class TriageActionType(str, Enum):
     KILL = "KILL"
 
 
+class PCDAEngineType(str, Enum):
+    NAIVE = "PCDA-A"
+    HEGELIAN = "PCDA-B"
+    CONSTRUCTIVE = "PCDA-B+"
+    FOUR_LENS = "PCDA-4L"
+    TOPOLOGICAL = "PCDA-TDS"
+
+
+class MailSourceType(str, Enum):
+    RAMBLE = "ramble"          # 🎙️ Voice memo via ramble_ingest.py
+    MEMO = "memo"              # 📝 Raw markdown in TheKlangVault/Inbox/
+    DISPATCH = "dispatch"      # 🛰️ Incoming Data Bus packet
+    SCRATCHPAD = "scratchpad"  # 💬 Scratchpad digest / direct chat
+    TABLED = "tabled"          # 🗂️ Staged note in Inbox/Tabled/
+
+
 class DossierDrawer(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     source_note: Optional[str] = Field(default=None, description="Path or filename of the source note")
     source_markdown: Optional[str] = Field(default="", description="Original raw markdown content from the note")
+    pcda_engine: PCDAEngineType = Field(default=PCDAEngineType.CONSTRUCTIVE, description="PCDA engine used for dialectic")
     pcda_dialectic: Optional[Dict[str, Any]] = Field(default_factory=dict, description="PCDA 4-part triad & 4-lens metrics")
     research_dossier: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Citations, benchmarks, and precedents")
     pass_count: int = Field(default=2, description="Number of iterative research passes executed (strictly <= 2)")
@@ -204,6 +221,22 @@ class MailItem(BaseModel):
     verdict: Optional[str] = None
     verdict_notes: Optional[str] = None
     estimated_tokens: int = 10000
+
+    # Multi-Source Provenance & Sequence (PCDA-TDS)
+    src_type: MailSourceType = MailSourceType.MEMO
+    seq_id: str = ""                         # Immutable badge (e.g. "#04-RAMBLE", "BUS-COSMOS-01")
+
+    # Bidirectional Dependency Graph (PCDA-TDS)
+    blocked_by: List[str] = Field(default_factory=list)  # Prerequisites (In-Degree)
+    blocks: List[str] = Field(default_factory=list)      # Successors (Out-Degree)
+    related: List[str] = Field(default_factory=list)     # Sibling associations
+
+    # Topological Execution Scheduling & Critical Path Method
+    rank: int = 0                            # Linear execution index (1..N)
+    wave: int = 0                            # Parallel execution tier (0, 1, 2...)
+    why_here: str = ""                       # 1-sentence causal rationale
+    is_critical_path: bool = False           # CPM Critical Path indicator
+    float_days: int = 0                      # CPM Float/Slack days
 
     # Additional attributes for rich triage metadata
     char_count: int = 0
@@ -244,6 +277,22 @@ class MailItem(BaseModel):
                 data["target_pillars"] = data["pillars"]
             elif "target_pillars" in data and "pillars" not in data:
                 data["pillars"] = data["target_pillars"]
+        return data
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_graph_dependencies(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            # Bidirectional sync: dependencies <-> blocked_by
+            if "dependencies" in data and not data.get("blocked_by"):
+                data["blocked_by"] = data["dependencies"]
+            elif "blocked_by" in data and not data.get("dependencies"):
+                data["dependencies"] = data["blocked_by"]
+            # Execution index sync: rank <-> idx
+            if "rank" in data and not data.get("idx"):
+                data["idx"] = data["rank"]
+            elif "idx" in data and not data.get("rank"):
+                data["rank"] = data["idx"]
         return data
 
     @model_validator(mode="after")
