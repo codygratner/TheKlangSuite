@@ -939,11 +939,18 @@ def build_and_save_chat_board(out_path: Optional[Path] = None) -> Path:
     html_content = generate_chat_board_html()
     target_path.write_text(html_content, encoding="utf-8")
 
-    # Mirror to nkai repo sidecars/panel
+    # Mirror to nkai repo sidecars/panel and plugin
     nkai_mirror = Path(r"c:\Dev\nkai\sidecars\panel\chat_board.html")
     if nkai_mirror.parent.exists():
         try:
             nkai_mirror.write_text(html_content, encoding="utf-8")
+        except Exception:
+            pass
+
+    nkai_plugin_mirror = Path(r"c:\Dev\nkai\plugin\sidecars\panel\chat_board.html")
+    if nkai_plugin_mirror.parent.exists():
+        try:
+            nkai_plugin_mirror.write_text(html_content, encoding="utf-8")
         except Exception:
             pass
 
