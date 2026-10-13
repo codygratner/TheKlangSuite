@@ -47,6 +47,17 @@
       "environment": "SANDBOX",
       "card_count": 7,
       "updated_at": "2026-10-11T20:00:00"
+    },
+    {
+      "id": "tackle_first",
+      "title": "🌌 What Would You Like to Tackle First?",
+      "description": "Cosmic Codex Priority Radar: Interactive triage for Google Drive, Vault Ingestion & Active Flights",
+      "category": "active",
+      "board_type": "custom",
+      "file_path": ".agents/sidecar/tackle_first_board.html",
+      "environment": "PRODUCTION",
+      "card_count": 6,
+      "updated_at": "2026-10-12T19:23:31.993395"
     }
   ]
 }
