@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T20:01:24.480670",
+  "last_scanned": "2026-10-12T20:06:11.709633",
   "total_items": 4,
   "p0_count": 0,
   "items": [
@@ -60,16 +60,16 @@
         "AGY"
       ],
       "source_file": "C:\\_\\Vault\\Inbox\\NkaiCore.md",
-      "preview": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDA engine to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to test it?",
+      "preview": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDACore to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to hopefully test it?",
       "dependencies": [],
       "verdict": null,
       "verdict_notes": null,
       "estimated_tokens": 10000,
-      "char_count": 207,
+      "char_count": 214,
       "word_count": 42,
       "tier": "tier2",
-      "body": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDA engine to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to test it?",
-      "excerpt": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDA engine to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to test it?",
+      "body": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDACore to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to hopefully test it?",
+      "excerpt": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDACore to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to hopefully test it?",
       "file_name": "NkaiCore.md",
       "rel_path": "C:\\_\\Vault\\Inbox\\NkaiCore.md",
       "source_note": "",
