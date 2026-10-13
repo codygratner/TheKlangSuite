@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-10-12T18:53:46.616905",
-  "total_items": 3,
+  "last_scanned": "2026-10-12T20:01:24.480670",
+  "total_items": 4,
   "p0_count": 0,
   "items": [
     {
@@ -50,6 +50,42 @@
       ]
     },
     {
+      "id": "NkaiCore",
+      "title": "NkaiCore",
+      "created_at": "2026-10-12",
+      "priority": "P2",
+      "status": "PENDING",
+      "tags": [],
+      "target_pillars": [
+        "AGY"
+      ],
+      "source_file": "C:\\_\\Vault\\Inbox\\NkaiCore.md",
+      "preview": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDA engine to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to test it?",
+      "dependencies": [],
+      "verdict": null,
+      "verdict_notes": null,
+      "estimated_tokens": 10000,
+      "char_count": 207,
+      "word_count": 42,
+      "tier": "tier2",
+      "body": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDA engine to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to test it?",
+      "excerpt": "ok, for NkaiCore, do we include the PCDA engines? and, can we make a SUPER tiny PCDA engine to download as a thing to add to a gemini.md or agents.md (or whatever) file? so I can ask some friends to test it?",
+      "file_name": "NkaiCore.md",
+      "rel_path": "C:\\_\\Vault\\Inbox\\NkaiCore.md",
+      "source_note": "",
+      "idx": 2,
+      "merged_count": 0,
+      "source_ids": [],
+      "split_group": "",
+      "frontmatter": {},
+      "agent_reply": null,
+      "agent_reply_at": null,
+      "has_reply": false,
+      "pillars": [
+        "AGY"
+      ]
+    },
+    {
       "id": "Korg Logue SDK Stuff and CTAG DSP",
       "title": "Korg Logue SDK Stuff and CTAG DSP",
       "created_at": "2026-10-12",
@@ -73,7 +109,7 @@
       "file_name": "Korg Logue SDK Stuff and CTAG DSP.md",
       "rel_path": "C:\\_\\Vault\\Inbox\\Korg Logue SDK Stuff and CTAG DSP.md",
       "source_note": "",
-      "idx": 2,
+      "idx": 3,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",
@@ -112,7 +148,7 @@
       "file_name": "Can we make a template that adds the front matter on a new note.md",
       "rel_path": "C:\\_\\Vault\\Inbox\\Can we make a template that adds the front matter on a new note.md",
       "source_note": "",
-      "idx": 3,
+      "idx": 4,
       "merged_count": 0,
       "source_ids": [],
       "split_group": "",

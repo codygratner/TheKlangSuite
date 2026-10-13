@@ -16,6 +16,7 @@ from datetime import datetime
 import json
 import mimetypes
 import os
+import re
 import socket
 import socketserver
 import struct
@@ -36,6 +37,18 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
+
+def set_thread_execution_state(enable: bool = True):
+    """Prevents Windows from entering Modern Standby / Sleep while server is active."""
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ES_CONTINUOUS = 0x80000000
+            ES_SYSTEM_REQUIRED = 0x00000001
+            flags = ES_CONTINUOUS | (ES_SYSTEM_REQUIRED if enable else 0)
+            ctypes.windll.kernel32.SetThreadExecutionState(flags)
+        except Exception:
+            pass
 
 # Import zero-dependency QR code generator
 try:
@@ -571,11 +584,105 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         if clean_path in ("/api/action", "/api/dispatch"):
-            print(f"\n[N'KAI MOBILE ACTION] Received from mobile UI: {body_json}")
+            action = str(body_json.get("action", "")).upper()
+            raw_card_id = str(body_json.get("card_id") or body_json.get("note_id", ""))
+            card_id = raw_card_id.replace("mail-card-", "")
+            title = str(body_json.get("title", "")).strip()
+            pillar = str(body_json.get("pillar") or body_json.get("target") or "TKS").upper()
+            priority = str(body_json.get("priority", "P1")).upper()
+            client_ip = self.client_address[0] if hasattr(self, "client_address") else "127.0.0.1"
+
+            print(f"\n[N'KAI MECHANICAL TRIAGE] Processing '{action}' for '{card_id}' ({title}) [Pillar: {pillar}] from {client_ip}")
+
+            # 1. Append to triage_ledger.jsonl (Write-Ahead Log)
+            ledger_dir = REPO_ROOT / ".agents" / "pipeline" / "mailbag"
+            ledger_dir.mkdir(parents=True, exist_ok=True)
+            ledger_file = ledger_dir / "triage_ledger.jsonl"
+
+            now_iso = datetime.now().isoformat()
+            tx_record = {
+                "timestamp": now_iso,
+                "action": action,
+                "card_id": card_id,
+                "title": title,
+                "pillar": pillar,
+                "priority": priority,
+                "client_ip": client_ip,
+            }
+            try:
+                with open(ledger_file, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(tx_record, ensure_ascii=False) + "\n")
+            except Exception as e:
+                print(f"⚠️ Failed to write to triage_ledger.jsonl: {e}")
+
+            # 2. Atomic card archival in mail_queue.json & note movement to Inbox/Archive/
+            archived = False
+            if action in ("APPROVE", "ARCHIVE", "COMPLETED", "BACKLOG", "GRAVEYARD") and card_id:
+                try:
+                    from tools.check_mail import handle_archive_card
+                    q_target = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "mail_queue.json"
+                    o_target = REPO_ROOT / ".agents" / "sidecar" / "morning_mail_inbox.html"
+                    if q_target.exists():
+                        res = handle_archive_card(
+                            target_id=card_id,
+                            queue_path=q_target,
+                            out_path=o_target,
+                            is_sandbox=False,
+                            inbox_dir_override=None,
+                        )
+                        archived = (res == 0)
+                except Exception as e:
+                    print(f"⚠️ Failed handle_archive_card: {e}")
+
+            # 3. Cross-Pillar Bus Dispatch: write dispatch ticket to Dispatches/ for external pillars
+            dispatched_bus = False
+            if pillar in ("COSMOS", "TT", "TR", "FORGE"):
+                try:
+                    from tools.bus import resolve_bus_dir, serialize_dispatch
+                    bus_dir = resolve_bus_dir()
+                    today = datetime.now().strftime("%Y-%m-%d")
+                    slug_base = re.sub(r"[^a-zA-Z0-9_-]", "_", title.lower()).strip("_")[:30] or card_id
+                    dispatch_id = f"{today}_nk_to_{pillar.lower()}_{slug_base}"
+                    target_file = bus_dir / f"{dispatch_id}.md"
+
+                    meta = {
+                        "id": dispatch_id,
+                        "date": today,
+                        "from": "NK",
+                        "to": pillar,
+                        "tags": [pillar.lower(), "mobile-triage", action.lower()],
+                        "priority": priority or "P1",
+                        "status": "PENDING",
+                        "title": f"Triage Action [{action}]: {title}",
+                    }
+                    body = (
+                        f"# Triage Action: {action} for {title}\n\n"
+                        f"- **Action Verdict**: `{action}`\n"
+                        f"- **Source Card ID**: `{card_id}`\n"
+                        f"- **Target Pillar**: `{pillar}`\n"
+                        f"- **Logged At**: `{now_iso}`\n"
+                        f"- **Origin**: N'kai Mobile Companion (`{client_ip}`)\n\n"
+                        f"### Executive Instructions:\n"
+                        f"The user triaged this card via N'kai mobile. Execute or schedule this ticket in the {pillar} repository backlog/workspace.\n"
+                    )
+                    content = serialize_dispatch(meta, body)
+                    target_file.write_text(content, encoding="utf-8")
+                    print(f"🚀 Bus dispatch automatically posted to {pillar}: {target_file.name}")
+                    dispatched_bus = True
+                except Exception as e:
+                    print(f"⚠️ Failed auto-bus post: {e}")
+
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"ok": True, "status": "action_recorded"}).encode("utf-8"))
+            self.wfile.write(json.dumps({
+                "ok": True,
+                "status": "action_processed",
+                "card_id": card_id,
+                "action": action,
+                "archived": archived,
+                "dispatched_bus": dispatched_bus
+            }).encode("utf-8"))
             return
 
         if clean_path == "/api/conclude-lab":
@@ -735,6 +842,7 @@ Examples:
     )
 
     try:
+        set_thread_execution_state(True)
         with ThreadedTCPServer((args.host, active_port), handler) as httpd:
             # Attach mobile url to server instance for /qr route
             httpd.mobile_url = mobile_url
@@ -752,6 +860,8 @@ Examples:
     except Exception as e:
         print(f"\n[N'KAI CLI] Server error: {e}", file=sys.stderr)
         sys.exit(1)
+    finally:
+        set_thread_execution_state(False)
 
 
 if __name__ == "__main__":
