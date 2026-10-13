@@ -4,7 +4,7 @@
 > **Target Pipeline:** `TARGET: TOOLING_HARNESS`
 > **Active Milestone:** `N'kai v0.3.6 / Ergonomics & Dialectic Suite`
 > **Recommended Model Tier:** `Tier 2 (Gemini 3.8 Flash High)`
-> **Status:** `DRAFT / READY_FOR_PCDA 📋`
+> **Status:** `COMPLETED ✅`
 
 ---
 
@@ -35,58 +35,58 @@ This flight transforms the N'kai companion ecosystem into a physical desktop ana
 - [x] 1.4. Author unit test suite `tools/tests/test_scratchpad_sentinel.py` (assert 100% pass for status, delta detection, and zero-token behavior).
 
 ### Phase 2: Card #0 Pinned Agent Intercom HUD Banner
-- [ ] 2.1. In `.agents/pipeline/mailbag/`, define `agent_bulletin.json` schema (`briefing_title`, `briefing_text`, `status_badge`, `updated_at`, `pending_decisions_count`, `last_flight`).
-- [ ] 2.2. In `c:\Dev\nkai\core\master_template.html`:
+- [x] 2.1. In `.agents/pipeline/mailbag/`, define `agent_bulletin.json` schema (`briefing_title`, `briefing_text`, `status_badge`, `updated_at`, `pending_decisions_count`, `last_flight`).
+- [x] 2.2. In `c:\Dev\nkai\core\master_template.html`:
   - Insert `#agent-intercom-hud` container docked immediately beneath `.header-tier-bottom`.
   - Structure as a compact ticker (28px height) with glowing Emerald/Cyan border, displaying:
     - `🤖 Agent Briefing: <briefing_title>`
     - Dynamic Scratchpad Urgency Pill: `<span id="hud-sp-pill" class="pill-sp">📝 SP: N lines</span>`
     - Quick Action Buttons: `[ 👁️ Peek SP ]` · `[ 📖 Ingest ]` · `[ 💬 Expand ]`
   - Clicking `[ 💬 Expand ]` toggles full markdown briefing accordion.
-- [ ] 2.3. In `c:\Dev\nkai\core\sidecar.css` & `sidecar.js`:
+- [x] 2.3. In `c:\Dev\nkai\core\sidecar.css` & `sidecar.js`:
   - Style `#agent-intercom-hud` with responsive styling and dynamic urgency color shifts (green/amber/coral).
   - Implement polling/fetch for `/api/scratchpad/status` on board load and window focus.
-- [ ] 2.4. In `tools/flush_memory.py` and `tools/check_mail.py`:
+- [x] 2.4. In `tools/flush_memory.py` and `tools/check_mail.py`:
   - Auto-update `agent_bulletin.json` whenever memory flush, task finish, or mail reply runs.
 
 ### Phase 3: Mobile Ergonomics & Native Touch Input
-- [ ] 3.1. In `c:\Dev\nkai\core\master_template.html` & `sidecar.css`:
+- [x] 3.1. In `c:\Dev\nkai\core\master_template.html` & `sidecar.css`:
   - Update card rendering for screens $\le$ 640px:
     - Default to collapsed view: Header, priority, pillar, title, 1-line excerpt, and action chips visible.
     - Card body/frontmatter/PCDA accordion collapsed by default.
     - Tap card header to toggle expand/collapse with CSS height animation.
-- [ ] 3.2. Add per-card refresh button `#btn-card-refresh-<id>`:
+- [x] 3.2. Add per-card refresh button `#btn-card-refresh-<id>`:
   - Re-fetches single card status from `/api/card/<id>` or local ledger without reloading entire DOM.
-- [ ] 3.3. Implement Native Mobile Scratchpad Sheet (`#scratchpad-drawer`):
+- [x] 3.3. Implement Native Mobile Scratchpad Sheet (`#scratchpad-drawer`):
   - DOM-Resident Architecture: `<div id="scratchpad-drawer">` kept permanently rendered in the DOM (hidden via CSS `transform: translateY(100%)`) to satisfy iOS WebKit user-gesture security policies.
   - Zero Monaco, zero hidden buffers; triggers `textarea.focus()` synchronously inside the user's tap handler, guaranteeing 100% reliable iOS Safari virtual keyboard invocation.
   - Buttons: `[ ➕ Add Thought ]`, `[ 📋 Copy All ]`, `[ ✕ Close ]`.
 
 ### Phase 4: The Physical Workshop Cutting Mat Metaphor
-- [ ] 4.1. In `c:\Dev\nkai\core\master_template.html`:
+- [x] 4.1. In `c:\Dev\nkai\core\master_template.html`:
   - Add primary named mode switcher to bottom rail: `[ 📬 INBOX ]` (`#mode-inbox`) and `[ 🛠️ WORKSHOP ]` (`#mode-workshop`).
-- [ ] 4.2. In `c:\Dev\nkai\core\sidecar.js`:
+- [x] 4.2. In `c:\Dev\nkai\core\sidecar.js`:
   - Implement Workshop latching logic:
     - Clicking `[ 🔬 Research ]` or `[ ⚖️ PCDA ]` on an inbox card sets `activeWorkshopCardId = cardId`, persists to `localStorage['nkai_active_workshop_item']`, and switches active mode to `workshop`.
     - In `workshop` mode, all other cards are hidden; only the active workshop card is rendered in the center of the screen ("The Cutting Mat").
     - Swipe-to-dismiss is strictly disabled on the Cutting Mat.
-- [ ] 4.3. Implement Physical Exit Gate & Ambient Return Hatch:
+- [x] 4.3. Implement Physical Exit Gate & Ambient Return Hatch:
   - Render prominent routing exit buttons on the Cutting Mat:
     `[ 📥 Route to Backlog ]` · `[ 🗂️ Move to Tabled ]` · `[ 🪦 Send to Graveyard ]`
   - Render ambient `[ ↩ In-Tray ]` button allowing user to step away to the In-Tray without archiving the active card (card remains safely pinned on the Cutting Mat until filed).
   - Clicking any exit button executes the ledger update, clears `activeWorkshopCardId`, and smoothly transitions the view back to `[ 📬 INBOX ]`.
-- [ ] 4.4. In `tools/board_renderer.py`:
+- [x] 4.4. In `tools/board_renderer.py`:
   - Support rendering cards with a `[ 🛠️ Send to Workshop ]` action button when viewing Backlog or Tabled archives.
 
 ### Phase 5: 2-Round Heavy PCDA Automation Engine
-- [ ] 5.1. Author `tools/heavy_pcda.py`:
+- [x] 5.1. Author `tools/heavy_pcda.py`:
   - CLI command: `python tools/heavy_pcda.py "<topic_or_plan_path>" [--online]`
   - Enforces the 2-Round Dialectic Crucible:
     - Round 1: Divergence with Assumption Inversion (Proposer vs Critic).
     - Round 2: Cross-Critique with empirical grounding (`search_web`).
     - Final Synthesis: 80/20 pragmatic resolution.
   - Outputs structured Markdown and interactive HTML report to `.agents/sidecar/` and artifacts directory.
-- [ ] 5.2. Author unit test `tools/tests/test_heavy_pcda.py` asserting 2-round cap and proper schema output.
+- [x] 5.2. Author unit test `tools/tests/test_heavy_pcda.py` asserting 2-round cap and proper schema output.
 
 ---
 

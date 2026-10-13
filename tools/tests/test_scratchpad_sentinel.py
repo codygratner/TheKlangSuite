@@ -179,6 +179,23 @@ class TestScratchpadAPI(unittest.TestCase):
         content = self.sp_path.read_text(encoding="utf-8")
         self.assertIn("Quick thought to scratchpad", content)
 
+    def test_api_bulletin(self):
+        url = f"http://127.0.0.1:{self.port}/api/bulletin"
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertIn("briefing_title", data)
+            self.assertIn("briefing_text", data)
+
+    def test_api_card_status(self):
+        import urllib.error
+        url = f"http://127.0.0.1:{self.port}/api/card/non_existent_card_999"
+        req = urllib.request.Request(url)
+        with self.assertRaises(urllib.error.HTTPError) as ctx:
+            urllib.request.urlopen(req)
+        self.assertEqual(ctx.exception.code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()

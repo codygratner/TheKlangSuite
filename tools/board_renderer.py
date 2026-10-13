@@ -462,7 +462,7 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
 
     return f"""
       <div class="mail-card {'dispatched' if is_dispatched else ''} {status}"{initial_display} id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}" data-has-reply="{str(has_reply).lower()}">
-        <div class="mail-card-header">
+        <div class="mail-card-header" onclick="toggleCardCollapse('{card_id}', event)">
           <div class="mail-header-left">
             <span class="mail-idx-badge">#{rank_val}</span>
             <span class="mail-status-badge {badge_cls}" id="badge-{card_id}">{badge_text}</span>
@@ -483,6 +483,7 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
             <span class="mail-tier-badge badge-{tier}">{tier_label}</span>
             {file_pill}
             <span class="mail-date">{date_esc}</span>
+            <button id="btn-card-refresh-{clean_id}" class="card-refresh-btn" onclick="refreshSingleCard('{card_id}', event)" title="Refresh card status">🔄</button>
           </div>
         </div>
         <div class="mail-card-title">{title_esc}</div>
@@ -517,6 +518,9 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
         </div>
         <div class="mail-session-launchers" style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(38, 51, 69, 0.6); flex-wrap: wrap;">
           <span class="actions-label" style="font-size: 10px; color: var(--text-muted);">Session Launch:</span>
+          <button id="btn-workshop-{clean_id}" class="action-chip chip-session-workshop" onclick="latchCardToWorkshop('{card_id}')" title="Send to Active Workshop Cutting Mat">
+            <span>🛠️</span> Workshop
+          </button>
           <button id="btn-launch-grill-{clean_id}" class="action-chip chip-session-grill" onclick="launchSessionAction('{card_id}', 'grill-lab')" title="Launch Grill-Lab visual architectural interview">
             <span>🔬</span> Grill-Lab
           </button>

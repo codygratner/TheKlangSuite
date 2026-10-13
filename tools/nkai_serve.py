@@ -578,6 +578,56 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({"ok": True, "content": content, "path": str(sp_path)}).encode("utf-8"))
             return
 
+        if clean_path == "/api/bulletin":
+            bulletin_file = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "agent_bulletin.json"
+            if bulletin_file.exists():
+                try:
+                    data = json.loads(bulletin_file.read_text(encoding="utf-8"))
+                except Exception:
+                    data = {"briefing_title": "Agent Standby", "briefing_text": "System operational."}
+            else:
+                data = {"briefing_title": "Agent Standby", "briefing_text": "System operational."}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+            return
+
+        if clean_path.startswith("/api/card/"):
+            card_id = clean_path[len("/api/card/"):].strip()
+            queue_file = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "mail_queue.json"
+            clean_target = re.sub(r"[^a-zA-Z0-9_-]", "_", card_id).lower()
+            found_card = None
+            if queue_file.exists():
+                try:
+                    q_data = json.loads(queue_file.read_text(encoding="utf-8"))
+                    items = q_data.get("items", [])
+                    for it in items:
+                        it_id = str(it.get("id", "")).lower()
+                        clean_it_id = re.sub(r"[^a-zA-Z0-9_-]", "_", it_id)
+                        if (
+                            it_id == card_id.lower()
+                            or clean_it_id == clean_target
+                            or card_id.lower() in (f"mail-card-{it.get('idx')}", f"mail-card-{items.index(it)}")
+                            or clean_target == clean_it_id.strip("_")
+                        ):
+                            found_card = it
+                            break
+                except Exception:
+                    pass
+
+            if found_card:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "card": found_card}).encode("utf-8"))
+            else:
+                self.send_response(404)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": f"Card '{card_id}' not found"}).encode("utf-8"))
+            return
+
         if clean_path in (
             "/apple-touch-icon.png",
             "/apple-touch-icon-precomposed.png",

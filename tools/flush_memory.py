@@ -9,6 +9,7 @@ Part of the Automated Black Box System (Topic #7).
 
 import argparse
 import datetime
+import json
 import os
 import re
 import shutil
@@ -88,6 +89,32 @@ def check_staged_souls() -> List[Path]:
     return files
 
 
+def update_agent_bulletin(summary: Optional[str] = None) -> bool:
+    """Updates agent_bulletin.json with current flight status and briefing."""
+    bulletin_file = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "agent_bulletin.json"
+    bulletin_file.parent.mkdir(parents=True, exist_ok=True)
+    state = state_manager.compute_workspace_state()
+    p = state.get("plan", {})
+    g = state.get("git", {})
+    
+    title = f"{p.get('title', 'System Active')}"
+    text = summary or f"Plan Status: {p.get('status', 'Ready')} ({p.get('progress', '0%')}). Branch: {g.get('branch', 'unknown')}."
+    payload = {
+        "schema_version": "1.0.0",
+        "updated_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "briefing_title": title,
+        "briefing_text": text,
+        "status_badge": "ACTIVE ⚡" if not p.get("is_idle") else "IDLE 🟢",
+        "pending_decisions_count": 0,
+        "last_flight": p.get("title", ""),
+        "git_branch": g.get("branch", ""),
+        "target_pipeline": p.get("target", "")
+    }
+    bulletin_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f"📡 Updated agent intercom bulletin: {bulletin_file.relative_to(REPO_ROOT)}")
+    return True
+
+
 def archive_completed_plan(slug: str, force: bool = False, dry_run: bool = False) -> Optional[Path]:
     """Archives PLAN.md to completed/ and resets root PLAN.md to idle."""
     plan_path = REPO_ROOT / "PLAN.md"
@@ -161,6 +188,7 @@ def run_flush(
     if not dry_run:
         state = state_manager.compute_workspace_state()
         state_manager.cmd_sync(argparse.Namespace(quiet=False))
+        update_agent_bulletin(summary=summary)
     else:
         print("🔍 [DRY RUN] Would generate context_state.json and ACTIVE_CONTEXT.md")
 

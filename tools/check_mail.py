@@ -1384,6 +1384,24 @@ def handle_card_reply(
     # Save mutated queue
     queue_path.write_text(queue.model_dump_json(indent=2) + "\n", encoding="utf-8")
 
+    # Update agent_bulletin.json
+    try:
+        bulletin_file = queue_path.parent / "agent_bulletin.json"
+        bulletin_data = {
+            "schema_version": "1.0.0",
+            "updated_at": now_iso,
+            "briefing_title": f"Reply: {matched_item.title[:45]}",
+            "briefing_text": reply_text.strip(),
+            "status_badge": "REPLIED 💬",
+            "pending_decisions_count": 0,
+            "last_flight": "Flight 21",
+            "git_branch": "0.4.0-dev",
+            "target_pipeline": "TARGET: TOOLING_HARNESS"
+        }
+        bulletin_file.write_text(json.dumps(bulletin_data, indent=2), encoding="utf-8")
+    except Exception as e:
+        print(f"⚠️ Warning: Could not update agent_bulletin.json: {e}")
+
     # Fast board regeneration (<50ms)
     env = "SANDBOX" if is_sandbox else "PRODUCTION"
     board_title = "N'kai Morning Mail Inbox & Triage Lab"
