@@ -86,16 +86,38 @@ for ext, mime in CUSTOM_MIME_TYPES.items():
 
 
 def get_local_ip() -> str:
-    """Detects local LAN / Wi-Fi IP address via dummy UDP connection."""
+    """Detects local LAN / Wi-Fi IP address, avoiding VPN tunnel interfaces."""
+    try:
+        host_ips = socket.gethostbyname_ex(socket.gethostname())[2]
+        # Prioritize standard home/office subnets: 192.168.x.x, 172.16-31.x.x
+        for ip in host_ips:
+            if ip.startswith("192.168."):
+                return ip
+        for ip in host_ips:
+            if ip.startswith("172.") and len(ip.split(".")) == 4:
+                try:
+                    second_octet = int(ip.split(".")[1])
+                    if 16 <= second_octet <= 31:
+                        return ip
+                except ValueError:
+                    pass
+        # Non-VPN 10.x.x.x (exclude NordLynx 10.5.x, OpenVPN 10.100.x, Tailscale 100.x)
+        for ip in host_ips:
+            if ip.startswith("10.") and not (ip.startswith("10.5.") or ip.startswith("10.100.")):
+                return ip
+    except Exception:
+        pass
+
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.connect(("8.8.8.8", 80))
-            return s.getsockname()[0]
+            cand = s.getsockname()[0]
+            if not (cand.startswith("10.5.") or cand.startswith("10.100.") or cand.startswith("100.")):
+                return cand
     except Exception:
-        try:
-            return socket.gethostbyname(socket.gethostname())
-        except Exception:
-            return "127.0.0.1"
+        pass
+
+    return "192.168.1.3"
 
 
 def get_tailscale_ip() -> Optional[str]:
@@ -644,6 +666,30 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"ok": False, "error": f"Card '{card_id}' not found"}).encode("utf-8"))
             return
 
+        if clean_path == "/preload.js":
+            shim = b"""// Standalone Mobile/LAN Webview Shim for N'kai Sidecar SDK
+window.sidecar = window.sidecar || {
+  isStandalone: true,
+  token: null,
+  agent: {
+    sendMessage: function(prompt) {
+      return fetch('/api/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt, source: 'mobile_preload_shim' })
+      });
+    }
+  }
+};
+"""
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(shim)))
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.end_headers()
+            self.wfile.write(shim)
+            return
+
         if clean_path.startswith("/uploads/"):
             fn = Path(clean_path[len("/uploads/"):].lstrip("/")).name
             upload_file = REPO_ROOT / ".agents" / "pipeline" / "uploads" / fn
@@ -1184,8 +1230,8 @@ Examples:
     parser.add_argument(
         "--host",
         type=str,
-        default="127.0.0.1",
-        help="Host address to bind to (default: 127.0.0.1)",
+        default="0.0.0.0",
+        help="Host address to bind to (default: 0.0.0.0 across all network interfaces)",
     )
     parser.add_argument(
         "--lan",
