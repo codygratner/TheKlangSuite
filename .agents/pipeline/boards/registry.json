@@ -24,7 +24,7 @@
       "file_path": ".agents/sidecar/runway_board.html",
       "environment": "PRODUCTION",
       "card_count": 38,
-      "updated_at": "2026-10-12T22:03:52.715626"
+      "updated_at": "2026-10-12T22:15:19.574760"
     },
     {
       "id": "system_sanity_audit",
@@ -50,7 +50,7 @@
     },
     {
       "id": "tackle_first",
-      "title": "🌌 What Would You Like to Tackle First?",
+      "title": "\ud83c\udf0c What Would You Like to Tackle First?",
       "description": "Cosmic Codex Priority Radar: Interactive triage for Google Drive, Vault Ingestion & Active Flights",
       "category": "active",
       "board_type": "custom",
@@ -58,6 +58,17 @@
       "environment": "PRODUCTION",
       "card_count": 6,
       "updated_at": "2026-10-12T20:01:26.093404"
+    },
+    {
+      "id": "chat",
+      "title": "\ud83d\udcac Agent Chat & Live Intercom",
+      "description": "Real-time conversation feed, tool execution telemetry, and mobile prompt dispatch",
+      "category": "active",
+      "board_type": "evergreen",
+      "file_path": ".agents/sidecar/chat_board.html",
+      "environment": "PRODUCTION",
+      "card_count": 1,
+      "updated_at": "2026-10-12T22:17:27.645683"
     }
   ]
 }

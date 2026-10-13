@@ -496,6 +496,7 @@ def main():
     parser.add_argument("topic", help="Topic description, title, or path to PLAN.md")
     parser.add_argument("--online", action="store_true", help="Authorize empirical online web search")
     parser.add_argument("--out-dir", default=None, help="Directory to save HTML & MD reports")
+    parser.add_argument("--crucible-json", default=None, help="Path to JSON file with custom crucible data")
     parser.add_argument("--mock", action="store_true", help="Run with mock dialectic crucible")
 
     args = parser.parse_args()
@@ -503,7 +504,7 @@ def main():
     topic_str = args.topic
     # If path to a file was passed, read title from file
     p = Path(topic_str)
-    if p.exists() and p.is_file():
+    if p.exists() and p.is_file() and not args.crucible_json:
         try:
             content = p.read_text(encoding="utf-8", errors="replace")
             first_line = content.splitlines()[0].lstrip("#").strip()
@@ -513,14 +514,29 @@ def main():
             pass
 
     engine = HeavyPCDAEngine(online=args.online)
-    result = engine.run_crucible(topic_str, mock=args.mock)
+
+    if args.crucible_json:
+        c_path = Path(args.crucible_json)
+        raw_data = json.loads(c_path.read_text(encoding="utf-8"))
+        result = HeavyPCDAResult(
+            topic=raw_data.get("topic", topic_str),
+            slug=engine.slugify(raw_data.get("topic", topic_str)),
+            timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            online_authorized=args.online or raw_data.get("online_authorized", False),
+            round_count=2,  # Strict Invariant: Hard-capped at 2 rounds
+            round_1=PCDARound1(**raw_data["round_1"]),
+            round_2=PCDARound2(**raw_data["round_2"]),
+            final_synthesis=PCDAFinalSynthesis(**raw_data["final_synthesis"]),
+        )
+    else:
+        result = engine.run_crucible(topic_str, mock=args.mock)
 
     out_dir = Path(args.out_dir) if args.out_dir else None
     html_file, md_file = engine.save_results(result, out_dir=out_dir)
 
     print(f"✅ 2-Round Heavy PCDA Crucible completed for: '{result.topic}'")
-    print(f"📄 Markdown Report: {html.escape(str(md_file))}")
-    print(f"🌐 HTML Canvas:     {html.escape(str(html_file))}")
+    print(f"📄 Markdown Report: {str(md_file)}")
+    print(f"🌐 HTML Canvas:     {str(html_file)}")
 
 
 if __name__ == "__main__":

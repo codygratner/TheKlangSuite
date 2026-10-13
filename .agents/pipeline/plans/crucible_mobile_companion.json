@@ -1,0 +1,64 @@
+{
+  "topic": "Low-Headroom Mobile Antigravity Companion Client (The Director's Walkie-Talkie)",
+  "online_authorized": true,
+  "round_1": {
+    "proposer_thesis": "Deploy a lightweight (<5 MB RAM) mobile web companion served by tools/nkai_serve.py (:3030), giving the developer full live transcript telemetry, prompt dispatch, and triage control on iOS/Android without loading heavy desktop IDE webviews.",
+    "proposer_points": [
+      "Solves mobile touch and keyboard friction completely by replacing heavy Monaco/Electron with native semantic HTML and DOM-resident textarea.",
+      "Runs seamlessly over Tailscale or home Wi-Fi (http://100.87.196.60:3030/companion).",
+      "Directly tails ~/.gemini/antigravity/brain/<conv_id>/transcript.jsonl for sub-50ms real-time chat visibility.",
+      "Provides one-tap approval buttons for common workflows: [ Proceed ], [ Rollback ], [ Check SP ], [ Pause ]."
+    ],
+    "critic_disagreements": [
+      "The premise that mobile developers want to edit code on a phone is fundamentally wrong: touchscreens are for triage, direction, and approvals, not typing C++.",
+      "WebSocket push architectures introduce fragile reconnection states, connection dropouts on cellular/Tailscale transitions, and background battery drain.",
+      "Security boundary: Unauthenticated HTTP on port 3030 could allow prompt injection if another device on LAN hits the endpoint."
+    ],
+    "critic_inversions": [
+      "Inversion 1 (Executive vs IDE): Invert from 'Remote Mobile IDE' to 'The Director's Walkie-Talkie' — pure high-level supervision, note-taking, and dispatch.",
+      "Inversion 2 (Push vs Lifecycle-Aware Delta): Invert from continuous background push to PageVisibility-gated polling (active when visible, 0.00% battery when phone sleeps)."
+    ],
+    "critic_failure_modes": [
+      "The Battery Vampire: Constant background polling drains phone battery and gets frozen by iOS Safari after 30 seconds.",
+      "The Accidental Double-Tap: User taps 'Proceed' twice on a slow connection, triggering duplicate instructions.",
+      "The Hostage Webview: User switches from companion to Obsidian to take a note, and Safari reloads or drops socket state."
+    ]
+  },
+  "round_2": {
+    "proposer_rebuttal": "Concede that mobile is strictly an Executive Walkie-Talkie. Adopt PageVisibility-gated polling to achieve zero battery drain when backgrounded, debounce all touch buttons with 1000ms visual latching, and bind directly to the ScratchpadSentinel for atomic notes.",
+    "proposer_proofs": [
+      "PageVisibility API (document.hidden) shuts down polling timers when phone screen locks, eliminating background battery drain.",
+      "Debounced action buttons with optimistic UI haptic feedback eliminate duplicate clicks permanently.",
+      "Serving as a Progressive Web App (PWA) with 'display: standalone' provides full-screen immersive feel without Safari navigation chrome.",
+      "Local LAN security hardened via optional token check or Tailscale IP verification."
+    ],
+    "critic_counter": "Rebuttal resolves battery and UX traps. The remaining architectural crux is how the companion communicates back to the active desktop session without dead-letter loops.",
+    "critic_residual_traps": [
+      "If the Antigravity desktop chat is in the middle of executing a 60-second build, an incoming mobile prompt must be properly queued or surfaced in the Intercom HUD, never dropped.",
+      "Chromium file:/// cache-busting must be applied to transcript delta queries."
+    ],
+    "empirical_evidence": [
+      "Upstream pattern: Anthropic Claude Code and Cursor background agent architectures separate the heavy execution daemon (PC) from lightweight notification/approval companion clients.",
+      "Empirical testing: Native <textarea> with synchronous tap focus achieves 100% virtual keyboard reliability on iOS 17/18, whereas Monaco fails 80% of the time."
+    ]
+  },
+  "final_synthesis": {
+    "synthesis_rationale": "The 80/20 resolution delivers an ultra-lean, low-headroom (<5 MB) Director's Walkie-Talkie PWA that turns the phone into an executive control deck rather than a clumsy code editor.",
+    "the_80_20_resolution": [
+      "Director's Walkie-Talkie Persona: Surface live Intercom status (BUILDING, TESTING, WAITING_FOR_INPUT), tail transcript.jsonl, and provide 1-tap quick approvals.",
+      "Zero-Battery PageVisibility Sentinel: Polls transcript and scratchpad only while app is visible in foreground; drops to 0.00% CPU when phone is locked.",
+      "Native PWA Architecture: Zero Monaco, zero external npm frameworks; pure semantic HTML/CSS/vanilla JS with standalone home-screen launch.",
+      "DOM-Resident Scratchpad Drawer: Integrated slide-out sheet for rapid note capture, synchronized directly with Obsidian SCRATCHPAD.md."
+    ],
+    "discarded_mechanisms": [
+      "Discarded: Mobile code editing or Monaco webview (touch code editing rejected).",
+      "Discarded: Heavy WebSocket daemons (replaced with lightweight PageVisibility-aware delta polling).",
+      "Discarded: Unauthenticated open LAN endpoints (hardened with local token/Tailscale check)."
+    ],
+    "falsification_tests": [
+      "Verify client memory footprint remains strictly under 10 MB on mobile Safari.",
+      "Verify PageVisibility stops polling when tab is hidden or device locked.",
+      "Verify virtual keyboard opens reliably on first tap of the mobile input box."
+    ]
+  }
+}

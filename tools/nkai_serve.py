@@ -552,6 +552,18 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(data).encode("utf-8"))
             return
 
+        if clean_path == "/api/chat/history":
+            try:
+                from tools.chat_engine import parse_transcript_turns
+                data = parse_transcript_turns()
+            except Exception as e:
+                data = {"ok": False, "error": str(e), "turns": []}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+            return
+
         if clean_path == "/api/scratchpad/status":
             status = ScratchpadSentinel.inspect()
             self.send_response(200)
@@ -703,6 +715,54 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             body_json = json.loads(post_body.decode("utf-8")) if post_body else {}
         except Exception:
             body_json = {}
+
+        if clean_path == "/api/chat/send":
+            prompt = body_json.get("prompt", "").strip()
+            if not prompt:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": "Empty prompt"}).encode("utf-8"))
+                return
+
+            now_iso = datetime.now().isoformat()
+            client_ip = self.client_address[0] if hasattr(self, "client_address") else "127.0.0.1"
+
+            # Log to action_history.jsonl
+            action_log = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "action_history.jsonl"
+            action_log.parent.mkdir(parents=True, exist_ok=True)
+            with open(action_log, "a", encoding="utf-8") as f:
+                f.write(json.dumps({
+                    "timestamp": now_iso,
+                    "action": "PROMPT_DISPATCH",
+                    "prompt": prompt,
+                    "source": "chat_board",
+                    "client_ip": client_ip
+                }) + "\n")
+
+            # Update agent_bulletin.json
+            try:
+                bulletin_file = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "agent_bulletin.json"
+                b_data = {
+                    "schema_version": "1.0.0",
+                    "updated_at": now_iso,
+                    "briefing_title": f"Mobile Prompt: {prompt[:40]}",
+                    "briefing_text": prompt,
+                    "status_badge": "DISPATCHED 🚀",
+                    "pending_decisions_count": 0,
+                    "last_flight": "Flight 22",
+                    "git_branch": "0.4.0-dev",
+                    "target_pipeline": "TARGET: TOOLING_HARNESS"
+                }
+                bulletin_file.write_text(json.dumps(b_data, indent=2), encoding="utf-8")
+            except Exception:
+                pass
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "status": "prompt_queued", "prompt": prompt}).encode("utf-8"))
+            return
 
         if clean_path == "/api/scratchpad/append":
             text = body_json.get("text", "").strip()

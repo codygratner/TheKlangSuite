@@ -1,25 +1,25 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "4125b2d",
-    "is_clean": true,
-    "dirty_count": 0,
-    "staged": 0,
-    "modified": 0,
-    "untracked": 0,
+    "commit": "a7a17fc",
+    "is_clean": false,
+    "dirty_count": 3,
+    "staged": 1,
+    "modified": 2,
+    "untracked": 1,
     "recent_commits": [
-      "4125b2d feat(mobile): add mobile companion lifecycle manager and API route handling",
-      "549506c docs(guide): update tailscale guide with machine IP 100.87.196.60",
-      "2d92b46 chore(context): update ACTIVE_CONTEXT.md to 2c9e44c"
+      "a7a17fc feat(sentinel): complete Flight 21 Intercom HUD, Workshop Mat, and Heavy PCDA engine",
+      "99985ef feat(sentinel): implement Zero-Token ScratchpadSentinel and API endpoints (Flight 21 Phase 1)",
+      "b54cf80 docs(plan): archive Flight 20 and draft Flight 21 hardened by 2-Round Heavy PCDA Crucible"
     ]
   },
   "plan": {
     "has_plan": true,
     "is_idle": true,
-    "title": "Implementation Plan: Flight 20 (The 3-Surface System & Frictionless Triage Ergonomics)",
-    "target": "TOOLING_HARNESS",
-    "status": "COMPLETED",
-    "progress": "28/28",
+    "title": "Implementation Plan",
+    "target": "FACTORY_FLOOR",
+    "status": "UNKNOWN",
+    "progress": "0/0",
     "active_phase": "Idle / Standby"
   },
   "communique": {
