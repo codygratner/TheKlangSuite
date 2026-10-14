@@ -1,25 +1,25 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "0653ec4",
-    "is_clean": true,
-    "dirty_count": 0,
-    "staged": 0,
-    "modified": 0,
-    "untracked": 0,
+    "commit": "58f71c9",
+    "is_clean": false,
+    "dirty_count": 19,
+    "staged": 1,
+    "modified": 13,
+    "untracked": 6,
     "recent_commits": [
-      "0653ec4 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "a8c9b00 chore(memory): execute automated pre-compaction memory flush and state synchronization",
-      "f2d9c5a feat(mobile-chat-pcda): fix mobile viewport & send pipeline, package PCDACore standalone repo, deploy Inbox Staging shelf, and catalog Logue/CTAG oscillators"
+      "58f71c9 feat(nkai): add Discuss in Chat button with tap-send and hold-prefill support",
+      "7b732c5 feat(nkai): add 1-click Pin to QuickNote card toolbar, autonomous mobile relay, and iOS focus guide",
+      "dd47d35 docs(taxonomy): codify PCDA-TDS Resequencer, Cockpit Metaphors, and Pydantic models"
     ]
   },
   "plan": {
     "has_plan": true,
     "is_idle": true,
-    "title": "Flight 4: General Research Assistant & Configurable Lens Profiles",
+    "title": "Plan: rj-46 \u2014 Cross-Ecosystem Unfinished Business Audit",
     "target": "TOOLING_HARNESS",
     "status": "COMPLETED",
-    "progress": "11/11",
+    "progress": "7/7",
     "active_phase": "Idle / Standby"
   },
   "communique": {
