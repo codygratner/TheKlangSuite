@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "58f71c9",
+    "commit": "773bb8f",
     "is_clean": false,
-    "dirty_count": 19,
+    "dirty_count": 46,
     "staged": 1,
-    "modified": 13,
-    "untracked": 6,
+    "modified": 23,
+    "untracked": 23,
     "recent_commits": [
+      "773bb8f chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
       "58f71c9 feat(nkai): add Discuss in Chat button with tap-send and hold-prefill support",
-      "7b732c5 feat(nkai): add 1-click Pin to QuickNote card toolbar, autonomous mobile relay, and iOS focus guide",
-      "dd47d35 docs(taxonomy): codify PCDA-TDS Resequencer, Cockpit Metaphors, and Pydantic models"
+      "7b732c5 feat(nkai): add 1-click Pin to QuickNote card toolbar, autonomous mobile relay, and iOS focus guide"
     ]
   },
   "plan": {

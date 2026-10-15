@@ -86,8 +86,11 @@ def check_file(file_path: Path, workspace_root: Path) -> dict:
             if raw_target.startswith("#"):
                 continue
 
-            # Skip remote HTTP/HTTPS links
-            if raw_target.startswith("http://") or raw_target.startswith("https://"):
+            # Skip remote HTTP/HTTPS links and custom URI schemes (sidecar://, conversation://, mailto:, etc.)
+            if (
+                raw_target.startswith("mailto:")
+                or (re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", raw_target) and not raw_target.startswith("file://"))
+            ):
                 result["remote_links"] += 1
                 continue
 

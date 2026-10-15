@@ -379,3 +379,31 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
   - Recent Commits: 58f71c9 feat(nkai): add Discuss in Chat button with tap-send and hold-prefill support, 7b732c5 feat(nkai): add 1-click Pin to QuickNote card toolbar, autonomous mobile relay, and iOS focus guide
   - Branch: `0.4.0-dev` (58f71c9)
   - Active Plan Target: `TOOLING_HARNESS` · Status: `COMPLETED`
+
+
+### Session: 2026-10-14 17:25 (6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41)
+- **Chat Role:** The Astral Abyss & The Klang Tower (Sovereign Planning & Implementation)
+- **Primary Objectives:** Complete Flights 24-27 for N'kai v0.4.0 Sovereign Deck; enable sub-second reactive chat and silent AGY CLI remote prompt injection; deploy native Apple Web Push to replace AGY SPA; resolve consecutive prompt ghost cards and iOS WebKit zombie sockets; add [📬 Get Mail] button and mobile swipe gestures; harvest 4 subagent research deliverables.
+- **Files Modified/Created:**
+  - cockpit.html & sidecars (Tri-split layout, mobile thumb-bar, realm switcher, swipe gestures, Get Mail button)
+  - 	ools/nkai_serve.py (SSE streaming bridge, presence monitor, silent agentapi runner, push dispatch)
+  - 	ools/chat_engine.py (Injected message parser, prompt folding into single turn, immutable step-based IDs)
+  - .agents/sidecar/chat_board.html (Stacked user bubbles, wake socket recycling, 2.5s fallback execution polling)
+  - 	ools/webpush_service.py (Apple Web Push VAPID engine & APNs integration)
+  - sw.js (PWA push service worker)
+  - New Klang City/Research/subagents/2026-10-14_*.md (4 research deliverables: NotebookLM, SPA/PWA, Master Plan, Vault Hygiene)
+  - Agenda.md (Queued: Systray Daemon Upgrades and Mobile Swipe Tuning for tomorrow)
+  - plan_nkai_v040_sovereign_cockpit_and_subagent_engine.md (Master Plan updated)
+- **Key Decisions:**
+  - Folded rapid consecutive user messages into a single conversational turn with stacked message bubbles, eliminating orphaned executing cards on mobile.
+  - Bound DOM turn card IDs to immutable step_index instead of dynamic array slices.
+  - Re-established EventSource on iOS Safari wake (isibilitychange) + added active 2.5s execution fallback polling to eliminate WebKit zombie sockets.
+  - Successfully test-fired native Apple Web Push to APNs (sent: 1, failed: 0), officially retiring AGY SPA mobile notifications.
+
+### Session: 2026-10-15 04:10 (manual_run)
+- **Chat Role:** Automated Nightly Sentry
+- **Primary Objectives:** Scheduled 4 AM Black Box Memory Flush and State Integrity Audit
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 773bb8f chore(memory): execute scheduled nightly black box memory flush and state integrity audit, 58f71c9 feat(nkai): add Discuss in Chat button with tap-send and hold-prefill support
+  - Branch: `0.4.0-dev` (773bb8f)
+  - Active Plan Target: `TOOLING_HARNESS` · Status: `COMPLETED`
