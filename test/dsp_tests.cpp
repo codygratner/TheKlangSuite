@@ -8,6 +8,19 @@
 #include "ModularBlocks.h"
 #include "ModulationEngine.h"
 #include "PlanterEngine.h"
+#include "dsp/fx/klangstomp/KlangStompBlock.h"
+#include "dsp/oscillators/KlangJuno.h"
+#include "dsp/oscillators/KlangCZ.h"
+#include "dsp/oscillators/KlangFM.h"
+#include "dsp/oscillators/KlangPluck.h"
+#include "dsp/oscillators/Klang808.h"
+#include "dsp/fx/spatial/KlangMod.h"
+#include "dsp/fx/spatial/KlangDelay.h"
+#include "dsp/fx/spatial/KlangSpace.h"
+#include "dsp/experimental/KlangResonator.h"
+#include "dsp/experimental/KlangFreeze.h"
+#include "dsp/experimental/KlangBode.h"
+#include "dsp/experimental/KlangVortex.h"
 
 int main() {
     std::cout << "Starting DSP Verification Tests for 22-Block Modular Drum Synth..." << std::endl;
@@ -1326,7 +1339,255 @@ int main() {
         std::cout << "PASS: Audio-rate Hydra FM routing loop verified." << std::endl;
     }
 
-    std::cout << "\n>>> ALL MODULAR DRUM DSP VERIFICATION TESTS PASSED SUCCESSFULLY! <<<" << std::endl;
+    // 31. Test Phase 1: The KlangStomp 8 (8-Pedal Analog Dirt Hall of Fame)
+    {
+        std::cout << "\nRunning Phase 1: The KlangStomp 8 (Analog Dirt Hall of Fame) DSP Tests..." << std::endl;
+        TbdAudio::KlangStomp::KlangStompBlock stomp;
+        stomp.prepare(48000.0, 256);
+
+        TbdAudio::BlockContext ctx{};
+        ctx.sampleRate = 48000.0f;
+        ctx.invSr = 1.0f / 48000.0f;
+
+        // A. Profile M Tri-Zone Mix Verification
+        // At mix = 0.5f (12:00 Center Detent), output must be 100% Pure Dry pass-through
+        stomp.setParam8(7, 0.5f); // 12:00 Pure Dry
+        for (int n = 0; n < 64; ++n) {
+            const float dry = 0.35f * TbdAudio::FastMath::fastSinNorm(static_cast<float>(n) / 64.0f);
+            const float out = stomp.processChannelSample(0, dry);
+            assert(std::abs(out - dry) < 1e-6f);
+        }
+        std::cout << "PASS: KlangStomp Profile M 12:00 Pure Dry unity pass-through verified." << std::endl;
+
+        // B. Test all 8 Circuit Models across parameter sweeps (Drive, Tone, Mid, Starve, CleanBlend)
+        const char* modelNames[8] = {
+            "0: Boss HM-2 (SwedishChainsaw)",
+            "1: Boss MT-2 (IndustrialZone)",
+            "2: ProCo RAT (Rodent)",
+            "3: Ibanez TS9 (Screamer808)",
+            "4: EHX Big Muff Pi (RussianMuff)",
+            "5: Klon Centaur (SovereignCentaur)",
+            "6: DOD 250 (YellowPreamp250)",
+            "7: Fuzz Face (VelcroFace)"
+        };
+
+        constexpr float sweepValues[] = { 0.0f, 0.25f, 0.5f, 0.85f, 1.0f };
+        for (int m = 0; m < 8; ++m) {
+            stomp.reset();
+            stomp.setCircuitModel(static_cast<TbdAudio::KlangStomp::CircuitModel>(m));
+            assert(static_cast<int>(stomp.getCircuitModel()) == m);
+
+            // Set 100% Wet (mix = 0.0f per Profile M), unity Level (0.5f), 0% Clean Blend
+            stomp.setParam8(2, 0.5f); // Level = 0 dB
+            stomp.setParam8(6, 0.0f); // Clean Blend = 0%
+            stomp.setParam8(7, 0.0f); // Mix = 100% Wet
+
+            float modelPeak = 0.0f;
+            for (float drv : sweepValues) {
+                for (float ton : sweepValues) {
+                    stomp.setParam8(0, drv);         // GAIN / DRIVE
+                    stomp.setParam8(1, ton);         // TONE / FILTER
+                    stomp.setParam8(4, 1.0f - ton);  // MID / GYRATOR
+                    stomp.setParam8(5, drv);         // STARVE / VOLTS
+
+                    std::vector<float> chL(128, 0.0f);
+                    std::vector<float> chR(128, 0.0f);
+                    for (int i = 0; i < 128; ++i) {
+                        const float s = 0.5f * TbdAudio::FastMath::fastSinNorm(static_cast<float>(i) * 110.0f / 48000.0f);
+                        chL[i] = s;
+                        chR[i] = s;
+                    }
+                    float* chans[2] = { chL.data(), chR.data() };
+                    stomp.processBlock(chans, 2, 128, ctx);
+
+                    for (int i = 0; i < 128; ++i) {
+                        assert(!std::isnan(chL[i]) && !std::isinf(chL[i]));
+                        assert(!std::isnan(chR[i]) && !std::isinf(chR[i]));
+                        assert(std::abs(chL[i]) <= 8.01f);
+                        modelPeak = std::max(modelPeak, std::abs(chL[i]));
+                    }
+                }
+            }
+            assert(modelPeak > 0.02f);
+            std::cout << "PASS: KlangStomp Model [" << modelNames[m] << "] verified (peak=" << modelPeak << ")." << std::endl;
+        }
+
+        // C. Phase Inversion Verification on 50/50 Parallel Mix (mix = 1.0f)
+        stomp.reset();
+        stomp.setCircuitModel(TbdAudio::KlangStomp::CircuitModel::SwedishChainsaw);
+        stomp.setParam8(0, 0.8f);
+        stomp.setParam8(7, 1.0f); // 50% Dry + 50% Wet
+        stomp.setPhaseInvert(false);
+        float normalSample = stomp.processChannelSample(0, 0.4f);
+
+        stomp.reset();
+        stomp.setCircuitModel(TbdAudio::KlangStomp::CircuitModel::SwedishChainsaw);
+        stomp.setParam8(0, 0.8f);
+        stomp.setParam8(7, 1.0f);
+        stomp.setPhaseInvert(true);
+        float invertedSample = stomp.processChannelSample(0, 0.4f);
+        assert(std::abs(normalSample - invertedSample) > 1e-4f);
+        std::cout << "PASS: KlangStomp 50/50 Parallel Mix & Phase Inversion verified." << std::endl;
+    }
+
+    // 32. Test Phase 2: The Core 5 Synth Engines (Oscillators)
+    {
+        std::cout << "\nRunning Phase 2: The Core 5 Synth Engines (Oscillators) DSP Tests..." << std::endl;
+
+        // A. Verify PolyBLEP 14 Alpha DCO shapes & Noise Generator
+        {
+            TbdAudio::Oscillators::PolyBLEP::NoiseGenerator ng;
+            ng.reset(0x12345678u);
+            for (int shape = 0; shape < 14; ++shape) {
+                float peak = 0.0f;
+                for (int i = 0; i < 128; ++i) {
+                    const float p = static_cast<float>(i) / 128.0f;
+                    const float v = TbdAudio::Oscillators::PolyBLEP::alphaWave14(shape, p, 1.0f / 128.0f, 0.3f);
+                    assert(std::isfinite(v) && std::abs(v) <= 2.5f);
+                    peak = std::max(peak, std::abs(v));
+                }
+                assert(peak > 0.1f);
+            }
+            for (int i = 0; i < 128; ++i) {
+                const float w = ng.nextWhite();
+                const float pk = ng.nextPink();
+                assert(std::isfinite(w) && std::abs(w) <= 1.05f);
+                assert(std::isfinite(pk) && std::abs(pk) <= 1.05f);
+            }
+            std::cout << "PASS: PolyBLEP 14 Alpha DCO waveforms & White/Pink noise generator verified." << std::endl;
+        }
+
+        // B. Helper lambda to verify a SoundEngine8 across parameter & note sweeps
+        auto verifySynthEngine = [](TbdAudio::Oscillators::SoundEngine8& synth, const char* name) {
+            TbdAudio::BlockContext ctx{};
+            ctx.sampleRate = 48000.0f;
+            ctx.invSr = 1.0f / 48000.0f;
+            ctx.currentPitchHz = 110.0f;
+            ctx.currentMidiNote = 45;
+            synth.init(ctx);
+
+            constexpr float vals[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+            constexpr int notes[] = { 36, 48, 60, 72 };
+            float maxPeak = 0.0f;
+
+            for (int note : notes) {
+                for (float v : vals) {
+                    for (int p = 0; p < 8; ++p) {
+                        synth.setParam8(p, (p % 2 == 0) ? v : (1.0f - v));
+                    }
+                    synth.setMidiNote(note, 0.9f);
+                    ctx.currentPitchHz = TbdAudio::Oscillators::SoundEngine8::midiNoteToHz(static_cast<float>(note));
+                    ctx.isTriggered = true;
+                    ctx.triggerVelocity = 0.9f;
+
+                    std::vector<float> outL(128, 0.0f);
+                    std::vector<float> outR(128, 0.0f);
+                    synth.processStereo(outL.data(), outR.data(), 128, ctx);
+                    ctx.isTriggered = false;
+
+                    for (int i = 0; i < 128; ++i) {
+                        assert(std::isfinite(outL[i]) && std::isfinite(outR[i]));
+                        assert(std::abs(outL[i]) <= 4.01f && std::abs(outR[i]) <= 4.01f);
+                        maxPeak = std::max(maxPeak, std::max(std::abs(outL[i]), std::abs(outR[i])));
+                    }
+                }
+            }
+            assert(maxPeak > 0.05f);
+            std::cout << "PASS: Synth Engine [" << name << "] verified across all 8 knobs & MIDI notes (peak=" << maxPeak << ")." << std::endl;
+        };
+
+        TbdAudio::Oscillators::KlangAlpha alpha;
+        TbdAudio::Oscillators::KlangCZ    cz;
+        TbdAudio::Oscillators::KlangFM    fm;
+        TbdAudio::Oscillators::KlangPluck pluck;
+        TbdAudio::Oscillators::Klang808   sub808;
+
+        verifySynthEngine(alpha,   "OSC-02: KlangAlpha (Alpha Dual-DCO + 7-Voice Supersaw + Ensemble Chorus)");
+        verifySynthEngine(cz,     "OSC-03: KlangCZ Phase-X (Casio CZ Twin-Line Phase Distortion)");
+        verifySynthEngine(fm,     "OSC-01/04: KlangFM / KlangTribe R (4-Op PM + ER-1 Cyclic Ring Noise)");
+        verifySynthEngine(pluck,  "OSC-05: KlangPluck KS (Extended Karplus-Strong Physical Waveguide)");
+        verifySynthEngine(sub808, "OSC-09: KlangSlayer (808 Sub + Mick Gordon Sine Fold & Noise Ring)");
+    }
+
+    // 33. Test Phase 3: Spatial, Delay & Modulation Racks (KlangMod, KlangDelay, KlangSpace)
+    {
+        std::cout << "\nRunning Phase 3: Spatial, Delay & Modulation Racks DSP Tests..." << std::endl;
+
+        auto verifySpatialRack = [](TbdAudio::AudioEffect8& fx, int numEngines, const char* rackName) {
+            TbdAudio::BlockContext ctx{};
+            ctx.sampleRate = 48000.0f;
+            ctx.invSr = 1.0f / 48000.0f;
+            fx.init(ctx);
+
+            // 1. Verify Profile M 12:00 (0.5f) Pure Dry Bypass
+            fx.setParam(7, 0.5f); // 100% Pure Dry
+            std::vector<float> dryL(64, 0.25f), dryR(64, -0.25f);
+            fx.processStereo(dryL.data(), dryR.data(), 64, ctx);
+            for (int i = 0; i < 64; ++i) {
+                assert(std::abs(dryL[i] - 0.25f) < 1e-5f);
+                assert(std::abs(dryR[i] - (-0.25f)) < 1e-5f);
+            }
+
+            // 2. Sweep all engines and parameter settings at 100% Wet (mix = 0.0f) and 50/50 Parallel (mix = 1.0f)
+            float maxPeak = 0.0f;
+            for (int eng = 0; eng < numEngines; ++eng) {
+                fx.reset();
+                const float engNorm = (numEngines > 1)
+                    ? (static_cast<float>(eng) / static_cast<float>(numEngines - 1))
+                    : 0.0f;
+                fx.setParam(3, engNorm); // Knob 3 = Engine/Algorithm/Model
+                fx.setParam(0, 0.08f);
+                fx.setParam(1, 0.65f);
+                fx.setParam(2, 0.55f);
+                fx.setParam(4, 0.40f);
+                fx.setParam(5, 0.50f);
+                fx.setParam(6, 0.60f);
+                fx.setParam(7, 0.0f); // 100% Wet
+
+                for (int blk = 0; blk < 16; ++blk) {
+                    std::vector<float> bufL(256, 0.0f), bufR(256, 0.0f);
+                    for (int i = 0; i < 256; ++i) {
+                        // Impulse burst in first block, decaying sine afterwards
+                        const float env = (blk < 4) ? 0.6f : 0.1f;
+                        const float s = env * TbdAudio::FastMath::fastSinNorm(static_cast<float>(i) * 220.0f / 48000.0f);
+                        bufL[i] = s;
+                        bufR[i] = s;
+                    }
+                    fx.processStereo(bufL.data(), bufR.data(), 256, ctx);
+                    for (int i = 0; i < 256; ++i) {
+                        assert(std::isfinite(bufL[i]) && std::isfinite(bufR[i]));
+                        assert(std::abs(bufL[i]) <= 4.01f && std::abs(bufR[i]) <= 4.01f);
+                        maxPeak = std::max(maxPeak, std::max(std::abs(bufL[i]), std::abs(bufR[i])));
+                    }
+                }
+            }
+            assert(maxPeak > 0.02f);
+            std::cout << "PASS: Spatial Rack [" << rackName << "] (" << numEngines << " engines) verified (peak=" << maxPeak << ")." << std::endl;
+        };
+
+        auto modRack   = std::make_unique<TbdAudio::Spatial::KlangMod>();
+        auto delayRack = std::make_unique<TbdAudio::Spatial::KlangDelay>();
+        auto spaceRack = std::make_unique<TbdAudio::Spatial::KlangSpace>();
+
+        verifySpatialRack(*modRack,   8, "KlangMod (BBD Chorus, Hyper-Ensemble, TZ Flanger, Phaser, Harm Trem)");
+        verifySpatialRack(*delayRack, 6, "KlangDelay (Ping-Pong, RE-201 Tape, MN3005 BBD, Reverse, Cloud, Oil Can)");
+        verifySpatialRack(*spaceRack, 6, "KlangSpace (EMT Plate, Void Hall, Spring, Shimmer, Reverse, Drum Gate)");
+
+        // 34. Test Phase 4: Blue-Sky & Chaos Engines (KlangResonator, KlangFreeze, KlangBode, KlangVortex)
+        std::cout << "\nRunning Phase 4: Blue-Sky & Chaos Engines DSP Tests..." << std::endl;
+
+        auto resonatorRack = std::make_unique<TbdAudio::Experimental::KlangResonator>();
+        auto freezeRack    = std::make_unique<TbdAudio::Experimental::KlangFreeze>();
+        auto bodeRack      = std::make_unique<TbdAudio::Experimental::KlangBode>();
+        auto vortexRack    = std::make_unique<TbdAudio::Experimental::KlangVortex>();
+
+        verifySpatialRack(*resonatorRack, 4, "KlangResonator / KlangComb (4-Voice Modal & Tuned Waveguide Bank)");
+        verifySpatialRack(*freezeRack,    5, "KlangFreeze / KlangShift (4-Grain Cloud Freeze & Scale Pitch Harmonizer)");
+        verifySpatialRack(*bodeRack,      4, "KlangBode (Harald Bode Hilbert SSB Frequency Shifter & Spiral Delay)");
+        verifySpatialRack(*vortexRack,    3, "KlangVortex (West Coast Buchla Wavefolder + 16-Stage APF Chaos Loop)");
+    }
+
+    std::cout << "\n>>> ALL 34 DSP VERIFICATION SUITES (PHASES 1-4 COMPLETE) PASSED 100%! <<<" << std::endl;
     return 0;
 }
 
