@@ -30,6 +30,7 @@
 
 ## 🎯 Immediate Return Agenda & Status
 - **Current Objective:** Address incoming mail regarding "AGY stuff you can do", then advance to Flight 28 (Subagent Queue-of-1 & Mi-Go Canister Engine).
+- **TKS Return Directive (Generative UI Spikes)**: When pivoting to TKS v0.4.1 / v0.5.0, immediately invoke `generative_ui` to prototype interactive, side-by-side HTML/CSS mockups of the 8-knob card layouts, dual-deck front/back flip, and TBD-16 encoder ergonomics before writing C++ JUCE components!
 - **Execution State:** `IDLE / READY`
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **Flight Horizon**:
@@ -72,6 +73,6 @@
    Conclude chat responses with:
    ```text
    Focus: <Current Focus><br>
-   [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🧭 Agenda ](sidecar://nkai/panel/?board=agenda) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📖 Cheat Sheet ](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md)<br>
+   [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🧭 Agenda ](sidecar://nkai/panel/?board=agenda) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/SCRATCHPAD.md) · [ 📖 Cheat Sheet ](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md)<br>
    Ecosystem: TKS-v0.4.0 · TT-v0.1.0 · NK-v0.1.0 · PCDA-v1.1.2
    ```
