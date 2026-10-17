@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "9a0a5c9",
+    "commit": "d47cfb2",
     "is_clean": false,
-    "dirty_count": 50,
+    "dirty_count": 52,
     "staged": 1,
     "modified": 26,
-    "untracked": 24,
+    "untracked": 26,
     "recent_commits": [
-      "9a0a5c9 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "773bb8f chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "58f71c9 feat(nkai): add Discuss in Chat button with tap-send and hold-prefill support"
+      "d47cfb2 feat(dsp): implement 4-phase C++20 synthesis & FX pipeline with trademark sanitization",
+      "b32b90f chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
+      "9a0a5c9 chore(memory): execute scheduled nightly black box memory flush and state integrity audit"
     ]
   },
   "plan": {
