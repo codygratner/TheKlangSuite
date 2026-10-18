@@ -475,9 +475,17 @@ Comprehensive automated audit cross-referencing all 204 legacy v0.2.0 parameters
 > **Tracking & Research:** [Alpha Juno & Wavefolder Spec](specs/fx_catalog_expansion.md) | [2026 Agentic Architecture Deep Research](https://github.com/codygratner/TheKlangResearch/blob/main/agentic/2026-10-08_Agentic_Architecture_Deep_Research.md)
 *Focus: Sonic Expansion, Workflow Disruption, and Modulation.*
 
-### 1. DSP Modulation Engine & Real-Time Matrix Routing
-*Goal: Wire the real-time DSP modulation summing engine to the v0.4.1 Flip Card shells and Mod Matrix table.*
+### 1. DSP Modulation Engine, Universal 8-Control Envelopes & Paraphonic Voice Allocation
+*Goal: Wire the real-time DSP modulation summing engine to the v0.4.1 Flip Card shells, establish the Universal 8-Control Envelope Standard, and provide the 4-voice paraphonic allocation wrapper for ToadTracker interop.*
 - **Lock-Free Modulation Accumulators:** Audio-thread per-block modulation accumulation for 4 LFOs, 4 Envelopes, 4 Macros, and 4 Random sources into target parameters with zero allocations.
+- **The Universal 8-Control Envelope Card Standard (TT & TBD-16 Parity)**:
+  - Establishes the standardized 8-knob envelope topology across TKS and ToadTracker:
+    - `Knob 1: TYPE`: `0: DRUM PUNCH` (Default percussive decay, 49.9% M8 empirical corpus), `1: AHDSR` (Elektron note-gate sync), `2: CYCLING LFO / SLOPE` (Make Noise Maths / Serge DUSG tribute), `3: TABLE MSEG / MML` (Tracker micro-stepper).
+    - `Knobs 2..8`: `ATTACK / RISE`, `HOLD / BODY`, `DECAY / FALL`, `SUSTAIN / LEVEL`, `RELEASE / SLEW`, `CURVE / SKEW`, and `AMOUNT / TARGET`.
+    - Rear Deck ⚙️ Options: Retrigger vs Legato, Gate Sync, Keytrack Decay scaling, Anti-Click slew.
+- **TKS `ParaphonicVoice4` Voice Allocation Wrapper**:
+  - Bridges ToadTracker's 4-note paraphonic phrases (`BACKLOG-10`) and Renoise 4-note tracks to TKS sound engines.
+  - Sums 4 independent DCO/algo oscillator frequencies into 1 shared Cytomic SVF filter, saturation stage, and VCA (Korg Mono/Poly style paraphony) without requiring full 4-voice polyphonic DSP overhead.
 - **Dynamic Re-Mapping:** Encoders control real-time DSP modulation depth indices for LFO1, LFO2, ENV1, and ENV2.
 - **Real-Time Shape-Based Ring Animation:** Animate target knob rings with active modulation energy at 30 Hz via lock-free atomics.
 
@@ -580,9 +588,9 @@ Add a fully JSON-driven contextual randomization system:
     - **Algorithm 28: The Klang Mill Container**: Embeds an entire 6-slot Klang Mill pedalboard inside an FX slot with 4 front-panel macros and floating window editing ('Mill-ception').
 - **Phase 1: Universal Dual-Mode Mix Helper & Core Enums**:
   - Implement shared `computeDualModeMix(float normParam, float& dryGain, float& wetGain)` in `source/DSPBlock.h` (-100% wet crossfade $\to$ 0% pure dry $\to$ +100% parallel additive blend).
-  - Update `createFXBlock()` factory and `BlockType` enum with: TransientShaper (14), CustomWaveshaper (15), ChannelMixer (16), StereoEnhancer (17), SpatialAudio (18 - Haas Delay & Binaural HRTF), GatedReverb (19), JunoChorus (20), WaveguideResonator (21), SubGenerator (22), TapeWarmth (23), DynamicFilter (24), PitchTransposer (25), StutterGate (26), Baler (27), and TheMist (29 - Granular Particle Cloud & Freeze) - see [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) and [`2026-10-08_Subagent_Deep_Research_Harvest.md`](https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-08_Subagent_Deep_Research_Harvest.md).
+  - Update `createFXBlock()` factory and `BlockType` enum with: TransientShaper (14), CustomWaveshaper (15), ChannelMixer (16), StereoEnhancer (17), SpatialAudio (18 - Haas Delay & Binaural HRTF), GatedReverb (19), JunoChorus (20), WaveguideResonator (21), SubGenerator (22), XXXLHarmonicWarp (23 - "The XXXL" Triple-XL Op-Amp Rail Saturation w/ Independent Odd & Even Harmonics), DynamicFilter (24), PitchTransposer (25), StutterGate (26), Baler (27), and TheMist (29 - Granular Particle Cloud & Freeze) - see [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) and [`2026-10-08_Subagent_Deep_Research_Harvest.md`](https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-08_Subagent_Deep_Research_Harvest.md).
 - **Phase 2: DSP Implementations (`source/ModularBlocks.h`)**:
-  - TransientShaperBlock (14), CustomWaveshaperBlock (15), ChannelMixerBlock (16), StereoEnhancerBlock (17), SpatialAudioBlock (18: Unified Mega-Module containing Haas micro-delay widening and Binaural HRTF 3D psychoacoustic positioning; both listed individually in the FX picker with auto-selection), GatedReverbBlock (19), JunoChorusBlock (20), WaveguideResonatorBlock (21), SubGeneratorBlock (22), TapeWarmthBlock (23), DynamicFilterBlock (24), PitchTransposerBlock (25), StutterGateBlock (26), BalerCompressorBlock (27), and TheMistGranularBlock (29: Real-time circular buffer particle cloud with Scrub, Density, Grain Size, and Spray jitter controls; Tier 3 Master/Send effect; inspired by Stephen King's eerie particulate atmosphere - see [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) and [`2026-10-08_Subagent_Deep_Research_Harvest.md`](https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-08_Subagent_Deep_Research_Harvest.md)).
+  - TransientShaperBlock (14), CustomWaveshaperBlock (15), ChannelMixerBlock (16), StereoEnhancerBlock (17), SpatialAudioBlock (18: Unified Mega-Module containing Haas micro-delay widening and Binaural HRTF 3D psychoacoustic positioning; both listed individually in the FX picker with auto-selection), GatedReverbBlock (19), JunoChorusBlock (20), WaveguideResonatorBlock (21), SubGeneratorBlock (22), XXXLHarmonicWarpBlock (23: "The XXXL" / Triple-XL. Inspired by the diode-less Tech 21 XXL distortion pedal. Direct rail saturation with independent Odd Harmonics [symmetric Padé tanh] and Even Harmonics [asymmetric quadratic bias with 5Hz 1-pole DC blocker], Tone/DJ filter, and modular sub-mode preserving Classic Tanh), DynamicFilterBlock (24), PitchTransposerBlock (25), StutterGateBlock (26), BalerCompressorBlock (27), and TheMistGranularBlock (29: Real-time circular buffer particle cloud with Scrub, Density, Grain Size, and Spray jitter controls; Tier 3 Master/Send effect; inspired by Stephen King's eerie particulate atmosphere - see [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) and [`2026-10-08_Subagent_Deep_Research_Harvest.md`](https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-08_Subagent_Deep_Research_Harvest.md)).
 - **Phase 3: Standardize Existing FX Mix Knobs**:
   - Migrate Chorus, Comb, Flanger, Phaser, Tempo Delay, and Drive to use `computeDualModeMix`.
 - **Phase 4: Categorized FX Selection Modal (Kilohearts-Style Browser)**:
@@ -608,6 +616,18 @@ Add a fully JSON-driven contextual randomization system:
 - **Context-Aware FX Picker Indicators**:
   - In the 5-column FX browser modal, subtle tags (`[MONO]`, `[POLY]`, `[MASTER]`) guide sound designers toward acoustically optimal and CPU-friendly choices without artificially locking out creative experimentation.
 
+### 2.6. Pre-Amp Voice Throttling & Tail Decay Lifecycle (Embedded Voice Efficiency)
+*Goal: Overcome embedded MCU CPU limits (RP2350/ESP32-P4/tbd-16) and slash polyphonic voice CPU consumption by ~85% through envelope-gated execution branching.*
+- **Voice Lifecycle State Machine (`VoiceState`)**:
+  - `VoiceState::Active`: Normal synthesis execution across all oscillators, modulators, envelopes, filters, and pre/post FX.
+  - `VoiceState::TailDecay`: Triggered the instant `AmpEnvelopeBlock` completes its release decay ($envVal \le 10^{-5}$). Immediately bypasses 100% of pre-amp processing:
+    - Carrier 1 & 2, Modulator 1 & 2, Noise Transient generators bypassed.
+    - Pitch Envelopes 1 & 2 and Filter Envelopes 1..3 bypassed.
+    - Filters 1, 2, 3, Mixer, Pre-FX Slots 1..4, and Pre-Limiter bypassed.
+    - Feeds pure silence ($0.0$) directly into Post-Amp FX, allowing time-based delay and reverb lines to ring down naturally without clicks or truncated tails.
+  - `VoiceState::Idle`: Triggered when Post-Amp FX buffer energy drops below $-96\,\text{dBFS}$ (or immediately upon envelope close if no time-based FX are loaded). Voice bypasses `processStereo()` entirely via a single fast `buffer.clear()` (`std::fill_n`), reducing idle voice CPU to $<0.1\%$.
+- **Verification Metric**: Cycle-count unit tests verifying $\ge 80\%$ CPU drop when voices enter `TailDecay` and zero audible clicks during decay transitions.
+
 ### 3. Modular 3-Slot Transient Engine (Noise, Sample Players & Impulse Clicks) with Sub-Mixer
   *Goal: Transform the static noise page into a fully modular 3-slot transient layering powerhouse with dedicated sub-mixing before the Pre-Amp Console.*
   - **3 Swappable Modular Slots**: Each slot can independently load one of three transient engines:
@@ -617,18 +637,32 @@ Add a fully JSON-driven contextual randomization system:
   - **Dedicated Transient Sub-Mixer**: Each slot has Level, Pan, and Filter controls, summing into a dedicated Transient bus before hitting the main Voice 1 & 2 mixer.
   - **Choke Groups**: Configurable choking between transient slots (e.g., open vs closed hi-hats or muting clicks).
 
-### 3.5. Custom Wavetable, Vintage Chiptune & Expanded Oscillator Topologies (Mailbag `rj-20`)
-*Goal: Expand Voice 1 & 2 synthesis topologies with vintage chiptune engines, modern bit-masking, M8-style wave manipulation, and CyDrums-style sound structures.*
-- **CyDrums & Multi-Engine Topologies**: Pre-configured synthesis topologies on Voice 1 & 2 ([2-Op FM], [Wavetable FM], [Ring Mod], [Hard Sync], [Wavetable Morph]) keeping the 4 front knobs invariant.
-- **Vintage Computer & Console Oscillator Cores**:
-  - **Game Boy / NES (APU + VRC6/FDS)**: Variable pulse width (12.5%, 25%, 50%, 75%), authentic NES triangle stepped staircase, VRC6 saw, and FDS 64-step wavetable accumulator.
-  - **Commodore 64 (SID 6581/8580)**: Combined multi-waveforms (pulse+saw, tri+saw) and authentic ring modulation/sync.
-  - **PC-Engine (HuC6280)**: 32-step 5-bit wavetable looping registers for lo-fi crunchy retro lead/bass textures.
-- **Modern Macro & Wave-Shaping Models**:
-  - **M8-Style Wave Synth**: Multiplier, fold/squeeze, and waveform rearranging macros.
-  - **Kodamo Mask1 Bit-Masking Engine**: Bitwise masking of oscillator phase to generate gritty, vocal-like harmonic overtones.
-  - **Plaits / Braids Macro Models**: Single-knob macro-timbral sound models (Virtual Analog, Additive, Formant, Harmonic Strings).
-- **Popover Option & Serum/Vital Standard**:
+### 3.5. Custom Wavetable, Vintage Chiptune & Expanded Oscillator Topologies (Mailbag `rj-20`) — ✅ AUDITED & S-TIER PROMOTED
+*Canonical Spec:* [**`master_sound_and_fx_catalog.md`**](specs/master_sound_and_fx_catalog.md) | *Pillars:* **TKS**, **TT**  
+*Goal: Audit planned sound engines and effects for overlap, integrate open-source firmware models, and specify unified 8-knob front faceplates + Rear Deck ⚙️ backstage options.*
+
+- **1. Overlap Audit & Architectural Reconciliation (Completed)**:
+  - **Commodore 64 SID 6581/8580**: Redundancy eliminated. Folded directly into **`OSC-12: KlangChip 8-Bit`** Core #4 (`Breadbin SID`), uniting Game Boy DMG-01, NES 2A03, Konami VRC6, C64 SID, and PC Engine TG-16 into a single cycle-accurate PSG lab.
+  - **Braids vs. Plaits**: Combined into a single unified super-engine: **`OSC-13: KlangMacro` (Macro Timbre Synthesizer)**. Provides 1:1 preset mapping for the 556 `Macrosynth` songs in the Dirtywave M8 library while exposing all 40 synthesis models across 3 architecture banks.
+  - **Delay with Klang Mill in Feedback Loop**: Promoted to S-Tier as **`TKMD / KlangLoopMill`** ([`the_klang_mill_delay.md`](specs/spinoffs/the_klang_mill_delay.md)), embedding a 2-slot insert rack (Bode shifter, HM-2 chainsaw, pitch shifter, wavefolder, tape wow) in the delay recirculation path.
+  - **Vocoder & Granular Texture**: Promoted to S-Tier as **`KlangVocoder`** (32-Band Spectral Vocoder with sibilance replacement) and **`KlangCloud`** (Mutable Instruments Clouds & Beads granular texture and infinite buffer freeze).
+  - **M8 Wavsynth**: Formally specified as **`OSC-14: KlangWav`** (Wave multiplication, phase squeezing, wavefolding, and bitcrushing).
+
+- **2. Open-Source Firmware & Mod Research Findings (MI Plaits & Braids)**:
+  - **Plaits Firmware 1.2 "Orange/Amber Bank" (Émilie Gillet, Dec 2022)**: Adds 8 cutting-edge synthesis models to Plaits: (1) Classic VA with 24dB/12dB filter, (2) Phase Distortion & Modulation, (3–5) 2-Voice 6-Operator FM Synth with 32 factory presets and **full Yamaha DX7 SysEx bank loading compatibility via audio**, (6) 2D Wave Terrain synthesis with continuous terrain scanning, (7) String Machine with stereo ensemble chorus, (8) 4-Voice chiptune chords.
+  - **Rubato Audio "Plaits Palette"**: WebAssembly firmware builder demonstrating seamless mixing and matching of Braids and Plaits algorithm blocks in a unified modular bank structure.
+  - **Braids Renaissance (Tom Burns)**: Adds the iconic SAM (Software Automatic Mouth) C64 robotic speech synthesis engine, expanded diatonic chord tables, and vocal tract formants.
+  - **Bees-in-the-Trees / Mutated Mutables (Tim Churches)**: Adds paraphonic triple-oscillator models (saw-square-tri mixes, triple sines, triple triangles) with independent micro-tuning.
+  - **Lyle P. Mills Alternate Firmware**: Adds Joe McMullen's jazz and neoclassical chord tables (Maj9, m11, 13, Sus), assignable LPG decay, and auxiliary output crossfading.
+
+- **3. The Newly Promoted S-Tier Sound Engines & Bespoke Processors**:
+  - **`OSC-13: KlangMacro`** *(MI Plaits + Braids Super-Engine)*: 8 Knobs (`MODEL/BANK`, `TIMBRE`, `MORPH`, `HARMONICS`, `OCTAVE`, `DECAY/LPG`, `AUX BLEND`, `LEVEL/VELO`) + Rear Deck DIPs (`LPG MODEL`, `CHORD TABLE`, `DX7 SYSEX BANK`, `M8 BIT-ACCURATE MODE`) + Trimpots (`SLOP`, `SAM THROAT BIAS`, `LPG BLEED`).
+  - **`OSC-14: KlangWav`** *(M8-Style Wavsynth)*: 8 Knobs (`WAVE SHAPE`, `MULTIPLY`, `WARP/SQUEEZE`, `FOLD/MIRROR`, `OCTAVE`, `PULSE WIDTH/SYM`, `CRUSH/DECIMATE`, `SUB LEVEL`) + Rear Deck DIPs (`FOLD TOPOLOGY`, `MULTI-WINDOW`, `PHASE RESET`) + Trimpots (`DC SERVO`, `THERMAL WOBBLE`, `SAT CEILING`).
+  - **`TKMD / KlangLoopMill`** *(Recursive Insert Delay)*: 8 Knobs (`TIME/RATE`, `STEREO PING-PONG`, `SLOT 1 ENGINE`, `SLOT 1 INTENSITY`, `SLOT 2 ENGINE`, `SLOT 2 DEPTH`, `FEEDBACK & FREEZE`, `MIX/∅`) + Rear Deck DIPs (`DELAY INTERPOLATION`, `INSERT ROUTING ORDER`, `LOOP LIMITER`, `STEREO COUPLING`) + Trimpots (`TAPE NOISE`, `DC OFFSET`, `FREEZE SEAM`).
+  - **`KlangVocoder`** *(Electrix WarpFactory Tribute & 32-Band Spectral Warper)*: 8 Knobs (`GENDER/WARP`, `Q/RESONANCE`, `ORDER/FILTER MODE`, `ESS/SIBILANCE`, `CARRIER ENGINE`, `ROBOT PITCH`, `DECAY/ENVELOPE`, `MIX/SOURCE KILL`) + Rear Deck DIPs (`WARP TOPOLOGY`, `AUTO-MODE CROSSFEED`, `MKS-50 CARRIER CHORUS`, `STEREO SPREAD`) + Trimpots (`ESS THRESHOLD`, `MKS-50 SUB-OSC`, `SPECTRAL GATE`). Features authentic WarpFactory Auto-Mode (drum/synth self-vocoding) and an integrated Roland MKS-50 / Alpha Juno carrier engine!
+  - **`KlangCloud`** *(Granular Texture & Infinite Freeze)*: 8 Knobs (`POSITION/SCRUB`, `GRAIN SIZE`, `PITCH/DETUNE`, `DENSITY/RATE`, `TEXTURE/SHAPE`, `SPREAD/PAN`, `DIFFUSION/SPACE`, `MIX/∅`) + Rear Deck DIPs (`BUFFER FIDELITY`, `PLAYBACK ENGINE`, `DRY PATH`, `WINDOW ENVELOPE`) + Trimpots (`BROWNIAN JITTER`, `RECIRCULATION FB`, `DC BLOCK POLE`).
+
+- **4. Popover Option & Serum/Vital Standard**:
   - Right-click Carrier/Modulator card popover reveals Oscillator Mode selector.
   - Drag-and-drop loading of standard 2048-sample single-cycle or 256-frame `.wav` wavetables directly onto the card.
   - Bandlimited anti-aliased mip-mapped wavetables in memory.
@@ -752,6 +786,19 @@ Transform the dual-FM drum synthesizer into a dual-threat drum and bass machine 
 - **Sibling Build Target**:
   - Compiles as a lightweight sibling CMake target inside `c:\Dev\TheKlangSuite`, reusing `Source/dsp/` and `Source/ui/` without creating a rogue repository.
 
+### 12. CyDrums Deep Voice Architecture Spike (P2 — TKS / TT)
+*Source Note:* [`TheKlangVault/Inbox/Archive/CyDrums.md`](file:///C:/_/Vault/New%20Klang%20City/Archive/CyDrums%20Research.md) | *Mailbag Card:* `rj-34`  
+*Priority:* **P2** | *Target Pillars:* **TKS**, **TT**  
+*Goal: Targeted research spike translating Sonicware LIVEN CyDrums hardware architecture into C++ DSP models for The Klang Farmer, The Klang Planter, and ToadTracker drum voices.*
+- **2x Wavetable Oscillators & Bidirectional Scanning**:
+  - Twin wavetable core per drum voice supporting forward, reverse, and bidirectional ping-pong wavetable scanning (CyDrums Manual p.47).
+- **Noise & Transient Tick Generators**:
+  - Independent white/pink noise burst generator and metallic transient click impulse generator for punchy transient reinforcement.
+- **Hardware Modulation Matrix Mapping**:
+  - Translate the 16-route hardware matrix (CyDrums Manual p.65) into TKS modular parameters with dual-LFO expansion, envelope-to-pitch ramps, and velocity-to-wavetable position routing.
+- **Microcontroller & Embedded Safety**:
+  - Strict allocation-free real-time C++ audio core designed to run identically across desktop VST3/CLAP and bare-metal embedded targets (RP2350 / ESP32-P4 / dadamachines TBD-16).
+
 ---
 
 ## 🚀 Milestone: v0.6.0 "The Pro Workflow Update"
@@ -770,7 +817,25 @@ Implement a professional, tag-based preset management system utilizing JSON file
 - **Phase 3: Header Integration & Automated Tests**:
   - LCD-style preset display and `<` `>` stepper buttons in the main header.
 
-### 2. Curated Factory Preset Library & Sound Design Pack (64–128 Patches)
+### 2. Component Presets & Sub-Voice Tagged Browser (P1 — TKS / TT)
+*Source Note:* [`TheKlangVault/Inbox/Archive/Component Presets As Well.md`](file:///c:/_/Vault/Archive/Component%20Presets%20As%20Well.md) | *Mailbag Card:* `rj-32`  
+*Priority:* **P1** | *Target Pillars:* **TKS**, **TT**  
+*Goal: Provide granular sub-component preset saving and loading (e.g. saving just a single CyDrums voice, an oscillator patch, or an FX chain) with metadata tags, distinct from full-plugin states, enabling cross-plugin modular portability between The Klang Farmer, The Klang Planter, and ToadTracker.*
+
+- **1. Sub-Component JSON Schema (`assets/presets/components/<module>/`)**:
+  - Decoupled serialization: Each sound engine (CyDrums, FM Operator, Modal Resonator, Alpha Juno) and FX module (Drive, Thickener, Reverb) can serialize its own atomic parameter sub-tree into a `.tkcomp` JSON schema without requiring full master plugin state.
+  - Backward compatibility: Full-plugin `.tkf` patches wrap component blocks as nested sub-objects (`"components": { "voice_1": { ... }, "fx_slot_3": { ... } }`).
+- **2. Sub-Voice Tagged Browser (`source/ComponentBrowserComponent.h`)**:
+  - Filterable tag taxonomy: Tag sub-voices by timbre (`#snare`, `#metallic`, `#sub`, `#punchy`, `#acoustic`), engine type (`#cydrums`, `#fm`, `#modal`), and role.
+  - Multi-select tag search: Fast fuzzy search and tag filtering directly inside the module card popover or main preset browser.
+  - Quick-Swap Auditioning: Stepper arrows `<` `>` directly on module card headers to cycle through component presets on the active voice in real time.
+- **3. Cross-Plugin & ToadTracker Portability**:
+  - Universal sub-voice exchange: Save a drum voice authored in *The Klang Planter* and import it directly into Voice 1 of *The Klang Farmer* or into future *ToadTracker* modular channels.
+  - Shared asset catalog: Both desktop VST3/CLAP plugins and headless/hardware engines reference canonical component presets in `assets/presets/components/`.
+- **4. Audio-Thread Safety & Parameter Smoothing**:
+  - Component preset loading triggers lock-free parameter smoothing queues (`TbdAudio::ParameterSmoother`), preventing audio glitches or DC pops during live playback.
+
+### 3. Curated Factory Preset Library & Sound Design Pack (64–128 Patches)
 *Goal: Provide professional out-of-the-box sounds showcasing the expanded DSP and sample players.*
 - Author 64–128 production-ready drum patches categorised across:
   - **Kicks**: Sub-heavy 808s, punchy acoustic-style kicks, hardstyle industrial distortion kicks.
@@ -778,12 +843,12 @@ Implement a professional, tag-based preset management system utilizing JSON file
   - **Toms & Percs**: Physical modeling resonant tubes, FM bells, alien zaps, and cowbells.
   - **Hi-Hats & Cymbals**: Transient sample-layered hats, choked pairs, and FM metallic cymbal washes.
 
-### 3. One-Click Preset Bank Sharing (`.tkfbank` / `.zip` Import/Export)
+### 4. One-Click Preset Bank Sharing (`.tkfbank` / `.zip` Import/Export)
 *Goal: Zero-friction sharing of user presets and community expansion packs.*
 - **Export Bank**: Bundles selected presets, tags, and custom transient sample files into a single compressed `.tkfbank` archive.
 - **Import Bank**: Drag-and-drop `.tkfbank` file onto the preset browser to automatically install, categorize, and rebuild the tag cache.
 
-### 4. WAV Render, Multi-Sample & SF2 Export Dialog + Instant DAW Drag 'n' Drop (Features #16 & #17)
+### 5. WAV Render, Multi-Sample & SF2 Export Dialog + Instant DAW Drag 'n' Drop (Features #16 & #17)
 *Detailed Plan: [`docs/wav_render_sf2_export_dragndrop_plan.md`](specs/wav_sf2_export.md)*  
 Comprehensive offline audio bounce, multi-sample SoundFont 2 (.sf2) bank generation, and zero-friction DAW integration:
 - **Phase 1: Offline Render Pipeline & SF2 Builder**:
@@ -797,11 +862,11 @@ Comprehensive offline audio bounce, multi-sample SoundFont 2 (.sf2) bank generat
 - **Phase 4: Header Integration & Automated Unit Tests**:
   - Add renderButton and dragBadge to plugin headers.
 
-### 5. Headless Linux CLAP / VST3 Automated CI/CD Runner
+### 6. Headless Linux CLAP / VST3 Automated CI/CD Runner
 *Goal: Ensure multi-platform stability and continuous validation for Linux audio.*
 - Add an Ubuntu `aarch64` / `x86_64` container to GitHub Actions building headless Linux CLAP/VST3 binaries on every commit.
 
-### 6. Dual-Tier 2x / 4x Oversampling Engine (Anti-Aliasing)
+### 7. Dual-Tier 2x / 4x Oversampling Engine (Anti-Aliasing)
 *Detailed Plan: [`docs/pre_v1_sound_and_workflow_expansion_plan.md`](specs/pre_v1_sound_and_workflow_expansion.md)*  
 *Goal: Eliminate FM modulation sideband foldback and non-linear saturation aliasing in both realtime and offline render paths.*
 - **Dual-Tier Quality Strategy**:
@@ -811,7 +876,7 @@ Comprehensive offline audio bounce, multi-sample SoundFont 2 (.sf2) bank generat
   - `juce::dsp::Oversampling<float>` wraps the core voice and non-linear effects path in `processBlock()`.
   - Zero allocation audio-thread invariant strictly preserved by pre-allocating oversamplers in `prepareToPlay()`.
 
-### 7. 4 Performance Macro Knobs (TBD-16 Hardware Aligned) — ⚡ PULLED FORWARD INTO v0.4.0
+### 8. 4 Performance Macro Knobs (TBD-16 Hardware Aligned) — ⚡ PULLED FORWARD INTO v0.4.0
 *Detailed Plan: [`docs/pre_v1_sound_and_workflow_expansion_plan.md`](specs/pre_v1_sound_and_workflow_expansion.md)*  
 *Goal: Instant front-panel performance tweaking mapped 1:1 to Page 1 of the dadamachines TBD-16 hardware.*
 - **Global Front-Panel Access**:
@@ -822,7 +887,7 @@ Comprehensive offline audio bounce, multi-sample SoundFont 2 (.sf2) bank generat
   - Configurable bipolar modulation depth (`-100%` to `+100%`).
   - Macro assignments and positions serialized directly into JSON preset files (`PresetManager.h`).
 
-### 8. Zero-Server GitHub Crash Reporting Engine
+### 9. Zero-Server GitHub Crash Reporting Engine
 *Detailed Plan: [`docs/github_crash_reporting_plan.md`](specs/crash_reporting.md)*  
 *Goal: Capture real-world crash logs and stack traces from beta testers directly into GitHub Issues with zero server infrastructure, zero hosting costs, and zero secret token leaks.*
 - **Pre-Filled GitHub Issue URL Generator**:
@@ -835,7 +900,7 @@ Comprehensive offline audio bounce, multi-sample SoundFont 2 (.sf2) bank generat
   - Gathers OS, host DAW name/version, buffer size, sample rate, Git commit hash, active preset/FX, and demangled C++ call stack.
   - Automatically scrubs local usernames from paths (e.g. `C:\Users\<redacted>\...` &rarr; `<UserPath>`) to protect privacy.
 
-### 9. One-Time Quick Tour & Gesture Revelation ("Right-Click is the Way")
+### 10. One-Time Quick Tour & Gesture Revelation ("Right-Click is the Way")
 *Detailed Plan: [`docs/one_time_quick_tour_plan.md`](specs/one_time_quick_tour.md)*  
 *Goal: Provide a sleek, non-intrusive first-launch onboarding card that introduces users to the tactile power of right-click quick snaps, randomizer menus, voice articulation callouts, and double-click resets.*
 - **Unobtrusive Single-Screen Overlay**:
@@ -852,7 +917,7 @@ Comprehensive offline audio bounce, multi-sample SoundFont 2 (.sf2) bank generat
 - **100% JSON-Driven Copy**:
   - All headings, icons, descriptions, and button labels parsed from `assets/controls/global_ui.json` under `"quick_tour"`.
 
-### 10. Comprehensive FOSS & POSS Attribution, License Ledger & About Modal Expansion
+### 11. Comprehensive FOSS & POSS Attribution, License Ledger & About Modal Expansion
 *Goal: Provide rigorous, ethical, and transparent attribution to open-source DSP pioneers, papers, and libraries powering The Klang Suite.*
 - **Third-Party FOSS/POSS Ledger (`docs/THIRD_PARTY_LICENSES.md`)**:
   - Detailed directory indexing all upstream inspirations, open-source algorithms, mathematical papers, and authors:
@@ -984,9 +1049,12 @@ Deploy headless Linux LV2 / CLAP plugins onto the open-source Zynthian hardware 
 ### 1. The 9-Flight Consolidated Itinerary
 *Status: 🏆 COMPLETED (100% Consensus Reached: 17 Approved, 2 Tabled for v0.2.0, 0 Killed, 0 Pending)*
 Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights across 4 phases:
-- **Phase 1: Foundations (State & IPC)** $ightarrow$ F1 (Canonical State: 6.16+6.7) & F2 (Execution Bridge: 6.17+6.18)
-- **Phase 2: Orchestration (Skills & Portability)** $ightarrow$ F3 (Skill Taxonomy: 6.4+6.14) & F4 (Harness Portability: 6.13)
-- **Phase 3: Topology & Ergonomics (UI/UX)** $ightarrow$ F5 (Header & Tab Density: 6.9+6.10) & F6 (Triage Views: 6.8+6.11)
+- **Phase 1: Foundations (State & IPC)** $
+ightarrow$ F1 (Canonical State: 6.16+6.7) & F2 (Execution Bridge: 6.17+6.18)
+- **Phase 2: Orchestration (Skills & Portability)** $
+ightarrow$ F3 (Skill Taxonomy: 6.4+6.14) & F4 (Harness Portability: 6.13)
+- **Phase 3: Topology & Ergonomics (UI/UX)** $
+ightarrow$ F5 (Header & Tab Density: 6.9+6.10) & F6 (Triage Views: 6.8+6.11)
 - **Phase 4: Meta & Governance** $\rightarrow$ F7 (PCDA Governance: 6.1+6.2+6.15), F8 (Token Ledger: 6.19+6.3), & F9 (Bridge & Concurrency: 6.17+6.18)
 
 ### 2. Flight 1: Canonical State & Factory Handoff (Topics 6.16 & 6.7) — ✅ COMPLETED
@@ -1106,10 +1174,12 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - [ ] **Card `rj-29`: PicoTracker (LGPT) Architectural Teardown (P2, Tier 2)** — ⏳ QUEUED: Clone and analyze the picotracker (LittleGPTracker fork) codebase into `Research/external/` as architectural reference for ToadTracker pattern memory layouts, gamepad debouncing, and embedded playback loops.
 - [ ] **Card `rj-30`: Batch Vault Note YAML Frontmatter Enrichment (P2, Tier 3)** — ⏳ QUEUED: Automate the batch injection of standardized YAML frontmatter into ~70 archived human notes in `TheKlangVault/Inbox/Archive/` using a dedicated Flash subagent script `tools/enrich_archive_notes.py`.
 - [ ] **Card `rj-31`: Universal Dynamic Shell (`shell.html`) — Harvest Best of All UI/UX (Item #10 Audit, P2, Tier 2)** — ⏳ QUEUED (Pending completion of System Sanity Audit board triage): Harvest and unify the best UI/UX patterns across all N'kai boards (Two-Tier filter rails, procedural Web Audio haptic clicks, expandable Markdown response drawers, touch-first thumb bar with 44px tap targets, real-time board switcher modal, and token allowance scoreboard) into a single canonical `shell.html`. The shell dynamically renders any board schema (`morning_mail`, `sandbox_mail`, `audit_triage`, `roadmap`) directly from JSON payloads without duplicating HTML templates or risking multi-file template drift.
+- [ ] **N'kai Triage Prerequisite Workflow & Filter UX Polish (P2, Tier 2)** — ⏳ BACKLOG: Fix `filterByPrereq(target)` in `master_template.html` / `sidecar.js`. When a card's prerequisite is `COMPLETED` and the board is on the default `Inbox (Pending)` tab, filtering by prerequisite hides the target card, resulting in an empty view. Fix: `filterByPrereq` must automatically switch the active tab to `All` (or `Completed`), reset conflicting pillar/tag filters, and smoothly scroll/highlight the target prerequisite card.
+- [ ] **N'kai Sidecar Native Action Dispatch & Clipboard Fallback (P2, Tier 2)** — ⏳ BACKLOG: In the Antigravity sidecar panel webview, `window.sidecar.agent.sendMessage` is currently undefined in standard webview frames, causing action buttons (`Draft Plan`, `Grill-Lab`, `Deep Research`) to fall back silently to clipboard copy (`Ctrl+V`) instead of auto-dispatching into the active conversation. Audit the webview messaging bridge or extension host postMessage handler to enable true zero-click action injection into the active chat session.
 
 
 ### 16. Flight 2: N'kai to High Reasoning Prompt Compiler (P1 — COMPLETED)
-*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai to High Reasoning Prompt.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)  
+*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai to High Reasoning Prompt.md`](file:///C:/_/Vault/New%20Klang%20City/Archive/Nkai%20to%20High%20Reasoning%20Prompt.md)  
 *Status: ✅ COMPLETED 2026-10-13 (via tools/compile_prompt.py & Pydantic PromptHandoffPayload)*  
 *Priority: P1 — TOP ACTIVE PRIORITY*  
 *Target Pillar: N'kai Sidecar Architecture Roadmap*  
@@ -1121,7 +1191,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 
 #### 2. The 80/20 Dual-Harness Architecture (Synthesis)
 - **Mode A: In-IDE Native Subagent Dispatch (Context Shield)**:
-  - Compiles the structured dialectical payload directly into an autonomous `invoke_subagent(Model="pro")` dispatch charter ([`.agents/pipeline/communique/subagent_dispatch.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/subagent_dispatch.md)).
+  - Compiles the structured dialectical payload directly into an autonomous `invoke_subagent(Model="pro")` dispatch charter ([`.agents/pipeline/communique/subagent_dispatch.md`](file:///C:/Dev/TheKlangSuite/docs/WORKFLOW_CHEAT_SHEET.md)).
   - Keeps the main chat session permanently lean on Tier 2 Flash 3.8 High (protecting user allowance and transcript hygiene) while spinning up on-demand Pro thinking subagents for heavy synthesis sprints.
 - **Mode B: External Web & Clipboard Exporter (CLI Tool `tools/compile_prompt.py`)**:
   - Standalone, zero-dependency Python CLI: `python tools/compile_prompt.py --topic <id> --clipboard` (with `--out <file>`, `--chat`, `--vault` flags).
@@ -1148,7 +1218,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Readonly Prompt Composer**: Pre-renders the compiled payload into a selectable, highlighted container with dedicated `[ 📋 Copy ]` button, eliminating webview clipboard sandbox permission traps.
 
 ### 17. Flight 3: N'kai Automode: 2-Pass Iterative Research Daemon & Multi-Drawer Dossier Cards (P1 — COMPLETED)
-*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai Automode.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Automode.md) ("Should there be a skill to auto-research all the items twice using the idea about loops and going through twice and not more?")  
+*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai Automode.md`](file:///C:/_/Vault/New%20Klang%20City/Archive/Nkai%20Automode.md) ("Should there be a skill to auto-research all the items twice using the idea about loops and going through twice and not more?")  
 *Status: ✅ COMPLETED 2026-10-13 (via tools/research_daemon.py, DossierDrawer, and 3-tab card drawer)*  
 *Priority: P1 — TOP PRIORITY*  
 *Target Pillar: N'kai Sidecar Architecture Roadmap*  
@@ -1177,7 +1247,7 @@ Consolidated 19 fragmented system sanity audit topics into 9 cohesive flights ac
 - **Mobile-Ready Architecture (v0.3.0 Bottom-Sheet Bridge)**: On viewports $\le 640\text{px}$, toggling the dossier slides up an 85vh swipeable bottom sheet with sticky segmented tabs, completely eliminating nested accordion scroll traps on touch devices.
 
 ### 18. Flight 4: General Research Assistant & Configurable Lens Profiles (P2)
-*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai Use Cases.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Use%20Cases.md) ("Right now it’s mostly for dev. But, what about a general research assistant use case? What if I want to research a TTRPG project, studio rewiring, Eurorack layout, or write lyrics?")  
+*Source Note:* [`TheKlangVault/Inbox/Archive/Nkai Use Cases.md`](file:///C:/_/Vault/New%20Klang%20City/Archive/Nkai%20Use%20Cases.md) ("Right now it’s mostly for dev. But, what about a general research assistant use case? What if I want to research a TTRPG project, studio rewiring, Eurorack layout, or write lyrics?")  
 *Status: ✅ COMPLETED 2026-10-13 (via tools/lens_profiles.json & Pydantic LensProfile)*  
 *Priority: P2*  
 *Target Pillar: N'kai Sidecar Architecture Roadmap*  
@@ -1258,27 +1328,32 @@ Extract a clean, standalone GitHub Template Repository incorporating all lessons
 - **Automated Headless Reflection Testing (`gui_tests`)**: Sweeps 100% of APVTS parameters and JSON assets headlessly in CI without audio hardware or display servers.
 - **Boutique UI & Theme System**: JSON theme palettes (*Cyberpunk Neon*, *Cykranosh*, *Dracula*, *Monokai Pro*), vector LookAndFeel, high-DPI scaling, and JUCE 9.0.3 timer hygiene.
 - **Developer Onboarding CLI (`init_plugin.py`)**: One-command wizard to rename targets, bundle IDs, C++ namespaces, and parameter prefixes in seconds.
+### 3. ToadTracker (`TT`) Cross-Ecosystem Synchronization & Parity Roadmap
+*Detailed Specifications: [`C:\Dev\ToadTracker\BACKLOG.md`](file:///c:/Dev/ToadTracker/BACKLOG.md) & [`C:\Dev\ToadTracker\TRACKER_SPEC.md`](file:///c:/Dev/ToadTracker/TRACKER_SPEC.md)*  
+*Pillars: **TKS**, **TT**, **TBD-16** | Priority: **P1** — Cross-Ecosystem Synchronization*  
+*Goal: Align ToadTracker milestones 1:1 with The Klang Suite, establishing strict feature parity across sound engines, paraphonic voice allocation, universal 8-control envelopes, and bidirectional Renoise interchange.*
 
-### 3. ToadTracker (`TT` v0.1.0) PoC Pivot & Architecture Roadmap
-*Detailed Specifications: [`C:\Dev\ToadTracker\TRACKER_SPEC.md`](file:///c:/Dev/ToadTracker/TRACKER_SPEC.md) & [`docs/specs/toadtracker_gamepad_latency_and_renoise_spec.md`](file:///c:/Dev/Research/hardware/2026-10-11_toadtracker_gamepad_latency_and_renoise_spec.md)*  
-*Priority: P1 — Active Horizon Target (Stage 5 PoC Pivot immediately following TKS v0.5.0)*
-*Goal: Stand up the core headless tracker engine (`ToadCore`), 500Hz SteamOS / Linux gamepad input pipeline, and Renoise `.xrns` project export referencing TKS plugins.*
-- **Strict GPLv3 "FOSS Forever" Invariant**:
-  - Full copyleft reciprocity across all engine code (`core/`, `hal/`, `apps/`). Zero closed-source or GPL-incompatible dependencies.
-  - Universal SPDX headers: `// SPDX-License-Identifier: GPL-3.0-or-later` and `// Copyright (C) 2026 Cody Gratner & ToadTracker Contributors`.
-  - Mandatory inline provenance docblocks for any algorithms adapted from open-source references (PicoTracker/LGPT, Renoise specs, libremidi).
-  - Third-party ledger maintained at `ToadTracker/docs/THIRD_PARTY_LICENSES.md`.
-  - Strict zero-trademark policy for tracker commands and FX.
-- **500Hz SteamOS / Linux Gamepad Input Pipeline**:
-  - Direct low-latency SDL3 / Linux `evdev` event polling loop running on a dedicated high-priority input thread.
-  - Zero-jitter SPSC lock-free ring buffer feeding the tracker state machine, timestamping events against audio buffer boundaries.
-  - Ergonomic mapping centered on D-pad + ABXY + L1/R1, with L4/R4 back paddles for octave/track shifts.
-- **Renoise `.xrns` Project File Export**:
-  - Clean C++ zip compression and streaming XML serialization for `Song.xml`.
-  - Exports tracks, pattern matrices, and `<PluginDevice>` blocks targeting *The Klang Farmer* and *The Klang Planter* VST3 plugins with v0.5.0 DSP sound presets.
-- **Enforced Kill-Gate (Pro Roadmap Stress-Test)**:
-  - Headless CLI PoC first: SDL3 reads Gamepad ➔ updates tracker state ➔ writes `.xrns` ➔ exits.
-  - Zero premature UI rendering until input timing and project serialization are verified 100% stable.
+- **Topological Dialectical Sorting & Gate Alignment**:
+  - **Milestone 1: TT-v0.1.0 "The Core PoC & Input Foundation"**:
+    - Focus: Headless input pipeline, zero-latency screen navigation, project serialization, and offline bouncing.
+    - Deliverables: Instantaneous Hold-to-View Modal (`BACKLOG-04`), Steam Deck 500Hz SDL3/evdev runner (`BACKLOG-05`), Dedicated Project Screen & Atomic File Ops (`BACKLOG-01`), Offline Song WAV Exporter (`BACKLOG-03`).
+  - **Milestone 2: TT-v0.2.0 "The Sound, Paraphony & Polyphony Engine"** *(Synchronized 1:1 with **TKS v0.5.0 "The Sound & Chaos Update"**)*:
+    - Dedicated Instrument Screen (`VIEW_INSTRUMENT`) & Parameter Sliders (`BACKLOG-02`).
+    - **4-Note Paraphonic Phrase Engine (`PhraseMode::Paraphonic4`)** (`BACKLOG-10`): Anonymous step union in `PhraseStep` ($9\text{ bytes per step}$ memory invariant) and 4-column note sequencing.
+    - **Universal 8-Control Envelope Architecture** (`BACKLOG-11`): `DRUM PUNCH` as default `Type 0` (honoring 49.9% empirical M8 telemetry), plus `AHDSR`, `CYCLING LFO / SLOPE`, and `TABLE MSEG / MML`, mapped 1:1 to TBD-16 Page 1A encoders.
+    - **Shared S-Tier Oscillator Suite (`SoundEngine8`)** (`BACKLOG-12`) — ✅ COMPLETED ([Spec](specs/sound_engines_expansion.md) | [Decoupling Spec](specs/klang_dsp_decoupling.md)): 1:1 C++20 implementation in `TheKlangDSP` (`KlangJuno` / `AlphaKraft`, `KlangCZ` / `CosmoPhase`, `KlangFM` / `TheR1`, `KlangPluck` / `Pluck`, and `ArgentSlayer` / `Klang808`).
+    - **Mega FX & Spatial Processors** (`BACKLOG-13`) — ✅ COMPLETED ([Spec](specs/fx_catalog_expansion.md)): 1:1 C++20 implementation in `TheKlangDSP` (`KlangStomp` 8 analog pedals, `KlangMod` 8-mode BBD/Dimension/Ensemble modulator, `KlangDelay`, `KlangSpace`, `EchoMill`, `Vocoder56K`, `KlangResonator`, `KlangFreeze`, `KlangBode`, `ArgentVortex`, `PhaseShriek`, `PipeAndWire`).
+    - **Dual-Pane FX Command Switchboard ("The Chameleon FX Picker")** (`BACKLOG-08`): 30/70 split HUD with auto-snapping context navigation.
+    - **TKS Paraphonic Voice Allocation Wrapper (`ParaphonicVoice4`)**: Enables TKS synth engines to accept 4-note chord triggers from TT paraphonic phrases and Renoise tracks, summing 4 independent DCO/algo frequencies through a shared filter and VCA (Korg Mono/Poly style).
+  - **Milestone 3: TT-v0.3.0 "The Interop, Performance & Live Studio"** *(Synchronized with **TKS v0.6.0 "The Pro Workflow Update"**)*:
+    - **Native Renoise `.xrns` Project Exporter** (`BACKLOG-06`): Direct XML/miniz export of 4-column note patterns referencing TKS VST3 plugins with auto-rendered presets.
+    - **The Universal Interchange Engine** (`BACKLOG-07`): Git-backed song bundles (`.ttb`), append-only action journal (`actions.jsonl`), non-destructive sample lineage manifest (`samples.json`), M8 binary ingestion (`.m8s`), and the Non-Destructive "Time-Travel Slot Importer" ("Pluck from History").
+    - **SOTA NerdSEQ Architectural Synthesis (`XMAP`)** (`BACKLOG-09`): 32 1-to-many SOWER/Hydra routing nodes, polymorphic track personas, and asynchronous table automators.
+
+- **Strict Invariants Preserved**:
+  - **GPLv3 Copyleft Invariant**: Universal SPDX tags and clean FOSS provenance across all shared C++ DSP code.
+  - **Zero-Allocation Audio Thread Invariant**: All shared engines run in pre-allocated static BSS buffers with zero heap allocations in `processBlock()` and `renderVoice()`.
+  - **Universal 8-Control Card Standard**: All modules expose exactly 8 primary parameters mapping cleanly to TBD-16 hardware encoders and tracker FX command tokens.
 
 ### 4. The Klang R1 (TKR-1) — 7-Voice Rhythm Synthesizer (Electribe ER-1 Tribute)
 *Detailed Plan: [`docs/specs/spinoffs/the_klang_r1.md`](specs/spinoffs/the_klang_r1.md)*  
@@ -1476,6 +1551,16 @@ Extract a clean, standalone GitHub Template Repository incorporating all lessons
   2. *Lifecycle & Deadlock Trap*: In Antigravity, subagents cannot be spawned by DOM button clicks or external scripts—only an active LLM turn can call `invoke_subagent`. An agent cannot run an infinite polling loop without hitting turn/timer limits.
   3. *The Double-Dip Quota Multiplier*: When a subagent calls `send_message()`, the main chat wakes up and executes a full turn. That means 1 button click = 2 separate LLM inferences, burning quota needlessly.
 - **Winning Synthesis (The 80/20 Resolution)**: Rely on Antigravity's **Native UI Extension IPC (`window.sidecar.agent.sendMessage()`)**. When N'kai runs in its official home in the Antigravity Extension Pane, clicking any button dispatches directly to the active chat in 0ms with zero token burn. For standalone browser views, maintain the honest 1-click clipboard composer (`Ctrl+V`).
+
+---
+
+### 3. Dedicated Daily Quick Notes Ingestion File (2026-10-13) — 🪦 KILLED / GRAVEYARD
+- **Date:** 2026-10-14 | **Proposed Route:** Generating and maintaining a perpetual, daily dated quick-notes catchall markdown file (`2026-10-13_Quick_Notes.md`) as an intake container for 1-click pinned notes.
+- **Strategic Verdict:** **REJECTED (KILLED)**.
+- **Autopsy & Failure Modes:**
+  1. *Fragmented Intake Streams*: Having both an atomic `Inbox/` (which directly feeds the Morning Mail conveyor belt) and a daily catchall append-log (`QuickNotes/YYYY-MM-DD_Quick_Notes.md`) creates an ambiguous split intake funnel. Notes get buried inside monolithic daily markdown files rather than arriving as discrete atomic cards.
+  2. *Triage Noise & Dead Baggage*: Daily catchall files become zombie backlog items (like `2026-10-13_Quick_Notes.md` containing only a test verification line: `[17:51] Test verification of 1-click Pin to QuickNote`), forcing manual pruning during morning triage.
+- **Winning Synthesis (The 80/20 Resolution)**: Enforce the **Atomic Note & Scratchpad Invariant**. Rapid capture goes directly into [`SCRATCHPAD.md`](file:///c:/_/Vault/SCRATCHPAD.md) for transient active-session thoughts, or directly into `TheKlangVault/Inbox/` as individual atomic markdown files (via the in-sidecar `#quick-capture-input` bar or mobile companion). Discrete notes triage cleanly to zero; scratchpad wipes cleanly when done. Zero daily file debris.
 
 ---
 

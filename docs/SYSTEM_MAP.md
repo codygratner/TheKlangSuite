@@ -40,8 +40,10 @@ This is the central directory for all high-level documentation, rules, and histo
 
 ### 7. 🔬 Design Specs
 - [Specs Directory](specs/) — Complete folder of deep-dive technical design documents.
+  - [TheKlangDSP Architectural Decoupling](specs/klang_dsp_decoupling.md) — Sovereign header-only C++20 DSP core (`C:\Dev\TheKlangDSP`), dual-alias IP architecture, real-time invariants, and 1:1 zero-duplication consumption by `TheKlangSuite` and `ToadTracker`.
+  - [SoundEngine8 Synthesizer Oscillators Expansion](specs/sound_engines_expansion.md) — 8-parameter C++20 oscillator suite (`KlangJuno`/`AlphaKraft`, `KlangCZ`/`CosmoPhase`, `KlangFM`/`TheR1`, `KlangPluck`/`Pluck`, `ArgentSlayer`/`Klang808`).
   - [v0.4.0 Neo-Slate UX & Modulation Layout](specs/v040_neo_slate_ux.md) — 3-tier layout, lower strip, and tracer cables.
-  - [FX Catalog Expansion & The Thresher](specs/fx_catalog_expansion.md) — 13 new effects, transfer-function waveshaping, and parallel routing.
+  - [FX Catalog Expansion, KlangStomp, Spatial Lab & Granular Suites](specs/fx_catalog_expansion.md) — `KlangStomp` (8 analog pedals), `KlangMod` (8-mode BBD/Ensemble), `KlangResonator`, `KlangFreeze`, `KlangBode`, and ModularBlocks 14–28.
   - [Voice Articulation & Gated Bass](specs/gated_bass_glide.md) — Noise Engineering gate-hold, glide, and envelope overrides.
   - [SQA Hardening & Automation](specs/sqa_automation_hardening.md) — Test harnesses, timeouts, and fuzz testing.
   - [WAV / SF2 Multi-Sample Export](specs/wav_sf2_export.md) — Direct DAW drag-and-drop audio export.

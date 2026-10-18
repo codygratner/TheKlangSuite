@@ -85,18 +85,41 @@ python tools/pcda_format.py --validate docs/specs/nkai_pcda_governance_and_sota_
 # 7. Allowance Ledger & Token Burn Estimator
 python tools/nkai_ledger.py --audit .agents/sidecar/nkai_deep_research.html --chat
 
-# 8. Context Clues Hyperlink Integrity Validator
+# 8. Context Clues & UTF-8 Hyperlink Integrity Validators
 python tools/verify_context_clues.py
+python tools/verify_utf8.py
 
-# 9. Obsidian Vault Sync Engine
+# 9. Inter-Project Data Bus & Obsidian Vault Sync Engine
+python C:\_\Vault\tools\bus.py status --for COSMOS
 powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1
+
+# 10. Rhyl'al's Book Sovereign Vault Sync & Frontmatter Repair (/rhylals-book-vault)
+python C:\Dev\rhylals-book-vault\sync_vault.py
 ```
 
 ---
 
-## 🛫 5. Aviation Metaphors & The Staged Flights PCDA
+## 🛫 5. Aviation Metaphors & The 4 Sovereign Runway Invariants
 
 * **Flights (Sequential Integers `1..16`)**: Discrete tasting flights of work; flat integer index keeps cognitive load near zero.
-* **Acts (Altitude Bands)**: Act I (Ground Control & Taxiway) &rarr; Act II (Ascent & Cruising Altitude) &rarr; Act III (High-Altitude Reconnaissance & Gauntlet) &rarr; Act IV (Final Approach & Touchdown).
-* **The 80/20 Synthesis**: Upfront N'kai visual planning (1–2 hrs) stress-tests dependencies *before* compiling, eliminating 3-week non-linear detours and keeping the factory floor on high-velocity cruise.
-* **The 0-Turn Cold Boot**: Agents wake up and read `context_clues_*.md` on Turn 1, seamlessly resuming work without asking "what should we do next?".
+* **The 4 Sovereign Runway Invariants**:
+  1. **14-Day Mailbag Buffer**: Capture phone/voice notes into `Inbox/` anytime; batch-triage on a 14-day cadence.
+  2. **Two Tabling Gates**: Every item passes *Triage Gate* (Mailbag &rarr; Agenda) and *Runway Gate* (Agenda &rarr; Active Flight) with Method B+ PCDA.
+  3. **`1-Code + 1-Creative` Runway Cap**: At most 1 heavy engineering sprint and 1 creative/lore/music sprint active concurrently.
+  4. **"Rejiggering Reality" Circuit Breaker**: Invoke `/audit-reorder` to prune scope and restore a linear 80/20 critical path whenever friction rises.
+* **The 0-Turn Cold Boot**: Agents wake up and read `ACTIVE_CONTEXT.md` and `DEV_HISTORY.md` on Turn 1, seamlessly resuming work without asking "what should we do next?".
+
+---
+
+## 🎮 6. ToadTracker Widescreen (`640×360`) & Leverless Southpaw Quick Reference
+
+* **Widescreen 16:9 Split-Pane (`v010_widescreen_nerdseq_ux.md`)**:
+  * **Left Sequencer Pane (`X=0..421`)**: 8-track Song View, Phrase View with `T-1`/`T+1` adjacent track ghost previews (`X=264..420`), Chain, Table, Synth, Mixer.
+  * **Right NerdSEQ Inspector Dock (`X=424..636`)**: Live SPSC Vector Oscilloscope, 4 Macro Gauges, Polyphonic Chord Detector, History Breadcrumb, and clickable `3×3` Spatial Minimap.
+  * **Integer Scaling Hotkeys**: `Ctrl+1` (`640×360` 1×) · `Ctrl+2` (`1280×720` 2× Steam Deck) · `Ctrl+3` (`1920×1080` 3× FHD) · `Ctrl+4` (`2560×1440` 4× QHD).
+* **Universal & Southpaw Input Standard (`universal_input_and_controls_spec.md` & `midi_and_mixbox_hardware_spec.md`)**:
+  * **Edit / Confirm (`X` / `East`)**: Stamp note, `+Direction` value edit (`±1` fine / `±16` coarse), double-tap insert new chain/phrase.
+  * **Alt / Option (`Z` / `South`)**: Copy value, `+Edit` (`Z+X`) cut/clear, `+Left Shift` (`Shift+Z`) cycle scope (`Track` &rarr; `Song` &rarr; `Live`).
+  * **Nav (`Left Shift` / `West`)**: `+Arrows` 2D spatial matrix navigation (`Up: Song -> Chain -> Phrase -> Synth`, `Right: Table`), `+Edit` (`Shift+X`) paste/interpolate.
+  * **Shoulder Superpowers**: `L1` (`Right Shift`) Context Menu & Block Highlight · `R1` (`Backspace`/`Delete`) Non-Destructive A/B Undo Toggle · `L1+R1+Left/Right` Linear History Scrub.
+  * **"The Toad" Leverless Southpaw Hardware (`BACKLOG-15`)**: Reverse variant places the angled Kailh Choc arrow cluster under the **Right Hand** and modifiers (`Edit`, `Alt`, `Nav`, `Play`, `L1`, `R1`) under the **Left Hand** for 100% `m8.run` muscle-memory parity.

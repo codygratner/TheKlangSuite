@@ -357,9 +357,9 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
   1. **Surface 1 (Evergreen #1: The Mailbag — `morning_mail`)**: The daily human capture and intake stream featuring an in-board quick capture input bar (`#quick-capture-input`) and a debounced mail harvester trigger (`#btn-grab-mail`). Appends timestamped notes to `C:\_\Vault\Inbox/<YYYY-MM-DD>_Quick_Notes.md`.
   2. **Surface 2 (Evergreen #2: The Flight Runway — `runway`)**: The strategic cross-project delivery horizon mechanically generated from `docs/BACKLOG.md` Act III and ecosystem milestone benchmarks, offering clientside filter rails (`[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, `[ 📋 All ]`).
   3. **Surface 3 (Session Surface: The Lab — `lab`)**: The single active ephemeral research slot (Grill-Me, Research Spikes, PCDA teardowns). Emits an animated `#lab-all-clear-banner` celebration when untriaged cards hit 0, and triggers `tools/conclude_lab.py` to stage takeaways to `.agents/pipeline/staging/souls/`.
-* **The Scratchpad Protocol**: The dedicated reading-notes file [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) permanently excluded from mailbag intake scans, providing a zero-friction stream-of-consciousness zone linked in chat navigation footers.
+* **The Scratchpad Protocol**: The dedicated reading-notes file [`C:\_\Vault\SCRATCHPAD.md`](file:///C:/_/Vault/SCRATCHPAD.md) permanently excluded from mailbag intake scans, providing a zero-friction stream-of-consciousness zone linked in chat navigation footers.
 * **Ambient 3-Surface Navigation Line**: The standardized IDE footer navigation anchor:
-  `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
+  `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
 * **Canonical Specification**: [`docs/specs/nkai_three_surfaces_and_runway_board.md`](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
 
 ---
@@ -388,7 +388,7 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
   1. *In-Tray (`morning_mail`)*: The rapid-fire conveyor belt where incoming mail cards are quickly sorted to Backlog, Graveyard, or Workshop.
   2. *Cutting Mat (`🛠️ Active Workshop`)*: The central workbench where exactly ONE card is laid down at a time for deep research, parameter simulation, and Method B+ debate. The card is locked in place (non-dismissible).
   3. *Physical Exit Gate*: To clear the cutting mat, the user must physically file the item (`[ 📥 Backlog ]`, `[ 🗂️ Tabled ]`, or `[ 🪦 Graveyard ]`). Once filed, the workbench is clear, and the user returns to the In-Tray.
-* **Zero-Token Scratchpad Sentinel**: The sub-0.1ms filesystem watcher in `tools/nkai_serve.py` monitoring `C:\_\Vault\Inbox\SCRATCHPAD.md` via `mtime` and byte/line metrics, projecting live visual urgency states (green/amber/coral) onto the Pinned Intercom Top Card (Card #0) with conditional zero-token ingest.
+* **Zero-Token Scratchpad Sentinel**: The sub-0.1ms filesystem watcher in `tools/nkai_serve.py` monitoring `C:\_\Vault\SCRATCHPAD.md` via `mtime` and byte/line metrics, projecting live visual urgency states (green/amber/coral) onto the Pinned Intercom Top Card (Card #0) with conditional zero-token ingest.
 
 ---
 

@@ -239,7 +239,7 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
 - **Primary Objectives:** Harvest Layouts & Ergonomics research, establish standalone Sidecar framework, integrate ToadTracker into multi-root workspace, package triage for resumption, and establish canonical gitignored lore repository.
 - **Key Decisions & Deliverables:**
   - **Layouts & Ergonomics Research Harvest:** Harvested findings from 5 subagents into [`Layouts and Ergonomics Deep Research Harvest`](https://github.com/codygratner/TheKlangResearch/blob/main/subagents/2026-10-08_Layouts_and_Ergonomics_Deep_Research_Harvest.md) exploring breaking the 4-control rule on desktop, monolithic sculpted faceplates, 45° signal traces, Teenage Engineering game-feel vector glyphs, and Roland TR-8S vertical rhythm faders.
-  - **Standalone Antigravity Sidecar Framework:** Initialized independent MIT repository [`c:\Dev\antigravity-sidecar\`](file:///c:/Dev/antigravity-sidecar) containing the zero-dependency standalone template, CSS/JS core, JSON schema, and Antigravity UI Extension bundle.
+  - **Standalone Antigravity Sidecar Framework:** Initialized independent MIT repository [`c:\Dev\antigravity-sidecar\`](file:///C:/Dev/Nkai) containing the zero-dependency standalone template, CSS/JS core, JSON schema, and Antigravity UI Extension bundle.
   - **ToadTracker Multi-Root Workspace & Genesis Harvest:** Integrated [`c:\Dev\ToadTracker`](file:///c:/Dev/ToadTracker) into the AGY workspace and harvested the entire 1,678-step setup chat into `ToadTracker_Genesis_and_Architecture_Harvest.md`.
   - **Post-Mortem Packaging & Skill Upgrades:** Created machine-readable triage resumption package [`2026-10-08_layouts_and_ergonomics_triage_package.json`](file:///c:/Dev/TheKlangSuite/.agents/sidecar/packages/2026-10-08_layouts_and_ergonomics_triage_package.json) and upgraded `.agents/skills/post-mortem/` and `.agents/skills/deep-research/` with `/pause-post-mortem` and `/resume-post-mortem` workflows.
   - **Creative Lore & Mayor Toad's Mayoral Coup:** Established the local gitignored lore staging directory `docs/lore/` (anchored by `!docs/lore/README.md`) and recorded [`docs/lore/2026-10-08_the_mayoral_coup_of_mayor_toad.md`](file:///c:/Dev/TheKlangSuite/docs/lore/2026-10-08_the_mayoral_coup_of_mayor_toad.md), documenting how Tsathoggua took City Hall via a 20 MHz SPI DMA data bus and a 55 Hz resonant low-end pulse. Mirrored to `TheKlangVault/Lore/` and registered in `docs/DOCS_CATALOG.json`.
@@ -450,3 +450,34 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
   - Recent Commits: 675ecdc chore(memory): execute scheduled nightly black box memory flush and state integrity audit, d47cfb2 feat(dsp): implement 4-phase C++20 synthesis & FX pipeline with trademark sanitization
   - Branch: `0.4.0-dev` (675ecdc)
   - Active Plan Target: `TOOLING_HARNESS` · Status: `COMPLETED`
+
+### Session: 2026-10-18 08:08 (manual_run)
+- **Chat Role:** Ecosystem Systems Architect
+- **Primary Objectives:** Completed All 7 Quick Wins from the Ecosystem-Wide Tooling & Skills Audit: upgraded plan_manager.py (ingest/finish), bus.py st_mtime cache (<0.2ms), synchronized all 22 global skills to ~/.gemini/config/skills/, created tools/compat_check.py --terse deterministic linter & wired into compat-check skill, implemented agenda_engine.py shadow cache (<0.1ms), resolved multi-repo tool drift, and built tools/context_extract.py & .agents/extract_clues.md zero-token clipboard pipeline.
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 2b89817 chore(memory): execute scheduled nightly black box memory flush and state integrity audit, 675ecdc chore(memory): execute scheduled nightly black box memory flush and state integrity audit
+  - Branch: `0.4.0-dev` (2b89817)
+  - Active Plan Target: `TOOLING_HARNESS` · Status: `COMPLETED`
+
+### Session: 2026-10-18 16:51 (manual_run)
+- **Chat Role:** New Klang City
+- **Primary Objectives:** ToadTracker 640x360 NerdSeq widescreen layout, S-Tier MIDI Out, Southpaw Mixbox & Renoise bridge backlogged
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 6ec31ed feat(dsp): consume TheKlangDSP header-only library in TheKlangSuite, a96d410 refactor(dsp): promote sovereign engine headers to primary implementations with backwards-compatible shims
+  - Branch: `0.4.0-dev` (6ec31ed)
+  - Active Plan Target: `TOOLING_HARNESS` · Status: `COMPLETED`
+
+### Session: 2026-10-18 22:15 (6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41)
+- **Chat Role:** TheKlangDSP & TheKlangSuite Documentation & Catalog Architect (Deep Ecosystem Documentation Gauntlet — Stage 2)
+- **Primary Objectives:** Document the extraction of `TheKlangDSP` (`C:\Dev\TheKlangDSP`), complete technical specifications for Phases 1–4 (`KlangStomp`, `SoundEngine8` oscillators, `Spatial & Modulation Lab`, and `Experimental & Granular Processors`), and reconcile `BACKLOG.md` (`BACKLOG-12`, `BACKLOG-13`) and `SYSTEM_MAP.md` with 100% `ToadTracker` parity.
+- **Files Modified/Created:**
+  - `C:\Dev\TheKlangDSP\docs\ARCHITECTURE.md` (New master architecture reference for the standalone header-only C++20 DSP library)
+  - `C:\Dev\TheKlangSuite\docs\specs\klang_dsp_decoupling.md` (New cross-ecosystem decoupling and 1:1 consumption specification)
+  - `C:\Dev\TheKlangSuite\docs\specs\fx_catalog_expansion.md` (Expanded to document Phase 1 `KlangStomp` 8 analog pedals, Phase 3 `KlangMod`/`KlangDelay`/`KlangSpace`/`EchoMill`/`Vocoder56K`, and Phase 4 `KlangResonator`/`KlangFreeze`/`KlangBode`/`ArgentVortex`/`PhaseShriek`/`PipeAndWire`)
+  - `C:\Dev\TheKlangSuite\docs\specs\sound_engines_expansion.md` (New `SoundEngine8` specification covering `KlangJuno`/`AlphaKraft`, `KlangCZ`/`CosmoPhase`, `KlangFM`/`TheR1`, `KlangPluck`/`Pluck`, and `ArgentSlayer`/`Klang808`)
+  - `C:\Dev\TheKlangSuite\docs\BACKLOG.md`, `C:\Dev\TheKlangSuite\docs\SYSTEM_MAP.md`, `C:\Dev\TheKlangSuite\docs\history\DEV_HISTORY.md`, `C:\Dev\TheKlangSuite\docs\DEV_HISTORY.md`
+- **Key Decisions & Deliverables:**
+  - Codified the zero-duplication `TheKlangDSP::TheKlangDSP` header-only CMake consumption architecture across `TheKlangSuite` and `ToadTracker` (`73/73` Catch2 test cases, `36,518` assertions passing).
+  - Documented the Two-Tier Sovereign vs. Classic Alias Shim architecture per `ROSETTA_STONE_MASTER_IP_REFERENCE.md`.
+  - Marked `BACKLOG-12` (`SoundEngine8` Oscillator Suite) and `BACKLOG-13` (Mega FX & Spatial Processors) `— ✅ COMPLETED` with full 1:1 parity across `TheKlangSuite` and `ToadTracker`.
+

@@ -9,8 +9,8 @@ During daily development across the Klang ecosystem, two major friction points e
    As N'kai evolved from a single inbox triage view into multiple specialized surfaces (the daily Morning Mailbag, the QA Sandbox Board, and historical deep research sessions like `system_sanity_audit`), users had no native, interactive directory to switch between active boards or reopen past research sessions without manually editing plugin manifests or file URLs.
 
 Source notes:
-- [`Nkai Multi-Board Hub and Archive Catalog.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/Nkai%20Multi-Board%20Hub%20and%20Archive%20Catalog.md)
-- [`archived nkai boards probably need their own space.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/archived%20nkai%20boards%20probably%20need%20their%20own%20space.md)
+- [`Nkai Multi-Board Hub and Archive Catalog.md`](file:///C:/_/Vault/New%20Klang%20City/Archive/Nkai%20Multi-Board%20Hub%20and%20Archive%20Catalog.md)
+- [`archived nkai boards probably need their own space.md`](file:///C:/_/Vault/New%20Klang%20City/Archive/archived%20nkai%20boards%20probably%20need%20their%20own%20space.md)
 
 **Flight 14** synthesizes these requirements into the **Multi-Board Hub & Session Manager**:
 - **Cache-Busting Backend Engine**: `sidecars/panel/main.mjs` sets mandatory `Cache-Control: no-store, no-cache, must-revalidate, max-age=0`, `Pragma: no-cache`, and `Expires: 0` headers across all endpoints, plus query parameter routing (`/?board=<id>&_t=<timestamp>`).

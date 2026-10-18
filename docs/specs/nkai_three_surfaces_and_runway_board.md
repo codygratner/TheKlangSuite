@@ -11,7 +11,7 @@ As the N'kai multi-board ecosystem expanded, a proliferation of specialized boar
 - **Surface 1 (Evergreen #1: The Mailbag — `morning_mail`)**: The daily human intake stream with an embedded, low-friction **Quick Capture Bar** and debounced **"Grab New Mail"** trigger.
 - **Surface 2 (Evergreen #2: The Flight Runway — `runway`)**: The strategic delivery horizon mechanically generated from `docs/BACKLOG.md` Act III, providing cross-pillar roadmap visibility and status filtering (`[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, `[ 📋 All ]`).
 - **Surface 3 (Session Surface: The Lab — `lab`)**: A single, ephemeral active workspace slot for active research and architectural spikes, featuring a dynamic **"ALL CLEAR" Triumph Celebration** and automated harvest staging to `.agents/pipeline/staging/souls/`.
-- **The Scratchpad Protocol**: A dedicated [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) for transient reading notes, permanently excluded from mailbag harvesting and pinned in the ambient chat navigation footer.
+- **The Scratchpad Protocol**: A dedicated [`C:\_\Vault\SCRATCHPAD.md`](file:///C:/_/Vault/SCRATCHPAD.md) for transient reading notes, permanently excluded from mailbag harvesting and pinned in the ambient chat navigation footer.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -69,11 +69,11 @@ As the N'kai multi-board ecosystem expanded, a proliferation of specialized boar
   - Clears `active_lab_id` from the ambient navigation footer.
 
 ### 2.4 The Scratchpad Protocol & Ambient Navigation Footer
-- **Dedicated File**: `C:\_\Vault\Inbox\SCRATCHPAD.md`.
+- **Dedicated File**: `C:\_\Vault\SCRATCHPAD.md`.
 - **Scanner Exclusion**: Permanently excluded from `tools/check_mail.py` inbox harvesting to prevent stream-of-consciousness reading notes from polluting triage dockets.
 - **Ambient Navigation Invariant**: Codified in `GEMINI.md`:
   ```markdown
-  Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)
+  Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📝 Scratchpad ](file:///C:/_/Vault/SCRATCHPAD.md) · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway)
   ```
   *(Appends `· [ 🔬 Lab: <topic> ](sidecar://nkai/panel/?board=lab)` when an active lab is pinned).*
 

@@ -100,8 +100,8 @@
 * **Ambient Status Footer & 3-Surface Navigation Invariant**:
   Responses conclude with a 2-line ambient status footer:
   Line 1: `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
-  Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
-* **The Scratchpad Protocol**: Dedicated [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) file for live reading notes and multi-point stream-of-consciousness chat reactions, structured with `# Multi-Point Replies` and `# Quick Notes`, permanently excluded from mailbag scans and directly accessible via the chat footer or *"Check scratchpad"* prompt.
+  Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/SCRATCHPAD.md)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
+* **The Scratchpad Protocol**: Dedicated [`C:\_\Vault\SCRATCHPAD.md`](file:///C:/_/Vault/SCRATCHPAD.md) file for live reading notes and multi-point stream-of-consciousness chat reactions, structured with `# Multi-Point Replies` and `# Quick Notes`, permanently excluded from mailbag scans and directly accessible via the chat footer or *"Check scratchpad"* prompt.
 
 ---
 
@@ -337,8 +337,8 @@
   1. **Surface 1 (Evergreen #1: The Mailbag — `morning_mail`)**: Daily capture stream with in-board `#quick-capture-input` bar and debounced `#btn-grab-mail` appending to `C:\_\Vault\Inbox/<YYYY-MM-DD>_Quick_Notes.md`.
   2. **Surface 2 (Evergreen #2: The Flight Runway — `runway`)**: Delivery horizon built by `tools/build_runway.py` from `docs/BACKLOG.md` Act III with `[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, and `[ 📋 All ]` filter rails.
   3. **Surface 3 (Session Surface: The Lab — `lab`)**: Single active ephemeral research slot. Emits `#lab-all-clear-banner` celebration when cards reach 0; concluded via `tools/conclude_lab.py` staging harvests to `.agents/pipeline/staging/souls/`.
-* **The Scratchpad Protocol**: Stream-of-consciousness reading notes file [`C:\_\Vault\Inbox\SCRATCHPAD.md`](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) permanently excluded from mailbag harvesting.
-* **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/Inbox/SCRATCHPAD.md) · [ 📖 Cheat Sheet ](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md)`.
+* **The Scratchpad Protocol**: Stream-of-consciousness reading notes file [`C:\_\Vault\SCRATCHPAD.md`](file:///C:/_/Vault/SCRATCHPAD.md) permanently excluded from mailbag harvesting.
+* **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/SCRATCHPAD.md) · [ 📖 Cheat Sheet ](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md)`.
 * **Reference**: [Design Spec](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
 
 ---
@@ -399,4 +399,24 @@ Each cockpit in the ecosystem has dedicated lore, purpose, and vocalized command
   - Connects **The Tower** (Planner) $\longleftrightarrow$ **Klang Industries** (Builder).
   - Synchronous, single-ticket execution barrier governing active `PLAN.md` phases and the "JOB'S DONE" handshake.
   - Enforces the **Ironclad Factory Air-Gap Law**: C++ builds cannot be triggered by external bus packets; requires local human confirmation at the latch.
+
+---
+
+## 🏷️ The Six Sovereign Vault Realms & Tag Taxonomy
+
+The Cosmic Codex and N'kai operate on a strict, 6-realm taxonomy to prevent executive function contamination and maintain 1-tap capture velocity across desktop and mobile:
+
+| Realm & Icon | Canonical Tag | Short Code | Scope & Description | Target Vault Territory |
+| :--- | :--- | :---: | :--- | :--- |
+| **`🛠️ dev`** | `#dev` | `d` | C++ DSP, JUCE plugins, N'kai, ToadTracker, software tools, compiler bugs, architecture | `New Klang City/`, `Dev/` |
+| **`🌌 personal`** | `#personal` | `p` | Personal life, health, household logistics, administrative catch-all (strictly separate from code) | `Inbox/`, Native check |
+| **`🎲 game`** | `#game` | `g` | The Forge, Solo TTRPGs, Starforged, rules, tables, procedural generation, oracles | `The Forge/` |
+| **`🎹 music`** | `#music` | `m` | Synth Lab, Renoise, Ableton Live, Dirtywave M8, sound design, hardware patches, gear | `Synth Lab/` |
+| **`📖 codex`** | `#codex` | `c` | The Cosmic Codex, lore, creative worldbuilding, essays, memoirs, creative writing | `Codex/` |
+| **`⚡ vault`** | `#vault` | `v` | Obsidian plugins (`cosmos-*`), templates, graph hygiene, PKM workflows, styling | `Templates/`, `.obsidian/` |
+
+### 🚀 Inbox 1-Tap Capture Protocol (Templater)
+* **Trigger**: Creating any note in `Inbox/` (or `Inbox/Staging/`) automatically executes [`Templates/Inbox_Note_Template.md`](file:///c:/_/Vault/Templates/Inbox_Note_Template.md).
+* **Modal Picker**: An Obsidian `SuggestModal` pops up immediately with the 6 realms above.
+* **Ergonomics**: 1 tap on mobile or 1 keystroke + Enter on desktop selects the realm, generates clean YAML (`tags: [inbox, <realm>]`), and drops the cursor straight onto line 1 of the note body for instant typing or image pasting.
 

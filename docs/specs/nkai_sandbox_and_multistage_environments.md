@@ -4,7 +4,7 @@
 
 In early iterations of the N'kai Morning Mailbag (`check_mail.py`), visual QA and interface improvements were validated directly against the *production* Obsidian inbox and ledger (`.agents/pipeline/mailbag/mail_queue.json`). As documented in the `--archive-inbox` ledger-wipe autopsy, testing UI changes on live user data created severe hazards: accidental mutations, lost triage states, and distorted token impact metrics.
 
-During an SQA review with Tom regarding vibe coding quality engineering (source note: [`SQA meeting with Tom about vibe coding QA.md`](file:///C:/Dev/TheKlangVault/Inbox/Archive/SQA%20meeting%20with%20Tom%20about%20vibe%20coding%20QA.md)), the dialectic emerged:
+During an SQA review with Tom regarding vibe coding quality engineering (source note: [`SQA meeting with Tom about vibe coding QA.md`](file:///C:/_/Vault/New%20Klang%20City/Archive/SQA%20meeting%20with%20Tom%20about%20vibe%20coding%20QA.md)), the dialectic emerged:
 - **Enterprise Dev/Cert/Prod Model (Thesis)**: Traditional enterprise engineering constructs multi-tier infrastructure with distinct servers, Docker containers, remote databases, and staging web hosts for dev, cert, and prod.
 - **Solo AI Pair-Programming Constraints (Antithesis)**: For a solo developer collaborating with agentic coding assistants in Antigravity, running multi-server orchestration overhead produces immense maintenance friction and breaks offline `file:///` and local webview ergonomics.
 - **The Hegelian 80/20 Resolution (Synthesis)**: **One codebase, two runtime modes (`SANDBOX` vs `PRODUCTION`), and Git branches for multi-stage gating**.
