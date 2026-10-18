@@ -21,15 +21,23 @@ namespace TbdAudio::KlangStomp {
  *        housed in the KlangStomp 8-Pedal Hall of Fame processor.
  */
 enum class CircuitModel : uint8_t {
-    SwedishChainsaw = 0, // Boss HM-2 Heavy Metal
-    IndustrialZone  = 1, // Boss MT-2 Metal Zone
+    SwedishKlangSaw = 0, // Boss HM-2 Heavy Metal
+    KlangZone       = 1, // Boss MT-2 Metal Zone
     Rodent          = 2, // ProCo RAT (LM308 slew-rate limited)
-    Screamer808     = 3, // Ibanez TS9 / TS808 Tube Screamer
-    RussianMuff     = 4, // Electro-Harmonix Big Muff Pi
-    SovereignCentaur= 5, // Klon Centaur (+18V charge pump dual-gang)
-    YellowPreamp250 = 6, // DOD Overdrive Preamp 250 / MXR Dist+
+    GreenScreamer   = 3, // Ibanez TS9 / TS808 Tube Screamer
+    RussianKlangPi  = 4, // Electro-Harmonix Big Muff Pi
+    IxionGuild      = 5, // Klon Centaur (+18V charge pump dual-gang)
+    Yellow250       = 6, // DOD Overdrive Preamp 250 / MXR Dist+
     VelcroFace      = 7, // Fuzz Face / Tone Bender (starved BJT)
-    Count           = 8
+    Count           = 8,
+
+    // Legacy Compatibility Aliases
+    SwedishChainsaw = SwedishKlangSaw,
+    IndustrialZone  = KlangZone,
+    Screamer808     = GreenScreamer,
+    RussianMuff     = RussianKlangPi,
+    SovereignCentaur= IxionGuild,
+    YellowPreamp250 = Yellow250
 };
 
 /**

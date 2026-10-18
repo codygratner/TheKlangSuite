@@ -256,5 +256,6 @@ private:
 };
 
 using KlangJuno = KlangAlpha;
+using AlphaKraft = KlangAlpha;
 
 } // namespace TbdAudio::Oscillators

@@ -139,5 +139,6 @@ private:
 };
 
 using RussianMuff = BigMuffPi;
+using RussianKlangPi = BigMuffPi;
 
 } // namespace TbdAudio::KlangStomp

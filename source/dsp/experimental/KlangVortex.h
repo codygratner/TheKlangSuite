@@ -208,4 +208,6 @@ private:
     DSPCommon::DCBlocker dcR_{};
 };
 
+using ArgentVortex = KlangVortex;
+
 } // namespace TbdAudio::Experimental

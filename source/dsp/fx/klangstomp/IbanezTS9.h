@@ -125,5 +125,6 @@ private:
 };
 
 using Screamer808 = IbanezTS9;
+using GreenScreamer = IbanezTS9;
 
 } // namespace TbdAudio::KlangStomp

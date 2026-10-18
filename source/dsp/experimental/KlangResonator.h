@@ -266,5 +266,6 @@ private:
 };
 
 using KlangComb = KlangResonator;
+using PipeAndWire = KlangResonator;
 
 } // namespace TbdAudio::Experimental

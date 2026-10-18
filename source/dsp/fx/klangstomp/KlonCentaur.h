@@ -164,5 +164,6 @@ private:
 };
 
 using SovereignCentaur = KlonCentaur;
+using IxionGuild = KlonCentaur;
 
 } // namespace TbdAudio::KlangStomp

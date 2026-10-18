@@ -163,5 +163,6 @@ private:
 };
 
 using YellowPreamp250 = DOD250;
+using Yellow250 = DOD250;
 
 } // namespace TbdAudio::KlangStomp

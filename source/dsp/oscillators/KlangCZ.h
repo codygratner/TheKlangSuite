@@ -357,5 +357,6 @@ private:
 };
 
 using KlangCZPhaseX = KlangCZ;
+using CosmoPhase = KlangCZ;
 
 } // namespace TbdAudio::Oscillators

@@ -156,5 +156,6 @@ private:
 };
 
 using IndustrialZone = BossMT2;
+using KlangZone = BossMT2;
 
 } // namespace TbdAudio::KlangStomp

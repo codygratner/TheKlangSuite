@@ -334,5 +334,7 @@ private:
 };
 
 using KlangTribeR = KlangFM;
+using TheR1 = KlangFM;
+using TheKlangR1 = KlangFM;
 
 } // namespace TbdAudio::Oscillators

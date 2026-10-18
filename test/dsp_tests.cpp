@@ -9,6 +9,18 @@
 #include "ModulationEngine.h"
 #include "PlanterEngine.h"
 #include "dsp/fx/klangstomp/KlangStompBlock.h"
+#include "dsp/fx/klangstomp/SwedishKlangSaw.h"
+#include "dsp/fx/klangstomp/KlangZone.h"
+#include "dsp/fx/klangstomp/Rodent.h"
+#include "dsp/fx/klangstomp/GreenScreamer.h"
+#include "dsp/fx/klangstomp/RussianKlangPi.h"
+#include "dsp/fx/klangstomp/IxionGuild.h"
+#include "dsp/fx/klangstomp/Yellow250.h"
+#include "dsp/fx/klangstomp/VelcroFace.h"
+#include "dsp/oscillators/AlphaKraft.h"
+#include "dsp/oscillators/CosmoPhase.h"
+#include "dsp/oscillators/TheR1.h"
+#include "dsp/oscillators/ArgentSlayer.h"
 #include "dsp/oscillators/KlangJuno.h"
 #include "dsp/oscillators/KlangCZ.h"
 #include "dsp/oscillators/KlangFM.h"
@@ -18,9 +30,18 @@
 #include "dsp/fx/spatial/KlangDelay.h"
 #include "dsp/fx/spatial/KlangSpace.h"
 #include "dsp/experimental/KlangResonator.h"
+#include "dsp/experimental/PipeAndWire.h"
 #include "dsp/experimental/KlangFreeze.h"
 #include "dsp/experimental/KlangBode.h"
+#include "dsp/experimental/FreakShifter.h"
 #include "dsp/experimental/KlangVortex.h"
+#include "dsp/experimental/ArgentVortex.h"
+#include "dsp/oscillators/Pluck.h"
+#include "dsp/fx/PluckFX.h"
+#include "dsp/fx/56KVocoder.h"
+#include "dsp/experimental/PhaseShriek.h"
+#include "dsp/fx/PipKlick.h"
+#include "dsp/fx/EchoMill.h"
 
 int main() {
     std::cout << "Starting DSP Verification Tests for 22-Block Modular Drum Synth..." << std::endl;
@@ -1361,14 +1382,14 @@ int main() {
 
         // B. Test all 8 Circuit Models across parameter sweeps (Drive, Tone, Mid, Starve, CleanBlend)
         const char* modelNames[8] = {
-            "0: Boss HM-2 (SwedishChainsaw)",
-            "1: Boss MT-2 (IndustrialZone)",
-            "2: ProCo RAT (Rodent)",
-            "3: Ibanez TS9 (Screamer808)",
-            "4: EHX Big Muff Pi (RussianMuff)",
-            "5: Klon Centaur (SovereignCentaur)",
-            "6: DOD 250 (YellowPreamp250)",
-            "7: Fuzz Face (VelcroFace)"
+            "0: Swedish KlangSaw (HM-2)",
+            "1: KlangZone (MT-2)",
+            "2: Rodent (RAT)",
+            "3: Green Screamer (TS9)",
+            "4: Russian KlangPi (Big Muff)",
+            "5: Ixion Guild (Klon Centaur)",
+            "6: Yellow 250 (DOD 250)",
+            "7: Velcro Face (Fuzz Face)"
         };
 
         constexpr float sweepValues[] = { 0.0f, 0.25f, 0.5f, 0.85f, 1.0f };
@@ -1496,17 +1517,17 @@ int main() {
             std::cout << "PASS: Synth Engine [" << name << "] verified across all 8 knobs & MIDI notes (peak=" << maxPeak << ")." << std::endl;
         };
 
-        TbdAudio::Oscillators::KlangAlpha alpha;
-        TbdAudio::Oscillators::KlangCZ    cz;
-        TbdAudio::Oscillators::KlangFM    fm;
-        TbdAudio::Oscillators::KlangPluck pluck;
-        TbdAudio::Oscillators::Klang808   sub808;
+        TbdAudio::Oscillators::AlphaKraft   alpha;
+        TbdAudio::Oscillators::CosmoPhase   cz;
+        TbdAudio::Oscillators::TheR1        fm;
+        TbdAudio::Oscillators::Pluck        pluck;
+        TbdAudio::Oscillators::ArgentSlayer sub808;
 
-        verifySynthEngine(alpha,   "OSC-02: KlangAlpha (Alpha Dual-DCO + 7-Voice Supersaw + Ensemble Chorus)");
-        verifySynthEngine(cz,     "OSC-03: KlangCZ Phase-X (Casio CZ Twin-Line Phase Distortion)");
-        verifySynthEngine(fm,     "OSC-01/04: KlangFM / KlangTribe R (4-Op PM + ER-1 Cyclic Ring Noise)");
-        verifySynthEngine(pluck,  "OSC-05: KlangPluck KS (Extended Karplus-Strong Physical Waveguide)");
-        verifySynthEngine(sub808, "OSC-09: KlangSlayer (808 Sub + Mick Gordon Sine Fold & Noise Ring)");
+        verifySynthEngine(alpha,   "OSC-02: AlphaKraft (Alpha Dual-DCO + 7-Voice Supersaw + Ensemble Chorus)");
+        verifySynthEngine(cz,     "OSC-03: CosmoPhase (Casio CZ Twin-Line Phase Distortion)");
+        verifySynthEngine(fm,     "OSC-01: The R-1 (4-Op PM + ER-1 Cyclic Ring Noise)");
+        verifySynthEngine(pluck,  "OSC-05: Pluck (Physical Waveguide + MI Rings Modal + Sympathetic Strings)");
+        verifySynthEngine(sub808, "OSC-09: Argent Slayer (808 Sub + Mick Gordon Sine Fold & Noise Ring)");
     }
 
     // 33. Test Phase 3: Spatial, Delay & Modulation Racks (KlangMod, KlangDelay, KlangSpace)
@@ -1576,18 +1597,63 @@ int main() {
         // 34. Test Phase 4: Blue-Sky & Chaos Engines (KlangResonator, KlangFreeze, KlangBode, KlangVortex)
         std::cout << "\nRunning Phase 4: Blue-Sky & Chaos Engines DSP Tests..." << std::endl;
 
-        auto resonatorRack = std::make_unique<TbdAudio::Experimental::KlangResonator>();
+        auto resonatorRack = std::make_unique<TbdAudio::Experimental::PipeAndWire>();
         auto freezeRack    = std::make_unique<TbdAudio::Experimental::KlangFreeze>();
-        auto bodeRack      = std::make_unique<TbdAudio::Experimental::KlangBode>();
-        auto vortexRack    = std::make_unique<TbdAudio::Experimental::KlangVortex>();
+        auto bodeRack      = std::make_unique<TbdAudio::Experimental::FreakShifter>();
+        auto vortexRack    = std::make_unique<TbdAudio::Experimental::ArgentVortex>();
 
-        verifySpatialRack(*resonatorRack, 4, "KlangResonator / KlangComb (4-Voice Modal & Tuned Waveguide Bank)");
+        verifySpatialRack(*resonatorRack, 4, "Pipe & Wire (4-Voice Modal & Tuned Waveguide Bank)");
         verifySpatialRack(*freezeRack,    5, "KlangFreeze / KlangShift (4-Grain Cloud Freeze & Scale Pitch Harmonizer)");
-        verifySpatialRack(*bodeRack,      4, "KlangBode (Harald Bode Hilbert SSB Frequency Shifter & Spiral Delay)");
-        verifySpatialRack(*vortexRack,    3, "KlangVortex (West Coast Buchla Wavefolder + 16-Stage APF Chaos Loop)");
+        verifySpatialRack(*bodeRack,      4, "FreakShifter (Harald Bode Hilbert SSB Frequency Shifter & Spiral Delay)");
+        verifySpatialRack(*vortexRack,    3, "Argent Vortex (West Coast Buchla Wavefolder + 16-Stage APF Chaos Loop)");
+
+        // 35. Test Phase 5: Crowned Argon DSP Suite (Pluck Mono/Poly, PluckFX, 56KVocoder, PhaseShriek, PipKlick, EchoMill)
+        std::cout << "\nRunning Phase 5: Crowned Argon DSP Suite (Pluck, PluckFX, 56KVocoder, PhaseShriek, PipKlick, EchoMill)..." << std::endl;
+
+        {
+            TbdAudio::Oscillators::Pluck mergedPluck;
+            TbdAudio::BlockContext ctx{};
+            ctx.sampleRate = 48000.0f;
+            ctx.invSr = 1.0f / 48000.0f;
+            ctx.currentPitchHz = 110.0f;
+            ctx.currentMidiNote = 45;
+            mergedPluck.init(ctx);
+
+            // Test both Mono mode (Knob 7 = 0.25) and 4-Voice Poly/Paraphonic Strum mode (Knob 7 = 0.85)
+            for (int mode = 0; mode < 2; ++mode) {
+                mergedPluck.reset();
+                mergedPluck.setParam8(6, 0.65f); // Modal & Sympathetic strings blend
+                mergedPluck.setParam8(7, (mode == 0) ? 0.25f : 0.85f);
+                float peak = 0.0f;
+                for (int strum = 0; strum < 4; ++strum) {
+                    mergedPluck.setMidiNote(45 + strum * 5, 0.9f);
+                    std::vector<float> l(256, 0.0f), r(256, 0.0f);
+                    mergedPluck.processStereo(l.data(), r.data(), 256, ctx);
+                    for (int i = 0; i < 256; ++i) {
+                        assert(std::isfinite(l[i]) && std::isfinite(r[i]));
+                        assert(std::abs(l[i]) <= 4.01f && std::abs(r[i]) <= 4.01f);
+                        peak = std::max(peak, std::max(std::abs(l[i]), std::abs(r[i])));
+                    }
+                }
+                assert(peak > 0.05f);
+            }
+            std::cout << "PASS: OSC-05 Pluck (Merged Karplus Waveguide + MI Rings Modal + 4-Voice Poly Strum) verified." << std::endl;
+        }
+
+        auto pluckFxRack     = std::make_unique<TbdAudio::FX::PluckFX>();
+        auto vocoder56kRack  = std::make_unique<TbdAudio::FX::Vocoder56K>();
+        auto phaseShriekRack = std::make_unique<TbdAudio::Experimental::PhaseShriek>();
+        auto pipKlickRack    = std::make_unique<TbdAudio::FX::PipKlick>();
+        auto echoMillRack    = std::make_unique<TbdAudio::Spatial::EchoMill>();
+
+        verifySpatialRack(*pluckFxRack,     4, "PluckFX (Sidechain/Audio-Excited Waveguide & Modal Resonator)");
+        verifySpatialRack(*vocoder56kRack,  5, "56K Vocoder (32-Band Cytomic SVF, AlphaKraft Carrier, Pitch Tracker & EMS Matrix)");
+        verifySpatialRack(*phaseShriekRack, 3, "PhaseShriek (Doepfer A-196 PLL: XOR, RS-FF, PFD & Clock Divider)");
+        verifySpatialRack(*pipKlickRack,    4, "PipKlick (WMD Geiger Counter 256-Wavetable Waveshaper & Bit-Glitch)");
+        verifySpatialRack(*echoMillRack,    6, "EchoMill / TKMD (2-Slot Recursive Insert-Rack Delay & Degradation Mill)");
     }
 
-    std::cout << "\n>>> ALL 34 DSP VERIFICATION SUITES (PHASES 1-4 COMPLETE) PASSED 100%! <<<" << std::endl;
+    std::cout << "\n>>> ALL 35 DSP VERIFICATION SUITES (PHASES 1-5 COMPLETE) PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

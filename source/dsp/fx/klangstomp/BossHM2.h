@@ -145,5 +145,6 @@ private:
 };
 
 using SwedishChainsaw = BossHM2;
+using SwedishKlangSaw = BossHM2;
 
 } // namespace TbdAudio::KlangStomp

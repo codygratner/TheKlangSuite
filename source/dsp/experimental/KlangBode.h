@@ -392,4 +392,6 @@ private:
     float smoothDelaySamples_ = 1.0f;
 };
 
+using FreakShifter = KlangBode;
+
 } // namespace TbdAudio::Experimental

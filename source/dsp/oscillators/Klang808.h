@@ -186,5 +186,6 @@ private:
 };
 
 using KlangSlayer = Klang808;
+using ArgentSlayer = Klang808;
 
 } // namespace TbdAudio::Oscillators
