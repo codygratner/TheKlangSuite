@@ -347,5 +347,7 @@ private:
 };
 
 using KlangPluckPoly = Pluck;
+using KlangPluckKS = Pluck;
+using KlangPluck = Pluck;
 
 } // namespace TbdAudio::Oscillators

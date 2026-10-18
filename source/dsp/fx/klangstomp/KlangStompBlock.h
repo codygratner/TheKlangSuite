@@ -1,14 +1,14 @@
 #pragma once
 
 #include "../../common/AudioEffect.h"
-#include "BossHM2.h"
-#include "BossMT2.h"
-#include "ProCoRat.h"
-#include "IbanezTS9.h"
-#include "BigMuffPi.h"
-#include "KlonCentaur.h"
-#include "DOD250.h"
-#include "FuzzFace.h"
+#include "SwedishKlangSaw.h"
+#include "KlangZone.h"
+#include "Rodent.h"
+#include "GreenScreamer.h"
+#include "RussianKlangPi.h"
+#include "IxionGuild.h"
+#include "Yellow250.h"
+#include "VelcroFace.h"
 
 #include <algorithm>
 #include <cmath>
@@ -75,27 +75,27 @@ public:
     void prepare(double sampleRate, int /*maxBlockSize*/) noexcept {
         const float sr = (sampleRate > 8000.0) ? static_cast<float>(sampleRate) : 48000.0f;
         for (int ch = 0; ch < 2; ++ch) {
-            hm2_[ch].init(sr);
-            mt2_[ch].init(sr);
-            rat_[ch].init(sr);
-            ts9_[ch].init(sr);
-            muff_[ch].init(sr);
-            klon_[ch].init(sr);
-            dod_[ch].init(sr);
-            fuzz_[ch].init(sr);
+            swedishKlangSaw_[ch].init(sr);
+            klangZone_[ch].init(sr);
+            rodent_[ch].init(sr);
+            greenScreamer_[ch].init(sr);
+            russianKlangPi_[ch].init(sr);
+            ixionGuild_[ch].init(sr);
+            yellow250_[ch].init(sr);
+            velcroFace_[ch].init(sr);
         }
     }
 
     void reset() noexcept override {
         for (int ch = 0; ch < 2; ++ch) {
-            hm2_[ch].reset();
-            mt2_[ch].reset();
-            rat_[ch].reset();
-            ts9_[ch].reset();
-            muff_[ch].reset();
-            klon_[ch].reset();
-            dod_[ch].reset();
-            fuzz_[ch].reset();
+            swedishKlangSaw_[ch].reset();
+            klangZone_[ch].reset();
+            rodent_[ch].reset();
+            greenScreamer_[ch].reset();
+            russianKlangPi_[ch].reset();
+            ixionGuild_[ch].reset();
+            yellow250_[ch].reset();
+            velcroFace_[ch].reset();
         }
     }
 
@@ -143,30 +143,30 @@ public:
 
         float circuitOut = 0.0f;
         switch (activeModel) {
-            case CircuitModel::SwedishChainsaw:
-                circuitOut = hm2_[c].processSample(dryIn, drive, tone, mid, starve);
+            case CircuitModel::SwedishKlangSaw:
+                circuitOut = swedishKlangSaw_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
-            case CircuitModel::IndustrialZone:
-                circuitOut = mt2_[c].processSample(dryIn, drive, tone, mid, starve);
+            case CircuitModel::KlangZone:
+                circuitOut = klangZone_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
             case CircuitModel::Rodent:
-                circuitOut = rat_[c].processSample(dryIn, drive, tone, mid, starve);
+                circuitOut = rodent_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
-            case CircuitModel::Screamer808:
-                circuitOut = ts9_[c].processSample(dryIn, drive, tone, mid, starve);
+            case CircuitModel::GreenScreamer:
+                circuitOut = greenScreamer_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
-            case CircuitModel::RussianMuff:
-                circuitOut = muff_[c].processSample(dryIn, drive, tone, mid, starve);
+            case CircuitModel::RussianKlangPi:
+                circuitOut = russianKlangPi_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
-            case CircuitModel::SovereignCentaur:
-                circuitOut = klon_[c].processSample(dryIn, drive, tone, mid, starve);
+            case CircuitModel::IxionGuild:
+                circuitOut = ixionGuild_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
-            case CircuitModel::YellowPreamp250:
-                circuitOut = dod_[c].processSample(dryIn, drive, tone, mid, starve);
+            case CircuitModel::Yellow250:
+                circuitOut = yellow250_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
             case CircuitModel::VelcroFace:
             default:
-                circuitOut = fuzz_[c].processSample(dryIn, drive, tone, mid, starve);
+                circuitOut = velcroFace_[c].processSample(dryIn, drive, tone, mid, starve);
                 break;
         }
 
@@ -238,28 +238,28 @@ public:
 private:
     void resetChannel(int c, CircuitModel model) noexcept {
         switch (model) {
-            case CircuitModel::SwedishChainsaw:  hm2_[c].reset();  break;
-            case CircuitModel::IndustrialZone:   mt2_[c].reset();  break;
-            case CircuitModel::Rodent:           rat_[c].reset();  break;
-            case CircuitModel::Screamer808:      ts9_[c].reset();  break;
-            case CircuitModel::RussianMuff:      muff_[c].reset(); break;
-            case CircuitModel::SovereignCentaur: klon_[c].reset(); break;
-            case CircuitModel::YellowPreamp250:  dod_[c].reset();  break;
+            case CircuitModel::SwedishKlangSaw:  swedishKlangSaw_[c].reset();  break;
+            case CircuitModel::KlangZone:        klangZone_[c].reset();        break;
+            case CircuitModel::Rodent:           rodent_[c].reset();           break;
+            case CircuitModel::GreenScreamer:    greenScreamer_[c].reset();    break;
+            case CircuitModel::RussianKlangPi:   russianKlangPi_[c].reset();   break;
+            case CircuitModel::IxionGuild:       ixionGuild_[c].reset();       break;
+            case CircuitModel::Yellow250:        yellow250_[c].reset();        break;
             case CircuitModel::VelcroFace:
-            default:                             fuzz_[c].reset(); break;
+            default:                             velcroFace_[c].reset();       break;
         }
     }
 
-    BossHM2     hm2_[2]{};
-    BossMT2     mt2_[2]{};
-    ProCoRat    rat_[2]{};
-    IbanezTS9   ts9_[2]{};
-    BigMuffPi   muff_[2]{};
-    KlonCentaur klon_[2]{};
-    DOD250      dod_[2]{};
-    FuzzFace    fuzz_[2]{};
+    SwedishKlangSaw swedishKlangSaw_[2]{};
+    KlangZone       klangZone_[2]{};
+    Rodent          rodent_[2]{};
+    GreenScreamer   greenScreamer_[2]{};
+    RussianKlangPi  russianKlangPi_[2]{};
+    IxionGuild      ixionGuild_[2]{};
+    Yellow250       yellow250_[2]{};
+    VelcroFace      velcroFace_[2]{};
 
-    CircuitModel lastModel_[2]{CircuitModel::SwedishChainsaw, CircuitModel::SwedishChainsaw};
+    CircuitModel lastModel_[2]{CircuitModel::SwedishKlangSaw, CircuitModel::SwedishKlangSaw};
 };
 
 } // namespace TbdAudio::KlangStomp
