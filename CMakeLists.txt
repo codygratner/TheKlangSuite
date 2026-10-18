@@ -32,6 +32,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 2. Add the cloned JUCE repository
 add_subdirectory(JUCE)
 
+# 2b. Add Sovereign Shared TheKlangDSP engine
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../TheKlangDSP/CMakeLists.txt")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../TheKlangDSP" TheKlangDSP EXCLUDE_FROM_ALL)
+endif()
+
 # CI Toolchain Lockdown & Sanitizer Integration (applied to Klang Suite targets)
 if (TK_STRICT_WARNINGS)
     if (MSVC)
@@ -143,6 +148,7 @@ set(TKF_JUCE_MODULES
 
 # 5. Link required JUCE modules for The Klang Farmer
 target_link_libraries(TheKlangFarmer PRIVATE
+    TheKlangDSP
     ${TKF_JUCE_MODULES}
     TkfAssets
     PUBLIC
@@ -203,6 +209,7 @@ target_compile_definitions(TheKlangPlanter PUBLIC
 set_target_properties(TheKlangPlanter PROPERTIES VST3_AUTO_MANIFEST FALSE)
 
 target_link_libraries(TheKlangPlanter PRIVATE
+    TheKlangDSP
     ${TKF_JUCE_MODULES}
     TkfAssets
     PUBLIC
@@ -227,7 +234,7 @@ add_executable(dsp_tests
     source/PlanterEngine.h
 )
 target_include_directories(dsp_tests PRIVATE source)
-target_link_libraries(dsp_tests PRIVATE TkfAssets juce::juce_audio_processors)
+target_link_libraries(dsp_tests PRIVATE TheKlangDSP TkfAssets juce::juce_audio_processors)
 
 # 8. FastMath & DSP performance benchmark
 add_executable(benchmark_dsp
