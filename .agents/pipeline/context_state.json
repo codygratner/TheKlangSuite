@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "675ecdc",
+    "commit": "229e8a7",
     "is_clean": false,
-    "dirty_count": 53,
+    "dirty_count": 82,
     "staged": 1,
-    "modified": 27,
-    "untracked": 26,
+    "modified": 43,
+    "untracked": 39,
     "recent_commits": [
-      "675ecdc chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "d47cfb2 feat(dsp): implement 4-phase C++20 synthesis & FX pipeline with trademark sanitization",
-      "b32b90f chore(memory): execute scheduled nightly black box memory flush and state integrity audit"
+      "229e8a7 docs(ecosystem): deep docs reconciliation for KlangDSP split, sound engines, FX catalog, and field guides",
+      "6ec31ed feat(dsp): consume TheKlangDSP header-only library in TheKlangSuite",
+      "a96d410 refactor(dsp): promote sovereign engine headers to primary implementations with backwards-compatible shims"
     ]
   },
   "plan": {
