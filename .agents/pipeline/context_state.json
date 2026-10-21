@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "59714fc",
+    "commit": "ff5f2a5",
     "is_clean": false,
-    "dirty_count": 82,
+    "dirty_count": 83,
     "staged": 1,
-    "modified": 43,
+    "modified": 44,
     "untracked": 39,
     "recent_commits": [
+      "ff5f2a5 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
       "59714fc chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "229e8a7 docs(ecosystem): deep docs reconciliation for KlangDSP split, sound engines, FX catalog, and field guides",
-      "6ec31ed feat(dsp): consume TheKlangDSP header-only library in TheKlangSuite"
+      "229e8a7 docs(ecosystem): deep docs reconciliation for KlangDSP split, sound engines, FX catalog, and field guides"
     ]
   },
   "plan": {
