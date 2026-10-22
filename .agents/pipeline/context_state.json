@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "ff5f2a5",
+    "commit": "e2ca436",
     "is_clean": false,
-    "dirty_count": 83,
+    "dirty_count": 87,
     "staged": 1,
-    "modified": 44,
-    "untracked": 39,
+    "modified": 47,
+    "untracked": 40,
     "recent_commits": [
+      "e2ca436 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
       "ff5f2a5 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "59714fc chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "229e8a7 docs(ecosystem): deep docs reconciliation for KlangDSP split, sound engines, FX catalog, and field guides"
+      "59714fc chore(memory): execute scheduled nightly black box memory flush and state integrity audit"
     ]
   },
   "plan": {
