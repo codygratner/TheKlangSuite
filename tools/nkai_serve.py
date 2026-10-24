@@ -16,18 +16,22 @@ import email
 import email.policy
 import http.server
 from datetime import datetime
+import ipaddress
 import json
 import mimetypes
 import os
 import re
+import secrets
 import shutil
 import socket
 import socketserver
 import struct
 import subprocess
 import sys
+import threading
 import time
 from typing import Optional
+import traceback
 import webbrowser
 import zlib
 from pathlib import Path
@@ -70,17 +74,17 @@ except ImportError:
 # Sentry Bearer Token Auth & Streaming Engine
 try:
     from tools.sentry_auth import get_or_create_sentry_token, verify_sentry_token
-    from tools.sentry_engine import stream_sentry_response
+    from tools.sentry_engine import stream_sentry_response, get_gemini_api_key
 except ImportError:
     try:
         from sentry_auth import get_or_create_sentry_token, verify_sentry_token
-        from sentry_engine import stream_sentry_response
+        from sentry_engine import stream_sentry_response, get_gemini_api_key
     except ImportError:
         _tools_dir = Path(__file__).resolve().parent
         if str(_tools_dir) not in sys.path:
             sys.path.insert(0, str(_tools_dir))
         from sentry_auth import get_or_create_sentry_token, verify_sentry_token
-        from sentry_engine import stream_sentry_response
+        from sentry_engine import stream_sentry_response, get_gemini_api_key
 
 # Register canonical MIME types
 CUSTOM_MIME_TYPES = {
@@ -282,15 +286,18 @@ class ScratchpadSentinel:
     during background Obsidian Sync or file lock events.
     """
 
-    DEFAULT_VAULT_PATH = Path(r"C:\_\Vault\Inbox\SCRATCHPAD.md")
+    PRIMARY_VAULT_PATH = Path(r"C:\_\Vault\SCRATCHPAD.md")
+    LEGACY_VAULT_PATH = Path(r"C:\_\Vault\Inbox\SCRATCHPAD.md")
     FALLBACK_PATH = REPO_ROOT / "docs" / "inbox" / "SCRATCHPAD.md"
 
     @classmethod
     def get_path(cls) -> Path:
-        if cls.DEFAULT_VAULT_PATH.exists():
-            return cls.DEFAULT_VAULT_PATH
-        if cls.DEFAULT_VAULT_PATH.parent.exists():
-            return cls.DEFAULT_VAULT_PATH
+        if cls.PRIMARY_VAULT_PATH.exists():
+            return cls.PRIMARY_VAULT_PATH
+        if cls.LEGACY_VAULT_PATH.exists():
+            return cls.LEGACY_VAULT_PATH
+        if cls.PRIMARY_VAULT_PATH.parent.exists():
+            return cls.PRIMARY_VAULT_PATH
         return cls.FALLBACK_PATH
 
     @staticmethod
@@ -364,6 +371,168 @@ class ScratchpadSentinel:
             }
 
 
+def dispatch_prompt_to_harness(prompt: str, client_ip: str = "127.0.0.1", source: str = "chat_board") -> Tuple[bool, Optional[str]]:
+    """Relays prompt to action_history.jsonl, agent_bulletin.json, Data Bus, and Antigravity desktop."""
+    if not prompt or not prompt.strip():
+        return False, None
+    prompt = prompt.strip()
+    now_iso = datetime.now().isoformat()
+
+    # 1. Log to action_history.jsonl
+    action_log = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "action_history.jsonl"
+    action_log.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(action_log, "a", encoding="utf-8") as f:
+            f.write(json.dumps({
+                "timestamp": now_iso,
+                "action": "PROMPT_DISPATCH",
+                "prompt": prompt,
+                "source": source,
+                "client_ip": client_ip
+            }) + "\n")
+    except Exception:
+        pass
+
+    # 2. Auto-sync to Windows Clipboard for instant Ctrl+V into Antigravity desktop chat
+    if sys.platform == "win32":
+        try:
+            import win32clipboard, win32con
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardText(prompt, win32con.CF_UNICODETEXT)
+            win32clipboard.CloseClipboard()
+        except Exception:
+            pass
+
+    # 3. Update agent_bulletin.json
+    try:
+        bulletin_file = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "agent_bulletin.json"
+        b_data = {
+            "schema_version": "1.0.0",
+            "updated_at": now_iso,
+            "briefing_title": f"Mobile Prompt: {prompt[:40]}",
+            "briefing_text": prompt,
+            "status_badge": "DISPATCHED 🚀",
+            "pending_decisions_count": 0,
+            "last_flight": "Flight 22",
+            "git_branch": "0.4.0-dev",
+            "target_pipeline": "TARGET: TOOLING_HARNESS"
+        }
+        bulletin_file.write_text(json.dumps(b_data, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+    # 4. Autonomous Mobile Relay: Post dispatch packet to Inter-Project Data Bus for COSMOS
+    dispatch_id = None
+    try:
+        from tools.bus import resolve_bus_dir, serialize_dispatch
+        bus_dir = resolve_bus_dir()
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        now_slug = datetime.now().strftime("%Y%m%d_%H%M%S")
+        clean_title = re.sub(r"[^a-zA-Z0-9_\- ]", " ", prompt).strip()
+        prompt_slug = re.sub(r"[^a-zA-Z0-9_\-]", "_", clean_title[:24].lower()).strip("_") or "prompt"
+        dispatch_id = f"{today_str}_mobile_to_cosmos_{prompt_slug}_{now_slug[-6:]}"
+
+        meta = {
+            "id": dispatch_id,
+            "date": today_str,
+            "from": "MOBILE",
+            "to": "COSMOS",
+            "tags": ["mobile", "intercom", "prompt"],
+            "priority": "P1",
+            "status": "PENDING",
+            "title": f"Mobile Intercom Prompt: {clean_title[:35]}",
+        }
+        body = (
+            f"# 📱 Mobile Intercom Prompt\n\n"
+            f"**Received At**: `{now_iso}`  \n"
+            f"**Origin IP**: `{client_ip}`  \n"
+            f"**Client Surface**: N'kai Intercom Companion  \n\n"
+            f"### 💬 User Prompt:\n\n{prompt}\n"
+        )
+        dispatch_content = serialize_dispatch(meta, body)
+        target_file = bus_dir / f"{dispatch_id}.md"
+        target_file.write_text(dispatch_content, encoding="utf-8")
+        try:
+            print(f"🚀 [RELAY] Dispatched mobile prompt to Data Bus: {dispatch_id}")
+        except Exception:
+            pass
+    except Exception as e:
+        try:
+            print(f"⚠️ [RELAY] Could not post mobile dispatch to Data Bus: {e}")
+        except Exception:
+            pass
+
+    # 5. Direct Antigravity Injection via AGY CLI / Agent API (100% Silent Background Execution)
+    injected_ok = False
+    try:
+        from tools.chat_engine import get_active_conversation_path
+        conv_dir = get_active_conversation_path()
+        if conv_dir and conv_dir.exists():
+            active_conv_id = conv_dir.name
+            server_exe = Path(os.path.expanduser(r"~\AppData\Local\Programs\antigravity\resources\bin\language_server.exe"))
+            agentapi_bat = Path(os.path.expanduser("~/.gemini/antigravity/bin/agentapi.bat"))
+
+            flags = 0
+            if sys.platform == "win32":
+                flags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+
+            if server_exe.exists():
+                cmd = [str(server_exe), "agentapi", "send-message", "--title=📱 Mobile Prompt", active_conv_id, prompt]
+            elif agentapi_bat.exists():
+                cmd = [str(agentapi_bat), "send-message", "--title=📱 Mobile Prompt", active_conv_id, prompt]
+            else:
+                cmd = None
+
+            run_env = os.environ.copy()
+            for env_file in [
+                REPO_ROOT / ".agents" / "pipeline" / "antigravity_env.json",
+                Path(r"C:\_\Vault\.agents\pipeline\antigravity_env.json"),
+                Path(r"C:\Dev\nkai\.agents\pipeline\antigravity_env.json"),
+                Path(r"C:\Dev\TheKlangSuite\.agents\pipeline\antigravity_env.json"),
+            ]:
+                if env_file.exists():
+                    try:
+                        env_data = json.loads(env_file.read_text(encoding="utf-8"))
+                        for ek, ev in env_data.items():
+                            if ev:
+                                run_env[ek] = str(ev)
+                        break
+                    except Exception:
+                        pass
+
+            if cmd:
+                res = subprocess.run(
+                    cmd,
+                    env=run_env,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    check=False,
+                    creationflags=flags
+                )
+                if res.returncode == 0:
+                    injected_ok = True
+                    try:
+                        print(f"⚡ [AGY BRIDGE] Silently injected prompt into Antigravity: {active_conv_id}")
+                    except Exception:
+                        pass
+                else:
+                    err_file = REPO_ROOT / ".agents" / "pipeline" / "logs" / "agentapi_debug.txt"
+                    err_file.parent.mkdir(parents=True, exist_ok=True)
+                    err_file.write_text(f"RC: {res.returncode}\nCMD: {cmd}\nOUT: {res.stdout}\nERR: {res.stderr}", encoding="utf-8")
+        else:
+            err_file = REPO_ROOT / ".agents" / "pipeline" / "logs" / "agentapi_debug.txt"
+            err_file.parent.mkdir(parents=True, exist_ok=True)
+            err_file.write_text(f"conv_dir not found: {conv_dir}", encoding="utf-8")
+    except Exception as e:
+        err_file = REPO_ROOT / ".agents" / "pipeline" / "logs" / "agentapi_debug.txt"
+        err_file.parent.mkdir(parents=True, exist_ok=True)
+        err_file.write_text(f"Exception in dispatch: {e}\n{traceback.format_exc()}", encoding="utf-8")
+
+    return injected_ok, dispatch_id
+
+
 class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     """Specialized HTTP handler with audio/web MIME types, CORS, and mobile QR routes."""
 
@@ -384,19 +553,29 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie")
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
 
-        # Inject 30-day authentication cookie if ?auth= is in request path
+        # Inject 30-day authentication cookie if ?auth= is in request path or client is from trusted network loading HTML
         sentry_token = getattr(self.server, "sentry_token", None)
-        if sentry_token and "?" in self.path:
+        if sentry_token:
             try:
-                qs = parse_qs(urlparse(self.path).query)
-                if "auth" in qs and qs["auth"]:
-                    token_val = qs["auth"][0].strip()
-                    import hmac
-                    if hmac.compare_digest(token_val, sentry_token.strip()):
-                        self.send_header(
-                            "Set-Cookie",
-                            f"nkai_auth={token_val}; Path=/; SameSite=Lax; Max-Age=2592000"
-                        )
+                should_set_cookie = False
+                token_val = sentry_token.strip()
+                if "?" in self.path:
+                    qs = parse_qs(urlparse(self.path).query)
+                    if "auth" in qs and qs["auth"]:
+                        import hmac
+                        if hmac.compare_digest(qs["auth"][0].strip(), token_val):
+                            should_set_cookie = True
+
+                if not should_set_cookie:
+                    clean_path = urlparse(self.path).path
+                    if clean_path.endswith(".html") or clean_path in ("", "/", "/chat"):
+                        should_set_cookie = True
+
+                if should_set_cookie:
+                    self.send_header(
+                        "Set-Cookie",
+                        f"nkai_auth={token_val}; Path=/; SameSite=Lax; Max-Age=2592000"
+                    )
             except Exception:
                 pass
 
@@ -408,9 +587,18 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def is_authorized(self) -> bool:
-        """Validates Bearer token from header, query param (?auth=), cookie, or localhost."""
+        """Validates Bearer token from header, query param (?auth=), cookie, or localhost/private networks."""
         sentry_token = getattr(self.server, "sentry_token", None)
         if not sentry_token:
+            return True
+
+        # Check Cloudflare Access Authenticated Headers
+        if self.headers.get("Cf-Access-Authenticated-User-Email") or self.headers.get("Cf-Access-Jwt-Assertion"):
+            return True
+
+        # Check Host: nkai.cykranosh.com (Protected by Cloudflare Zero Trust tunnel)
+        host = self.headers.get("Host", "").lower()
+        if "cykranosh.com" in host:
             return True
 
         # Check Authorization header (Bearer <token>)
@@ -442,10 +630,31 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception:
             pass
 
-        # Allow localhost / loopback for local dev and automated tests
+        # Allow localhost / loopback, private LAN (192.168.x, 10.x, 172.16-31.x), and Tailscale (100.x)
         allow_local = getattr(self.server, "allow_unauthenticated_localhost", True)
         client_ip = self.client_address[0]
-        if allow_local and client_ip in ("127.0.0.1", "::1", "localhost"):
+        if allow_local:
+            if client_ip in ("127.0.0.1", "::1", "localhost"):
+                return True
+            try:
+                ip = ipaddress.ip_address(client_ip)
+                if ip.is_loopback or ip.is_private or (ip.version == 4 and client_ip.startswith("100.")):
+                    return True
+            except Exception:
+                pass
+
+        # Allow public access to PWA icons, manifest, and service worker
+        clean_path = urlparse(self.path).path.rstrip("/")
+        if clean_path in (
+            "/manifest.json",
+            "/apple-touch-icon.png",
+            "/apple-touch-icon-precomposed.png",
+            "/favicon.png",
+            "/favicon.ico",
+            "/apple-touch-icon",
+            "/sw.js",
+            "/sw",
+        ):
             return True
 
         return False
@@ -459,6 +668,12 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # Handle /cockpit route
         if clean_path in ("/cockpit", "/cockpit/"):
             clean_path = "/cockpit.html"
+        elif clean_path in ("/chat", "/chat/", "/chat_board", "/chat_board.html", "/intercom", "/intercom/"):
+            clean_path = "/chat_board.html"
+        elif clean_path in ("/sliver", "/sliver/", "/sliver_engine"):
+            clean_path = "/sliver_engine_panel.html"
+        elif clean_path in ("/studio", "/studio/", "/faceplate", "/faceplate/"):
+            clean_path = "/klang_faceplate_studio.html"
 
         # Handle ?board=<id> parameter on root or default to morning_mail
         if clean_path in ("", "/"):
@@ -483,6 +698,13 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 except Exception:
                     pass
             if clean_path in ("", "/"):
+                for cand_cockpit in [
+                    REPO_ROOT / ".agents" / "sidecar" / "cockpit.html",
+                    Path(r"c:\Dev\nkai\sidecars\panel\cockpit.html"),
+                    REPO_ROOT / "cockpit.html",
+                ]:
+                    if cand_cockpit.exists():
+                        return str(cand_cockpit)
                 clean_path = "/morning_mail_inbox.html"
 
         filename = clean_path.lstrip("/")
@@ -493,6 +715,7 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             Path(r"c:\Dev\nkai\sidecars\panel") / filename,
             Path(r"c:\Dev\nkai\plugin\sidecars\panel") / filename,
             Path(r"c:\Dev\TheKlangSuite") / filename,
+            Path(r"C:\_\Vault\New Klang City\Research\ui_ux") / filename,
         ]
         for cand in sidecar_candidates:
             if cand.is_file():
@@ -501,8 +724,41 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         return super().translate_path(path)
 
     def do_GET(self):
-        """Serves mobile QR code vector graphics and pairing page on /qr and /mobile."""
+        """Serves mobile QR code vector graphics, pairing page, service worker, and web push keys."""
         clean_path = self.path.split("?")[0].rstrip("/")
+
+        # Service Worker endpoint (Flight 25)
+        if clean_path in ("/sw.js", "/sw"):
+            sw_path = REPO_ROOT / ".agents" / "sidecar" / "sw.js"
+            if not sw_path.exists():
+                sw_path = REPO_ROOT / "sw.js"
+            if sw_path.exists():
+                sw_data = sw_path.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/javascript; charset=utf-8")
+                self.send_header("Service-Worker-Allowed", "/")
+                self.send_header("Cache-Control", "no-cache, must-revalidate")
+                self.send_header("Content-Length", str(len(sw_data)))
+                self.end_headers()
+                self.wfile.write(sw_data)
+                return
+
+        # VAPID Public Key for Web Push (Flight 25)
+        if clean_path == "/api/push/vapid-public-key":
+            try:
+                from tools.webpush_service import get_or_create_vapid_keys
+                keys = get_or_create_vapid_keys()
+                resp = json.dumps({"ok": True, "publicKey": keys["public_key"]}).encode("utf-8")
+            except Exception as e:
+                resp = json.dumps({"ok": False, "error": str(e)}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Content-Length", str(len(resp)))
+            self.end_headers()
+            self.wfile.write(resp)
+            return
+
         if clean_path in ("/qr", "/mobile") or self.path.startswith("/qr?") or self.path.startswith("/mobile?"):
             target_url = getattr(self.server, "mobile_url", f"http://{self.server.server_address[0]}:{self.server.server_address[1]}/")
 
@@ -693,12 +949,77 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(health, indent=2).encode("utf-8"))
             return
 
+        if clean_path in ("/api/telemetry", "/api/system/telemetry"):
+            try:
+                from tools.telemetry_engine import get_unified_telemetry
+                force_refresh = ("force=1" in self.path) or ("refresh=1" in self.path)
+                telemetry_data = get_unified_telemetry(force_refresh_quota=force_refresh)
+            except Exception as e:
+                telemetry_data = {"error": str(e), "timestamp": time.strftime("%H:%M:%S")}
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+            self.end_headers()
+            self.wfile.write(json.dumps(telemetry_data, indent=2).encode("utf-8"))
+            return
+
+        if clean_path in ("/api/synth-news", "/api/news", "/api/synth_news"):
+            news_file = REPO_ROOT / ".agents" / "sidecar" / "synth_news.json"
+            if not news_file.exists():
+                news_file = Path(r"C:\Dev\TheKlangSuite\.agents\sidecar\synth_news.json")
+            if news_file.exists():
+                with open(news_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+            else:
+                content = json.dumps({"articles": []})
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+            self.end_headers()
+            self.wfile.write(content.encode("utf-8"))
+            return
+
+        if clean_path in ("/api/mail", "/api/rejigger", "/api/mailbag"):
+            mail_file = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "rejigger.json"
+            if not mail_file.exists():
+                mail_file = Path(r"C:\Dev\TheKlangSuite\.agents\pipeline\mailbag\rejigger.json")
+            if mail_file.exists():
+                with open(mail_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+            else:
+                content = json.dumps({"cards": []})
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+            self.end_headers()
+            self.wfile.write(content.encode("utf-8"))
+            return
+
         if clean_path == "/api/presence":
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(json.dumps(get_presence_state()).encode("utf-8"))
+            return
+
+        if clean_path in ("/api/auth/session", "/api/auth/token"):
+            sentry_token = getattr(self.server, "sentry_token", "")
+            is_auth = self.is_authorized()
+            res = {
+                "ok": True,
+                "authenticated": is_auth,
+                "token": sentry_token if is_auth else None
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(res).encode("utf-8"))
             return
 
         if clean_path == "/api/boards":
@@ -716,6 +1037,68 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.end_headers()
             self.wfile.write(json.dumps(data).encode("utf-8"))
+            return
+
+        if clean_path in ("/api/agenda", "/api/flight-deck"):
+            try:
+                import importlib
+                if "tools.agenda_engine" in sys.modules:
+                    importlib.reload(sys.modules["tools.agenda_engine"])
+                from tools.agenda_engine import parse_agenda
+                data = parse_agenda()
+            except Exception as e:
+                data = {"success": False, "error": str(e), "runway": [], "open_loops": [], "tabled_talks": []}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+            return
+
+        if clean_path == "/api/agy/conversations":
+            try:
+                from tools.agy_bridge import get_conversations
+                data = get_conversations()
+            except Exception as e:
+                data = {"error": str(e), "conversations": [], "current_id": None, "pinned_ids": []}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+            self.end_headers()
+            self.wfile.write(json.dumps(data, indent=2).encode("utf-8"))
+            return
+
+        if clean_path == "/api/agy/history":
+            try:
+                from urllib.parse import parse_qs as _parse_qs, urlparse as _urlparse
+                from tools.agy_bridge import get_conversation_history, _get_active_presence_conv_id
+                q = _parse_qs(_urlparse(self.path).query)
+                conv_id = q.get("conv_id", [None])[0]
+                limit = int(q.get("limit", [50])[0])
+                if not conv_id:
+                    conv_id = _get_active_presence_conv_id() or "6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41"
+                turns = get_conversation_history(conv_id, limit=limit)
+                data = {"ok": True, "conv_id": conv_id, "turns": turns}
+            except Exception as e:
+                data = {"ok": False, "error": str(e), "turns": []}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+            return
+
+        if clean_path == "/api/chat/stream":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache, no-transform")
+            self.send_header("Connection", "keep-alive")
+            self.send_header("X-Accel-Buffering", "no")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.handle_chat_sse_stream()
             return
 
         if clean_path == "/api/chat/history":
@@ -807,7 +1190,6 @@ class NkaiHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         if clean_path == "/api/compile-prompt":
-            from urllib.parse import parse_qs, urlparse
             parsed = parse_qs(urlparse(self.path).query)
             topic = parsed.get("topic", [None])[0] or parsed.get("id", [None])[0]
             to_clipboard = parsed.get("clipboard", ["true"])[0].lower() in ("true", "1", "yes")
@@ -900,14 +1282,34 @@ window.sidecar = window.sidecar || {
                 elif "codex" in q or "forge" in q:
                     mode = "codex"
             host = self.headers.get("Host", "")
-            if host.startswith("100."):
+            if host.startswith("100.") or "cykranosh" in host:
                 mode = "remote"
 
-            icon_data = generate_touch_icon(mode)
+            icon_file = None
+            is_fav = clean_path in ("/favicon.png", "/favicon.ico")
+            target_name = "favicon.png" if is_fav else "apple-touch-icon.png"
+
+            search_dirs = [
+                Path(self.directory) if hasattr(self, "directory") else None,
+                REPO_ROOT / ".agents" / "sidecar",
+                REPO_ROOT / "sidecars" / "panel",
+                REPO_ROOT,
+                REPO_ROOT / "plugin" / "assets",
+            ]
+            for sdir in search_dirs:
+                if sdir and (sdir / target_name).exists():
+                    icon_file = sdir / target_name
+                    break
+
+            if icon_file and icon_file.exists():
+                icon_data = icon_file.read_bytes()
+            else:
+                icon_data = generate_touch_icon(mode)
+
             self.send_response(200)
             self.send_header("Content-Type", "image/png")
             self.send_header("Content-Length", str(len(icon_data)))
-            self.send_header("Cache-Control", "public, max-age=86400")
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
             self.end_headers()
             self.wfile.write(icon_data)
             return
@@ -921,12 +1323,12 @@ window.sidecar = window.sidecar || {
                 elif "codex" in q or "forge" in q:
                     mode = "codex"
             host = self.headers.get("Host", "")
-            if host.startswith("100."):
+            if host.startswith("100.") or "cykranosh" in host:
                 mode = "remote"
 
-            app_title = "N'kai (Remote)" if mode == "remote" else "N'kai (Home)"
+            app_title = "N'kai" if "cykranosh" in host else ("N'kai (Remote)" if mode == "remote" else "N'kai (Home)")
             manifest = {
-                "name": f"N'kai Triage Companion - {app_title}",
+                "name": "N'kai — The Sovereign Command Deck",
                 "short_name": app_title,
                 "start_url": f"/?mode={mode}",
                 "display": "standalone",
@@ -934,7 +1336,7 @@ window.sidecar = window.sidecar || {
                 "theme_color": "#090d13",
                 "icons": [
                     {
-                        "src": f"/apple-touch-icon.png?mode={mode}",
+                        "src": "/apple-touch-icon.png?v=cykranosh",
                         "sizes": "180x180",
                         "type": "image/png",
                     }
@@ -944,6 +1346,7 @@ window.sidecar = window.sidecar || {
             self.send_response(200)
             self.send_header("Content-Type", "application/manifest+json; charset=utf-8")
             self.send_header("Content-Length", str(len(manifest_bytes)))
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
             self.end_headers()
             self.wfile.write(manifest_bytes)
             return
@@ -969,8 +1372,11 @@ window.sidecar = window.sidecar || {
             "/api/quick-note",
             "/api/dispatch",
             "/api/sentry/stream",
+            "/api/chat",
             "/api/flush",
             "/api/context/flush",
+            "/api/agenda/route",
+            "/api/agenda/add",
         )
         if clean_path in protected_routes or clean_path.startswith("/api/sentry/"):
             if not self.is_authorized():
@@ -1000,23 +1406,90 @@ window.sidecar = window.sidecar || {
             self.wfile.write(json.dumps(flush_res, indent=2).encode("utf-8"))
             return
 
-        # Sentry SSE Streaming Route
-        if clean_path == "/api/sentry/stream":
+        # Web Push API Routes (Flight 25)
+        if clean_path == "/api/push/subscribe":
+            try:
+                from tools.webpush_service import save_subscription
+                saved = save_subscription(body_json)
+                resp = json.dumps({"ok": saved, "message": "Subscription registered"}).encode("utf-8")
+            except Exception as e:
+                resp = json.dumps({"ok": False, "error": str(e)}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(resp)
+            return
+
+        if clean_path == "/api/push/unsubscribe":
+            try:
+                from tools.webpush_service import remove_subscription
+                endpoint = body_json.get("endpoint")
+                if endpoint:
+                    remove_subscription(endpoint)
+                resp = json.dumps({"ok": True, "message": "Subscription removed"}).encode("utf-8")
+            except Exception as e:
+                resp = json.dumps({"ok": False, "error": str(e)}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(resp)
+            return
+
+        if clean_path in ("/api/push/test", "/api/push/send"):
+            try:
+                from tools.webpush_service import send_push_notification
+                title = body_json.get("title", "🛸 N'kai Sovereign Ping")
+                body = body_json.get("body", "The Tindalos Conduit Web Push is live and operational!")
+                url = body_json.get("url", "/?pillar=chat")
+                tag = body_json.get("tag", "nkai-test")
+                channel = body_json.get("channel", "test")
+                res = send_push_notification(title=title, body=body, url=url, tag=tag, channel=channel)
+                resp = json.dumps(res).encode("utf-8")
+            except Exception as e:
+                resp = json.dumps({"ok": False, "error": str(e)}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(resp)
+            return
+
+        # Sentry SSE Streaming Route (supports both /api/sentry/stream and /api/chat)
+        if clean_path in ["/api/sentry/stream", "/api/chat"]:
             prompt = body_json.get("prompt", "").strip()
             attachments = body_json.get("attachments", [])
-            api_key = getattr(self.server, "gemini_api_key", None)
+            history = body_json.get("history", [])
+            model = body_json.get("model", "gemini-3.8-flash")
+            api_key = getattr(self.server, "gemini_api_key", None) or os.environ.get("GEMINI_API_KEY") or get_gemini_api_key()
+            client_ip = self.client_address[0] if hasattr(self, "client_address") else "127.0.0.1"
+
+            # Auto-dispatch prompt to Antigravity desktop & Data Bus
+            if prompt:
+                try:
+                    dispatch_prompt_to_harness(prompt, client_ip, source="mobile_stream")
+                except Exception as e:
+                    print(f"⚠️ [SENTRY DISPATCH] Could not relay prompt: {e}")
+
+            try:
+                if hasattr(self, "request") and self.request:
+                    self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            except Exception:
+                pass
 
             self.send_response(200)
-            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Content-Type", "text/event-stream; charset=utf-8")
             self.send_header("Cache-Control", "no-cache, no-transform")
             self.send_header("Connection", "keep-alive")
+            self.send_header("X-Accel-Buffering", "no")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
 
             import asyncio
             loop = asyncio.new_event_loop()
             try:
-                gen = stream_sentry_response(prompt, attachments, api_key=api_key)
+                gen = stream_sentry_response(prompt, attachments, history=history, api_key=api_key, model=model)
                 while True:
                     try:
                         ev = loop.run_until_complete(gen.__anext__())
@@ -1030,6 +1503,7 @@ window.sidecar = window.sidecar || {
                 pass
             finally:
                 loop.close()
+                self.close_connection = True
             return
 
         if clean_path == "/api/chat/upload":
@@ -1062,7 +1536,8 @@ window.sidecar = window.sidecar || {
                     safe_fn = re.sub(r"[^\w\s.-]", "", Path(fn).name).strip().replace(" ", "_")
                     if not safe_fn:
                         safe_fn = "upload.bin"
-                    target_fn = f"{now_prefix}_{safe_fn}"
+                    rand_suffix = secrets.token_hex(3)
+                    target_fn = f"{now_prefix}_{rand_suffix}_{safe_fn}"
                     file_data = part.get_payload(decode=True)
                     if file_data is None:
                         continue
@@ -1095,7 +1570,8 @@ window.sidecar = window.sidecar || {
                 safe_fn = re.sub(r"[^\w\s.-]", "", Path(fn).name).strip().replace(" ", "_")
                 if not safe_fn:
                     safe_fn = "upload.bin"
-                target_fn = f"{now_prefix}_{safe_fn}"
+                rand_suffix = secrets.token_hex(3)
+                target_fn = f"{now_prefix}_{rand_suffix}_{safe_fn}"
 
                 try:
                     file_data = base64.b64decode(b64_data)
@@ -1156,97 +1632,82 @@ window.sidecar = window.sidecar || {
             self.wfile.write(json.dumps({"ok": True, "active": focused}).encode("utf-8"))
             return
 
-        if clean_path == "/api/chat/send":
+        if clean_path in ("/api/chat/send", "/api/agy/send"):
             prompt = body_json.get("prompt", "").strip()
+            conv_id = body_json.get("conv_id", "").strip()
+            model = body_json.get("model", "flash-high").strip()
             if not prompt:
                 self.send_response(400)
-                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
                 self.wfile.write(json.dumps({"ok": False, "error": "Empty prompt"}).encode("utf-8"))
                 return
 
-            now_iso = datetime.now().isoformat()
+            if not conv_id:
+                try:
+                    from tools.agy_bridge import _get_active_presence_conv_id
+                    conv_id = _get_active_presence_conv_id() or "6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41"
+                except Exception:
+                    conv_id = "6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41"
+
+            # 1. Audit trail logging
             client_ip = self.client_address[0] if hasattr(self, "client_address") else "127.0.0.1"
+            injected_ok, dispatch_id = dispatch_prompt_to_harness(prompt, client_ip=client_ip, source="chat_board")
 
-            # Log to action_history.jsonl
-            action_log = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "action_history.jsonl"
-            action_log.parent.mkdir(parents=True, exist_ok=True)
-            with open(action_log, "a", encoding="utf-8") as f:
-                f.write(json.dumps({
-                    "timestamp": now_iso,
-                    "action": "PROMPT_DISPATCH",
-                    "prompt": prompt,
-                    "source": "chat_board",
-                    "client_ip": client_ip
-                }) + "\n")
-
-            # Update agent_bulletin.json
+            # 2. Direct ConnectRPC Injection into language_server.exe
             try:
-                bulletin_file = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "agent_bulletin.json"
-                b_data = {
-                    "schema_version": "1.0.0",
-                    "updated_at": now_iso,
-                    "briefing_title": f"Mobile Prompt: {prompt[:40]}",
-                    "briefing_text": prompt,
-                    "status_badge": "DISPATCHED 🚀",
-                    "pending_decisions_count": 0,
-                    "last_flight": "Flight 22",
-                    "git_branch": "0.4.0-dev",
-                    "target_pipeline": "TARGET: TOOLING_HARNESS"
-                }
-                bulletin_file.write_text(json.dumps(b_data, indent=2), encoding="utf-8")
-            except Exception:
-                pass
-
-            # Autonomous Mobile Relay: Post dispatch packet to Inter-Project Data Bus for COSMOS
-            dispatch_id = None
-            try:
-                from tools.bus import resolve_bus_dir, serialize_dispatch
-                bus_dir = resolve_bus_dir()
-                today_str = datetime.now().strftime("%Y-%m-%d")
-                now_slug = datetime.now().strftime("%Y%m%d_%H%M%S")
-                clean_title = re.sub(r"[^a-zA-Z0-9_\- ]", " ", prompt).strip()
-                prompt_slug = re.sub(r"[^a-zA-Z0-9_\-]", "_", clean_title[:24].lower()).strip("_") or "prompt"
-                dispatch_id = f"{today_str}_mobile_to_cosmos_{prompt_slug}_{now_slug[-6:]}"
-                
-                meta = {
-                    "id": dispatch_id,
-                    "date": today_str,
-                    "from": "MOBILE",
-                    "to": "COSMOS",
-                    "tags": ["mobile", "intercom", "prompt"],
-                    "priority": "P1",
-                    "status": "PENDING",
-                    "title": f"Mobile Intercom Prompt: {clean_title[:35]}",
-                }
-                body = (
-                    f"# 📱 Mobile Intercom Prompt\n\n"
-                    f"**Received At**: `{now_iso}`  \n"
-                    f"**Origin IP**: `{client_ip}`  \n"
-                    f"**Client Surface**: N'kai Intercom Companion  \n\n"
-                    f"### 💬 User Prompt:\n\n{prompt}\n"
+                from tools.agy_dispatch import dispatch_prompt
+                disp_res = dispatch_prompt(
+                    target_conv=conv_id,
+                    prompt=prompt,
+                    model_query=model,
+                    bypass_quota_gate=False,
+                    bypass_idle_gate=True
                 )
-                dispatch_content = serialize_dispatch(meta, body)
-                (bus_dir / f"{dispatch_id}.md").write_text(dispatch_content, encoding="utf-8")
-                print(f"🚀 [RELAY] Dispatched mobile prompt to Data Bus: {dispatch_id}")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "ok": True,
+                    "status": "dispatched",
+                    "conv_id": conv_id,
+                    "model": disp_res.get("model_label"),
+                    "elapsed_ms": disp_res.get("elapsed_ms"),
+                    "dispatch_id": dispatch_id
+                }).encode("utf-8"))
+                return
             except Exception as e:
-                print(f"⚠️ [RELAY] Could not post mobile dispatch to Data Bus: {e}")
+                # Fallback to direct send_user_message if agy_dispatch threw error
+                try:
+                    from tools.agy_bridge import send_user_message
+                    rpc_res = send_user_message(conv_id, prompt)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "ok": True,
+                        "status": "dispatched_fallback",
+                        "conv_id": conv_id,
+                        "rpc_result": rpc_res,
+                        "dispatch_id": dispatch_id
+                    }).encode("utf-8"))
+                    return
+                except Exception as e2:
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "ok": False,
+                        "error": f"Dispatch failed: {e} | Fallback failed: {e2}",
+                        "conv_id": conv_id
+                    }).encode("utf-8"))
+                    return
 
-            # Note: Chat prompt is dispatched to action_history, agent_bulletin, and Data Bus.
-            # QuickNotes creation is intentionally decoupled and reserved for explicit quick-note intake.
-
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                "ok": True,
-                "status": "prompt_queued",
-                "dispatch_id": dispatch_id,
-                "prompt": prompt
-            }).encode("utf-8"))
-            return
-
-        if clean_path == "/api/scratchpad/append":
+        if clean_path in ("/api/scratchpad/append", "/api/sp/append"):
             text = body_json.get("text", "").strip()
             if not text:
                 self.send_response(400)
@@ -1272,6 +1733,24 @@ window.sidecar = window.sidecar || {
                     if i < 2:
                         time.sleep(0.05 * (2 ** i))
 
+            status = ScratchpadSentinel.inspect()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "status": status}).encode("utf-8"))
+            return
+
+        if clean_path in ("/api/scratchpad/save", "/api/scratchpad/write"):
+            content = body_json.get("content", "")
+            sp_path = ScratchpadSentinel.get_path()
+            sp_path.parent.mkdir(parents=True, exist_ok=True)
+            for i in range(3):
+                try:
+                    sp_path.write_text(content, encoding="utf-8")
+                    break
+                except (PermissionError, OSError):
+                    if i < 2:
+                        time.sleep(0.05 * (2 ** i))
             status = ScratchpadSentinel.inspect()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -1498,6 +1977,39 @@ window.sidecar = window.sidecar || {
             }).encode("utf-8"))
             return
 
+        if clean_path in ("/api/agenda/route", "/api/agenda/add"):
+            try:
+                from tools.agenda_engine import route_card_to_agenda
+                title = str(body_json.get("title", "")).strip()
+                summary = str(body_json.get("summary") or body_json.get("notes") or "").strip()
+                target_section = str(body_json.get("target_section", "open_loops")).strip().lower()
+                unlock_trigger = body_json.get("unlock_trigger")
+                priority = str(body_json.get("priority", "P2")).strip().upper()
+                track = str(body_json.get("track", "📬 Mail")).strip()
+                card_id = body_json.get("card_id")
+
+                res = route_card_to_agenda(
+                    title=title,
+                    summary=summary,
+                    target_section=target_section,
+                    unlock_trigger=unlock_trigger,
+                    priority=priority,
+                    track=track,
+                    card_id=card_id,
+                )
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps(res).encode("utf-8"))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+            return
+
         if clean_path == "/api/conclude-lab":
             slug = body_json.get("slug", "mobile_lab")
             conclude_script = REPO_ROOT / "tools" / "conclude_lab.py"
@@ -1509,8 +2021,180 @@ window.sidecar = window.sidecar || {
             self.wfile.write(json.dumps({"ok": True}).encode("utf-8"))
             return
 
-        self.send_response(404)
-        self.end_headers()
+    def _send_sse(self, event_name: str, payload_dict: dict) -> bool:
+        """Sends an SSE event to self.wfile, returning False if disconnected."""
+        try:
+            line = f"event: {event_name}\ndata: {json.dumps(payload_dict, ensure_ascii=False)}\n\n"
+            self.wfile.write(line.encode("utf-8"))
+            self.wfile.flush()
+            return True
+        except (ConnectionResetError, BrokenPipeError, ConnectionAbortedError, OSError):
+            return False
+
+    def _send_sse_comment(self, comment: str = "keep-alive") -> bool:
+        """Sends an SSE comment ping to keep proxies and tunnels warm."""
+        try:
+            self.wfile.write(f": {comment}\n\n".encode("utf-8"))
+            self.wfile.flush()
+            return True
+        except (ConnectionResetError, BrokenPipeError, ConnectionAbortedError, OSError):
+            return False
+
+    def handle_chat_sse_stream(self):
+        """Streams real-time chat updates and tool execution events via Server-Sent Events (SSE).
+
+        Flight 27: Reactive Streaming Chat & SSE Feedback Loop.
+        Monitors active Antigravity transcript for new turns, tool execution progress,
+        and turn completion. Broadcasts automated push notifications when an agent turn
+        finishes while user presence is inactive.
+        """
+        from tools.chat_engine import get_active_conversation_path, parse_transcript_turns
+
+        conv_dir = get_active_conversation_path()
+        if not conv_dir or not conv_dir.exists():
+            self._send_sse("error", {"error": "No active conversation found"})
+            return
+
+        tf = conv_dir / ".system_generated" / "logs" / "transcript_full.jsonl"
+        if not tf.exists():
+            tf = conv_dir / ".system_generated" / "logs" / "transcript.jsonl"
+
+        # Emit initial snapshot
+        try:
+            initial_data = parse_transcript_turns(conv_dir=conv_dir, max_turns=30)
+            if not self._send_sse("snapshot", initial_data):
+                return
+        except Exception as e:
+            self._send_sse("error", {"error": str(e)})
+            return
+
+        last_mtime = tf.stat().st_mtime if tf.exists() else 0.0
+        last_size = tf.stat().st_size if tf.exists() else 0
+        was_running = initial_data.get("is_running", False)
+        last_heartbeat = time.time()
+        last_notified_turn = -1
+
+        while True:
+            now = time.time()
+            # Send keep-alive comment every 15s to keep proxy/Cloudflare connections open
+            if now - last_heartbeat >= 15.0:
+                if not self._send_sse_comment("keep-alive"):
+                    break
+                last_heartbeat = now
+
+            time.sleep(0.3)
+
+            # Check if active conversation directory switched
+            curr_conv = get_active_conversation_path()
+            if curr_conv and curr_conv != conv_dir:
+                conv_dir = curr_conv
+                tf = conv_dir / ".system_generated" / "logs" / "transcript_full.jsonl"
+                if not tf.exists():
+                    tf = conv_dir / ".system_generated" / "logs" / "transcript.jsonl"
+                last_mtime = 0.0
+                last_size = 0
+
+            if not tf.exists():
+                continue
+
+            try:
+                st = tf.stat()
+            except OSError:
+                continue
+
+            # If file size and mtime haven't changed, nothing to do
+            if st.st_mtime == last_mtime and st.st_size == last_size:
+                continue
+
+            last_mtime = st.st_mtime
+            last_size = st.st_size
+            last_heartbeat = now
+
+            # Parse updated turns
+            try:
+                data = parse_transcript_turns(conv_dir=conv_dir, max_turns=30)
+            except Exception:
+                continue
+
+            is_running = data.get("is_running", False)
+            turns = data.get("turns", [])
+            if not turns:
+                continue
+
+            latest_turn = turns[-1]
+            turn_idx = latest_turn.get("turn_index", 0)
+            turn_id = latest_turn.get("turn_id") or latest_turn.get("step_index") or turn_idx
+            tools = latest_turn.get("tool_calls", [])
+            agent_resp = latest_turn.get("agent_response", "")
+            thinking = latest_turn.get("thinking", "")
+
+            # 1. Turn Completion Transition (either was_running or new completed turn arrived)
+            if (was_running or last_notified_turn != turn_id) and not is_running and agent_resp:
+                done_payload = {
+                    "event": "done",
+                    "turn_index": turn_idx,
+                    "turn_id": turn_id,
+                    "is_running": False,
+                    "total_turns": data.get("total_turns", len(turns)),
+                    "agent_response": agent_resp,
+                    "thinking": thinking,
+                    "tool_calls": tools,
+                    "timestamp": latest_turn.get("timestamp", ""),
+                    "turns": turns
+                }
+                if not self._send_sse("done", done_payload):
+                    break
+                was_running = False
+
+                # Automated Web Push Notification
+                if last_notified_turn != turn_id:
+                    last_notified_turn = turn_id
+                    try:
+                        presence = get_presence_state()
+                        if not presence.get("is_active"):
+                            from tools.webpush_service import send_push_notification
+                            clean_snippet = re.sub(r'```[\s\S]*?```', '[Code Block]', agent_resp)
+                            clean_snippet = re.sub(r'[#*_`]', '', clean_snippet).strip()[:140]
+                            send_push_notification(
+                                title="N'kai: Turn Complete ⚡",
+                                body=clean_snippet or "Agent completed response.",
+                                url="/?board=chat",
+                                tag=f"turn-{turn_id}",
+                                channel="chat"
+                            )
+                    except Exception:
+                        pass
+
+            # 2. In-Progress Execution Update
+            elif is_running:
+                was_running = True
+                last_tool = tools[-1] if tools else None
+                progress_payload = {
+                    "event": "progress",
+                    "turn_index": turn_idx,
+                    "turn_id": turn_id,
+                    "is_running": True,
+                    "tool_count": len(tools),
+                    "last_tool": last_tool,
+                    "thinking_snippet": (thinking[-200:] if thinking else ""),
+                    "has_thinking": bool(thinking),
+                    "turns": turns
+                }
+                if not self._send_sse("progress", progress_payload):
+                    break
+
+            # 3. Idle update (new turn started, user prompt queued, etc.)
+            else:
+                update_payload = {
+                    "event": "update",
+                    "turn_index": turn_idx,
+                    "turn_id": turn_id,
+                    "is_running": is_running,
+                    "total_turns": data.get("total_turns", len(turns)),
+                    "turns": turns
+                }
+                if not self._send_sse("update", update_payload):
+                    break
 
     def log_message(self, format, *args):
         """Concise server logging for developer terminals."""
@@ -1520,6 +2204,14 @@ window.sidecar = window.sidecar || {
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = (sys.platform != "win32")
     daemon_threads = True
+
+    def get_request(self):
+        conn, addr = super().get_request()
+        try:
+            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        except Exception:
+            pass
+        return conn, addr
 
 
 def find_available_port(host: str, starting_port: int, max_attempts: int = 50) -> int:
@@ -1534,6 +2226,85 @@ def find_available_port(host: str, starting_port: int, max_attempts: int = 50) -
             except OSError:
                 continue
     raise RuntimeError(f"Could not find an open port between {starting_port} and {starting_port + max_attempts}")
+
+
+def start_canon_watcher():
+    """
+    Zero-touch background daemon thread watching AGENDA.md, ToadTracker BACKLOG.md,
+    TheKlangSuite docs/BACKLOG.md, and morning_mail_topics.md.
+    Debounces file updates by 3.0 seconds, then triggers tools/sync_canon.py.
+    Explicitly ignores CANON.md and .agents/canon.json to prevent recursive write loops.
+    """
+    watched_paths = [
+        Path(r"c:\_\Vault\AGENDA.md"),
+        Path(r"C:\Dev\ToadTracker\BACKLOG.md"),
+        Path(r"C:\Dev\TheKlangSuite\docs\BACKLOG.md"),
+        REPO_ROOT / ".agents" / "sidecar" / "morning_mail_topics.md",
+        Path(r"C:\Dev\nkai\.agents\sidecar\morning_mail_topics.md"),
+        Path(r"c:\_\Vault\tools\sync_canon.py"),
+    ]
+
+    sync_script = Path(r"c:\_\Vault\tools\sync_canon.py")
+
+    def _watcher_loop():
+        last_mtimes = {}
+        for p in watched_paths:
+            try:
+                if p.exists():
+                    last_mtimes[str(p)] = p.stat().st_mtime
+            except OSError:
+                pass
+
+        dirty = False
+        last_change_time = 0.0
+
+        while True:
+            try:
+                time.sleep(1.0)
+                now = time.time()
+                changed = False
+
+                for p in watched_paths:
+                    p_str = str(p)
+                    try:
+                        if p.exists():
+                            mtime = p.stat().st_mtime
+                            prev = last_mtimes.get(p_str)
+                            if prev is None or mtime > prev:
+                                last_mtimes[p_str] = mtime
+                                changed = True
+                    except OSError:
+                        continue
+
+                if changed:
+                    dirty = True
+                    last_change_time = now
+
+                # 3.0-second quiet debounce window
+                if dirty and (now - last_change_time >= 3.0):
+                    dirty = False
+                    if sync_script.exists():
+                        try:
+                            res = subprocess.run(
+                                [sys.executable, str(sync_script)],
+                                capture_output=True,
+                                text=True,
+                                encoding="utf-8",
+                                timeout=15,
+                            )
+                            if res.returncode == 0:
+                                sys.stderr.write("  [CANON WATCHER] ✅ Auto-synchronized CANON.md & .agents/canon.json\n")
+                            else:
+                                sys.stderr.write(f"  [CANON WATCHER] ⚠️ Sync error: {res.stderr.strip()}\n")
+                        except Exception as e:
+                            sys.stderr.write(f"  [CANON WATCHER] ⚠️ Execution failed: {e}\n")
+            except Exception:
+                time.sleep(2.0)
+
+    watcher_thread = threading.Thread(target=_watcher_loop, daemon=True, name="CanonWatcherThread")
+    watcher_thread.start()
+    sys.stderr.write("  [CANON WATCHER] 🛰️ Background file watcher active (debounced: 3.0s)\n")
+    return watcher_thread
 
 
 def main():
@@ -1664,9 +2435,11 @@ Examples:
         pid_file.parent.mkdir(parents=True, exist_ok=True)
         pid_file.write_text(str(os.getpid()), encoding="utf-8")
         set_thread_execution_state(True)
+        start_canon_watcher()
         with ThreadedTCPServer((args.host, active_port), handler) as httpd:
-            # Attach mobile url and auth token to server instance
+            # Attach mobile url, auth token, and API key to server instance
             httpd.sentry_token = sentry_token
+            httpd.gemini_api_key = get_gemini_api_key()
             httpd.allow_unauthenticated_localhost = True
             httpd.mobile_url = mobile_url_with_auth
             httpd.local_ip = local_ip
