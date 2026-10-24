@@ -385,8 +385,10 @@ def send_user_message(conv_id: str, prompt: str, model_id: Optional[str] = None)
     """Dispatches a user prompt to language_server.exe for the given conversation."""
     payload: Dict[str, Any] = {
         "cascadeId": conv_id,
+        "messageText": prompt,
         "items": [
             {
+                "text": prompt,
                 "chunk": {
                     "case": "text",
                     "value": prompt
