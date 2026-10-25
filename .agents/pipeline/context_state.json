@@ -1,25 +1,25 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "7ea884a",
+    "commit": "736dd0d",
     "is_clean": false,
-    "dirty_count": 117,
+    "dirty_count": 124,
     "staged": 1,
-    "modified": 55,
-    "untracked": 62,
+    "modified": 60,
+    "untracked": 63,
     "recent_commits": [
-      "7ea884a chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "27e08a5 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "e2ca436 chore(memory): execute scheduled nightly black box memory flush and state integrity audit"
+      "736dd0d feat(canon): integrate ShardEngine.h and legacy_aliases.h from The Klang Canon SSoT",
+      "3130149 feat(hyperstrike): deploy Milestone M1 C++20 HyperStrike ([HS] / 0x78) 4D hypercube percussion engine and canonical spec",
+      "7ec57b5 feat(skills): upgrade default /plan to Dual-Cycle 4-Pass Chainsaw Crucible Engine"
     ]
   },
   "plan": {
     "has_plan": true,
     "is_idle": true,
-    "title": "Plan: rj-46 \u2014 Cross-Ecosystem Unfinished Business Audit",
-    "target": "TOOLING_HARNESS",
-    "status": "COMPLETED",
-    "progress": "7/7",
+    "title": "\ud83e\ude9a Dual-Cycle Chainsaw Plan: AGY IDE Migration & The N'kai Sovereign Upgrades",
+    "target": "FACTORY_FLOOR",
+    "status": "UNKNOWN",
+    "progress": "0/0",
     "active_phase": "Idle / Standby"
   },
   "communique": {

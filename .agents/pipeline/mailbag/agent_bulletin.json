@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-10-24 04:06:00",
-  "briefing_title": "Plan: rj-46 \u2014 Cross-Ecosystem Unfinished Business Audit",
+  "updated_at": "2026-10-25 04:06:32",
+  "briefing_title": "\ud83e\ude9a Dual-Cycle Chainsaw Plan: AGY IDE Migration & The N'kai Sovereign Upgrades",
   "briefing_text": "Scheduled 4 AM Black Box Memory Flush and State Integrity Audit",
   "status_badge": "IDLE \ud83d\udfe2",
   "pending_decisions_count": 0,
-  "last_flight": "Plan: rj-46 \u2014 Cross-Ecosystem Unfinished Business Audit",
+  "last_flight": "\ud83e\ude9a Dual-Cycle Chainsaw Plan: AGY IDE Migration & The N'kai Sovereign Upgrades",
   "git_branch": "0.4.0-dev",
-  "target_pipeline": "TOOLING_HARNESS"
+  "target_pipeline": "FACTORY_FLOOR"
 }
