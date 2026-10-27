@@ -1,0 +1,3805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
+  <meta name="theme-color" content="#08090d"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="N'kai"/>
+  <title>🌌 N'kai Sovereign Cockpit</title>
+  
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+  <script src="/marked.min.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #08090d;
+      --bg-surface: #0e1118;
+      --bg-card: #131822;
+      --bg-hover: #1a2130;
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-focus: #38bdf8;
+      --text-main: #ededed;
+      --text-muted: #7d8590;
+      --text-dim: #484f58;
+      
+      --accent-cyan: #38bdf8;
+      --accent-emerald: #34d399;
+      --accent-amber: #f59e0b;
+      --accent-crimson: #ef4444;
+      --accent-amethyst: #8b5cf6;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+      
+      --header-height: 48px;
+      --dock-height: 60px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --app-height: 100dvh;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      height: var(--app-height);
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Command Header */
+    .app-header {
+      height: calc(var(--header-height) + var(--safe-top));
+      padding-top: var(--safe-top);
+      background: rgba(8, 9, 13, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-left: 16px;
+      padding-right: 16px;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .server-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-emerald);
+      background: rgba(52, 211, 153, 0.08);
+      padding: 2px 7px;
+      border-radius: 12px;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 6px var(--accent-emerald);
+    }
+
+    /* Desktop Navigation Tabs (Center) */
+    .pillar-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(14, 17, 24, 0.7);
+      padding: 3px;
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .pillar-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .pillar-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .pillar-btn.active {
+      background: #1e2638;
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .key-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1px 4px;
+      border-radius: 4px;
+      margin-left: 2px;
+    }
+
+    .pillar-btn.active .key-badge {
+      color: var(--accent-cyan);
+    }
+
+    /* Header Tools */
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tool-icon-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .tool-icon-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Active Viewport Canvas */
+    .viewport-canvas {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      width: 100vw;
+      background: var(--bg-base);
+    }
+
+    .pillar-view {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior-y: contain;
+      padding: 20px 24px;
+      display: none;
+      user-select: text;
+    }
+
+    .pillar-view:not(.active) {
+      display: none !important;
+    }
+
+    .pillar-view.active {
+      display: block;
+    }
+
+    /* View Transitions */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 180ms;
+      animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Mobile Bottom Navigation Dock */
+    .mobile-dock {
+      display: none;
+      height: calc(var(--dock-height) + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(14, 17, 24, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-subtle);
+      align-items: center;
+      justify-content: space-around;
+      z-index: 100;
+      flex-shrink: 0;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mobile-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .mobile-tab-btn .tab-icon {
+      font-size: 18px;
+    }
+
+    .mobile-tab-btn.active {
+      color: var(--accent-cyan);
+    }
+
+    /* When software keyboard is active on mobile */
+    body.keyboard-open .mobile-dock {
+      transform: translateY(100%);
+      pointer-events: none;
+    }
+
+    /* PILLAR 1: TELEMETRY VIEW STYLES */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .zen-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.15s;
+    }
+
+    .zen-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .meter-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .meter-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .meter-track {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .fill-emerald { background: var(--accent-emerald); }
+    .fill-amber { background: var(--accent-amber); }
+    .fill-crimson { background: var(--accent-crimson); }
+    .fill-cyan { background: var(--accent-cyan); }
+    .fill-amethyst { background: var(--accent-amethyst); }
+
+    /* Stealth Claude Container */
+    #claude-card {
+      transition: opacity 0.3s;
+    }
+    #claude-card.stealth {
+      display: none;
+    }
+
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 12px;
+    }
+    .telemetry-row:last-child {
+      border-bottom: none;
+    }
+    .telemetry-key {
+      color: var(--text-muted);
+    }
+    .telemetry-val {
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+
+    /* PILLAR 2: CHAT VIEW STYLES */
+    #view-chat.active {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior-y: contain;
+      padding: 20px 20px 80px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      max-width: 90%;
+      width: 100%;
+      margin: 4px 0 8px 0;
+    }
+
+    .chat-msg.assistant {
+      align-self: flex-start;
+      width: 100%;
+      max-width: 100%;
+      margin: 4px 0 16px 0;
+    }
+
+    .msg-sender {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .msg-bubble {
+      padding: 12px 18px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.55;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .chat-msg.user .msg-bubble {
+      background: #27272a;
+      color: #f4f4f5;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .chat-msg.assistant .msg-bubble {
+      background: transparent;
+      color: #f4f4f5;
+      border: none;
+      padding: 0 2px;
+      line-height: 1.65;
+    }
+
+    /* 1:1 Base Antigravity Subagent Disclosure */
+    .agy-subagent-dispatch {
+      margin: 8px 0;
+      border-left: 2px solid rgba(255, 255, 255, 0.12);
+      padding-left: 12px;
+    }
+    .agy-subagent-dispatch[open] {
+      border-left-color: #a855f7;
+    }
+    .agy-subagent-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      list-style: none;
+      font-size: 12.5px;
+      color: #d4d4d8;
+      user-select: none;
+      padding: 4px 0;
+    }
+    .agy-subagent-summary::-webkit-details-marker { display: none; }
+    .agy-subagent-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .agy-subagent-meta strong {
+      color: #f4f4f5;
+      font-weight: 600;
+    }
+    .agy-type-tag {
+      color: #a1a1aa;
+      font-size: 11px;
+    }
+    .agy-subagent-content {
+      margin-top: 6px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #a1a1aa;
+      font-family: var(--font-mono);
+      line-height: 1.5;
+    }
+
+    /* 1:1 Base Antigravity Thinking Drawer */
+    .agy-thinking-drawer {
+      margin: 6px 0 10px 0;
+      user-select: none;
+    }
+    .agy-thinking-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      list-style: none;
+      color: #a1a1aa;
+      font-size: 13px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.15s ease;
+    }
+    .agy-thinking-summary:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: #f4f4f5;
+    }
+    .agy-thinking-summary::-webkit-details-marker { display: none; }
+    .agy-thinking-chevron {
+      color: #71717a;
+      font-size: 12px;
+      transition: transform 0.15s ease;
+    }
+    .agy-thinking-drawer[open] .agy-thinking-chevron {
+      transform: rotate(90deg);
+      color: #a855f7;
+    }
+    .agy-thinking-body {
+      margin-top: 8px;
+      padding: 12px 16px;
+      border-left: 2px solid rgba(255, 255, 255, 0.15);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: #a1a1aa;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 0 8px 8px 0;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    /* 1:1 Base Antigravity Tool Rows (Vertical Stack with Chevrons) */
+    .agy-tool-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 6px 0 10px 0;
+      width: 100%;
+    }
+    .agy-tool-row {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      transition: all 0.15s ease;
+      overflow: hidden;
+    }
+    .agy-tool-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    .agy-tool-row[open] {
+      background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(168, 85, 247, 0.25);
+    }
+    .agy-tool-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 12px;
+      cursor: pointer;
+      list-style: none;
+      font-size: 13px;
+      color: #e4e4e7;
+      user-select: none;
+    }
+    .agy-tool-summary::-webkit-details-marker { display: none; }
+    .agy-tool-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .agy-tool-action {
+      color: #a1a1aa;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .agy-tool-target {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: #f4f4f5;
+    }
+    .agy-diff-stats {
+      display: inline-flex;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 4px;
+    }
+    .agy-diff-add { color: #4ade80; }
+    .agy-diff-del { color: #f87171; }
+    .agy-line-range {
+      color: #a1a1aa;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .agy-tool-chevron {
+      color: #71717a;
+      font-size: 13px;
+      transition: transform 0.15s ease;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+    .agy-tool-row[open] .agy-tool-chevron {
+      transform: rotate(90deg);
+      color: #a855f7;
+    }
+    .agy-tool-output {
+      padding: 10px 14px;
+      background: #090c12;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.55;
+      color: #d4d4d8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .agy-status-working {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #a1a1aa;
+      font-size: 13px;
+      font-weight: 500;
+      margin: 8px 0;
+      animation: agy-working-pulse 2s infinite ease-in-out;
+    }
+    @keyframes agy-working-pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1.0; }
+    }
+
+    /* Floating Resume Auto-Scroll Pill */
+    .resume-scroll-pill {
+      position: absolute;
+      bottom: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e24;
+      border: 1px solid #a855f7;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      gap: 6px;
+      z-index: 50;
+      animation: floatUp 0.15s ease-out;
+    }
+    .resume-scroll-pill.show {
+      display: flex;
+    }
+
+    /* Staged Media Container & Thumbnails (1:1 Base Antigravity) */
+    .staged-media-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 4px 4px 8px 4px;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 4px;
+    }
+    .staged-media-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 4px 8px 4px 4px;
+      max-width: 240px;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+    .staged-media-chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .staged-media-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .staged-media-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 11px;
+    }
+    .staged-media-name {
+      color: #f4f4f5;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 130px;
+    }
+    .staged-media-size {
+      color: #71717a;
+      font-size: 10px;
+    }
+    .staged-media-remove {
+      background: transparent;
+      border: none;
+      color: #a1a1aa;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .staged-media-remove:hover {
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.15);
+    }
+    .composer-card-dock.drag-over {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+      background: #23232c;
+    }
+
+    /* 1:1 Base Antigravity Floating Composer Card Dock */
+    .composer-card-dock {
+      background: #1e1e24;
+      border: 1px solid #2e2e38;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      margin: 0 16px 14px 16px;
+      padding: 12px 14px 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      z-index: 40;
+    }
+    .composer-card-dock:focus-within {
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 0 4px 28px rgba(168, 85, 247, 0.15);
+    }
+    .composer-textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #f4f4f5;
+      font-family: var(--font-sans);
+      font-size: 14.5px;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      min-height: 38px;
+      max-height: 180px;
+      padding: 2px 4px;
+    }
+    .composer-textarea::placeholder {
+      color: #71717a;
+    }
+    .composer-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 4px;
+    }
+    .composer-controls-left, .composer-controls-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .composer-icon-btn {
+      background: transparent;
+      border: none;
+      color: #a1a1aa;
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .composer-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f4f4f5;
+    }
+    .composer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #d4d4d8;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .composer-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+    .pill-caret {
+      font-size: 10px;
+      color: #71717a;
+    }
+
+    /* Purple Circular Send Button */
+    .send-btn, #btn-chat-send {
+      background: #a855f7 !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 50% !important;
+      width: 32px !important;
+      height: 32px !important;
+      box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      flex-shrink: 0 !important;
+      font-size: 14px !important;
+      transition: transform 0.1s ease, background 0.15s ease !important;
+    }
+    .send-btn:hover {
+      background: #9333ea !important;
+      transform: scale(1.05) !important;
+    }
+    .send-btn:active {
+      transform: scale(0.96) !important;
+    }
+    .send-btn.stop {
+      background: #f87171 !important;
+      animation: agy-pulse-stop 1.2s infinite;
+    }
+    @keyframes agy-pulse-stop {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    /* Markdown Code Blocks & Copy Button */
+    pre {
+      background: #090c12;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      position: relative;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    pre code {
+      font-family: inherit;
+    }
+
+    .code-copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .code-copy-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    /* PILLAR 3: SYNTH NEWS STYLES */
+    .news-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: #fff;
+      padding: 8px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .filter-chip {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .filter-chip.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+
+    .news-cards-stream {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .news-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .news-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .news-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.35;
+    }
+
+    .news-card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .news-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .tag-chip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* PILLAR 4 & 5: AGENDA & MAIL STYLES */
+    .agenda-stream, .mail-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .flight-banner {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(52, 211, 153, 0.05));
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .action-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-triage {
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-triage:hover { opacity: 0.85; }
+    .btn-promote { background: var(--accent-emerald); color: #08090d; }
+    .btn-table { background: var(--accent-amber); color: #08090d; }
+    .btn-grave { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 12px;
+    }
+
+    .empty-icon {
+      font-size: 40px;
+      opacity: 0.6;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--dock-height) + 16px + var(--safe-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(40px);
+      background: #182232;
+      border: 1px solid var(--accent-cyan);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 2000;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 768px) {
+      .pillar-tabs {
+        display: none;
+      }
+      .mobile-dock {
+        display: flex;
+      }
+      .viewport-canvas {
+        padding-bottom: var(--dock-height);
+      }
+      .pillar-view {
+        padding: 16px;
+      }
+      .composer-dock {
+        padding-bottom: calc(var(--dock-height) + 12px);
+      }
+      body.keyboard-open .composer-dock {
+        padding-bottom: 12px;
+      }
+    }
+
+    /* ClockTab Deck Styles */
+    .clocktab-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 1200px;
+      margin: 20px auto 30px auto;
+      width: 100%;
+    }
+
+    .clocktab-main-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .clocktab-controls-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .clocktab-mode-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mode-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .mode-pill.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.35);
+      color: var(--accent-cyan);
+    }
+
+    .clocktab-quota-resets {
+      display: flex;
+      gap: 8px;
+    }
+
+    .quota-pill {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      padding: 3px 9px;
+      border-radius: 12px;
+      color: var(--text-muted);
+    }
+
+    .clocktab-time-display {
+      font-family: var(--font-mono);
+      font-size: clamp(48px, 8.5vw, 92px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+      margin: 6px 0 2px 0;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      text-shadow: 0 0 30px rgba(56, 189, 248, 0.18);
+    }
+
+    .clock-colon {
+      opacity: 0.9;
+      animation: pulseColon 1s infinite alternate;
+      color: var(--accent-cyan);
+      margin: 0 1px;
+    }
+
+    @keyframes pulseColon {
+      0% { opacity: 0.3; }
+      100% { opacity: 1.0; }
+    }
+
+    .clock-ampm-digit {
+      font-size: clamp(14px, 2.2vw, 24px);
+      color: var(--text-dim);
+      margin-left: 8px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .clocktab-date-display {
+      font-size: clamp(13px, 1.8vw, 16px);
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+      margin-bottom: 20px;
+    }
+
+    /* Pomodoro Focus Sprint Bar */
+    .clocktab-sprint-bar {
+      width: 100%;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sprint-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .sprint-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sprint-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .sprint-btn.reset {
+      color: var(--text-dim);
+    }
+
+    .sprint-btn.active {
+      background: rgba(52, 211, 153, 0.15);
+      border-color: rgba(52, 211, 153, 0.4);
+      color: var(--accent-emerald);
+    }
+
+    .sprint-timer-display {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .sprint-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--accent-emerald);
+      letter-spacing: 0.08em;
+    }
+
+    .sprint-digits {
+      font-size: 28px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .sprint-progress-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .sprint-progress-fill {
+      height: 100%;
+      background: var(--accent-emerald);
+      transition: width 1s linear;
+    }
+
+    /* Ambient Studio Scratchpad Card */
+    .clocktab-scratchpad-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .scratchpad-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .scratchpad-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scratchpad-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: normal;
+      margin-left: 6px;
+    }
+
+    .scratchpad-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scratchpad-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    .push-sp-btn {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent-cyan);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .push-sp-btn:hover {
+      background: rgba(56, 189, 248, 0.22);
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+
+    .pull-sp-btn {
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--accent-emerald);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .pull-sp-btn:hover {
+      background: rgba(52, 211, 153, 0.22);
+      border-color: rgba(52, 211, 153, 0.5);
+    }
+
+    .governor-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 3px 8px;
+    }
+
+    .governor-label {
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .governor-track {
+      width: 48px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .governor-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-emerald);
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .governor-val {
+      color: var(--text-main);
+      font-size: 10px;
+    }
+
+    .split-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .split-toggle-btn:hover {
+      color: #fff;
+      border-color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    /* Desktop Split Screen Active State */
+    @media (min-width: 900px) {
+      body.split-active {
+        display: grid !important;
+        grid-template-columns: 1fr 480px;
+        grid-template-rows: auto 1fr;
+      }
+      body.split-active .app-header {
+        grid-column: 1 / -1;
+      }
+      body.split-active .clocktab-scratchpad-card {
+        position: fixed;
+        right: 16px;
+        top: calc(var(--header-height) + 16px);
+        width: 450px;
+        height: calc(100vh - var(--header-height) - 32px);
+        z-index: 99;
+        display: flex !important;
+      }
+      body.split-active .scratchpad-textarea {
+        flex: 1;
+        height: 100% !important;
+      }
+    }
+
+    .scratchpad-textarea {
+      width: 100%;
+      height: 110px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .scratchpad-textarea:focus {
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    /* Chat Header Bar & Swapper */
+    .chat-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: rgba(14, 17, 24, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .chat-selector-wrapper {
+      position: relative;
+    }
+
+    .chat-selector-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chat-selector-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .chat-dropdown-caret {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .chat-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 320px;
+      max-height: 420px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      overflow-y: auto;
+      z-index: 150;
+      padding: 6px;
+    }
+
+    .dropdown-section-title {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-dim);
+      padding: 6px 10px 4px 10px;
+      letter-spacing: 0.05em;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-main);
+      transition: background 0.12s;
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .dropdown-item.active {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-cyan);
+    }
+
+    .dropdown-item-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dropdown-item-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+    }
+
+    .chat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .icon-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .icon-action-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="/apple-touch-icon.png?v=cykranosh" alt="Icon" class="brand-icon"/>
+      <span class="brand-name">N'kai</span>
+      <div class="server-status">
+        <span class="status-dot"></span>
+        <span id="header-server-pulse">3030 Nominal</span>
+      </div>
+      <div class="governor-pill" id="header-governor-pill" title="Governor Context Saturation (tools/governor.py)">
+        <span class="governor-label">GOV</span>
+        <div class="governor-track">
+          <div class="governor-fill" id="header-governor-fill" style="width: 15%"></div>
+        </div>
+        <span class="governor-val" id="header-governor-val">15%</span>
+      </div>
+      <button class="split-toggle-btn" id="btn-split-toggle" onclick="toggleSplitView()" title="Toggle Desktop Split View (Ctrl+\)">
+        <span>◫ Split</span>
+      </button>
+    </div>
+
+    <!-- Desktop 5 Pillars Navigation (Priority Ordered) -->
+    <nav class="pillar-tabs" id="desktop-nav">
+      <button class="pillar-btn active" data-pillar="telemetry" onclick="setPillar('telemetry')">
+        <span>📊</span> Telemetry <span class="key-badge">1</span>
+      </button>
+      <button class="pillar-btn" data-pillar="chat" onclick="setPillar('chat')">
+        <span>💬</span> Chat <span class="key-badge">2</span>
+      </button>
+      <button class="pillar-btn" data-pillar="synth_news" onclick="setPillar('synth_news')">
+        <span>🎛️</span> Synth News <span class="key-badge">3</span>
+      </button>
+      <button class="pillar-btn" data-pillar="agenda" onclick="setPillar('agenda')">
+        <span>🧭</span> Agenda <span class="key-badge">4</span>
+      </button>
+      <button class="pillar-btn" data-pillar="mail" onclick="setPillar('mail')">
+        <span>📬</span> Mail <span class="key-badge">5</span>
+      </button>
+    </nav>
+
+    <!-- Header Tools -->
+    <div class="header-tools">
+      <button class="tool-icon-btn" onclick="refreshActivePillar()" title="Refresh Active Pillar Data (R)">🔄</button>
+      <button class="tool-icon-btn" onclick="toggleAudioMute()" id="btn-audio-mute" title="Toggle Audio Haptics">🔊</button>
+    </div>
+  </header>
+
+  <!-- Viewport Canvas (One View Visible At A Time, Zero Splitters) -->
+  <main class="viewport-canvas">
+
+    <!-- 1. TELEMETRY PILLAR (PRIORITY 1) -->
+    <section class="pillar-view active" id="view-telemetry">
+      <div class="telemetry-grid">
+        
+        <!-- Gemini Quota Card -->
+        <div class="zen-card">
+          <div class="card-header">
+            <span class="card-title"><span>🔹</span> Gemini Allowance</span>
+            <span class="card-badge" id="gemini-reset-badge">ConnectRPC</span>
+          </div>
+          
+          <div class="meter-container">
+            <div class="meter-label">
+              <span>5-Hour Limit</span>
+              <span class="meter-val" id="gemini-5h-val">--%</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill fill-emerald" id="gemini-5h-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="meter-container">
+            <div class="meter-label">
+              <span>Weekly Limit</span>
+              <span class="meter-val" id="gemini-weekly-val">--%</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill fill-cyan" id="gemini-weekly-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stealth Claude Card (Hidden when 100%, illuminates only when active) -->
+        <div class="zen-card stealth" id="claude-card">
+          <div class="card-header">
+            <span class="card-title"><span>🟣</span> Claude Active Reserve</span>
+            <span class="card-badge" style="color:var(--accent-amethyst);">Active Consumption</span>
+          </div>
+          <div class="meter-container">
+            <div class="meter-label">
+              <span>5-Hour Limit</span>
+              <span class="meter-val" id="claude-5h-val">100%</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill fill-amethyst" id="claude-5h-bar" style="width: 100%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Session Context & Token Pressure Card -->
+        <div class="zen-card">
+          <div class="card-header">
+            <span class="card-title"><span>📜</span> Context Pressure</span>
+            <span class="card-badge" id="context-tokens-badge">-- tokens</span>
+          </div>
+          
+          <div class="meter-container">
+            <div class="meter-label">
+              <span>Active Transcript (Max 10MB)</span>
+              <span class="meter-val" id="transcript-size-val">-- KB</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill fill-cyan" id="transcript-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="telemetry-row">
+            <span class="telemetry-key">Session ID</span>
+            <span class="telemetry-val" id="conv-uuid" style="font-size:11px;">--</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-key">Context Status</span>
+            <span class="telemetry-val" id="context-status-val" style="color:var(--accent-emerald);">HEALTHY</span>
+          </div>
+        </div>
+
+        <!-- Host System Health Card -->
+        <div class="zen-card">
+          <div class="card-header">
+            <span class="card-title"><span>⚡</span> Host Diagnostics</span>
+            <span class="card-badge" id="host-latency">-- ms ping</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-key">CPU Utilization</span>
+            <span class="telemetry-val" id="cpu-val">--%</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-key">RAM Memory</span>
+            <span class="telemetry-val" id="ram-val">--%</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-key">Language Server RSS</span>
+            <span class="telemetry-val" id="ls-rss-val">-- MB</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-key">Data Bus Outbox</span>
+            <span class="telemetry-val" id="bus-status-val">0 pending</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CLOCKTAB AMBIENT FOCUS DECK -->
+      <div class="clocktab-deck" id="clocktab-deck">
+        
+        <div class="clocktab-main-card">
+          <div class="clocktab-controls-row">
+            <div class="clocktab-mode-pills">
+              <button class="mode-pill active" id="btn-clock-format" onclick="toggleClockFormat()">12H</button>
+              <button class="mode-pill active" id="btn-clock-seconds" onclick="toggleClockSeconds()">SEC</button>
+            </div>
+            <div class="clocktab-quota-resets" id="clocktab-quota-resets">
+              <span class="quota-pill" id="reset-pill-5h">⏳ 5h: --</span>
+              <span class="quota-pill" id="reset-pill-wk">📅 Wk: --</span>
+            </div>
+          </div>
+
+          <div class="clocktab-time-display" id="clock-time-display">
+            <span id="clock-hours">12</span><span class="clock-colon">:</span><span id="clock-minutes">45</span><span class="clock-colon clock-sec-colon">:</span><span id="clock-seconds" class="clock-sec-digits">00</span><span id="clock-ampm" class="clock-ampm-digit">PM</span>
+          </div>
+          <div class="clocktab-date-display" id="clock-date-display">
+            Saturday, October 24, 2026
+          </div>
+
+          <!-- Pomodoro Focus Sprint Bar -->
+          <div class="clocktab-sprint-bar">
+            <div class="sprint-controls">
+              <button class="sprint-btn" onclick="startSprint(25, '25m Focus')">25m Focus</button>
+              <button class="sprint-btn" onclick="startSprint(50, '50m Deep Sprint')">50m Sprint</button>
+              <button class="sprint-btn" onclick="toggleStopwatch()">Stopwatch</button>
+              <button class="sprint-btn reset" onclick="resetTimer()">Reset</button>
+            </div>
+            <div class="sprint-timer-display" id="sprint-timer-display" style="display:none;">
+              <span class="sprint-label" id="sprint-timer-label">FOCUS SPRINT</span>
+              <span class="sprint-digits" id="sprint-timer-digits">25:00</span>
+              <div class="sprint-progress-track">
+                <div class="sprint-progress-fill" id="sprint-progress-fill" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ambient Studio Scratchpad Card -->
+        <div class="clocktab-scratchpad-card">
+          <div class="scratchpad-header">
+            <div class="scratchpad-title">
+              <span>📝</span> Ambient Studio Scratchpad
+              <span class="scratchpad-sub">Auto-saved locally • Push to C:\_\Vault\SCRATCHPAD.md</span>
+            </div>
+            <div class="scratchpad-actions">
+              <span class="scratchpad-meta" id="scratchpad-save-status">Ready</span>
+              <button class="pull-sp-btn" id="btn-pull-scratchpad" onclick="pullToAbyss()" title="Pull to Abyss, archive to chronicle.db & wipe (Ctrl+Enter)">
+                <span>📥</span> Pull to Abyss
+              </button>
+              <button class="push-sp-btn" id="btn-push-scratchpad" onclick="pushToScratchpadFile()" title="Push to C:\_\Vault\SCRATCHPAD.md">
+                <span>📌</span> Push to Disk
+              </button>
+            </div>
+          </div>
+          <textarea class="scratchpad-textarea" id="focus-scratchpad" placeholder="Outliner: Enter for bullet, Tab/Shift-Tab indent/outdent, Alt+Up/Down reorder, Ctrl+Enter to Pull to Abyss, Ctrl+\ to toggle Split..." oninput="handleScratchpadInput()"></textarea>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 2. CHAT PILLAR (PRIORITY 2 - 1:1 BASE ANTIGRAVITY PARITY) -->
+    <section class="pillar-view" id="view-chat">
+      <div class="chat-container">
+        
+        <!-- Direct Antigravity Chat Header & Selector Bar -->
+        <div class="chat-header-bar">
+          <div class="chat-selector-wrapper">
+            <button class="chat-selector-btn" id="btn-chat-selector" onclick="toggleChatDropdown()">
+              <span class="chat-conv-icon" id="chat-active-icon">🌌</span>
+              <span class="chat-conv-title" id="chat-active-title">The Astral Abyss</span>
+              <span class="chat-dropdown-caret">▾</span>
+            </button>
+            
+            <div class="chat-dropdown-menu" id="chat-dropdown-menu" style="display:none;">
+              <div class="dropdown-section-title">🌌 SOVEREIGN HQ (DEFAULT)</div>
+              <div class="dropdown-list" id="dropdown-sovereign-list">
+                <!-- Astral Abyss permanently at top -->
+              </div>
+
+              <div class="dropdown-section-title">📌 PINNED CHATS</div>
+              <div class="dropdown-list" id="dropdown-pinned-list">
+                <!-- Dynamically rendered -->
+              </div>
+              
+              <div class="dropdown-section-title">⚡ ACTIVE / RECENT CHATS</div>
+              <div class="dropdown-list" id="dropdown-recent-list">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-header-actions">
+            <span class="chat-live-badge" id="chat-live-status">
+              <span class="status-dot"></span> DIRECT AGY
+            </span>
+            <button class="icon-action-btn" title="Refresh history" onclick="reloadActiveConversationHistory()">⟳</button>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-stream">
+          <div class="chat-msg assistant">
+            <span class="msg-sender">ANTIGRAVITY // INTERCOM</span>
+            <div class="msg-bubble">
+              Sentry Intercom ready. Connected to local runtime. Type a message or task to engage.
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Resume Auto-Scroll Pill -->
+        <button class="resume-scroll-pill" id="btn-resume-scroll" onclick="resumeAutoScroll()">
+          <span>↓</span> Resume Auto-Scroll
+        </button>
+
+        <!-- Composer Dock (1:1 Base Antigravity Card) -->
+        <div class="composer-card-dock">
+          <div class="staged-media-container" id="staged-media-row" style="display:none;"></div>
+          <textarea class="composer-textarea" id="composer-text" placeholder="Ask anything, @ to mention, / for actions" rows="2"></textarea>
+          
+          <div class="composer-action-bar">
+            <!-- Left Controls -->
+            <div class="composer-controls-left">
+              <button class="composer-icon-btn" title="Add files or context" onclick="document.getElementById('file-upload-input').click()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              </button>
+              <input type="file" id="file-upload-input" style="display:none;" onchange="handleFileUpload(event)"/>
+              
+              <!-- Model Pill Selector -->
+              <div class="composer-pill" id="composer-model-pill" onclick="toggleChatDropdown()">
+                <span id="composer-model-label">Gemini 3.8 Flash High</span>
+                <span class="pill-caret">▾</span>
+              </div>
+              
+              <!-- Turbo Mode Pill -->
+              <div class="composer-pill" id="composer-turbo-pill" onclick="toggleTurboMode()">
+                <span id="composer-turbo-label">🛡️ Turbo</span>
+                <span class="pill-caret">▾</span>
+              </div>
+            </div>
+
+            <!-- Right Controls -->
+            <div class="composer-controls-right">
+              <button class="composer-icon-btn" id="btn-voice-dictate" title="Voice dictation" onclick="toggleVoiceDictation()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+              </button>
+              
+              <button class="send-btn" id="btn-chat-send" onclick="sendChatTurn()" title="Send turn (Enter)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. SYNTH NEWS RADAR (PRIORITY 3) -->
+    <section class="pillar-view" id="view-synth_news">
+      <div style="max-width: 1200px; margin: 0 auto;">
+        
+        <div class="news-toolbar">
+          <input type="text" class="search-input" id="news-search" placeholder="🔍 Search synth hardware, Eurorack, trackers (#scene/tracker, Elektron)..." oninput="filterNews()"/>
+          <div class="filter-pills" id="news-filter-chips">
+            <button class="filter-chip active" onclick="setNewsFilter('all')">All</button>
+            <button class="filter-chip" onclick="setNewsFilter('tracker')">🎹 Trackers</button>
+            <button class="filter-chip" onclick="setNewsFilter('eurorack')">🔌 Eurorack</button>
+            <button class="filter-chip" onclick="setNewsFilter('firmware')">⚙️ Firmware</button>
+            <button class="filter-chip" onclick="setNewsFilter('rig')">🌟 Studio Rig</button>
+          </div>
+        </div>
+
+        <div class="news-cards-stream" id="news-stream">
+          <!-- Rendered dynamically -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 4. AGENDA & FLIGHT PLAN (PRIORITY 4) -->
+    <section class="pillar-view" id="view-agenda">
+      <div class="agenda-stream">
+        <div class="flight-banner">
+          <div>
+            <div style="font-size:11px; color:var(--accent-cyan); font-family:var(--font-mono); font-weight:700;">ACTIVE FLIGHT HORIZON</div>
+            <div style="font-size:16px; font-weight:700; color:#fff; margin-top:2px;" id="agenda-flight-title">Flight Path</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;" id="agenda-flight-sub"></div>
+          </div>
+          <span class="card-badge" style="background:rgba(52,211,153,0.15); color:var(--accent-emerald); padding:4px 10px; border-radius:6px; white-space:nowrap;" id="agenda-active-phase">IN FLIGHT</span>
+        </div>
+
+        <div class="zen-card">
+          <div class="card-header">
+            <span class="card-title"><span>🛫</span> Runway Flights</span>
+            <span class="card-badge" id="agenda-runway-count">--</span>
+          </div>
+          <div id="agenda-runway-list" style="display:flex; flex-direction:column; gap:10px;">
+            <!-- Populated from /api/agenda -->
+          </div>
+        </div>
+
+        <div class="zen-card">
+          <div class="card-header">
+            <span class="card-title"><span>🔄</span> Active Open Loops</span>
+            <span class="card-badge" id="agenda-loops-count">--</span>
+          </div>
+          <div id="agenda-loops-list" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Populated from /api/agenda -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. MORNING MAILBAG & TRIAGE (PRIORITY 5) -->
+    <section class="pillar-view" id="view-mail">
+      <div class="mail-stream">
+        <div class="news-toolbar" style="margin-bottom: 6px;">
+          <input type="text" class="search-input" id="mail-search" placeholder="🔍 Search mailbag cards, pillars, or architectural topics..." oninput="renderMail()"/>
+          <div class="filter-pills" id="mail-filter-chips">
+            <button class="filter-chip active" data-mail-filter="all" onclick="setMailFilter('all')">All Cards</button>
+            <button class="filter-chip" data-mail-filter="pending" onclick="setMailFilter('pending')">⚡ Actionable</button>
+            <button class="filter-chip" data-mail-filter="completed" onclick="setMailFilter('completed')">✅ Completed</button>
+          </div>
+        </div>
+        <div id="mail-stream-container" style="display:flex; flex-direction:column; gap:14px;">
+          <!-- Rendered dynamically from /api/mail -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Bottom Thumb-Zone Navigation Dock -->
+  <nav class="mobile-dock" id="mobile-dock">
+    <button class="mobile-tab-btn active" data-pillar="telemetry" onclick="setPillar('telemetry')">
+      <span class="tab-icon">📊</span>
+      <span>Telemetry</span>
+    </button>
+    <button class="mobile-tab-btn" data-pillar="chat" onclick="setPillar('chat')">
+      <span class="tab-icon">💬</span>
+      <span>Chat</span>
+    </button>
+    <button class="mobile-tab-btn" data-pillar="synth_news" onclick="setPillar('synth_news')">
+      <span class="tab-icon">🎛️</span>
+      <span>News</span>
+    </button>
+    <button class="mobile-tab-btn" data-pillar="agenda" onclick="setPillar('agenda')">
+      <span class="tab-icon">🧭</span>
+      <span>Agenda</span>
+    </button>
+    <button class="mobile-tab-btn" data-pillar="mail" onclick="setPillar('mail')">
+      <span class="tab-icon">📬</span>
+      <span>Mail</span>
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // State
+    let activePillar = 'telemetry';
+    let isUserScrolledUp = false;
+    let activeAbortController = null;
+    let newsArticles = [];
+    let activeNewsFilter = 'all';
+
+    // Antigravity Chat Bridge State
+    let activeConvId = '6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41';
+    let availableConversations = [];
+    let pinnedConvIds = [];
+    let isDesktopAgyActive = true;
+
+    // ClockTab Focus Deck State
+    let clockFormat24 = localStorage.getItem('nkai_clock_format') === '24';
+    let showClockSeconds = localStorage.getItem('nkai_clock_seconds') !== 'false';
+    let sprintInterval = null;
+    let sprintRemaining = 0;
+    let sprintTotal = 0;
+    let sprintMode = null; // 'timer' or 'stopwatch'
+    let stopwatchStart = 0;
+
+    const PILLARS_ORDER = ['telemetry', 'chat', 'synth_news', 'agenda', 'mail'];
+
+    // DOM Init
+    window.addEventListener('DOMContentLoaded', () => {
+      // Restore saved pillar or URL hash
+      const hash = window.location.hash.replace('#', '');
+      if (PILLARS_ORDER.includes(hash)) {
+        setPillar(hash, false);
+      } else {
+        const saved = localStorage.getItem('nkai_active_pillar');
+        if (saved && PILLARS_ORDER.includes(saved)) {
+          setPillar(saved, false);
+        } else {
+          setPillar('telemetry', false);
+        }
+      }
+
+      setupKeyboardShortcuts();
+      setupComposerAutogrow();
+      setupComposerMediaHandlers();
+      setupVirtualKeyboard();
+      setupScrollListener();
+      initClockTab();
+
+      // Poll telemetry on load and every 5s
+      fetchTelemetry();
+      setInterval(fetchTelemetry, 5000);
+
+      // Preload data & connect direct to Antigravity
+      fetchNews();
+      fetchAgenda();
+      fetchMail();
+      loadAgyConversations();
+      initCockpitChatLiveSync();
+
+      // Milestone M5: Initialize Outliner, Live WebSocket Bridge & Governor Gauge
+      initOutlinerEngine();
+      initWebSocketScratchpad();
+      if (localStorage.getItem('nkai_split_active') === '1') {
+        document.body.classList.add('split-active');
+      }
+      fetchGovernorStatus();
+      setInterval(fetchGovernorStatus, 5000);
+    });
+
+    // Native View Transitions Pillar Switcher
+    function setPillar(pillarKey, triggerTransition = true) {
+      if (!PILLARS_ORDER.includes(pillarKey)) return;
+      if (activePillar === pillarKey && document.getElementById(`view-${pillarKey}`).classList.contains('active')) return;
+
+      const performDOMUpdate = () => {
+        activePillar = pillarKey;
+        localStorage.setItem('nkai_active_pillar', pillarKey);
+        window.location.hash = pillarKey;
+
+        // Update Desktop Tabs
+        document.querySelectorAll('.pillar-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.pillar === pillarKey);
+        });
+
+        // Update Mobile Tabs
+        document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.pillar === pillarKey);
+        });
+
+        // Update Active Canvas Views
+        document.querySelectorAll('.pillar-view').forEach(view => {
+          view.classList.toggle('active', view.id === `view-${pillarKey}`);
+        });
+
+        // Focus Chat input if switching to chat
+        if (pillarKey === 'chat') {
+          setTimeout(() => {
+            const input = document.getElementById('composer-text');
+            if (input && window.innerWidth > 768) input.focus();
+            scrollToChatBottom();
+          }, 50);
+        }
+      };
+
+      if (triggerTransition && document.startViewTransition) {
+        document.startViewTransition(performDOMUpdate);
+      } else {
+        performDOMUpdate();
+      }
+
+      // Micro-haptic vibration on mobile
+      if (navigator.vibrate) navigator.vibrate(8);
+    }
+
+    // Keyboard Shortcuts (1-5 to switch, / for chat)
+    function setupKeyboardShortcuts() {
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+          if (e.key === 'Escape') document.activeElement.blur();
+          return;
+        }
+
+        if (e.key >= '1' && e.key <= '5') {
+          const index = parseInt(e.key) - 1;
+          setPillar(PILLARS_ORDER[index]);
+        } else if (e.key === '/') {
+          e.preventDefault();
+          setPillar('chat');
+        } else if (e.key.toLowerCase() === 'r') {
+          refreshActivePillar();
+        }
+      });
+    }
+
+    // PILLAR 1: TELEMETRY FETCHER
+    async function fetchTelemetry() {
+      try {
+        const res = await fetch('/api/telemetry');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        // 1. Quota meters (supports both canonical g_5h/g_wk and legacy keys)
+        if (d.quota) {
+          const g5 = d.quota.g_5h ?? d.quota.gemini_5h_percent ?? 100;
+          const gw = d.quota.g_wk ?? d.quota.gemini_weekly_percent ?? 100;
+          const reset5h = d.quota.g_reset_5h_human || '';
+          const resetWk = d.quota.g_reset_wk_human || '';
+
+          document.getElementById('gemini-5h-val').textContent = `${g5.toFixed(1)}%` + (reset5h ? ` (${reset5h})` : '');
+          document.getElementById('gemini-weekly-val').textContent = `${gw.toFixed(1)}%` + (resetWk ? ` (${resetWk})` : '');
+          document.getElementById('gemini-5h-bar').style.width = `${Math.min(100, g5)}%`;
+          document.getElementById('gemini-weekly-bar').style.width = `${Math.min(100, gw)}%`;
+          if (reset5h) {
+            document.getElementById('gemini-reset-badge').textContent = `Resets in ${reset5h}`;
+            const pill5 = document.getElementById('reset-pill-5h');
+            if (pill5) pill5.textContent = `⏳ 5h: ${reset5h}`;
+          }
+          if (resetWk) {
+            const pillWk = document.getElementById('reset-pill-wk');
+            if (pillWk) pillWk.textContent = `📅 Wk: ${resetWk}`;
+          }
+
+          // Color shifts
+          const g5Bar = document.getElementById('gemini-5h-bar');
+          g5Bar.className = 'meter-fill ' + (g5 > 75 ? 'fill-emerald' : g5 > 35 ? 'fill-amber' : 'fill-crimson');
+
+          // Stealth Claude (Only illuminate if burning < 100%)
+          const c5 = d.quota.c_5h ?? d.quota.claude_5h_percent ?? 100;
+          const cwk = d.quota.c_wk ?? d.quota.claude_weekly_percent ?? 100;
+          const claudeCard = document.getElementById('claude-card');
+          if (c5 < 100 || cwk < 100) {
+            claudeCard.classList.remove('stealth');
+            document.getElementById('claude-5h-val').textContent = `${c5.toFixed(1)}%`;
+            document.getElementById('claude-5h-bar').style.width = `${Math.min(100, c5)}%`;
+          } else {
+            claudeCard.classList.add('stealth');
+          }
+        }
+
+        // 2. Session & Context Pressure (supports d.session and legacy d.transcript)
+        const s = d.session || d.transcript;
+        if (s) {
+          const sizeKb = s.size_kb ?? ((s.size_mb ?? 0) * 1024);
+          const sizeMb = s.size_mb ?? (sizeKb / 1024);
+          const steps = s.steps ?? 0;
+          const tokens = s.tokens_est ?? Math.round(sizeKb * 256);
+          const sizeLabel = sizeKb >= 1024 ? `${sizeMb.toFixed(2)} MB` : `${sizeKb.toFixed(1)} KB`;
+          document.getElementById('transcript-size-val').textContent = steps ? `${sizeLabel} (${steps} steps)` : sizeLabel;
+          document.getElementById('context-tokens-badge').textContent = `~${tokens.toLocaleString()} tokens`;
+          
+          // Gauge up to 10MB
+          const pct = Math.min(100, (sizeKb / 10240) * 100);
+          const tBar = document.getElementById('transcript-bar');
+          tBar.style.width = `${pct}%`;
+          tBar.className = 'meter-fill ' + (pct > 80 ? 'fill-crimson' : pct > 50 ? 'fill-amber' : 'fill-cyan');
+
+          const uuid = s.conversation_id || s.active_conversation_id || '--';
+          document.getElementById('conv-uuid').textContent = uuid;
+
+          const statusEl = document.getElementById('context-status-val');
+          if (statusEl) {
+            const st = s.status || (s.is_heavy ? 'HEAVY' : 'HEALTHY');
+            statusEl.textContent = st;
+            statusEl.style.color = st === 'HEALTHY' ? 'var(--accent-emerald)' : 'var(--accent-amber)';
+          }
+        }
+
+        // 3. Host Diagnostics
+        document.getElementById('cpu-val').textContent = `${(d.cpu_percent ?? 0).toFixed(1)}%`;
+        const ramPct = d.ram?.percent ?? 0;
+        const ramUsed = d.ram?.used_gb;
+        const ramTotal = d.ram?.total_gb;
+        document.getElementById('ram-val').textContent = (ramUsed !== undefined && ramTotal !== undefined)
+          ? `${ramUsed.toFixed(1)} / ${ramTotal.toFixed(0)} GB (${ramPct.toFixed(0)}%)`
+          : `${ramPct.toFixed(1)}%`;
+        document.getElementById('host-latency').textContent = `${d.latency_ms ?? 0} ms ping`;
+
+        if (d.processes) {
+          const lsMb = d.processes.language_server_mb ?? d.processes.language_server?.rss_mb ?? 0;
+          const agyMb = d.processes.antigravity_mb ?? 0;
+          document.getElementById('ls-rss-val').textContent = agyMb > 0
+            ? `${lsMb.toFixed(0)} MB (AGY: ${agyMb.toFixed(0)} MB)`
+            : `${lsMb.toFixed(0)} MB`;
+        }
+
+        const busPending = d.bus?.pending_cosmos ?? d.data_bus?.unread_dispatches_count ?? 0;
+        document.getElementById('bus-status-val').textContent = busPending === 0 ? '✓ Nominal (0)' : `⚠️ ${busPending} pending`;
+        document.getElementById('header-server-pulse').textContent = '3030 Nominal';
+      } catch (err) {
+        console.error('[Telemetry Error]', err);
+        document.getElementById('header-server-pulse').textContent = 'Offline';
+      }
+    }
+
+    // PILLAR 2: 1:1 CHAT INTERCOM & STREAMING (RAF BATCHED)
+    function setupComposerAutogrow() {
+      const ta = document.getElementById('composer-text');
+      ta.addEventListener('input', () => {
+        ta.style.height = 'auto';
+        ta.style.height = Math.min(140, ta.scrollHeight) + 'px';
+      });
+
+      ta.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendChatTurn();
+        }
+      });
+    }
+
+    function setupScrollListener() {
+      const container = document.getElementById('chat-stream');
+      container.addEventListener('scroll', () => {
+        const threshold = 80;
+        const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+        isUserScrolledUp = distanceFromBottom > threshold;
+        document.getElementById('btn-resume-scroll').classList.toggle('show', isUserScrolledUp);
+      });
+    }
+
+    function resumeAutoScroll() {
+      isUserScrolledUp = false;
+      document.getElementById('btn-resume-scroll').classList.remove('show');
+      scrollToChatBottom();
+    }
+
+    function scrollToChatBottom() {
+      const container = document.getElementById('chat-stream');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Antigravity Direct Chat & Conversation Swapper
+    const ASTRAL_ABYSS_ID = '6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41';
+
+    async function loadAgyConversations() {
+      try {
+        const res = await fetch('/api/agy/conversations');
+        if (!res.ok) return;
+        const data = await res.json();
+        availableConversations = data.conversations || [];
+        pinnedConvIds = data.pinned_ids || [];
+
+        // The Astral Abyss is ALWAYS the default chat and top option
+        activeConvId = ASTRAL_ABYSS_ID;
+
+        const active = availableConversations.find(c => c.id === activeConvId || c.is_astral_abyss);
+        const activeTitle = active ? active.title : '🌌 The Astral Abyss';
+        updateActiveChatHeader(activeTitle, true);
+
+        renderChatDropdown();
+        loadConversationHistory(activeConvId);
+      } catch (e) {
+        console.warn('Could not load AGY conversations:', e);
+      }
+    }
+
+    function renderChatDropdown() {
+      const sovList = document.getElementById('dropdown-sovereign-list');
+      const pinnedList = document.getElementById('dropdown-pinned-list');
+      const recentList = document.getElementById('dropdown-recent-list');
+      if (!pinnedList || !recentList) return;
+
+      const abyss = availableConversations.find(c => c.is_astral_abyss || c.id === ASTRAL_ABYSS_ID) || {
+        id: ASTRAL_ABYSS_ID,
+        title: '🌌 The Astral Abyss',
+        is_pinned: true,
+        is_current: true,
+        is_astral_abyss: true
+      };
+
+      if (sovList) {
+        sovList.innerHTML = `
+          <div class="dropdown-item ${activeConvId === abyss.id ? 'active' : ''}" style="border: 1px solid rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.1);" onclick="selectConversation('${abyss.id}', '${escapeHtml(abyss.title).replace(/'/g, "\\'")}', true)">
+            <span>🌌</span>
+            <span class="dropdown-item-title" style="font-weight:700; color:#fff;">${escapeHtml(abyss.title)}</span>
+            <span class="dropdown-item-badge" style="color:var(--accent-cyan); background:rgba(56,189,248,0.2); font-weight:700;">DEFAULT HQ</span>
+          </div>
+        `;
+      }
+
+      // Other pinned chats excluding Astral Abyss
+      const pinned = availableConversations.filter(c => c.is_pinned && c.id !== ASTRAL_ABYSS_ID && !c.is_astral_abyss);
+      // Recent chats excluding Astral Abyss
+      const recent = availableConversations.filter(c => !c.is_pinned && c.id !== ASTRAL_ABYSS_ID && !c.is_astral_abyss);
+
+      pinnedList.innerHTML = pinned.map(c => `
+        <div class="dropdown-item ${c.id === activeConvId ? 'active' : ''}" onclick="selectConversation('${c.id}', '${escapeHtml(c.title).replace(/'/g, "\\'")}', true)">
+          <span>📌</span>
+          <span class="dropdown-item-title">${escapeHtml(c.title)}</span>
+          ${c.is_current ? '<span class="dropdown-item-badge">Active</span>' : ''}
+        </div>
+      `).join('') || '<div style="padding:6px 10px; color:var(--text-dim); font-size:11px;">No other pinned chats</div>';
+
+      recentList.innerHTML = recent.slice(0, 12).map(c => `
+        <div class="dropdown-item ${c.id === activeConvId ? 'active' : ''}" onclick="selectConversation('${c.id}', '${escapeHtml(c.title).replace(/'/g, "\\'")}', false)">
+          <span>💬</span>
+          <span class="dropdown-item-title">${escapeHtml(c.title)}</span>
+          ${c.is_current ? '<span class="dropdown-item-badge">Active</span>' : ''}
+        </div>
+      `).join('') || '<div style="padding:6px 10px; color:var(--text-dim); font-size:11px;">No recent chats</div>';
+    }
+
+    function toggleChatDropdown(force) {
+      const menu = document.getElementById('chat-dropdown-menu');
+      if (!menu) return;
+      const isShown = force !== undefined ? !force : (menu.style.display !== 'none');
+      menu.style.display = isShown ? 'none' : 'block';
+    }
+
+    function selectConversation(convId, title, isPinned = false) {
+      activeConvId = convId;
+      updateActiveChatHeader(title, isPinned);
+      toggleChatDropdown(false);
+      loadConversationHistory(convId);
+    }
+
+    function updateActiveChatHeader(title, isPinned = false) {
+      const titleEl = document.getElementById('chat-active-title');
+      if (titleEl) titleEl.textContent = title;
+      const iconEl = document.getElementById('chat-active-icon');
+      const isAbyss = (activeConvId === ASTRAL_ABYSS_ID || (title || '').includes('Astral Abyss'));
+      if (iconEl) iconEl.textContent = isAbyss ? '🌌' : (isPinned ? '📌' : '💬');
+      renderChatDropdown();
+    }
+
+    function reloadActiveConversationHistory() {
+      if (activeConvId) {
+        showToast('Refreshing chat history...');
+        loadConversationHistory(activeConvId);
+      }
+    }
+
+    let cockpitEventSource = null;
+    let cockpitSseTimer = null;
+
+    function initCockpitChatLiveSync() {
+      if (cockpitEventSource) {
+        try { cockpitEventSource.close(); } catch (e) {}
+        cockpitEventSource = null;
+      }
+
+      const liveBadge = document.getElementById('chat-live-status');
+
+      try {
+        cockpitEventSource = new EventSource('/api/chat/stream');
+
+        cockpitEventSource.onopen = () => {
+          if (liveBadge) {
+            liveBadge.innerHTML = '<span class="status-dot" style="background:#4ade80;"></span> LIVE SYNC';
+          }
+        };
+
+        cockpitEventSource.addEventListener('snapshot', (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data && data.turns) {
+              renderCockpitChatTurns(data.turns);
+              updateCockpitChatStatus(data.is_running);
+              setSendButtonState(data.is_running);
+            }
+          } catch (err) {}
+        });
+
+        cockpitEventSource.addEventListener('progress', (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data && data.turns) {
+              renderCockpitChatTurns(data.turns);
+            }
+            updateCockpitChatStatus(true);
+            setSendButtonState(true);
+          } catch (err) {}
+        });
+
+        cockpitEventSource.addEventListener('done', (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data && data.turns) {
+              renderCockpitChatTurns(data.turns);
+            }
+            updateCockpitChatStatus(false);
+            setSendButtonState(false);
+          } catch (err) {}
+        });
+
+        cockpitEventSource.addEventListener('update', (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data && data.turns) {
+              renderCockpitChatTurns(data.turns);
+              updateCockpitChatStatus(data.is_running);
+              setSendButtonState(data.is_running);
+            }
+          } catch (err) {}
+        });
+
+        cockpitEventSource.onerror = () => {
+          if (liveBadge) {
+            liveBadge.innerHTML = '<span class="status-dot" style="background:#fbbf24;"></span> RECONNECTING';
+          }
+          if (cockpitEventSource) {
+            cockpitEventSource.close();
+            cockpitEventSource = null;
+          }
+          clearTimeout(cockpitSseTimer);
+          cockpitSseTimer = setTimeout(initCockpitChatLiveSync, 3000);
+        };
+      } catch (err) {
+        clearTimeout(cockpitSseTimer);
+        cockpitSseTimer = setTimeout(initCockpitChatLiveSync, 4000);
+      }
+    }
+
+    function updateCockpitChatStatus(isRunning) {
+      const liveBadge = document.getElementById('chat-live-status');
+      if (!liveBadge) return;
+      if (isRunning) {
+        liveBadge.innerHTML = '<span class="status-dot" style="background:#a855f7;"></span> STREAMING';
+      } else {
+        liveBadge.innerHTML = '<span class="status-dot" style="background:#4ade80;"></span> LIVE SYNC';
+      }
+    }
+
+    function renderCockpitChatTurns(turns) {
+      const stream = document.getElementById('chat-stream');
+      if (!stream || !turns || turns.length === 0) return;
+
+      const lastTurn = turns[turns.length - 1];
+      const toolCount = (lastTurn && lastTurn.tool_calls) ? lastTurn.tool_calls.length : 0;
+      const respLen = (lastTurn && lastTurn.agent_response) ? lastTurn.agent_response.length : 0;
+      const sig = `${turns.length}:${lastTurn ? lastTurn.status : ''}:${toolCount}:${respLen}`;
+      if (sig === stream.dataset.renderedSig) return;
+      stream.dataset.renderedSig = sig;
+
+      let html = '';
+      turns.forEach((t, idx) => {
+        const userPrompt = t.user_prompt || '';
+        const agentResp = t.agent_response || '';
+        const thinking = t.thinking || '';
+        const toolCalls = t.tool_calls || [];
+        const subagents = t.subagents || [];
+        const isRunning = (t.status === 'in_progress');
+
+        // 1. User Message (Elevated Pill #27272a)
+        if (userPrompt && userPrompt.trim()) {
+          html += `
+            <div class="chat-msg user">
+              <div class="msg-bubble">${escapeHtml(userPrompt)}</div>
+            </div>
+          `;
+        }
+
+        // 2. Assistant Message
+        let subagentsHtml = '';
+        if (subagents.length > 0) {
+          subagents.forEach(s => {
+            const role = s.role || 'Subagent';
+            const type = s.type || 'self';
+            const trace = s.trace || s.prompt || '';
+            subagentsHtml += `
+              <details class="agy-subagent-dispatch" open>
+                <summary class="agy-subagent-summary">
+                  <div class="agy-subagent-meta">
+                    <span>💬</span>
+                    <span>Message from <strong>${escapeHtml(role)}</strong> <span class="agy-type-tag">(${escapeHtml(type)})</span></span>
+                  </div>
+                  <span class="chat-dropdown-caret">▾</span>
+                </summary>
+                <div class="agy-subagent-content">${window.marked ? marked.parse(trace) : escapeHtml(trace)}</div>
+              </details>
+            `;
+          });
+        }
+
+        let thinkingHtml = '';
+        if (thinking) {
+          thinkingHtml = `
+            <details class="agy-thinking-drawer">
+              <summary class="agy-thinking-summary">
+                <span>Thought for 3s</span>
+                <span class="agy-thinking-chevron">›</span>
+              </summary>
+              <div class="agy-thinking-body">${escapeHtml(thinking)}</div>
+            </details>
+          `;
+        }
+
+        let toolPillsHtml = '';
+        if (toolCalls.length > 0) {
+          let rows = '';
+          toolCalls.forEach(tc => {
+            const action = tc.action || 'Ran';
+            const summary = tc.summary || '';
+            const path = tc.path || '';
+            const fullPath = tc.full_path || path;
+            const lineSpec = tc.line_spec || '';
+            const cmd = tc.cmd || '';
+            const add = tc.add || 0;
+            const del = tc.del || 0;
+
+            if (action === 'Edited') {
+              rows += `
+                <div class="agy-tool-row" title="${escapeHtml(fullPath)}">
+                  <div class="agy-tool-summary">
+                    <div class="agy-tool-left">
+                      <span class="agy-tool-action">Edited</span>
+                      <span>🌿</span>
+                      <span class="agy-tool-target">${escapeHtml(path)}</span>
+                      <span class="agy-diff-stats"><span class="agy-diff-add">+${add}</span> <span class="agy-diff-del">-${del}</span></span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else if (action === 'Analyzed') {
+              rows += `
+                <div class="agy-tool-row" title="${escapeHtml(fullPath)}">
+                  <div class="agy-tool-summary">
+                    <div class="agy-tool-left">
+                      <span class="agy-tool-action">Analyzed</span>
+                      <span>🌿</span>
+                      <span class="agy-tool-target">${escapeHtml(path)}</span>
+                      ${lineSpec ? `<span class="agy-line-range">${escapeHtml(lineSpec)}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else if (action === 'Ran') {
+              rows += `
+                <details class="agy-tool-row">
+                  <summary class="agy-tool-summary">
+                    <div class="agy-tool-left">
+                      <span class="agy-tool-action">Ran</span>
+                      <span class="agy-tool-target" title="${escapeHtml(cmd || summary)}">${escapeHtml(summary || cmd)}</span>
+                    </div>
+                    <span class="agy-tool-chevron">›</span>
+                  </summary>
+                  <div class="agy-tool-output">${escapeHtml(cmd || summary)}</div>
+                </details>
+              `;
+            } else {
+              rows += `
+                <div class="agy-tool-row">
+                  <div class="agy-tool-summary">
+                    <div class="agy-tool-left">
+                      <span class="agy-tool-action">${escapeHtml(action)}</span>
+                      <span class="agy-tool-target">${escapeHtml(summary)}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+          });
+          toolPillsHtml = `<div class="agy-tool-stack">${rows}</div>`;
+        }
+
+        let workingHtml = isRunning ? `<div class="agy-status-working">Working</div>` : '';
+
+        html += `
+          <div class="chat-msg assistant">
+            ${subagentsHtml}
+            ${thinkingHtml}
+            ${toolPillsHtml}
+            ${workingHtml}
+            <div class="msg-bubble">
+              ${agentResp ? (window.marked ? marked.parse(agentResp) : escapeHtml(agentResp)) : (isRunning ? '<p style="color:var(--text-muted); font-style:italic;">Executing tasks in workspace...</p>' : '')}
+            </div>
+          </div>
+        `;
+      });
+
+      stream.innerHTML = html;
+      attachCodeCopyButtons(stream);
+      if (!isUserScrolledUp) {
+        scrollToChatBottom();
+      }
+    }
+
+    async function loadConversationHistory(convId) {
+      const stream = document.getElementById('chat-stream');
+      if (!stream) return;
+
+      try {
+        const res = await fetch(`/api/chat/history?conv_id=${encodeURIComponent(convId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.ok && data.turns) {
+          renderCockpitChatTurns(data.turns);
+          updateCockpitChatStatus(data.is_running);
+        }
+      } catch (e) {
+        console.warn('Error loading chat history:', e);
+      }
+    }
+
+    // Close chat dropdown on outside click
+    document.addEventListener('click', (e) => {
+      const wrapper = document.querySelector('.chat-selector-wrapper');
+      const menu = document.getElementById('chat-dropdown-menu');
+      if (menu && wrapper && !wrapper.contains(e.target)) {
+        menu.style.display = 'none';
+      }
+    });
+
+    let isTurboActive = true;
+    function toggleTurboMode() {
+      isTurboActive = !isTurboActive;
+      const label = document.getElementById('composer-turbo-label');
+      if (label) {
+        label.textContent = isTurboActive ? '🛡️ Turbo' : '⚡ Normal';
+      }
+      showToast(isTurboActive ? 'Turbo mode enabled' : 'Normal mode enabled');
+    }
+
+    function toggleVoiceDictation() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast('Speech recognition not supported in this browser');
+        return;
+      }
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      showToast('Listening... Speak your prompt');
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const ta = document.getElementById('composer-text');
+        if (ta) {
+          ta.value = (ta.value ? ta.value + ' ' : '') + transcript;
+        }
+      };
+      recognition.onerror = () => showToast('Voice dictation failed or cancelled');
+      recognition.start();
+    }
+
+    // Staged Media State (1:1 Clipboard Image Pasting & Previews)
+    let stagedMedia = [];
+
+    function renderStagedMedia() {
+      const container = document.getElementById('staged-media-row');
+      if (!container) return;
+      if (!stagedMedia.length) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+      }
+      container.style.display = 'flex';
+      container.innerHTML = stagedMedia.map((m, idx) => `
+        <div class="staged-media-chip" id="staged-media-${idx}">
+          <img class="staged-media-thumb" src="${m.thumb_url || m.url}" alt="${escapeHtml(m.filename)}"/>
+          <div class="staged-media-info">
+            <span class="staged-media-name" title="${escapeHtml(m.filename)}">${escapeHtml(m.filename)}</span>
+            <span class="staged-media-size">${formatBytes(m.size)}</span>
+          </div>
+          <button class="staged-media-remove" onclick="removeStagedMedia(${idx})" title="Remove image">&times;</button>
+        </div>
+      `).join('');
+    }
+
+    function removeStagedMedia(idx) {
+      stagedMedia.splice(idx, 1);
+      renderStagedMedia();
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    async function uploadMediaFile(file) {
+      if (!file) return;
+      const targetConv = activeConvId || ASTRAL_ABYSS_ID;
+      showToast(`Uploading ${file.name || 'image'}...`);
+      
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        try {
+          const res = await fetch('/api/chat/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name || 'pasted_image.png',
+              data: dataUrl,
+              conv_id: targetConv,
+              mime_type: file.type || 'image/png'
+            })
+          });
+          const data = await res.json();
+          if (data && data.ok) {
+            stagedMedia.push({
+              uri: data.uri,
+              filename: data.filename || file.name || 'image.png',
+              mime_type: data.mime_type || file.type || 'image/png',
+              mimeType: data.mime_type || file.type || 'image/png',
+              url: data.url || data.uri,
+              thumb_url: dataUrl,
+              size: file.size || data.size_bytes || 0
+            });
+            renderStagedMedia();
+            showToast('Image staged ready to send! 📎');
+          } else {
+            showToast('Upload failed: ' + (data && data.error ? data.error : 'Unknown error'));
+          }
+        } catch (err) {
+          showToast('Upload failed: ' + err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      uploadMediaFile(file);
+      event.target.value = '';
+    }
+
+    function setupComposerMediaHandlers() {
+      const ta = document.getElementById('composer-text');
+      const dock = document.querySelector('.composer-card-dock');
+      if (!ta) return;
+
+      // Clipboard Paste Event
+      ta.addEventListener('paste', (e) => {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        let handled = false;
+        for (const item of items) {
+          if (item.type && item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            if (file) {
+              uploadMediaFile(file);
+              handled = true;
+            }
+          }
+        }
+        if (handled) {
+          e.preventDefault();
+        }
+      });
+
+      // Drag and Drop Events
+      if (dock) {
+        dock.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dock.classList.add('drag-over');
+        });
+        dock.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          dock.classList.remove('drag-over');
+        });
+        dock.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dock.classList.remove('drag-over');
+          if (e.dataTransfer && e.dataTransfer.files) {
+            for (const file of e.dataTransfer.files) {
+              if (file.type && file.type.startsWith('image/')) {
+                uploadMediaFile(file);
+              }
+            }
+          }
+        });
+      }
+    }
+
+    async function sendChatTurn() {
+      const input = document.getElementById('composer-text');
+      const prompt = input.value.trim();
+      const mediaToSend = [...stagedMedia];
+      if (!prompt && !mediaToSend.length) return;
+
+      if (activeAbortController) {
+        activeAbortController.abort();
+        activeAbortController = null;
+        setSendButtonState(false);
+        return;
+      }
+
+      input.value = '';
+      input.style.height = 'auto';
+      stagedMedia = [];
+      renderStagedMedia();
+
+      // 1. Optimistic UI: Append user message card & Working indicator immediately
+      const stream = document.getElementById('chat-stream');
+      const optimisticId = 'opt-' + Date.now();
+      if (stream) {
+        const mediaHtml = mediaToSend.length ? `
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+            ${mediaToSend.map(m => `
+              <img src="${m.thumb_url || m.url}" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.15);" alt="${escapeHtml(m.filename)}"/>
+            `).join('')}
+          </div>
+        ` : '';
+        const optHtml = `
+          <div class="chat-msg user" id="${optimisticId}">
+            <div class="msg-bubble">
+              ${escapeHtml(prompt || (mediaToSend.length ? '📎 Attached ' + mediaToSend.length + ' image(s)' : ''))}
+              ${mediaHtml}
+            </div>
+          </div>
+          <div class="chat-msg assistant" id="${optimisticId}-assistant">
+            <div class="agy-status-working">Working</div>
+          </div>
+        `;
+        stream.insertAdjacentHTML('beforeend', optHtml);
+        scrollToChatBottom();
+      }
+
+      activeAbortController = new AbortController();
+      setSendButtonState(true);
+
+      try {
+        showToast('Dispatching prompt to Antigravity...');
+        const targetConv = activeConvId || ASTRAL_ABYSS_ID;
+        const res = await fetch('/api/chat/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: prompt || (mediaToSend.length ? 'The user uploaded image(s) for review.' : ''),
+            conv_id: targetConv,
+            model: 'flash-high',
+            media: mediaToSend,
+            source: 'cockpit_chat'
+          }),
+          signal: activeAbortController.signal
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          showToast(`Injected prompt into Antigravity (${data.model || 'Flash'}) 🚀`);
+          updateCockpitChatStatus(true);
+        } else {
+          showToast('Dispatch error: ' + (data && data.error ? data.error : 'Unknown error'));
+          setSendButtonState(false);
+          const optEl = document.getElementById(optimisticId);
+          if (optEl) optEl.style.borderColor = '#ef4444';
+          const optAsst = document.getElementById(`${optimisticId}-assistant`);
+          if (optAsst) optAsst.remove();
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showToast('Failed to dispatch prompt: ' + err.message);
+        }
+        setSendButtonState(false);
+        const optEl = document.getElementById(optimisticId);
+        if (optEl) optEl.style.borderColor = '#ef4444';
+        const optAsst = document.getElementById(`${optimisticId}-assistant`);
+        if (optAsst) optAsst.remove();
+      } finally {
+        activeAbortController = null;
+      }
+    }
+
+    function setSendButtonState(isStreaming) {
+      const btn = document.getElementById('btn-chat-send');
+      if (!btn) return;
+      if (isStreaming) {
+        btn.textContent = '⏹';
+        btn.classList.add('stop');
+      } else {
+        btn.innerHTML = '↑';
+        btn.classList.remove('stop');
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const container = document.getElementById('chat-stream');
+      const msg = document.createElement('div');
+      msg.className = `chat-msg ${sender}`;
+      msg.innerHTML = `
+        <span class="msg-sender">${sender === 'user' ? 'YOU' : 'ANTIGRAVITY // INTERCOM'}</span>
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+      `;
+      container.appendChild(msg);
+      scrollToChatBottom();
+    }
+
+    function createAssistantContainer() {
+      const container = document.getElementById('chat-stream');
+      const msg = document.createElement('div');
+      msg.className = 'chat-msg assistant';
+
+      const drawer = document.createElement('details');
+      drawer.className = 'thinking-drawer';
+      drawer.setAttribute('open', '');
+
+      const summary = document.createElement('summary');
+      summary.className = 'thinking-summary';
+      const timerSpan = document.createElement('span');
+      timerSpan.textContent = '🧠 Thinking for 0.0s...';
+      summary.appendChild(timerSpan);
+
+      const body = document.createElement('div');
+      body.className = 'thinking-body';
+      drawer.appendChild(summary);
+      drawer.appendChild(body);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble';
+      const content = document.createElement('div');
+      bubble.appendChild(content);
+
+      msg.innerHTML = `<span class="msg-sender">ANTIGRAVITY // INTERCOM</span>`;
+      msg.appendChild(drawer);
+      msg.appendChild(bubble);
+      container.appendChild(msg);
+
+      return {
+        assistantBubble: msg,
+        thinkingDrawer: drawer,
+        thinkingTimer: timerSpan,
+        thinkingBody: body,
+        contentBody: content
+      };
+    }
+
+    function attachCodeCopyButtons(root) {
+      root.querySelectorAll('pre').forEach(pre => {
+        if (pre.querySelector('.code-copy-btn')) return;
+        const btn = document.createElement('button');
+        btn.className = 'code-copy-btn';
+        btn.textContent = 'Copy';
+        btn.onclick = () => {
+          const code = pre.querySelector('code')?.innerText || pre.innerText;
+          navigator.clipboard.writeText(code);
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.textContent = 'Copy', 1500);
+        };
+        pre.appendChild(btn);
+      });
+    }
+
+    // CLOCKTAB AMBIENT FOCUS DECK ENGINE
+    function initClockTab() {
+      updateClockDisplay();
+      setInterval(updateClockDisplay, 1000);
+
+      const btnFmt = document.getElementById('btn-clock-format');
+      if (btnFmt) btnFmt.textContent = clockFormat24 ? '24H' : '12H';
+      const btnSec = document.getElementById('btn-clock-seconds');
+      if (btnSec) btnSec.classList.toggle('active', showClockSeconds);
+
+      const savedNote = localStorage.getItem('nkai_focus_scratchpad') || '';
+      const spInput = document.getElementById('focus-scratchpad');
+      if (spInput) spInput.value = savedNote;
+    }
+
+    function updateClockDisplay() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      let ampm = '';
+
+      if (!clockFormat24) {
+        ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+      }
+      const hoursStr = String(hours).padStart(2, '0');
+
+      const elHours = document.getElementById('clock-hours');
+      const elMin = document.getElementById('clock-minutes');
+      const elSec = document.getElementById('clock-seconds');
+      const elAmpm = document.getElementById('clock-ampm');
+      const elDate = document.getElementById('clock-date-display');
+
+      if (elHours) elHours.textContent = hoursStr;
+      if (elMin) elMin.textContent = minutes;
+      if (elSec) {
+        elSec.textContent = seconds;
+        elSec.style.display = showClockSeconds ? 'inline' : 'none';
+      }
+      const secColons = document.querySelectorAll('.clock-sec-colon');
+      secColons.forEach(c => c.style.display = showClockSeconds ? 'inline' : 'none');
+
+      if (elAmpm) {
+        elAmpm.textContent = ampm;
+        elAmpm.style.display = clockFormat24 ? 'none' : 'inline';
+      }
+
+      if (elDate) {
+        const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        elDate.textContent = now.toLocaleDateString(undefined, opts);
+      }
+
+      // Update browser tab document.title
+      if (sprintMode === 'timer' && sprintRemaining > 0) {
+        const m = Math.floor(sprintRemaining / 60);
+        const s = String(sprintRemaining % 60).padStart(2, '0');
+        document.title = `⏱ [${m}:${s}] • N'kai`;
+      } else if (sprintMode === 'stopwatch') {
+        const elapsed = Math.floor((Date.now() - stopwatchStart) / 1000);
+        const m = Math.floor(elapsed / 60);
+        const s = String(elapsed % 60).padStart(2, '0');
+        document.title = `⏱ [${m}:${s}] • N'kai`;
+      } else {
+        document.title = `${hoursStr}:${minutes} ${ampm} • N'kai`;
+      }
+    }
+
+    function toggleClockFormat() {
+      clockFormat24 = !clockFormat24;
+      localStorage.setItem('nkai_clock_format', clockFormat24 ? '24' : '12');
+      const btn = document.getElementById('btn-clock-format');
+      if (btn) btn.textContent = clockFormat24 ? '24H' : '12H';
+      updateClockDisplay();
+    }
+
+    function toggleClockSeconds() {
+      showClockSeconds = !showClockSeconds;
+      localStorage.setItem('nkai_clock_seconds', showClockSeconds ? 'true' : 'false');
+      const btn = document.getElementById('btn-clock-seconds');
+      if (btn) btn.classList.toggle('active', showClockSeconds);
+      updateClockDisplay();
+    }
+
+    function startSprint(minutes, label) {
+      if (sprintInterval) clearInterval(sprintInterval);
+      sprintMode = 'timer';
+      sprintTotal = minutes * 60;
+      sprintRemaining = sprintTotal;
+
+      const display = document.getElementById('sprint-timer-display');
+      const labelEl = document.getElementById('sprint-timer-label');
+      const digitsEl = document.getElementById('sprint-timer-digits');
+      const fillEl = document.getElementById('sprint-progress-fill');
+
+      if (display) display.style.display = 'flex';
+      if (labelEl) labelEl.textContent = label.toUpperCase();
+
+      const tick = () => {
+        sprintRemaining--;
+        if (sprintRemaining <= 0) {
+          clearInterval(sprintInterval);
+          sprintInterval = null;
+          if (digitsEl) digitsEl.textContent = '00:00 - COMPLETE';
+          if (fillEl) fillEl.style.width = '0%';
+          playChime();
+          showToast('🎉 Focus Sprint Complete!');
+          return;
+        }
+        const m = Math.floor(sprintRemaining / 60);
+        const s = String(sprintRemaining % 60).padStart(2, '0');
+        if (digitsEl) digitsEl.textContent = `${m}:${s}`;
+        if (fillEl) fillEl.style.width = `${(sprintRemaining / sprintTotal) * 100}%`;
+      };
+
+      tick();
+      sprintInterval = setInterval(tick, 1000);
+    }
+
+    function toggleStopwatch() {
+      if (sprintInterval) clearInterval(sprintInterval);
+      sprintMode = 'stopwatch';
+      stopwatchStart = Date.now();
+
+      const display = document.getElementById('sprint-timer-display');
+      const labelEl = document.getElementById('sprint-timer-label');
+      const digitsEl = document.getElementById('sprint-timer-digits');
+      const fillEl = document.getElementById('sprint-progress-fill');
+
+      if (display) display.style.display = 'flex';
+      if (labelEl) labelEl.textContent = 'STUDIO STOPWATCH';
+      if (fillEl) fillEl.style.width = '100%';
+
+      const tick = () => {
+        const elapsed = Math.floor((Date.now() - stopwatchStart) / 1000);
+        const m = Math.floor(elapsed / 60);
+        const s = String(elapsed % 60).padStart(2, '0');
+        if (digitsEl) digitsEl.textContent = `${m}:${s}`;
+      };
+
+      tick();
+      sprintInterval = setInterval(tick, 1000);
+    }
+
+    function resetTimer() {
+      if (sprintInterval) clearInterval(sprintInterval);
+      sprintInterval = null;
+      sprintMode = null;
+      sprintRemaining = 0;
+      const display = document.getElementById('sprint-timer-display');
+      if (display) display.style.display = 'none';
+      updateClockDisplay();
+    }
+
+    function playChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 1.2);
+      } catch (e) {}
+    }
+
+    let spDebounceTimer = null;
+    function handleScratchpadInput() {
+      const text = document.getElementById('focus-scratchpad')?.value || '';
+      const statusEl = document.getElementById('scratchpad-save-status');
+      if (statusEl) statusEl.textContent = 'Saving...';
+
+      clearTimeout(spDebounceTimer);
+      spDebounceTimer = setTimeout(() => {
+        localStorage.setItem('nkai_focus_scratchpad', text);
+        if (statusEl) statusEl.textContent = `Saved (${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})})`;
+      }, 300);
+    }
+
+    async function pushToScratchpadFile() {
+      const text = document.getElementById('focus-scratchpad')?.value.trim();
+      if (!text) {
+        showToast('⚠️ Scratchpad is empty');
+        return;
+      }
+
+      const btn = document.getElementById('btn-push-scratchpad');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Pushing...';
+      }
+
+      try {
+        const res = await fetch('/api/sp/append', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const d = await res.json();
+        if (d.ok) {
+          showToast('📌 Pushed to C:\\_\\Vault\\SCRATCHPAD.md!');
+          document.getElementById('focus-scratchpad').value = '';
+          localStorage.removeItem('nkai_focus_scratchpad');
+          const statusEl = document.getElementById('scratchpad-save-status');
+          if (statusEl) statusEl.textContent = 'Pushed to disk';
+        } else {
+          showToast('⚠️ Error: ' + (d.error || 'Failed to append'));
+        }
+      } catch (err) {
+        showToast('⚠️ Network Error pushing to scratchpad');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>📌</span> Push to SCRATCHPAD.md';
+        }
+      }
+    }
+
+    // ==================================================================================
+    // MILESTONE M5: OBSIDIAN-GRADE OUTLINER, WEBSOCKET LIVE BRIDGE & PULL TO ABYSS
+    // ==================================================================================
+
+    let spWebSocket = null;
+
+    function initOutlinerEngine() {
+      const textarea = document.getElementById('focus-scratchpad');
+      if (!textarea) return;
+
+      textarea.addEventListener('keydown', (e) => {
+        // Ctrl+Enter or Cmd+Enter -> Pull to Abyss
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          pullToAbyss();
+          return;
+        }
+
+        // Ctrl+\ or Cmd+\ -> Toggle Desktop Split View
+        if (e.key === '\\' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          toggleSplitView();
+          return;
+        }
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const val = textarea.value;
+
+        // Auto-bullet continuation on Enter
+        if (e.key === 'Enter' && !e.shiftKey) {
+          const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+          const currentLine = val.substring(lineStart, start);
+          
+          // Case 1: Empty bullet (user hits enter on empty "- ") -> unbullet
+          const emptyBulletMatch = currentLine.match(/^(\s*)-\s*$/);
+          if (emptyBulletMatch) {
+            e.preventDefault();
+            const prefix = val.substring(0, lineStart);
+            const suffix = val.substring(start);
+            textarea.value = prefix + suffix;
+            textarea.selectionStart = textarea.selectionEnd = lineStart;
+            handleScratchpadInput();
+            return;
+          }
+
+          // Case 2: Populated bullet -> insert next bullet with matching indentation
+          const bulletMatch = currentLine.match(/^(\s*)-\s+/);
+          if (bulletMatch) {
+            e.preventDefault();
+            const indent = bulletMatch[1];
+            const insertText = '\n' + indent + '- ';
+            textarea.value = val.substring(0, start) + insertText + val.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+            handleScratchpadInput();
+            return;
+          }
+        }
+
+        // Tab / Shift+Tab indent/outdent
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+          const lineEnd = val.indexOf('\n', end);
+          const effectiveEnd = lineEnd === -1 ? val.length : lineEnd;
+          const lines = val.substring(lineStart, effectiveEnd).split('\n');
+
+          if (e.shiftKey) {
+            // Outdent: remove up to 2 leading spaces or 1 leading tab
+            const updated = lines.map(line => {
+              if (line.startsWith('\t')) return line.substring(1);
+              if (line.startsWith('  ')) return line.substring(2);
+              if (line.startsWith(' ')) return line.substring(1);
+              return line;
+            }).join('\n');
+            textarea.value = val.substring(0, lineStart) + updated + val.substring(effectiveEnd);
+            textarea.selectionStart = Math.max(lineStart, start - 2);
+            textarea.selectionEnd = Math.max(lineStart, end - (val.length - textarea.value.length));
+          } else {
+            // Indent: add 2 leading spaces
+            const updated = lines.map(line => '  ' + line).join('\n');
+            textarea.value = val.substring(0, lineStart) + updated + val.substring(effectiveEnd);
+            textarea.selectionStart = start + 2;
+            textarea.selectionEnd = end + (2 * lines.length);
+          }
+          handleScratchpadInput();
+          return;
+        }
+
+        // Alt+Up / Alt+Down line swapping
+        if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+          e.preventDefault();
+          const lines = val.split('\n');
+          let currentLineIdx = 0;
+          let acc = 0;
+          for (let i = 0; i < lines.length; i++) {
+            acc += lines[i].length + 1;
+            if (start < acc) {
+              currentLineIdx = i;
+              break;
+            }
+          }
+
+          if (e.key === 'ArrowUp' && currentLineIdx > 0) {
+            const temp = lines[currentLineIdx];
+            lines[currentLineIdx] = lines[currentLineIdx - 1];
+            lines[currentLineIdx - 1] = temp;
+            textarea.value = lines.join('\n');
+            handleScratchpadInput();
+          } else if (e.key === 'ArrowDown' && currentLineIdx < lines.length - 1) {
+            const temp = lines[currentLineIdx];
+            lines[currentLineIdx] = lines[currentLineIdx + 1];
+            lines[currentLineIdx + 1] = temp;
+            textarea.value = lines.join('\n');
+            handleScratchpadInput();
+          }
+          return;
+        }
+
+        // Markdown pair wrapping (*, _, `, [, $)
+        const PAIRS = { '*': '*', '_': '_', '`': '`', '[': ']', '$': '$' };
+        if (PAIRS[e.key] && start !== end) {
+          e.preventDefault();
+          const openChar = e.key;
+          const closeChar = PAIRS[e.key];
+          const selectedText = val.substring(start, end);
+          textarea.value = val.substring(0, start) + openChar + selectedText + closeChar + val.substring(end);
+          textarea.selectionStart = start + 1;
+          textarea.selectionEnd = end + 1;
+          handleScratchpadInput();
+          return;
+        }
+      });
+    }
+
+    function initWebSocketScratchpad() {
+      const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${location.host}/ws/sp`;
+
+      try {
+        spWebSocket = new WebSocket(wsUrl);
+
+        spWebSocket.onopen = () => {
+          const statusEl = document.getElementById('scratchpad-save-status');
+          if (statusEl) statusEl.textContent = 'Live Kernel Bridge';
+        };
+
+        spWebSocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            const textarea = document.getElementById('focus-scratchpad');
+            if (data.type === 'scratchpad_update' && textarea) {
+              // Only overwrite if textarea is not actively focused to prevent typing collisions
+              if (document.activeElement !== textarea) {
+                textarea.value = data.content || '';
+              }
+              const statusEl = document.getElementById('scratchpad-save-status');
+              if (statusEl) statusEl.textContent = `Synced (${data.lines} lines • ${data.bytes} B)`;
+            } else if (data.type === 'scratchpad_pulled') {
+              if (textarea) textarea.value = '';
+              localStorage.removeItem('nkai_focus_scratchpad');
+              showToast('🚀 Scratchpad Pulled to Abyss & Cleared!');
+              const statusEl = document.getElementById('scratchpad-save-status');
+              if (statusEl) statusEl.textContent = 'Pulled (0 B)';
+            }
+          } catch (err) {}
+        };
+
+        spWebSocket.onclose = () => {
+          setTimeout(initWebSocketScratchpad, 3000);
+        };
+      } catch (err) {}
+    }
+
+    async function pullToAbyss() {
+      const btn = document.getElementById('btn-pull-scratchpad');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> Pulling...';
+      }
+
+      try {
+        const res = await fetch('/api/scratchpad/pull', { method: 'POST' });
+        const d = await res.json();
+        if (d.ok) {
+          showToast('📥 Pulled to Abyss! Notes archived to chronicle.db & wiped.');
+          const textarea = document.getElementById('focus-scratchpad');
+          if (textarea) textarea.value = '';
+          localStorage.removeItem('nkai_focus_scratchpad');
+          const statusEl = document.getElementById('scratchpad-save-status');
+          if (statusEl) statusEl.textContent = 'Pulled to Abyss (0 B)';
+        } else {
+          showToast('⚠️ Pull error: ' + (d.error || 'Failed'));
+        }
+      } catch (err) {
+        showToast('⚠️ Network Error pulling scratchpad');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>📥</span> Pull to Abyss';
+        }
+      }
+    }
+
+    function toggleSplitView() {
+      document.body.classList.toggle('split-active');
+      const isSplit = document.body.classList.contains('split-active');
+      localStorage.setItem('nkai_split_active', isSplit ? '1' : '0');
+      showToast(isSplit ? '◫ Split View Enabled' : '◫ Full View Restored');
+    }
+
+    async function fetchGovernorStatus() {
+      try {
+        const res = await fetch('/api/governor/status');
+        if (!res.ok) return;
+        const d = await res.json();
+        const gov = d.governor || {};
+        const sat = gov.saturation_pct !== undefined ? gov.saturation_pct : 15;
+        const fillEl = document.getElementById('header-governor-fill');
+        const valEl = document.getElementById('header-governor-val');
+        if (fillEl) {
+          fillEl.style.width = Math.min(100, Math.max(5, sat)) + '%';
+          if (sat > 80) fillEl.style.backgroundColor = 'var(--accent-crimson)';
+          else if (sat > 50) fillEl.style.backgroundColor = 'var(--accent-amber)';
+          else fillEl.style.backgroundColor = 'var(--accent-emerald)';
+        }
+        if (valEl) {
+          valEl.textContent = `${Math.round(sat)}%`;
+        }
+      } catch (e) {}
+    }
+
+    // PILLAR 3: SYNTH NEWS RADAR
+    async function fetchNews() {
+      try {
+        const res = await fetch('/api/synth-news');
+        if (!res.ok) return;
+        const d = await res.json();
+        newsArticles = d.articles || [];
+        renderNews();
+      } catch (e) {}
+    }
+
+    function setNewsFilter(filter) {
+      activeNewsFilter = filter;
+      document.querySelectorAll('#news-filter-chips .filter-chip').forEach(c => {
+        c.classList.toggle('active', c.textContent.toLowerCase().includes(filter) || (filter === 'all' && c.textContent === 'All'));
+      });
+      renderNews();
+    }
+
+    function filterNews() {
+      renderNews();
+    }
+
+    function renderNews() {
+      const container = document.getElementById('news-stream');
+      const query = document.getElementById('news-search').value.toLowerCase().trim();
+
+      const filtered = newsArticles.filter(a => {
+        const matchesFilter = (activeNewsFilter === 'all') ||
+          (activeNewsFilter === 'tracker' && (a.tags || []).some(t => t.includes('tracker'))) ||
+          (activeNewsFilter === 'eurorack' && (a.tags || []).some(t => t.includes('eurorack'))) ||
+          (activeNewsFilter === 'firmware' && (a.tags || []).some(t => t.includes('firmware'))) ||
+          (activeNewsFilter === 'rig' && a.in_studio_rig);
+
+        const matchesQuery = !query || a.title.toLowerCase().includes(query) || (a.summary || '').toLowerCase().includes(query);
+        return matchesFilter && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state"><span class="empty-icon">📡</span><span>No radar articles match the active filter.</span></div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(a => `
+        <div class="news-card">
+          <div class="news-card-meta">
+            <span>${escapeHtml(a.feed || 'Hardware Radar')}</span>
+            <span>${escapeHtml(a.date || '')}</span>
+          </div>
+          <a href="${escapeHtml(a.link)}" target="_blank" class="news-card-title">${escapeHtml(a.title)}</a>
+          <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">${(a.summary || '').replace(/<[^>]*>/g, '').slice(0, 160)}...</div>
+          <div class="news-tags">
+            ${(a.matched_gear || []).map(g => `<span class="tag-chip" style="color:var(--accent-cyan);">${escapeHtml(g)}</span>`).join('')}
+            ${(a.tags || []).slice(0, 3).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // PILLAR 4: AGENDA & FLIGHT PLAN
+    async function fetchAgenda() {
+      try {
+        const res = await fetch('/api/agenda');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        // Banner
+        const runway = d.runway || [];
+        if (runway.length > 0) {
+          const r0 = runway[0];
+          document.getElementById('agenda-flight-title').textContent = r0.topic || r0.title || 'Active Flight';
+          document.getElementById('agenda-active-phase').textContent = r0.status || 'IN FLIGHT';
+          const subEl = document.getElementById('agenda-flight-sub');
+          if (subEl) subEl.textContent = r0.next_action || '';
+        }
+
+        const rCount = document.getElementById('agenda-runway-count');
+        if (rCount) rCount.textContent = `${runway.length} Active`;
+
+        // Runway List
+        const rList = document.getElementById('agenda-runway-list');
+        rList.innerHTML = runway.map(item => {
+          const titleText = item.topic || item.title || 'Untitled Flight';
+          const trackText = item.track || '';
+          const prioText = item.priority || '';
+          const nextAct = item.next_action || '';
+          return `
+            <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  ${prioText ? `<span class="tag-chip" style="color:var(--accent-cyan); font-weight:700;">${escapeHtml(prioText)}</span>` : ''}
+                  ${trackText ? `<span class="tag-chip">${escapeHtml(trackText)}</span>` : ''}
+                  <span style="color:#fff; font-weight:600; font-size:13px;">${escapeHtml(titleText)}</span>
+                </div>
+                <span class="telemetry-val" style="color:var(--accent-emerald); font-size:11px; white-space:nowrap;">${escapeHtml(item.status || 'Active')}</span>
+              </div>
+              ${nextAct ? `<div style="font-size:12px; color:var(--text-muted); margin-top:4px; line-height:1.4;">↳ ${escapeHtml(nextAct)}</div>` : ''}
+            </div>
+          `;
+        }).join('') || '<div class="empty-state">No runway items queued.</div>';
+
+        // Loops List
+        const loops = d.open_loops || [];
+        const unresolved = loops.filter(l => !l.is_resolved);
+        const displayLoops = unresolved.length > 0 ? unresolved : loops;
+        const lCount = document.getElementById('agenda-loops-count');
+        if (lCount) lCount.textContent = `${unresolved.length} Open / ${d.completed_loops_count ?? (loops.length - unresolved.length)} Closed`;
+
+        const lList = document.getElementById('agenda-loops-list');
+        lList.innerHTML = displayLoops.slice(0, 14).map(loop => {
+          const titleText = loop.title || loop.text || String(loop);
+          const badge = loop.badge || '🔄';
+          const status = loop.status || (loop.is_resolved ? 'Resolved' : 'OPEN');
+          const idPrefix = loop.id ? `#${loop.id} ` : '';
+          return `
+            <div class="telemetry-row" style="align-items:center; gap:12px;">
+              <span class="telemetry-key" style="color:#ededed;">${escapeHtml(badge)} <span style="color:var(--text-muted); font-family:var(--font-mono);">${escapeHtml(idPrefix)}</span>${escapeHtml(titleText)}</span>
+              <span class="telemetry-val" style="color:var(--accent-amber); font-size:11px; white-space:nowrap;">${escapeHtml(status.length > 36 ? status.slice(0, 36) + '...' : status)}</span>
+            </div>
+          `;
+        }).join('') || '<div class="empty-state">All loops closed.</div>';
+
+      } catch (e) {
+        console.error('[Agenda Error]', e);
+      }
+    }
+
+    // PILLAR 5: MORNING MAILBAG & TRIAGE
+    let mailCards = [];
+    let activeMailFilter = 'all';
+
+    async function fetchMail() {
+      try {
+        const res = await fetch('/api/mail');
+        if (!res.ok) return;
+        const d = await res.json();
+        mailCards = Array.isArray(d.cards) ? d.cards : [];
+        updateMailFilterCounts();
+        renderMail();
+      } catch (e) {
+        console.error('[Mail Fetch Error]', e);
+        const container = document.getElementById('mail-stream-container');
+        if (container) {
+          container.innerHTML = `<div class="zen-card" style="border-color:var(--accent-crimson); color:var(--accent-crimson);">⚠️ Mailbag load error: ${escapeHtml(e.message)}</div>`;
+        }
+      }
+    }
+
+    function updateMailFilterCounts() {
+      const total = mailCards.length;
+      const pending = mailCards.filter(c => (c.status || '').toLowerCase() !== 'completed').length;
+      const completed = total - pending;
+      document.querySelectorAll('#mail-filter-chips .filter-chip').forEach(btn => {
+        const f = btn.dataset.mailFilter;
+        if (f === 'all') btn.textContent = `📬 All (${total})`;
+        else if (f === 'pending') btn.textContent = `⚡ Actionable (${pending})`;
+        else if (f === 'completed') btn.textContent = `✅ Completed (${completed})`;
+      });
+    }
+
+    function setMailFilter(filter) {
+      activeMailFilter = filter;
+      document.querySelectorAll('#mail-filter-chips .filter-chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mailFilter === filter);
+      });
+      renderMail();
+    }
+
+    function renderSingleMailCard(c) {
+      try {
+        const statusStr = String(c.status || 'pending').toUpperCase();
+        const isDone = statusStr === 'COMPLETED';
+        const statusColor = isDone ? 'var(--accent-emerald)' : 'var(--accent-amber)';
+        const anglesList = Array.isArray(c.angles) ? c.angles : (c.angles ? [String(c.angles)] : []);
+        const pillarsList = Array.isArray(c.pillars) ? c.pillars : [];
+
+        return `
+          <div class="zen-card">
+            <div class="card-header" style="flex-wrap:wrap; gap:8px;">
+              <span class="card-title"><span>${isDone ? '✅' : '📬'}</span> #${escapeHtml(c.rank ?? '')} ${escapeHtml(c.title || 'Untitled Card')}</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                ${c.category ? `<span class="tag-chip">${escapeHtml(c.category)}</span>` : ''}
+                ${c.effort ? `<span class="tag-chip">${escapeHtml(c.effort)}</span>` : ''}
+                <span class="card-badge" style="color:${statusColor}; font-weight:700;">${escapeHtml(c.priority || 'P1')} • ${escapeHtml(statusStr)}</span>
+              </div>
+            </div>
+            <div style="font-size:13px; color:#cbd5e1; line-height:1.45;">${escapeHtml(c.summary || '')}</div>
+            ${anglesList.length > 0 ? `
+              <div style="display:flex; flex-direction:column; gap:4px; background:rgba(0,0,0,0.22); padding:8px 12px; border-radius:8px; border-left:2px solid var(--accent-cyan);">
+                ${anglesList.slice(0, 3).map(ang => `<div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">• ${escapeHtml(ang)}</div>`).join('')}
+              </div>
+            ` : ''}
+            ${c.next_action ? `<div style="font-size:12px; color:var(--accent-cyan);">↳ <strong>Outcome / Next:</strong> ${escapeHtml(c.next_action)}</div>` : ''}
+            ${pillarsList.length > 0 ? `
+              <div class="news-tags">
+                ${pillarsList.map(p => `<span class="tag-chip">${escapeHtml(p)}</span>`).join('')}
+              </div>
+            ` : ''}
+            <div class="action-btn-row">
+              <button class="btn-triage btn-promote" onclick="triageCard('${escapeHtml(c.id)}', 'promote')">✓ Promote to Plan</button>
+              <button class="btn-triage btn-table" onclick="triageCard('${escapeHtml(c.id)}', 'table')">⏱ Table 14d</button>
+              <button class="btn-triage btn-grave" onclick="triageCard('${escapeHtml(c.id)}', 'graveyard')">✕ Graveyard</button>
+            </div>
+          </div>
+        `;
+      } catch (cardErr) {
+        console.error('[Mail Card Render Error]', cardErr, c);
+        return `<div class="zen-card" style="border-color:var(--accent-amber);">⚠️ Card #${escapeHtml(c?.id)} render error: ${escapeHtml(cardErr.message)}</div>`;
+      }
+    }
+
+    function renderMail() {
+      const container = document.getElementById('mail-stream-container');
+      if (!container) return;
+      const query = (document.getElementById('mail-search')?.value || '').toLowerCase().trim();
+
+      const filtered = mailCards.filter(c => {
+        const isDone = (c.status || '').toLowerCase() === 'completed';
+        const matchesFilter = (activeMailFilter === 'all') ||
+          (activeMailFilter === 'pending' && !isDone) ||
+          (activeMailFilter === 'completed' && isDone);
+
+        const matchesQuery = !query ||
+          String(c.title || '').toLowerCase().includes(query) ||
+          String(c.summary || '').toLowerCase().includes(query) ||
+          String(c.category || '').toLowerCase().includes(query);
+        return matchesFilter && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">🌌</span>
+            <h3 style="color:#fff; font-size:16px;">Orbit Clear. Mind at Rest.</h3>
+            <p>${activeMailFilter === 'pending' ? '0 pending cards in queue — all 32 cards completed! Click "All" or "Completed" above to browse.' : 'No mailbag cards match the current search filter.'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => renderSingleMailCard(c)).join('');
+    }
+
+    function triageCard(id, action) {
+      showToast(`Card ${action.toUpperCase()}: Marked`);
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
+
+    // Mobile Virtual Keyboard Handling via visualViewport
+    function setupVirtualKeyboard() {
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+          if (window.innerWidth <= 768) {
+            const isKeyboardOpen = window.visualViewport.height < window.innerHeight * 0.78;
+            document.body.classList.toggle('keyboard-open', isKeyboardOpen);
+            if (isKeyboardOpen && activePillar === 'chat') {
+              scrollToChatBottom();
+            }
+          }
+        });
+      }
+    }
+
+    function refreshActivePillar() {
+      showToast(`Refreshing ${activePillar.toUpperCase()}...`);
+      if (activePillar === 'telemetry') fetchTelemetry();
+      else if (activePillar === 'synth_news') fetchNews();
+      else if (activePillar === 'agenda') fetchAgenda();
+      else if (activePillar === 'mail') fetchMail();
+    }
+
+    function toggleAudioMute() {
+      const btn = document.getElementById('btn-audio-mute');
+      const isMuted = localStorage.getItem('nkai_mute') === 'true';
+      localStorage.setItem('nkai_mute', !isMuted);
+      btn.textContent = isMuted ? '🔊' : '🔇';
+      showToast(isMuted ? 'Audio Enabled' : 'Audio Muted');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function escapeHtml(val) {
+      if (val === null || val === undefined) return '';
+      const str = Array.isArray(val) ? val.join(' • ') : String(val);
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag] || tag));
+    }
+  </script>
+</body>
+</html>
