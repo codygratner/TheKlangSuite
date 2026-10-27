@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
 """
-tools/nkai_tray.py — N'kai Windows System Tray Daemon & Supervisor
-==================================================================
+tools/nkai_tray.py — N'kai Windows System Tray Supervisor & 4-Quadrant Quota Telemetry
+====================================================================================
 Native Windows Notification Area (System Tray) service for N'kai.
 - Supervises http://localhost:3030 with Single-Instance Latch Protocol
-- Renders dynamic in-memory 32-bit RGBA LED icons (🟢 Green, 🟡 Yellow, 🔴 Red)
+- Renders dynamic in-memory 4-quadrant taskbar LED icon:
+    • Top-Left:     Gemini 5-Hour Allowance
+    • Top-Right:    Gemini Weekly Allowance
+    • Center:       N'kai Server Health LED (:3030)
+    • Bottom-Left:  Claude/3P 5-Hour Allowance (STEALTH when 100%, illuminates when < 100%)
+    • Bottom-Right: Claude/3P Weekly Allowance (STEALTH when 100%, illuminates when < 100%)
+- Stealth-Claude UX: Completely hides Claude telemetry when at 100%, illuminating
+  only when active consumption occurs.
 - Thread-decoupled architecture (Win32 PumpMessages UI thread vs Telemetry Watcher thread)
 - Intercepts TaskbarCreated for Explorer crash & Modern Standby recovery
-- Native right-click menu and double-click Morning Mail launcher
-- 1-click Context & Cache Flusher with balloon toast notification
+- Native right-click menu with live allowance metrics, clipboard routing, and context flushing.
 """
 
 import os
 import sys
 import time
-import struct
-import zlib
+import io
 import ctypes
 import threading
 import webbrowser
@@ -28,13 +33,29 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+# Workspace Path Resolution
+CANDIDATE_ROOTS = [
+    Path(r"C:\Dev\Nkai"),
+    Path(__file__).resolve().parent.parent,
+    Path(r"c:\_\Vault"),
+    Path(r"C:\Dev\TheKlangSuite"),
+]
+for root in CANDIDATE_ROOTS:
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
-import win32api
-import win32con
-import win32gui
+REPO_ROOT = Path(r"C:\Dev\Nkai") if Path(r"C:\Dev\Nkai").exists() else Path(__file__).resolve().parent.parent
+
+try:
+    import win32api
+    import win32con
+    import win32gui
+    import win32process
+    import win32clipboard
+    from PIL import Image, ImageDraw
+except ImportError as e:
+    print(f"Error: Missing required dependency for nkai_tray.py: {e}", file=sys.stderr)
+    sys.exit(1)
 
 from tools.nkai_daemon import (
     DEFAULT_PORT,
@@ -52,17 +73,25 @@ from tools.flush_context import run_flush
 WM_TRAY_NOTIFY = win32con.WM_USER + 20
 WM_STATUS_UPDATE = win32con.WM_USER + 21
 WM_FLUSH_COMPLETE = win32con.WM_USER + 22
+WM_BALLOON_NOTIFY = win32con.WM_USER + 23
 
 # Menu Command IDs
 CMD_OPEN_COCKPIT = 1000
 CMD_OPEN_MAIL = 1001
 CMD_OPEN_INTERCOM = 1002
 CMD_OPEN_RUNWAY = 1003
-CMD_OPEN_FX_OSC = 1004
-CMD_STATUS_INFO = 1005
-CMD_FLUSH_CONTEXT = 1006
-CMD_RESTART_SERVER = 1007
-CMD_EXIT = 1008
+CMD_OPEN_AGENDA = 1004
+CMD_OPEN_FX_OSC = 1005
+CMD_STATUS_INFO = 1006
+CMD_FLUSH_CONTEXT = 1007
+CMD_RESTART_SERVER = 1008
+CMD_EXIT = 1009
+CMD_ROUTE_CLIPBOARD_LOOP = 1010
+CMD_ROUTE_CLIPBOARD_RUNWAY = 1011
+CMD_GEMINI_INFO = 1012
+CMD_CLAUDE_INFO = 1013
+CMD_REFRESH_QUOTA = 1014
+CMD_OPEN_TELEMETRY = 1015
 
 USER32 = ctypes.windll.user32
 
@@ -77,58 +106,155 @@ def ensure_default_desktop():
         pass
 
 
-def make_png_led_icon(r: int, g: int, b: int, size: int = 16):
-    """Synthesizes a crisp, anti-aliased 32-bit RGBA circular LED icon in memory."""
-    w, h = size, size
-    center = (size - 1) / 2.0
-    radius = (size / 2.0) - 1.5
-    r_sq = radius * radius
-    inner_sq = (radius - 1.0) * (radius - 1.0)
-    outer_edge_sq = (radius + 1.2) * (radius + 1.2)
-
-    raw = bytearray()
-    for y in range(h):
-        raw.append(0)  # PNG row filter type: None
-        for x in range(w):
-            dx = x - center
-            dy = y - center
-            dist_sq = dx * dx + dy * dy
-            if dist_sq <= inner_sq:
-                # Specular dot (upper left)
-                if dist_sq <= (radius * 0.3) ** 2 and dx < 0 and dy < 0:
-                    raw.extend([255, 255, 255, 255])
-                else:
-                    raw.extend([r, g, b, 255])
-            elif dist_sq <= r_sq:
-                # Border ring
-                raw.extend([max(0, r - 55), max(0, g - 55), max(0, b - 55), 255])
-            elif dist_sq <= outer_edge_sq:
-                # Smooth anti-aliased outer edge
-                frac = (outer_edge_sq - dist_sq) / (outer_edge_sq - r_sq)
-                alpha = int(255 * max(0.0, min(1.0, frac)))
-                raw.extend([r, g, b, alpha])
-            else:
-                # Fully transparent background
-                raw.extend([0, 0, 0, 0])
-
-    def chunk(tag, data):
-        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
-
-    png_bytes = (
-        b"\x89PNG\r\n\x1a\n"
-        + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0))
-        + chunk(b"IDAT", zlib.compress(bytes(raw), 9))
-        + chunk(b"IEND", b"")
-    )
-    return USER32.CreateIconFromResourceEx(png_bytes, len(png_bytes), True, 0x00030000, size, size, 0)
-
-
 def debug_log(text: str):
     try:
-        with open(r"c:\Dev\TheKlangSuite\tray_debug.log", "a", encoding="utf-8") as f:
+        log_path = REPO_ROOT / ".agents" / "pipeline" / "nkai_tray_debug.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a", encoding="utf-8") as f:
             f.write(f"[{time.strftime('%H:%M:%S')}] {text}\n")
     except Exception:
         pass
+
+
+def parse_quota(q_data: dict) -> dict:
+    """Parses raw language_server ConnectRPC quota summary into fraction dictionary."""
+    res = {"g_5h": 1.0, "g_wk": 1.0, "c_5h": 1.0, "c_wk": 1.0}
+    if not isinstance(q_data, dict):
+        return res
+    for group in q_data.get("groups", []):
+        name = str(group.get("displayName", "")).lower()
+        is_gemini = "gemini" in name
+        is_claude = "claude" in name or "gpt" in name
+        for b in group.get("buckets", []):
+            win = str(b.get("window", "")).lower()
+            frac = float(b.get("remainingFraction", 1.0))
+            if is_gemini:
+                if "5h" in win:
+                    res["g_5h"] = frac
+                elif "week" in win:
+                    res["g_wk"] = frac
+            elif is_claude:
+                if "5h" in win:
+                    res["c_5h"] = frac
+                elif "week" in win:
+                    res["c_wk"] = frac
+    return res
+
+
+def make_dynamic_quadrant_hicon(
+    g5: float, gw: float, online: bool, context_mb: float, state_code: int = 0, size: int = 16
+) -> int:
+    """
+    Synthesizes the canonical 4-quadrant taskbar icon in memory:
+    - Top-Left:     5-Hour Allowance (Green >75%, Amber 40-75%, Orange 15-40%, Red <15%)
+    - Top-Right:    Weekly Allowance (Green >75%, Amber 40-75%, Orange 15-40%, Red <15%)
+    - Bottom-Left:  Server Status (:3030 Health — Cyan #06b6d4 online, Red #ef4444 offline)
+    - Bottom-Right: Context Size MB (Green <1.5MB, Amber 1.5-2.5MB, Orange 2.5-3.5MB, Red >=3.5MB)
+    """
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Baseplate with rounded border
+    corner_r = max(2, size // 5)
+    draw.rounded_rectangle(
+        [0, 0, size - 1, size - 1],
+        radius=corner_r,
+        fill=(18, 18, 22, 255),
+        outline=(44, 44, 52, 255),
+        width=1,
+    )
+
+    def quota_color(val: float):
+        if val > 0.75:
+            return (34, 197, 94, 255)   # Emerald Green #22c55e
+        elif val > 0.40:
+            return (234, 179, 8, 255)   # Amber #eab308
+        elif val > 0.15:
+            return (249, 115, 22, 255)  # Orange #f97316
+        else:
+            return (239, 68, 68, 255)   # Crimson Red #ef4444
+
+    def context_color(mb: float):
+        if mb < 1.5:
+            return (34, 197, 94, 255)   # Emerald Green #22c55e (< 1.5 MB)
+        elif mb < 2.5:
+            return (234, 179, 8, 255)   # Amber #eab308 (1.5 - 2.5 MB)
+        elif mb < 3.5:
+            return (249, 115, 22, 255)  # Orange #f97316 (2.5 - 3.5 MB)
+        else:
+            return (239, 68, 68, 255)   # Crimson Red #ef4444 (>= 3.5 MB Harvest Due)
+
+    def server_color(is_on: bool, st_code: int):
+        if not is_on:
+            return (239, 68, 68, 255)   # Red: Offline
+        elif st_code == 1:
+            return (234, 179, 8, 255)   # Amber: Attention / degraded
+        else:
+            return (6, 182, 212, 255)   # Neon Cyan #06b6d4: Online & Nominal
+
+    pad = max(2, int(size * 0.125))
+    gutter = max(2, int(size * 0.125))
+    mid = size // 2
+    half_g = gutter // 2
+
+    x1_left = pad
+    x2_left = mid - half_g - 1
+    x1_right = mid + half_g
+    x2_right = size - 1 - pad
+
+    y1_top = pad
+    y2_top = mid - half_g - 1
+    y1_bot = mid + half_g
+    y2_bot = size - 1 - pad
+
+    # Square 1 (Top-Left): 5-Hour Allowance
+    draw.rectangle([x1_left, y1_top, x2_left, y2_top], fill=quota_color(g5))
+    # Square 2 (Top-Right): Weekly Allowance
+    draw.rectangle([x1_right, y1_top, x2_right, y2_top], fill=quota_color(gw))
+    # Square 3 (Bottom-Left): Context Size (Taskbar / AGY alignment)
+    draw.rectangle([x1_left, y1_bot, x2_left, y2_bot], fill=context_color(context_mb))
+    # Square 4 (Bottom-Right): Server Status (Systray corner alignment)
+    draw.rectangle([x1_right, y1_bot, x2_right, y2_bot], fill=server_color(online, state_code))
+
+    # In-memory PNG byte stream conversion
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    png_data = buf.getvalue()
+
+    hicon = USER32.CreateIconFromResourceEx(
+        png_data, len(png_data), True, 0x00030000, size, size, 0
+    )
+    return hicon
+
+
+def get_clipboard_text_win32(hwnd: Optional[int] = None) -> str:
+    """Reads text from Windows clipboard via Win32 API with PowerShell fallback."""
+    for _ in range(3):
+        try:
+            win32clipboard.OpenClipboard(hwnd or 0)
+            try:
+                if win32clipboard.IsClipboardFormatAvailable(win32con.CF_UNICODETEXT):
+                    data = win32clipboard.GetClipboardData(win32con.CF_UNICODETEXT)
+                    return data.strip() if data else ""
+            finally:
+                win32clipboard.CloseClipboard()
+            break
+        except Exception:
+            time.sleep(0.04)
+
+    try:
+        import subprocess
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", "Get-Clipboard"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+            timeout=2.0
+        )
+        return res.stdout.strip()
+    except Exception:
+        return ""
 
 
 class NkaiTrayApp:
@@ -136,17 +262,18 @@ class NkaiTrayApp:
         ensure_default_desktop()
 
         self.icon_size = win32api.GetSystemMetrics(win32con.SM_CXSMICON) or 16
-        self.icons = {
-            STATE_NOMINAL: make_png_led_icon(34, 197, 94, self.icon_size),    # 🟢 #22c55e
-            STATE_ATTENTION: make_png_led_icon(234, 179, 8, self.icon_size),  # 🟡 #eab308
-            STATE_CRITICAL: make_png_led_icon(239, 68, 68, self.icon_size),   # 🔴 #ef4444
-        }
+        self.current_hicon = None
 
+        self.allowances = {"g_5h": 1.0, "g_wk": 1.0, "c_5h": 1.0, "c_wk": 1.0}
         self.current_state = STATE_NOMINAL
-        self.current_tooltip = "N'kai Daemon: Initializing..."
+        self.current_tooltip = "N'kai Initializing..."
         self.latest_health: Dict[str, Any] = {}
         self.running = True
         self.last_lclick_time = 0.0
+        self._pending_balloon: Optional[tuple] = None
+
+        # Build initial HICON
+        self.current_hicon = make_dynamic_quadrant_hicon(1.0, 1.0, True, 0.0, 0, size=self.icon_size)
 
         # Register TaskbarCreated message for Explorer crash & sleep recovery
         self.wm_taskbar_created = win32gui.RegisterWindowMessage("TaskbarCreated")
@@ -178,33 +305,31 @@ class NkaiTrayApp:
         # Register initial Tray Icon
         self._add_tray_icon()
 
-        # Start background health telemetry thread
+        # Start background health & quota telemetry thread
         self.telemetry_thread = threading.Thread(target=self._telemetry_worker, daemon=True)
         self.telemetry_thread.start()
 
     def _add_tray_icon(self):
         flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
-        hicon = self.icons.get(self.current_state, self.icons[STATE_NOMINAL])
         tip = self.current_tooltip[:127]
-        nid = (self.hwnd, 0, flags, WM_TRAY_NOTIFY, hicon, tip)
+        nid = (self.hwnd, 0, flags, WM_TRAY_NOTIFY, self.current_hicon, tip)
         try:
             win32gui.Shell_NotifyIcon(win32gui.NIM_ADD, nid)
         except Exception:
             pass
 
     def _update_tray_icon(self, balloon_title: Optional[str] = None, balloon_msg: Optional[str] = None):
-        hicon = self.icons.get(self.current_state, self.icons[STATE_NOMINAL])
         tip = self.current_tooltip[:127]
 
         if balloon_title and balloon_msg:
             flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP | win32gui.NIF_INFO
             nid = (
-                self.hwnd, 0, flags, WM_TRAY_NOTIFY, hicon, tip,
+                self.hwnd, 0, flags, WM_TRAY_NOTIFY, self.current_hicon, tip,
                 balloon_msg[:255], 3000, balloon_title[:63], win32gui.NIIF_INFO
             )
         else:
             flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
-            nid = (self.hwnd, 0, flags, WM_TRAY_NOTIFY, hicon, tip)
+            nid = (self.hwnd, 0, flags, WM_TRAY_NOTIFY, self.current_hicon, tip)
 
         try:
             win32gui.Shell_NotifyIcon(win32gui.NIM_MODIFY, nid)
@@ -217,51 +342,134 @@ class NkaiTrayApp:
         except Exception:
             pass
 
+    def _rebuild_icon(self):
+        """Generates a new dynamic 4-quadrant HICON and frees the previous handle with zero GDI leak."""
+        is_online = self.latest_health.get("is_online", True)
+        active_mb = float(self.latest_health.get("active_transcript_mb", 0.0))
+        state_code = int(self.latest_health.get("state_code", 0))
+
+        new_hicon = make_dynamic_quadrant_hicon(
+            g5=self.allowances.get("g_5h", 1.0),
+            gw=self.allowances.get("g_wk", 1.0),
+            online=is_online,
+            context_mb=active_mb,
+            state_code=state_code,
+            size=self.icon_size,
+        )
+        old_hicon = self.current_hicon
+        self.current_hicon = new_hicon
+        if old_hicon and old_hicon != new_hicon:
+            try:
+                USER32.DestroyIcon(old_hicon)
+            except Exception:
+                pass
+
+    def _format_tooltip(self, health: dict) -> str:
+        """
+        Formats a compact multi-line tooltip under 127 chars matching the 4-quadrant layout:
+        TL: 5h Allowance | TR: Weekly Allowance | BL: Context Size | BR: Server Status
+        """
+        active_mb = float(health.get("active_transcript_mb", 0.0))
+        is_heavy = (active_mb >= 3.5) or (health.get("active_heavy_transcripts", 0) > 0)
+        heavy_tag = " ⚠️ [HARVEST DUE]" if is_heavy else ""
+
+        g_5h = self.allowances.get("g_5h", 1.0)
+        g_wk = self.allowances.get("g_wk", 1.0)
+        is_online = health.get("is_online", True)
+        status_name = "ONLINE" if is_online else "OFFLINE"
+
+        lines = [
+            f"N'kai [{status_name} :3030] · Log: {active_mb:.1f} MB{heavy_tag}",
+            f"5h: {g_5h*100:.0f}% · Wk: {g_wk*100:.0f}%",
+            "TL: 5h · TR: Wk · BL: Context · BR: Server"
+        ]
+        return "\n".join(lines)[:127]
+
     def _telemetry_worker(self):
-        """Worker thread executing in-process health and dispatch probes every 3s."""
-        # Ensure server is alive at boot
+        """Worker thread executing health checks every 3s and quota probes every 30s."""
         start_server_process(silent=True)
+        # Autonomous Bloat Guard: Enforce Copilot & Teams autostart suppression on boot
+        try:
+            from tools import bloat_guard
+            bloat_guard.enforce()
+        except Exception:
+            pass
         last_recovery_time = 0.0
+        last_quota_check = 0.0
         last_pending_count = 0
+        last_bloat_check = time.time()
 
         while self.running:
             try:
+                now = time.time()
                 health = evaluate_system_health()
                 self.latest_health = health
 
+                # Quota allowance probe every 30 seconds
+                quota_changed = False
+                if (now - last_quota_check > 30.0) or (last_quota_check == 0.0):
+                    last_quota_check = now
+                    try:
+                        from tools import quota
+                        q_data = quota.get_quota_summary()
+                        new_allowances = parse_quota(q_data)
+                        if new_allowances != self.allowances:
+                            self.allowances = new_allowances
+                            quota_changed = True
+                    except Exception as e:
+                        debug_log(f"Quota poll exception: {e}")
+
                 new_state = health["state_code"]
-                new_tooltip = health["tooltip"]
+                new_tooltip = self._format_tooltip(health)
                 pending_dispatches = health.get("pending_dispatches", 0)
                 is_new_prompt = (pending_dispatches > last_pending_count and pending_dispatches > 0)
                 last_pending_count = pending_dispatches
 
-                if new_state != self.current_state or new_tooltip != self.current_tooltip or is_new_prompt:
+                if (
+                    quota_changed
+                    or new_state != self.current_state
+                    or new_tooltip != self.current_tooltip
+                    or is_new_prompt
+                ):
                     self.current_state = new_state
                     self.current_tooltip = new_tooltip
-                    # Safely dispatch non-blocking message to UI thread
                     try:
-                        win32gui.PostMessage(self.hwnd, WM_STATUS_UPDATE, new_state, 1 if is_new_prompt else 0)
+                        win32gui.PostMessage(
+                            self.hwnd, WM_STATUS_UPDATE, new_state, 1 if is_new_prompt else 0
+                        )
                     except Exception:
                         pass
 
                 # If server went offline, attempt auto-recovery at most once per 15s
-                now = time.time()
                 if not health.get("is_online", False) and (now - last_recovery_time > 15.0):
                     last_recovery_time = now
                     start_server_process(silent=True)
 
-            except Exception:
-                pass
+                # Periodic Bloat Guard enforcement (every 60 mins) to defeat Windows Update drift
+                if now - last_bloat_check > 3600.0:
+                    last_bloat_check = now
+                    try:
+                        from tools import bloat_guard
+                        rep = bloat_guard.audit()
+                        if not rep.get("clean"):
+                            bloat_guard.enforce()
+                    except Exception:
+                        pass
+
+            except Exception as e:
+                debug_log(f"Telemetry worker exception: {e}")
 
             time.sleep(3.0)
 
     def _wnd_proc(self, hwnd, msg, wparam, lparam):
         if msg == self.wm_taskbar_created:
             # Explorer crashed or restarted — restore tray icon
+            self._rebuild_icon()
             self._add_tray_icon()
             return 0
 
         elif msg == WM_STATUS_UPDATE:
+            self._rebuild_icon()
             if lparam == 1:
                 title = "📱 New Mobile Prompt / Dispatch"
                 text = f"N'kai received a new remote dispatch on Data Bus ({self.current_tooltip})."
@@ -278,20 +486,22 @@ class NkaiTrayApp:
             self._update_tray_icon(balloon_title=title, balloon_msg=text)
             return 0
 
+        elif msg == WM_BALLOON_NOTIFY:
+            if self._pending_balloon:
+                title, text = self._pending_balloon
+                self._pending_balloon = None
+                self._update_tray_icon(balloon_title=title, balloon_msg=text)
+            return 0
+
         elif msg == WM_TRAY_NOTIFY:
-            debug_log(f"WM_TRAY_NOTIFY: lparam={lparam} (RBUTTONUP={win32con.WM_RBUTTONUP}, DBLCLK={win32con.WM_LBUTTONDBLCLK})")
             if lparam == win32con.WM_LBUTTONDBLCLK:
-                # Left double-click (native Win32 message)
-                debug_log("DOUBLE CLICK (WM_LBUTTONDBLCLK) DETECTED -> Opening Mail")
                 self.last_lclick_time = 0.0
                 self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/morning_mail_inbox.html")
                 return 1
 
             elif lparam == win32con.WM_LBUTTONUP:
                 now = time.time()
-                # Software double-click debounce fallback (within 450ms)
                 if (now - self.last_lclick_time) < 0.45:
-                    debug_log("DOUBLE CLICK (SOFTWARE LBUTTONUP) DETECTED -> Opening Mail")
                     self.last_lclick_time = 0.0
                     self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/morning_mail_inbox.html")
                 else:
@@ -299,22 +509,23 @@ class NkaiTrayApp:
                 return 1
 
             elif lparam == win32con.WM_RBUTTONUP:
-                # Right-click: Show Context Menu
-                debug_log("RIGHT CLICK DETECTED -> Showing Menu")
                 self._show_context_menu()
                 return 1
             return 1
 
         elif msg == win32con.WM_COMMAND:
             cmd_id = win32api.LOWORD(wparam)
-            debug_log(f"WM_COMMAND DETECTED: cmd_id={cmd_id}")
             self._handle_command(cmd_id)
             return 0
 
         elif msg == win32con.WM_DESTROY:
-            debug_log("WM_DESTROY DETECTED -> Exiting")
             self.running = False
             self._remove_tray_icon()
+            if self.current_hicon:
+                try:
+                    USER32.DestroyIcon(self.current_hicon)
+                except Exception:
+                    pass
             win32gui.PostQuitMessage(0)
             return 0
 
@@ -322,105 +533,137 @@ class NkaiTrayApp:
 
     @staticmethod
     def _open_url(url: str):
-        debug_log(f"_open_url called with: {url}")
-
-        # 1. Native Windows ShellExecute on URL (delegates to default browser in user session)
         try:
-            debug_log("Attempting win32api.ShellExecute on URL")
+            USER32.AllowSetForegroundWindow(-1)
+            def _find_browser_cb(bhwnd, res):
+                if win32gui.IsWindowVisible(bhwnd):
+                    t = win32gui.GetWindowText(bhwnd).lower()
+                    c = win32gui.GetClassName(bhwnd).lower()
+                    if ("chrome" in t or "chrome" in c or "edge" in t) and "antigravity" not in t:
+                        res.append(bhwnd)
+            b_hwnds = []
+            win32gui.EnumWindows(_find_browser_cb, b_hwnds)
+            for bhwnd in b_hwnds:
+                if win32gui.IsIconic(bhwnd):
+                    win32gui.ShowWindow(bhwnd, win32con.SW_RESTORE)
+                win32gui.SetForegroundWindow(bhwnd)
+                break
+        except Exception:
+            pass
+
+        try:
+            chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+            if not os.path.exists(chrome_path):
+                chrome_path = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+
+            if os.path.exists(chrome_path):
+                cmd = f'"{chrome_path}" {url}'
+                si = win32process.STARTUPINFO()
+                si.lpDesktop = r"WinSta0\Default"
+                hp, ht, pid, tid = win32process.CreateProcess(
+                    None, cmd, None, None, False, win32con.NORMAL_PRIORITY_CLASS, None, None, si
+                )
+                return
+        except Exception:
+            pass
+
+        try:
             res = win32api.ShellExecute(0, "open", url, None, None, win32con.SW_SHOWNORMAL)
-            debug_log(f"win32api.ShellExecute returned: {res}")
             if res > 32:
                 return
-        except Exception as e:
-            debug_log(f"win32api.ShellExecute error: {e}")
+        except Exception:
+            pass
 
-        # 2. Native os.startfile
         try:
-            debug_log("Attempting os.startfile")
             os.startfile(url)
-            debug_log("os.startfile succeeded")
             return
-        except Exception as e:
-            debug_log(f"os.startfile error: {e}")
+        except Exception:
+            pass
 
-        # 3. Direct ShellExecute targeting chrome.exe explicitly
         try:
-            debug_log("Attempting ShellExecute targeting chrome.exe")
-            res = win32api.ShellExecute(0, "open", "chrome.exe", url, None, win32con.SW_SHOWNORMAL)
-            debug_log(f"ShellExecute chrome.exe returned: {res}")
-            if res > 32:
-                return
-        except Exception as e:
-            debug_log(f"ShellExecute chrome.exe error: {e}")
-
-        # 4. Native Windows cmd start
-        try:
-            debug_log("Attempting cmd.exe /c start")
-            import subprocess
-            subprocess.Popen(["cmd.exe", "/c", "start", "", url], shell=False)
-            debug_log("cmd.exe /c start spawned")
-            return
-        except Exception as e:
-            debug_log(f"cmd.exe /c start error: {e}")
-
-        # 5. Standard webbrowser fallback
-        try:
-            debug_log("Attempting webbrowser.open")
             webbrowser.open(url)
-        except Exception as e:
-            debug_log(f"webbrowser.open error: {e}")
+        except Exception:
+            pass
 
     def _show_context_menu(self):
-        menu = win32gui.CreatePopupMenu()
+        try:
+            menu = win32gui.CreatePopupMenu()
 
-        # Master Cockpit (Side-by-Side)
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_COCKPIT, "🛸 Open N'kai Cockpit (Split View)")
-        win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
+            # Master Cockpit (Zen Single-Canvas SPA)
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_COCKPIT, "🌌 Open Sovereign Cockpit (Zen SPA)")
+            win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
 
-        # Board routes
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_MAIL, "📬 Open Morning Mail")
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_INTERCOM, "💬 Open N'kai Intercom")
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_RUNWAY, "🛫 Open Runway Board")
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_FX_OSC, "🔬 Open Lab: FX && OSC")
-        win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
+            # 5 Core Pillars in Strict Priority Order
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_TELEMETRY, "📊 1. Telemetry && Quota")
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_INTERCOM, "💬 2. Sentry Chat Intercom")
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_FX_OSC, "🎛️ 3. Synth News Radar")
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_AGENDA, "🧭 4. Agenda && Flight Plan")
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_MAIL, "📬 5. Morning Mailbag")
+            win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
 
-        # Live telemetry status indicator (Disabled/Grayed info row)
-        state_icon = "🟢" if self.current_state == STATE_NOMINAL else ("🟡" if self.current_state == STATE_ATTENTION else "🔴")
-        status_label = f"{state_icon} Status: {self.latest_health.get('state_name', 'ONLINE')} (Port {DEFAULT_PORT})"
-        win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_STATUS_INFO, status_label)
+            # Quick Agenda Routing
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_ROUTE_CLIPBOARD_LOOP, "📌 Route Clipboard ➔ Open Loop")
+            win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
 
-        # Context Flusher & Restart
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_FLUSH_CONTEXT, "🧹 Flush Context && Clean Caches")
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_RESTART_SERVER, "🔄 Restart Server")
-        win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
+                        # Live telemetry status indicator (Disabled/Grayed info row)
+            is_online = self.latest_health.get("is_online", True)
+            server_dot = "🔷" if is_online else "🔴"
+            active_mb = self.latest_health.get("active_transcript_mb", 0.0)
+            ctx_dot = "🟢" if active_mb < 1.5 else ("🟡" if active_mb < 2.5 else ("🟠" if active_mb < 3.5 else "🔴"))
+            g_5h = self.allowances.get("g_5h", 1.0)
+            g_wk = self.allowances.get("g_wk", 1.0)
+            g5_dot = "🟢" if g_5h > 0.75 else ("🟡" if g_5h > 0.40 else "🔴")
+            gw_dot = "🟢" if g_wk > 0.75 else ("🟡" if g_wk > 0.40 else "🔴")
 
-        # Exit
-        win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_EXIT, "🚪 Exit")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_STATUS_INFO, f"{server_dot} Server: {'ONLINE' if is_online else 'OFFLINE'} (Port {DEFAULT_PORT})")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_OPEN_TELEMETRY, f"{ctx_dot} Context Size: {active_mb:.2f} MB / 3.5 MB")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_GEMINI_INFO, f"{g5_dot} 5-Hour Allowance: {g_5h*100:.1f}%")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_CLAUDE_INFO, f"{gw_dot} Weekly Allowance: {g_wk*100:.1f}%")
 
-        # Position menu at cursor
-        pos = win32gui.GetCursorPos()
-        win32gui.SetForegroundWindow(self.hwnd)
-        debug_log(f"Tracking popup menu at {pos} for hwnd {self.hwnd}...")
-        win32gui.TrackPopupMenu(
-            menu,
-            win32con.TPM_LEFTALIGN,
-            pos[0], pos[1], 0, self.hwnd, None
-        )
-        win32gui.PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
-        debug_log("TrackPopupMenu completed")
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_REFRESH_QUOTA, "🔄 Refresh Allowance Now")
+            win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
+
+            # Context Flusher & Restart
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_FLUSH_CONTEXT, "🧹 Flush Context && Clean Caches")
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_RESTART_SERVER, "🔄 Restart Server")
+            win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
+
+            # Exit
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_EXIT, "🚪 Exit")
+
+            # Position menu at cursor
+            pos = win32gui.GetCursorPos()
+            win32gui.SetForegroundWindow(self.hwnd)
+            win32gui.TrackPopupMenu(
+                menu,
+                win32con.TPM_LEFTALIGN,
+                pos[0], pos[1], 0, self.hwnd, None
+            )
+            win32gui.PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
+        except Exception as e:
+            debug_log(f"Error in _show_context_menu: {e}")
 
     def _handle_command(self, cmd: int):
-        debug_log(f"_handle_command dispatched: {cmd}")
         if cmd == CMD_OPEN_COCKPIT:
             self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html")
-        elif cmd == CMD_OPEN_MAIL:
-            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/morning_mail_inbox.html")
+        elif cmd == CMD_OPEN_TELEMETRY:
+            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#telemetry")
         elif cmd == CMD_OPEN_INTERCOM:
-            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/chat_board.html")
-        elif cmd == CMD_OPEN_RUNWAY:
-            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/runway_board.html")
+            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#chat")
         elif cmd == CMD_OPEN_FX_OSC:
-            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/fx_and_osc_board.html")
+            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#synth_news")
+        elif cmd == CMD_OPEN_AGENDA:
+            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#agenda")
+        elif cmd == CMD_OPEN_MAIL:
+            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#mail")
+        elif cmd == CMD_OPEN_RUNWAY:
+            self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#agenda")
+        elif cmd == CMD_ROUTE_CLIPBOARD_LOOP:
+            threading.Thread(target=self._run_async_route_clipboard, args=("open_loops",), daemon=True).start()
+        elif cmd == CMD_ROUTE_CLIPBOARD_RUNWAY:
+            threading.Thread(target=self._run_async_route_clipboard, args=("runway",), daemon=True).start()
+        elif cmd == CMD_REFRESH_QUOTA:
+            threading.Thread(target=self._run_async_refresh_quota, daemon=True).start()
         elif cmd == CMD_FLUSH_CONTEXT:
             threading.Thread(target=self._run_async_flush, daemon=True).start()
         elif cmd == CMD_RESTART_SERVER:
@@ -429,6 +672,55 @@ class NkaiTrayApp:
             self.running = False
             self._remove_tray_icon()
             win32gui.DestroyWindow(self.hwnd)
+
+    def _run_async_refresh_quota(self):
+        try:
+            from tools import quota
+            q_data = quota.get_quota_summary(force_refresh=True)
+            self.allowances = parse_quota(q_data)
+            health = self.latest_health or evaluate_system_health()
+            self.current_tooltip = self._format_tooltip(health)
+            win32gui.PostMessage(self.hwnd, WM_STATUS_UPDATE, self.current_state, 0)
+            self._pending_balloon = (
+                "📊 Allowance Refreshed",
+                f"Gemini: {self.allowances['g_wk']*100:.1f}% Wk · {self.allowances['g_5h']*100:.1f}% 5h",
+            )
+            win32gui.PostMessage(self.hwnd, WM_BALLOON_NOTIFY, 0, 0)
+        except Exception as e:
+            debug_log(f"Refresh quota exception: {e}")
+
+    def _run_async_route_clipboard(self, target_section: str):
+        try:
+            clip = get_clipboard_text_win32(self.hwnd)
+            if not clip:
+                self._pending_balloon = ("📋 Clipboard Empty", "No text found on clipboard to route to Agenda.")
+                win32gui.PostMessage(self.hwnd, WM_BALLOON_NOTIFY, 0, 0)
+                return
+
+            lines = [l.strip() for l in clip.splitlines() if l.strip()]
+            title = lines[0] if lines else "Untitled Note"
+            summary = " ".join(lines[1:]) if len(lines) > 1 else "Captured via N'kai Systray quick route."
+            clean_title = title[:80] + ("..." if len(title) > 80 else "")
+
+            from tools.agenda_engine import route_card_to_agenda
+            res = route_card_to_agenda(
+                title=clean_title,
+                summary=summary,
+                target_section=target_section,
+                priority="P1",
+                track="📱 Nkai" if target_section == "runway" else "",
+            )
+
+            if res.get("success"):
+                dest_name = "Active Open Loops" if target_section == "open_loops" else "Today's Runway"
+                self._pending_balloon = (f"📌 Routed to {dest_name}", clean_title)
+            else:
+                self._pending_balloon = ("❌ Agenda Routing Failed", res.get("error", "Failed to update AGENDA.md"))
+            win32gui.PostMessage(self.hwnd, WM_BALLOON_NOTIFY, 0, 0)
+        except Exception as e:
+            debug_log(f"Error routing clipboard: {e}")
+            self._pending_balloon = ("❌ Error", f"Could not route clipboard: {e}")
+            win32gui.PostMessage(self.hwnd, WM_BALLOON_NOTIFY, 0, 0)
 
     def _run_async_flush(self):
         try:
@@ -445,7 +737,7 @@ class NkaiTrayApp:
         health = evaluate_system_health()
         self.latest_health = health
         self.current_state = health["state_code"]
-        self.current_tooltip = health["tooltip"]
+        self.current_tooltip = self._format_tooltip(health)
         win32gui.PostMessage(self.hwnd, WM_STATUS_UPDATE, self.current_state, 0)
 
     def run(self):
@@ -458,9 +750,10 @@ class NkaiTrayApp:
     def cleanup(self):
         self.running = False
         self._remove_tray_icon()
-        for hicon in self.icons.values():
+        if self.current_hicon:
             try:
-                USER32.DestroyIcon(hicon)
+                USER32.DestroyIcon(self.current_hicon)
+                self.current_hicon = None
             except Exception:
                 pass
 
@@ -470,12 +763,12 @@ SINGLE_INSTANCE_MUTEX_NAME = "Local\\NkaiTraySingleInstanceMutex"
 
 def acquire_single_instance_latch(force_replace: bool = False):
     """Guarantees strictly 1 instance of the tray app runs using a zero-overhead Win32 named mutex."""
+    ensure_default_desktop()
     kernel32 = ctypes.windll.kernel32
     mutex = kernel32.CreateMutexW(None, False, SINGLE_INSTANCE_MUTEX_NAME)
     err = kernel32.GetLastError()
     if err == 183:  # ERROR_ALREADY_EXISTS
         if force_replace:
-            # Find and retire existing instance window
             existing_hwnd = win32gui.FindWindow("NkaiTrayWindowClass", "NkaiTrayWindow")
             if existing_hwnd:
                 win32gui.PostMessage(existing_hwnd, win32con.WM_DESTROY, 0, 0)
@@ -483,6 +776,21 @@ def acquire_single_instance_latch(force_replace: bool = False):
                 kernel32.CloseHandle(mutex)
                 mutex = kernel32.CreateMutexW(None, False, SINGLE_INSTANCE_MUTEX_NAME)
                 return mutex
+            else:
+                # If window was not found by title, attempt killing via process scan
+                try:
+                    import psutil
+                    for p in psutil.process_iter(['pid', 'cmdline']):
+                        cmd = p.info.get('cmdline') or []
+                        if any('nkai_tray' in arg for arg in cmd) and p.pid != os.getpid():
+                            p.terminate()
+                            p.wait(timeout=1.0)
+                    time.sleep(0.2)
+                    kernel32.CloseHandle(mutex)
+                    mutex = kernel32.CreateMutexW(None, False, SINGLE_INSTANCE_MUTEX_NAME)
+                    return mutex
+                except Exception:
+                    pass
         kernel32.CloseHandle(mutex)
         return None
     return mutex
@@ -492,7 +800,6 @@ def main():
     force_replace = ("--replace" in sys.argv or "--restart" in sys.argv)
     mutex = acquire_single_instance_latch(force_replace=force_replace)
     if not mutex:
-        # Another instance is already alive and running. Exit silently with 0 overhead.
         sys.exit(0)
 
     try:
