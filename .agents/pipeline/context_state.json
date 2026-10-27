@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "5694cd2",
+    "commit": "2e6f2d5",
     "is_clean": false,
-    "dirty_count": 122,
+    "dirty_count": 129,
     "staged": 1,
-    "modified": 58,
-    "untracked": 63,
+    "modified": 57,
+    "untracked": 71,
     "recent_commits": [
-      "5694cd2 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "736dd0d feat(canon): integrate ShardEngine.h and legacy_aliases.h from The Klang Canon SSoT",
-      "3130149 feat(hyperstrike): deploy Milestone M1 C++20 HyperStrike ([HS] / 0x78) 4D hypercube percussion engine and canonical spec"
+      "2e6f2d5 feat(tray): add autonomous bloat_guard sentinel against Windows Update drift",
+      "2ae37b2 feat(serve): add websocket bridge, outliner mechanics, and pull-to-abyss to nkai_serve and cockpit",
+      "82d13f2 chore(memory): execute scheduled nightly black box memory flush and state integrity audit"
     ]
   },
   "plan": {
