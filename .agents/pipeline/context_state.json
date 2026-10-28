@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "2e6f2d5",
+    "commit": "53d6664",
     "is_clean": false,
-    "dirty_count": 129,
+    "dirty_count": 148,
     "staged": 1,
-    "modified": 57,
-    "untracked": 71,
+    "modified": 58,
+    "untracked": 89,
     "recent_commits": [
+      "53d6664 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
       "2e6f2d5 feat(tray): add autonomous bloat_guard sentinel against Windows Update drift",
-      "2ae37b2 feat(serve): add websocket bridge, outliner mechanics, and pull-to-abyss to nkai_serve and cockpit",
-      "82d13f2 chore(memory): execute scheduled nightly black box memory flush and state integrity audit"
+      "2ae37b2 feat(serve): add websocket bridge, outliner mechanics, and pull-to-abyss to nkai_serve and cockpit"
     ]
   },
   "plan": {
