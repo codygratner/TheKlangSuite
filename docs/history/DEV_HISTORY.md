@@ -12,6 +12,10 @@
 > **Note:** On 2026-10-08, the Agentic Architecture Audit and Deep Docs pass was completed. See [2026-10-08_Agentic_Architecture_Deep_Research.md](https://github.com/codygratner/TheKlangResearch/blob/main/agentic/2026-10-08_Agentic_Architecture_Deep_Research.md) for details.
 
 
+### APVTS & UI Binding Safety (Hastur 2.0 Incident Invariant)
+- **Zero Ghost Parameters:** Every parameter string referenced in Editor.cpp (setupRotaryKnob, setupButtonBar, attachments) must be verified against createParameterLayout() via python tools/verify_apvts_bindings.py before deployment. JUCE silently returns nullptr on missing IDs.
+- **Stereo Timebase Decoupling:** Never call mono process() from processStereo() if process() updates stateful filter/allpass registers. Advance timebases and counters independently via advanceTimebase().
+
 ### Audio Thread & DSP Rules
 - **Zero Allocations:** Never call 
 ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Array::add, std::string concatenation) inside processBlock(), processStereo(), or per-sample render loops. Pre-allocate in prepareToPlay().
@@ -38,6 +42,26 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
   - Full Rebuilds & Multi-Target Test Suites (10 min / 20 min): DurationSeconds=600 / 600.
 
 ## Section B: Chronological Session Harvest
+
+### Session: 2026-10-30 15:45 (6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41) — Autoplan 2.0 Grounded Verification Stack
+- **Milestone:** Autoplan 2.0 (The Asymmetric Cognitive Funnel & Parameter CodeGen Architecture)
+- **Primary Objectives:** Eliminate 16-pass symmetric cognitive bloat (-70% token churn), ground planning in academic DSP verification literature (Metamorphic Testing, Property-Based Shrinking, Grounded LLM Oracles), establish single source of truth parameter contracts, and build headless plugin-boundary verification harness.
+- **Architectural Breakthroughs:**
+  - **Single Source of Truth Parameter CodeGen:** Authored `contracts/hastur.yaml` (74 parameters) and `tools/codegen_apvts.py`. Replaced 270 lines of hand-written layout boilerplate in `HasturProcessor.cpp` with `return HasturParameters::createLayout();`. Typed `constexpr` parameter IDs prevent ghost controls at C++ compile time.
+  - **Gate 0 Build Integration:** Hooked `tools/codegen_apvts.py --all --verify` into `tools/context_bus_bridge.py`. Any parameter contract drift halts Tower builds in 40ms.
+  - **Suite 41 (Parameter Effect Matrix):** Automated sweep in `test/dsp_tests.cpp` asserting controls produce measurable deltas in their declared domains (`rms`, `pitch`, `timbre`).
+  - **Suite 42 (Incident Replay Suite):** Permanent seeded regression gauntlet covering INC-01 (timebase monotonicity), INC-02 (bipolar BITE range [-1.0, 1.0]), and INC-04 (sample-rate APF coefficient scaling across 44.1, 48, 96 kHz).
+  - **Suite 43 (Metamorphic DSP Relations):** Mathematical invariance testing: block-size invariance (32 vs 512 samples matching to $< 10^{-6}$), sample-rate stability, and silence invariance ($f(0) \equiv 0$).
+  - **Headless Plugin-Boundary Harness:** Built `test/headless_plugin_runner.cpp`, instantiating real `HasturAudioProcessor`, verifying APVTS parameters, setting BITE via APVTS, and rendering offline MIDI note-ons (passing 100% in 0.03s).
+- **Files Modified/Created:** `contracts/schema/plugin_contract.schema.yaml`, `contracts/hastur.yaml`, `tools/codegen_apvts.py`, `source/hastur/HasturParameterIds.h`, `source/hastur/HasturParameterLayout.h`, `source/hastur/HasturProcessor.cpp`, `test/dsp_tests.cpp`, `test/headless_plugin_runner.cpp`, `CMakeLists.txt`, `tools/context_bus_bridge.py`, `c:\_\Vault\.agents\skills\autoplan\SKILL.md`, `Agent Rules\cockpit_triggers.md`.
+- **Verification Telemetry:** 43/43 DSP test suites passing (0.33s), Gate 0 verified (0 drift), `headless_plugin_runner` passing (0.03s), `Hastur.vst3` deployed.
+
+### Session: 2026-10-30 14:30 (6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41)
+- **Milestone:** Hastur 2.0 (HS-01) Full Overhaul & Retrospective
+- **Primary Objectives:** DCO 2.0 Timbre Architecture (8-pole APF, Infinifold Melt, ±70% Bipolar Bite), Dual Envelopes (Vortex + SubStator + Live Visualizer), 4-Lane Vertical Stem Mixer, and Card 1/2 UI Reorganization (2x2 Hero Cockpit + Segmented Button Bars).
+- **Incidents Resolved:** Fixed SEV-0 APF double-clocking screech bug in stereo chain, fixed SEV-3 missing dco_bite APVTS registration.
+- **Files Modified/Created:** AlphaOscillator.h, AllPassFilter4.h, HasturEditor.h, HasturEditor.cpp, HasturProcessor.cpp, 	ools/verify_apvts_bindings.py, 	ools/post_mortem_forensics.py, c:\_\Vault\Agent Rules\apvts_parameter_integrity_guardrail.md.
+- **Key Decisions:** Discovered 8-pole APF + 70% BITE sweet spot in WebAudio sensory lab. Enacted Zero-Ghost-Control pre-flight check. Codified SOTA /post-mortem skill. All 40 DSP test suites passing 100%. Deployed to VST3.
 
 
 ### Session: 2026-10-06 13:04 (8fe6b97b-f027-4cc9-8cc2-d5f67ccfb0c9)
@@ -680,4 +704,12 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
 - **Key Decisions & Deliverables:**
   - Recent Commits: b324c52 chore(memory): execute scheduled nightly black box memory flush and state integrity audit, 1351409 chore(memory): execute scheduled nightly black box memory flush and state integrity audit
   - Branch: `0.4.0-dev` (b324c52)
+  - Active Plan Target: `FACTORY_FLOOR` · Status: `UNKNOWN`
+
+### Session: 2026-10-31 04:00 (manual_run)
+- **Chat Role:** Automated Nightly Sentry
+- **Primary Objectives:** Scheduled 4 AM Black Box Memory Flush and State Integrity Audit
+- **Key Decisions & Deliverables:**
+  - Recent Commits: b118c24 chore(memory): execute scheduled nightly black box memory flush and state integrity audit, b324c52 chore(memory): execute scheduled nightly black box memory flush and state integrity audit
+  - Branch: `0.4.0-dev` (b118c24)
   - Active Plan Target: `FACTORY_FLOOR` · Status: `UNKNOWN`
