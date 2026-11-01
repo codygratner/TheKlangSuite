@@ -17,7 +17,11 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
+#if TK_IS_THE_SHARD
+    const juce::String getName() const override { return "The Shard"; }
+#else
     const juce::String getName() const override { return "The Klang Planter"; }
+#endif
 
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

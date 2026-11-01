@@ -24,6 +24,7 @@ protected:
     GearButton settingsButton;
     UpdateBadgeButton updateBadgeButton;
     juce::TextButton tooltipsButton;
+    juce::TextButton presetButton;
     juce::TextButton initButton;
     juce::TextButton triggerButton;
     juce::TextButton guideButton;
@@ -34,6 +35,7 @@ protected:
 public:
     StatusBarComponent& getStatusBar() { return statusBar; }
     juce::TextButton& getTooltipsButton() { return tooltipsButton; }
+    juce::TextButton& getPresetButton() { return presetButton; }
     juce::TextButton& getInitButton() { return initButton; }
     juce::TextButton& getTriggerButton() { return triggerButton; }
     juce::TextButton& getGuideButton() { return guideButton; }

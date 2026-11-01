@@ -955,46 +955,59 @@ void RotaryKnobLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, in
 }
 
 void RotaryKnobLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
-                                             float sliderPosProportional, float rotaryStartAngle,
-                                             float rotaryEndAngle, juce::Slider& slider)
+                                             float sliderPosProportional, float /*rotaryStartAngle*/,
+                                             float /*rotaryEndAngle*/, juce::Slider& slider)
 {
     auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(2.0f);
     auto radius = juce::jlimit(11.0f, 24.0f, juce::jmin(bounds.getWidth() * 0.46f, bounds.getHeight() * 0.46f));
-    auto toAngle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
     auto centre = bounds.getCentre();
     auto lineW = juce::jmax(2.4f, radius * 0.18f);
-
     auto arcRadius = radius - lineW * 0.5f;
-    juce::Path backgroundArc;
-    backgroundArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius,
-                                0.0f, rotaryStartAngle, rotaryEndAngle, true);
-    g.setColour(slider.findColour(juce::Slider::rotarySliderOutlineColourId));
-    g.strokePath(backgroundArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
     bool isBipolar = false;
     if (auto* rks = dynamic_cast<RotaryKnobSlider*>(&slider)) {
         isBipolar = rks->isBipolar;
     }
 
+    const float twoPi = juce::MathConstants<float>::twoPi;
+    const float pi = juce::MathConstants<float>::pi;
+
+    // Full 360-degree circular track
+    juce::Path backgroundArc;
+    backgroundArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius,
+                                0.0f, 0.0f, twoPi, true);
+    g.setColour(slider.findColour(juce::Slider::rotarySliderOutlineColourId));
+    g.strokePath(backgroundArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+    // Zero Reference Tick: Unipolar zero is at 6pm; Bipolar zero is at Noon
+    g.setColour(juce::Colour(0xff555555));
+    if (isBipolar) {
+        g.drawVerticalLine(static_cast<int>(centre.x), centre.y - arcRadius - lineW * 0.7f, centre.y - arcRadius + lineW * 0.7f);
+    } else {
+        g.drawVerticalLine(static_cast<int>(centre.x), centre.y + arcRadius - lineW * 0.7f, centre.y + arcRadius + lineW * 0.7f);
+    }
+
+    // Pointer Angle (0.0=6pm, 0.5=Noon, 1.0=6pm clockwise)
+    const float toAngle = pi + sliderPosProportional * twoPi;
+
     if (slider.isEnabled()) {
         juce::Path valueArc;
         if (isBipolar) {
-            float midAngle = (rotaryStartAngle + rotaryEndAngle) * 0.5f;
-            if (std::abs(toAngle - midAngle) > 0.005f) {
-                if (toAngle >= midAngle) {
-                    valueArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius,
-                                           0.0f, midAngle, toAngle, true);
+            // Bipolar: 6pm (0.0) <- Noon (0.5) -> 6pm (1.0)
+            const float bipAngle = (sliderPosProportional - 0.5f) * twoPi;
+            if (std::abs(bipAngle) > 0.005f) {
+                if (bipAngle >= 0.0f) {
+                    valueArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, 0.0f, bipAngle, true);
                 } else {
-                    valueArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius,
-                                           0.0f, toAngle, midAngle, true);
+                    valueArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, bipAngle, 0.0f, true);
                 }
                 g.setColour(slider.findColour(juce::Slider::rotarySliderFillColourId));
                 g.strokePath(valueArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
             }
         } else {
-            if (sliderPosProportional > 0.001f) {
-                valueArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius,
-                                       0.0f, rotaryStartAngle, toAngle, true);
+            // Unipolar: Clockwise: 6pm (0.0) -> Noon (0.5) -> 6pm (1.0)
+            if (sliderPosProportional > 0.002f) {
+                valueArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, pi, toAngle, true);
                 g.setColour(slider.findColour(juce::Slider::rotarySliderFillColourId));
                 g.strokePath(valueArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
             }
@@ -1003,8 +1016,8 @@ void RotaryKnobLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, in
         // Draw Animated Modulation Ring (arc + realtime dot)
         if (auto* rks = dynamic_cast<RotaryKnobSlider*>(&slider)) {
             if (rks->modulation.isModulated) {
-                float minA = rotaryStartAngle + std::clamp(rks->modulation.rangeMinNorm, 0.0f, 1.0f) * (rotaryEndAngle - rotaryStartAngle);
-                float maxA = rotaryStartAngle + std::clamp(rks->modulation.rangeMaxNorm, 0.0f, 1.0f) * (rotaryEndAngle - rotaryStartAngle);
+                float minA = pi + std::clamp(rks->modulation.rangeMinNorm, 0.0f, 1.0f) * twoPi;
+                float maxA = pi + std::clamp(rks->modulation.rangeMaxNorm, 0.0f, 1.0f) * twoPi;
                 if (maxA > minA + 0.01f) {
                     juce::Path modArc;
                     modArc.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, minA, maxA, true);
@@ -1013,7 +1026,7 @@ void RotaryKnobLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, in
                 }
 
                 // Instantaneous value dot
-                float curA = rotaryStartAngle + std::clamp(rks->modulation.currentNorm, 0.0f, 1.0f) * (rotaryEndAngle - rotaryStartAngle);
+                float curA = pi + std::clamp(rks->modulation.currentNorm, 0.0f, 1.0f) * twoPi;
                 float dotX = centre.x + arcRadius * std::sin(curA);
                 float dotY = centre.y - arcRadius * std::cos(curA);
                 g.setColour(juce::Colours::white);

@@ -519,7 +519,7 @@ void SettingsModalComponent::paint(juce::Graphics& g)
     drawMetaRow(col2X, metaY, "Architecture", "64-bit");
     drawMetaRow(col2X, metaY + 18, "Build Date", __DATE__);
     drawMetaRow(col2X, metaY + 36, "License", "GPL-3.0 (FOSS)");
-    drawMetaRow(col2X, metaY + 54, "Vendor", "R'lyeh Sound");
+    drawMetaRow(col2X, metaY + 54, "Vendor", "The Cult of Klang");
 
     // Repository metadata row
     g.setFont(juce::FontOptions(11.5f, juce::Font::plain));

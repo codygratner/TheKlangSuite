@@ -1,0 +1,17 @@
+#!/bin/bash
+# ==============================================================================
+# Hastur HS-01 - macOS Installer Postinstall Script
+# Strips Gatekeeper quarantine flags and refreshes the CoreAudio AU cache.
+# ==============================================================================
+
+echo "Removing quarantine attributes from installed plugins and apps..."
+xattr -rd com.apple.quarantine "/Library/Audio/Plug-Ins/VST3/Hastur.vst3" 2>/dev/null || true
+xattr -rd com.apple.quarantine "/Library/Audio/Plug-Ins/Components/Hastur.component" 2>/dev/null || true
+xattr -rd com.apple.quarantine "/Applications/Hastur.app" 2>/dev/null || true
+
+# Refresh CoreAudio and AudioComponentRegistrar so DAWs scan plugins immediately
+echo "Refreshing AudioComponentRegistrar and CoreAudio daemons..."
+killall -9 AudioComponentRegistrar 2>/dev/null || true
+killall -9 coreaudiod 2>/dev/null || true
+
+exit 0

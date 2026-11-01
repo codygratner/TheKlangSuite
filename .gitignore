@@ -64,3 +64,29 @@ test_artifacts/
 .agents/pipeline/uploads/
 .agents/pipeline/*auth*.json
 
+# Third-party copyrighted manuals (PDFs and Markdown conversions)
+manuals/
+**/manuals/**
+_manuals/
+*.pdf
+upstream/
+ROSETTA_STONE*.md
+**/ROSETTA_STONE*.md
+
+
+
+
+# SQLite Knowledge Databases & Index Caches
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+.agents/index/
+
+# Ephemeral logs, audio tests and env
+.env
+*.log
+*.wav
+temp_test.js

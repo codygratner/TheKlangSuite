@@ -1,6 +1,7 @@
 #include "FarmerEditor.h"
 #include "UIComponents.h"
 #include "ParameterManager.h"
+#include "PresetManager.h"
 
 
 // --- FX SLOT CARD COMPONENT ---
@@ -1140,6 +1141,90 @@ TheKlangFarmerAudioProcessorEditor::TheKlangFarmerAudioProcessorEditor(TheKlangF
         }), true);
     };
     addAndMakeVisible(initButton);
+
+    // Setup Header Preset Button
+    presetButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff222736));
+    presetButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00d2ff));
+    presetButton.setTooltip("PRESETS — Load and save universal presets (.json / .tkp) across TKF and ToadTracker.");
+    presetButton.onClick = [this]() {
+        juce::PopupMenu menu;
+        menu.addSectionHeader("PRESETS (.JSON / .TKP)");
+        menu.addItem(1, "Load Preset File...", true, false);
+        menu.addItem(2, "Save Current Preset...", true, false);
+        menu.addSeparator();
+
+        auto presetList = RlyehSound::PresetManager::getInstance().getAvailablePresets();
+        std::map<int, juce::File> idToFileMap;
+
+        if (presetList.isEmpty()) {
+            menu.addItem(100, "(No Presets Found)", false, false);
+        } else {
+            juce::PopupMenu factoryMenu;
+            juce::PopupMenu userMenu;
+            juce::PopupMenu toadMenu;
+
+            int id = 1000;
+
+            for (const auto& p : presetList) {
+                juce::String label = p.name + " [" + p.targetPlugin + " - " + p.category + "]";
+                idToFileMap[id] = p.file;
+
+                if (p.file.getFullPathName().containsIgnoreCase("ToadTracker") || p.file.getFileExtension().equalsIgnoreCase(".tkp")) {
+                    toadMenu.addItem(id, label);
+                } else if (p.file.getFullPathName().containsIgnoreCase("assets")) {
+                    factoryMenu.addItem(id, label);
+                } else {
+                    userMenu.addItem(id, label);
+                }
+                ++id;
+            }
+
+            if (factoryMenu.getNumItems() > 0)
+                menu.addSubMenu("Factory Presets", factoryMenu);
+            if (userMenu.getNumItems() > 0)
+                menu.addSubMenu("User Presets", userMenu);
+            if (toadMenu.getNumItems() > 0)
+                menu.addSubMenu("ToadTracker Presets", toadMenu);
+        }
+
+        menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&presetButton),
+            [this, idToFileMap = std::move(idToFileMap)](int result) {
+                if (result == 1) {
+                    fileChooser = std::make_unique<juce::FileChooser>(
+                        "Load Preset",
+                        RlyehSound::PresetManager::getInstance().getFactoryPresetsDirectory(),
+                        "*.json;*.tkp");
+                    auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+                    fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc) {
+                        auto file = fc.getResult();
+                        if (file.existsAsFile()) {
+                            RlyehSound::PresetManager::getInstance().loadPreset(file, audioProcessor.apvts);
+                            statusBar.setHoveredControl("PRESET", file.getFileNameWithoutExtension(), "Loaded preset successfully.");
+                        }
+                    });
+                } else if (result == 2) {
+                    fileChooser = std::make_unique<juce::FileChooser>(
+                        "Save Preset",
+                        RlyehSound::PresetManager::getInstance().getUserPresetsDirectory().getChildFile("NewPreset.json"),
+                        "*.json");
+                    auto flags = juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting;
+                    fileChooser->launchAsync(flags, [this](const juce::FileChooser& fc) {
+                        auto file = fc.getResult();
+                        if (file != juce::File()) {
+                            RlyehSound::PresetManager::getInstance().savePreset(file, audioProcessor.apvts, file.getFileNameWithoutExtension());
+                            statusBar.setHoveredControl("PRESET", file.getFileNameWithoutExtension(), "Saved preset successfully.");
+                        }
+                    });
+                } else if (result >= 1000) {
+                    auto it = idToFileMap.find(result);
+                    if (it != idToFileMap.end()) {
+                        RlyehSound::PresetManager::getInstance().loadPreset(it->second, audioProcessor.apvts);
+                        statusBar.setHoveredControl("PRESET", it->second.getFileNameWithoutExtension(), "Loaded preset successfully.");
+                    }
+                }
+            });
+    };
+    addAndMakeVisible(presetButton);
 
     // Setup Header Audition Trigger Button
     triggerButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff00d2ff));
@@ -3166,22 +3251,23 @@ void TheKlangFarmerAudioProcessorEditor::resized() {
     int topY = 5;
 
     // Header buttons (from right to left):
-    triggerButton.setBounds(getWidth() - 110, topY, 100, topBtnH);
-    initButton.setBounds(getWidth() - 176, topY, 62, topBtnH);
-    guideButton.setBounds(getWidth() - 242, topY, 62, topBtnH);
-    tooltipsButton.setBounds(getWidth() - 312, topY, 66, topBtnH);
-    settingsButton.setBounds(getWidth() - 344, topY, 26, topBtnH);
+    triggerButton.setBounds(getWidth() - 105, topY, 95, topBtnH);
+    initButton.setBounds(getWidth() - 165, topY, 56, topBtnH);
+    presetButton.setBounds(getWidth() - 235, topY, 66, topBtnH);
+    guideButton.setBounds(getWidth() - 295, topY, 56, topBtnH);
+    tooltipsButton.setBounds(getWidth() - 363, topY, 64, topBtnH);
+    settingsButton.setBounds(getWidth() - 393, topY, 26, topBtnH);
 
-    headerMeter.setBounds(getWidth() - 410, topY, 60, topBtnH);
-    globalDiceButton.setBounds(getWidth() - 444, topY, 30, topBtnH);
-    abButton.setBounds(getWidth() - 494, topY, 46, topBtnH);
-    redoButton.setBounds(getWidth() - 524, topY, 26, topBtnH);
-    undoButton.setBounds(getWidth() - 554, topY, 26, topBtnH);
+    headerMeter.setBounds(getWidth() - 457, topY, 58, topBtnH);
+    globalDiceButton.setBounds(getWidth() - 491, topY, 30, topBtnH);
+    abButton.setBounds(getWidth() - 539, topY, 44, topBtnH);
+    redoButton.setBounds(getWidth() - 567, topY, 24, topBtnH);
+    undoButton.setBounds(getWidth() - 595, topY, 24, topBtnH);
 
     int macroW = 28;
     int macroGap = 4;
     int totalMacrosW = 4 * macroW + 3 * macroGap; // 124
-    int macroStartX = getWidth() - 554 - 8 - totalMacrosW;
+    int macroStartX = getWidth() - 595 - 8 - totalMacrosW;
     for (int i = 0; i < 4; ++i) {
         macroKnobs[i].setBounds(macroStartX + i * (macroW + macroGap), topY - 1, macroW, 28);
     }

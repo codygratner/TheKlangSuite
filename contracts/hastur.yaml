@@ -1,0 +1,595 @@
+plugin: hastur
+name: Hastur Dual-IR3R05 Synthesizer
+version: 1.0.0
+manufacturer: CrackedChimes
+
+parameters:
+  # ==============================================================================
+  # BAY 1: DCO ENGINE (12 parameters)
+  # ==============================================================================
+  - id: osc1_mult
+    name: Osc 1 Strangle
+    category: dco
+    type: float
+    effect: pitch
+    range: [1.0, 32.0]
+    default: 1.0
+
+  - id: osc1_apf_pitch_track
+    name: Osc 1 Warp
+    category: dco
+    type: float
+    effect: pitch
+    range: [-2.0, 2.0]
+    default: 0.0
+
+  - id: osc1_drive
+    name: Osc 1 Melt
+    category: dco
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: dco_bite
+    name: DCO Bite
+    category: dco
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: sub_apf_depth
+    name: Sub Chew
+    category: dco
+    type: float
+    effect: timbre
+    range: [-2.0, 2.0]
+    default: 0.0
+
+  - id: sub_spit
+    name: Sub Spit
+    category: dco
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: dco_morph
+    name: DCO Morph
+    category: dco
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: dco_wave_family
+    name: DCO Wave Family
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Saw', 'Pulse', 'Triangle', 'Sine']
+    default: 'Saw'
+
+  - id: dco_chopper_topo
+    name: Chopper Topology
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Off', '2x', '4x', '8x']
+    default: 'Off'
+
+  - id: sub_octave
+    name: Sub Octave
+    category: dco
+    type: choice
+    effect: pitch
+    choices: ['-2 Oct', '-1 Oct', 'Unison', '+1 Oct']
+    default: '-1 Oct'
+
+  - id: sub_pulse_train
+    name: Sub Pulse Train
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Square', '25% Pulse', '2-Burst', '3-Burst', '4-Burst']
+    default: 'Square'
+
+  - id: sub_apf_tap
+    name: Sub APF Tap
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Off', '4-Pole', '8-Pole', '16-Pole']
+    default: 'Off'
+
+  # ==============================================================================
+  # BAY 2: STEM MIXER (4 parameters)
+  # ==============================================================================
+  - id: osc1_level
+    name: Core Level
+    category: mixer
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 1.0
+
+  - id: osc2_level
+    name: Sub Level
+    category: mixer
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.8
+
+  - id: noise_level
+    name: Noise Level
+    category: mixer
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: mixer_drive
+    name: Mixer Seethe
+    category: mixer
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # BAY 3: DUAL IR3R05 VCF (15 parameters)
+  # ==============================================================================
+  - id: cutoff
+    name: Cutoff
+    category: filter
+    type: float
+    effect: timbre
+    range: [10.0, 20000.0]
+    skew: 0.25
+    default: 1200.0
+
+  - id: resonance
+    name: Resonance
+    category: filter
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: filter_env_decay
+    name: Filter Decay
+    category: filter
+    type: float
+    effect: timbre
+    range: [0.01, 10.0]
+    skew: 0.3
+    default: 0.4
+
+  - id: burble_depth
+    name: Burble Depth
+    category: filter
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: laser_drive
+    name: Laser Slash
+    category: filter
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: filter_warp
+    name: Filter Twist
+    category: filter
+    type: float
+    effect: timbre
+    range: [-2.0, 2.0]
+    default: 0.0
+
+  - id: laser_bite
+    name: Laser Stab
+    category: filter
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: filter_orbit
+    name: Filter Orbit
+    category: filter
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: burble_mode
+    name: Burble Mode
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Off', 'Exp', 'Lin', 'Flip']
+    default: 'Exp'
+
+  - id: filter_deck
+    name: Filter Deck
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Pre-24dB', 'Dual-48dB', 'Post-24dB']
+    default: 'Pre-24dB'
+
+  - id: env_depth
+    name: Env Depth
+    category: filter
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: filter_velocity
+    name: Accent
+    category: filter
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: keytrack
+    name: Key Track
+    category: filter
+    type: float
+    effect: pitch
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: filter_lfo_depth
+    name: Filter LFO Amount
+    category: filter
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: filter_lfo_dest
+    name: LFO Dest
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Cutoff', 'Orbit']
+    default: 'Cutoff'
+
+  # ==============================================================================
+  # BAY 4: LFO & GLIDE (10 parameters)
+  # ==============================================================================
+  - id: lfo_rate
+    name: LFO Rate
+    category: mod
+    type: float
+    effect: timbre
+    range: [0.05, 30.0]
+    skew: 0.35
+    default: 2.5
+
+  - id: glide_time
+    name: Glide Time
+    category: mod
+    type: float
+    effect: pitch
+    range: [0.0001, 2.0]
+    skew: 0.3
+    default: 0.005
+
+  - id: glide_mode
+    name: Glide Mode
+    category: mod
+    type: choice
+    effect: pitch
+    choices: ['On', 'Legato']
+    default: 'On'
+
+  - id: lfo_wave
+    name: LFO Waveform
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Saw/Tri', 'Pulse', 'Sine', 'Random']
+    default: 'Saw/Tri'
+
+  - id: lfo_shape
+    name: LFO Shape
+    category: filter
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: lfo_sync
+    name: LFO Sync
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Free', 'Reset']
+    default: 'Free'
+
+  - id: pw_lfo_amount
+    name: Morph LFO Amount
+    category: mod
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: pw_lfo_rate
+    name: Morph LFO Rate
+    category: mod
+    type: float
+    effect: timbre
+    range: [0.05, 20.0]
+    skew: 0.35
+    default: 0.85
+
+  - id: mod_a_source
+    name: FM Source
+    category: matrix
+    type: choice
+    effect: timbre
+    choices: ['Raw', 'Core', 'Noise']
+    default: 'Raw'
+
+  - id: mod_a_amount
+    name: FM Amount
+    category: matrix
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: mod_b_source
+    name: AM Source
+    category: matrix
+    type: choice
+    effect: timbre
+    choices: ['Raw', 'Core', 'Sub']
+    default: 'Sub'
+
+  - id: mod_b_amount
+    name: AM Amount
+    category: matrix
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # ==============================================================================
+  # BAY 4: STEPPED RANDOM MODULATION MATRIX (9 parameters)
+  # ==============================================================================
+  - id: rand_core_warp
+    name: Core Warp
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_core_bite
+    name: Core Bite
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_core_melt
+    name: Core Melt
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_raw_strangle
+    name: Strangle
+    category: random
+    type: float
+    effect: pitch
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_sub_chew
+    name: Sub Chew
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_sub_spit
+    name: Sub Spit
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_filter_twist
+    name: Twist
+    category: random
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_filter_stab
+    name: Stab
+    category: random
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_filter_orbit
+    name: Orbit
+    category: random
+    type: float
+    effect: pan
+    range: [0.0, 1.0]
+    default: 0.0
+
+  # BAY 5: VCA & TRANSIENTS (8 parameters)
+  # ==============================================================================
+  - id: amp_gate_mode
+    name: Gate Mode
+    category: vca
+    type: choice
+    effect: rms
+    choices: ['Envelope', 'Gate', 'Drone']
+    default: 'Envelope'
+
+  - id: amp_env_snap
+    name: Amp Snap
+    category: vca
+    type: float
+    effect: rms
+    range: [0.0005, 0.05]
+    skew: 0.3
+    default: 0.0015
+
+  - id: amp_env_decay
+    name: Amp Plunge
+    category: vca
+    type: float
+    effect: rms
+    range: [0.01, 5.0]
+    skew: 0.3
+    default: 0.35
+
+  - id: pitch_punch_depth
+    name: Pitch Punch Depth
+    category: vca
+    type: float
+    effect: pitch
+    range: [-24.0, 24.0]
+    default: 0.0
+
+  - id: pitch_punch_time
+    name: Pitch Punch Time
+    category: vca
+    type: float
+    effect: pitch
+    range: [0.005, 0.2]
+    skew: 0.3
+    default: 0.02
+
+  - id: amp_env_sustain
+    name: Amp Sustain
+    category: vca
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: amp_env_release
+    name: Amp Release
+    category: vca
+    type: float
+    effect: rms
+    range: [0.005, 10.0]
+    skew: 0.3
+    default: 0.1
+
+  - id: amp_velocity
+    name: Amp Velocity
+    category: vca
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # BAY 6: MASTER OUTPUT (6 parameters)
+  # ==============================================================================
+  - id: osc_slop
+    name: Osc Slop
+    category: master
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: post_amp_drive
+    name: Post Amp Drive
+    category: master
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: alpha_chorus
+    name: Alpha Chorus
+    category: master
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: global_width
+    name: Global Width
+    category: master
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: output_level
+    name: Master Volume
+    category: master
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.80
+
+  - id: life_mode
+    name: Life Mode
+    category: master
+    type: choice
+    effect: timbre
+    choices: ['Synthetic', 'Cyborg', 'Organic']
+    default: 'Organic'
+  - id: trigger_mode
+    name: Voice Trigger Mode
+    category: master
+    type: choice
+    effect: timbre
+    choices: ['Retrig', 'Legato', 'Auto']
+    default: 'Auto'
+
+  - id: pitch_bend_range
+    name: Pitch Bend Range
+    category: master
+    type: float
+    effect: pitch
+    range: [0.0, 24.0]
+    default: 2.0
+
+  - id: vibrato_rate
+    name: Vibrato Rate
+    category: master
+    type: float
+    effect: pitch
+    range: [0.1, 12.0]
+    skew: 0.4
+    default: 5.5
+
+  - id: vibrato_depth
+    name: Vibrato Depth
+    category: master
+    type: float
+    effect: pitch
+    range: [0.0, 1.0]
+    default: 0.0

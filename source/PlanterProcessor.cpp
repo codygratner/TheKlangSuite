@@ -245,9 +245,16 @@ TheKlangPlanterAudioProcessor::ParamModulationInfo TheKlangPlanterAudioProcessor
     return info;
 }
 
+#if TK_IS_THE_SHARD
+#include "ShardEditor.h"
+juce::AudioProcessorEditor* TheKlangPlanterAudioProcessor::createEditor() {
+    return new TheShardAudioProcessorEditor(*this);
+}
+#else
 juce::AudioProcessorEditor* TheKlangPlanterAudioProcessor::createEditor() {
     return new TheKlangPlanterAudioProcessorEditor(*this);
 }
+#endif
 
 bool TheKlangPlanterAudioProcessor::hasEditor() const {
     return true;

@@ -36,9 +36,9 @@ namespace TbdAudio::Oscillators {
  *   - Zero heap allocations.
  *   - Zero CRT transcendental calls (uses FastMath::fastSinNorm, fastPow2, fastExp, fastTanh).
  */
-class TheR1 final : public SoundEngine8 {
+class EleklangRKvlt final : public SoundEngine8 {
 public:
-    TheR1() noexcept {
+    EleklangRKvlt() noexcept {
         // Default musical patch: warm FM bell / ER-1 ready
         setParam(0, 0.0f);  // Algorithm 0 (Cascade)
         setParam(1, 0.45f); // Mod Depth
@@ -51,7 +51,7 @@ public:
         reset();
     }
 
-    ~TheR1() override = default;
+    ~EleklangRKvlt() override = default;
 
     void reset() noexcept override {
         for (int i = 0; i < 4; ++i) {
@@ -335,7 +335,9 @@ private:
 
 
 
-using TheKlangR1 = TheR1;
+using Eleklang_R_KVLT = EleklangRKvlt;
+using TheR1 = EleklangRKvlt;
+using TheKlangR1 = EleklangRKvlt;
 using KlangTribeR = TheR1;
 using KlangFM = TheR1;
 

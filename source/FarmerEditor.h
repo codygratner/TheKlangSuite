@@ -261,6 +261,9 @@ private:
     // Quickstart Guide overlay
     QuickstartGuideModalComponent quickstartGuide;
 
+    // Preset File Chooser
+    std::unique_ptr<juce::FileChooser> fileChooser;
+
     // Permanent blocks (Slot 1 and Slot 8)
     NavigationCardComponent navCard;
     VisualizationCardComponent vizCard;

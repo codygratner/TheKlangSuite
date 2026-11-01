@@ -1,0 +1,207 @@
+name: Hastur Release (macOS, Linux, Windows)
+
+on:
+  push:
+    tags:
+      - 'hastur-v*'
+      - 'v*-hastur*'
+      - 'hastur-*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name to release to (e.g. hastur-v0.1.0 or hastur-v1.0.0)'
+        required: true
+        default: 'hastur-v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: macOS (Universal AU / VST3 / Standalone)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve Release Tag
+        id: tag
+        run: |
+          TAG="${{ inputs.tag_name }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Building Hastur for release tag: $TAG"
+
+      - name: Clone JUCE
+        run: git clone --depth 1 --branch 9.0.3 https://github.com/juce-framework/JUCE.git JUCE
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+      - name: Build Hastur & Tests
+        run: |
+          cmake --build build --config Release --parallel --target Hastur_VST3 Hastur_AU Hastur_Standalone dsp_tests
+
+      - name: Run DSP Unit Tests
+        run: |
+          if [ -f "./build/dsp_tests" ]; then
+            ./build/dsp_tests
+          elif [ -f "./build/Release/dsp_tests" ]; then
+            ./build/Release/dsp_tests
+          fi
+
+      - name: Build macOS Distribution Packages (.pkg, .dmg, .zip)
+        run: |
+          chmod +x scripts/mac/build_hastur_mac_dist.sh scripts/mac/postinstall_hastur scripts/mac/Fix_Hastur_Mac_Permissions.command
+          ./scripts/mac/build_hastur_mac_dist.sh "${{ steps.tag.outputs.tag }}" build
+
+      - name: Upload macOS Packages to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Hastur HS-01 Release ${{ steps.tag.outputs.tag }}
+          files: |
+            Hastur-*-macOS-Installer.pkg
+            Hastur-*-macOS.dmg
+            Hastur-*-macOS.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    name: Linux x86_64 (VST3 / Standalone)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve Release Tag
+        id: tag
+        run: |
+          TAG="${{ inputs.tag_name }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Building Hastur for release tag: $TAG"
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            libfreetype6-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libxi-dev \
+            libglu1-mesa-dev \
+            mesa-common-dev \
+            libgl1-mesa-dev \
+            libfontconfig1-dev \
+            zip
+
+      - name: Clone JUCE
+        run: git clone --depth 1 --branch 9.0.3 https://github.com/juce-framework/JUCE.git JUCE
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Hastur & Tests
+        run: |
+          cmake --build build --config Release --parallel --target Hastur_VST3 Hastur_Standalone dsp_tests
+
+      - name: Run DSP Unit Tests
+        run: |
+          if [ -f "./build/dsp_tests" ]; then
+            ./build/dsp_tests
+          elif [ -f "./build/Release/dsp_tests" ]; then
+            ./build/Release/dsp_tests
+          fi
+
+      - name: Package Linux Binaries
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          CLEAN_VER="${TAG#hastur-v}"
+          CLEAN_VER="${CLEAN_VER#hastur-}"
+          CLEAN_VER="${CLEAN_VER#v}"
+          CLEAN_TAG="v${CLEAN_VER}"
+          ZIP_NAME="Hastur-${CLEAN_TAG}-Linux.zip"
+          mkdir -p linux_dist
+          find build/Hastur_artefacts -name "Hastur.vst3" -exec cp -r {} linux_dist/ \;
+          find build/Hastur_artefacts -name "Hastur" -type f -exec cp {} linux_dist/ \;
+          cd linux_dist
+          zip -r "../${ZIP_NAME}" *
+          cd ..
+          ls -lh "${ZIP_NAME}"
+
+      - name: Upload Linux Archive to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Hastur HS-01 Release ${{ steps.tag.outputs.tag }}
+          files: Hastur-*-Linux.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    name: Windows x64 (VST3 / Standalone)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve Release Tag
+        id: tag
+        shell: pwsh
+        run: |
+          $TAG = "${{ inputs.tag_name }}"
+          if ([string]::IsNullOrEmpty($TAG)) {
+            $TAG = "${{ github.ref_name }}"
+          }
+          echo "tag=$TAG" >> $env:GITHUB_OUTPUT
+          Write-Host "Building Hastur for release tag: $TAG"
+
+      - name: Clone JUCE
+        run: git clone --depth 1 --branch 9.0.3 https://github.com/juce-framework/JUCE.git JUCE
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Hastur & Tests
+        run: cmake --build build --config Release --parallel --target Hastur_VST3 Hastur_Standalone dsp_tests
+
+      - name: Run DSP Unit Tests
+        run: .\build\Release\dsp_tests.exe
+
+      - name: Package Windows Binaries
+        shell: pwsh
+        run: |
+          $TAG = "${{ steps.tag.outputs.tag }}"
+          $CLEAN_TAG = $TAG -replace '^hastur-', ''
+          if (-not $CLEAN_TAG.StartsWith('v')) { $CLEAN_TAG = "v$CLEAN_TAG" }
+          $ZIP_NAME = "Hastur-$CLEAN_TAG-Windows.zip"
+          New-Item -ItemType Directory -Path win_dist
+          Copy-Item -Recurse "build/Hastur_artefacts/Release/VST3/Hastur.vst3" win_dist/
+          Copy-Item "build/Hastur_artefacts/Release/Standalone/Hastur.exe" win_dist/
+          Compress-Archive -Path win_dist/* -DestinationPath $ZIP_NAME
+          Get-Item $ZIP_NAME
+
+      - name: Upload Windows Archive to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Hastur HS-01 Release ${{ steps.tag.outputs.tag }}
+          files: Hastur-*-Windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

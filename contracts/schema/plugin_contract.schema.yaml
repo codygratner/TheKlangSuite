@@ -1,0 +1,93 @@
+# contracts/schema/plugin_contract.schema.yaml
+# Single Source of Truth Schema for APVTS Parameters & Metamorphic Test Specifications
+# Crucible Planning Framework v4.2.0
+
+title: Plugin Parameter Contract Schema
+type: object
+required:
+  - plugin
+  - version
+  - parameters
+
+properties:
+  plugin:
+    type: string
+    description: Name of the plugin (e.g. Hastur, Farmer, Planter)
+
+  version:
+    type: string
+    description: Semantic version (e.g. 2.0.0)
+
+  description:
+    type: string
+    description: High-level architectural summary of the instrument
+
+  categories:
+    type: array
+    description: Logical UI/DSP block categories
+    items:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+  parameters:
+    type: array
+    description: Exhaustive list of all APVTS parameters
+    items:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - default
+        - effect
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9_]+$"
+          description: Unique machine-readable APVTS parameter identifier
+        name:
+          type: string
+          description: Human-readable display label in DAW host
+        category:
+          type: string
+          description: Category ID referencing the categories table
+        type:
+          type: string
+          enum: [float, choice, bool, int]
+        range:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 3
+          description: "[min, max] or [min, max, step]"
+        skew:
+          type: number
+          description: Center frequency skew / taper factor (JUCE NormalisableRange skew)
+        custom_range:
+          type: string
+          description: Custom range generator lambda name if non-standard (e.g. sCurveOctaveRange)
+        choices:
+          type: array
+          items:
+            type: string
+          description: String labels for choice parameters
+        default:
+          description: Default value (number, boolean, or string matching a choice)
+        effect:
+          type: string
+          enum: [rms, pitch, timbre, none]
+          description: Primary acoustic domain affected by parameter sweep (for automated effect matrix)
+        units:
+          type: string
+          description: Engineering units suffix (e.g. Hz, dB, ms, %, semitones)
+        description:
+          type: string
+          description: Parameter role and routing documentation

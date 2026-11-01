@@ -46,6 +46,12 @@ KlangCoreEditor::KlangCoreEditor(KlangCoreProcessor& p)
     initButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff8b99a6));
     addAndMakeVisible(initButton);
 
+    presetButton.setButtonText("PRESET");
+    presetButton.setName("PRESET");
+    presetButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181a20));
+    presetButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff8b99a6));
+    addAndMakeVisible(presetButton);
+
     triggerButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181a20));
     triggerButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff8b99a6));
     addAndMakeVisible(triggerButton);
@@ -53,6 +59,9 @@ KlangCoreEditor::KlangCoreEditor(KlangCoreProcessor& p)
     addAndMakeVisible(statusBar);
 
     // Wire universal hover guidance feeds for shared header buttons
+    wireHeaderHover(presetButton, "PRESET", "Preset Manager",
+                    "Browse, load, and save universal .json / .tkp presets.",
+                    "Click: Open Menu");
     wireHeaderHover(initButton, "INIT", "Patch Reset",
                     "Emergency panic audio flush & restore factory default parameters.",
                     "Click: Reset");

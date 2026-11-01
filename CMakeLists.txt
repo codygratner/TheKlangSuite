@@ -32,9 +32,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 2. Add the cloned JUCE repository
 add_subdirectory(JUCE)
 
-# 2b. Add Sovereign Shared TheKlangDSP engine
+# 2b. Add Sovereign Shared TheKlangDSP engine (with self-contained CI fallback)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../TheKlangDSP/CMakeLists.txt")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../TheKlangDSP" TheKlangDSP EXCLUDE_FROM_ALL)
+else()
+    add_library(TheKlangDSP INTERFACE)
+    target_include_directories(TheKlangDSP INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/source>
+    )
 endif()
 
 # CI Toolchain Lockdown & Sanitizer Integration (applied to Klang Suite targets)
@@ -77,16 +82,16 @@ juce_add_binary_data(TkfAssets
 
 # 3. Configure the plugin target
 juce_add_plugin(TheKlangFarmer
-    COMPANY_NAME "R'lyeh Sound"
+    COMPANY_NAME "The Cult of Klang"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     
     # 4-character codes (required by VST/AU specs; must have at least 1 uppercase)
-    PLUGIN_MANUFACTURER_CODE Rlyh
+    PLUGIN_MANUFACTURER_CODE Tcok
     PLUGIN_CODE Tkf1
-    BUNDLE_ID com.rlyehsound.theklangfarmer
+    BUNDLE_ID com.thecultofklang.theklangfarmer
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "The Klang Farmer"
@@ -116,6 +121,9 @@ target_sources(TheKlangFarmer PRIVATE
     source/SettingsModal.h
     source/SettingsModal.cpp
     source/DevLogger.h
+    source/StateMigrator.h
+    source/PresetManager.h
+    source/PresetManager.cpp
 )
 
 target_include_directories(TheKlangFarmer PRIVATE
@@ -159,15 +167,15 @@ target_link_libraries(TheKlangFarmer PRIVATE
 
 # --- 6. The Klang Planter Plugin Target ---
 juce_add_plugin(TheKlangPlanter
-    COMPANY_NAME "R'lyeh Sound"
+    COMPANY_NAME "The Cult of Klang"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     
-    PLUGIN_MANUFACTURER_CODE Rlyh
+    PLUGIN_MANUFACTURER_CODE Tcok
     PLUGIN_CODE Tkp1
-    BUNDLE_ID com.rlyehsound.theklangplanter
+    BUNDLE_ID com.thecultofklang.theklangplanter
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "The Klang Planter"
@@ -223,6 +231,265 @@ if (UNIX AND NOT APPLE)
     target_link_options(TheKlangFarmer PRIVATE -static-libstdc++ -static-libgcc)
     target_link_options(TheKlangPlanter PRIVATE -static-libstdc++ -static-libgcc)
 endif()
+# --- 6b. The Shard Plugin Target (Sovereign Pantheon) ---
+juce_add_plugin(TheShard
+    COMPANY_NAME "The Cult of Klang"
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    
+    PLUGIN_MANUFACTURER_CODE Tcok
+    PLUGIN_CODE Tsh1
+    BUNDLE_ID com.thecultofklang.theshard
+    
+    FORMATS ${TKF_FORMATS}
+    PRODUCT_NAME "The Shard"
+    VST3_CAN_REPLACE_VST2 FALSE
+)
+
+target_sources(TheShard PRIVATE
+    source/FastMath.h
+    source/DSPBlock.h
+    source/ModularBlocks.h
+    source/PlanterEngine.h
+    source/ParameterManager.h
+    source/ParameterManager.cpp
+    source/UIComponents.h
+    source/KlangCoreProcessor.h
+    source/KlangCoreProcessor.cpp
+    source/KlangCoreEditor.h
+    source/KlangCoreEditor.cpp
+    source/UIComponents.cpp
+    source/PlanterProcessor.h
+    source/PlanterProcessor.cpp
+    source/PlanterEditor.h
+    source/PlanterEditor.cpp
+    source/ShardEditor.h
+    source/ShardEditor.cpp
+    source/VersionChecker.h
+    source/VersionChecker.cpp
+    source/SettingsModal.h
+    source/SettingsModal.cpp
+    source/DevLogger.h
+)
+
+target_include_directories(TheShard PRIVATE source)
+
+target_compile_definitions(TheShard PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    TK_IS_THE_SHARD=1
+)
+
+set_target_properties(TheShard PROPERTIES VST3_AUTO_MANIFEST FALSE)
+
+target_link_libraries(TheShard PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+# --- 6c. Formless Spawn Plugin Target (Tsathogguan Percussion Workstation) ---
+juce_add_plugin(FormlessSpawn
+    COMPANY_NAME "The Cult of Klang"
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    
+    PLUGIN_MANUFACTURER_CODE Tcok
+    PLUGIN_CODE Tfsp
+    BUNDLE_ID com.thecultofklang.formlessspawn
+    
+    FORMATS ${TKF_FORMATS}
+    PRODUCT_NAME "Formless Spawn"
+    VST3_CAN_REPLACE_VST2 FALSE
+)
+
+target_sources(FormlessSpawn PRIVATE
+    source/FastMath.h
+    source/UIComponents.h
+    source/UIComponents.cpp
+    source/FormlessProcessor.h
+    source/FormlessProcessor.cpp
+    source/FormlessEditor.h
+    source/FormlessEditor.cpp
+)
+
+target_include_directories(FormlessSpawn PRIVATE source)
+
+target_compile_definitions(FormlessSpawn PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+
+set_target_properties(FormlessSpawn PROPERTIES VST3_AUTO_MANIFEST FALSE)
+
+target_link_libraries(FormlessSpawn PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+# --- 6d. The Crucible Workbench Plugin Target (Real-Time DSP Testbed) ---
+juce_add_plugin(CrucibleWorkbench
+    COMPANY_NAME "The Cult of Klang"
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    
+    PLUGIN_MANUFACTURER_CODE Tcok
+    PLUGIN_CODE Tcwb
+    BUNDLE_ID com.thecultofklang.crucibleworkbench
+    
+    FORMATS ${TKF_FORMATS}
+    PRODUCT_NAME "Crucible Workbench"
+    VST3_CAN_REPLACE_VST2 FALSE
+)
+
+target_sources(CrucibleWorkbench PRIVATE
+    source/FastMath.h
+    source/CrucibleWorkbenchProcessor.h
+    source/CrucibleWorkbenchProcessor.cpp
+    source/CrucibleWorkbenchEditor.h
+    source/CrucibleWorkbenchEditor.cpp
+)
+
+target_include_directories(CrucibleWorkbench PRIVATE source)
+
+target_compile_definitions(CrucibleWorkbench PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+
+set_target_properties(CrucibleWorkbench PROPERTIES VST3_AUTO_MANIFEST FALSE)
+
+target_link_libraries(CrucibleWorkbench PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+# --- 6e. Hastur Plugin Target (The Bass Synth in Yellow - Testbed Edition) ---
+juce_add_plugin(Hastur
+    COMPANY_NAME "Cracked Chimes"
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    
+    PLUGIN_MANUFACTURER_CODE CkCh
+    PLUGIN_CODE Hst1
+    BUNDLE_ID com.crackedchimes.hastur
+    VERSION "1.0.0"
+    
+    FORMATS ${TKF_FORMATS}
+    PRODUCT_NAME "Hastur"
+    VST3_CAN_REPLACE_VST2 FALSE
+)
+
+target_sources(Hastur PRIVATE
+    source/FastMath.h
+    source/hastur/VactrolLPG.h
+    source/hastur/LadderFilter.h
+    source/hastur/AlphaJunoDCO.h
+    source/hastur/AlphaOscillator.h
+    source/hastur/AllPassFilter4.h
+    source/hastur/DoepferA196PLL.h
+    source/hastur/ModMatrix.h
+    source/hastur/AlphaJunoFilter.h
+    source/hastur/PllSubOsc.h
+    source/hastur/SampleHoldNoise.h
+    source/hastur/CodyBassEnvelope.h
+    source/hastur/VortexEnvelope.h
+    source/hastur/HasturVoice.h
+    source/hastur/HasturProcessor.h
+    source/hastur/HasturProcessor.cpp
+    source/hastur/HasturEditor.h
+    source/hastur/HasturEditor.cpp
+)
+
+target_include_directories(Hastur PRIVATE source)
+
+target_compile_definitions(Hastur PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+
+if (MSVC)
+    target_compile_options(Hastur PRIVATE /utf-8)
+endif()
+
+set_target_properties(Hastur PROPERTIES VST3_AUTO_MANIFEST FALSE)
+
+target_link_libraries(Hastur PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+if (UNIX AND NOT APPLE)
+    target_link_options(Hastur PRIVATE -static-libstdc++ -static-libgcc)
+endif()
+
+
+# --- 6f. Hastur Headless UI Fast-Preview Target ---
+add_executable(Hastur_Preview
+    source/hastur/ui_preview_main.cpp
+    source/hastur/HasturProcessor.cpp
+    source/hastur/HasturEditor.cpp
+)
+
+target_include_directories(Hastur_Preview PRIVATE source)
+
+target_compile_definitions(Hastur_Preview PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    HASTUR_HEADLESS_PREVIEW=1
+)
+
+if (MSVC)
+    target_compile_options(Hastur_Preview PRIVATE /utf-8)
+endif()
+
+target_link_libraries(Hastur_Preview PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+
+if (UNIX AND NOT APPLE)
+    target_link_options(TheShard PRIVATE -static-libstdc++ -static-libgcc)
+endif()
+
 
 # 7. Test suite executable
 add_executable(dsp_tests
@@ -232,9 +499,28 @@ add_executable(dsp_tests
     source/ModularBlocks.h
     source/ModulationEngine.h
     source/PlanterEngine.h
+    source/StateMigrator.h
+    source/PresetManager.h
+    source/PresetManager.cpp
 )
 target_include_directories(dsp_tests PRIVATE source)
 target_link_libraries(dsp_tests PRIVATE TheKlangDSP TkfAssets juce::juce_audio_processors)
+if(MSVC)
+    set_target_properties(dsp_tests PROPERTIES LINK_FLAGS "/STACK:8388608")
+endif()
+
+# 7.5 Standalone Embedded Concurrency & HAL Test Suite
+add_executable(test_embedded_concurrency
+    test/test_embedded_concurrency.cpp
+)
+target_include_directories(test_embedded_concurrency PRIVATE source)
+
+# 7.6 Standalone Multi-Machine Engines (MME) & ElektronTrackWrapper Test Suite
+add_executable(test_mme
+    test/test_mme.cpp
+)
+# target_include_directories(test_mme PRIVATE source)
+target_link_libraries(test_mme PRIVATE TheKlangDSP)
 
 # 8. FastMath & DSP performance benchmark
 add_executable(benchmark_dsp
@@ -336,6 +622,26 @@ add_custom_command(TARGET TheKlangPlanter_VST3 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/The Klang Planter.vst3"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/TheKlangPlanter_artefacts/$<CONFIG>/VST3/The Klang Planter.vst3" "${ARTIFACT_DIR}/VST3/The Klang Planter.vst3"
 )
+# The Shard
+add_custom_command(TARGET TheShard_Standalone POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/Standalone"
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:TheShard_Standalone>" "${ARTIFACT_DIR}/Standalone/"
+)
+add_custom_command(TARGET TheShard_VST3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/The Shard.vst3"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/TheShard_artefacts/$<CONFIG>/VST3/The Shard.vst3" "${ARTIFACT_DIR}/VST3/The Shard.vst3"
+)
+
+
+# Hastur
+add_custom_command(TARGET Hastur_Standalone POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/Standalone"
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:Hastur_Standalone>" "${ARTIFACT_DIR}/Standalone/"
+)
+add_custom_command(TARGET Hastur_VST3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/Hastur.vst3"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/Hastur_artefacts/$<CONFIG>/VST3/Hastur.vst3" "${ARTIFACT_DIR}/VST3/Hastur.vst3"
+)
 
 # The Klang Editor
 add_custom_command(TARGET TheKlangEditor POST_BUILD
@@ -343,6 +649,26 @@ add_custom_command(TARGET TheKlangEditor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:TheKlangEditor>" "${ARTIFACT_DIR}/Editor/"
 )
 
+
+# 11b. Automated Headless Plugin-Boundary Harness
+add_executable(headless_plugin_runner
+    test/headless_plugin_runner.cpp
+    source/hastur/HasturProcessor.cpp
+    source/hastur/HasturEditor.cpp
+)
+target_link_libraries(headless_plugin_runner PRIVATE
+    TheKlangDSP
+    TkfAssets
+    ${TKF_JUCE_MODULES}
+    juce::juce_audio_processors
+    juce::juce_gui_basics
+    juce::juce_graphics
+)
+target_include_directories(headless_plugin_runner PRIVATE source)
+target_compile_definitions(headless_plugin_runner PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
+if(MSVC)
+    target_compile_options(headless_plugin_runner PRIVATE /utf-8)
+endif()
 
 # 11. Automated GUI Test Harness
 add_executable(gui_tests

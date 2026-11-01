@@ -1,4 +1,6 @@
 #pragma once
+#ifndef TBD_AUDIO_FAST_MATH_H
+#define TBD_AUDIO_FAST_MATH_H
 
 #include <cmath>
 #include <cstdint>
@@ -286,3 +288,5 @@ public:
 
 } // namespace FastMath
 } // namespace TbdAudio
+
+#endif // TBD_AUDIO_FAST_MATH_H

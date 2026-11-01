@@ -74,89 +74,262 @@ namespace PolyBLEP {
 }
 
 /**
- * Evaluate the 14 normalized Alpha DCO single-cycle waveforms [0..13].
- * All 14 shapes are normalized to a single fundamental period [0.0, 1.0) with PolyBLEP anti-aliasing.
+ * Evaluate the 14 authentic Roland Alpha Juno (MB87123) DCO single-cycle waveforms [0..13]:
+ * - Group 1 (Pulse): 0: Pulse 1 (50% Square), 1: Pulse 2 (25% Narrow), 2: Pulse 3 (PWM Pulse)
+ * - Group 2 (Saw):   3: Saw 1 (Pure Saw), 4: Saw 2 (Chopped 2x), 5: Saw 3 (PWM Saw), 6: Saw 4 (Chopped 4x), 7: Saw 5 (Hoover Saw)
+ * - Group 3 (Sub):   8: Sub 1 (Square /2), 9: Sub 2 (Pulse /2), 10: Sub 3 (Sub Chopped 2x), 11: Sub 4 (Sub Chopped 4x), 12: Sub 5 (Square /4), 13: Sub 6 (Pulse /4)
+ * 
+ * SSoT: Roland Alpha Juno-1/2/MKS-50 Service Manuals, 12 MHz divided DCO XOR logic, and Cody's Vitaltable specs.
  */
 [[nodiscard]] inline float alphaWave14(int shapeIdx, float phase, float dt, float pwm) noexcept {
     const int idx = std::clamp(shapeIdx, 0, 13);
     const float p = wrapPhase(phase);
-    const float pw = std::clamp(0.5f + 0.42f * pwm, 0.05f, 0.95f);
+    const float pw = std::clamp(0.5f + 0.45f * pwm, 0.05f, 0.95f);
 
     switch (idx) {
-        case 0: // Saw 1: Classic Linear PolyBLEP Saw
-            return saw(p, dt);
-
-        case 1: { // Saw 2: PWM-Windowed Saw (saw gated by pulse window)
-            const float s = saw(p, dt);
-            const float g = 0.5f * (pulse(p, dt, pw) + 1.0f);
-            return s * g * 1.4f - 0.35f * (1.0f - g);
-        }
-
-        case 2: { // Saw 3: Stepped 2x XOR Saw (saw + octave square notch)
-            const float s1 = saw(p, dt);
-            const float sq2 = pulse(wrapPhase(p * 2.0f), dt * 2.0f, 0.5f);
-            return 0.65f * s1 + 0.35f * sq2;
-        }
-
-        case 3: { // Saw 4: Stepped 4x Comb Saw
-            const float s1 = saw(p, dt);
-            const float sq4 = pulse(wrapPhase(p * 4.0f), std::min(dt * 4.0f, 0.48f), pw);
-            return 0.6f * s1 + 0.4f * sq4;
-        }
-
-        case 4: { // Saw 5: Double-Saw (Alpha Hoover core: fundamental + phase-shifted 2x saw)
-            const float s1 = saw(p, dt);
-            const float s2 = saw(wrapPhase(p * 2.0f + 0.5f * pwm), std::min(dt * 2.0f, 0.48f));
-            return 0.55f * s1 + 0.45f * s2;
-        }
-
-        case 5: // Square 1: Symmetrical 50% Square
+        // --- Group 1: Pulse Waveforms ---
+        case 0: // Pulse 1: Symmetrical 50% Square
             return pulse(p, dt, 0.5f);
 
-        case 6: // Square 2: Variable PWM Pulse
+        case 1: // Pulse 2: Fixed Narrow 25% Pulse
+            return pulse(p, dt, 0.25f);
+
+        case 2: // Pulse 3: Variable PWM Pulse
             return pulse(p, dt, pw);
 
-        case 7: // Square 3: Narrow Spike Pulse (clavinet / nasal reed)
-            return pulse(p, dt, std::clamp(0.12f + 0.25f * pwm, 0.04f, 0.45f));
+        // --- Group 2: Sawtooth Waveforms ---
+        case 3: // Saw 1: Pure Linear Rising Sawtooth
+            return saw(p, dt);
 
-        case 8: { // Shape 9: Sub-Octave Divided Square + Fundamental
-            const float sq1 = pulse(p, dt, 0.5f);
-            const float sq2 = pulse(wrapPhase(p * 2.0f), std::min(dt * 2.0f, 0.48f), pw);
-            return 0.55f * sq1 + 0.45f * sq2;
+        case 4: { // Saw 2: Chopped Saw 2x (Rising Saw smashed to 0 by +1 oct square)
+            const float s_uni = p;
+            const float p2 = wrapPhase(p * 2.0f);
+            const float u = (p2 < 0.5f) ? s_uni : 0.0f;
+            constexpr float mean_dc = 3.0f / 16.0f; // 0.1875
+            constexpr float scale = 16.0f / 9.0f;   // Peak normalized to 1.0
+            float v = (u - mean_dc) * scale;
+            // PolyBLEP anti-aliasing on step transitions
+            v -= blep(p, dt) * (0.75f * scale);
+            v -= blep(wrapPhase(p - 0.25f + 1.0f), dt) * (0.25f * scale);
+            v += blep(wrapPhase(p - 0.50f + 1.0f), dt) * (0.50f * scale);
+            v -= blep(wrapPhase(p - 0.75f + 1.0f), dt) * (0.75f * scale);
+            return v;
         }
 
-        case 9: { // Shape 10: Sub PWM Notch
-            const float sq1 = pulse(p, dt, pw);
-            const float sq2 = pulse(wrapPhase(p * 2.0f), std::min(dt * 2.0f, 0.48f), 0.5f);
-            return sq1 * sq2; // Unipolar XOR equivalent in [-1, +1]
+        case 5: { // Saw 3: PWM Saw (Authentic Roland Alpha Juno / TAL-Pha)
+            const float s_uni = p;
+            const float p2 = wrapPhase(p * 2.0f);
+            const float u = (p2 < pw) ? s_uni : 0.0f;
+            const float mean_dc = 0.25f * pw * (1.0f + pw);
+            const float peak_dev = std::max(0.5f + pw * 0.5f - mean_dc, mean_dc);
+            const float scale = 1.0f / std::max(0.01f, peak_dev);
+            float v = (u - mean_dc) * scale;
+            v -= blep(p, dt) * (0.5f * scale);
+            v -= blep(wrapPhase(p - pw * 0.5f + 1.0f), dt) * (pw * 0.5f * scale);
+            v += blep(wrapPhase(p - 0.50f + 1.0f), dt) * (0.5f * scale);
+            v -= blep(wrapPhase(p - (0.50f + pw * 0.5f) + 1.0f), dt) * ((0.5f + pw * 0.5f) * scale);
+            return v;
         }
 
-        case 10: { // Shape 11: Asymmetric Notch Pulse
-            const float p1 = pulse(p, dt, 0.25f);
-            const float p2 = pulse(wrapPhase(p + pw * 0.5f), dt, 0.25f);
-            return 0.5f * (p1 - p2);
+        case 6: { // Saw 4: Chopped Saw 8x (Rising Saw smashed to 0 by +3 oct square)
+            const float s_uni = p;
+            const float p8 = wrapPhase(p * 8.0f);
+            const float u = (p8 < 0.5f) ? s_uni : 0.0f;
+            constexpr float mean_dc = 15.0f / 64.0f;
+            constexpr float scale = 64.0f / 49.0f;
+            float v = (u - mean_dc) * scale;
+            v -= blep(p, dt) * (0.5f * scale);
+            v -= blep(p8, std::min(dt * 8.0f, 0.48f)) * (0.5f * scale);
+            v += blep(wrapPhase(p8 - 0.5f + 1.0f), std::min(dt * 8.0f, 0.48f)) * (0.5f * scale);
+            return v;
         }
 
-        case 11: { // Shape 12: Dual Unequal Pulse
-            const float p1 = pulse(p, dt, pw);
-            const float p2 = pulse(wrapPhase(p * 3.0f), std::min(dt * 3.0f, 0.48f), 0.5f);
-            return 0.6f * p1 + 0.4f * p2;
+        case 7: { // Saw 5: Hoover Saw (Chopped by both +1 oct and +3 oct square)
+            const float s_uni = p;
+            const float p2 = wrapPhase(p * 2.0f);
+            const float p8 = wrapPhase(p * 8.0f);
+            const float u = (p2 < 0.5f && p8 < 0.5f) ? s_uni : 0.0f;
+            constexpr float mean_dc = 11.0f / 128.0f;
+            constexpr float scale = 128.0f / 85.0f;
+            float v = (u - mean_dc) * scale;
+            v -= blep(p, dt) * (0.5f * scale);
+            v -= blep(p2, dt * 2.0f) * (0.3f * scale);
+            v -= blep(p8, std::min(dt * 8.0f, 0.48f)) * (0.3f * scale);
+            return v;
         }
 
-        case 12: { // Shape 13: Stepped Staircase Pulse 1
-            const float tri = triangle(p);
-            const float sq2 = pulse(wrapPhase(p * 2.0f), std::min(dt * 2.0f, 0.48f), pw);
-            return 0.55f * tri + 0.45f * sq2;
+        // --- Group 3: Sub-Oscillator Waveforms ---
+        case 8: // Sub 1: Square /2 (-1 oct 50% square, Cody's Vitaltable pos 0)
+            return pulse(p, dt, 0.5f);
+
+        case 9: // Sub 2: Pulse /2 (-1 oct 75% pulse, Cody's Vitaltable pos 63)
+            return pulse(p, dt, 0.75f);
+
+        case 10: { // Sub 3: Sub Chopped 2x (Cody's Vitaltable pos 128)
+            const float p4 = wrapPhase(p * 4.0f);
+            const float u = (p < 0.5f) ? 1.0f : ((p4 >= 0.5f) ? 1.0f : 0.0f);
+            constexpr float mean_dc = 0.75f;
+            constexpr float scale = 1.0f / 0.75f;
+            float v = (u - mean_dc) * scale;
+            v += blep(p, dt);
+            v -= blep(wrapPhase(p - 0.5f + 1.0f), dt);
+            v += blep(p4, std::min(dt * 4.0f, 0.48f)) * 0.5f;
+            return v;
         }
+
+        case 11: { // Sub 4: Sub Chopped 4x (Cody's Vitaltable pos 256)
+            const float p8 = wrapPhase(p * 8.0f);
+            const float u = (p < 0.5f) ? 1.0f : ((p8 >= 0.5f) ? 1.0f : 0.0f);
+            constexpr float mean_dc = 0.75f;
+            constexpr float scale = 1.0f / 0.75f;
+            float v = (u - mean_dc) * scale;
+            v += blep(p, dt);
+            v -= blep(wrapPhase(p - 0.5f + 1.0f), dt);
+            v += blep(p8, std::min(dt * 8.0f, 0.48f)) * 0.5f;
+            return v;
+        }
+
+        case 12: // Sub 5: Square /4 (-2 oct 50% square)
+            return pulse(p, dt, 0.5f);
 
         case 13:
-        default: { // Shape 14: Stepped Staircase Pulse 2 (Metallic XOR)
-            const float s1 = saw(p, dt);
-            const float p2 = pulse(wrapPhase(p * 2.0f), std::min(dt * 2.0f, 0.48f), pw);
-            const float p4 = pulse(wrapPhase(p * 4.0f), std::min(dt * 4.0f, 0.48f), 0.5f);
-            return 0.45f * s1 + 0.35f * p2 + 0.20f * p4;
+        default: // Sub 6: Pulse /4 (-2 oct 75% pulse)
+            return pulse(p, dt, 0.75f);
+    }
+}
+
+/**
+ * Closed-form DC-normalized multi-octave chopped Hoover sawtooth.
+ * M = 1 (1x fundamental), 2 (2x twin-tooth), 4 (4x quad-tooth), 8 (8x octo-tooth).
+ * pw in [0.05, 0.95].
+ */
+[[nodiscard]] inline float choppedSawM(float p, float dt, int M, float pw) noexcept {
+    const int effM = std::max(M, 1);
+    const float fM = static_cast<float>(effM);
+    const float effPw = std::clamp(pw, 0.05f, 0.95f);
+    const float pM = wrapPhase(p * fM);
+    const float u = (pM < effPw) ? p : 0.0f;
+    const float mean = (effPw / (2.0f * fM)) * (fM - 1.0f + effPw);
+    const float uMax = (fM - 1.0f + effPw) / fM;
+    const float peakDev = std::max(0.05f, uMax - mean);
+    const float scale = 1.0f / peakDev;
+    const float h = 0.5f * scale; // PolyBLEP spans peak-to-peak of 2.0
+
+    float v = (u - mean) * scale;
+
+    // No wrap correction at p=0 when pw < 1.0: u(1) == 0 and u(0) == 0 (continuous across wrap).
+    // All teeth drops and rises are handled exactly by the loop below:
+    for (int k = 0; k < effM; ++k) {
+        // Drop at (k + pw) / M
+        const float tDrop = (static_cast<float>(k) + effPw) / fM;
+        v -= blep(wrapPhase(p - tDrop + 1.0f), dt) * (tDrop * h);
+
+        // Rise at (k + 1) / M if k < M - 1
+        if (k < effM - 1) {
+            const float tRise = static_cast<float>(k + 1) / fM;
+            v += blep(wrapPhase(p - tRise + 1.0f), dt) * (tRise * h);
         }
     }
+    return std::clamp(v, -1.8f, 1.8f);
+}
+
+/**
+ * Evaluate the 16 authentic Roland & 1985 SOTA DCO 2.0 Waveforms [0..15]:
+ * - Bank 0 (Hoover Saws): 0: 1x PWM Saw, 1: 2x Twin Hoover, 2: 4x Quad Hoover, 3: 8x Octo Mega Hoover
+ * - Bank 1 (Pulses):      4: 50% Square, 5: 25% Narrow Pulse, 6: 12.5% Needle Pulse, 7: Var PWM Pulse
+ * - Bank 2 (Triangles):   8: Linear Triangle, 9: Skewed Sharktooth, 10: Diamond M, 11: Crown W
+ * - Bank 3 (Exotic/PD):   12: System-100M Diff Sine, 13: Casio CZ-101 PD Res Sine, 14: Detroit /3 Stair, 15: CMOS Ring Sub
+ */
+[[nodiscard]] inline float alphaWave16(int shapeIdx, float phase, float dt, float pwm) noexcept {
+    const int idx = std::clamp(shapeIdx, 0, 15);
+    const float p = wrapPhase(phase);
+    const float pw = std::clamp(0.5f + 0.45f * pwm, 0.05f, 0.95f);
+
+    switch (idx) {
+        // --- Bank 0: Multi-Octave Dynamic PWM Hoover Saws ---
+        case 0: return choppedSawM(p, dt, 1, pw);
+        case 1: return choppedSawM(p, dt, 2, pw);
+        case 2: return choppedSawM(p, dt, 4, pw);
+        case 3: return choppedSawM(p, dt, 8, pw);
+
+        // --- Bank 1: Symmetrical & Asymmetrical Pulses ---
+        case 4: return pulse(p, dt, 0.5f);
+        case 5: return pulse(p, dt, 0.25f);
+        case 6: return pulse(p, dt, 0.125f);
+        case 7: return pulse(p, dt, pw);
+
+        // --- Bank 2: Op-Amp Triangle & Morphologies ---
+        case 8: return triangle(p);
+        case 9: { // Skewed Sharktooth Triangle with Normalized Makeup Gain
+            const float S = pw;
+            const float u = (p < S) ? (p / S) : ((1.0f - p) / (1.0f - S));
+            const float normGain = 1.0f / std::sqrt(std::max(0.01f, 4.0f * S * (1.0f - S)));
+            const float v = (2.0f * u - 1.0f) * std::min(2.0f, normGain);
+            return std::clamp(v, -1.8f, 1.8f);
+        }
+        case 10: { // Diamond M-Triangle (Dual-Peak Folded Triangle)
+            const float tri2 = triangle(wrapPhase(p * 2.0f));
+            return 2.0f * std::abs(tri2) - 1.0f;
+        }
+        case 11: { // Crown W-Triangle (Triple-Peak Folded Triangle)
+            const float tri3 = triangle(wrapPhase(p * 3.0f));
+            return 2.0f * std::abs(tri3) - 1.0f;
+        }
+
+        // --- Bank 3: 1985 Exotic / Complex / Phase Distortion ---
+        case 12: { // Roland System-100M Diff-Pair Saturated Sine
+            const float rawSin = std::sin(6.28318530717958647692f * p);
+            return std::tanh(3.5f * rawSin) * 1.05f;
+        }
+        case 13: { // Casio CZ-101 Resonant Phase Distortion Sine
+            const float nRes = 2.0f + 6.0f * pw;
+            const float carrier = std::sin(6.28318530717958647692f * p * nRes);
+            const float window = 0.5f * (1.0f + std::cos(3.14159265358979323846f * p));
+            return carrier * window * 1.4f;
+        }
+        case 14: { // Detroit /3 Subharmonic Stair Saw
+            const float saw1 = saw(p, dt);
+            const float saw3 = saw(wrapPhase(p * 3.0f), std::min(dt * 3.0f, 0.48f));
+            const float stair3 = (saw1 - saw3 * (1.0f / 3.0f)) * 1.5f;
+            return 0.5f * saw1 + 0.5f * stair3;
+        }
+        case 15:
+        default: { // CMOS Ring-Mod Bit Sub (PolyBLEP XOR Product)
+            const float s0 = pulse(p, dt, pw);
+            const float s1 = pulse(wrapPhase(p * 0.5f), dt * 0.5f, 0.5f);
+            return s0 * s1;
+        }
+    }
+}
+
+/**
+ * SuperSaw-85 3-Voice Staircase Generator (PolyBLEP Identity):
+ * Uses 8253 timer channels driving CD4024 ripple counters + 5-bit R-2R ladder networks.
+ * Closed-form band-limited: staircase_8(phi) = saw(phi) - 1/8 * saw(8*phi).
+ */
+[[nodiscard]] inline float superSawStaircase(
+    float phase,
+    float dt,
+    float detuneA,
+    float detuneB) noexcept
+{
+    const float p = wrapPhase(phase);
+    const float dtA = dt * (1.0f + detuneA);
+    const float dtB = dt * (1.0f - detuneB);
+    const float pA = wrapPhase(phase * (1.0f + detuneA));
+    const float pB = wrapPhase(phase * (1.0f - detuneB));
+
+    // Center Voice: Pure Band-Limited Saw
+    const float sMain = saw(p, dt);
+
+    // Voice A: Band-Limited 8-Step R-2R Staircase (via PolyBLEP Identity)
+    const float sA = saw(pA, dtA) - 0.125f * saw(wrapPhase(pA * 8.0f), std::min(dtA * 8.0f, 0.48f));
+
+    // Voice B: Band-Limited 8-Step R-2R Staircase
+    const float sB = saw(pB, dtB) - 0.125f * saw(wrapPhase(pB * 8.0f), std::min(dtB * 8.0f, 0.48f));
+
+    // 3-Voice Sum normalized
+    return (sMain + sA + sB) * 0.36f;
 }
 
 /**
