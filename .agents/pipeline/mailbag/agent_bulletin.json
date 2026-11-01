@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-10-31 04:00:39",
-  "briefing_title": "\ud83d\uddfa\ufe0f Unified Plan: Hastur 10-Card Visual Signal Flow & Simultaneous Dual Envelope Overhaul",
+  "updated_at": "2026-11-01 04:00:38",
+  "briefing_title": "\ud83d\uddfa\ufe0f Unified Plan: Hastur DCO Strangle Signal Flow & Sub Chew -2..+2 Octave Tracking Overhaul",
   "briefing_text": "Scheduled 4 AM Black Box Memory Flush and State Integrity Audit",
   "status_badge": "ACTIVE \u26a1",
   "pending_decisions_count": 0,
-  "last_flight": "\ud83d\uddfa\ufe0f Unified Plan: Hastur 10-Card Visual Signal Flow & Simultaneous Dual Envelope Overhaul",
+  "last_flight": "\ud83d\uddfa\ufe0f Unified Plan: Hastur DCO Strangle Signal Flow & Sub Chew -2..+2 Octave Tracking Overhaul",
   "git_branch": "0.4.0-dev",
-  "target_pipeline": "FACTORY_FLOOR"
+  "target_pipeline": "HASTUR"
 }
