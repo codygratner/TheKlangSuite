@@ -49,7 +49,7 @@ public:
      * @param lifeMode 0 = Synthetic, 1 = Cyborg, 2 = Organic.
      */
     [[nodiscard]] float processAPFLifeform(float input, float cutoffHz, float feedback, int lifeMode) noexcept {
-        const float nyquist = static_cast<float>(sampleRate_ * 0.48);
+        const float nyquist = static_cast<float>(sampleRate_ * 0.42);
         const float fc = std::clamp(cutoffHz, 20.0f, nyquist);
 
         const float wd = static_cast<float>(3.14159265358979323846 * fc * invSr_);
@@ -91,7 +91,7 @@ public:
     }
 
     [[nodiscard]] float processAPF(float input, float cutoffHz, float feedback = 0.55f) noexcept {
-        const float nyquist = static_cast<float>(sampleRate_ * 0.48);
+        const float nyquist = static_cast<float>(sampleRate_ * 0.42);
         const float fc = std::clamp(cutoffHz, 20.0f, nyquist);
 
         // 1-pole all-pass coefficient: a = (tan(pi*fc/fs) - 1) / (tan(pi*fc/fs) + 1)
@@ -214,7 +214,7 @@ public:
      * High frequencies lag behind, smearing sharp chopper edges into dispersive laser chirps.
      */
     [[nodiscard]] float processInvertedAPF(float input, float cutoffHz) noexcept {
-        const float nyquist = static_cast<float>(sampleRate_ * 0.48);
+        const float nyquist = static_cast<float>(sampleRate_ * 0.42);
         const float fc = std::clamp(cutoffHz, 20.0f, nyquist);
 
         const float wd = static_cast<float>(3.14159265358979323846 * fc * invSr_);
@@ -237,7 +237,7 @@ public:
      * Group delay peaks sharply around fChirpHz (e.g. 4.5 kHz), producing an authentic metallic "pew".
      */
     [[nodiscard]] float processBiquadChirp(float input, float fChirpHz = 4500.0f, float Q = 3.2f) noexcept {
-        const float nyq = static_cast<float>(sampleRate_ * 0.48);
+        const float nyq = static_cast<float>(sampleRate_ * 0.42);
         const float fc = std::clamp(fChirpHz, 100.0f, nyq);
         const float w0 = static_cast<float>(6.28318530717958647692 * fc * invSr_);
         const float alpha = std::sin(w0) / (2.0f * Q);

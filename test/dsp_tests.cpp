@@ -1,5 +1,7 @@
 
 
+#include <complex>
+#include <chrono>
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -3695,6 +3697,236 @@ int main() {
         std::cout << "PASS: Suite 51: Hastur HS-01 Tactile Feel, 8-Octave Acid Sweep & Tracker Auto-Legato verified 100%!\n" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 51 DSP VERIFICATION SUITES (PHASES 1-6 + HASTUR TRIAD + DCO 2.0 + METAMORPHIC + DUAL-IR3R05 VCF + LIFEFORM + INFINIFOLD + SSOT METADATA + STEPPED RANDOM & TRIGGERS + 2X OVERSAMPLING) PASSED 100%! <<<" << std::endl;
+    // =========================================================================
+    // SUITE 52: Hastur HS-01 Elevated Lifeform Anti-Aliasing Gauntlet & Benchmark
+    // SSoT: Coherent FFT Spur Suppression (C6, C7, C8), Monolithic 2x Core, ADAA1
+    // =========================================================================
+    {
+        std::cout << "Running Suite 52: Hastur Elevated Lifeform Anti-Aliasing Gauntlet & Benchmark..." << std::endl;
+
+        // Invariant 1: First-Order ADAA Tanh & Clamp Precision and Bounded Continuity
+        {
+            float sPrev = 0.0f;
+            float y0 = CrackedChimes::DSP::ADAA::tanh(0.0f, sPrev, 1.0f);
+            assert(std::abs(y0) < 1e-6f);
+
+            // Small delta (< 1e-5) uses midpoint fallback cleanly
+            sPrev = 1.0f;
+            float yNear = CrackedChimes::DSP::ADAA::tanh(1.000001f, sPrev, 1.0f);
+            assert(std::abs(yNear - std::tanh(1.0f)) < 1e-3f);
+
+            // ADAA::clamp piecewise quadratic antiderivative
+            float cPrev = 0.0f;
+            float c0 = CrackedChimes::DSP::ADAA::clamp(0.0f, cPrev, -0.72f, 0.32f);
+            assert(std::abs(c0) < 1e-6f);
+            cPrev = 0.5f;
+            float cSat = CrackedChimes::DSP::ADAA::clamp(0.500001f, cPrev, -0.72f, 0.32f);
+            assert(std::abs(cSat - 0.32f) < 1e-3f);
+        }
+
+        // Invariant 2: High-Frequency FFT Spur Suppression on C6 (1046 Hz), C7 (2093 Hz), C8 (4186 Hz)
+        {
+            constexpr size_t N = 4096;
+            constexpr double kSr = 48000.0;
+            constexpr double kBinRes = kSr / N; // 11.71875 Hz
+
+            // Radix-2 Cooley-Tukey FFT implementation
+            auto runFft = [](std::vector<std::complex<float>>& a) {
+                const size_t n = a.size();
+                for (size_t i = 1, j = 0; i < n; ++i) {
+                    size_t bit = n >> 1;
+                    for (; j & bit; bit >>= 1) j ^= bit;
+                    j ^= bit;
+                    if (i < j) std::swap(a[i], a[j]);
+                }
+                for (size_t len = 2; len <= n; len <<= 1) {
+                    float ang = -2.0f * 3.14159265358979323846f / len;
+                    std::complex<float> wlen(std::cos(ang), std::sin(ang));
+                    for (size_t i = 0; i < n; i += len) {
+                        std::complex<float> w(1.0f, 0.0f);
+                        for (size_t j = 0; j < len / 2; ++j) {
+                            std::complex<float> u = a[i + j];
+                            std::complex<float> v = a[i + j + len / 2] * w;
+                            a[i + j] = u + v;
+                            a[i + j + len / 2] = u - v;
+                            w *= wlen;
+                        }
+                    }
+                }
+            };
+
+            const struct NoteTest {
+                const char* name;
+                int midiNote;
+                double approxFreq;
+            } tests[] = {
+                { "C6", 84, 1046.50 },
+                { "C7", 96, 2093.00 },
+                { "C8", 108, 4186.01 }
+            };
+
+            const CrackedChimes::DSP::HasturVoice::LifeMode modes[] = {
+                CrackedChimes::DSP::HasturVoice::LifeMode::SYNTHETIC,
+                CrackedChimes::DSP::HasturVoice::LifeMode::ORGANIC,
+                CrackedChimes::DSP::HasturVoice::LifeMode::CYBORG
+            };
+            const float reqRejectionDb[] = { 42.0f, 40.0f, 34.0f };
+
+            for (size_t m = 0; m < 3; ++m) {
+                for (const auto& t : tests) {
+                    CrackedChimes::DSP::HasturVoice voice;
+                    voice.prepare(kSr);
+                    voice.setLifeMode(modes[m]);
+                    voice.noteOn(t.midiNote, 1.0f, 0.0f);
+
+                    // Warm up voice past envelope attack and DC settling (2048 samples)
+                    float dummyL = 0.0f, dummyR = 0.0f;
+                    for (size_t i = 0; i < 2048; ++i) {
+                        voice.processStereoSample(
+                            0, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1, 0,
+                            1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f,
+                            0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
+                            0.0f, 0.0f, {}, {},
+                            18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                            0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
+                            0.001f, 1.0f, 0.0f, 1.0f, 0.1f, 0.0f, 0.02f,
+                            CrackedChimes::DSP::HasturVoice::AmpGateMode::DRONE, 0.5f, 0.0f, 1.0f,
+                            dummyL, dummyR
+                        );
+                    }
+
+                    // Collect N steady-state audio samples
+                    std::vector<std::complex<float>> fftBuf(N);
+                    for (size_t i = 0; i < N; ++i) {
+                        float l = 0.0f, r = 0.0f;
+                        voice.processStereoSample(
+                            0, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1, 0,
+                            1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f,
+                            0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
+                            0.0f, 0.0f, {}, {},
+                            18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                            0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
+                            0.001f, 1.0f, 0.0f, 1.0f, 0.1f, 0.0f, 0.02f,
+                            CrackedChimes::DSP::HasturVoice::AmpGateMode::DRONE, 0.5f, 0.0f, 1.0f,
+                            l, r
+                        );
+                        // Blackman-Harris 4-term window
+                        constexpr float a0 = 0.35875f;
+                        constexpr float a1 = 0.48829f;
+                        constexpr float a2 = 0.14128f;
+                        constexpr float a3 = 0.01168f;
+                        const float phi = 2.0f * 3.14159265358979323846f * i / (N - 1);
+                        const float w = a0 - a1 * std::cos(phi) + a2 * std::cos(2.0f * phi) - a3 * std::cos(3.0f * phi);
+                        fftBuf[i] = std::complex<float>(l * w, 0.0f);
+                    }
+
+                    runFft(fftBuf);
+
+                    // Find fundamental peak around expected frequency
+                    const size_t expectedBin = static_cast<size_t>(std::round(t.approxFreq / kBinRes));
+                    float fundMag = 0.0f;
+                    size_t fundBin = expectedBin;
+                    const size_t searchStart = (expectedBin >= 5) ? (expectedBin - 5) : 0;
+                    const size_t searchEnd = std::min(N / 2 - 1, expectedBin + 5);
+                    for (size_t b = searchStart; b <= searchEnd; ++b) {
+                        float mag = std::abs(fftBuf[b]);
+                        if (mag > fundMag) {
+                            fundMag = mag;
+                            fundBin = b;
+                        }
+                    }
+
+                    // Mask harmonics (+- 5 bins around each integer harmonic of fundBin)
+                    std::vector<bool> isHarmonic(N / 2, false);
+                    for (size_t harm = 1; harm * fundBin < N / 2; ++harm) {
+                        size_t hBin = harm * fundBin;
+                        size_t bMin = (hBin >= 5) ? (hBin - 5) : 0;
+                        size_t bMax = std::min(N / 2 - 1, hBin + 5);
+                        for (size_t b = bMin; b <= bMax; ++b) {
+                            isHarmonic[b] = true;
+                        }
+                    }
+
+                    // Search for worst inharmonic aliased spur in audio band (100 Hz to 20 kHz)
+                    const size_t minAudioBin = static_cast<size_t>(std::round(100.0 / kBinRes));
+                    const size_t maxAudioBin = static_cast<size_t>(std::round(20000.0 / kBinRes));
+                    float maxSpurMag = 0.0f;
+                    size_t worstSpurBin = 0;
+                    for (size_t b = minAudioBin; b <= maxAudioBin; ++b) {
+                        if (!isHarmonic[b]) {
+                            float mag = std::abs(fftBuf[b]);
+                            if (mag > maxSpurMag) {
+                                maxSpurMag = mag;
+                                worstSpurBin = b;
+                            }
+                        }
+                    }
+
+                    float rejectionDb = 20.0f * std::log10(std::max(1e-9f, fundMag) / std::max(1e-9f, maxSpurMag));
+                    assert(rejectionDb >= reqRejectionDb[m]);
+                }
+            }
+        }
+
+        // Invariant 3: Performance Micro-Benchmark & Host Polyphony Timing
+        {
+            CrackedChimes::DSP::HasturVoice voice;
+            voice.prepare(48000.0);
+            voice.setLifeMode(CrackedChimes::DSP::HasturVoice::LifeMode::SYNTHETIC);
+            voice.noteOn(60, 0.9f, 0.0f);
+
+            // Warm up cache
+            float outL = 0.0f, outR = 0.0f;
+            for (int i = 0; i < 1000; ++i) {
+                voice.processStereoSample(
+                    0, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1, 0,
+                    1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f,
+                    0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
+                    0.005f, 0.0f, {}, {},
+                    1200.0f, 0.5f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+                    0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
+                    0.001f, 0.35f, 0.0f, 0.5f, 0.1f, 0.0f, 0.02f,
+                    CrackedChimes::DSP::HasturVoice::AmpGateMode::ENVELOPE, 0.5f, 1.0f, 0.8f,
+                    outL, outR,
+                    0.0f, 0, 0.0f, 1, 0.0f, 0.0f, 0.0f, 0, 0.5f, 1
+                );
+            }
+
+            constexpr int kBenchSamples = 100000;
+            const auto tStart = std::chrono::high_resolution_clock::now();
+            for (int i = 0; i < kBenchSamples; ++i) {
+                voice.processStereoSample(
+                    0, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1, 0,
+                    1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f,
+                    0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
+                    0.005f, 0.0f, {}, {},
+                    1200.0f, 0.5f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+                    0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
+                    0.001f, 0.35f, 0.0f, 0.5f, 0.1f, 0.0f, 0.02f,
+                    CrackedChimes::DSP::HasturVoice::AmpGateMode::ENVELOPE, 0.5f, 1.0f, 0.8f,
+                    outL, outR,
+                    0.0f, 0, 0.0f, 1, 0.0f, 0.0f, 0.0f, 0, 0.5f, 1
+                );
+            }
+            const auto tEnd = std::chrono::high_resolution_clock::now();
+            const double totalNs = std::chrono::duration<double, std::nano>(tEnd - tStart).count();
+            const double nsPerSample = totalNs / kBenchSamples;
+            const double samplePeriodNs = 1e9 / 48000.0; // 20833.33 ns
+            const double singleCoreVoices = samplePeriodNs / nsPerSample;
+
+            std::cout << ">>> BENCHMARK: HasturVoice::processStereoSample (2x Unified Domain + ADAA1): "
+                      << nsPerSample << " ns/sample (" << (nsPerSample / samplePeriodNs * 100.0) << "% of 48kHz audio budget)." << std::endl;
+            std::cout << ">>> CAPACITY: Single-Core Theoretical: " << static_cast<int>(singleCoreVoices)
+                      << " voices | Safe Real-Time Single-Core (75% budget): " << static_cast<int>(singleCoreVoices * 0.75)
+                      << " voices | 8-Core Full Host (75% budget): " << static_cast<int>(singleCoreVoices * 0.75 * 8) << " voices." << std::endl;
+
+            assert(nsPerSample < 2000.0);
+        }
+
+        std::cout << "PASS: Suite 52: Hastur HS-01 Elevated Lifeform Anti-Aliasing Gauntlet verified 100%!\n" << std::endl;
+    }
+
+
+    std::cout << "\n>>> ALL 52 DSP VERIFICATION SUITES (PHASES 1-6 + HASTUR TRIAD + DCO 2.0 + METAMORPHIC + DUAL-IR3R05 VCF + LIFEFORM + INFINIFOLD + SSOT METADATA + STEPPED RANDOM & TRIGGERS + 2X OVERSAMPLING) PASSED 100%! <<<" << std::endl;
     return 0;
 }

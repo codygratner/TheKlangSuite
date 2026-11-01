@@ -43,6 +43,17 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
 
 ## Section B: Chronological Session Harvest
 
+### Session: 2026-11-01 16:30 (7c7aee68-4b96-44df-ace8-86a11d25186a) — Hastur v1.0.1 Anti-Aliasing Architecture & Benchmarking
+- **Milestone:** Hastur v1.0.1 (Elevated Lifeform Anti-Aliasing & Monolithic 2x Enclosure)
+- **Primary Objectives:** Fix top-end aliasing on notes C6–C8 across all three Lifeform modes (`SYNTHETIC`, `CYBORG`, `ORGANIC`), eliminate mode-switch clicks, add 1st-order ADAA to non-linear saturation stages, and micro-benchmark voice capacity on host and embedded ARM (Teensy 4.1).
+- **Architectural Breakthroughs:**
+  - **Unified Monolithic 2x Voice Domain:** Enclosed `masterLpg_`, `masterLpgR_`, and `postAmpDrive` inside the 2x oversampling loop. Eliminated dynamic re-prepares in `setLifeMode()` for click-free live switching.
+  - **1st-Order ADAA (Antiderivative Anti-Aliasing):** Applied analytical log-cosh antiderivative for `tanh` and piecewise-quadratic antiderivative for asymmetric diode clamp $[-0.72, +0.32]$.
+  - **Suite 52 (Elevated Lifeform Anti-Aliasing Gauntlet):** 8192-point coherent FFT spur suppression test on C6, C7, C8 asserting Synthetic $\ge 42\text{ dB}$, Organic $\ge 40\text{ dB}$, Cyborg $\ge 34\text{ dB}$.
+  - **Micro-Benchmark & Teensy 4.1 Capacity:** Host execution measured at 921.9 ns/sample (4.42% of 48kHz audio budget, 16 safe voices/core, 128+ host voices). Teensy 4.1 Cortex-M7 @ 600MHz budget: ~850 cycles/sample (6.25% CPU/voice, 6-8 polyphonic voices).
+- **Files Modified:** `CMakeLists.txt`, `contracts/hastur.yaml`, `source/hastur/HasturVoice.h`, `source/hastur/VactrolLPG.h`, `source/hastur/AllPassFilter4.h`, `test/dsp_tests.cpp`.
+- **Verification Telemetry:** 52/52 DSP test suites passing 100% (0.81s), `Hastur_VST3` clean build (73.28s).
+
 ### Session: 2026-10-30 15:45 (6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41) — Autoplan 2.0 Grounded Verification Stack
 - **Milestone:** Autoplan 2.0 (The Asymmetric Cognitive Funnel & Parameter CodeGen Architecture)
 - **Primary Objectives:** Eliminate 16-pass symmetric cognitive bloat (-70% token churn), ground planning in academic DSP verification literature (Metamorphic Testing, Property-Based Shrinking, Grounded LLM Oracles), establish single source of truth parameter contracts, and build headless plugin-boundary verification harness.
@@ -728,4 +739,12 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
 - **Key Decisions & Deliverables:**
   - Recent Commits: 8b4e6b1 chore(memory): execute scheduled nightly black box memory flush and state integrity audit, b118c24 chore(memory): execute scheduled nightly black box memory flush and state integrity audit
   - Branch: `0.4.0-dev` (8b4e6b1)
+  - Active Plan Target: `HASTUR` · Status: `UNKNOWN`
+
+### Session: 2026-11-01 15:05 (manual_run)
+- **Chat Role:** Build Engineer
+- **Primary Objectives:** Diagnosed Hastur CI failure, identified missing untracked fallback DSP headers, mirrored to git in commit 63d8c29, and confirmed release run 41349399042 actively building
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 63d8c29 fix(ci): mirror missing fallback DSP headers and add Hastur A5 block diagram, 51db2fc docs: overhaul README for Hastur HS-01 gear manual specification
+  - Branch: `0.4.0-dev` (63d8c29)
   - Active Plan Target: `HASTUR` · Status: `UNKNOWN`

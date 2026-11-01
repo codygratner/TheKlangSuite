@@ -7,6 +7,47 @@
 namespace CrackedChimes::DSP {
 
 /**
+ * @brief Antiderivative Anti-Aliasing (ADAA1) Numerical Utilities.
+ * SSoT: Julian Parker / Stefan Bilbao continuous piecewise antiderivative evaluation.
+ */
+struct ADAA {
+    // 1st-Order Antiderivative Anti-Aliasing for tanh(g * x)
+    [[nodiscard]] static inline float tanh(float x, float& x1, float g = 1.0f) noexcept {
+        const float diff = x - x1;
+        float y = 0.0f;
+        if (std::abs(diff) > 1e-5f) {
+            auto F = [g](float v) noexcept {
+                const float gv = std::abs(g * v);
+                return (gv + std::log1p(std::exp(-2.0f * gv)) - 0.69314718056f) / g;
+            };
+            y = (F(x) - F(x1)) / diff;
+        } else {
+            y = std::tanh(g * 0.5f * (x + x1));
+        }
+        x1 = x;
+        return y;
+    }
+
+    // Piecewise-quadratic ADAA1 for asymmetric clamp [minVal, maxVal]
+    [[nodiscard]] static inline float clamp(float x, float& x1, float minVal, float maxVal) noexcept {
+        const float diff = x - x1;
+        auto F = [minVal, maxVal](float v) noexcept {
+            if (v < minVal) return minVal * v - 0.5f * minVal * minVal;
+            if (v > maxVal) return maxVal * v - 0.5f * maxVal * maxVal;
+            return 0.5f * v * v;
+        };
+        float y = 0.0f;
+        if (std::abs(diff) > 1e-5f) {
+            y = (F(x) - F(x1)) / diff;
+        } else {
+            y = std::clamp(0.5f * (x + x1), minVal, maxVal);
+        }
+        x1 = x;
+        return y;
+    }
+};
+
+/**
  * @brief The 3-Tier Life Mode Hierarchy (One Spec Sheet, Three High-End Teams).
  */
 enum class LifeMode : uint8_t {
@@ -82,12 +123,26 @@ public:
     void prepare(double sampleRate) noexcept {
         sampleRate_ = (sampleRate > 1000.0) ? sampleRate : 44100.0;
         invSampleRate_ = 1.0 / sampleRate_;
+        updateCoeffs();
+        reset();
+    }
 
+    void setSampleRate(double sampleRate) noexcept {
+        sampleRate_ = (sampleRate > 1000.0) ? sampleRate : 44100.0;
+        invSampleRate_ = 1.0 / sampleRate_;
+        updateCoeffs();
+    }
+
+    void updateCoeffs() noexcept {
         // Sub-millisecond LED attack (0.15ms)
         const double tauAttack = 0.00015;
         alphaAttack_ = static_cast<float>(1.0 - std::exp(-invSampleRate_ / tauAttack));
 
-        // Dual-exponential photoresistive release (28ms / 380ms)
+        // Rate-invariant dual-exponential release: c(2x) = sqrt(c_ref(1x))
+        const double hostInvSr = (sampleRate_ > 60000.0) ? (invSampleRate_ * 2.0) : invSampleRate_;
+        const double cRef = 0.72 * std::exp(-hostInvSr / 0.028) + 0.28 * std::exp(-hostInvSr / 0.380);
+        decayCoeff_ = (sampleRate_ > 60000.0) ? static_cast<float>(std::sqrt(cRef)) : static_cast<float>(cRef);
+
         decayFastCoeff_ = static_cast<float>(std::exp(-invSampleRate_ / 0.028));
         decaySlowCoeff_ = static_cast<float>(std::exp(-invSampleRate_ / 0.380));
 
@@ -96,11 +151,9 @@ public:
         cyborgDecayFast_   = static_cast<float>(std::exp(-invSampleRate_ / 0.028));
         cyborgDecayTail_   = static_cast<float>(std::exp(-invSampleRate_ / 0.120));
 
-        // Integrated DC blocker alphas: 4 Hz (Organic) and 5 Hz (Cyborg)
-        dcBlockAlphaOrganic_ = static_cast<float>(2.0 * 3.14159265358979323846 * 4.0 * invSampleRate_);
-        dcBlockAlphaCyborg_  = static_cast<float>(2.0 * 3.14159265358979323846 * 5.0 * invSampleRate_);
-
-        reset();
+        // Exact exponential DC blocker alphas: 4 Hz (Organic) and 5 Hz (Cyborg)
+        dcBlockAlphaOrganic_ = static_cast<float>(1.0 - std::exp(-2.0 * 3.14159265358979323846 * 4.0 * invSampleRate_));
+        dcBlockAlphaCyborg_  = static_cast<float>(1.0 - std::exp(-2.0 * 3.14159265358979323846 * 5.0 * invSampleRate_));
     }
 
     void reset() noexcept {
@@ -110,6 +163,7 @@ public:
         cyborgVactrolState_ = 0.0f;
         cyborgFilterState_ = 0.0f;
         dcBlockerState_ = 0.0f;
+        adaaOtaW1_ = 0.0f;
     }
 
     void setMode(BackendMode mode) noexcept {
@@ -165,9 +219,10 @@ public:
             constexpr float kBleedFloor = 0.012f;
             const float cEff = std::clamp(cyborgVactrolState_ + kBleedFloor, kBleedFloor, 1.0f);
 
-            // C. MS-10 OTA Differential Saturation
+            // C. MS-10 OTA Differential Saturation with ADAA1
             const float xIn = audioIn * cEff;
-            const float vOta = std::tanh(1.75f * xIn + 0.22f * xIn * std::abs(xIn));
+            const float wOta = 1.75f * xIn + 0.22f * xIn * std::abs(xIn);
+            const float vOta = ADAA::tanh(wOta, adaaOtaW1_, 1.0f);
 
             // D. Dynamic Optical Curtain (1-pole passive roll-off)
             const float fc = 40.0f + (cEff * cEff) * (0.40f * static_cast<float>(sampleRate_) - 40.0f);
@@ -175,10 +230,14 @@ public:
             const float alphaCurtain = std::clamp(wc / (1.0f + wc), 0.001f, 0.999f);
             cyborgFilterState_ += alphaCurtain * (vOta - cyborgFilterState_);
 
-            // High-frequency edge tear under hard drive
-            const float edgeTear = (std::abs(audioIn) > 0.75f) 
-                ? (audioIn - cyborgFilterState_) * 0.08f * cEff 
-                : 0.0f;
+            // High-frequency edge tear with C1-continuous smoothstep centered on 0.75
+            const float absIn = std::abs(audioIn);
+            float tearWeight = 0.0f;
+            if (absIn > 0.70f) {
+                const float u = std::min(1.0f, (absIn - 0.70f) * 10.0f);
+                tearWeight = u * u * (3.0f - 2.0f * u);
+            }
+            const float edgeTear = (audioIn - cyborgFilterState_) * (0.08f * cEff * tearWeight);
             const float out = cyborgFilterState_ + edgeTear;
 
             // E. Integrated 5 Hz Leaky DC Blocker
@@ -194,12 +253,12 @@ public:
         // - Asymmetric 12AX7 triode tube saturation: v + 0.18*v^2 - 0.05*v^3
         // - Integrated 4 Hz DC decoupling
         // =====================================================================
-        // A. LED Response & CdS Photoresistive Decay
+        // A. LED Response & CdS Photoresistive Decay (Rate-Invariant)
         if (target > vactrolState_) {
             vactrolState_ += alphaAttack_ * (target - vactrolState_);
         } else {
             const float diff = vactrolState_ - target;
-            vactrolState_ = target + diff * (0.72f * decayFastCoeff_ + 0.28f * decaySlowCoeff_);
+            vactrolState_ = target + diff * decayCoeff_;
         }
 
         const float s = std::clamp(vactrolState_, 0.0f, 1.0f);
@@ -249,6 +308,7 @@ private:
     float alphaAttack_{0.1f};
     float decayFastCoeff_{0.999f};
     float decaySlowCoeff_{0.9999f};
+    float decayCoeff_{0.999f};
     float dcBlockAlphaOrganic_{0.00057f};
 
     // Organic state
@@ -263,6 +323,7 @@ private:
     float dcBlockAlphaCyborg_{0.00071f};
     float cyborgVactrolState_{0.0f};
     float cyborgFilterState_{0.0f};
+    float adaaOtaW1_{0.0f};
 
     // DC blocker state
     float dcBlockerState_{0.0f};

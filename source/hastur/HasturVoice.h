@@ -69,9 +69,9 @@ public:
         sampleRate_ = hostSampleRate_;
         invSampleRate_ = 1.0 / sampleRate_;
 
-        const double voiceCoreSr = (lifeMode_ == LifeMode::CYBORG) ? hostSampleRate_ : (hostSampleRate_ * 2.0);
+        const double voiceCoreSr = hostSampleRate_ * 2.0;
 
-        // Core Oscillators & Filters prepared at voiceCoreSr (2x for Synthetic/Organic, 1x for Cyborg)
+        // Core Oscillators & Filters prepared at voiceCoreSr (2x for all Lifeform modes)
         osc1_.prepare(voiceCoreSr);
         osc2_.prepare(voiceCoreSr);
         filter_.prepare(voiceCoreSr);
@@ -81,13 +81,13 @@ public:
         osc1Lpg_.prepare(hostSampleRate_);
         osc2Lpg_.prepare(hostSampleRate_);
         noiseLpg_.prepare(hostSampleRate_);
-        masterLpg_.prepare(hostSampleRate_);
-        masterLpgR_.prepare(hostSampleRate_);
+        masterLpg_.prepare(voiceCoreSr);
+        masterLpgR_.prepare(voiceCoreSr);
 
         // 2x Decimator and Cyborg Bus Filters
         decimator_.reset();
-        cyborgBusFilterL_.prepare(hostSampleRate_);
-        cyborgBusFilterR_.prepare(hostSampleRate_);
+        cyborgBusFilterL_.prepare(voiceCoreSr);
+        cyborgBusFilterR_.prepare(voiceCoreSr);
 
         noiseGen_.prepare(hostSampleRate_);
         masterSideHp_.setCutoff(120.0f, static_cast<float>(hostSampleRate_));
@@ -113,6 +113,11 @@ public:
         decimator_.reset();
         cyborgBusFilterL_.reset();
         cyborgBusFilterR_.reset();
+        adaaAmpL_ = 0.0f;
+        adaaAmpR_ = 0.0f;
+        adaaDiodeL_ = 0.0f;
+        adaaDiodeR_ = 0.0f;
+        prevAmpGateSig_ = 0.0f;
         lfoPhase_ = 0.0f;
         lfoRandomVal_ = 0.0f;
         lfoRandomPrev_ = 0.0f;
@@ -200,15 +205,7 @@ public:
     }
 
     void setLifeMode(LifeMode mode) noexcept {
-        if (lifeMode_ != mode) {
-            lifeMode_ = mode;
-            const double voiceCoreSr = (lifeMode_ == LifeMode::CYBORG) ? hostSampleRate_ : (hostSampleRate_ * 2.0);
-            osc1_.prepare(voiceCoreSr);
-            osc2_.prepare(voiceCoreSr);
-            filter_.prepare(voiceCoreSr);
-            filterR_.prepare(voiceCoreSr);
-            decimator_.reset();
-        }
+        lifeMode_ = mode;
         const auto bMode = (mode == LifeMode::SYNTHETIC)
             ? VactrolLPG::BackendMode::VCA
             : ((mode == LifeMode::CYBORG) ? VactrolLPG::BackendMode::CYBORG : VactrolLPG::BackendMode::LPG);
@@ -594,33 +591,56 @@ public:
         float filteredL = 0.0f, filteredR = 0.0f;
         float mixL = 0.0f, mixR = 0.0f;
 
-        if (lifeMode_ == LifeMode::CYBORG) {
-            // =====================================================================
-            // CYBORG: Strict 1x Native Host Rate Execution
-            // - Oversampling completely bypassed (0 samples latency, 0 decimation overhead)
-            // - Scaled Residual PolyBLEP (65%) + linear chopper BLEP
-            // - Asymmetric Diode Seam & 1x VCF Foldover
-            // - Vintage 17.5 kHz 1-Pole Analog Bus Roll-Off
-            // =====================================================================
-            const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * std::pow(2.0f, dcoWarpOct), 10.0f, nyquist);
-            const float dt1 = std::clamp(f1 * static_cast<float>(invSampleRate_), 1e-6f, 0.48f);
+        // 11. Monolithic 2x Unified Voice Domain (Synthetic, Cyborg, Organic)
+        const float coreNyquist = static_cast<float>(hostSampleRate_ * 0.96);
+        const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * std::pow(2.0f, dcoWarpOct), 10.0f, coreNyquist);
+        const float dt1_2x = std::clamp(f1 * static_cast<float>(invSampleRate_ * 0.5), 1e-6f, 0.48f);
 
-            osc1_.processStereo(f1, dt1, effPwm, dcoMelt, 0, effOsc1ApfCutoff, mixL, mixR);
+        // Sub-sample linear interpolation of Amp Gate signal across 2x ticks
+        float ampGateSig = ampEnvVal;
+        switch (ampGateMode) {
+            case AmpGateMode::GATE:  ampGateSig = gate_ ? velocity_ : 0.0f; break;
+            case AmpGateMode::DRONE: ampGateSig = 1.0f; break;
+            case AmpGateMode::ENVELOPE:
+            default: ampGateSig = ampEnvVal; break;
+        }
+        const float effAmpVelocity = (1.0f - ampVelocity) + ampVelocity * velocity_;
+        ampGateSig *= effAmpVelocity;
 
-            mixL *= modRes.amRmOsc1;
-            mixR *= modRes.amRmOsc1;
+        const float ampGateStep = (ampGateSig - prevAmpGateSig_) * 0.5f;
+        const float ampGateTick[2] = { prevAmpGateSig_ + ampGateStep, ampGateSig };
+        prevAmpGateSig_ = ampGateSig;
 
-            auto applyCyborgSeam = [](float s) noexcept {
-                const float sAbs = std::abs(s);
-                if (sAbs < 0.05f) {
-                    s *= (sAbs * 20.0f); // soften crossover notch
-                }
-                return std::clamp(s, -0.72f, 0.32f); // Asymmetric diode clamp
-            };
-            mixL = applyCyborgSeam(mixL);
-            mixR = applyCyborgSeam(mixR);
+        float sub2xL[2] = {0.0f, 0.0f};
+        float sub2xR[2] = {0.0f, 0.0f};
+        float subMixL[2] = {0.0f, 0.0f};
+        float subMixR[2] = {0.0f, 0.0f};
+        float subFiltTapL[2] = {0.0f, 0.0f};
+        float subFiltTapR[2] = {0.0f, 0.0f};
 
-            // Liquid Burble Cross-Modulation (Sub APF -> Cutoff with S-Curve)
+        for (int k = 0; k < 2; ++k) {
+            osc1_.processStereo(f1, dt1_2x, effPwm, dcoMelt, 0, effOsc1ApfCutoff, subMixL[k], subMixR[k]);
+
+            subMixL[k] *= modRes.amRmOsc1;
+            subMixR[k] *= modRes.amRmOsc1;
+
+            if (lifeMode_ == LifeMode::CYBORG) {
+                // Asymmetric Diode Seam with ADAA1
+                auto applyCyborgSeamADAA = [](float s, float& sPrev) noexcept {
+                    const float sAbs = std::abs(s);
+                    if (sAbs < 0.05f) {
+                        s *= (sAbs * 20.0f); // soften crossover notch
+                    }
+                    return ADAA::clamp(s, sPrev, -0.72f, 0.32f);
+                };
+                subMixL[k] = applyCyborgSeamADAA(subMixL[k], adaaDiodeL_);
+                subMixR[k] = applyCyborgSeamADAA(subMixR[k], adaaDiodeR_);
+            } else if (lifeMode_ == LifeMode::ORGANIC) {
+                subMixL[k] = subMixL[k] / (1.0f + 0.15f * std::abs(subMixL[k]));
+                subMixR[k] = subMixR[k] / (1.0f + 0.15f * std::abs(subMixR[k]));
+            }
+
+            // Sub-tick Burble Mod evaluation
             const float burbleMod = osc1_.getBurbleMod();
             float burbleMult = 1.0f;
             if (std::abs(burbleDepth) > 0.0001f) {
@@ -631,8 +651,8 @@ public:
                         break;
                     case 1:
                     {
-                        const float k = (effBurble * 4000.0f * burbleMod) / std::max(20.0f, effCutoffHz);
-                        burbleMult = (k >= 0.0f) ? (1.0f + k) : (1.0f / (1.0f - k));
+                        const float kb = (effBurble * 4000.0f * burbleMod) / std::max(20.0f, effCutoffHz);
+                        burbleMult = (kb >= 0.0f) ? (1.0f + kb) : (1.0f / (1.0f - kb));
                         break;
                     }
                     default:
@@ -641,127 +661,61 @@ public:
                 }
             }
 
-            const float effectiveCutoffHz = std::clamp(
+            const float subEffectiveCutoffHz = std::clamp(
                 effCutoffHz * keyTrackMult * totalModMult * modRes.cutoffMult * burbleMult,
                 10.0f,
-                nyquist);
+                coreNyquist);
 
-            float cutoffL = effectiveCutoffHz;
-            float cutoffR = effectiveCutoffHz;
+            float subCutoffL = subEffectiveCutoffHz;
+            float subCutoffR = subEffectiveCutoffHz;
             if (std::abs(effOrbit) > 0.001f) {
                 const float orbitMult = FastMath::fastPow2(std::clamp(effOrbit, -1.0f, 1.0f) * 2.0f);
-                const float minCutoff = std::min(120.0f, effectiveCutoffHz);
-                cutoffL = std::clamp(effectiveCutoffHz / orbitMult, minCutoff, nyquist);
-                cutoffR = std::clamp(effectiveCutoffHz * orbitMult, minCutoff, nyquist);
+                const float minCutoff = std::min(120.0f, subEffectiveCutoffHz);
+                subCutoffL = std::clamp(subEffectiveCutoffHz / orbitMult, minCutoff, coreNyquist);
+                subCutoffR = std::clamp(subEffectiveCutoffHz * orbitMult, minCutoff, coreNyquist);
             }
 
-            filteredL = filter_.process(mixL, cutoffL, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
-            filteredR = filterR_.process(mixR, cutoffR, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
+            float subFiltL = filter_.process(subMixL[k], subCutoffL, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
+            float subFiltR = filterR_.process(subMixR[k], subCutoffR, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
 
-            filteredL *= modRes.postFilterMult;
-            filteredR *= modRes.postFilterMult;
+            subFiltL *= modRes.postFilterMult;
+            subFiltR *= modRes.postFilterMult;
 
-            // Vintage 17.5 kHz Analog Summing Bus Filter
-            filteredL = cyborgBusFilterL_.process(filteredL, true);
-            filteredR = cyborgBusFilterR_.process(filteredR, true);
-        } else {
-            // =====================================================================
-            // SYNTHETIC & ORGANIC: Monolithic 2x Voice Domain
-            // - DCO phase accumulator advances natively at 2x rate
-            // - Pristine PolyBLEP evaluated at 2x rate (+12 dB alias suppression)
-            // - Laser Sandwich, SubAPF16, and Dual-IR3R05 VCF run natively at 2x
-            // - Full 2x bandwidth Burble Mod -> VCF (zero Nyquist sideband cramming)
-            // - 12th-Order Polyphase All-Pass IIR Halfband Decimation (96dB stopband)
-            // =====================================================================
-            const float coreNyquist = static_cast<float>(hostSampleRate_ * 0.96);
-            const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * std::pow(2.0f, dcoWarpOct), 10.0f, coreNyquist);
-            const float dt1_2x = std::clamp(f1 * static_cast<float>(invSampleRate_ * 0.5), 1e-6f, 0.48f);
-
-            float subL[2] = {0.0f, 0.0f};
-            float subR[2] = {0.0f, 0.0f};
-            float subMixL[2] = {0.0f, 0.0f};
-            float subMixR[2] = {0.0f, 0.0f};
-
-            for (int k = 0; k < 2; ++k) {
-                osc1_.processStereo(f1, dt1_2x, effPwm, dcoMelt, 0, effOsc1ApfCutoff, subMixL[k], subMixR[k]);
-
-                subMixL[k] *= modRes.amRmOsc1;
-                subMixR[k] *= modRes.amRmOsc1;
-
-                if (lifeMode_ == LifeMode::ORGANIC) {
-                    subMixL[k] = subMixL[k] / (1.0f + 0.15f * std::abs(subMixL[k]));
-                    subMixR[k] = subMixR[k] / (1.0f + 0.15f * std::abs(subMixR[k]));
-                }
-
-                // Sub-tick Burble Mod evaluation
-                const float burbleMod = osc1_.getBurbleMod();
-                float burbleMult = 1.0f;
-                if (std::abs(burbleDepth) > 0.0001f) {
-                    const float effBurble = std::copysign(std::pow(std::abs(burbleDepth), 2.2f), burbleDepth);
-                    switch (burbleMode) {
-                        case 0:
-                            burbleMult = FastMath::fastPow2(effBurble * 4.0f * burbleMod);
-                            break;
-                        case 1:
-                        {
-                            const float kb = (effBurble * 4000.0f * burbleMod) / std::max(20.0f, effCutoffHz);
-                            burbleMult = (kb >= 0.0f) ? (1.0f + kb) : (1.0f / (1.0f - kb));
-                            break;
-                        }
-                        default:
-                            burbleMult = FastMath::fastPow2(effBurble * 4.0f * burbleMod);
-                            break;
-                    }
-                }
-
-                const float subEffectiveCutoffHz = std::clamp(
-                    effCutoffHz * keyTrackMult * totalModMult * modRes.cutoffMult * burbleMult,
-                    10.0f,
-                    coreNyquist);
-
-                float subCutoffL = subEffectiveCutoffHz;
-                float subCutoffR = subEffectiveCutoffHz;
-                if (std::abs(effOrbit) > 0.001f) {
-                    const float orbitMult = FastMath::fastPow2(std::clamp(effOrbit, -1.0f, 1.0f) * 2.0f);
-                    const float minCutoff = std::min(120.0f, subEffectiveCutoffHz);
-                    subCutoffL = std::clamp(subEffectiveCutoffHz / orbitMult, minCutoff, coreNyquist);
-                    subCutoffR = std::clamp(subEffectiveCutoffHz * orbitMult, minCutoff, coreNyquist);
-                }
-
-                float subFiltL = filter_.process(subMixL[k], subCutoffL, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
-                float subFiltR = filterR_.process(subMixR[k], subCutoffR, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
-
-                subFiltL *= modRes.postFilterMult;
-                subFiltR *= modRes.postFilterMult;
-
-                subL[k] = subFiltL;
-                subR[k] = subFiltR;
+            if (lifeMode_ == LifeMode::CYBORG) {
+                subFiltL = cyborgBusFilterL_.process(subFiltL, true);
+                subFiltR = cyborgBusFilterR_.process(subFiltR, true);
             }
 
-            decimator_.downsample(subL[0], subL[1], subR[0], subR[1], filteredL, filteredR);
-            mixL = 0.5f * (subMixL[0] + subMixL[1]);
-            mixR = 0.5f * (subMixR[0] + subMixR[1]);
+            subFiltTapL[k] = subFiltL;
+            subFiltTapR[k] = subFiltR;
+
+            // Master LPG Processing at 2x rate
+            float lpgOutL = masterLpg_.process(subFiltL, ampGateTick[k]);
+            float lpgOutR = masterLpgR_.process(subFiltR, ampGateTick[k]);
+
+            // Post-Amp Saturation with ADAA1 at 2x rate
+            if (postAmpDrive > 0.001f) {
+                const float driveGain = 1.0f + postAmpDrive * 4.0f;
+                lpgOutL = ADAA::tanh(lpgOutL * driveGain, adaaAmpL_, 1.0f);
+                lpgOutR = ADAA::tanh(lpgOutR * driveGain, adaaAmpR_, 1.0f);
+            } else {
+                adaaAmpL_ = lpgOutL;
+                adaaAmpR_ = lpgOutR;
+            }
+
+            sub2xL[k] = lpgOutL;
+            sub2xR[k] = lpgOutR;
         }
 
-        // 12. Master Amp Block & Post-Amp Saturation
-        float ampGateSig = ampEnvVal;
-        switch (ampGateMode) {
-            case AmpGateMode::GATE:  ampGateSig = gate_ ? velocity_ : 0.0f; break;
-            case AmpGateMode::DRONE: ampGateSig = 1.0f; break;
-            case AmpGateMode::ENVELOPE:
-            default: ampGateSig = ampEnvVal; break;
-        }
+        // Downsample from 2x rate to host sample rate
+        float outSigL = 0.0f, outSigR = 0.0f;
+        decimator_.downsample(sub2xL[0], sub2xL[1], sub2xR[0], sub2xR[1], outSigL, outSigR);
 
-        const float effAmpVelocity = (1.0f - ampVelocity) + ampVelocity * velocity_;
-        ampGateSig *= effAmpVelocity;
-
-        float outSigL = masterLpg_.process(filteredL, ampGateSig);
-        float outSigR = masterLpgR_.process(filteredR, ampGateSig);
-
-        if (postAmpDrive > 0.001f) {
-            outSigL = std::tanh(outSigL * (1.0f + postAmpDrive * 4.0f));
-            outSigR = std::tanh(outSigR * (1.0f + postAmpDrive * 4.0f));
-        }
+        // Cross-Modulation History Buffers
+        mixL = 0.5f * (subMixL[0] + subMixL[1]);
+        mixR = 0.5f * (subMixR[0] + subMixR[1]);
+        filteredL = 0.5f * (subFiltTapL[0] + subFiltTapL[1]);
+        filteredR = 0.5f * (subFiltTapR[0] + subFiltTapR[1]);
 
         // 13. Master Output: Alpha APF Stereo Dimension & 100% Mono-Sub Invariant (<160Hz)
         const float crossFreq = 160.0f;
@@ -1202,6 +1156,13 @@ private:
     StereoHalfBandDecimator2x decimator_;
     CyborgAnalogBusFilter cyborgBusFilterL_;
     CyborgAnalogBusFilter cyborgBusFilterR_;
+
+    // ADAA1 History States & Sub-Sample Slew
+    float adaaAmpL_{0.0f};
+    float adaaAmpR_{0.0f};
+    float adaaDiodeL_{0.0f};
+    float adaaDiodeR_{0.0f};
+    float prevAmpGateSig_{0.0f};
 
     VactrolLPG::BackendMode backendMode_ = VactrolLPG::BackendMode::LPG;
     LifeMode lifeMode_{LifeMode::CYBORG};
