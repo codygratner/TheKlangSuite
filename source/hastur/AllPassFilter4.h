@@ -151,6 +151,14 @@ public:
             }
         }
 
+        // C1-continuous parabolic fillet to eliminate sharp cusp reflections (r_safe dynamic scaling)
+        const float r = std::min(0.08f, 0.18f / gain);
+        if (v > 1.0f - r) {
+            v = 1.0f - 0.5f * r - ((1.0f - v) * (1.0f - v)) / (2.0f * r);
+        } else if (v < -1.0f + r) {
+            v = -1.0f + 0.5f * r + ((1.0f + v) * (1.0f + v)) / (2.0f * r);
+        }
+
         return std::clamp(v, -1.0f, 1.0f);
     }
 

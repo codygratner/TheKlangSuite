@@ -3770,7 +3770,7 @@ int main() {
                 CrackedChimes::DSP::HasturVoice::LifeMode::ORGANIC,
                 CrackedChimes::DSP::HasturVoice::LifeMode::CYBORG
             };
-            const float reqRejectionDb[] = { 42.0f, 40.0f, 34.0f };
+            const float reqRejectionDb[] = { 50.0f, 50.0f, 40.0f };
 
             for (size_t m = 0; m < 3; ++m) {
                 for (const auto& t : tests) {
@@ -3787,7 +3787,7 @@ int main() {
                             1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f,
                             0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
                             0.0f, 0.0f, {}, {},
-                            18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                            18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                             0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
                             0.001f, 1.0f, 0.0f, 1.0f, 0.1f, 0.0f, 0.02f,
                             CrackedChimes::DSP::HasturVoice::AmpGateMode::DRONE, 0.5f, 0.0f, 1.0f,
@@ -3804,7 +3804,7 @@ int main() {
                             1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f,
                             0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
                             0.0f, 0.0f, {}, {},
-                            18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                            18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                             0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
                             0.001f, 1.0f, 0.0f, 1.0f, 0.1f, 0.0f, 0.02f,
                             CrackedChimes::DSP::HasturVoice::AmpGateMode::DRONE, 0.5f, 0.0f, 1.0f,
@@ -3836,12 +3836,13 @@ int main() {
                         }
                     }
 
-                    // Mask harmonics (+- 5 bins around each integer harmonic of fundBin)
+                    // Mask harmonics (+- 6 bins around each exact harmonic frequency)
                     std::vector<bool> isHarmonic(N / 2, false);
-                    for (size_t harm = 1; harm * fundBin < N / 2; ++harm) {
-                        size_t hBin = harm * fundBin;
-                        size_t bMin = (hBin >= 5) ? (hBin - 5) : 0;
-                        size_t bMax = std::min(N / 2 - 1, hBin + 5);
+                    for (size_t harm = 1; harm * t.approxFreq < kSr * 0.5; ++harm) {
+                        const double harmBinDbl = (harm * t.approxFreq) / kBinRes;
+                        const size_t hBin = static_cast<size_t>(std::round(harmBinDbl));
+                        const size_t bMin = (hBin >= 6) ? (hBin - 6) : 0;
+                        const size_t bMax = std::min(N / 2 - 1, hBin + 6);
                         for (size_t b = bMin; b <= bMax; ++b) {
                             isHarmonic[b] = true;
                         }
@@ -3863,8 +3864,90 @@ int main() {
                     }
 
                     float rejectionDb = 20.0f * std::log10(std::max(1e-9f, fundMag) / std::max(1e-9f, maxSpurMag));
+                    std::cout << "   [LifeMode " << static_cast<int>(modes[m]) << " - " << t.name 
+                              << "] Rejection: " << rejectionDb << " dB (req: " << reqRejectionDb[m] 
+                              << " dB) | fundBin=" << fundBin << " worstSpurBin=" << worstSpurBin 
+                              << " (" << (worstSpurBin * kBinRes) << " Hz, mag=" << maxSpurMag << ", fundMag=" << fundMag << ")" << std::endl;
                     assert(rejectionDb >= reqRejectionDb[m]);
                 }
+            }
+
+            // Invariant 2b: Grounded PolyBLEP Sub-Oscillator (100% Sub Level) on C6
+            {
+                CrackedChimes::DSP::HasturVoice voice;
+                voice.prepare(kSr);
+                voice.setLifeMode(CrackedChimes::DSP::HasturVoice::LifeMode::SYNTHETIC);
+                voice.noteOn(84, 1.0f, 0.0f); // C6
+
+                float dummyL = 0.0f, dummyR = 0.0f;
+                for (size_t i = 0; i < 2048; ++i) {
+                    voice.processStereoSample(
+                        0, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1, 0,
+                        0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f, // 100% Sub, 0% Core
+                        0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
+                        0.0f, 0.0f, {}, {},
+                        18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                        0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
+                        0.001f, 1.0f, 0.0f, 1.0f, 0.1f, 0.0f, 0.02f,
+                        CrackedChimes::DSP::HasturVoice::AmpGateMode::DRONE, 0.5f, 0.0f, 1.0f,
+                        dummyL, dummyR
+                    );
+                }
+
+                std::vector<std::complex<float>> fftBuf(N);
+                for (size_t i = 0; i < N; ++i) {
+                    float l = 0.0f, r = 0.0f;
+                    voice.processStereoSample(
+                        0, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1, 0,
+                        0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.85f, 0.0f, 0.0f, // 100% Sub
+                        0.1f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING,
+                        0.0f, 0.0f, {}, {},
+                        18000.0f, 0.2f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                        0.001f, 1.0f, 0.4f, 0.0f, 0.0f, 0.0f, 0.4f, 0,
+                        0.001f, 1.0f, 0.0f, 1.0f, 0.1f, 0.0f, 0.02f,
+                        CrackedChimes::DSP::HasturVoice::AmpGateMode::DRONE, 0.5f, 0.0f, 1.0f,
+                        l, r
+                    );
+                    constexpr float a0 = 0.35875f;
+                    constexpr float a1 = 0.48829f;
+                    constexpr float a2 = 0.14128f;
+                    constexpr float a3 = 0.01168f;
+                    const float phi = 2.0f * 3.14159265358979323846f * i / (N - 1);
+                    const float w = a0 - a1 * std::cos(phi) + a2 * std::cos(2.0f * phi) - a3 * std::cos(3.0f * phi);
+                    fftBuf[i] = std::complex<float>(l * w, 0.0f);
+                }
+                runFft(fftBuf);
+
+                const size_t subFundBin = static_cast<size_t>(std::round(523.25 / kBinRes)); // C5 (-1 oct sub of C6)
+                float subFundMag = 0.0f;
+                for (size_t b = subFundBin - 3; b <= subFundBin + 3; ++b) {
+                    subFundMag = std::max(subFundMag, std::abs(fftBuf[b]));
+                }
+                std::vector<bool> isHarmonicSub(N / 2, false);
+                constexpr double kSubFreq = 523.251; // C5
+                for (size_t harm = 1; harm * kSubFreq < kSr * 0.5; ++harm) {
+                    const double harmBinDbl = (harm * kSubFreq) / kBinRes;
+                    const size_t hBin = static_cast<size_t>(std::round(harmBinDbl));
+                    const size_t bMin = (hBin >= 6) ? (hBin - 6) : 0;
+                    const size_t bMax = std::min(N / 2 - 1, hBin + 6);
+                    for (size_t b = bMin; b <= bMax; ++b) isHarmonicSub[b] = true;
+                }
+                const size_t minAudioBinSub = static_cast<size_t>(std::round(100.0 / kBinRes));
+                const size_t maxAudioBinSub = static_cast<size_t>(std::round(20000.0 / kBinRes));
+                float maxSubSpur = 0.0f;
+                for (size_t b = minAudioBinSub; b <= maxAudioBinSub; ++b) {
+                    if (!isHarmonicSub[b]) maxSubSpur = std::max(maxSubSpur, std::abs(fftBuf[b]));
+                }
+                size_t worstSubBin = 0;
+                for (size_t b = minAudioBinSub; b <= maxAudioBinSub; ++b) {
+                    if (!isHarmonicSub[b] && std::abs(fftBuf[b]) == maxSubSpur) worstSubBin = b;
+                }
+                float subRejectionDb = 20.0f * std::log10(std::max(1e-9f, subFundMag) / std::max(1e-9f, maxSubSpur));
+                std::cout << "   [PolyBLEP Sub-Oscillator (C6 100% Sub)] Rejection: " << subRejectionDb 
+                          << " dB | fundBin=" << subFundBin << " worstSubBin=" << worstSubBin 
+                          << " (" << (worstSubBin * kBinRes) << " Hz, maxSubSpur=" << maxSubSpur 
+                          << ", subFundMag=" << subFundMag << ")" << std::endl;
+                assert(subRejectionDb >= 60.0f);
             }
         }
 

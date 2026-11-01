@@ -398,7 +398,7 @@ juce_add_plugin(Hastur
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Hst1
     BUNDLE_ID com.crackedchimes.hastur
-    VERSION "1.0.1"
+    VERSION "1.0.2"
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "Hastur"

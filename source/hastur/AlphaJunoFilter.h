@@ -115,9 +115,13 @@ public:
         const float nyquist = static_cast<float>(sampleRate_ * 0.48);
         const float fc = std::clamp(cutoffHz, 10.0f, nyquist);
 
-        // Pre-warped frequency coefficient g = tan(pi * fc / fs)
+        // Pre-warped frequency coefficient g = tan(pi * fc / fs) with Padé fast approximation
         const float wd = static_cast<float>(3.14159265358979323846 * fc * invSr_);
-        const float g = std::tan(std::min(wd, 1.52f));
+        auto fastTanPade = [](float x) noexcept -> float {
+            const float x2 = x * x;
+            return x * (15.0f - x2) / (15.0f - 6.0f * x2);
+        };
+        const float g = (wd < 0.75f) ? fastTanPade(wd) : std::tan(std::min(wd, 1.52f));
 
         // Authentic Roland IR3R05 Local Damping:
         // In 24dB mode: kDamp in [0.05, 2.0] (Q up to 20.0, singing Roland liquid resonance).

@@ -135,23 +135,57 @@ public:
     void setMixerDrive(float drive) noexcept { mixerDrive_ = std::clamp(drive, 0.0f, 1.0f); }
     [[nodiscard]] float getMixerDrive() const noexcept { return mixerDrive_; }
 
+    void resetSubPhase() noexcept { subPhase_ = 0.0f; }
+
     static float renderDualControlSub(int octave, int train, float phase, float dt) noexcept {
         (void)octave;
-        (void)dt;
         const float p = TbdAudio::Oscillators::PolyBLEP::wrapPhase(phase);
-        if (p >= 0.5f) {
-            return -1.0f;
+        const float safeDt = std::clamp(dt, 1e-6f, 0.48f);
+
+        switch (train) {
+            case 0: // Sub 1 / 5: 50% square (PolyBLEP grounded)
+                return TbdAudio::Oscillators::PolyBLEP::pulse(p, safeDt, 0.5f);
+
+            case 1: // Sub 2 / 6: 75% pulse with authentic DC offset compensation
+                return TbdAudio::Oscillators::PolyBLEP::pulse(p, safeDt, 0.75f);
+
+            case 2: { // Sub 3: Sub Chopped 2x with multi-point BLEP corrections
+                const float p4 = TbdAudio::Oscillators::PolyBLEP::wrapPhase(p * 4.0f);
+                const float u = (p < 0.5f) ? 1.0f : ((p4 >= 0.5f) ? 1.0f : 0.0f);
+                constexpr float mean_dc = 0.75f;
+                constexpr float scale = 1.0f / 0.75f;
+                float v = (u - mean_dc) * scale;
+                v += TbdAudio::Oscillators::PolyBLEP::blep(p, safeDt);
+                v -= TbdAudio::Oscillators::PolyBLEP::blep(TbdAudio::Oscillators::PolyBLEP::wrapPhase(p - 0.5f + 1.0f), safeDt);
+                v += TbdAudio::Oscillators::PolyBLEP::blep(p4, std::min(safeDt * 4.0f, 0.48f)) * 0.5f;
+                return v;
+            }
+
+            case 3: { // Sub 4: Sub Chopped 4x with multi-point BLEP corrections
+                const float p8 = TbdAudio::Oscillators::PolyBLEP::wrapPhase(p * 8.0f);
+                const float u = (p < 0.5f) ? 1.0f : ((p8 >= 0.5f) ? 1.0f : 0.0f);
+                constexpr float mean_dc = 0.75f;
+                constexpr float scale = 1.0f / 0.75f;
+                float v = (u - mean_dc) * scale;
+                v += TbdAudio::Oscillators::PolyBLEP::blep(p, safeDt);
+                v -= TbdAudio::Oscillators::PolyBLEP::blep(TbdAudio::Oscillators::PolyBLEP::wrapPhase(p - 0.5f + 1.0f), safeDt);
+                v += TbdAudio::Oscillators::PolyBLEP::blep(p8, std::min(safeDt * 8.0f, 0.48f)) * 0.5f;
+                return v;
+            }
+
+            case 4:
+            default: { // Sub Chopped 8x with multi-point BLEP corrections
+                const float p16 = TbdAudio::Oscillators::PolyBLEP::wrapPhase(p * 16.0f);
+                const float u = (p < 0.5f) ? 1.0f : ((p16 >= 0.5f) ? 1.0f : 0.0f);
+                constexpr float mean_dc = 0.75f;
+                constexpr float scale = 1.0f / 0.75f;
+                float v = (u - mean_dc) * scale;
+                v += TbdAudio::Oscillators::PolyBLEP::blep(p, safeDt);
+                v -= TbdAudio::Oscillators::PolyBLEP::blep(TbdAudio::Oscillators::PolyBLEP::wrapPhase(p - 0.5f + 1.0f), safeDt);
+                v += TbdAudio::Oscillators::PolyBLEP::blep(p16, std::min(safeDt * 16.0f, 0.48f)) * 0.5f;
+                return v;
+            }
         }
-        if (train == 0) {
-            return 1.0f;
-        }
-        if (train == 1) {
-            return (p < 0.25f) ? 1.0f : -1.0f;
-        }
-        const float n = static_cast<float>(train);
-        const float activePhase = p * 2.0f * n;
-        const float frac = activePhase - std::floor(activePhase);
-        return (frac < 0.5f) ? 1.0f : -1.0f;
     }
 
     static float generateFamilyWave(int family, float phase, float dt, float morph, float pwm = 0.0f, int lifeMode = 0) noexcept {
@@ -200,11 +234,18 @@ public:
                     return TbdAudio::Oscillators::PolyBLEP::triangle(p);
                 }
                 const float tPeak = std::clamp(0.50f + m * 0.49f, 0.01f, 0.99f);
-                if (p < tPeak) {
-                    return -1.0f + 2.0f * (p / tPeak);
-                } else {
-                    return 1.0f - 2.0f * ((p - tPeak) / (1.0f - tPeak));
+                float y = (p < tPeak)
+                    ? (-1.0f + 2.0f * (p / tPeak))
+                    : (1.0f - 2.0f * ((p - tPeak) / (1.0f - tPeak)));
+
+                // C1-continuous parabolic fillet around peak to eliminate sharp slope cusp
+                const float delta = std::min(2.0f * dt, 0.05f);
+                const float dist = std::abs(p - tPeak);
+                if (dist < delta) {
+                    const float u = dist / delta;
+                    y -= (1.0f - u * u) * (delta / std::max(tPeak, 1.0f - tPeak));
                 }
+                return y;
             }
             case 3: // EXOTIC: System 100M Warm Round Sine -> Casio CZ Resonant Sine
             default: {
@@ -220,7 +261,13 @@ public:
                     const float k = 1.0f + (m - 0.5f) * 6.0f;
                     const float window = 0.5f * (1.0f + std::cos(p * kTwoPi));
                     const float czPhase = std::fmod(p * k, 1.0f);
-                    return std::sin(czPhase * kTwoPi) * window;
+                    float out = std::sin(czPhase * kTwoPi) * window;
+                    const float effDtK = std::min(dt * k, 0.48f);
+                    if (czPhase < effDtK) {
+                        const float u = czPhase / effDtK;
+                        out -= (1.0f - u) * (1.0f - u) * 0.25f * window;
+                    }
+                    return out;
                 }
             }
         }
@@ -438,7 +485,8 @@ public:
             if (crystalTicks_ >= dPeriod) crystalTicks_ = std::fmod(crystalTicks_, dPeriod);
             wrapped_ = true;
             if (syncAmount_ >= 0.0f) {
-                slaveTicks_ = (1.0 - static_cast<double>(syncAmount_)) * slaveTicks_;
+                const double syncTarget = std::fmod(crystalTicks_ * static_cast<double>(m), dSlavePeriod);
+                slaveTicks_ = (1.0 - static_cast<double>(syncAmount_)) * slaveTicks_ + static_cast<double>(syncAmount_) * syncTarget;
             } else {
                 const double h = static_cast<double>(std::abs(syncAmount_));
                 const double halfPeriod = dSlavePeriod * 0.5;
@@ -571,7 +619,8 @@ public:
             if (crystalTicks_ >= dPeriod) crystalTicks_ = std::fmod(crystalTicks_, dPeriod);
             wrapped_ = true;
             if (syncAmount_ >= 0.0f) {
-                slaveTicks_ = (1.0 - static_cast<double>(syncAmount_)) * slaveTicks_;
+                const double syncTarget = std::fmod(crystalTicks_ * static_cast<double>(m), dSlavePeriod);
+                slaveTicks_ = (1.0 - static_cast<double>(syncAmount_)) * slaveTicks_ + static_cast<double>(syncAmount_) * syncTarget;
             } else {
                 const double h = static_cast<double>(std::abs(syncAmount_));
                 const double halfPeriod = dSlavePeriod * 0.5;

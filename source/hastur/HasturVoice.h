@@ -69,25 +69,29 @@ public:
         sampleRate_ = hostSampleRate_;
         invSampleRate_ = 1.0 / sampleRate_;
 
-        const double voiceCoreSr = hostSampleRate_ * 2.0;
+        const double voiceCore4xSr = hostSampleRate_ * 4.0;
+        const double voiceFilter2xSr = hostSampleRate_ * 2.0;
 
-        // Core Oscillators & Filters prepared at voiceCoreSr (2x for all Lifeform modes)
-        osc1_.prepare(voiceCoreSr);
-        osc2_.prepare(voiceCoreSr);
-        filter_.prepare(voiceCoreSr);
-        filterR_.prepare(voiceCoreSr);
+        // DCO prepared at 4x rate (192 kHz)
+        osc1_.prepare(voiceCore4xSr);
+        osc2_.prepare(voiceCore4xSr);
+
+        // VCF & Master prepared at 2x rate (96 kHz)
+        filter_.prepare(voiceFilter2xSr);
+        filterR_.prepare(voiceFilter2xSr);
 
         // Fleet of Meng Qi DPLPG Cells
         osc1Lpg_.prepare(hostSampleRate_);
         osc2Lpg_.prepare(hostSampleRate_);
         noiseLpg_.prepare(hostSampleRate_);
-        masterLpg_.prepare(voiceCoreSr);
-        masterLpgR_.prepare(voiceCoreSr);
+        masterLpg_.prepare(voiceFilter2xSr);
+        masterLpgR_.prepare(voiceFilter2xSr);
 
-        // 2x Decimator and Cyborg Bus Filters
+        // Multi-Rate Decimators & Cyborg Bus Filters
+        decimator4xTo2x_.reset();
         decimator_.reset();
-        cyborgBusFilterL_.prepare(voiceCoreSr);
-        cyborgBusFilterR_.prepare(voiceCoreSr);
+        cyborgBusFilterL_.prepare(voiceFilter2xSr);
+        cyborgBusFilterR_.prepare(voiceFilter2xSr);
 
         noiseGen_.prepare(hostSampleRate_);
         masterSideHp_.setCutoff(120.0f, static_cast<float>(hostSampleRate_));
@@ -110,7 +114,9 @@ public:
     }
 
     void reset() noexcept {
+        decimator4xTo2x_.reset();
         decimator_.reset();
+        osc1_.resetSubPhase();
         cyborgBusFilterL_.reset();
         cyborgBusFilterR_.reset();
         adaaAmpL_ = 0.0f;
@@ -318,6 +324,7 @@ public:
         if (shouldRetrig) {
             vortexEnv_.noteOn(midiNote, velocity_);
             ampEnv_.noteOn(velocity_, autoChoke);
+            osc1_.resetSubPhase();
 
             // Sample fresh 9-element stepped random vector
             for (int i = 0; i < 9; ++i) {
@@ -591,10 +598,10 @@ public:
         float filteredL = 0.0f, filteredR = 0.0f;
         float mixL = 0.0f, mixR = 0.0f;
 
-        // 11. Monolithic 2x Unified Voice Domain (Synthetic, Cyborg, Organic)
-        const float coreNyquist = static_cast<float>(hostSampleRate_ * 0.96);
-        const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * std::pow(2.0f, dcoWarpOct), 10.0f, coreNyquist);
-        const float dt1_2x = std::clamp(f1 * static_cast<float>(invSampleRate_ * 0.5), 1e-6f, 0.48f);
+        // 11. Multi-Rate Centaur Architecture: 4x DCO Core -> 2x VCF -> 1x Host Output
+        const float coreNyquist4x = static_cast<float>(hostSampleRate_ * 1.92);
+        const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * std::pow(2.0f, dcoWarpOct), 10.0f, coreNyquist4x);
+        const float dt1_4x = std::clamp(f1 * static_cast<float>(invSampleRate_ * 0.25), 1e-6f, 0.48f);
 
         // Sub-sample linear interpolation of Amp Gate signal across 2x ticks
         float ampGateSig = ampEnvVal;
@@ -611,18 +618,15 @@ public:
         const float ampGateTick[2] = { prevAmpGateSig_ + ampGateStep, ampGateSig };
         prevAmpGateSig_ = ampGateSig;
 
-        float sub2xL[2] = {0.0f, 0.0f};
-        float sub2xR[2] = {0.0f, 0.0f};
-        float subMixL[2] = {0.0f, 0.0f};
-        float subMixR[2] = {0.0f, 0.0f};
-        float subFiltTapL[2] = {0.0f, 0.0f};
-        float subFiltTapR[2] = {0.0f, 0.0f};
+        // Stage 1: Run DCO 2.0 Core at 4x rate (4 ticks per sample)
+        float dco4xL[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        float dco4xR[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-        for (int k = 0; k < 2; ++k) {
-            osc1_.processStereo(f1, dt1_2x, effPwm, dcoMelt, 0, effOsc1ApfCutoff, subMixL[k], subMixR[k]);
+        for (int k = 0; k < 4; ++k) {
+            osc1_.processStereo(f1, dt1_4x, effPwm, dcoMelt, 0, effOsc1ApfCutoff, dco4xL[k], dco4xR[k]);
 
-            subMixL[k] *= modRes.amRmOsc1;
-            subMixR[k] *= modRes.amRmOsc1;
+            dco4xL[k] *= modRes.amRmOsc1;
+            dco4xR[k] *= modRes.amRmOsc1;
 
             if (lifeMode_ == LifeMode::CYBORG) {
                 // Asymmetric Diode Seam with ADAA1
@@ -633,13 +637,31 @@ public:
                     }
                     return ADAA::clamp(s, sPrev, -0.72f, 0.32f);
                 };
-                subMixL[k] = applyCyborgSeamADAA(subMixL[k], adaaDiodeL_);
-                subMixR[k] = applyCyborgSeamADAA(subMixR[k], adaaDiodeR_);
+                dco4xL[k] = applyCyborgSeamADAA(dco4xL[k], adaaDiodeL_);
+                dco4xR[k] = applyCyborgSeamADAA(dco4xR[k], adaaDiodeR_);
             } else if (lifeMode_ == LifeMode::ORGANIC) {
-                subMixL[k] = subMixL[k] / (1.0f + 0.15f * std::abs(subMixL[k]));
-                subMixR[k] = subMixR[k] / (1.0f + 0.15f * std::abs(subMixR[k]));
+                dco4xL[k] = dco4xL[k] / (1.0f + 0.15f * std::abs(dco4xL[k]));
+                dco4xR[k] = dco4xR[k] / (1.0f + 0.15f * std::abs(dco4xR[k]));
             }
+        }
 
+        // Stage 2: Decimate 4x DCO Stereo Stream down to 2x Pre-Filter Bus (>96 dB Rejection)
+        float pre2xL[2] = {0.0f, 0.0f};
+        float pre2xR[2] = {0.0f, 0.0f};
+        decimator4xTo2x_.downsample(
+            dco4xL[0], dco4xL[1], dco4xL[2], dco4xL[3],
+            dco4xR[0], dco4xR[1], dco4xR[2], dco4xR[3],
+            pre2xL[0], pre2xL[1], pre2xR[0], pre2xR[1]
+        );
+
+        // Stage 3: Run Dual IR3R05 VCF, Master LPG, and Post-Amp Saturation at 2x rate (2 ticks)
+        const float coreNyquist2x = static_cast<float>(hostSampleRate_ * 0.96);
+        float sub2xL[2] = {0.0f, 0.0f};
+        float sub2xR[2] = {0.0f, 0.0f};
+        float subFiltTapL[2] = {0.0f, 0.0f};
+        float subFiltTapR[2] = {0.0f, 0.0f};
+
+        for (int k = 0; k < 2; ++k) {
             // Sub-tick Burble Mod evaluation
             const float burbleMod = osc1_.getBurbleMod();
             float burbleMult = 1.0f;
@@ -664,19 +686,19 @@ public:
             const float subEffectiveCutoffHz = std::clamp(
                 effCutoffHz * keyTrackMult * totalModMult * modRes.cutoffMult * burbleMult,
                 10.0f,
-                coreNyquist);
+                coreNyquist2x);
 
             float subCutoffL = subEffectiveCutoffHz;
             float subCutoffR = subEffectiveCutoffHz;
             if (std::abs(effOrbit) > 0.001f) {
                 const float orbitMult = FastMath::fastPow2(std::clamp(effOrbit, -1.0f, 1.0f) * 2.0f);
                 const float minCutoff = std::min(120.0f, subEffectiveCutoffHz);
-                subCutoffL = std::clamp(subEffectiveCutoffHz / orbitMult, minCutoff, coreNyquist);
-                subCutoffR = std::clamp(subEffectiveCutoffHz * orbitMult, minCutoff, coreNyquist);
+                subCutoffL = std::clamp(subEffectiveCutoffHz / orbitMult, minCutoff, coreNyquist2x);
+                subCutoffR = std::clamp(subEffectiveCutoffHz * orbitMult, minCutoff, coreNyquist2x);
             }
 
-            float subFiltL = filter_.process(subMixL[k], subCutoffL, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
-            float subFiltR = filterR_.process(subMixR[k], subCutoffR, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
+            float subFiltL = filter_.process(pre2xL[k], subCutoffL, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
+            float subFiltR = filterR_.process(pre2xR[k], subCutoffR, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
 
             subFiltL *= modRes.postFilterMult;
             subFiltR *= modRes.postFilterMult;
@@ -707,13 +729,13 @@ public:
             sub2xR[k] = lpgOutR;
         }
 
-        // Downsample from 2x rate to host sample rate
+        // Stage 4: Downsample 2x Master Stream to Host Rate
         float outSigL = 0.0f, outSigR = 0.0f;
         decimator_.downsample(sub2xL[0], sub2xL[1], sub2xR[0], sub2xR[1], outSigL, outSigR);
 
         // Cross-Modulation History Buffers
-        mixL = 0.5f * (subMixL[0] + subMixL[1]);
-        mixR = 0.5f * (subMixR[0] + subMixR[1]);
+        mixL = 0.25f * (dco4xL[0] + dco4xL[1] + dco4xL[2] + dco4xL[3]);
+        mixR = 0.25f * (dco4xR[0] + dco4xR[1] + dco4xR[2] + dco4xR[3]);
         filteredL = 0.5f * (subFiltTapL[0] + subFiltTapL[1]);
         filteredR = 0.5f * (subFiltTapR[0] + subFiltTapR[1]);
 
@@ -1153,6 +1175,7 @@ private:
     double invSampleRate_ = 1.0 / 44100.0;
     double hostSampleRate_ = 44100.0;
 
+    StereoHalfBandDecimator4xTo2x decimator4xTo2x_;
     StereoHalfBandDecimator2x decimator_;
     CyborgAnalogBusFilter cyborgBusFilterL_;
     CyborgAnalogBusFilter cyborgBusFilterR_;

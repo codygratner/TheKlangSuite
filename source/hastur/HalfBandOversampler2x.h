@@ -54,6 +54,14 @@ public:
         const float out = 0.5f * (ya + prevB_);
         prevB_ = yb;
 
+        // Anti-denormal flush
+        if (std::abs(sA_[0]) < 1e-20f) sA_[0] = 0.0f;
+        if (std::abs(sA_[1]) < 1e-20f) sA_[1] = 0.0f;
+        if (std::abs(sA_[2]) < 1e-20f) sA_[2] = 0.0f;
+        if (std::abs(sB_[0]) < 1e-20f) sB_[0] = 0.0f;
+        if (std::abs(sB_[1]) < 1e-20f) sB_[1] = 0.0f;
+        if (std::abs(sB_[2]) < 1e-20f) sB_[2] = 0.0f;
+
         return out;
     }
 
@@ -91,6 +99,32 @@ public:
 private:
     HalfBandDecimator2x left_;
     HalfBandDecimator2x right_;
+};
+
+/**
+ * @brief Stereo 4x to 2x Decimator Wrapper using cascaded 12th-order Polyphase Allpass IIR filters.
+ * Downsamples 4x rate (192 kHz) to 2x rate (96 kHz) with >96 dB stopband attenuation.
+ */
+class StereoHalfBandDecimator4xTo2x {
+public:
+    void reset() noexcept {
+        decL_.reset();
+        decR_.reset();
+    }
+
+    inline void downsample(float inL0, float inL1, float inL2, float inL3,
+                           float inR0, float inR1, float inR2, float inR3,
+                           float& outL0, float& outL1,
+                           float& outR0, float& outR1) noexcept {
+        outL0 = decL_.downsample(inL0, inL1);
+        outL1 = decL_.downsample(inL2, inL3);
+        outR0 = decR_.downsample(inR0, inR1);
+        outR1 = decR_.downsample(inR2, inR3);
+    }
+
+private:
+    HalfBandDecimator2x decL_;
+    HalfBandDecimator2x decR_;
 };
 
 } // namespace CrackedChimes::DSP
