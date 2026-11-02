@@ -50,7 +50,7 @@ namespace Names {
     constexpr auto role = "Drum Role";
     constexpr auto model = "Synthesis Model";
     constexpr auto life_mode = "Lifeform Character";
-    constexpr auto macro_x = "Macro X (Pitch)";
+    constexpr auto macro_x = "Macro X (Spectral)";
     constexpr auto macro_y = "Macro Y (Punch)";
     constexpr auto macro_z = "Macro Z (Timbre)";
     constexpr auto macro_t = "Macro T (Time)";

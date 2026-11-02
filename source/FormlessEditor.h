@@ -707,8 +707,42 @@ public:
         g.fillEllipse(centre.x - pipD * 0.5f, centre.y - pipD * 0.5f, pipD, pipD);
 
         // =====================================================================
-        // VISUAL MODULATION RADAR TELEMETRY (Hastur Arc Halos & Offset Dots)
+        // VISUAL MODULATION RADAR TELEMETRY (Source-Color Arc Halos & Pips)
         // =====================================================================
+        // 1. Macro Vector Modulation Halos (Movie Poster Orange 0xFFFF7B25)
+        if (slider.getProperties().contains("modLo")) {
+            const float lo = static_cast<float>(slider.getProperties()["modLo"]);
+            const float hi = static_cast<float>(slider.getProperties()["modHi"]);
+            if (hi - lo > 0.002f) {
+                const float hr = radius - (compact ? 0.5f : 1.5f);
+                const float glow = compact ? 3.0f : 4.5f;
+                const float core = compact ? 1.6f : 2.0f;
+                const auto orangeCol = juce::Colour(0xFFFF7B25); // Movie Poster Orange
+
+                juce::Path arc;
+                arc.addCentredArc(centre.x, centre.y, hr, hr, 0.0f,
+                                  rotaryStartAngle + lo * sweep, rotaryStartAngle + hi * sweep, true);
+                g.setColour(orangeCol.withAlpha(0.28f));
+                g.strokePath(arc, juce::PathStrokeType(glow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.setColour(orangeCol.withAlpha(0.95f));
+                g.strokePath(arc, juce::PathStrokeType(core, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+                if (slider.getProperties().contains("modPip")) {
+                    const float pipNorm = static_cast<float>(slider.getProperties()["modPip"]);
+                    const float pipAngle = rotaryStartAngle + pipNorm * sweep;
+                    const float px = centre.x + hr * std::sin(pipAngle);
+                    const float py = centre.y - hr * std::cos(pipAngle);
+                    const float pr = compact ? 2.0f : 2.5f;
+
+                    g.setColour(juce::Colours::white);
+                    g.fillEllipse(px - pr, py - pr, 2.0f * pr, 2.0f * pr);
+                    g.setColour(orangeCol);
+                    g.drawEllipse(px - pr - 1.0f, py - pr - 1.0f, 2.0f * pr + 2.0f, 2.0f * pr + 2.0f, 1.0f);
+                }
+            }
+        }
+
+        // 2. Stepped Random Humanization Halos (Caustic Hastur Yellow 0xFFF2E10F)
         if (slider.getProperties().contains("randLo")) {
             const float lo = static_cast<float>(slider.getProperties()["randLo"]);
             const float hi = static_cast<float>(slider.getProperties()["randHi"]);
@@ -716,7 +750,7 @@ public:
                 const float hr = radius - (compact ? 0.5f : 1.5f);
                 const float glow = compact ? 3.0f : 4.5f;
                 const float core = compact ? 1.6f : 2.0f;
-                const auto yellowCol = juce::Colour(0xFFF2E10F); // Hastur LFO Amber Glow
+                const auto yellowCol = juce::Colour(0xFFF2E10F); // Caustic Hastur Yellow
 
                 juce::Path arc;
                 arc.addCentredArc(centre.x, centre.y, hr, hr, 0.0f,

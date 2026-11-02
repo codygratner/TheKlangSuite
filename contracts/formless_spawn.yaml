@@ -1,6 +1,6 @@
 plugin: formless_spawn
 name: Formless Spawn Sovereign Drum Voice
-version: 2.4.0
+version: 2.5.0
 manufacturer: The Cult of Klang
 
 parameters:
@@ -35,11 +35,11 @@ parameters:
   # CARD 1: MASTER MACRO & DYNAMICS LAB (8 parameters - Top-Left)
   # ==============================================================================
   - id: macro_x
-    name: Macro X (Pitch)
+    name: Macro X (Spectral)
     short: MACRO-X
     category: macro
     type: float
-    effect: pitch
+    effect: spectral
     range: [0.0, 1.0]
     default: 0.5
 

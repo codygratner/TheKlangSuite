@@ -86,47 +86,54 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
 
     // =========================================================================
     // 3. Setup Card 1 Knobs: Master Macro & Dynamics Lab (Top-Left, 8)
+    // 6-Domain Chromatic Standard: Movie Poster Orange (0xFFFF7B25)
     // =========================================================================
-    setupKnob(macroXKnob_,     macro_x,     "X: PITCH",  "%", "macro pitch, sweep excursion and root tuning", juce::Colour(0xFF00C8FF));
-    setupKnob(macroYKnob_,     macro_y,     "Y: PUNCH",  "%", "macro transient attack spike and punch snap",  juce::Colour(0xFF00C8FF));
-    setupKnob(macroZKnob_,     macro_z,     "Z: TIMBRE", "%", "macro harmonic waveshaping, fold & overtone",  juce::Colour(0xFF00C8FF));
-    setupKnob(macroTKnob_,     macro_t,     "T: TIME",   "%", "macro pitch envelope and body decay time",     juce::Colour(0xFF00C8FF));
-    setupKnob(velAggrKnob_,    vel_aggr,    "VEL->AGGR", "%", "velocity to synthesis aggression & overdrive",juce::Colour(0xFF00C8FF));
-    setupKnob(velTimbKnob_,    vel_timb,    "VEL->TIMB", "%", "velocity to synthesis brightness & overtones",juce::Colour(0xFF00C8FF));
-    setupKnob(panKnob_,        pan,         "PAN",       "%", "stereo panorama positioning",                 juce::Colour(0xFF8B949E), true);
-    setupKnob(decayCurveKnob_, decay_curve, "DECAY CRV", "",  "envelope discharge curve (exp to log)",       juce::Colour(0xFF8B949E), true);
+    const auto orangeCol = juce::Colour(0xFFFF7B25);
+    setupKnob(macroXKnob_,     macro_x,     "X: SPECTRAL","%", "macro spectral spread, sweep excursion and harmonics", orangeCol);
+    setupKnob(macroYKnob_,     macro_y,     "Y: PUNCH",   "%", "macro transient attack spike and punch snap",         orangeCol);
+    setupKnob(macroZKnob_,     macro_z,     "Z: TIMBRE",  "%", "macro harmonic waveshaping, fold & overtone",         orangeCol);
+    setupKnob(macroTKnob_,     macro_t,     "T: TIME",    "%", "macro pitch envelope and body decay time",            orangeCol);
+    setupKnob(velAggrKnob_,    vel_aggr,    "VEL->AGGR",  "%", "velocity to synthesis aggression & overdrive",       orangeCol);
+    setupKnob(velTimbKnob_,    vel_timb,    "VEL->TIMB",  "%", "velocity to synthesis brightness & overtones",       orangeCol);
+    setupKnob(panKnob_,        pan,         "PAN",        "%", "stereo panorama positioning",                        orangeCol, true);
+    setupKnob(decayCurveKnob_, decay_curve, "DECAY CRV",  "",  "envelope discharge curve (exp to log)",              orangeCol, true);
 
     // =========================================================================
     // 4. Setup Card 2 Knobs: Role Synthesis Lab (Top-Right, 8)
+    // 6-Domain Chromatic Standard: Movie Poster Blue (0xFF38BDF8)
     // =========================================================================
-    setupKnob(paramAKnob_, param_a, "PITCH",   "%", "role synthesis parameter A", juce::Colour(0xFFFFAA00));
-    setupKnob(paramBKnob_, param_b, "P.DEC",   "%", "role synthesis parameter B", juce::Colour(0xFFFFAA00));
-    setupKnob(paramCKnob_, param_c, "P.DEPTH", "%", "role synthesis parameter C", juce::Colour(0xFFFFAA00));
-    setupKnob(paramDKnob_, param_d, "DECAY",   "%", "role synthesis parameter D", juce::Colour(0xFFFFAA00));
-    setupKnob(paramEKnob_, param_e, "CLICK",   "%", "role synthesis parameter E", juce::Colour(0xFFFFAA00));
-    setupKnob(paramFKnob_, param_f, "TIMBRE",  "%", "role synthesis parameter F", juce::Colour(0xFFFFAA00));
-    setupKnob(paramGKnob_, param_g, "DRIVE",   "%", "role synthesis parameter G", juce::Colour(0xFFFFAA00));
-    setupKnob(paramHKnob_, param_h, "PUNCH",   "%", "role synthesis parameter H", juce::Colour(0xFFFFAA00));
+    const auto blueCol = juce::Colour(0xFF38BDF8);
+    setupKnob(paramAKnob_, param_a, "TUNE",    "%", "role synthesis parameter A", blueCol);
+    setupKnob(paramBKnob_, param_b, "P.DEC",   "%", "role synthesis parameter B", blueCol);
+    setupKnob(paramCKnob_, param_c, "SWEEP.D", "%", "role synthesis parameter C", blueCol);
+    setupKnob(paramDKnob_, param_d, "DECAY",   "%", "role synthesis parameter D", blueCol);
+    setupKnob(paramEKnob_, param_e, "CLICK",   "%", "role synthesis parameter E", blueCol);
+    setupKnob(paramFKnob_, param_f, "TIMBRE",  "%", "role synthesis parameter F", blueCol);
+    setupKnob(paramGKnob_, param_g, "DRIVE",   "%", "role synthesis parameter G", blueCol);
+    setupKnob(paramHKnob_, param_h, "PUNCH",   "%", "role synthesis parameter H", blueCol);
 
     const int initialRole = apvts.getRawParameterValue(role) ? static_cast<int>(apvts.getRawParameterValue(role)->load()) : 0;
     updateRoleParamLabels(initialRole);
 
     // =========================================================================
     // 5. Setup Card 3 Pod 1: Stepped Random (2x4 Grid of 8 Small Knobs, Bottom-Left)
+    // 6-Domain Chromatic Standard: Caustic Hastur Yellow (0xFFF2E10F)
     // =========================================================================
-    setupKnob(randXKnob_,     rand_x,     "R-X",     "%", "per-hit Macro X (Pitch) S&H random depth",     juce::Colour(0xFFB374FF));
-    setupKnob(randYKnob_,     rand_y,     "R-Y",     "%", "per-hit Macro Y (Punch) S&H random depth",     juce::Colour(0xFFB374FF));
-    setupKnob(randZKnob_,     rand_z,     "R-Z",     "%", "per-hit Macro Z (Timbre) S&H random depth",    juce::Colour(0xFFB374FF));
-    setupKnob(randTKnob_,     rand_t,     "R-T",     "%", "per-hit Macro T (Time) S&H random depth",      juce::Colour(0xFFB374FF));
-    setupKnob(randAggrKnob_,  rand_aggr,  "R-AGGR",  "%", "per-hit velocity aggression fluctuation depth",juce::Colour(0xFFB374FF));
-    setupKnob(randTimbKnob_,  rand_timb,  "R-TIMB",  "%", "per-hit velocity timbre fluctuation depth",    juce::Colour(0xFFB374FF));
-    setupKnob(randPanKnob_,   rand_pan,   "R-PAN",   "%", "per-hit stereo position modulation depth",     juce::Colour(0xFFB374FF));
-    setupKnob(randDecayKnob_, rand_decay, "R-DECAY", "%", "per-hit Master Macro Decay modulation depth",  juce::Colour(0xFFB374FF));
+    const auto yellowCol = juce::Colour(0xFFF2E10F);
+    setupKnob(randXKnob_,     rand_x,     "R-X",     "%", "per-hit Macro X S&H random depth",                     yellowCol);
+    setupKnob(randYKnob_,     rand_y,     "R-Y",     "%", "per-hit Macro Y S&H random depth",                     yellowCol);
+    setupKnob(randZKnob_,     rand_z,     "R-Z",     "%", "per-hit Macro Z S&H random depth",                     yellowCol);
+    setupKnob(randTKnob_,     rand_t,     "R-T",     "%", "per-hit Macro T S&H random depth",                     yellowCol);
+    setupKnob(randAggrKnob_,  rand_aggr,  "R-AGGR",  "%", "per-hit velocity aggression fluctuation depth",        yellowCol);
+    setupKnob(randTimbKnob_,  rand_timb,  "R-TIMB",  "%", "per-hit velocity timbre fluctuation depth",            yellowCol);
+    setupKnob(randPanKnob_,   rand_pan,   "R-PAN",   "%", "per-hit stereo position modulation depth",             yellowCol);
+    setupKnob(randDecayKnob_, rand_decay, "R-DECAY", "%", "per-hit Master Macro Decay modulation depth",          yellowCol);
 
     // =========================================================================
     // 6. Setup Card 3 Pod 2: The Performance Altar (EXACTLY TWO CONTROLS)
+    // 6-Domain Chromatic Standard: Caustic Hastur Yellow (0xFFF2E10F)
     // =========================================================================
-    setupKnob(macroDecayKnob_, macro_decay, "MACRO DECAY", "", "master exponential envelope decay scaling", juce::Colour(0xFFFF9D00));
+    setupKnob(macroDecayKnob_, macro_decay, "MACRO DECAY", "", "master exponential envelope decay scaling", yellowCol);
     macroDecayKnob_.slider.setDoubleClickReturnValue(true, 0.5);
 
     trigButton_.onTrigger = [this]() {
@@ -137,15 +144,13 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     // =========================================================================
     // 7. Setup Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output
     // =========================================================================
-    setupKnob(cutoffKnob_,    cutoff,       "CUTOFF",    "Hz", "filter cutoff frequency",                    juce::Colour(0xFF6BBF59));
-    setupKnob(resonanceKnob_, resonance,    "RES",       "%",  "filter resonance / self-oscillation",        juce::Colour(0xFF6BBF59));
-    setupKnob(preDriveKnob_,  pre_drive,    "DRIVE",     "%",  "pre-filter analog saturation and drive",     juce::Colour(0xFFE08C00));
-    setupKnob(crushKnob_,     crush,        "CRUSH",     "Hz", "mojo sample rate decimation frequency",      juce::Colour(0xFFFF5252));
-    setupKnob(bitsKnob_,      bits,         "BITS",      "bit","mojo word-length bit reduction",             juce::Colour(0xFFFF5252));
-    setupKnob(tapeGlueKnob_,  tape_glue,    "TAPE",      "%",  "analog tape glue saturation and warmth",     juce::Colour(0xFFFF5252));
-    setupKnob(volumeKnob_,    volume,       "VOLUME",    "%",  "master output stage level",                  juce::Colour(0xFFF0F6FC));
+    // Row 1: Cytomic ZDF SVF (Acid Green 0xFF00E676)
+    const auto acidGreenCol = juce::Colour(0xFF00E676);
+    setupKnob(cutoffKnob_,    cutoff,       "CUTOFF",    "Hz", "filter cutoff frequency",                    acidGreenCol);
+    setupKnob(resonanceKnob_, resonance,    "RES",       "%",  "filter resonance / self-oscillation",        acidGreenCol);
+    setupKnob(preDriveKnob_,  pre_drive,    "DRIVE",     "%",  "pre-filter analog saturation and drive",     acidGreenCol);
 
-    filterTypeBar_.setAccentColour(juce::Colour(0xFF6BBF59));
+    filterTypeBar_.setAccentColour(acidGreenCol);
     filterTypeBar_.onSelect = [&apvts](int idx) {
         if (auto* param = apvts.getParameter(filter_type))
             param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
@@ -154,7 +159,13 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
         filterTypeBar_.setState(static_cast<int>(param->load()));
     addAndMakeVisible(filterTypeBar_);
 
-    mojoProfileBar_.setAccentColour(juce::Colour(0xFFFF5252));
+    // Row 2: Universal Mojo Strip (Sorcerous Purple 0xFFBC8CFF)
+    const auto purpleCol = juce::Colour(0xFFBC8CFF);
+    setupKnob(crushKnob_,     crush,        "CRUSH",     "Hz", "mojo sample rate decimation frequency",      purpleCol);
+    setupKnob(bitsKnob_,      bits,         "BITS",      "bit","mojo word-length bit reduction",             purpleCol);
+    setupKnob(tapeGlueKnob_,  tape_glue,    "TAPE",      "%",  "analog tape glue saturation and warmth",     purpleCol);
+
+    mojoProfileBar_.setAccentColour(purpleCol);
     mojoProfileBar_.onSelect = [&apvts](int idx) {
         if (auto* param = apvts.getParameter(mojo_profile))
             param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
@@ -162,6 +173,9 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     if (auto* param = apvts.getRawParameterValue(mojo_profile))
         mojoProfileBar_.setState(static_cast<int>(param->load()));
     addAndMakeVisible(mojoProfileBar_);
+
+    // Row 3: Master Output VCA (Blistering Red 0xFFFF3B30)
+    setupKnob(volumeKnob_,    volume,       "VOLUME",    "%",  "master output stage level",                  juce::Colour(0xFFFF3B30));
 }
 
 FormlessSpawnAudioProcessorEditor::~FormlessSpawnAudioProcessorEditor() {
@@ -505,6 +519,58 @@ void FormlessSpawnAudioProcessorEditor::timerCallback() {
     } else {
         clearProp(macroDecayKnob_.slider);
     }
+
+    // =========================================================================
+    // 9. Card 2: Macro Vector Modulation Halos (Movie Poster Orange on Blue Knobs)
+    // =========================================================================
+    auto updateModProp = [](juce::Slider& s, const tkdsp::formless::HaloRange& r) {
+        if (r.active) {
+            s.getProperties().set("modLo", r.lo);
+            s.getProperties().set("modHi", r.hi);
+            s.getProperties().set("modPip", r.pip);
+        } else if (s.getProperties().contains("modLo")) {
+            s.getProperties().remove("modLo");
+            s.getProperties().remove("modHi");
+            s.getProperties().remove("modPip");
+        }
+        s.repaint();
+    };
+
+    const float mX = static_cast<float>(macroXKnob_.slider.getValue());
+    const float mY = static_cast<float>(macroYKnob_.slider.getValue());
+    const float mZ = static_cast<float>(macroZKnob_.slider.getValue());
+    const float mT = static_cast<float>(macroTKnob_.slider.getValue());
+
+    const int curRole = roleGrid_.getState();
+    const bool isPitched = (curRole == 0 || curRole == 1 || curRole == 2 || curRole == 6);
+
+    // Knob A: Unpitched roles modulated by Macro X (depth 0.85); Pitched roles have Tune
+    if (!isPitched) {
+        updateModProp(paramAKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramAKnob_.slider.getValue()), mX, 0.85f));
+    } else {
+        updateModProp(paramAKnob_.slider, tkdsp::formless::HaloRange{});
+    }
+
+    // Knob B: Pitch/Mod Decay modulated by Macro T (depth 0.70)
+    updateModProp(paramBKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramBKnob_.slider.getValue()), mT, 0.70f));
+
+    // Knob C: Pitch Sweep Depth / Interval / Cluster modulated by Macro X (depth 0.75)
+    updateModProp(paramCKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramCKnob_.slider.getValue()), mX, 0.75f));
+
+    // Knob D: Body Amp Decay modulated by Macro T (depth 0.70)
+    updateModProp(paramDKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramDKnob_.slider.getValue()), mT, 0.70f));
+
+    // Knob E: Attack / Click modulated by Macro Y (depth 0.80)
+    updateModProp(paramEKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramEKnob_.slider.getValue()), mY, 0.80f));
+
+    // Knob F: Timbre / Fold modulated by Macro Z (depth 0.70)
+    updateModProp(paramFKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramFKnob_.slider.getValue()), mZ, 0.70f));
+
+    // Knob G: Drive / Overtones modulated by Macro Z (depth 0.65)
+    updateModProp(paramGKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramGKnob_.slider.getValue()), mZ, 0.65f));
+
+    // Knob H: Punch / VCA Snap modulated by Macro Y (depth 0.75)
+    updateModProp(paramHKnob_.slider, tkdsp::formless::computeMacroHalo(static_cast<float>(paramHKnob_.slider.getValue()), mY, 0.75f));
 }
 
 void FormlessSpawnAudioProcessorEditor::updateRoleParamLabels(int roleIdx) {

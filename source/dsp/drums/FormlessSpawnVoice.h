@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FastMath.h"
+#include "FormlessModMath.h"
 #include "../common/AudioEffect.h"
 #include <algorithm>
 #include <array>
@@ -76,21 +77,21 @@ public:
 
     static constexpr const char* kRoleParamNames[kTotalRoles][8] = {
         // BD
-        {"PITCH", "P.DEC", "P.DEPTH", "DECAY", "CLICK", "TIMBRE", "DRIVE", "PUNCH"},
+        {"TUNE", "P.DEC", "SWEEP.D", "DECAY", "CLICK", "TIMBRE", "DRIVE", "PUNCH"},
         // SD
         {"TUNE", "P.DEC", "SNAPPY", "S.DECAY", "ATTACK", "TONE", "NOISE", "SNAP"},
         // TM
-        {"PITCH", "BEND.T", "BEND.D", "DECAY", "STICK", "TENSION", "RING", "BODY"},
+        {"TUNE", "BEND.T", "INTERVAL", "DECAY", "STICK", "TENSION", "RING", "BODY"},
         // CP
-        {"PITCH", "SPREAD", "BURST", "TAIL", "FLAM", "COLOR", "DIFFUSE", "CRACK"},
+        {"PRE-TIME", "SPREAD", "BURST", "TAIL", "FLAM", "COLOR", "DIFFUSE", "CRACK"},
         // HH
-        {"PITCH", "CHOKE", "METRIC", "DECAY", "METALLIC", "BRIGHT", "SIZZLE", "BITE"},
+        {"CLUSTER", "CHOKE", "METRIC", "DECAY", "METALLIC", "BRIGHT", "SIZZLE", "BITE"},
         // CY
-        {"PITCH", "SHIMMER", "DAMP", "SUSTAIN", "MALLET", "DENSITY", "BELL", "CRASH"},
+        {"ALLOY", "SHIMMER", "DAMP", "SUSTAIN", "MALLET", "DENSITY", "BELL", "CRASH"},
         // PC
-        {"PITCH", "SWEEP", "BEND", "DECAY", "IMPACT", "MATERIAL", "RING", "POP"},
+        {"TUNE", "SWEEP", "RATIO", "DECAY", "IMPACT", "MATERIAL", "RING", "POP"},
         // FX
-        {"FREQ", "SPEED", "SWEEP", "DECAY", "TRIGGER", "WARP", "CHAOS", "EDGE"}
+        {"WARP", "SPEED", "SWEEP", "DECAY", "TRIGGER", "INDEX", "CHAOS", "EDGE"}
     };
 
     // =========================================================================
@@ -314,11 +315,14 @@ public:
         }
         for (auto& ph : newSlot.clusterPhases) ph = 0.0f;
 
-        // Base Frequency Calculation per Role
-        // Knob A (p.paramA) is the native tune control [0..1]
-        // Macro X biases Knob A
+        // Base Frequency Calculation per Role:
+        // Pitched Roles (BD=0, SD=1, TM=2, PC=6):
+        //   Knob A (p.paramA) is the native TUNE control [0..1] (+/- 12 semitones around MIDI note)
+        // Unpitched Roles (CP=3, HH=4, CY=5, FX=7):
+        //   Knob A is Acoustic Geometry (PRE-TIME, CLUSTER, ALLOY, WARP) modulated by Macro X
         const float effX = std::clamp(p.macroX + newSlot.latchedOffX, 0.0f, 1.0f);
-        const float effA = std::clamp(p.paramA + (effX - 0.5f), 0.0f, 1.0f);
+        const bool isPitchedRole = (activeRole_ == 0 || activeRole_ == 1 || activeRole_ == 2 || activeRole_ == 6);
+        const float effA = isPitchedRole ? p.paramA : tkdsp::formless::headroomLerp(p.paramA, effX, 0.85f);
 
         float minHz = 35.0f, maxHz = 140.0f;
         switch (activeRole_) {
@@ -335,7 +339,7 @@ public:
 
         float baseFreq = 55.0f;
         if (noteHz > 10.0f) {
-            baseFreq = noteHz * FastMath::fastPow2((effA - 0.5f) * 2.0f);
+            baseFreq = isPitchedRole ? (noteHz * FastMath::fastPow2((effA - 0.5f) * 2.0f)) : noteHz;
         } else {
             baseFreq = minHz * FastMath::fastPow2(effA * FastMath::fastLog2(maxHz / minHz));
         }
@@ -475,19 +479,18 @@ private:
         const float synthAggr = std::clamp(1.0f + (velForce - 0.75f) * effAggr * 1.5f, 0.2f, 2.5f);
         const float synthTimb = std::clamp(1.0f + (velForce - 0.75f) * effTimb * 1.5f, 0.2f, 2.5f);
 
-        // Macro Vector Mapping to Knobs A..H
-        // X (Pitch Space) -> A (Base Pitch), C (Pitch Sweep Depth)
-        // Y (Punch Space) -> E (Attack/Click Spike), H (Punch/Snap)
-        // Z (Timbre Space) -> F (Non-linearity/Ratio), G (Overtones/Index)
-        // T (Time Space) -> Handled via updateControlRateCoefficients scaling B and D
-        const float eA = std::clamp(p.paramA + (effX - 0.5f), 0.0f, 1.0f);
+        // Multi-Parameter Vector Fan-Out with Headroom-Proportional Lerp & Velocity Dynamics
+        const bool isPitchedRole = (activeRole_ == 0 || activeRole_ == 1 || activeRole_ == 2 || activeRole_ == 6);
+        const float eA = isPitchedRole ? p.paramA : tkdsp::formless::headroomLerp(p.paramA, effX, 0.85f);
         const float eB = p.paramB;
-        const float eC = std::clamp(p.paramC * (0.2f + 1.6f * effX), 0.0f, 1.0f);
+        const float eC = tkdsp::formless::headroomLerp(p.paramC, effX, 0.75f);
         const float eD = p.paramD;
-        const float eE = std::clamp(p.paramE * (0.2f + 1.6f * effY) * synthAggr, 0.0f, 1.0f);
-        const float eF = std::clamp(p.paramF * (0.2f + 1.6f * effZ) * synthTimb, 0.0f, 1.0f);
-        const float eG = std::clamp(p.paramG * (0.2f + 1.6f * effZ) * synthTimb, 0.0f, 1.0f);
-        const float eH = std::clamp(p.paramH * (0.2f + 1.6f * effY) * synthAggr, 0.0f, 1.0f);
+
+        // Y (Punch) & Z (Timbre) -> Knobs E, F, G, H with Sequential Velocity Arbitration
+        const float eE = tkdsp::formless::sequentialArbitrate(p.paramE, effY, 0.80f, effTimb, 0.65f, velForce);
+        const float eF = tkdsp::formless::sequentialArbitrate(p.paramF, effZ, 0.70f, effTimb, 0.70f, velForce);
+        const float eG = tkdsp::formless::sequentialArbitrate(p.paramG, effZ, 0.65f, effAggr, 0.70f, velForce);
+        const float eH = tkdsp::formless::sequentialArbitrate(p.paramH, effY, 0.75f, effAggr, 0.75f, velForce);
 
         // 2. Pitch Envelope Dive
         const float pitchDepthSemis = eC * 48.0f;
