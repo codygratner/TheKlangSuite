@@ -1591,7 +1591,6 @@ private:
     WaveGrid2x2Bar lfoFamilyGrid{{"TRI", "PULSE", "SINE", "RANDOM"}};
     juce::Label lfoSyncLabel;
     WaveformPickerButton lfoWavePicker;
-    ComboItem  lfoTrigCombo;
     SliderItem glideTimeKnob;
     juce::Label glideModeLabel;
     SegmentedButtonBar glideModeButtons{{"ON", "LGTO"}};
