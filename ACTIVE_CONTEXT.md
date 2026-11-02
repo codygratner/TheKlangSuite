@@ -1,12 +1,12 @@
 # Active Workspace Context (0-Turn Cold Boot)
 > *Generated mechanically by `tools/state_manager.py` at zero token cost.*
 
-- **Branch / Tree:** `0.4.0-dev` (8b4e6b1) · `Dirty (161 files)`
-- **Active Plan:** 🗺️ Unified Plan: Hastur DCO Strangle Signal Flow & Sub Chew -2..+2 Octave Tracking Overhaul
-- **Target Pipeline:** `HASTUR` · **Status:** `UNKNOWN` (10/10)
-- **Active Phase:** All phases complete
+- **Branch / Tree:** `0.4.0-dev` (6dad273) · `Dirty (116 files)`
+- **Active Plan:** 🥋 Master Plan: Hastur HS-01 Multi-Rate Centaur Anti-Aliasing Architecture (Pass 5 Crucible Lock)
+- **Target Pipeline:** `HASTUR` · **Status:** `UNKNOWN` (0/10)
+- **Active Phase:** Phase 1 Ground Sub-Oscillator in `PolyBLEP.h` Sub 1..6 & Phase Reset [GATE 1]
 - **Factory Semaphore:** Dispatch: `COMPLETED` · Receipt: `COMPLETED`
 - **Tooling Semaphore:** Dispatch: `COMPLETED` · Receipt: `COMPLETED`
 - **Peer Intent Locks:** `None`
-- **Recent Commit:** `8b4e6b1 chore(memory): execute scheduled nightly black box memory flush and state integrity audit`
+- **Recent Commit:** `6dad273 chore(ui): purge vestigial lfoTrigCombo declaration in HasturEditor`
 - **Process Runtime:** Base Antigravity (`Antigravity.exe` — companion app, not full IDE)

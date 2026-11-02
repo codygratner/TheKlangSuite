@@ -1,26 +1,26 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "8b4e6b1",
+    "commit": "6dad273",
     "is_clean": false,
-    "dirty_count": 161,
+    "dirty_count": 116,
     "staged": 1,
-    "modified": 63,
-    "untracked": 97,
+    "modified": 50,
+    "untracked": 65,
     "recent_commits": [
-      "8b4e6b1 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "b118c24 chore(memory): execute scheduled nightly black box memory flush and state integrity audit",
-      "b324c52 chore(memory): execute scheduled nightly black box memory flush and state integrity audit"
+      "6dad273 chore(ui): purge vestigial lfoTrigCombo declaration in HasturEditor",
+      "93a45ed feat(dsp): release hastur-v1.0.2 with Multi-Rate Centaur architecture and grounded PolyBLEP sub-oscillator",
+      "16e7661 fix(hastur): v1.0.1 anti-aliasing overhaul, monolithic 2x core, and ADAA1 saturation"
     ]
   },
   "plan": {
     "has_plan": true,
     "is_idle": false,
-    "title": "\ud83d\uddfa\ufe0f Unified Plan: Hastur DCO Strangle Signal Flow & Sub Chew -2..+2 Octave Tracking Overhaul",
+    "title": "\ud83e\udd4b Master Plan: Hastur HS-01 Multi-Rate Centaur Anti-Aliasing Architecture (Pass 5 Crucible Lock)",
     "target": "HASTUR",
     "status": "UNKNOWN",
-    "progress": "10/10",
-    "active_phase": "All phases complete"
+    "progress": "0/10",
+    "active_phase": "Phase 1 Ground Sub-Oscillator in `PolyBLEP.h` Sub 1..6 & Phase Reset [GATE 1]"
   },
   "communique": {
     "factory_dispatch": "COMPLETED",
