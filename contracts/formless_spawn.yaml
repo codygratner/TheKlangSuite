@@ -1,6 +1,6 @@
 plugin: formless_spawn
 name: Formless Spawn Sovereign Drum Voice
-version: 2.1.0
+version: 2.2.0
 manufacturer: The Cult of Klang
 
 parameters:
@@ -194,15 +194,67 @@ parameters:
   # ==============================================================================
   # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (16 parameters)
   # ==============================================================================
-  # Left Pod: Stepped Random Humanization (5 controls)
+  # Left Pod: Stepped Random Humanization (2x4 Small Knobs, 8 Controls)
+  # Row 1: Timbre Lab Targets
+  - id: rand_tx
+    name: Rand Timbre X
+    short: R-TX
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_ty
+    name: Rand Timbre Y
+    short: R-TY
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_tz
+    name: Rand Timbre Z
+    short: R-TZ
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_tt
+    name: Rand Timbre T
+    short: R-TT
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  # Row 2: Acoustic & Core Targets
   - id: rand_pitch
     name: Rand Pitch
     short: R-PITCH
     category: random
     type: float
     effect: pitch
-    range: [0.0, 3.0]
+    range: [0.0, 12.0]
     unit: st
+    default: 0.0
+
+  - id: rand_cutoff
+    name: Rand Cutoff
+    short: R-CUT
+    category: random
+    type: float
+    effect: filter
+    range: [0.0, 100.0]
+    unit: "%"
     default: 0.0
 
   - id: rand_decay
@@ -211,37 +263,19 @@ parameters:
     category: random
     type: float
     effect: dynamics
-    range: [0.0, 35.0]
+    range: [0.0, 100.0]
     unit: "%"
     default: 0.0
 
-  - id: rand_timbre
-    name: Rand Timbre
-    short: R-TIMBRE
+  - id: rand_pan
+    name: Rand Pan
+    short: R-PAN
     category: random
     type: float
-    effect: timbre
-    range: [0.0, 25.0]
+    effect: output
+    range: [0.0, 100.0]
     unit: "%"
     default: 0.0
-
-  - id: rand_scatter
-    name: Rand Scatter
-    short: R-SCAT
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 20.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_mode
-    name: Rand Mode
-    short: R-MODE
-    category: random
-    type: choice
-    choices: [Free, Loop16]
-    default: 0
 
   # Center Altar: The Master Macro & Master Out (2 controls)
   - id: macro_decay

@@ -676,11 +676,15 @@ public:
         auto angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
         const float sweep = rotaryEndAngle - rotaryStartAngle;
 
+        const bool compact = radius < 26.0f; // Small-knob mode for 2x4 grid (44px knobs)
+        const float trackRadius = radius - (compact ? 3.5f : 4.0f);
+        const float trackStroke = compact ? 3.0f : 4.0f;
+
         // Background track ring
         g.setColour(juce::Colour(0xFF21262D));
         juce::Path trackPath;
-        trackPath.addCentredArc(centre.x, centre.y, radius - 4.0f, radius - 4.0f, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
-        g.strokePath(trackPath, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        trackPath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
+        g.strokePath(trackPath, juce::PathStrokeType(trackStroke, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
         // Active modulation arc with Bipolar Mid-Point Glow
         auto fillCol = slider.findColour(juce::Slider::rotarySliderFillColourId);
@@ -693,21 +697,21 @@ public:
             const float midAngle = rotaryStartAngle + zeroNorm * sweep;
             if (std::abs(angle - midAngle) > 0.005f) {
                 if (angle > midAngle) {
-                    activePath.addCentredArc(centre.x, centre.y, radius - 4.0f, radius - 4.0f, 0.0f, midAngle, angle, true);
+                    activePath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, midAngle, angle, true);
                 } else {
-                    activePath.addCentredArc(centre.x, centre.y, radius - 4.0f, radius - 4.0f, 0.0f, angle, midAngle, true);
+                    activePath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, angle, midAngle, true);
                 }
-                g.strokePath(activePath, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.strokePath(activePath, juce::PathStrokeType(trackStroke, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
             }
         } else {
             if (sliderPosProportional > 0.001f) {
-                activePath.addCentredArc(centre.x, centre.y, radius - 4.0f, radius - 4.0f, 0.0f, rotaryStartAngle, angle, true);
-                g.strokePath(activePath, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                activePath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, angle, true);
+                g.strokePath(activePath, juce::PathStrokeType(trackStroke, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
             }
         }
 
         // Dial body
-        auto dialRadius = radius - 8.0f;
+        auto dialRadius = radius - (compact ? 7.0f : 8.0f);
         g.setColour(juce::Colour(0xFF161B22));
         g.fillEllipse(centre.x - dialRadius, centre.y - dialRadius, dialRadius * 2.0f, dialRadius * 2.0f);
         g.setColour(juce::Colour(0xFF30363D));
@@ -719,24 +723,62 @@ public:
         p.startNewSubPath(centre.x, centre.y);
         p.lineTo(centre.x + pointerLen * std::sin(angle), centre.y - pointerLen * std::cos(angle));
         g.setColour(juce::Colour(0xFFF0F6FC));
-        g.strokePath(p, juce::PathStrokeType(2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        g.strokePath(p, juce::PathStrokeType(compact ? 2.0f : 2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
         // Center jewel pip
         g.setColour(fillCol);
-        g.fillEllipse(centre.x - 2.5f, centre.y - 2.5f, 5.0f, 5.0f);
+        const float pipD = compact ? 4.0f : 5.0f;
+        g.fillEllipse(centre.x - pipD * 0.5f, centre.y - pipD * 0.5f, pipD, pipD);
+
+        // =====================================================================
+        // VISUAL MODULATION RADAR TELEMETRY (Hastur Arc Halos & Offset Dots)
+        // =====================================================================
+        if (slider.getProperties().contains("randLo")) {
+            const float lo = static_cast<float>(slider.getProperties()["randLo"]);
+            const float hi = static_cast<float>(slider.getProperties()["randHi"]);
+            if (hi - lo > 0.002f) {
+                const float hr = radius - (compact ? 0.5f : 1.5f);
+                const float glow = compact ? 3.0f : 4.5f;
+                const float core = compact ? 1.6f : 2.0f;
+                const auto yellowCol = juce::Colour(0xFFF2E10F); // Hastur LFO Amber Glow
+
+                juce::Path arc;
+                arc.addCentredArc(centre.x, centre.y, hr, hr, 0.0f,
+                                  rotaryStartAngle + lo * sweep, rotaryStartAngle + hi * sweep, true);
+                g.setColour(yellowCol.withAlpha(0.25f));
+                g.strokePath(arc, juce::PathStrokeType(glow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.setColour(yellowCol.withAlpha(0.95f));
+                g.strokePath(arc, juce::PathStrokeType(core, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+                if (slider.getProperties().contains("randPip")) {
+                    const float pipNorm = static_cast<float>(slider.getProperties()["randPip"]);
+                    const float pipAngle = rotaryStartAngle + pipNorm * sweep;
+                    const float px = centre.x + hr * std::sin(pipAngle);
+                    const float py = centre.y - hr * std::cos(pipAngle);
+                    const float pr = compact ? 2.0f : 2.5f;
+
+                    g.setColour(juce::Colours::white);
+                    g.fillEllipse(px - pr, py - pr, 2.0f * pr, 2.0f * pr);
+                    g.setColour(yellowCol);
+                    g.drawEllipse(px - pr - 1.0f, py - pr - 1.0f, 2.0f * pr + 2.0f, 2.0f * pr + 2.0f, 1.0f);
+                }
+            }
+        }
     }
 };
 
 // ==============================================================================
 // Formless Spawn AudioProcessorEditor
 // ==============================================================================
-class FormlessSpawnAudioProcessorEditor : public juce::AudioProcessorEditor {
+class FormlessSpawnAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                          public juce::Timer {
 public:
     explicit FormlessSpawnAudioProcessorEditor(FormlessSpawnAudioProcessor&);
     ~FormlessSpawnAudioProcessorEditor() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
+    void timerCallback() override;
 
 private:
     struct KnobItem {
@@ -781,12 +823,17 @@ private:
     KnobItem panKnob_;
     KnobItem velSensKnob_;
 
-    // Card 3 Pod 1: Stepped Random (4 knobs + 1 button)
+    // Card 3 Pod 1: Stepped Random (2x4 Grid of 8 Small Knobs)
+    // Row 1: Timbre Targets
+    KnobItem randTXKnob_;
+    KnobItem randTYKnob_;
+    KnobItem randTZKnob_;
+    KnobItem randTTKnob_;
+    // Row 2: Acoustic Targets
     KnobItem randPitchKnob_;
+    KnobItem randCutoffKnob_;
     KnobItem randDecayKnob_;
-    KnobItem randTimbreKnob_;
-    KnobItem randScatterKnob_;
-    FormlessSegmentedBar randModeBar_{{"FREE", "LOOP16"}};
+    KnobItem randPanKnob_;
 
     // Card 3 Pod 2: The Performance Altar (EXACTLY TWO CONTROLS)
     KnobItem          macroDecayKnob_;

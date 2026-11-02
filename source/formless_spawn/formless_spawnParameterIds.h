@@ -26,11 +26,14 @@ namespace Ids {
     constexpr auto damp = "damp";
     constexpr auto pan = "pan";
     constexpr auto vel_sens = "vel_sens";
+    constexpr auto rand_tx = "rand_tx";
+    constexpr auto rand_ty = "rand_ty";
+    constexpr auto rand_tz = "rand_tz";
+    constexpr auto rand_tt = "rand_tt";
     constexpr auto rand_pitch = "rand_pitch";
+    constexpr auto rand_cutoff = "rand_cutoff";
     constexpr auto rand_decay = "rand_decay";
-    constexpr auto rand_timbre = "rand_timbre";
-    constexpr auto rand_scatter = "rand_scatter";
-    constexpr auto rand_mode = "rand_mode";
+    constexpr auto rand_pan = "rand_pan";
     constexpr auto macro_decay = "macro_decay";
     constexpr auto volume = "volume";
     constexpr auto cutoff = "cutoff";
@@ -64,11 +67,14 @@ namespace Names {
     constexpr auto damp = "Body Damping";
     constexpr auto pan = "Voice Pan";
     constexpr auto vel_sens = "Velocity Sensitivity";
+    constexpr auto rand_tx = "Rand Timbre X";
+    constexpr auto rand_ty = "Rand Timbre Y";
+    constexpr auto rand_tz = "Rand Timbre Z";
+    constexpr auto rand_tt = "Rand Timbre T";
     constexpr auto rand_pitch = "Rand Pitch";
+    constexpr auto rand_cutoff = "Rand Cutoff";
     constexpr auto rand_decay = "Rand Decay";
-    constexpr auto rand_timbre = "Rand Timbre";
-    constexpr auto rand_scatter = "Rand Scatter";
-    constexpr auto rand_mode = "Rand Mode";
+    constexpr auto rand_pan = "Rand Pan";
     constexpr auto macro_decay = "Macro Decay";
     constexpr auto volume = "Master Volume";
     constexpr auto cutoff = "Filter Cutoff";
@@ -83,6 +89,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 35;
+    constexpr int count = 38;
 } // namespace Total
 } // namespace formless_spawnParameters

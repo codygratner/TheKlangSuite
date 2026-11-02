@@ -77,6 +77,66 @@ public:
          "SCREAM", "RING-M", "SHRIEK", "SHIFTR", "VORTEX", "PIPE", "CZ-ZAP", "CHAOS"}
     };
 
+    // =========================================================================
+    // 112-Model Calibrated Macro Decay Matrix (ACF-5 Calibrated)
+    // =========================================================================
+    // Base amplitude decay time constant tau in seconds (T60 approx 6.9 * tau).
+    // Macro decay sweeps tau over [0.125x .. 8.0x].
+    static constexpr float kModelBaseAmpDecaySec[kTotalRoles][kModelsPerRole] = {
+        // BD:  TRX-9  TRX-B  EFM-M  MEMBR  BOUNC  THUD   CLICK  BOOM   W-FOLD FM-SUB DIGI   DRIVE  SQUAR  DISCR  VCO-D  LASER
+        {       0.110f,0.085f,0.095f,0.140f,0.120f,0.070f,0.060f,0.280f,0.100f,0.200f,0.075f,0.130f,0.090f,0.105f,0.150f,0.090f },
+        // TM:  SINE-T EFM-T  SHELL  PING-L PING-H ATTACK PUNCH  HEX-V  DUAL-V VCF-T  STRING DIGI-T FORMNT TONAL  VCO-T  GLITCH
+        {       0.300f,0.220f,0.260f,0.380f,0.200f,0.180f,0.150f,0.240f,0.340f,0.280f,0.420f,0.200f,0.320f,0.360f,0.250f,0.120f },
+        // SD:  SNAP   EFM-S  WIRES  HP-NOI CRISP  SHELL  SIZZL  VCF-N  KAR-S  SUB-S  6-SINE MARCH  DISCR  CRACK  EXPLOD POISSN
+        {       0.100f,0.140f,0.200f,0.120f,0.090f,0.180f,0.240f,0.160f,0.220f,0.150f,0.170f,0.110f,0.140f,0.080f,0.350f,0.190f },
+        // CP:  BURST  EFM-C  MULTI  TRIPLE STAGGR DRIVE  MULTI2 DISCR  RESON  EXPLOD CRACK  DIGI-C W-GUID MEMBR  SHAPED VECTOR
+        {       0.140f,0.120f,0.180f,0.160f,0.200f,0.150f,0.220f,0.130f,0.260f,0.300f,0.080f,0.110f,0.240f,0.170f,0.190f,0.210f },
+        // HH:  6-OSC  BP-MET 5-OSC  PHASE  RING-H EFM-H  PLATE  HP-SHR VCF-M  DIGI-H FORMNT RING-6 DISCR  PING-H METAL  SIZZL
+        {       0.050f,0.040f,0.070f,0.090f,0.060f,0.080f,0.120f,0.030f,0.050f,0.020f,0.070f,0.100f,0.050f,0.150f,0.090f,0.130f },
+        // CY:  CRASH  RING-C BELL-R SIZZL  EXT-RG GONG   PLATE  IND-G  W-CRSH DIGI-C CHIME  LONG-S SHIMMR COSMIC NOISE  GRANUL
+        {       1.100f,1.400f,1.600f,0.800f,1.700f,1.800f,0.900f,0.600f,1.000f,0.400f,1.500f,1.300f,1.200f,1.600f,0.700f,0.950f },
+        // FX:  FM-MRP W-FOLD BT-PNG NOI-BT HARMON LASER  SUB-DP SLICER SCREAM RING-M SHRIEK SHIFTR VORTEX PIPE   CZ-ZAP CHAOS
+        {       0.300f,0.250f,0.350f,0.150f,0.400f,0.200f,0.600f,0.280f,0.450f,0.320f,0.380f,0.420f,0.700f,0.500f,0.140f,0.550f }
+    };
+
+    // Pitch envelope sensitivity to Macro Decay:
+    // 0.0 = snappy pitch punch remains strictly locked to panel value; 1.0 = pitch dive stretches fully with macro.
+    static constexpr float kModelPitchDecayResponse[kTotalRoles][kModelsPerRole] = {
+        // BD
+        {       0.08f, 0.05f, 0.10f, 0.15f, 0.25f, 0.00f, 0.00f, 0.12f, 0.08f, 0.20f, 0.03f, 0.05f, 0.05f, 0.06f, 0.10f, 1.00f },
+        // TM
+        {       0.30f, 0.25f, 0.30f, 0.40f, 0.20f, 0.10f, 0.10f, 0.25f, 0.35f, 0.30f, 0.55f, 0.15f, 0.20f, 0.25f, 0.30f, 0.05f },
+        // SD
+        {       0.10f, 0.15f, 0.05f, 0.02f, 0.05f, 0.15f, 0.08f, 0.10f, 0.30f, 0.20f, 0.10f, 0.00f, 0.05f, 0.00f, 0.35f, 0.05f },
+        // CP
+        {       0.00f, 0.10f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.10f, 0.00f, 0.00f, 0.00f, 0.00f, 0.15f, 0.00f, 0.00f },
+        // HH
+        {       0.00f, 0.00f, 0.00f, 0.10f, 0.00f, 0.05f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.15f, 0.00f, 0.00f },
+        // CY
+        {       0.05f, 0.05f, 0.10f, 0.00f, 0.05f, 0.35f, 0.05f, 0.00f, 0.00f, 0.00f, 0.05f, 0.00f, 0.15f, 0.30f, 0.00f, 0.10f },
+        // FX
+        {       0.60f, 0.30f, 0.80f, 0.00f, 0.20f, 1.00f, 0.95f, 0.15f, 0.50f, 0.40f, 0.70f, 0.30f, 0.65f, 0.25f, 1.00f, 0.35f }
+    };
+
+    // Timbre & filter modulation envelope sensitivity to Macro Decay:
+    // 0.0 = fixed panel duration; 1.0 = full proportional tracking with macro.
+    static constexpr float kModelTimbreDecayResponse[kTotalRoles][kModelsPerRole] = {
+        // BD
+        {       0.50f, 0.35f, 0.70f, 0.60f, 0.40f, 0.25f, 0.10f, 0.30f, 0.75f, 0.80f, 0.50f, 0.40f, 0.45f, 0.40f, 0.55f, 0.85f },
+        // TM
+        {       0.30f, 0.70f, 0.50f, 0.40f, 0.35f, 0.15f, 0.25f, 0.75f, 0.40f, 0.80f, 0.90f, 0.50f, 0.60f, 0.45f, 0.50f, 0.20f },
+        // SD
+        {       0.35f, 0.65f, 0.85f, 0.30f, 0.30f, 0.45f, 0.60f, 0.70f, 0.50f, 0.35f, 0.45f, 0.25f, 0.35f, 0.15f, 0.55f, 0.40f },
+        // CP
+        {       0.30f, 0.60f, 0.35f, 0.30f, 0.35f, 0.25f, 0.85f, 0.30f, 0.55f, 0.40f, 0.15f, 0.40f, 0.70f, 0.45f, 0.40f, 0.50f },
+        // HH
+        {       0.30f, 0.25f, 0.30f, 0.50f, 0.35f, 0.55f, 0.40f, 0.15f, 0.60f, 0.10f, 0.55f, 0.40f, 0.25f, 0.35f, 0.35f, 0.45f },
+        // CY
+        {       0.60f, 0.50f, 0.70f, 0.50f, 0.60f, 0.85f, 0.50f, 0.40f, 0.75f, 0.30f, 0.70f, 0.55f, 0.80f, 0.85f, 0.30f, 0.65f },
+        // FX
+        {       0.85f, 0.80f, 1.00f, 1.00f, 0.50f, 0.70f, 0.40f, 0.30f, 0.65f, 0.75f, 0.60f, 1.00f, 0.80f, 0.45f, 0.75f, 0.70f }
+    };
+
     struct Params {
         // =====================================================================
         // Header Controls (3)
@@ -123,13 +183,20 @@ public:
         float mojoMix{0.0f};         // 0.0 .. 100.0 %
 
         // =====================================================================
-        // Card 3 Pod 1 & 2: Stepped Random & Master Altar (7)
+        // Card 3 Pod 1 & 2: Stepped Random & Master Altar (10)
         // =====================================================================
-        float randPitch{0.0f};       // 0.0 .. 3.0 st
-        float randDecay{0.0f};       // 0.0 .. 35.0 %
-        float randTimbre{0.0f};      // 0.0 .. 25.0 %
-        float randScatter{0.0f};     // 0.0 .. 20.0 %
-        int   randMode{0};           // 0=Free, 1=Loop16
+        // Row 1: Timbre Targets (0..100 %)
+        float randTX{0.0f};          // 0.0 .. 100.0 %
+        float randTY{0.0f};          // 0.0 .. 100.0 %
+        float randTZ{0.0f};          // 0.0 .. 100.0 %
+        float randTT{0.0f};          // 0.0 .. 100.0 %
+
+        // Row 2: Acoustic & Core Targets
+        float randPitch{0.0f};       // 0.0 .. 12.0 st
+        float randCutoff{0.0f};      // 0.0 .. 100.0 %
+        float randDecay{0.0f};       // 0.0 .. 100.0 %
+        float randPan{0.0f};         // 0.0 .. 100.0 %
+
         float macroDecay{0.5f};      // 0.0 .. 1.0 (Master Macro)
         float volume{0.85f};         // 0.0 .. 1.0
     };
@@ -166,7 +233,6 @@ public:
         crushedSample_ = 0.0f;
 
         rngState_ = 0xDEADBEEF;
-        loop16Step_ = 0;
         blockCounter_ = 0;
         macroSmoothed_ = 0.5f;
 
@@ -192,23 +258,20 @@ public:
         activeRole_  = pendingRole_;
         activeModel_ = pendingModel_;
 
-        // 2. Advance PRNG and Latch Humanization Parameters
-        float rPitchDraw = 0.0f;
-        float rDecayDraw = 0.0f;
-        float rTimbreDraw = 0.0f;
-        float rScatterDraw = 0.0f;
+        // 2. Advance Trigger PRNG and Latch 8-Axis Humanization Parameters
+        const float d[8] = {
+            p.randTX * 0.01f,
+            p.randTY * 0.01f,
+            p.randTZ * 0.01f,
+            p.randTT * 0.01f,
+            p.randPitch,
+            p.randCutoff * 0.01f,
+            p.randDecay * 0.01f,
+            p.randPan * 0.01f
+        };
 
-        if (p.randMode == 1) {
-            const int step = (loop16Step_++) & 15;
-            rPitchDraw   = kLoop16Table[step][0];
-            rDecayDraw   = kLoop16Table[step][1];
-            rTimbreDraw  = kLoop16Table[step][2];
-            rScatterDraw = kLoop16Table[step][3];
-        } else {
-            rPitchDraw   = nextRandBipolar();
-            rDecayDraw   = nextRandBipolar();
-            rTimbreDraw  = nextRandBipolar();
-            rScatterDraw = nextRandBipolar();
+        for (int i = 0; i < 8; ++i) {
+            latchedDraw_[i] = nextTrigBipolar();
         }
 
         // 3. Ping-Pong Voice Allocation (1.5ms Linear Slew De-Click)
@@ -220,15 +283,23 @@ public:
 
         // 4. Initialize New Slot with Latched Offsets
         newSlot.active = true;
-        const float scatterMod = 1.0f + rScatterDraw * (p.randScatter * 0.01f);
-        newSlot.ampEnv = std::clamp(effVelocity * scatterMod, 0.001f, 1.5f);
+        newSlot.ampEnv = std::clamp(effVelocity, 0.001f, 1.5f);
         newSlot.pitchEnv = 1.0f;
         newSlot.clickEnv = 1.0f;
         newSlot.timbreEnv = 1.0f;
 
-        newSlot.latchedPitchOffsetSt = rPitchDraw * p.randPitch;
-        newSlot.latchedDecayScale    = std::clamp(1.0f + rDecayDraw * (p.randDecay * 0.01f), 0.1f, 2.5f);
-        newSlot.latchedTimbreOffset  = rTimbreDraw * (p.randTimbre * 0.01f);
+        newSlot.latchedOffX = (d[0] > 0.0f) ? latchedDraw_[0] * d[0] : 0.0f;
+        newSlot.latchedOffY = (d[1] > 0.0f) ? latchedDraw_[1] * d[1] : 0.0f;
+        newSlot.latchedOffZ = (d[2] > 0.0f) ? latchedDraw_[2] * d[2] : 0.0f;
+        newSlot.latchedTScale = (d[3] > 0.0f) ? FastMath::fastPow2(2.0f * latchedDraw_[3] * d[3]) : 1.0f;
+        newSlot.latchedPitchOffsetSt = (d[4] > 0.0f) ? latchedDraw_[4] * d[4] : 0.0f;
+        newSlot.latchedDecayScale = (d[6] > 0.0f) ? std::clamp(FastMath::fastPow2(1.5f * latchedDraw_[6] * d[6]), 0.25f, 4.0f) : 1.0f;
+
+        const float cutoffOct = (d[5] > 0.0f) ? 3.0f * latchedDraw_[5] * d[5] : 0.0f;
+        effCutoffHz_ = std::clamp(p.cutoff * FastMath::fastPow2(cutoffOct), 20.0f, nyquist_);
+        panOff_ = (d[7] > 0.0f) ? latchedDraw_[7] * d[7] : 0.0f;
+
+        blockCounter_ = 0; // Force immediate coefficient update
 
         // Lifeform Phase Reset at t=0
         if (p.lifeMode == static_cast<int>(LifeMode::Cyborg)) {
@@ -269,6 +340,8 @@ public:
         }
     }
 
+    [[nodiscard]] const std::array<float, 8>& getLatchedDraws() const noexcept { return latchedDraw_; }
+
 private:
     struct VoiceSlot {
         float phase{0.0f};
@@ -284,7 +357,10 @@ private:
         float baseHz{55.0f};
         float latchedPitchOffsetSt{0.0f};
         float latchedDecayScale{1.0f};
-        float latchedTimbreOffset{0.0f};
+        float latchedOffX{0.0f};
+        float latchedOffY{0.0f};
+        float latchedOffZ{0.0f};
+        float latchedTScale{1.0f};
         bool  active{false};
     };
 
@@ -315,28 +391,34 @@ private:
         macroSmoothed_ += 0.08f * (p.macroDecay - macroSmoothed_);
         const float macroMult = evalMacroMultiplier(macroSmoothed_);
 
-        // Role-dependent base decay scaling (Hi-Hats and Cymbals expand dramatically with Macro)
-        float baseAmpDecaySec = 0.250f;
-        if (activeRole_ == 4) { // HH: Tight closed (15ms) to wide open sizzle (1.8s)
-            baseAmpDecaySec = 0.080f;
-        } else if (activeRole_ == 5) { // CY: Crash / Ride ring (2.5s)
-            baseAmpDecaySec = 0.650f;
-        } else if (activeRole_ == 1) { // TM: Punchy tom decay
-            baseAmpDecaySec = 0.350f;
-        }
+        // Role- and Model-calibrated base decay scaling (112-Model SSoT Matrix)
+        const float macroLog2 = FastMath::fastLog2(std::max(macroMult, 1e-6f));
 
-        const float effAmpDecaySec = std::clamp(baseAmpDecaySec * macroMult, 0.015f, 4.500f);
-        const float effPitchDecaySec = std::clamp(p.pitchDecay * 0.001f * macroMult, 0.002f, 0.350f);
-        const float effTimbreDecaySec = std::clamp(p.timbreT * 0.001f * macroMult, 0.002f, 1.200f);
-        const float effClickDecaySec = std::clamp(0.002f * FastMath::fastPow2(macroSmoothed_ * 1.2f), 0.0008f, 0.006f);
+        const int r = std::clamp(activeRole_,  0, kTotalRoles - 1);
+        const int m = std::clamp(activeModel_, 0, kModelsPerRole - 1);
+
+        const float pitchResp  = kModelPitchDecayResponse[r][m];
+        const float timbreResp = kModelTimbreDecayResponse[r][m];
+
+        // Partial macro application: macroMult^response (response 0 -> 1.0 neutral, response 1 -> full macroMult)
+        const float pitchMacro  = FastMath::fastPow2(pitchResp  * macroLog2);
+        const float timbreMacro = FastMath::fastPow2(timbreResp * macroLog2);
+
+        // Only fully-responsive sweep models (e.g. LASER, CZ-ZAP, SUB-DP) may sweep pitch past 350 ms
+        const float pitchMaxSec = (pitchResp >= 0.9f) ? 1.200f : 0.350f;
+
+        const float effAmpDecaySec    = std::clamp(kModelBaseAmpDecaySec[r][m] * macroMult, 0.003f, 4.500f);
+        const float effPitchDecaySec  = std::clamp(p.pitchDecay * 0.001f * pitchMacro,  0.002f, pitchMaxSec);
+        const float effTimbreDecaySec = std::clamp(p.timbreT    * 0.001f * timbreMacro, 0.002f, 1.200f);
+        const float effClickDecaySec  = std::clamp(0.002f * FastMath::fastPow2(macroSmoothed_ * 1.2f), 0.0008f, 0.006f);
 
         ampDecayCoeff_   = FastMath::fastExp(-invSampleRate_ / effAmpDecaySec);
         pitchDecayCoeff_ = FastMath::fastExp(-invSampleRate_ / effPitchDecaySec);
         timbreDecayCoeff_= FastMath::fastExp(-invSampleRate_ / effTimbreDecaySec);
         clickDecayCoeff_ = FastMath::fastExp(-invSampleRate_ / effClickDecaySec);
 
-        // VCF Cutoff Pre-Warping
-        const float rawCutoff = std::clamp(p.cutoff, 20.0f, nyquist_);
+        // VCF Cutoff Pre-Warping with Latched Stepped Random Modulation
+        const float rawCutoff = std::clamp(effCutoffHz_, 20.0f, nyquist_);
         const float normCutoff = rawCutoff * invSampleRate_;
         const float wa = 2.0f * sampleRate_ * std::tan(normCutoff * 3.1415926535f);
         vcfG_ = wa * 0.5f * invSampleRate_;
@@ -370,18 +452,18 @@ private:
         const float pitchMult = FastMath::fastPow2((pitchDepth * shapedPitchEnv) * (1.0f / 12.0f));
         const float curFreq = std::clamp(slot.baseHz * pitchMult, 10.0f, nyquist_);
 
-        // Advance Recursive Envelopes
+        // Advance Recursive Envelopes (high clamp ceiling 0.9999995f allows long tails > 4s)
         const float dScale = slot.latchedDecayScale;
-        slot.pitchEnv  *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(pitchDecayCoeff_) / dScale), 0.80f, 0.9999f);
-        slot.ampEnv    *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(ampDecayCoeff_) / dScale), 0.80f, 0.9999f);
-        slot.timbreEnv *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(timbreDecayCoeff_) / dScale), 0.80f, 0.9999f);
+        const float tScale = dScale * slot.latchedTScale;
+        slot.pitchEnv  *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(pitchDecayCoeff_) / dScale), 0.80f, 0.9999995f);
+        slot.ampEnv    *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(ampDecayCoeff_) / dScale), 0.80f, 0.9999995f);
+        slot.timbreEnv *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(timbreDecayCoeff_) / tScale), 0.80f, 0.9999995f);
         slot.clickEnv  *= clickDecayCoeff_;
 
-        // 2. Timbre Modulation Parameters
-        const float effTimbreOffset = slot.latchedTimbreOffset;
-        const float tX = std::clamp(p.timbreX + effTimbreOffset, 0.0f, 1.0f);
-        const float tY = std::clamp(p.timbreY * slot.timbreEnv + effTimbreOffset, 0.0f, 1.0f);
-        const float tZ = std::clamp(p.timbreZ * slot.timbreEnv, 0.0f, 1.0f);
+        // 2. Timbre Modulation Parameters (with 8-Axis Latched Offsets)
+        const float tX = std::clamp(p.timbreX + slot.latchedOffX, 0.0f, 1.0f);
+        const float tY = std::clamp((p.timbreY + slot.latchedOffY) * slot.timbreEnv, 0.0f, 1.0f);
+        const float tZ = std::clamp((p.timbreZ + slot.latchedOffZ) * slot.timbreEnv, 0.0f, 1.0f);
 
         // Advance Main Oscillator Phase
         slot.phase += curFreq * invSampleRate_;
@@ -826,7 +908,7 @@ private:
             } else {
                 lpgVactrolState_ += 0.003f * (targetLpg - lpgVactrolState_);
             }
-            const float lpgCutoff = std::clamp(lpgVactrolState_ * p.cutoff * invSampleRate_ * 3.14159f, 0.001f, 0.45f);
+            const float lpgCutoff = std::clamp(lpgVactrolState_ * effCutoffHz_ * invSampleRate_ * 3.14159f, 0.001f, 0.45f);
             lpgFilterState_ += lpgCutoff * (shaped - lpgFilterState_);
             filtered = lpgFilterState_;
         } else {
@@ -866,7 +948,7 @@ private:
 
         const float masterOut = FastMath::fastTanh(filtered * 0.95f) * p.volume;
 
-        const float pan = std::clamp(p.pan, -1.0f, 1.0f);
+        const float pan = std::clamp(p.pan + panOff_, -1.0f, 1.0f);
         const float gainL = (pan <= 0.0f) ? 1.0f : (1.0f - pan);
         const float gainR = (pan >= 0.0f) ? 1.0f : (1.0f + pan);
 
@@ -883,24 +965,14 @@ private:
         return 2.0f * u - 1.0f;
     }
 
-    static constexpr std::array<std::array<float, 4>, 16> kLoop16Table = {{
-        {{ 0.12f, -0.25f,  0.40f, -0.15f }},
-        {{-0.34f,  0.15f, -0.20f,  0.30f }},
-        {{ 0.55f, -0.10f,  0.10f, -0.05f }},
-        {{-0.18f,  0.35f, -0.45f,  0.22f }},
-        {{ 0.22f, -0.30f,  0.15f, -0.18f }},
-        {{-0.45f,  0.08f, -0.12f,  0.40f }},
-        {{ 0.38f, -0.15f,  0.28f, -0.25f }},
-        {{-0.10f,  0.25f, -0.32f,  0.12f }},
-        {{ 0.60f, -0.05f,  0.18f, -0.10f }},
-        {{-0.28f,  0.18f, -0.15f,  0.28f }},
-        {{ 0.15f, -0.22f,  0.35f, -0.30f }},
-        {{-0.50f,  0.30f, -0.28f,  0.15f }},
-        {{ 0.30f, -0.12f,  0.12f, -0.14f }},
-        {{-0.20f,  0.10f, -0.40f,  0.35f }},
-        {{ 0.42f, -0.28f,  0.22f, -0.20f }},
-        {{-0.08f,  0.14f, -0.18f,  0.10f }}
-    }};
+    inline float nextTrigBipolar() noexcept {
+        trigRng_ += 0x9E3779B9;
+        uint32_t z = trigRng_;
+        z = (z ^ (z >> 16)) * 0x85EBCA6B;
+        z = (z ^ (z >> 13)) * 0xC2B2AE35;
+        z ^= (z >> 16);
+        return static_cast<float>(static_cast<int32_t>(z)) * 4.656612875245797e-10f; // [-1.0, 1.0)
+    }
 
     float sampleRate_{48000.0f};
     float invSampleRate_{1.0f / 48000.0f};
@@ -935,7 +1007,10 @@ private:
     float crushedSample_{0.0f};
 
     uint32_t rngState_{0xDEADBEEF};
-    int loop16Step_{0};
+    uint32_t trigRng_{0x853C49E6};
+    float effCutoffHz_{2000.0f};
+    float panOff_{0.0f};
+    std::array<float, 8> latchedDraw_{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 
     int blockCounter_{0};
     float macroSmoothed_{0.5f};

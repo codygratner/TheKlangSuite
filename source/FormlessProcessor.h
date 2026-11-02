@@ -38,7 +38,12 @@ public:
     tkdsp::FormlessSpawnVoice& getVoice() { return voice_; }
 
     void triggerManual(float velocity = 0.95f) noexcept {
-        triggerVoice(velocity, -1.0f);
+        manualTriggerVel_.store(velocity, std::memory_order_release);
+    }
+
+    float getLatchedDraw(int i) const noexcept {
+        if (i >= 0 && i < 8) return latchedDraw_[i].load(std::memory_order_relaxed);
+        return 0.0f;
     }
 
 private:
@@ -68,11 +73,17 @@ private:
     std::atomic<float>* panParam_{nullptr};
     std::atomic<float>* velSensParam_{nullptr};
 
+    std::atomic<float> manualTriggerVel_{0.0f};
+    std::array<std::atomic<float>, 8> latchedDraw_{};
+
+    std::atomic<float>* randTXParam_{nullptr};
+    std::atomic<float>* randTYParam_{nullptr};
+    std::atomic<float>* randTZParam_{nullptr};
+    std::atomic<float>* randTTParam_{nullptr};
     std::atomic<float>* randPitchParam_{nullptr};
+    std::atomic<float>* randCutoffParam_{nullptr};
     std::atomic<float>* randDecayParam_{nullptr};
-    std::atomic<float>* randTimbreParam_{nullptr};
-    std::atomic<float>* randScatterParam_{nullptr};
-    std::atomic<float>* randModeParam_{nullptr};
+    std::atomic<float>* randPanParam_{nullptr};
     std::atomic<float>* macroDecayParam_{nullptr};
     std::atomic<float>* volumeParam_{nullptr};
 

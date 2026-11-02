@@ -1752,6 +1752,84 @@ int main() {
             std::cout << ">>> FormlessSpawn rendered test audio to formless_spawn_test.wav! <<<" << std::endl;
         }
 
+        // 5. 112-Model Macro Decay Matrix Metamorphic Verification
+        {
+            std::cout << "  -> Verifying 112-Model Macro Decay Matrix calibration & bounds..." << std::endl;
+            for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
+                for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
+                    const float baseAmp = tkdsp::FormlessSpawnVoice::kModelBaseAmpDecaySec[r][m];
+                    const float pResp   = tkdsp::FormlessSpawnVoice::kModelPitchDecayResponse[r][m];
+                    const float tResp   = tkdsp::FormlessSpawnVoice::kModelTimbreDecayResponse[r][m];
+                    assert(baseAmp >= 0.015f && baseAmp <= 2.500f);
+                    assert(pResp >= 0.0f && pResp <= 1.0f);
+                    assert(tResp >= 0.0f && tResp <= 1.0f);
+                }
+            }
+
+            // Verify all 112 models trigger cleanly across macro extremes (0.0, 0.5, 1.0)
+            tkdsp::FormlessSpawnVoice testVoice;
+            testVoice.prepare(48000.0f);
+            for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
+                for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
+                    for (float macro : {0.0f, 0.5f, 1.0f}) {
+                        testVoice.reset();
+                        testVoice.setRole(r);
+                        testVoice.setModel(m);
+                        tkdsp::FormlessSpawnVoice::Params p;
+                        p.role = r;
+                        p.model = m;
+                        p.macroDecay = macro;
+                        testVoice.trigger(0.9f, 55.0f, p);
+                        float blockL[128], blockR[128];
+                        testVoice.processBlockStereo(blockL, blockR, 128, p);
+                        for (int s = 0; s < 128; ++s) {
+                            assert(!std::isnan(blockL[s]) && !std::isinf(blockL[s]));
+                            assert(!std::isnan(blockR[s]) && !std::isinf(blockR[s]));
+                        }
+                    }
+                }
+            }
+
+            // Metamorphic Test: BOOM (BD Model 7) tail at macro 1.0 must sustain significantly longer than at macro 0.0
+            {
+                tkdsp::FormlessSpawnVoice boomShort, boomLong;
+                boomShort.prepare(48000.0f);
+                boomLong.prepare(48000.0f);
+
+                boomShort.setRole(0);
+                boomShort.setModel(7);
+                tkdsp::FormlessSpawnVoice::Params pShort;
+                pShort.role = 0; pShort.model = 7; pShort.macroDecay = 0.0f;
+                boomShort.trigger(1.0f, 45.0f, pShort);
+
+                boomLong.setRole(0);
+                boomLong.setModel(7);
+                tkdsp::FormlessSpawnVoice::Params pLong;
+                pLong.role = 0; pLong.model = 7; pLong.macroDecay = 1.0f;
+                boomLong.trigger(1.0f, 45.0f, pLong);
+
+                float shortRmsLate = 0.0f, longRmsLate = 0.0f;
+                const int kLateStart = 48000 / 2; // 0.5 seconds
+                const int kLateSamples = 4800;    // 100ms window
+
+                float blkShortL[64], blkShortR[64];
+                float blkLongL[64], blkLongR[64];
+                const int totalSamples = kLateStart + kLateSamples;
+                for (int s = 0; s < totalSamples; s += 64) {
+                    boomShort.processBlockStereo(blkShortL, blkShortR, 64, pShort);
+                    boomLong.processBlockStereo(blkLongL, blkLongR, 64, pLong);
+                    if (s >= kLateStart) {
+                        for (int i = 0; i < 64; ++i) {
+                            shortRmsLate += blkShortL[i] * blkShortL[i];
+                            longRmsLate  += blkLongL[i] * blkLongL[i];
+                        }
+                    }
+                }
+                assert(longRmsLate > shortRmsLate * 5.0f); // Macro 1.0 must sustain at least 5x late energy!
+            }
+            std::cout << "  -> 112-Model Macro Decay Matrix: All 112 models & metamorphic relations PASSED 100%!" << std::endl;
+        }
+
         std::cout << "PASS: FormlessSpawnEngine (Tsathogguan Percussion Workstation) verified 100%!\n" << std::endl;
     }
 
@@ -4083,16 +4161,23 @@ int main() {
             }
         }
 
-        // 4. Verify Latched PRNG Humanization (Free vs Loop16)
+        // 4. Verify 8-Axis Stepped Random Humanization Matrix
         {
             tkdsp::FormlessSpawnVoice::Params p;
-            p.randMode = 1; // LOOP16
-            p.randPitch = 2.0f;
-            p.randDecay = 20.0f;
-            p.randTimbre = 15.0f;
-            p.randScatter = 10.0f;
+            p.randTX = 30.0f;
+            p.randTY = 25.0f;
+            p.randTZ = 20.0f;
+            p.randTT = 40.0f;
+            p.randPitch = 3.0f;
+            p.randCutoff = 50.0f;
+            p.randDecay = 35.0f;
+            p.randPan = 25.0f;
             for (int t = 0; t < 32; ++t) {
                 voice.trigger(0.9f, -1.0f, p);
+                const auto& draws = voice.getLatchedDraws();
+                for (int i = 0; i < 8; ++i) {
+                    assert(draws[i] >= -1.0f && draws[i] <= 1.0f);
+                }
                 float l = 0.0f, r = 0.0f;
                 voice.processBlockStereo(&l, &r, 1, p);
                 assert(std::isfinite(l) && std::isfinite(r));

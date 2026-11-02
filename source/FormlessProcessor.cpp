@@ -27,11 +27,14 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
     panParam_        = apvts_.getRawParameterValue(pan);
     velSensParam_    = apvts_.getRawParameterValue(vel_sens);
 
+    randTXParam_     = apvts_.getRawParameterValue(rand_tx);
+    randTYParam_     = apvts_.getRawParameterValue(rand_ty);
+    randTZParam_     = apvts_.getRawParameterValue(rand_tz);
+    randTTParam_     = apvts_.getRawParameterValue(rand_tt);
     randPitchParam_  = apvts_.getRawParameterValue(rand_pitch);
+    randCutoffParam_ = apvts_.getRawParameterValue(rand_cutoff);
     randDecayParam_  = apvts_.getRawParameterValue(rand_decay);
-    randTimbreParam_ = apvts_.getRawParameterValue(rand_timbre);
-    randScatterParam_= apvts_.getRawParameterValue(rand_scatter);
-    randModeParam_   = apvts_.getRawParameterValue(rand_mode);
+    randPanParam_    = apvts_.getRawParameterValue(rand_pan);
     macroDecayParam_ = apvts_.getRawParameterValue(macro_decay);
     volumeParam_     = apvts_.getRawParameterValue(volume);
 
@@ -84,11 +87,14 @@ void FormlessSpawnAudioProcessor::loadVoiceParams(tkdsp::FormlessSpawnVoice::Par
     if (panParam_)        p.pan = panParam_->load(std::memory_order_relaxed);
     if (velSensParam_)    p.velSens = velSensParam_->load(std::memory_order_relaxed);
 
+    if (randTXParam_)     p.randTX = randTXParam_->load(std::memory_order_relaxed);
+    if (randTYParam_)     p.randTY = randTYParam_->load(std::memory_order_relaxed);
+    if (randTZParam_)     p.randTZ = randTZParam_->load(std::memory_order_relaxed);
+    if (randTTParam_)     p.randTT = randTTParam_->load(std::memory_order_relaxed);
     if (randPitchParam_)  p.randPitch = randPitchParam_->load(std::memory_order_relaxed);
+    if (randCutoffParam_) p.randCutoff = randCutoffParam_->load(std::memory_order_relaxed);
     if (randDecayParam_)  p.randDecay = randDecayParam_->load(std::memory_order_relaxed);
-    if (randTimbreParam_) p.randTimbre = randTimbreParam_->load(std::memory_order_relaxed);
-    if (randScatterParam_)p.randScatter = randScatterParam_->load(std::memory_order_relaxed);
-    if (randModeParam_)   p.randMode = static_cast<int>(randModeParam_->load(std::memory_order_relaxed));
+    if (randPanParam_)    p.randPan = randPanParam_->load(std::memory_order_relaxed);
     if (macroDecayParam_) p.macroDecay = macroDecayParam_->load(std::memory_order_relaxed);
     if (volumeParam_)     p.volume = volumeParam_->load(std::memory_order_relaxed);
 
@@ -113,6 +119,8 @@ void FormlessSpawnAudioProcessor::triggerVoice(float velocity, float noteHz) noe
     voice_.setRole(p.role);
     voice_.setModel(p.model);
     voice_.trigger(velocity, noteHz, p);
+    const auto& draws = voice_.getLatchedDraws();
+    for (int i = 0; i < 8; ++i) latchedDraw_[i].store(draws[i], std::memory_order_relaxed);
 }
 
 void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
@@ -125,7 +133,15 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     voice_.setRole(p.role);
     voice_.setModel(p.model);
 
-    // 2. Process MIDI Note Events
+    // 2. Check Lock-Free Manual Trigger Mailbox (Resolving B1)
+    const float manualVel = manualTriggerVel_.exchange(0.0f, std::memory_order_acquire);
+    if (manualVel > 0.001f) {
+        voice_.trigger(manualVel, -1.0f, p);
+        const auto& draws = voice_.getLatchedDraws();
+        for (int i = 0; i < 8; ++i) latchedDraw_[i].store(draws[i], std::memory_order_relaxed);
+    }
+
+    // 3. Process MIDI Note Events
     for (const auto metadata : midiMessages) {
         const auto msg = metadata.getMessage();
         if (msg.isNoteOn()) {
@@ -133,6 +149,8 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             const float vel = msg.getFloatVelocity();
             const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(note));
             voice_.trigger(vel, noteHz, p);
+            const auto& draws = voice_.getLatchedDraws();
+            for (int i = 0; i < 8; ++i) latchedDraw_[i].store(draws[i], std::memory_order_relaxed);
         }
     }
 
