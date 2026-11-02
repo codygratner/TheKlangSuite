@@ -9,6 +9,655 @@
 #include <functional>
 
 // ==============================================================================
+// PresetStubComponent: Recessed Identity & Preset Capsule
+// ==============================================================================
+class PresetStubComponent : public juce::Component {
+public:
+    PresetStubComponent() {
+        setInterceptsMouseClicks(false, false);
+    }
+
+    void setAccentColour(juce::Colour c) {
+        if (accent_ != c) {
+            accent_ = c;
+            repaint();
+        }
+    }
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        g.setColour(juce::Colour(0xFF0F131A));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
+        g.setColour(accent_.withAlpha(0.92f));
+        g.drawText("<  01: DEFAULT VOID  >", bounds, juce::Justification::centred);
+    }
+
+private:
+    juce::Colour accent_{0xFFFFAA00};
+};
+
+// ==============================================================================
+// HeaderInspector: Universal Header Mouse-Over & Live Drag Telemetry Panel
+// ==============================================================================
+class HeaderInspector : public juce::Component {
+public:
+    struct Readout {
+        juce::String name;
+        juce::String value;
+        juce::String blurb;
+        juce::Colour accent{0xFFFFAA00};
+        bool isDefault{false};
+    };
+
+    HeaderInspector() {
+        setInterceptsMouseClicks(false, false);
+        setReadoutDefault();
+    }
+
+    void setReadout(Readout r) {
+        if (readout_.name == r.name && readout_.value == r.value &&
+            readout_.blurb == r.blurb && readout_.accent == r.accent &&
+            readout_.isDefault == r.isDefault)
+            return;
+
+        readout_ = std::move(r);
+        repaint();
+    }
+
+    void setReadoutDefault() {
+        Readout d;
+        d.name = "FORMLESS SPAWN";
+        d.value = "READY";
+        d.blurb = "sovereign 112-model percussion synthesizer";
+        d.accent = juce::Colour(0xFFFFAA00);
+        d.isDefault = true;
+        setReadout(d);
+    }
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+
+        // Recessed OLED display cavity
+        g.setColour(juce::Colour(0xFF0F131A));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        // Col 1: Parameter / System Name (x: 10, w: 105, 12.5pt bold)
+        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 105.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
+        g.setColour(readout_.accent);
+        g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
+
+        // Col 2: Formatted Value (x: 120, w: 85, 12.5pt bold)
+        auto valRect = juce::Rectangle<float>(bounds.getX() + 120.0f, bounds.getY(), 85.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
+        g.setColour(juce::Colour(0xFFF0F6FC));
+        g.drawText(readout_.value, valRect, juce::Justification::centredLeft, true);
+
+        // Col 3: Separator (x: 208, w: 12)
+        auto sepRect = juce::Rectangle<float>(bounds.getX() + 208.0f, bounds.getY(), 12.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(12.5f)));
+        g.setColour(juce::Colour(0xFF8B949E));
+        g.drawText(juce::CharPointer_UTF8("\xe2\x80\x94"), sepRect, juce::Justification::centred);
+
+        // Col 4: Explanation blurb (x: 224, w: rest)
+        float blurbW = std::max(50.0f, bounds.getWidth() - 232.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 224.0f, bounds.getY(), blurbW, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(12.0f)));
+        g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
+        g.drawText(readout_.blurb, blurbRect, juce::Justification::centredLeft, true);
+    }
+
+private:
+    Readout readout_;
+};
+
+// ==============================================================================
+// 3-Way Rocker Toggle (Lifeform Triad)
+// ==============================================================================
+class FormlessRocker3 : public juce::Component {
+public:
+    FormlessRocker3(const std::array<juce::String, 3>& labels) : labels_(labels) {}
+
+    void setState(int idx) {
+        idx = std::clamp(idx, 0, 2);
+        if (activeIndex_ != idx) {
+            activeIndex_ = idx;
+            repaint();
+        }
+    }
+
+    int getState() const noexcept { return activeIndex_; }
+    std::function<void(int)> onSelect;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        g.setColour(juce::Colour(0xFF161B22));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF30363D));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        const float segW = bounds.getWidth() / 3.0f;
+        auto activeRect = juce::Rectangle<float>(bounds.getX() + activeIndex_ * segW, bounds.getY(), segW, bounds.getHeight());
+        g.setColour(colours_[activeIndex_]);
+        g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
+
+        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
+        for (int i = 0; i < 3; ++i) {
+            bool isActive = (i == activeIndex_);
+            auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
+            g.setColour(isActive ? juce::Colour(0xFF0D1117) : juce::Colour(0xFFF0F6FC));
+            g.drawText(labels_[i], segRect, juce::Justification::centred);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        const float segW = static_cast<float>(getWidth()) / 3.0f;
+        int clickedIdx = std::clamp(static_cast<int>(e.position.x / segW), 0, 2);
+        if (clickedIdx != activeIndex_) {
+            activeIndex_ = clickedIdx;
+            if (onSelect) onSelect(activeIndex_);
+            repaint();
+        }
+    }
+
+private:
+    std::array<juce::String, 3> labels_;
+    int activeIndex_{2}; // Default: Organic
+    std::array<juce::Colour, 3> colours_{
+        juce::Colour(0xFF00C8FF), // Synthetic
+        juce::Colour(0xFFE08C00), // Cyborg
+        juce::Colour(0xFF6BBF59)  // Organic
+    };
+};
+
+// ==============================================================================
+// FormlessRoleGrid2x4: 2x4 Role Matrix (Cell 0,0 is etched "ROLE" header)
+// ==============================================================================
+class FormlessRoleGrid2x4 : public juce::Component {
+public:
+    FormlessRoleGrid2x4() = default;
+
+    void setState(int roleIdx) {
+        roleIdx = std::clamp(roleIdx, 0, 6);
+        if (activeRole_ != roleIdx) {
+            activeRole_ = roleIdx;
+            repaint();
+        }
+    }
+
+    int getState() const noexcept { return activeRole_; }
+    std::function<void(int)> onSelect;
+    std::function<void(int)> onHover;
+    std::function<void()> onHoverExit;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        if (bounds.isEmpty()) return;
+
+        g.setColour(juce::Colour(0xFF161B22));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF30363D));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        const float colW = bounds.getWidth() / 4.0f;
+        const float rowH = bounds.getHeight() / 2.0f;
+
+        // Cell (0, 0): Non-clickable etched header "ROLE"
+        auto roleRect = juce::Rectangle<float>(bounds.getX(), bounds.getY(), colW, rowH);
+        g.setColour(juce::Colour(0xFF0D1117));
+        g.fillRoundedRectangle(roleRect.reduced(1.0f), 3.0f);
+        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.setColour(juce::Colour(0xFF8B949E));
+        g.drawText("ROLE", roleRect, juce::Justification::centred);
+
+        // 7 Roles Mapping:
+        // (0, 1): BD (0)
+        // (0, 2): TM (1)
+        // (0, 3): SD (2)
+        // (1, 0): CP (3)
+        // (1, 1): HH (4)
+        // (1, 2): CY (5)
+        // (1, 3): FX (6)
+        static const int kRoleCells[7][2] = {
+            {0, 1}, {0, 2}, {0, 3},
+            {1, 0}, {1, 1}, {1, 2}, {1, 3}
+        };
+
+        // Grid Dividers
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
+        for (int c = 1; c < 4; ++c) {
+            float divX = bounds.getX() + c * colW;
+            g.drawVerticalLine(static_cast<int>(std::round(divX)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
+        }
+
+        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+        for (int r = 0; r < 7; ++r) {
+            int row = kRoleCells[r][0];
+            int col = kRoleCells[r][1];
+            auto cellRect = juce::Rectangle<float>(bounds.getX() + col * colW, bounds.getY() + row * rowH, colW, rowH);
+            bool isActive = (r == activeRole_);
+
+            if (isActive) {
+                g.setColour(juce::Colour(0xFFFF9D00)); // Gold/Amber fill
+                g.fillRoundedRectangle(cellRect.reduced(1.0f), 3.0f);
+                g.setColour(juce::Colour(0xFF0D1117));
+            } else {
+                g.setColour(juce::Colour(0xFFF0F6FC));
+            }
+
+            g.drawText(tkdsp::FormlessSpawnVoice::kRoleNames[r], cellRect, juce::Justification::centred);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        int r = getRoleAt(e.position);
+        if (r >= 0 && r != activeRole_) {
+            activeRole_ = r;
+            if (onSelect) onSelect(activeRole_);
+            repaint();
+        }
+    }
+
+    void mouseMove(const juce::MouseEvent& e) override {
+        int r = getRoleAt(e.position);
+        if (r >= 0) {
+            if (onHover) onHover(r);
+        } else {
+            if (onHoverExit) onHoverExit();
+        }
+    }
+
+    void mouseExit(const juce::MouseEvent&) override {
+        if (onHoverExit) onHoverExit();
+    }
+
+private:
+    int getRoleAt(juce::Point<float> pos) const {
+        const float colW = getWidth() / 4.0f;
+        const float rowH = getHeight() / 2.0f;
+        int col = std::clamp(static_cast<int>(pos.x / colW), 0, 3);
+        int row = std::clamp(static_cast<int>(pos.y / rowH), 0, 1);
+
+        if (row == 0 && col == 0) return -1; // Header plate
+        if (row == 0) return col - 1;        // 0..2 (BD, TM, SD)
+        return col + 3;                      // 3..6 (CP, HH, CY, FX)
+    }
+
+    int activeRole_{0};
+};
+
+// ==============================================================================
+// FormlessModelGrid2x8: 2x8 Physical Model Matrix (16 Tactile Buttons, Zero Menus)
+// ==============================================================================
+class FormlessModelGrid2x8 : public juce::Component {
+public:
+    FormlessModelGrid2x8() = default;
+
+    void setRoleAndModel(int roleIdx, int modelIdx) {
+        roleIdx = std::clamp(roleIdx, 0, tkdsp::FormlessSpawnVoice::kTotalRoles - 1);
+        modelIdx = std::clamp(modelIdx, 0, tkdsp::FormlessSpawnVoice::kModelsPerRole - 1);
+        if (activeRole_ != roleIdx || activeModel_ != modelIdx) {
+            activeRole_ = roleIdx;
+            activeModel_ = modelIdx;
+            repaint();
+        }
+    }
+
+    void setModel(int modelIdx) {
+        modelIdx = std::clamp(modelIdx, 0, tkdsp::FormlessSpawnVoice::kModelsPerRole - 1);
+        if (activeModel_ != modelIdx) {
+            activeModel_ = modelIdx;
+            repaint();
+        }
+    }
+
+    int getModel() const noexcept { return activeModel_; }
+    std::function<void(int)> onSelect;
+    std::function<void(int, const juce::String&)> onHover;
+    std::function<void()> onHoverExit;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        if (bounds.isEmpty()) return;
+
+        g.setColour(juce::Colour(0xFF161B22));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF30363D));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        const float colW = bounds.getWidth() / 8.0f;
+        const float rowH = bounds.getHeight() / 2.0f;
+
+        // Dividers
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
+        for (int c = 1; c < 8; ++c) {
+            float divX = bounds.getX() + c * colW;
+            g.drawVerticalLine(static_cast<int>(std::round(divX)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
+        }
+
+        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
+
+        for (int m = 0; m < 16; ++m) {
+            int row = m / 8;
+            int col = m % 8;
+            auto cellRect = juce::Rectangle<float>(bounds.getX() + col * colW, bounds.getY() + row * rowH, colW, rowH);
+            bool isActive = (m == activeModel_);
+
+            if (isActive) {
+                g.setColour(juce::Colour(0xFF00C8FF)); // Cyan active
+                g.fillRoundedRectangle(cellRect.reduced(1.0f), 3.0f);
+                g.setColour(juce::Colour(0xFF0D1117));
+            } else {
+                g.setColour(juce::Colour(0xFFF0F6FC));
+            }
+
+            const char* name = tkdsp::FormlessSpawnVoice::kModelNames[activeRole_][m];
+            g.drawText(name, cellRect, juce::Justification::centred);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        int m = getModelAt(e.position);
+        if (m >= 0 && m != activeModel_) {
+            activeModel_ = m;
+            if (onSelect) onSelect(activeModel_);
+            repaint();
+        }
+    }
+
+    void mouseMove(const juce::MouseEvent& e) override {
+        int m = getModelAt(e.position);
+        if (m >= 0) {
+            if (onHover) onHover(m, tkdsp::FormlessSpawnVoice::kModelNames[activeRole_][m]);
+        } else {
+            if (onHoverExit) onHoverExit();
+        }
+    }
+
+    void mouseExit(const juce::MouseEvent&) override {
+        if (onHoverExit) onHoverExit();
+    }
+
+private:
+    int getModelAt(juce::Point<float> pos) const {
+        const float colW = getWidth() / 8.0f;
+        const float rowH = getHeight() / 2.0f;
+        int col = std::clamp(static_cast<int>(pos.x / colW), 0, 7);
+        int row = std::clamp(static_cast<int>(pos.y / rowH), 0, 1);
+        return row * 8 + col;
+    }
+
+    int activeRole_{0};
+    int activeModel_{0};
+};
+
+// ==============================================================================
+// FormlessVerticalBar: Vertical 2-Stack (DIODE / LPG)
+// ==============================================================================
+class FormlessVerticalBar : public juce::Component {
+public:
+    FormlessVerticalBar(const std::array<juce::String, 2>& labels) : labels_(labels) {}
+
+    void setAccentColour(juce::Colour c) {
+        accent_ = c;
+        repaint();
+    }
+
+    void setState(int idx) {
+        idx = std::clamp(idx, 0, 1);
+        if (activeIndex_ != idx) {
+            activeIndex_ = idx;
+            repaint();
+        }
+    }
+
+    int getState() const noexcept { return activeIndex_; }
+    std::function<void(int)> onSelect;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        if (bounds.isEmpty()) return;
+
+        g.setColour(juce::Colour(0xFF161B22));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF30363D));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        const float rowH = bounds.getHeight() * 0.5f;
+        auto activeRect = juce::Rectangle<float>(bounds.getX(), bounds.getY() + activeIndex_ * rowH, bounds.getWidth(), rowH);
+        g.setColour(accent_);
+        g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
+
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
+
+        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        for (int i = 0; i < 2; ++i) {
+            bool isActive = (i == activeIndex_);
+            auto r = juce::Rectangle<float>(bounds.getX(), bounds.getY() + i * rowH, bounds.getWidth(), rowH);
+            g.setColour(isActive ? juce::Colour(0xFF0D1117) : juce::Colour(0xFFF0F6FC));
+            g.drawText(labels_[i], r, juce::Justification::centred);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        const float rowH = getHeight() * 0.5f;
+        int clickedIdx = std::clamp(static_cast<int>(e.position.y / rowH), 0, 1);
+        if (clickedIdx != activeIndex_) {
+            activeIndex_ = clickedIdx;
+            if (onSelect) onSelect(activeIndex_);
+            repaint();
+        }
+    }
+
+private:
+    std::array<juce::String, 2> labels_;
+    int activeIndex_{0};
+    juce::Colour accent_{0xFF6BBF59};
+};
+
+// ==============================================================================
+// FormlessGrid2x2: 2x2 Mojo Profile Selector (CLEAN, MD-12, SP-12, IRON)
+// ==============================================================================
+class FormlessGrid2x2 : public juce::Component {
+public:
+    FormlessGrid2x2(const std::array<juce::String, 4>& labels) : labels_(labels) {}
+
+    void setAccentColour(juce::Colour c) {
+        accent_ = c;
+        repaint();
+    }
+
+    void setState(int idx) {
+        idx = std::clamp(idx, 0, 3);
+        if (activeIndex_ != idx) {
+            activeIndex_ = idx;
+            repaint();
+        }
+    }
+
+    int getState() const noexcept { return activeIndex_; }
+    std::function<void(int)> onSelect;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        if (bounds.isEmpty()) return;
+
+        g.setColour(juce::Colour(0xFF161B22));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF30363D));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        const float colW = bounds.getWidth() * 0.5f;
+        const float rowH = bounds.getHeight() * 0.5f;
+
+        // Dividers
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
+        g.drawVerticalLine(static_cast<int>(std::round(bounds.getX() + colW)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
+
+        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        for (int i = 0; i < 4; ++i) {
+            int row = i / 2;
+            int col = i % 2;
+            auto cellRect = juce::Rectangle<float>(bounds.getX() + col * colW, bounds.getY() + row * rowH, colW, rowH);
+            bool isActive = (i == activeIndex_);
+
+            if (isActive) {
+                g.setColour(accent_);
+                g.fillRoundedRectangle(cellRect.reduced(1.0f), 3.0f);
+                g.setColour(juce::Colour(0xFF0D1117));
+            } else {
+                g.setColour(juce::Colour(0xFFF0F6FC));
+            }
+
+            g.drawText(labels_[i], cellRect, juce::Justification::centred);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        const float colW = getWidth() * 0.5f;
+        const float rowH = getHeight() * 0.5f;
+        int col = std::clamp(static_cast<int>(e.position.x / colW), 0, 1);
+        int row = std::clamp(static_cast<int>(e.position.y / rowH), 0, 1);
+        int clickedIdx = row * 2 + col;
+        if (clickedIdx != activeIndex_) {
+            activeIndex_ = clickedIdx;
+            if (onSelect) onSelect(activeIndex_);
+            repaint();
+        }
+    }
+
+private:
+    std::array<juce::String, 4> labels_;
+    int activeIndex_{0};
+    juce::Colour accent_{0xFFFF5252};
+};
+
+// ==============================================================================
+// TactileTriggerPad: Center Altar Drum Trigger with Tactile Gold Flash
+// ==============================================================================
+class TactileTriggerPad : public juce::Component {
+public:
+    TactileTriggerPad() = default;
+
+    std::function<void()> onTrigger;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        if (isDown_) {
+            g.setColour(juce::Colour(0xFFFFAA00)); // Gold flash on strike
+            g.fillRoundedRectangle(bounds, 5.0f);
+            g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+            g.setColour(juce::Colour(0xFF0D1117));
+            g.drawText("TRIG", bounds, juce::Justification::centred);
+        } else {
+            g.setColour(juce::Colour(0xFF21262D));
+            g.fillRoundedRectangle(bounds, 5.0f);
+            g.setColour(juce::Colour(0xFF30363D));
+            g.drawRoundedRectangle(bounds, 5.0f, 1.2f);
+            g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+            g.setColour(juce::Colour(0xFFF0F6FC));
+            g.drawText("TRIG", bounds, juce::Justification::centred);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent&) override {
+        isDown_ = true;
+        repaint();
+        if (onTrigger) onTrigger();
+    }
+
+    void mouseUp(const juce::MouseEvent&) override {
+        isDown_ = false;
+        repaint();
+    }
+
+private:
+    bool isDown_{false};
+};
+
+// ==============================================================================
+// Segmented Button Bar Component (for Rand Mode)
+// ==============================================================================
+class FormlessSegmentedBar : public juce::Component {
+public:
+    FormlessSegmentedBar(const std::vector<juce::String>& labels) : labels_(labels) {}
+
+    void setAccentColour(juce::Colour c) {
+        accent_ = c;
+        repaint();
+    }
+
+    void setState(int idx) {
+        idx = std::clamp(idx, 0, static_cast<int>(labels_.size()) - 1);
+        if (activeIndex_ != idx) {
+            activeIndex_ = idx;
+            repaint();
+        }
+    }
+
+    int getState() const noexcept { return activeIndex_; }
+    std::function<void(int)> onSelect;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        if (bounds.isEmpty() || labels_.empty()) return;
+
+        g.setColour(juce::Colour(0xFF161B22));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF30363D));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        const int numSegs = static_cast<int>(labels_.size());
+        const float segW = bounds.getWidth() / static_cast<float>(numSegs);
+
+        auto activeRect = juce::Rectangle<float>(bounds.getX() + activeIndex_ * segW, bounds.getY(), segW, bounds.getHeight());
+        g.setColour(accent_);
+        g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
+
+        g.setColour(juce::Colour(0xFF262D38));
+        for (int i = 1; i < numSegs; ++i) {
+            if (i != activeIndex_ && i != activeIndex_ + 1) {
+                float divX = bounds.getX() + i * segW;
+                g.drawVerticalLine(static_cast<int>(std::round(divX)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
+            }
+        }
+
+        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
+        for (int i = 0; i < numSegs; ++i) {
+            bool isActive = (i == activeIndex_);
+            auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
+            g.setColour(isActive ? juce::Colour(0xFF0D1117) : juce::Colour(0xFFF0F6FC));
+            g.drawText(labels_[i], segRect, juce::Justification::centred);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        const float segW = static_cast<float>(getWidth()) / static_cast<float>(labels_.size());
+        int clickedIdx = std::clamp(static_cast<int>(e.position.x / segW), 0, static_cast<int>(labels_.size()) - 1);
+        if (clickedIdx != activeIndex_) {
+            activeIndex_ = clickedIdx;
+            if (onSelect) onSelect(activeIndex_);
+            repaint();
+        }
+    }
+
+private:
+    std::vector<juce::String> labels_;
+    int activeIndex_{0};
+    juce::Colour accent_{0xFF00C8FF};
+};
+
+// ==============================================================================
 // Formless LookAndFeel (Vector Dial Mechanics matching Hastur)
 // ==============================================================================
 class FormlessLookAndFeel : public juce::LookAndFeel_V4 {
@@ -79,137 +728,6 @@ public:
 };
 
 // ==============================================================================
-// Segmented Button Bar Component
-// ==============================================================================
-class FormlessSegmentedBar : public juce::Component {
-public:
-    FormlessSegmentedBar(const std::vector<juce::String>& labels) : labels_(labels) {}
-
-    void setAccentColour(juce::Colour c) {
-        accent_ = c;
-        repaint();
-    }
-
-    void setState(int idx) {
-        idx = std::clamp(idx, 0, static_cast<int>(labels_.size()) - 1);
-        if (activeIndex_ != idx) {
-            activeIndex_ = idx;
-            repaint();
-        }
-    }
-
-    int getState() const noexcept { return activeIndex_; }
-    std::function<void(int)> onSelect;
-
-    void paint(juce::Graphics& g) override {
-        auto bounds = getLocalBounds().toFloat();
-        if (bounds.isEmpty() || labels_.empty()) return;
-
-        g.setColour(juce::Colour(0xFF161B22));
-        g.fillRoundedRectangle(bounds, 4.0f);
-        g.setColour(juce::Colour(0xFF30363D));
-        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
-
-        const int numSegs = static_cast<int>(labels_.size());
-        const float segW = bounds.getWidth() / static_cast<float>(numSegs);
-
-        auto activeRect = juce::Rectangle<float>(bounds.getX() + activeIndex_ * segW, bounds.getY(), segW, bounds.getHeight());
-        g.setColour(accent_);
-        g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
-
-        g.setColour(juce::Colour(0xFF262D38));
-        for (int i = 1; i < numSegs; ++i) {
-            if (i != activeIndex_ && i != activeIndex_ + 1) {
-                float divX = bounds.getX() + i * segW;
-                g.drawVerticalLine(static_cast<int>(std::round(divX)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
-            }
-        }
-
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
-        for (int i = 0; i < numSegs; ++i) {
-            bool isActive = (i == activeIndex_);
-            auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
-            g.setColour(isActive ? juce::Colour(0xFF0D1117) : juce::Colour(0xFFF0F6FC));
-            g.drawText(labels_[i], segRect, juce::Justification::centred);
-        }
-    }
-
-    void mouseDown(const juce::MouseEvent& e) override {
-        const float segW = static_cast<float>(getWidth()) / static_cast<float>(labels_.size());
-        int clickedIdx = std::clamp(static_cast<int>(e.position.x / segW), 0, static_cast<int>(labels_.size()) - 1);
-        if (clickedIdx != activeIndex_) {
-            activeIndex_ = clickedIdx;
-            if (onSelect) onSelect(activeIndex_);
-            repaint();
-        }
-    }
-
-private:
-    std::vector<juce::String> labels_;
-    int activeIndex_{0};
-    juce::Colour accent_{0xFF00C8FF};
-};
-
-// ==============================================================================
-// 3-Way Rocker Toggle (Lifeform Triad)
-// ==============================================================================
-class FormlessRocker3 : public juce::Component {
-public:
-    FormlessRocker3(const std::array<juce::String, 3>& labels) : labels_(labels) {}
-
-    void setState(int idx) {
-        idx = std::clamp(idx, 0, 2);
-        if (activeIndex_ != idx) {
-            activeIndex_ = idx;
-            repaint();
-        }
-    }
-
-    int getState() const noexcept { return activeIndex_; }
-    std::function<void(int)> onSelect;
-
-    void paint(juce::Graphics& g) override {
-        auto bounds = getLocalBounds().toFloat();
-        g.setColour(juce::Colour(0xFF161B22));
-        g.fillRoundedRectangle(bounds, 4.0f);
-        g.setColour(juce::Colour(0xFF30363D));
-        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
-
-        const float segW = bounds.getWidth() / 3.0f;
-        auto activeRect = juce::Rectangle<float>(bounds.getX() + activeIndex_ * segW, bounds.getY(), segW, bounds.getHeight());
-        g.setColour(colours_[activeIndex_]);
-        g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
-
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
-        for (int i = 0; i < 3; ++i) {
-            bool isActive = (i == activeIndex_);
-            auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
-            g.setColour(isActive ? juce::Colour(0xFF0D1117) : juce::Colour(0xFFF0F6FC));
-            g.drawText(labels_[i], segRect, juce::Justification::centred);
-        }
-    }
-
-    void mouseDown(const juce::MouseEvent& e) override {
-        const float segW = static_cast<float>(getWidth()) / 3.0f;
-        int clickedIdx = std::clamp(static_cast<int>(e.position.x / segW), 0, 2);
-        if (clickedIdx != activeIndex_) {
-            activeIndex_ = clickedIdx;
-            if (onSelect) onSelect(activeIndex_);
-            repaint();
-        }
-    }
-
-private:
-    std::array<juce::String, 3> labels_;
-    int activeIndex_{2}; // Default: Organic
-    std::array<juce::Colour, 3> colours_{
-        juce::Colour(0xFF00C8FF), // Synthetic
-        juce::Colour(0xFFE08C00), // Cyborg
-        juce::Colour(0xFF6BBF59)  // Organic
-    };
-};
-
-// ==============================================================================
 // Formless Spawn AudioProcessorEditor
 // ==============================================================================
 class FormlessSpawnAudioProcessorEditor : public juce::AudioProcessorEditor {
@@ -227,60 +745,64 @@ private:
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
     };
 
-    void setupKnob(KnobItem& item, const juce::String& paramId, const juce::String& name, juce::Colour col, bool isBipolar = false);
-    void updateModelLabels(int modelIndex);
+    void setupKnob(KnobItem& item, const juce::String& paramId, const juce::String& name,
+                   const juce::String& unit, const juce::String& blurb,
+                   juce::Colour col, bool isBipolar = false);
 
     FormlessSpawnAudioProcessor& processor_;
     FormlessLookAndFeel lnf_;
 
-    // Header Selectors
-    FormlessSegmentedBar roleBar_{{"BD", "SD", "HH", "PERC", "FX"}};
-    FormlessSegmentedBar modelBar_{{"ER-1", "909", "FOLD"}};
-    FormlessRocker3      lifeformRocker_{{"SYN", "CYB", "ORG"}};
-    FormlessSegmentedBar keyTrackBar_{{"FIXED", "KEY"}};
-    juce::TextButton     trigButton_{"TRIG"};
+    // Header Row 1
+    PresetStubComponent presetStub_;
+    HeaderInspector     headerInspector_;
+    FormlessRocker3     lifeformRocker_{{"SYN", "CYB", "ORG"}};
+
+    // Card 0: Voice Navigator & Model Matrix
+    FormlessRoleGrid2x4  roleGrid_;
+    FormlessModelGrid2x8 modelGrid_;
 
     // Card 1 Knobs: Drum Core & Pitch Lab (8)
-    KnobItem pitchKnob_;        // Hero 72
-    KnobItem pitchDepthKnob_;   // Standard 52 (bipolar)
-    KnobItem pitchDecayKnob_;   // Standard 52
-    KnobItem pitchCurveKnob_;   // Standard 52 (bipolar)
-    KnobItem clickTuneKnob_;    // Standard 52
-    KnobItem clickMixKnob_;     // Standard 52
-    KnobItem subLevelKnob_;     // Standard 52
-    KnobItem lowBoostKnob_;     // Standard 52
+    KnobItem pitchKnob_;
+    KnobItem pitchDepthKnob_;
+    KnobItem pitchDecayKnob_;
+    KnobItem pitchCurveKnob_;
+    KnobItem clickTuneKnob_;
+    KnobItem clickMixKnob_;
+    KnobItem subLevelKnob_;
+    KnobItem lowBoostKnob_;
 
     // Card 2 Knobs: Model Timbre & Acoustic Lab (8)
-    KnobItem timbreXKnob_;      // Standard 52
-    KnobItem timbreYKnob_;      // Standard 52
-    KnobItem timbreZKnob_;      // Standard 52
-    KnobItem timbreTKnob_;      // Standard 52 (Timbre Settle)
-    KnobItem fmMorphKnob_;      // Standard 52
-    KnobItem dampKnob_;         // Standard 52
-    KnobItem panKnob_;          // Standard 52 (bipolar)
-    KnobItem velSensKnob_;      // Standard 52
+    KnobItem timbreXKnob_;
+    KnobItem timbreYKnob_;
+    KnobItem timbreZKnob_;
+    KnobItem timbreTKnob_;
+    KnobItem fmMorphKnob_;
+    KnobItem dampKnob_;
+    KnobItem panKnob_;
+    KnobItem velSensKnob_;
 
-    // Card 3 Left Pod: Stepped Random (4 knobs + 1 button)
-    KnobItem randPitchKnob_;    // Standard 52
-    KnobItem randDecayKnob_;    // Standard 52
-    KnobItem randTimbreKnob_;   // Standard 52
-    KnobItem randScatterKnob_;  // Standard 52
+    // Card 3 Pod 1: Stepped Random (4 knobs + 1 button)
+    KnobItem randPitchKnob_;
+    KnobItem randDecayKnob_;
+    KnobItem randTimbreKnob_;
+    KnobItem randScatterKnob_;
     FormlessSegmentedBar randModeBar_{{"FREE", "LOOP16"}};
 
-    // Card 3 Center Altar: The One Big Knob (1 Big + 1 Standard)
-    KnobItem macroDecayKnob_;   // Giant 92
-    KnobItem volumeKnob_;       // Standard 52
+    // Card 3 Pod 2: The Performance Altar (EXACTLY TWO CONTROLS)
+    KnobItem          macroDecayKnob_;
+    TactileTriggerPad trigButton_;
 
-    // Card 3 Right Pod: VCF & Universal Mojo Strip (7 knobs + 2 buttons)
-    KnobItem cutoffKnob_;       // Hero 72
-    KnobItem resonanceKnob_;    // Standard 52
-    KnobItem preDriveKnob_;     // Standard 52
-    KnobItem crushKnob_;        // Standard 52
-    KnobItem bitsKnob_;         // Standard 52
-    KnobItem tapeGlueKnob_;     // Standard 52
-    KnobItem mojoMixKnob_;      // Standard 52
-    FormlessSegmentedBar vcfModeBar_{{"DIODE", "LPG"}};
-    FormlessSegmentedBar mojoProfileBar_{{"CLEAN", "MD-12", "SP-12", "IRON"}};
+    // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (7 knobs + 2 selectors)
+    KnobItem            cutoffKnob_;
+    KnobItem            resonanceKnob_;
+    KnobItem            preDriveKnob_;
+    KnobItem            crushKnob_;
+    KnobItem            bitsKnob_;
+    KnobItem            tapeGlueKnob_;
+    KnobItem            mojoMixKnob_;
+    KnobItem            volumeKnob_;
+    FormlessVerticalBar vcfModeBar_{{"DIODE", "LPG"}};
+    FormlessGrid2x2     mojoProfileBar_{{"CLEAN", "MD-12", "SP-12", "IRON"}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessorEditor)
 };

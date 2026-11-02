@@ -48,7 +48,6 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
     roleParam_       = apvts_.getRawParameterValue(role);
     modelParam_      = apvts_.getRawParameterValue(model);
     lifeModeParam_   = apvts_.getRawParameterValue(life_mode);
-    keyTrackParam_   = apvts_.getRawParameterValue(key_track);
 }
 
 void FormlessSpawnAudioProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/) {
@@ -106,12 +105,12 @@ void FormlessSpawnAudioProcessor::loadVoiceParams(tkdsp::FormlessSpawnVoice::Par
     if (roleParam_)       p.role = static_cast<int>(roleParam_->load(std::memory_order_relaxed));
     if (modelParam_)      p.model = static_cast<int>(modelParam_->load(std::memory_order_relaxed));
     if (lifeModeParam_)   p.lifeMode = static_cast<int>(lifeModeParam_->load(std::memory_order_relaxed));
-    if (keyTrackParam_)   p.keyTrack = static_cast<int>(keyTrackParam_->load(std::memory_order_relaxed));
 }
 
 void FormlessSpawnAudioProcessor::triggerVoice(float velocity, float noteHz) noexcept {
     tkdsp::FormlessSpawnVoice::Params p;
     loadVoiceParams(p);
+    voice_.setRole(p.role);
     voice_.setModel(p.model);
     voice_.trigger(velocity, noteHz, p);
 }
@@ -123,6 +122,7 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // 1. Gather Parameter Snapshot
     tkdsp::FormlessSpawnVoice::Params p;
     loadVoiceParams(p);
+    voice_.setRole(p.role);
     voice_.setModel(p.model);
 
     // 2. Process MIDI Note Events

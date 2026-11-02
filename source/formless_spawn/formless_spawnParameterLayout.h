@@ -57,22 +57,17 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // role [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::role, 1}, formless_spawnParameters::Names::role,
-        juce::StringArray{"BD", "SD", "HH", "PERC", "FX"}, 0));
+        juce::StringArray{"BD", "TM", "SD", "CP", "HH", "CY", "FX"}, 0));
 
     // model [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::model, 1}, formless_spawnParameters::Names::model,
-        juce::StringArray{"Tsathoggua ER-1", "Bridged-T 909", "Wavefold Core"}, 0));
+        juce::StringArray{"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"}, 0));
 
     // life_mode [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::life_mode, 1}, formless_spawnParameters::Names::life_mode,
         juce::StringArray{"Synthetic", "Cyborg", "Organic"}, 0));
-
-    // key_track [header]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{formless_spawnParameters::Ids::key_track, 1}, formless_spawnParameters::Names::key_track,
-        juce::StringArray{"Fixed", "Key"}, 0));
 
     // pitch [core]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

@@ -10,7 +10,6 @@ namespace Ids {
     constexpr auto role = "role";
     constexpr auto model = "model";
     constexpr auto life_mode = "life_mode";
-    constexpr auto key_track = "key_track";
     constexpr auto pitch = "pitch";
     constexpr auto pitch_depth = "pitch_depth";
     constexpr auto pitch_decay = "pitch_decay";
@@ -49,7 +48,6 @@ namespace Names {
     constexpr auto role = "Drum Role";
     constexpr auto model = "Synthesis Model";
     constexpr auto life_mode = "Lifeform Character";
-    constexpr auto key_track = "Key Tracking";
     constexpr auto pitch = "Base Pitch";
     constexpr auto pitch_depth = "Pitch Env Depth";
     constexpr auto pitch_decay = "Pitch Env Decay";
@@ -85,6 +83,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 36;
+    constexpr int count = 35;
 } // namespace Total
 } // namespace formless_spawnParameters

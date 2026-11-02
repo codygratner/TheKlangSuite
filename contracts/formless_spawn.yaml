@@ -12,7 +12,7 @@ parameters:
     short: ROLE
     category: header
     type: choice
-    choices: [BD, SD, HH, PERC, FX]
+    choices: [BD, TM, SD, CP, HH, CY, FX]
     default: 0
 
   - id: model
@@ -20,7 +20,7 @@ parameters:
     short: MODEL
     category: header
     type: choice
-    choices: [Tsathoggua ER-1, Bridged-T 909, Wavefold Core]
+    choices: ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"]
     default: 0
 
   - id: life_mode
@@ -30,14 +30,6 @@ parameters:
     type: choice
     choices: [Synthetic, Cyborg, Organic]
     default: 2
-
-  - id: key_track
-    name: Key Tracking
-    short: KEYTRK
-    category: header
-    type: choice
-    choices: [Fixed, Key]
-    default: 0
 
   # ==============================================================================
   # CARD 1: DRUM CORE & PITCH LAB (8 parameters)

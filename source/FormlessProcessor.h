@@ -89,7 +89,6 @@ private:
     std::atomic<float>* roleParam_{nullptr};
     std::atomic<float>* modelParam_{nullptr};
     std::atomic<float>* lifeModeParam_{nullptr};
-    std::atomic<float>* keyTrackParam_{nullptr};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessor)
 };
