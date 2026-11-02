@@ -89,13 +89,12 @@ private:
 
     std::atomic<float>* cutoffParam_{nullptr};
     std::atomic<float>* resonanceParam_{nullptr};
-    std::atomic<float>* vcfModeParam_{nullptr};
+    std::atomic<float>* filterTypeParam_{nullptr};
     std::atomic<float>* preDriveParam_{nullptr};
     std::atomic<float>* crushParam_{nullptr};
     std::atomic<float>* bitsParam_{nullptr};
     std::atomic<float>* tapeGlueParam_{nullptr};
     std::atomic<float>* mojoProfileParam_{nullptr};
-    std::atomic<float>* mojoMixParam_{nullptr};
 
     std::atomic<float>* roleParam_{nullptr};
     std::atomic<float>* modelParam_{nullptr};

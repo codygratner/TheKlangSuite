@@ -38,13 +38,12 @@ namespace Ids {
     constexpr auto volume = "volume";
     constexpr auto cutoff = "cutoff";
     constexpr auto resonance = "resonance";
-    constexpr auto vcf_mode = "vcf_mode";
+    constexpr auto filter_type = "filter_type";
     constexpr auto pre_drive = "pre_drive";
     constexpr auto crush = "crush";
     constexpr auto bits = "bits";
     constexpr auto tape_glue = "tape_glue";
     constexpr auto mojo_profile = "mojo_profile";
-    constexpr auto mojo_mix = "mojo_mix";
 } // namespace Ids
 
 namespace Names {
@@ -79,16 +78,15 @@ namespace Names {
     constexpr auto volume = "Master Volume";
     constexpr auto cutoff = "Filter Cutoff";
     constexpr auto resonance = "Filter Resonance";
-    constexpr auto vcf_mode = "Filter Topology";
+    constexpr auto filter_type = "Filter Type";
     constexpr auto pre_drive = "Pre-Filter Drive";
     constexpr auto crush = "Mojo Sample Crush";
     constexpr auto bits = "Mojo Bit Reduction";
     constexpr auto tape_glue = "Mojo Tape Glue";
     constexpr auto mojo_profile = "Mojo Profile";
-    constexpr auto mojo_mix = "Mojo Mix";
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 38;
+    constexpr int count = 37;
 } // namespace Total
 } // namespace formless_spawnParameters

@@ -839,16 +839,15 @@ private:
     KnobItem          macroDecayKnob_;
     TactileTriggerPad trigButton_;
 
-    // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (7 knobs + 2 selectors)
+    // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (6 knobs + 2 2x2 grids + master knob)
     KnobItem            cutoffKnob_;
     KnobItem            resonanceKnob_;
     KnobItem            preDriveKnob_;
     KnobItem            crushKnob_;
     KnobItem            bitsKnob_;
     KnobItem            tapeGlueKnob_;
-    KnobItem            mojoMixKnob_;
     KnobItem            volumeKnob_;
-    FormlessVerticalBar vcfModeBar_{{"DIODE", "LPG"}};
+    FormlessGrid2x2     filterTypeBar_{{"LP", "HP", "BP", "BR"}};
     FormlessGrid2x2     mojoProfileBar_{{"CLEAN", "MD-12", "SP-12", "IRON"}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessorEditor)

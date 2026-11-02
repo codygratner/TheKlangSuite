@@ -181,10 +181,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{formless_spawnParameters::Ids::resonance, 1}, formless_spawnParameters::Names::resonance, 0.0f, 1.0f, 0.3000f));
 
-    // vcf_mode [filter]
+    // filter_type [filter]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{formless_spawnParameters::Ids::vcf_mode, 1}, formless_spawnParameters::Names::vcf_mode,
-        juce::StringArray{"24dB Diode", "Buchla LPG"}, 0));
+        juce::ParameterID{formless_spawnParameters::Ids::filter_type, 1}, formless_spawnParameters::Names::filter_type,
+        juce::StringArray{"LP", "HP", "BP", "BR"}, 0));
 
     // pre_drive [drive]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -206,10 +206,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::mojo_profile, 1}, formless_spawnParameters::Names::mojo_profile,
         juce::StringArray{"Clean", "MD-12", "SP-1200", "Iron Tape"}, 0));
-
-    // mojo_mix [mojo]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::mojo_mix, 1}, formless_spawnParameters::Names::mojo_mix, 0.0f, 100.0f, 0.0000f));
 
     return layout;
 }

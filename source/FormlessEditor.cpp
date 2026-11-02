@@ -141,17 +141,16 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     setupKnob(crushKnob_,     crush,        "CRUSH",     "Hz", "mojo sample rate decimation frequency",      juce::Colour(0xFFFF5252));
     setupKnob(bitsKnob_,      bits,         "BITS",      "bit","mojo word-length bit reduction",             juce::Colour(0xFFFF5252));
     setupKnob(tapeGlueKnob_,  tape_glue,    "TAPE",      "%",  "analog tape glue saturation and warmth",     juce::Colour(0xFFFF5252));
-    setupKnob(mojoMixKnob_,   mojo_mix,     "MOJO-MIX",  "%",  "delta crossover hardware mojo wet/dry mix",  juce::Colour(0xFFFF5252));
     setupKnob(volumeKnob_,    volume,       "VOLUME",    "%",  "master output stage level",                  juce::Colour(0xFFF0F6FC));
 
-    vcfModeBar_.setAccentColour(juce::Colour(0xFF6BBF59));
-    vcfModeBar_.onSelect = [&apvts](int idx) {
-        if (auto* param = apvts.getParameter(vcf_mode))
+    filterTypeBar_.setAccentColour(juce::Colour(0xFF6BBF59));
+    filterTypeBar_.onSelect = [&apvts](int idx) {
+        if (auto* param = apvts.getParameter(filter_type))
             param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
     };
-    if (auto* param = apvts.getRawParameterValue(vcf_mode))
-        vcfModeBar_.setState(static_cast<int>(param->load()));
-    addAndMakeVisible(vcfModeBar_);
+    if (auto* param = apvts.getRawParameterValue(filter_type))
+        filterTypeBar_.setState(static_cast<int>(param->load()));
+    addAndMakeVisible(filterTypeBar_);
 
     mojoProfileBar_.setAccentColour(juce::Colour(0xFFFF5252));
     mojoProfileBar_.onSelect = [&apvts](int idx) {
@@ -438,36 +437,33 @@ void FormlessSpawnAudioProcessorEditor::resized() {
     const int pod3X = 548;
     const int pod3Y = 408;
 
-    // Row 1: CUTOFF (Hero 68), RES (56), VCF MODE (Vert 62x50), DRIVE (56)
+    // Row 1: CUTOFF (Hero 68), RES (56), DRIVE (52), FILTER TYPE 2x2 (98x50)
     cutoffKnob_.label.setBounds(pod3X + 10, pod3Y + 22, 68, 14);
     cutoffKnob_.slider.setBounds(pod3X + 10, pod3Y + 38, 68, 68);
 
     resonanceKnob_.label.setBounds(pod3X + 88, pod3Y + 28, 56, 14);
     resonanceKnob_.slider.setBounds(pod3X + 88, pod3Y + 44, 56, 56);
 
-    vcfModeBar_.setBounds(pod3X + 156, pod3Y + 46, 62, 52);
+    preDriveKnob_.label.setBounds(pod3X + 154, pod3Y + 28, 52, 14);
+    preDriveKnob_.slider.setBounds(pod3X + 154, pod3Y + 46, 52, 52);
 
-    preDriveKnob_.label.setBounds(pod3X + 232, pod3Y + 28, 56, 14);
-    preDriveKnob_.slider.setBounds(pod3X + 232, pod3Y + 44, 56, 56);
+    filterTypeBar_.setBounds(pod3X + 214, pod3Y + 46, 98, 50);
 
-    // Row 2: CRUSH (56), [Spacer], BITS (56), TAPE (56)
+    // Row 2: CRUSH (56), BITS (56), TAPE (52), MOJO PROFILE 2x2 (98x50)
     crushKnob_.label.setBounds(pod3X + 16, pod3Y + 116, 56, 14);
     crushKnob_.slider.setBounds(pod3X + 16, pod3Y + 132, 56, 56);
 
-    bitsKnob_.label.setBounds(pod3X + 159, pod3Y + 116, 56, 14);
-    bitsKnob_.slider.setBounds(pod3X + 159, pod3Y + 132, 56, 56);
+    bitsKnob_.label.setBounds(pod3X + 88, pod3Y + 116, 56, 14);
+    bitsKnob_.slider.setBounds(pod3X + 88, pod3Y + 132, 56, 56);
 
-    tapeGlueKnob_.label.setBounds(pod3X + 232, pod3Y + 116, 56, 14);
-    tapeGlueKnob_.slider.setBounds(pod3X + 232, pod3Y + 132, 56, 56);
+    tapeGlueKnob_.label.setBounds(pod3X + 154, pod3Y + 116, 52, 14);
+    tapeGlueKnob_.slider.setBounds(pod3X + 154, pod3Y + 132, 52, 52);
 
-    // Row 3: MOJO-MIX (52), PROFILE 2x2 (118x48), VOLUME (Hero 60)
-    mojoMixKnob_.label.setBounds(pod3X + 16, pod3Y + 196, 56, 12);
-    mojoMixKnob_.slider.setBounds(pod3X + 18, pod3Y + 208, 52, 40);
+    mojoProfileBar_.setBounds(pod3X + 214, pod3Y + 134, 98, 50);
 
-    mojoProfileBar_.setBounds(pod3X + 88, pod3Y + 200, 118, 48);
-
-    volumeKnob_.label.setBounds(pod3X + 230, pod3Y + 194, 60, 12);
-    volumeKnob_.slider.setBounds(pod3X + 230, pod3Y + 206, 60, 44);
+    // Row 3: Master Output Anchor: VOLUME (Hero 64)
+    volumeKnob_.label.setBounds(pod3X + 228, pod3Y + 194, 70, 14);
+    volumeKnob_.slider.setBounds(pod3X + 231, pod3Y + 206, 64, 44);
 }
 
 void FormlessSpawnAudioProcessorEditor::timerCallback() {

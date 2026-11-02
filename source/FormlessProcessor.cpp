@@ -40,13 +40,12 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
 
     cutoffParam_     = apvts_.getRawParameterValue(cutoff);
     resonanceParam_  = apvts_.getRawParameterValue(resonance);
-    vcfModeParam_    = apvts_.getRawParameterValue(vcf_mode);
+    filterTypeParam_ = apvts_.getRawParameterValue(filter_type);
     preDriveParam_   = apvts_.getRawParameterValue(pre_drive);
     crushParam_      = apvts_.getRawParameterValue(crush);
     bitsParam_       = apvts_.getRawParameterValue(bits);
     tapeGlueParam_   = apvts_.getRawParameterValue(tape_glue);
     mojoProfileParam_= apvts_.getRawParameterValue(mojo_profile);
-    mojoMixParam_    = apvts_.getRawParameterValue(mojo_mix);
 
     roleParam_       = apvts_.getRawParameterValue(role);
     modelParam_      = apvts_.getRawParameterValue(model);
@@ -100,13 +99,12 @@ void FormlessSpawnAudioProcessor::loadVoiceParams(tkdsp::FormlessSpawnVoice::Par
 
     if (cutoffParam_)     p.cutoff = cutoffParam_->load(std::memory_order_relaxed);
     if (resonanceParam_)  p.resonance = resonanceParam_->load(std::memory_order_relaxed);
-    if (vcfModeParam_)    p.vcfMode = static_cast<int>(vcfModeParam_->load(std::memory_order_relaxed));
+    if (filterTypeParam_) p.filterType = static_cast<int>(filterTypeParam_->load(std::memory_order_relaxed));
     if (preDriveParam_)   p.preDrive = preDriveParam_->load(std::memory_order_relaxed);
     if (crushParam_)      p.crush = crushParam_->load(std::memory_order_relaxed);
     if (bitsParam_)       p.bits = bitsParam_->load(std::memory_order_relaxed);
     if (tapeGlueParam_)   p.tapeGlue = tapeGlueParam_->load(std::memory_order_relaxed);
     if (mojoProfileParam_)p.mojoProfile = static_cast<int>(mojoProfileParam_->load(std::memory_order_relaxed));
-    if (mojoMixParam_)    p.mojoMix = mojoMixParam_->load(std::memory_order_relaxed);
 
     if (roleParam_)       p.role = static_cast<int>(roleParam_->load(std::memory_order_relaxed));
     if (modelParam_)      p.model = static_cast<int>(modelParam_->load(std::memory_order_relaxed));

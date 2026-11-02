@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FastMath.h"
+#include "../common/AudioEffect.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -170,17 +171,16 @@ public:
         float velSens{0.70f};        // 0.0 .. 1.0
 
         // =====================================================================
-        // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (9)
+        // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (8)
         // =====================================================================
         float cutoff{2000.0f};       // 20.0 .. 20000.0 Hz
         float resonance{0.30f};      // 0.0 .. 1.0
-        int   vcfMode{0};            // 0=24dB Diode, 1=Buchla LPG
+        int   filterType{0};         // 0=LP, 1=HP, 2=BP, 3=BR
         float preDrive{0.15f};       // 0.0 .. 1.0
         float crush{48000.0f};       // 1000.0 .. 48000.0 Hz
         float bits{16.0f};           // 4.0 .. 16.0 bits
         float tapeGlue{0.0f};        // 0.0 .. 1.0
         int   mojoProfile{0};        // 0=Clean, 1=MD-12, 2=SP-1200, 3=Iron Tape
-        float mojoMix{0.0f};         // 0.0 .. 100.0 %
 
         // =====================================================================
         // Card 3 Pod 1 & 2: Stepped Random & Master Altar (10)
@@ -219,7 +219,7 @@ public:
         fadeRemaining_ = 0;
         fadeTotal_ = 64;
 
-        for (auto& s : filterState_) s = 0.0f;
+        vcfSvf_.reset();
         lpgVactrolState_ = 0.0f;
         lpgFilterState_ = 0.0f;
         lowBoostState_ = 0.0f;
@@ -419,10 +419,15 @@ private:
 
         // VCF Cutoff Pre-Warping with Latched Stepped Random Modulation
         const float rawCutoff = std::clamp(effCutoffHz_, 20.0f, nyquist_);
-        const float normCutoff = rawCutoff * invSampleRate_;
-        const float wa = 2.0f * sampleRate_ * std::tan(normCutoff * 3.1415926535f);
-        vcfG_ = wa * 0.5f * invSampleRate_;
-        vcfReso_ = std::clamp(p.resonance * 3.8f, 0.0f, 3.85f);
+        const float q = 0.5f + p.resonance * 7.5f;
+
+        switch (p.filterType) {
+            case 0: vcfSvf_.setLowpass(rawCutoff, q, invSampleRate_); break;
+            case 1: vcfSvf_.setHighpass(rawCutoff, q, invSampleRate_); break;
+            case 2: vcfSvf_.setBandpass(rawCutoff, q, invSampleRate_); break;
+            case 3: vcfSvf_.setNotch(rawCutoff, q, invSampleRate_); break;
+            default: vcfSvf_.setLowpass(rawCutoff, q, invSampleRate_); break;
+        }
 
         lowBoostGain_ = FastMath::fastPow2(p.lowBoost * (1.0f / 6.0f));
 
@@ -901,7 +906,7 @@ private:
 
         float filtered = 0.0f;
 
-        if (p.vcfMode == 1 || p.lifeMode == static_cast<int>(LifeMode::Organic)) {
+        if (p.lifeMode == static_cast<int>(LifeMode::Organic) && p.filterType == 0) {
             const float targetLpg = std::clamp(active.ampEnv + 0.02f, 0.0f, 1.0f);
             if (targetLpg > lpgVactrolState_) {
                 lpgVactrolState_ += 0.08f * (targetLpg - lpgVactrolState_);
@@ -912,17 +917,14 @@ private:
             lpgFilterState_ += lpgCutoff * (shaped - lpgFilterState_);
             filtered = lpgFilterState_;
         } else {
-            const float g = std::clamp(vcfG_, 0.001f, 0.95f);
-            const float h = g / (1.0f + g);
-            float u = shaped - vcfReso_ * filterState_[3];
-            u = FastMath::fastTanh(u);
-
-            for (int stage = 0; stage < 4; ++stage) {
-                const float in = (stage == 0) ? u : filterState_[stage - 1];
-                const float v = (in - filterState_[stage]) * h;
-                filterState_[stage] += 2.0f * v;
+            float rawFilt = vcfSvf_.process(shaped);
+            if (p.filterType == 2) {
+                // Red Team BP Headroom Compensation: normalize high-Q peak
+                const float qVal = 0.5f + p.resonance * 7.5f;
+                rawFilt *= std::min(1.0f, 2.0f / (1.0f + qVal * 0.15f));
             }
-            filtered = filterState_[3];
+            vcfSvf_.clampState();
+            filtered = rawFilt;
         }
 
         if (p.lowBoost > 0.01f) {
@@ -932,10 +934,12 @@ private:
             filtered += thump;
         }
 
-        if (p.mojoMix > 0.01f) {
+        const bool mojoActive = (p.crush < 47500.0f) || (p.bits < 15.9f) || 
+                                (p.tapeGlue > 0.01f) || (p.mojoProfile != 0);
+        if (mojoActive) {
             const float highBand = processHp4(filtered);
             const float processedHigh = processMojo(highBand, p);
-            filtered = filtered + (p.mojoMix * 0.01f) * (processedHigh - highBand);
+            filtered = filtered + (processedHigh - highBand);
         }
 
         const float hp = filtered - dcBlockerState_;
@@ -989,9 +993,7 @@ private:
     int activeModel_{0};
     int pendingModel_{0};
 
-    std::array<float, 4> filterState_{};
-    float vcfG_{0.1f};
-    float vcfReso_{0.0f};
+    TbdAudio::DSPCommon::CytomicSVF vcfSvf_{};
     float lpgVactrolState_{0.0f};
     float lpgFilterState_{0.0f};
     float lowBoostState_{0.0f};

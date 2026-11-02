@@ -4123,25 +4123,47 @@ int main() {
             }
         }
 
-        // 2. Verify Delta Crossover Mojo Strip: Zero Latency & Clean Sub Pass
+        // 2. Verify Multi-Mode Filter (LP, HP, BP, BR) and Direct Delta Mojo Insertion
         {
+            // Verify all 4 filter types process cleanly
+            for (int fType = 0; fType < 4; ++fType) {
+                voice.reset();
+                tkdsp::FormlessSpawnVoice::Params p;
+                p.filterType = fType;
+                p.cutoff = 1500.0f;
+                p.resonance = 0.6f;
+                voice.trigger(0.9f, -1.0f, p);
+                float fL = 0.0f, fR = 0.0f;
+                float peak = 0.0f;
+                for (int s = 0; s < 512; ++s) {
+                    voice.processBlockStereo(&fL, &fR, 1, p);
+                    assert(std::isfinite(fL) && std::isfinite(fR));
+                    peak = std::max(peak, std::max(std::abs(fL), std::abs(fR)));
+                }
+                assert(peak > 0.001f);
+            }
+
+            // Verify Neutral Mojo Bypass (bit-identical zero delta)
             voice.reset();
-            tkdsp::FormlessSpawnVoice::Params p;
-            p.mojoMix = 0.0f; // Bit-identical dry bypass by construction
-            voice.trigger(0.9f, -1.0f, p);
+            tkdsp::FormlessSpawnVoice::Params pNeutral;
+            pNeutral.crush = 48000.0f;
+            pNeutral.bits = 16.0f;
+            pNeutral.tapeGlue = 0.0f;
+            pNeutral.mojoProfile = 0;
+            voice.trigger(0.9f, -1.0f, pNeutral);
             float dryL = 0.0f, dryR = 0.0f;
-            voice.processBlockStereo(&dryL, &dryR, 1, p);
+            voice.processBlockStereo(&dryL, &dryR, 1, pNeutral);
             assert(std::isfinite(dryL) && std::isfinite(dryR));
 
-            // With Mojo engaged (100% mix, crush and tape glue)
-            p.mojoMix = 100.0f;
-            p.crush = 8000.0f;
-            p.bits = 8.0f;
-            p.tapeGlue = 0.5f;
-            voice.trigger(0.9f, -1.0f, p);
+            // With Mojo engaged directly (crush, bits, tape glue)
+            tkdsp::FormlessSpawnVoice::Params pMojo;
+            pMojo.crush = 8000.0f;
+            pMojo.bits = 8.0f;
+            pMojo.tapeGlue = 0.5f;
+            voice.trigger(0.9f, -1.0f, pMojo);
             float wetL = 0.0f, wetR = 0.0f;
             for (int s = 0; s < 512; ++s) {
-                voice.processBlockStereo(&wetL, &wetR, 1, p);
+                voice.processBlockStereo(&wetL, &wetR, 1, pMojo);
                 assert(std::isfinite(wetL) && std::isfinite(wetR));
             }
         }

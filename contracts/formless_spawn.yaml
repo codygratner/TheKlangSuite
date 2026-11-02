@@ -1,6 +1,6 @@
 plugin: formless_spawn
 name: Formless Spawn Sovereign Drum Voice
-version: 2.2.0
+version: 2.3.0
 manufacturer: The Cult of Klang
 
 parameters:
@@ -317,12 +317,12 @@ parameters:
     range: [0.0, 1.0]
     default: 0.3
 
-  - id: vcf_mode
-    name: Filter Topology
-    short: VCF-MODE
+  - id: filter_type
+    name: Filter Type
+    short: TYPE
     category: filter
     type: choice
-    choices: [24dB Diode, Buchla LPG]
+    choices: [LP, HP, BP, BR]
     default: 0
 
   - id: pre_drive
@@ -372,12 +372,3 @@ parameters:
     choices: [Clean, MD-12, SP-1200, Iron Tape]
     default: 0
 
-  - id: mojo_mix
-    name: Mojo Mix
-    short: MOJO-MIX
-    category: mojo
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
