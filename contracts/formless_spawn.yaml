@@ -1,0 +1,169 @@
+plugin: formless_spawn
+name: Formless Spawn Sovereign Drum Voice
+version: 2.0.0
+manufacturer: The Cult of Klang
+
+parameters:
+  # ==============================================================================
+  # HEADER CONTROLS (4 selectors)
+  # ==============================================================================
+  - id: role
+    name: Drum Role
+    category: header
+    type: choice
+    choices: [BD, SD, HH, PERC, FX]
+    default: 0
+
+  - id: model
+    name: Synthesis Model
+    category: header
+    type: choice
+    choices: [Tsathoggua ER-1, Bridged-T 909, Wavefold Core]
+    default: 0
+
+  - id: life_mode
+    name: Lifeform Character
+    category: header
+    type: choice
+    choices: [Synthetic, Cyborg, Organic]
+    default: 2
+
+  - id: key_track
+    name: Key Tracking
+    category: header
+    type: choice
+    choices: [Fixed, Key]
+    default: 0
+
+  # ==============================================================================
+  # CARD 1: DRUM CORE & TIMBRE LAB (8 parameters)
+  # ==============================================================================
+  - id: pitch
+    name: Base Pitch
+    category: core
+    type: float
+    effect: pitch
+    range: [20.0, 200.0]
+    default: 55.0
+
+  - id: macro_decay
+    name: Macro Decay
+    category: core
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: punch
+    name: Punch Click
+    category: core
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: pitch_depth
+    name: Pitch Env Depth
+    category: core
+    type: float
+    effect: pitch
+    range: [-48.0, 48.0]
+    default: 24.0
+
+  - id: pitch_decay
+    name: Pitch Env Decay
+    category: core
+    type: float
+    effect: dynamics
+    range: [2.0, 100.0]
+    default: 25.0
+
+  - id: timbre_x
+    name: Timbre X (Ratio)
+    category: timbre
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.25
+
+  - id: timbre_y
+    name: Timbre Y (FM Depth)
+    category: timbre
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.35
+
+  - id: timbre_z
+    name: Timbre Z (Wavefold)
+    category: timbre
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.20
+
+  # ==============================================================================
+  # CARD 2: VCF, SATURATION & OUTPUT (8 parameters)
+  # ==============================================================================
+  - id: cutoff
+    name: Filter Cutoff
+    category: filter
+    type: float
+    effect: filter
+    range: [20.0, 20000.0]
+    default: 2000.0
+
+  - id: resonance
+    name: Filter Resonance
+    category: filter
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.3
+
+  - id: vcf_mode
+    name: Filter Topology
+    category: filter
+    type: choice
+    choices: [24dB Diode, Buchla LPG]
+    default: 0
+
+  - id: pre_drive
+    name: Pre-Filter Drive
+    category: drive
+    type: float
+    effect: saturation
+    range: [0.0, 1.0]
+    default: 0.15
+
+  - id: low_boost
+    name: Low Boost Thump
+    category: tone
+    type: float
+    effect: tone
+    range: [0.0, 1.0]
+    default: 0.35
+
+  - id: saturate
+    name: Master Saturation
+    category: drive
+    type: float
+    effect: saturation
+    range: [0.0, 1.0]
+    default: 0.25
+
+  - id: pan
+    name: Voice Pan
+    category: output
+    type: float
+    effect: output
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: volume
+    name: Master Volume
+    category: output
+    type: float
+    effect: output
+    range: [0.0, 1.0]
+    default: 0.85

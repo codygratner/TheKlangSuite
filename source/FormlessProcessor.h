@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "dsp/drums/FormlessSpawnEngine.h"
+#include "dsp/drums/FormlessSpawnVoice.h"
 
 class FormlessSpawnAudioProcessor : public juce::AudioProcessor {
 public:
@@ -35,17 +35,42 @@ public:
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
-    tkdsp::FormlessSpawnEngine& getEngine() { return engine_; }
+    tkdsp::FormlessSpawnVoice& getVoice() { return voice_; }
+
+    void triggerManual(float velocity = 0.95f) noexcept {
+        triggerVoice(velocity, -1.0f);
+    }
 
 private:
-    tkdsp::FormlessSpawnEngine engine_;
+    void triggerVoice(float velocity, float noteHz) noexcept;
+
+    tkdsp::FormlessSpawnVoice voice_;
     juce::UndoManager undoManager_;
     juce::AudioProcessorValueTreeState apvts_;
 
     // Cached raw parameter pointers for lock-free audio thread access
-    std::array<std::array<std::atomic<float>*, tkdsp::FormlessSpawnEngine::kNumParamsPerVoice>, tkdsp::FormlessSpawnEngine::kTotalVoices> cachedParams_{};
-    std::atomic<float>* masterLowBoostParam_{nullptr};
-    std::atomic<float>* masterDriveParam_{nullptr};
+    std::atomic<float>* pitchParam_{nullptr};
+    std::atomic<float>* macroDecayParam_{nullptr};
+    std::atomic<float>* punchParam_{nullptr};
+    std::atomic<float>* pitchDepthParam_{nullptr};
+    std::atomic<float>* pitchDecayParam_{nullptr};
+    std::atomic<float>* timbreXParam_{nullptr};
+    std::atomic<float>* timbreYParam_{nullptr};
+    std::atomic<float>* timbreZParam_{nullptr};
+
+    std::atomic<float>* cutoffParam_{nullptr};
+    std::atomic<float>* resonanceParam_{nullptr};
+    std::atomic<float>* vcfModeParam_{nullptr};
+    std::atomic<float>* preDriveParam_{nullptr};
+    std::atomic<float>* lowBoostParam_{nullptr};
+    std::atomic<float>* saturateParam_{nullptr};
+    std::atomic<float>* panParam_{nullptr};
+    std::atomic<float>* volumeParam_{nullptr};
+
+    std::atomic<float>* roleParam_{nullptr};
+    std::atomic<float>* modelParam_{nullptr};
+    std::atomic<float>* lifeModeParam_{nullptr};
+    std::atomic<float>* keyTrackParam_{nullptr};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessor)
 };

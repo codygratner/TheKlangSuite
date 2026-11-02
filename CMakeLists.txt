@@ -320,6 +320,7 @@ target_sources(FormlessSpawn PRIVATE
     source/FormlessProcessor.cpp
     source/FormlessEditor.h
     source/FormlessEditor.cpp
+    source/dsp/drums/FormlessSpawnVoice.h
 )
 
 target_include_directories(FormlessSpawn PRIVATE source)

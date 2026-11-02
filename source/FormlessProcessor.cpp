@@ -1,27 +1,42 @@
 #include "FormlessProcessor.h"
 #include "FormlessEditor.h"
+#include "formless_spawn/formless_spawnParameterIds.h"
+#include "formless_spawn/formless_spawnParameterLayout.h"
 
 FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts_(*this, &undoManager_, "PARAMS", createParameterLayout())
 {
-    // Cache raw parameter pointers for lock-free audio thread reads
-    for (int v = 0; v < tkdsp::FormlessSpawnEngine::kTotalVoices; ++v) {
-        for (int p = 0; p < tkdsp::FormlessSpawnEngine::kNumParamsPerVoice; ++p) {
-            juce::String id = "v" + juce::String(v) + "_p" + juce::String(p);
-            cachedParams_[v][p] = apvts_.getRawParameterValue(id);
-        }
-    }
-    masterLowBoostParam_ = apvts_.getRawParameterValue("master_low_boost");
-    masterDriveParam_ = apvts_.getRawParameterValue("master_drive");
+    pitchParam_      = apvts_.getRawParameterValue("pitch");
+    macroDecayParam_ = apvts_.getRawParameterValue("macro_decay");
+    punchParam_      = apvts_.getRawParameterValue("punch");
+    pitchDepthParam_ = apvts_.getRawParameterValue("pitch_depth");
+    pitchDecayParam_ = apvts_.getRawParameterValue("pitch_decay");
+    timbreXParam_    = apvts_.getRawParameterValue("timbre_x");
+    timbreYParam_    = apvts_.getRawParameterValue("timbre_y");
+    timbreZParam_    = apvts_.getRawParameterValue("timbre_z");
+
+    cutoffParam_     = apvts_.getRawParameterValue("cutoff");
+    resonanceParam_  = apvts_.getRawParameterValue("resonance");
+    vcfModeParam_    = apvts_.getRawParameterValue("vcf_mode");
+    preDriveParam_   = apvts_.getRawParameterValue("pre_drive");
+    lowBoostParam_   = apvts_.getRawParameterValue("low_boost");
+    saturateParam_   = apvts_.getRawParameterValue("saturate");
+    panParam_        = apvts_.getRawParameterValue("pan");
+    volumeParam_     = apvts_.getRawParameterValue("volume");
+
+    roleParam_       = apvts_.getRawParameterValue("role");
+    modelParam_      = apvts_.getRawParameterValue("model");
+    lifeModeParam_   = apvts_.getRawParameterValue("life_mode");
+    keyTrackParam_   = apvts_.getRawParameterValue("key_track");
 }
 
 void FormlessSpawnAudioProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/) {
-    engine_.prepare(static_cast<float>(sampleRate));
+    voice_.prepare(static_cast<float>(sampleRate));
 }
 
 void FormlessSpawnAudioProcessor::releaseResources() {
-    engine_.reset();
+    voice_.reset();
 }
 
 bool FormlessSpawnAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
@@ -31,84 +46,81 @@ bool FormlessSpawnAudioProcessor::isBusesLayoutSupported(const BusesLayout& layo
     return true;
 }
 
+void FormlessSpawnAudioProcessor::triggerVoice(float velocity, float noteHz) noexcept {
+    tkdsp::FormlessSpawnVoice::Params p;
+    if (pitchParam_)      p.pitch = pitchParam_->load(std::memory_order_relaxed);
+    if (macroDecayParam_) p.macroDecay = macroDecayParam_->load(std::memory_order_relaxed);
+    if (punchParam_)      p.punch = punchParam_->load(std::memory_order_relaxed);
+    if (pitchDepthParam_) p.pitchDepth = pitchDepthParam_->load(std::memory_order_relaxed);
+    if (pitchDecayParam_) p.pitchDecay = pitchDecayParam_->load(std::memory_order_relaxed);
+    if (timbreXParam_)    p.timbreX = timbreXParam_->load(std::memory_order_relaxed);
+    if (timbreYParam_)    p.timbreY = timbreYParam_->load(std::memory_order_relaxed);
+    if (timbreZParam_)    p.timbreZ = timbreZParam_->load(std::memory_order_relaxed);
+    if (cutoffParam_)     p.cutoff = cutoffParam_->load(std::memory_order_relaxed);
+    if (resonanceParam_)  p.resonance = resonanceParam_->load(std::memory_order_relaxed);
+    if (vcfModeParam_)    p.vcfMode = static_cast<int>(vcfModeParam_->load(std::memory_order_relaxed));
+    if (preDriveParam_)   p.preDrive = preDriveParam_->load(std::memory_order_relaxed);
+    if (lowBoostParam_)   p.lowBoost = lowBoostParam_->load(std::memory_order_relaxed);
+    if (saturateParam_)   p.saturate = saturateParam_->load(std::memory_order_relaxed);
+    if (panParam_)        p.pan = panParam_->load(std::memory_order_relaxed);
+    if (volumeParam_)     p.volume = volumeParam_->load(std::memory_order_relaxed);
+    if (roleParam_)       p.role = static_cast<int>(roleParam_->load(std::memory_order_relaxed));
+    if (modelParam_) {
+        p.model = static_cast<int>(modelParam_->load(std::memory_order_relaxed));
+        voice_.setModel(p.model);
+    }
+    if (lifeModeParam_)   p.lifeMode = static_cast<int>(lifeModeParam_->load(std::memory_order_relaxed));
+    if (keyTrackParam_)   p.keyTrack = static_cast<int>(keyTrackParam_->load(std::memory_order_relaxed));
+
+    voice_.trigger(velocity, noteHz, p);
+}
+
 void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
     const int numSamples = buffer.getNumSamples();
 
-    // 1. Process MIDI Note Events
+    // 1. Gather Parameter Snapshot
+    tkdsp::FormlessSpawnVoice::Params p;
+    if (pitchParam_)      p.pitch = pitchParam_->load(std::memory_order_relaxed);
+    if (macroDecayParam_) p.macroDecay = macroDecayParam_->load(std::memory_order_relaxed);
+    if (punchParam_)      p.punch = punchParam_->load(std::memory_order_relaxed);
+    if (pitchDepthParam_) p.pitchDepth = pitchDepthParam_->load(std::memory_order_relaxed);
+    if (pitchDecayParam_) p.pitchDecay = pitchDecayParam_->load(std::memory_order_relaxed);
+    if (timbreXParam_)    p.timbreX = timbreXParam_->load(std::memory_order_relaxed);
+    if (timbreYParam_)    p.timbreY = timbreYParam_->load(std::memory_order_relaxed);
+    if (timbreZParam_)    p.timbreZ = timbreZParam_->load(std::memory_order_relaxed);
+    if (cutoffParam_)     p.cutoff = cutoffParam_->load(std::memory_order_relaxed);
+    if (resonanceParam_)  p.resonance = resonanceParam_->load(std::memory_order_relaxed);
+    if (vcfModeParam_)    p.vcfMode = static_cast<int>(vcfModeParam_->load(std::memory_order_relaxed));
+    if (preDriveParam_)   p.preDrive = preDriveParam_->load(std::memory_order_relaxed);
+    if (lowBoostParam_)   p.lowBoost = lowBoostParam_->load(std::memory_order_relaxed);
+    if (saturateParam_)   p.saturate = saturateParam_->load(std::memory_order_relaxed);
+    if (panParam_)        p.pan = panParam_->load(std::memory_order_relaxed);
+    if (volumeParam_)     p.volume = volumeParam_->load(std::memory_order_relaxed);
+    if (roleParam_)       p.role = static_cast<int>(roleParam_->load(std::memory_order_relaxed));
+    if (modelParam_) {
+        p.model = static_cast<int>(modelParam_->load(std::memory_order_relaxed));
+        voice_.setModel(p.model);
+    }
+    if (lifeModeParam_)   p.lifeMode = static_cast<int>(lifeModeParam_->load(std::memory_order_relaxed));
+    if (keyTrackParam_)   p.keyTrack = static_cast<int>(keyTrackParam_->load(std::memory_order_relaxed));
+
+    // 2. Process MIDI Note Events
     for (const auto metadata : midiMessages) {
         const auto msg = metadata.getMessage();
         if (msg.isNoteOn()) {
             const int note = msg.getNoteNumber();
             const float vel = msg.getFloatVelocity();
-
-            // General MIDI standard drum mapping:
-            switch (note) {
-                case 35: // Acoustic Bass Drum
-                case 36: // Electric Bass Drum
-                    engine_.trigger(0, vel);
-                    break;
-                case 38: // Acoustic Snare
-                case 40: // Electric Snare
-                    engine_.trigger(1, vel);
-                    break;
-                case 37: // Side Stick
-                case 39: // Hand Clap
-                    engine_.trigger(6, vel); // Voice 6: Clap
-                    break;
-                case 42: // Closed Hi-Hat
-                case 44: // Pedal Hi-Hat
-                    engine_.trigger(5, vel); // Voice 5: Closed Hat (Chokes Voice 4)
-                    break;
-                case 46: // Open Hi-Hat
-                    engine_.trigger(4, vel); // Voice 4: Open Hat
-                    break;
-                case 41: // Low Floor Tom
-                case 43: // High Floor Tom
-                case 45: // Low Tom
-                case 47: // Low-Mid Tom
-                    engine_.trigger(2, vel); // Voice 2: Metallic Zap / Low Tom
-                    break;
-                case 48: // Hi-Mid Tom
-                case 50: // High Tom
-                    engine_.trigger(3, vel); // Voice 3: Cyber Bongo / Percussion
-                    break;
-                case 49: // Crash Cymbal 1
-                case 51: // Ride Cymbal 1
-                case 57: // Crash Cymbal 2
-                    engine_.trigger(7, vel); // Voice 7: Crash / Sub Wash
-                    break;
-                default: {
-                    // Chromatic playback on Voice 0 if outside standard drum octave
-                    const float freqHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(note));
-                    engine_.trigger(0, vel, freqHz);
-                    break;
-                }
-            }
+            const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(note));
+            voice_.trigger(vel, noteHz, p);
         }
     }
 
-    // 2. Synchronize APVTS Parameters to Engine
-    for (int v = 0; v < tkdsp::FormlessSpawnEngine::kTotalVoices; ++v) {
-        for (int p = 0; p < tkdsp::FormlessSpawnEngine::kNumParamsPerVoice; ++p) {
-            if (cachedParams_[v][p] != nullptr) {
-                engine_.setParam(v, p, cachedParams_[v][p]->load(std::memory_order_relaxed));
-            }
-        }
-    }
-    if (masterLowBoostParam_ != nullptr) engine_.setMasterLowBoost(masterLowBoostParam_->load(std::memory_order_relaxed));
-    if (masterDriveParam_ != nullptr) engine_.setMasterDrive(masterDriveParam_->load(std::memory_order_relaxed));
+    // 3. Render Audio
+    auto* channelL = buffer.getWritePointer(0);
+    auto* channelR = (buffer.getNumChannels() > 1) ? buffer.getWritePointer(1) : channelL;
 
-    // 3. Clear Extra Channels
-    for (int i = 2; i < buffer.getNumChannels(); ++i) {
-        buffer.clear(i, 0, numSamples);
-    }
-
-    // 4. Render Stereo Audio Block
-    float* channelL = buffer.getWritePointer(0);
-    float* channelR = (buffer.getNumChannels() > 1) ? buffer.getWritePointer(1) : channelL;
-
-    engine_.renderBlockStereo(channelL, channelR, numSamples);
+    voice_.processBlockStereo(channelL, channelR, numSamples, p);
 }
 
 juce::AudioProcessorEditor* FormlessSpawnAudioProcessor::createEditor() {
@@ -133,56 +145,10 @@ void FormlessSpawnAudioProcessor::setStateInformation(const void* data, int size
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout FormlessSpawnAudioProcessor::createParameterLayout() {
-    juce::AudioProcessorValueTreeState::ParameterLayout layout;
-
-    const char* paramNames[tkdsp::FormlessSpawnEngine::kNumParamsPerVoice] = {
-        "Pitch", "Decay", "Pitch Env Depth", "Pitch Env Decay",
-        "Waveform", "Mod Type", "Mod Speed", "Mod Depth",
-        "Wavefold", "Drive", "Cutoff", "Resonance",
-        "Pan", "Volume"
-    };
-
-    float defaultValues[tkdsp::FormlessSpawnEngine::kTotalVoices][tkdsp::FormlessSpawnEngine::kNumParamsPerVoice] = {
-        // V0: Kick
-        { 0.15f, 0.35f, 0.85f, 0.10f, 0.0f, 0.0f, 0.20f, 0.15f, 0.25f, 0.30f, 0.70f, 0.15f, 0.5f, 0.95f },
-        // V1: Snare
-        { 0.35f, 0.28f, 0.65f, 0.08f, 0.25f, 0.80f, 0.50f, 0.65f, 0.20f, 0.20f, 0.85f, 0.25f, 0.5f, 0.85f },
-        // V2: Ring Zap
-        { 0.45f, 0.22f, 0.75f, 0.05f, 0.0f, 1.0f, 0.65f, 0.75f, 0.40f, 0.25f, 0.80f, 0.35f, 0.4f, 0.80f },
-        // V3: Bongo
-        { 0.55f, 0.18f, 0.50f, 0.05f, 0.5f, 0.40f, 0.30f, 0.45f, 0.50f, 0.35f, 0.60f, 0.60f, 0.6f, 0.75f },
-        // V4: Open Hat
-        { 0.70f, 0.50f, 0.50f, 0.05f, 0.0f, 0.0f, 0.50f, 0.0f, 0.0f, 0.0f, 0.85f, 0.20f, 0.6f, 0.80f },
-        // V5: Closed Hat
-        { 0.75f, 0.15f, 0.50f, 0.05f, 0.0f, 0.0f, 0.50f, 0.0f, 0.0f, 0.0f, 0.85f, 0.20f, 0.4f, 0.80f },
-        // V6: Clap
-        { 0.50f, 0.25f, 0.50f, 0.05f, 0.0f, 0.0f, 0.50f, 0.0f, 0.0f, 0.0f, 0.80f, 0.15f, 0.5f, 0.85f },
-        // V7: Crash
-        { 0.40f, 0.65f, 0.50f, 0.05f, 0.0f, 0.0f, 0.50f, 0.0f, 0.0f, 0.0f, 0.75f, 0.10f, 0.5f, 0.75f }
-    };
-
-    for (int v = 0; v < tkdsp::FormlessSpawnEngine::kTotalVoices; ++v) {
-        for (int p = 0; p < tkdsp::FormlessSpawnEngine::kNumParamsPerVoice; ++p) {
-            juce::String id = "v" + juce::String(v) + "_p" + juce::String(p);
-            juce::String name = "V" + juce::String(v + 1) + " " + paramNames[p];
-            float defVal = defaultValues[v][p];
-            layout.add(std::make_unique<juce::AudioParameterFloat>(
-                juce::ParameterID(id, 1), name, juce::NormalisableRange<float>(0.0f, 1.0f), defVal
-            ));
-        }
-    }
-
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID("master_low_boost", 1), "Master Low Boost", juce::NormalisableRange<float>(0.0f, 1.0f), 0.45f
-    ));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID("master_drive", 1), "Master Drive", juce::NormalisableRange<float>(0.0f, 1.0f), 0.15f
-    ));
-
-    return layout;
+    return formless_spawnParameters::createLayout();
 }
 
-
+// Juce plugin entry point
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
     return new FormlessSpawnAudioProcessor();
 }
