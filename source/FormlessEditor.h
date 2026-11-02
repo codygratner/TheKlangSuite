@@ -93,21 +93,21 @@ public:
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
-        // Col 2: Formatted Value (x: 120, w: 85, 12.5pt bold)
-        auto valRect = juce::Rectangle<float>(bounds.getX() + 120.0f, bounds.getY(), 85.0f, bounds.getHeight());
+        // Col 2: Formatted Value (x: 118, w: 72, 12.5pt bold)
+        auto valRect = juce::Rectangle<float>(bounds.getX() + 118.0f, bounds.getY(), 72.0f, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         g.setColour(juce::Colour(0xFFF0F6FC));
         g.drawText(readout_.value, valRect, juce::Justification::centredLeft, true);
 
-        // Col 3: Separator (x: 208, w: 12)
-        auto sepRect = juce::Rectangle<float>(bounds.getX() + 208.0f, bounds.getY(), 12.0f, bounds.getHeight());
+        // Col 3: Separator (x: 192, w: 12)
+        auto sepRect = juce::Rectangle<float>(bounds.getX() + 192.0f, bounds.getY(), 12.0f, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.5f)));
         g.setColour(juce::Colour(0xFF8B949E));
         g.drawText(juce::CharPointer_UTF8("\xe2\x80\x94"), sepRect, juce::Justification::centred);
 
-        // Col 4: Explanation blurb (x: 224, w: rest)
-        float blurbW = std::max(50.0f, bounds.getWidth() - 232.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 224.0f, bounds.getY(), blurbW, bounds.getHeight());
+        // Col 4: Explanation blurb (x: 206, w: rest)
+        float blurbW = std::max(50.0f, bounds.getWidth() - 214.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 206.0f, bounds.getY(), blurbW, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.0f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
         g.drawText(readout_.blurb, blurbRect, juce::Justification::centredLeft, true);
@@ -177,14 +177,14 @@ private:
 };
 
 // ==============================================================================
-// FormlessRoleGrid2x4: 2x4 Role Matrix (Cell 0,0 is etched "ROLE" header)
+// FormlessRoleGrid2x4: 2x4 Role Matrix (8 Roles: BD, SD, TM, CP / HH, CY, PC, FX)
 // ==============================================================================
 class FormlessRoleGrid2x4 : public juce::Component {
 public:
     FormlessRoleGrid2x4() = default;
 
     void setState(int roleIdx) {
-        roleIdx = std::clamp(roleIdx, 0, 6);
+        roleIdx = std::clamp(roleIdx, 0, tkdsp::FormlessSpawnVoice::kTotalRoles - 1);
         if (activeRole_ != roleIdx) {
             activeRole_ = roleIdx;
             repaint();
@@ -208,27 +208,6 @@ public:
         const float colW = bounds.getWidth() / 4.0f;
         const float rowH = bounds.getHeight() / 2.0f;
 
-        // Cell (0, 0): Non-clickable etched header "ROLE"
-        auto roleRect = juce::Rectangle<float>(bounds.getX(), bounds.getY(), colW, rowH);
-        g.setColour(juce::Colour(0xFF0D1117));
-        g.fillRoundedRectangle(roleRect.reduced(1.0f), 3.0f);
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
-        g.setColour(juce::Colour(0xFF8B949E));
-        g.drawText("ROLE", roleRect, juce::Justification::centred);
-
-        // 7 Roles Mapping:
-        // (0, 1): BD (0)
-        // (0, 2): TM (1)
-        // (0, 3): SD (2)
-        // (1, 0): CP (3)
-        // (1, 1): HH (4)
-        // (1, 2): CY (5)
-        // (1, 3): FX (6)
-        static const int kRoleCells[7][2] = {
-            {0, 1}, {0, 2}, {0, 3},
-            {1, 0}, {1, 1}, {1, 2}, {1, 3}
-        };
-
         // Grid Dividers
         g.setColour(juce::Colour(0xFF262D38));
         g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
@@ -238,9 +217,9 @@ public:
         }
 
         g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
-        for (int r = 0; r < 7; ++r) {
-            int row = kRoleCells[r][0];
-            int col = kRoleCells[r][1];
+        for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
+            int row = r / 4;
+            int col = r % 4;
             auto cellRect = juce::Rectangle<float>(bounds.getX() + col * colW, bounds.getY() + row * rowH, colW, rowH);
             bool isActive = (r == activeRole_);
 
@@ -284,17 +263,14 @@ private:
         const float rowH = getHeight() / 2.0f;
         int col = std::clamp(static_cast<int>(pos.x / colW), 0, 3);
         int row = std::clamp(static_cast<int>(pos.y / rowH), 0, 1);
-
-        if (row == 0 && col == 0) return -1; // Header plate
-        if (row == 0) return col - 1;        // 0..2 (BD, TM, SD)
-        return col + 3;                      // 3..6 (CP, HH, CY, FX)
+        return row * 4 + col;
     }
 
     int activeRole_{0};
 };
 
 // ==============================================================================
-// FormlessModelGrid2x8: 2x8 Physical Model Matrix (16 Tactile Buttons, Zero Menus)
+// FormlessModelGrid2x8: 2x4 Physical Model Matrix (8 Tactile Buttons, Zero Menus)
 // ==============================================================================
 class FormlessModelGrid2x8 : public juce::Component {
 public:
@@ -332,22 +308,22 @@ public:
         g.setColour(juce::Colour(0xFF30363D));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        const float colW = bounds.getWidth() / 8.0f;
+        const float colW = bounds.getWidth() / 4.0f;
         const float rowH = bounds.getHeight() / 2.0f;
 
         // Dividers
         g.setColour(juce::Colour(0xFF262D38));
         g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
-        for (int c = 1; c < 8; ++c) {
+        for (int c = 1; c < 4; ++c) {
             float divX = bounds.getX() + c * colW;
             g.drawVerticalLine(static_cast<int>(std::round(divX)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
         }
 
-        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
 
-        for (int m = 0; m < 16; ++m) {
-            int row = m / 8;
-            int col = m % 8;
+        for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
+            int row = m / 4;
+            int col = m % 4;
             auto cellRect = juce::Rectangle<float>(bounds.getX() + col * colW, bounds.getY() + row * rowH, colW, rowH);
             bool isActive = (m == activeModel_);
 
@@ -388,11 +364,11 @@ public:
 
 private:
     int getModelAt(juce::Point<float> pos) const {
-        const float colW = getWidth() / 8.0f;
+        const float colW = getWidth() / 4.0f;
         const float rowH = getHeight() / 2.0f;
-        int col = std::clamp(static_cast<int>(pos.x / colW), 0, 7);
+        int col = std::clamp(static_cast<int>(pos.x / colW), 0, 3);
         int row = std::clamp(static_cast<int>(pos.y / rowH), 0, 1);
-        return row * 8 + col;
+        return row * 4 + col;
     }
 
     int activeRole_{0};
@@ -803,37 +779,37 @@ private:
     FormlessRoleGrid2x4  roleGrid_;
     FormlessModelGrid2x8 modelGrid_;
 
-    // Card 1 Knobs: Drum Core & Pitch Lab (8)
-    KnobItem pitchKnob_;
-    KnobItem pitchDepthKnob_;
-    KnobItem pitchDecayKnob_;
-    KnobItem pitchCurveKnob_;
-    KnobItem clickTuneKnob_;
-    KnobItem clickMixKnob_;
-    KnobItem subLevelKnob_;
-    KnobItem lowBoostKnob_;
-
-    // Card 2 Knobs: Model Timbre & Acoustic Lab (8)
-    KnobItem timbreXKnob_;
-    KnobItem timbreYKnob_;
-    KnobItem timbreZKnob_;
-    KnobItem timbreTKnob_;
-    KnobItem fmMorphKnob_;
-    KnobItem dampKnob_;
+    // Card 1 Knobs: Master Macro & Dynamics Lab (Top-Left, 8)
+    KnobItem macroXKnob_;
+    KnobItem macroYKnob_;
+    KnobItem macroZKnob_;
+    KnobItem macroTKnob_;
+    KnobItem velAggrKnob_;
+    KnobItem velTimbKnob_;
     KnobItem panKnob_;
-    KnobItem velSensKnob_;
+    KnobItem decayCurveKnob_;
 
-    // Card 3 Pod 1: Stepped Random (2x4 Grid of 8 Small Knobs)
-    // Row 1: Timbre Targets
-    KnobItem randTXKnob_;
-    KnobItem randTYKnob_;
-    KnobItem randTZKnob_;
-    KnobItem randTTKnob_;
-    // Row 2: Acoustic Targets
-    KnobItem randPitchKnob_;
-    KnobItem randCutoffKnob_;
-    KnobItem randDecayKnob_;
+    // Card 2 Knobs: Role Synthesis Lab (Top-Right, 8)
+    KnobItem paramAKnob_;
+    KnobItem paramBKnob_;
+    KnobItem paramCKnob_;
+    KnobItem paramDKnob_;
+    KnobItem paramEKnob_;
+    KnobItem paramFKnob_;
+    KnobItem paramGKnob_;
+    KnobItem paramHKnob_;
+
+    // Card 3 Pod 1: Stepped Random (2x4 Grid of 8 Small Knobs, Bottom-Left)
+    KnobItem randXKnob_;
+    KnobItem randYKnob_;
+    KnobItem randZKnob_;
+    KnobItem randTKnob_;
+    KnobItem randAggrKnob_;
+    KnobItem randTimbKnob_;
     KnobItem randPanKnob_;
+    KnobItem randDecayKnob_;
+
+    void updateRoleParamLabels(int roleIdx);
 
     // Card 3 Pod 2: The Performance Altar (EXACTLY TWO CONTROLS)
     KnobItem          macroDecayKnob_;

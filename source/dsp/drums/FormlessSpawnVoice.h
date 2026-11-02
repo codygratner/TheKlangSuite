@@ -32,12 +32,13 @@ class FormlessSpawnVoice {
 public:
     enum class Role : int {
         BD = 0,
-        TM = 1,
-        SD = 2,
+        SD = 1,
+        TM = 2,
         CP = 3,
         HH = 4,
         CY = 5,
-        FX = 6
+        PC = 6,
+        FX = 7
     };
 
     enum class LifeMode : int {
@@ -46,133 +47,151 @@ public:
         Organic   = 2
     };
 
-    static constexpr int kTotalRoles = 7;
-    static constexpr int kModelsPerRole = 16;
-    static constexpr int kTotalModels = 112;
+    static constexpr int kTotalRoles = 8;
+    static constexpr int kModelsPerRole = 8;
+    static constexpr int kTotalModels = 64;
 
     static constexpr const char* kRoleNames[kTotalRoles] = {
-        "BD", "TM", "SD", "CP", "HH", "CY", "FX"
+        "BD", "SD", "TM", "CP", "HH", "CY", "PC", "FX"
     };
 
     static constexpr const char* kModelNames[kTotalRoles][kModelsPerRole] = {
-        // BD (00..15)
-        {"TRX-9", "TRX-B", "EFM-M", "MEMBR", "BOUNC", "THUD", "CLICK", "BOOM",
-         "W-FOLD", "FM-SUB", "DIGI", "DRIVE", "SQUAR", "DISCR", "VCO-D", "LASER"},
-        // TM (00..15)
-        {"SINE-T", "EFM-T", "SHELL", "PING-L", "PING-H", "ATTACK", "PUNCH", "HEX-V",
-         "DUAL-V", "VCF-T", "STRING", "DIGI-T", "FORMNT", "TONAL", "VCO-T", "GLITCH"},
-        // SD (00..15)
-        {"SNAP", "EFM-S", "WIRES", "HP-NOI", "CRISP", "SHELL", "SIZZL", "VCF-N",
-         "KAR-S", "SUB-S", "6-SINE", "MARCH", "DISCR", "CRACK", "EXPLOD", "POISSN"},
-        // CP (00..15)
-        {"BURST", "EFM-C", "MULTI", "TRIPLE", "STAGGR", "DRIVE", "MULTI2", "DISCR",
-         "RESON", "EXPLOD", "CRACK", "DIGI-C", "W-GUID", "MEMBR", "SHAPED", "VECTOR"},
-        // HH (00..15)
-        {"6-OSC", "BP-MET", "5-OSC", "PHASE", "RING-H", "EFM-H", "PLATE", "HP-SHR",
-         "VCF-M", "DIGI-H", "FORMNT", "RING-6", "DISCR", "PING-H", "METAL", "SIZZL"},
-        // CY (00..15)
-        {"CRASH", "RING-C", "BELL-R", "SIZZL", "EXT-RG", "GONG", "PLATE", "IND-G",
-         "W-CRSH", "DIGI-C", "CHIME", "LONG-S", "SHIMMR", "COSMIC", "NOISE", "GRANUL"},
-        // FX (00..15)
-        {"FM-MRP", "W-FOLD", "BT-PNG", "NOI-BT", "HARMON", "LASER", "SUB-DP", "SLICER",
-         "SCREAM", "RING-M", "SHRIEK", "SHIFTR", "VORTEX", "PIPE", "CZ-ZAP", "CHAOS"}
+        // BD (0..7)
+        {"TRX-9", "BOOM", "EFM-2", "W-FOLD", "MODAL", "CHIRP", "DUAL-V", "GABBER"},
+        // SD (0..7)
+        {"TRX-9", "TRX-8", "EFM-S", "MODAL", "VCF-S", "DIGI-S", "SHELL", "EXPLOD"},
+        // TM (0..7)
+        {"TRX-9", "TRX-8", "SIMM-T", "MODAL", "PING-T", "EFM-T", "W-FOLD", "FORMNT"},
+        // CP (0..7)
+        {"TRX-9", "TRX-8", "HANDS", "CLP-TRP", "EFM-C", "W-CLP", "GRAIN", "COMB"},
+        // HH (0..7)
+        {"ROLAND", "KORG", "EFM-GLS", "EFM-GRT", "PLATE", "CHIME", "NOISE", "RING-M"},
+        // CY (0..7)
+        {"ROLAND", "KORG", "EFM-CR", "EFM-RD", "BRONZE", "GONG", "DUST", "CHIME"},
+        // PC (0..7)
+        {"RIM-ST", "COWB-8", "CLAVE", "SHAKR", "CONGA", "ANVIL", "EFM-PC", "SCRAP"},
+        // FX (0..7)
+        {"LASER", "SUB-DP", "FM-MRP", "W-FOLD", "RING-M", "CZ-ZAP", "CHAOS", "FLANGE"}
+    };
+
+    static constexpr const char* kRoleParamNames[kTotalRoles][8] = {
+        // BD
+        {"PITCH", "P.DEC", "P.DEPTH", "DECAY", "CLICK", "TIMBRE", "DRIVE", "PUNCH"},
+        // SD
+        {"TUNE", "P.DEC", "SNAPPY", "S.DECAY", "ATTACK", "TONE", "NOISE", "SNAP"},
+        // TM
+        {"PITCH", "BEND.T", "BEND.D", "DECAY", "STICK", "TENSION", "RING", "BODY"},
+        // CP
+        {"PITCH", "SPREAD", "BURST", "TAIL", "FLAM", "COLOR", "DIFFUSE", "CRACK"},
+        // HH
+        {"PITCH", "CHOKE", "METRIC", "DECAY", "METALLIC", "BRIGHT", "SIZZLE", "BITE"},
+        // CY
+        {"PITCH", "SHIMMER", "DAMP", "SUSTAIN", "MALLET", "DENSITY", "BELL", "CRASH"},
+        // PC
+        {"PITCH", "SWEEP", "BEND", "DECAY", "IMPACT", "MATERIAL", "RING", "POP"},
+        // FX
+        {"FREQ", "SPEED", "SWEEP", "DECAY", "TRIGGER", "WARP", "CHAOS", "EDGE"}
     };
 
     // =========================================================================
-    // 112-Model Calibrated Macro Decay Matrix (ACF-5 Calibrated)
+    // 64-Model Calibrated Macro Decay Matrix (ACF-5 Calibrated)
     // =========================================================================
-    // Base amplitude decay time constant tau in seconds (T60 approx 6.9 * tau).
-    // Macro decay sweeps tau over [0.125x .. 8.0x].
     static constexpr float kModelBaseAmpDecaySec[kTotalRoles][kModelsPerRole] = {
-        // BD:  TRX-9  TRX-B  EFM-M  MEMBR  BOUNC  THUD   CLICK  BOOM   W-FOLD FM-SUB DIGI   DRIVE  SQUAR  DISCR  VCO-D  LASER
-        {       0.110f,0.085f,0.095f,0.140f,0.120f,0.070f,0.060f,0.280f,0.100f,0.200f,0.075f,0.130f,0.090f,0.105f,0.150f,0.090f },
-        // TM:  SINE-T EFM-T  SHELL  PING-L PING-H ATTACK PUNCH  HEX-V  DUAL-V VCF-T  STRING DIGI-T FORMNT TONAL  VCO-T  GLITCH
-        {       0.300f,0.220f,0.260f,0.380f,0.200f,0.180f,0.150f,0.240f,0.340f,0.280f,0.420f,0.200f,0.320f,0.360f,0.250f,0.120f },
-        // SD:  SNAP   EFM-S  WIRES  HP-NOI CRISP  SHELL  SIZZL  VCF-N  KAR-S  SUB-S  6-SINE MARCH  DISCR  CRACK  EXPLOD POISSN
-        {       0.100f,0.140f,0.200f,0.120f,0.090f,0.180f,0.240f,0.160f,0.220f,0.150f,0.170f,0.110f,0.140f,0.080f,0.350f,0.190f },
-        // CP:  BURST  EFM-C  MULTI  TRIPLE STAGGR DRIVE  MULTI2 DISCR  RESON  EXPLOD CRACK  DIGI-C W-GUID MEMBR  SHAPED VECTOR
-        {       0.140f,0.120f,0.180f,0.160f,0.200f,0.150f,0.220f,0.130f,0.260f,0.300f,0.080f,0.110f,0.240f,0.170f,0.190f,0.210f },
-        // HH:  6-OSC  BP-MET 5-OSC  PHASE  RING-H EFM-H  PLATE  HP-SHR VCF-M  DIGI-H FORMNT RING-6 DISCR  PING-H METAL  SIZZL
-        {       0.050f,0.040f,0.070f,0.090f,0.060f,0.080f,0.120f,0.030f,0.050f,0.020f,0.070f,0.100f,0.050f,0.150f,0.090f,0.130f },
-        // CY:  CRASH  RING-C BELL-R SIZZL  EXT-RG GONG   PLATE  IND-G  W-CRSH DIGI-C CHIME  LONG-S SHIMMR COSMIC NOISE  GRANUL
-        {       1.100f,1.400f,1.600f,0.800f,1.700f,1.800f,0.900f,0.600f,1.000f,0.400f,1.500f,1.300f,1.200f,1.600f,0.700f,0.950f },
-        // FX:  FM-MRP W-FOLD BT-PNG NOI-BT HARMON LASER  SUB-DP SLICER SCREAM RING-M SHRIEK SHIFTR VORTEX PIPE   CZ-ZAP CHAOS
-        {       0.300f,0.250f,0.350f,0.150f,0.400f,0.200f,0.600f,0.280f,0.450f,0.320f,0.380f,0.420f,0.700f,0.500f,0.140f,0.550f }
+        // BD: TRX-9  BOOM   EFM-2  W-FOLD MODAL  CHIRP  DUAL-V GABBER
+        {      0.110f,0.280f,0.095f,0.100f,0.140f,0.060f,0.150f,0.130f },
+        // SD: TRX-9  TRX-8  EFM-S  MODAL  VCF-S  DIGI-S SHELL  EXPLOD
+        {      0.100f,0.200f,0.140f,0.180f,0.160f,0.110f,0.240f,0.350f },
+        // TM: TRX-9  TRX-8  SIMM-T MODAL  PING-T EFM-T  W-FOLD FORMNT
+        {      0.300f,0.260f,0.240f,0.420f,0.380f,0.220f,0.280f,0.320f },
+        // CP: TRX-9  TRX-8  HANDS  CLP-TR EFM-C  W-CLP  GRAIN  COMB
+        {      0.140f,0.180f,0.220f,0.260f,0.120f,0.150f,0.240f,0.200f },
+        // HH: ROLAND KORG   EFM-GL EFM-GR PLATE  CHIME  NOISE  RING-M
+        {      0.050f,0.070f,0.080f,0.040f,0.120f,0.150f,0.060f,0.090f },
+        // CY: ROLAND KORG   EFM-CR EFM-RD BRONZE GONG   DUST   CHIME
+        {      1.100f,1.600f,1.200f,1.000f,1.400f,1.800f,0.700f,1.500f },
+        // PC: RIM-ST COWB-8 CLAVE  SHAKR  CONGA  ANVIL  EFM-PC SCRAP
+        {      0.060f,0.180f,0.080f,0.120f,0.250f,0.400f,0.140f,0.220f },
+        // FX: LASER  SUB-DP FM-MRP W-FOLD RING-M CZ-ZAP CHAOS  FLANGE
+        {      0.200f,0.600f,0.300f,0.250f,0.320f,0.140f,0.550f,0.420f }
     };
 
-    // Pitch envelope sensitivity to Macro Decay:
-    // 0.0 = snappy pitch punch remains strictly locked to panel value; 1.0 = pitch dive stretches fully with macro.
     static constexpr float kModelPitchDecayResponse[kTotalRoles][kModelsPerRole] = {
         // BD
-        {       0.08f, 0.05f, 0.10f, 0.15f, 0.25f, 0.00f, 0.00f, 0.12f, 0.08f, 0.20f, 0.03f, 0.05f, 0.05f, 0.06f, 0.10f, 1.00f },
-        // TM
-        {       0.30f, 0.25f, 0.30f, 0.40f, 0.20f, 0.10f, 0.10f, 0.25f, 0.35f, 0.30f, 0.55f, 0.15f, 0.20f, 0.25f, 0.30f, 0.05f },
+        {      0.08f, 0.12f, 0.10f, 0.08f, 0.15f, 0.00f, 0.10f, 0.05f },
         // SD
-        {       0.10f, 0.15f, 0.05f, 0.02f, 0.05f, 0.15f, 0.08f, 0.10f, 0.30f, 0.20f, 0.10f, 0.00f, 0.05f, 0.00f, 0.35f, 0.05f },
+        {      0.10f, 0.05f, 0.15f, 0.15f, 0.10f, 0.05f, 0.08f, 0.35f },
+        // TM
+        {      0.30f, 0.30f, 0.25f, 0.55f, 0.40f, 0.25f, 0.30f, 0.20f },
         // CP
-        {       0.00f, 0.10f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.10f, 0.00f, 0.00f, 0.00f, 0.00f, 0.15f, 0.00f, 0.00f },
+        {      0.00f, 0.00f, 0.00f, 0.10f, 0.10f, 0.00f, 0.00f, 0.00f },
         // HH
-        {       0.00f, 0.00f, 0.00f, 0.10f, 0.00f, 0.05f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.00f, 0.15f, 0.00f, 0.00f },
+        {      0.00f, 0.00f, 0.05f, 0.00f, 0.00f, 0.15f, 0.00f, 0.10f },
         // CY
-        {       0.05f, 0.05f, 0.10f, 0.00f, 0.05f, 0.35f, 0.05f, 0.00f, 0.00f, 0.00f, 0.05f, 0.00f, 0.15f, 0.30f, 0.00f, 0.10f },
+        {      0.05f, 0.10f, 0.15f, 0.00f, 0.05f, 0.35f, 0.00f, 0.05f },
+        // PC
+        {      0.00f, 0.05f, 0.00f, 0.00f, 0.20f, 0.10f, 0.15f, 0.05f },
         // FX
-        {       0.60f, 0.30f, 0.80f, 0.00f, 0.20f, 1.00f, 0.95f, 0.15f, 0.50f, 0.40f, 0.70f, 0.30f, 0.65f, 0.25f, 1.00f, 0.35f }
+        {      1.00f, 0.95f, 0.60f, 0.00f, 0.40f, 1.00f, 0.35f, 0.25f }
     };
 
-    // Timbre & filter modulation envelope sensitivity to Macro Decay:
-    // 0.0 = fixed panel duration; 1.0 = full proportional tracking with macro.
     static constexpr float kModelTimbreDecayResponse[kTotalRoles][kModelsPerRole] = {
         // BD
-        {       0.50f, 0.35f, 0.70f, 0.60f, 0.40f, 0.25f, 0.10f, 0.30f, 0.75f, 0.80f, 0.50f, 0.40f, 0.45f, 0.40f, 0.55f, 0.85f },
-        // TM
-        {       0.30f, 0.70f, 0.50f, 0.40f, 0.35f, 0.15f, 0.25f, 0.75f, 0.40f, 0.80f, 0.90f, 0.50f, 0.60f, 0.45f, 0.50f, 0.20f },
+        {      0.50f, 0.30f, 0.70f, 0.75f, 0.60f, 0.10f, 0.55f, 0.40f },
         // SD
-        {       0.35f, 0.65f, 0.85f, 0.30f, 0.30f, 0.45f, 0.60f, 0.70f, 0.50f, 0.35f, 0.45f, 0.25f, 0.35f, 0.15f, 0.55f, 0.40f },
+        {      0.35f, 0.85f, 0.65f, 0.45f, 0.70f, 0.35f, 0.60f, 0.55f },
+        // TM
+        {      0.30f, 0.50f, 0.75f, 0.90f, 0.40f, 0.70f, 0.80f, 0.60f },
         // CP
-        {       0.30f, 0.60f, 0.35f, 0.30f, 0.35f, 0.25f, 0.85f, 0.30f, 0.55f, 0.40f, 0.15f, 0.40f, 0.70f, 0.45f, 0.40f, 0.50f },
+        {      0.30f, 0.35f, 0.85f, 0.55f, 0.60f, 0.25f, 0.70f, 0.45f },
         // HH
-        {       0.30f, 0.25f, 0.30f, 0.50f, 0.35f, 0.55f, 0.40f, 0.15f, 0.60f, 0.10f, 0.55f, 0.40f, 0.25f, 0.35f, 0.35f, 0.45f },
+        {      0.30f, 0.30f, 0.55f, 0.25f, 0.40f, 0.35f, 0.35f, 0.50f },
         // CY
-        {       0.60f, 0.50f, 0.70f, 0.50f, 0.60f, 0.85f, 0.50f, 0.40f, 0.75f, 0.30f, 0.70f, 0.55f, 0.80f, 0.85f, 0.30f, 0.65f },
+        {      0.60f, 0.70f, 0.80f, 0.75f, 0.50f, 0.85f, 0.30f, 0.70f },
+        // PC
+        {      0.20f, 0.40f, 0.25f, 0.60f, 0.45f, 0.70f, 0.65f, 0.50f },
         // FX
-        {       0.85f, 0.80f, 1.00f, 1.00f, 0.50f, 0.70f, 0.40f, 0.30f, 0.65f, 0.75f, 0.60f, 1.00f, 0.80f, 0.45f, 0.75f, 0.70f }
+        {      0.70f, 0.40f, 0.85f, 1.00f, 0.75f, 0.45f, 0.70f, 0.65f }
     };
 
     struct Params {
-        // =====================================================================
         // Header Controls (3)
-        // =====================================================================
-        int role{0};             // 0=BD, 1=TM, 2=SD, 3=CP, 4=HH, 5=CY, 6=FX
-        int model{0};            // 0..15
+        int role{0};             // 0=BD, 1=SD, 2=TM, 3=CP, 4=HH, 5=CY, 6=PC, 7=FX
+        int model{0};            // 0..7
         int lifeMode{2};         // 0=Synthetic, 1=Cyborg, 2=Organic
 
-        // =====================================================================
-        // Card 1: Drum Core & Pitch Lab (8)
-        // =====================================================================
-        float pitch{55.0f};          // 20.0 .. 200.0 Hz
-        float pitchDepth{24.0f};     // -48.0 .. +48.0 st
-        float pitchDecay{25.0f};     // 2.0 .. 200.0 ms
-        float pitchCurve{-0.5f};     // -1.0 .. +1.0
-        float clickTune{4000.0f};    // 500.0 .. 12000.0 Hz
-        float clickMix{0.35f};       // 0.0 .. 1.0
-        float subLevel{0.50f};       // 0.0 .. 1.0
-        float lowBoost{4.0f};        // 0.0 .. 12.0 dB
-
-        // =====================================================================
-        // Card 2: Model Timbre & Acoustic Lab (8)
-        // =====================================================================
-        float timbreX{0.25f};        // 0.0 .. 1.0
-        float timbreY{0.35f};        // 0.0 .. 1.0
-        float timbreZ{0.20f};        // 0.0 .. 1.0
-        float timbreT{45.0f};        // 2.0 .. 800.0 ms
-        float fmMorph{0.0f};         // 0.0 .. 1.0
-        float damp{0.30f};           // 0.0 .. 1.0
+        // Card 1: Master Macro & Dynamics Lab (8)
+        float macroX{0.5f};          // 0.0 .. 1.0 (Pitch Macro)
+        float macroY{0.5f};          // 0.0 .. 1.0 (Punch Macro)
+        float macroZ{0.5f};          // 0.0 .. 1.0 (Timbre Macro)
+        float macroT{0.5f};          // 0.0 .. 1.0 (Time Macro)
+        float velAggr{0.5f};         // 0.0 .. 1.0 (Vel -> Aggression)
+        float velTimb{0.5f};         // 0.0 .. 1.0 (Vel -> Timbre)
         float pan{0.0f};             // -1.0 .. +1.0
-        float velSens{0.70f};        // 0.0 .. 1.0
+        float decayCurve{-0.5f};     // -1.0 .. +1.0
 
-        // =====================================================================
-        // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (8)
-        // =====================================================================
+        // Card 2: Role Synthesis Lab (8)
+        float paramA{0.5f};          // 0.0 .. 1.0
+        float paramB{0.5f};          // 0.0 .. 1.0
+        float paramC{0.5f};          // 0.0 .. 1.0
+        float paramD{0.5f};          // 0.0 .. 1.0
+        float paramE{0.5f};          // 0.0 .. 1.0
+        float paramF{0.5f};          // 0.0 .. 1.0
+        float paramG{0.5f};          // 0.0 .. 1.0
+        float paramH{0.5f};          // 0.0 .. 1.0
+
+        // Card 3 Pod 1: Stepped Random Humanization (8)
+        float randX{0.0f};           // 0.0 .. 100.0 %
+        float randY{0.0f};           // 0.0 .. 100.0 %
+        float randZ{0.0f};           // 0.0 .. 100.0 %
+        float randT{0.0f};           // 0.0 .. 100.0 %
+        float randAggr{0.0f};        // 0.0 .. 100.0 %
+        float randTimb{0.0f};        // 0.0 .. 100.0 %
+        float randPan{0.0f};         // 0.0 .. 100.0 %
+        float randDecay{0.0f};       // 0.0 .. 100.0 % (targets macroDecay)
+
+        // Card 3 Pod 2 & 3: Master Altar & Mojo Console (10)
+        float macroDecay{0.5f};      // 0.0 .. 1.0 (Master Macro)
+        float volume{0.85f};         // 0.0 .. 1.0
         float cutoff{2000.0f};       // 20.0 .. 20000.0 Hz
         float resonance{0.30f};      // 0.0 .. 1.0
         int   filterType{0};         // 0=LP, 1=HP, 2=BP, 3=BR
@@ -181,24 +200,6 @@ public:
         float bits{16.0f};           // 4.0 .. 16.0 bits
         float tapeGlue{0.0f};        // 0.0 .. 1.0
         int   mojoProfile{0};        // 0=Clean, 1=MD-12, 2=SP-1200, 3=Iron Tape
-
-        // =====================================================================
-        // Card 3 Pod 1 & 2: Stepped Random & Master Altar (10)
-        // =====================================================================
-        // Row 1: Timbre Targets (0..100 %)
-        float randTX{0.0f};          // 0.0 .. 100.0 %
-        float randTY{0.0f};          // 0.0 .. 100.0 %
-        float randTZ{0.0f};          // 0.0 .. 100.0 %
-        float randTT{0.0f};          // 0.0 .. 100.0 %
-
-        // Row 2: Acoustic & Core Targets
-        float randPitch{0.0f};       // 0.0 .. 12.0 st
-        float randCutoff{0.0f};      // 0.0 .. 100.0 %
-        float randDecay{0.0f};       // 0.0 .. 100.0 %
-        float randPan{0.0f};         // 0.0 .. 100.0 %
-
-        float macroDecay{0.5f};      // 0.0 .. 1.0 (Master Macro)
-        float volume{0.85f};         // 0.0 .. 1.0
     };
 
     FormlessSpawnVoice() noexcept {
@@ -222,9 +223,7 @@ public:
         vcfSvf_.reset();
         lpgVactrolState_ = 0.0f;
         lpgFilterState_ = 0.0f;
-        lowBoostState_ = 0.0f;
         dcBlockerState_ = 0.0f;
-        dampState_ = 0.0f;
 
         hp1_s1_ = 0.0f; hp1_s2_ = 0.0f;
         hp2_s1_ = 0.0f; hp2_s2_ = 0.0f;
@@ -252,22 +251,20 @@ public:
         velocity = std::clamp(velocity, 0.0f, 1.0f);
         if (velocity <= 0.0001f) return;
 
-        const float effVelocity = (1.0f - p.velSens) + p.velSens * velocity;
-
         // 1. Latch Pending Role & Model on Note-On
         activeRole_  = pendingRole_;
         activeModel_ = pendingModel_;
 
         // 2. Advance Trigger PRNG and Latch 8-Axis Humanization Parameters
         const float d[8] = {
-            p.randTX * 0.01f,
-            p.randTY * 0.01f,
-            p.randTZ * 0.01f,
-            p.randTT * 0.01f,
-            p.randPitch,
-            p.randCutoff * 0.01f,
-            p.randDecay * 0.01f,
-            p.randPan * 0.01f
+            p.randX * 0.01f,
+            p.randY * 0.01f,
+            p.randZ * 0.01f,
+            p.randT * 0.01f,
+            p.randAggr * 0.01f,
+            p.randTimb * 0.01f,
+            p.randPan * 0.01f,
+            p.randDecay * 0.01f
         };
 
         for (int i = 0; i < 8; ++i) {
@@ -283,21 +280,21 @@ public:
 
         // 4. Initialize New Slot with Latched Offsets
         newSlot.active = true;
-        newSlot.ampEnv = std::clamp(effVelocity, 0.001f, 1.5f);
+        newSlot.velocity = velocity;
+        newSlot.ampEnv = 1.0f;
         newSlot.pitchEnv = 1.0f;
         newSlot.clickEnv = 1.0f;
         newSlot.timbreEnv = 1.0f;
+        newSlot.burstCount = 0.0f;
 
-        newSlot.latchedOffX = (d[0] > 0.0f) ? latchedDraw_[0] * d[0] : 0.0f;
-        newSlot.latchedOffY = (d[1] > 0.0f) ? latchedDraw_[1] * d[1] : 0.0f;
-        newSlot.latchedOffZ = (d[2] > 0.0f) ? latchedDraw_[2] * d[2] : 0.0f;
-        newSlot.latchedTScale = (d[3] > 0.0f) ? FastMath::fastPow2(2.0f * latchedDraw_[3] * d[3]) : 1.0f;
-        newSlot.latchedPitchOffsetSt = (d[4] > 0.0f) ? latchedDraw_[4] * d[4] : 0.0f;
-        newSlot.latchedDecayScale = (d[6] > 0.0f) ? std::clamp(FastMath::fastPow2(1.5f * latchedDraw_[6] * d[6]), 0.25f, 4.0f) : 1.0f;
-
-        const float cutoffOct = (d[5] > 0.0f) ? 3.0f * latchedDraw_[5] * d[5] : 0.0f;
-        effCutoffHz_ = std::clamp(p.cutoff * FastMath::fastPow2(cutoffOct), 20.0f, nyquist_);
-        panOff_ = (d[7] > 0.0f) ? latchedDraw_[7] * d[7] : 0.0f;
+        newSlot.latchedOffX    = (d[0] > 0.0f) ? latchedDraw_[0] * d[0] : 0.0f;
+        newSlot.latchedOffY    = (d[1] > 0.0f) ? latchedDraw_[1] * d[1] : 0.0f;
+        newSlot.latchedOffZ    = (d[2] > 0.0f) ? latchedDraw_[2] * d[2] : 0.0f;
+        newSlot.latchedOffT    = (d[3] > 0.0f) ? latchedDraw_[3] * d[3] : 0.0f;
+        newSlot.latchedOffAggr = (d[4] > 0.0f) ? latchedDraw_[4] * d[4] : 0.0f;
+        newSlot.latchedOffTimb = (d[5] > 0.0f) ? latchedDraw_[5] * d[5] : 0.0f;
+        newSlot.latchedOffPan  = (d[6] > 0.0f) ? latchedDraw_[6] * d[6] : 0.0f;
+        newSlot.latchedDecayScale = (d[7] > 0.0f) ? std::clamp(FastMath::fastPow2(1.5f * latchedDraw_[7] * d[7]), 0.25f, 4.0f) : 1.0f;
 
         blockCounter_ = 0; // Force immediate coefficient update
 
@@ -317,14 +314,30 @@ public:
         }
         for (auto& ph : newSlot.clusterPhases) ph = 0.0f;
 
-        // Hardwired Permanent 1V/Oct Chromatic Key Tracking
-        float baseFreq = p.pitch;
-        if (noteHz > 10.0f) {
-            const float pitchOffsetSemis = (p.pitch - 55.0f) * (12.0f / 45.0f);
-            baseFreq = noteHz * FastMath::fastPow2(pitchOffsetSemis * (1.0f / 12.0f));
+        // Base Frequency Calculation per Role
+        // Knob A (p.paramA) is the native tune control [0..1]
+        // Macro X biases Knob A
+        const float effX = std::clamp(p.macroX + newSlot.latchedOffX, 0.0f, 1.0f);
+        const float effA = std::clamp(p.paramA + (effX - 0.5f), 0.0f, 1.0f);
+
+        float minHz = 35.0f, maxHz = 140.0f;
+        switch (activeRole_) {
+            case 0: minHz = 35.0f;   maxHz = 140.0f;  break; // BD
+            case 1: minHz = 120.0f;  maxHz = 360.0f;  break; // SD
+            case 2: minHz = 55.0f;   maxHz = 280.0f;  break; // TM
+            case 3: minHz = 400.0f;  maxHz = 1600.0f; break; // CP
+            case 4: minHz = 2500.0f; maxHz = 9000.0f; break; // HH
+            case 5: minHz = 1800.0f; maxHz = 7500.0f; break; // CY
+            case 6: minHz = 140.0f;  maxHz = 1200.0f; break; // PC
+            case 7: minHz = 40.0f;   maxHz = 4000.0f; break; // FX
+            default: break;
         }
-        if (std::abs(newSlot.latchedPitchOffsetSt) > 0.001f) {
-            baseFreq *= FastMath::fastPow2(newSlot.latchedPitchOffsetSt * (1.0f / 12.0f));
+
+        float baseFreq = 55.0f;
+        if (noteHz > 10.0f) {
+            baseFreq = noteHz * FastMath::fastPow2((effA - 0.5f) * 2.0f);
+        } else {
+            baseFreq = minHz * FastMath::fastPow2(effA * FastMath::fastLog2(maxHz / minHz));
         }
         newSlot.baseHz = std::clamp(baseFreq, 15.0f, nyquist_);
     }
@@ -355,12 +368,15 @@ private:
         float timbreEnv{0.0f};
         float burstCount{0.0f};
         float baseHz{55.0f};
-        float latchedPitchOffsetSt{0.0f};
+        float velocity{1.0f};
         float latchedDecayScale{1.0f};
         float latchedOffX{0.0f};
         float latchedOffY{0.0f};
         float latchedOffZ{0.0f};
-        float latchedTScale{1.0f};
+        float latchedOffT{0.0f};
+        float latchedOffAggr{0.0f};
+        float latchedOffTimb{0.0f};
+        float latchedOffPan{0.0f};
         bool  active{false};
     };
 
@@ -391,7 +407,6 @@ private:
         macroSmoothed_ += 0.08f * (p.macroDecay - macroSmoothed_);
         const float macroMult = evalMacroMultiplier(macroSmoothed_);
 
-        // Role- and Model-calibrated base decay scaling (112-Model SSoT Matrix)
         const float macroLog2 = FastMath::fastLog2(std::max(macroMult, 1e-6f));
 
         const int r = std::clamp(activeRole_,  0, kTotalRoles - 1);
@@ -400,25 +415,31 @@ private:
         const float pitchResp  = kModelPitchDecayResponse[r][m];
         const float timbreResp = kModelTimbreDecayResponse[r][m];
 
-        // Partial macro application: macroMult^response (response 0 -> 1.0 neutral, response 1 -> full macroMult)
         const float pitchMacro  = FastMath::fastPow2(pitchResp  * macroLog2);
         const float timbreMacro = FastMath::fastPow2(timbreResp * macroLog2);
 
-        // Only fully-responsive sweep models (e.g. LASER, CZ-ZAP, SUB-DP) may sweep pitch past 350 ms
-        const float pitchMaxSec = (pitchResp >= 0.9f) ? 1.200f : 0.350f;
+        // Time macro (macroT) scales decay times
+        const float tMult = evalMacroMultiplier(p.macroT);
 
-        const float effAmpDecaySec    = std::clamp(kModelBaseAmpDecaySec[r][m] * macroMult, 0.003f, 4.500f);
-        const float effPitchDecaySec  = std::clamp(p.pitchDecay * 0.001f * pitchMacro,  0.002f, pitchMaxSec);
-        const float effTimbreDecaySec = std::clamp(p.timbreT    * 0.001f * timbreMacro, 0.002f, 1.200f);
+        // Base amp decay scaled by Macro Decay, Time Macro, and Knob D (Body Decay)
+        const float baseAmpSec = kModelBaseAmpDecaySec[r][m];
+        const float effAmpDecaySec = std::clamp(baseAmpSec * macroMult * tMult * (0.25f + p.paramD * 1.75f), 0.003f, 6.0f);
+
+        // Pitch sweep decay scaled by Knob B (Pitch Decay) and Time Macro
+        const float pitchMaxSec = (pitchResp >= 0.5f) ? 1.200f : 0.350f;
+        const float effPitchDecaySec = std::clamp((0.005f + p.paramB * 0.350f) * pitchMacro * tMult, 0.002f, pitchMaxSec);
+
+        // Timbre decay
+        const float effTimbreDecaySec = std::clamp(0.040f * timbreMacro * tMult, 0.002f, 1.500f);
         const float effClickDecaySec  = std::clamp(0.002f * FastMath::fastPow2(macroSmoothed_ * 1.2f), 0.0008f, 0.006f);
 
-        ampDecayCoeff_   = FastMath::fastExp(-invSampleRate_ / effAmpDecaySec);
-        pitchDecayCoeff_ = FastMath::fastExp(-invSampleRate_ / effPitchDecaySec);
-        timbreDecayCoeff_= FastMath::fastExp(-invSampleRate_ / effTimbreDecaySec);
-        clickDecayCoeff_ = FastMath::fastExp(-invSampleRate_ / effClickDecaySec);
+        ampDecayCoeff_    = FastMath::fastExp(-invSampleRate_ / effAmpDecaySec);
+        pitchDecayCoeff_  = FastMath::fastExp(-invSampleRate_ / effPitchDecaySec);
+        timbreDecayCoeff_ = FastMath::fastExp(-invSampleRate_ / effTimbreDecaySec);
+        clickDecayCoeff_  = FastMath::fastExp(-invSampleRate_ / effClickDecaySec);
 
-        // VCF Cutoff Pre-Warping with Latched Stepped Random Modulation
-        const float rawCutoff = std::clamp(effCutoffHz_, 20.0f, nyquist_);
+        // VCF Cutoff Pre-Warping
+        const float rawCutoff = std::clamp(p.cutoff, 20.0f, nyquist_);
         const float q = 0.5f + p.resonance * 7.5f;
 
         switch (p.filterType) {
@@ -428,8 +449,6 @@ private:
             case 3: vcfSvf_.setNotch(rawCutoff, q, invSampleRate_); break;
             default: vcfSvf_.setLowpass(rawCutoff, q, invSampleRate_); break;
         }
-
-        lowBoostGain_ = FastMath::fastPow2(p.lowBoost * (1.0f / 6.0f));
 
         constexpr float kCrossoverHz = 100.0f;
         const float normXover = kCrossoverHz * invSampleRate_;
@@ -443,374 +462,633 @@ private:
             return 0.0f;
         }
 
-        // 1. Pitch Envelope Dive with Pitch Curve Shaping
-        float shapedPitchEnv = slot.pitchEnv;
-        if (p.pitchCurve < -0.01f) {
-            const float k = -p.pitchCurve * 3.0f;
-            shapedPitchEnv = FastMath::fastTanh(shapedPitchEnv * (1.0f + k)) / (FastMath::fastTanh(1.0f + k) + 1e-6f);
-        } else if (p.pitchCurve > 0.01f) {
-            const float k = p.pitchCurve;
-            shapedPitchEnv = (1.0f - k) * shapedPitchEnv + k * (shapedPitchEnv * shapedPitchEnv);
-        }
+        // 1. Effective Macro & Synthesis Parameters with Stepped Random Offsets
+        const float effX = std::clamp(p.macroX + slot.latchedOffX, 0.0f, 1.0f);
+        const float effY = std::clamp(p.macroY + slot.latchedOffY, 0.0f, 1.0f);
+        const float effZ = std::clamp(p.macroZ + slot.latchedOffZ, 0.0f, 1.0f);
+        const float effT = std::clamp(p.macroT + slot.latchedOffT, 0.0f, 1.0f);
+        const float effAggr = std::clamp(p.velAggr + slot.latchedOffAggr, 0.0f, 1.0f);
+        const float effTimb = std::clamp(p.velTimb + slot.latchedOffTimb, 0.0f, 1.0f);
 
-        const float pitchDepth = p.pitchDepth;
-        const float pitchMult = FastMath::fastPow2((pitchDepth * shapedPitchEnv) * (1.0f / 12.0f));
+        // Synthesis-level Velocity Dynamics (velAggr & velTimb)
+        const float velForce = slot.velocity;
+        const float synthAggr = std::clamp(1.0f + (velForce - 0.75f) * effAggr * 1.5f, 0.2f, 2.5f);
+        const float synthTimb = std::clamp(1.0f + (velForce - 0.75f) * effTimb * 1.5f, 0.2f, 2.5f);
+
+        // Macro Vector Mapping to Knobs A..H
+        // X (Pitch Space) -> A (Base Pitch), C (Pitch Sweep Depth)
+        // Y (Punch Space) -> E (Attack/Click Spike), H (Punch/Snap)
+        // Z (Timbre Space) -> F (Non-linearity/Ratio), G (Overtones/Index)
+        // T (Time Space) -> Handled via updateControlRateCoefficients scaling B and D
+        const float eA = std::clamp(p.paramA + (effX - 0.5f), 0.0f, 1.0f);
+        const float eB = p.paramB;
+        const float eC = std::clamp(p.paramC * (0.2f + 1.6f * effX), 0.0f, 1.0f);
+        const float eD = p.paramD;
+        const float eE = std::clamp(p.paramE * (0.2f + 1.6f * effY) * synthAggr, 0.0f, 1.0f);
+        const float eF = std::clamp(p.paramF * (0.2f + 1.6f * effZ) * synthTimb, 0.0f, 1.0f);
+        const float eG = std::clamp(p.paramG * (0.2f + 1.6f * effZ) * synthTimb, 0.0f, 1.0f);
+        const float eH = std::clamp(p.paramH * (0.2f + 1.6f * effY) * synthAggr, 0.0f, 1.0f);
+
+        // 2. Pitch Envelope Dive
+        const float pitchDepthSemis = eC * 48.0f;
+        const float pitchMult = FastMath::fastPow2((pitchDepthSemis * slot.pitchEnv) * (1.0f / 12.0f));
         const float curFreq = std::clamp(slot.baseHz * pitchMult, 10.0f, nyquist_);
 
-        // Advance Recursive Envelopes (high clamp ceiling 0.9999995f allows long tails > 4s)
+        // Advance Recursive Envelopes
         const float dScale = slot.latchedDecayScale;
-        const float tScale = dScale * slot.latchedTScale;
         slot.pitchEnv  *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(pitchDecayCoeff_) / dScale), 0.80f, 0.9999995f);
         slot.ampEnv    *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(ampDecayCoeff_) / dScale), 0.80f, 0.9999995f);
-        slot.timbreEnv *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(timbreDecayCoeff_) / tScale), 0.80f, 0.9999995f);
+        slot.timbreEnv *= std::clamp(FastMath::fastPow2(FastMath::fastLog2(timbreDecayCoeff_) / dScale), 0.80f, 0.9999995f);
         slot.clickEnv  *= clickDecayCoeff_;
 
-        // 2. Timbre Modulation Parameters (with 8-Axis Latched Offsets)
-        const float tX = std::clamp(p.timbreX + slot.latchedOffX, 0.0f, 1.0f);
-        const float tY = std::clamp((p.timbreY + slot.latchedOffY) * slot.timbreEnv, 0.0f, 1.0f);
-        const float tZ = std::clamp((p.timbreZ + slot.latchedOffZ) * slot.timbreEnv, 0.0f, 1.0f);
+        // Decay Curvature Shaping on Amplitude
+        float shapedAmp = slot.ampEnv;
+        if (std::abs(p.decayCurve) > 0.01f) {
+            const float exponent = FastMath::fastPow2(-p.decayCurve * 1.5f);
+            shapedAmp = FastMath::fastPow2(FastMath::fastLog2(std::max(slot.ampEnv, 1e-6f)) * exponent);
+        }
 
         // Advance Main Oscillator Phase
         slot.phase += curFreq * invSampleRate_;
         if (slot.phase >= 1.0f) slot.phase -= 1.0f;
 
-        // 3. Synthesis Core Dispatch (7 Roles x 16 Models = 112 Sovereign Models)
+        // 3. Synthesis Core Dispatch (8 Roles x 8 Models = 64 Sovereign Models)
         float oscOut = 0.0f;
 
         switch (activeRole_) {
             case 0: { // BD (Bass Drum)
                 switch (activeModel_) {
-                    case 0: { // TRX-9: Classic 909-style bridged-T punchy sine
+                    case 0: { // TRX-9: Classic 909-style bridged-T punchy sine with 2nd-harmonic asymmetry
                         float s = FastMath::fastSinNorm(slot.phase);
-                        oscOut = FastMath::fastTanh(s * (1.0f + tY * 1.5f));
+                        float asym = s + eG * 0.35f * s * s;
+                        oscOut = FastMath::fastTanh(asym * (1.1f + eF * 2.2f + eH * 1.6f));
                         break;
                     }
-                    case 1: { // TRX-B: Hard acoustic kick
-                        float s = FastMath::fastSinNorm(slot.phase);
-                        float asym = tX * 0.35f;
-                        oscOut = FastMath::fastTanh(s * 2.0f + asym) - asym * 0.5f;
+                    case 1: { // BOOM: 808 deep sub boom with tape saturation and 2nd harmonic presence
+                        float sub2 = FastMath::fastSinNorm(slot.phase * 2.0f) * (eG * 0.35f);
+                        float s = FastMath::fastSinNorm(slot.phase) * (1.0f - 0.05f * slot.phase) + sub2;
+                        float sat = 1.0f + eF * 2.2f;
+                        float punch = 1.0f + eH * 1.2f;
+                        oscOut = FastMath::fastTanh(s * (sat * punch));
                         break;
                     }
-                    case 2: { // EFM-M: 2-op metallic FM kick
-                        float mF = curFreq * (1.0f + tX * 4.0f);
+                    case 2: { // EFM-2: 2-op metallic FM kick with attack transient index scaling
+                        float mF = curFreq * (0.75f + eF * 3.75f);
                         slot.modPhase += mF * invSampleRate_;
                         if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
-                        float mod = FastMath::fastSinNorm(slot.modPhase) * (tY * 3.0f);
+                        float effIndex = (eG * 3.2f) + (eH * 2.5f * slot.timbreEnv);
+                        float mod = FastMath::fastSinNorm(slot.modPhase) * effIndex;
                         oscOut = FastMath::fastSinNorm(slot.phase + mod * 0.159f);
                         break;
                     }
-                    case 3: { // MEMBR: Inharmonic membrane
-                        float s1 = FastMath::fastSinNorm(slot.phase);
-                        float s2 = FastMath::fastSinNorm(slot.phase * 1.618f);
-                        oscOut = 0.7f * s1 + 0.3f * s2 * tX;
-                        break;
-                    }
-                    case 4: { // BOUNC: 606 bouncy low kick
-                        float s = FastMath::fastSinNorm(slot.phase);
-                        oscOut = s * (1.0f - 0.2f * slot.phase);
-                        break;
-                    }
-                    case 5: { // THUD: DR-110 punchy thud
-                        float s = FastMath::fastSinNorm(slot.phase);
-                        oscOut = FastMath::fastTanh(s * (1.2f + tY * 2.0f));
-                        break;
-                    }
-                    case 6: { // CLICK: 909 dual envelope click kick
-                        float s = FastMath::fastSinNorm(slot.phase);
-                        oscOut = s + slot.clickEnv * (tX * 0.6f);
-                        break;
-                    }
-                    case 7: { // BOOM: 808 deep sub boom
-                        oscOut = FastMath::fastSinNorm(slot.phase);
-                        break;
-                    }
-                    case 8: { // W-FOLD: Perkons wavefold kick
-                        float saw = 2.0f * slot.phase - 1.0f;
-                        oscOut = FastMath::fastSinNorm(saw * (1.0f + tX * 4.0f));
-                        break;
-                    }
-                    case 9: { // FM-SUB: Deep FM drop
-                        float mod = FastMath::fastSinNorm(slot.phase * 0.5f) * (tY * 2.5f);
-                        oscOut = FastMath::fastSinNorm(slot.phase + mod * 0.159f);
-                        break;
-                    }
-                    case 10: { // DIGI: Digital multi-harmonic kick
-                        float s = FastMath::fastSinNorm(slot.phase);
-                        float s3 = FastMath::fastSinNorm(slot.phase * 3.0f);
-                        oscOut = s + tX * 0.5f * s3;
-                        break;
-                    }
-                    case 11: { // DRIVE: Overdrive parallel kick
-                        float s = FastMath::fastSinNorm(slot.phase);
-                        oscOut = FastMath::fastTanh(s * (1.5f + tX * 3.0f));
-                        break;
-                    }
-                    case 12: { // SQUAR: Square sub kick
-                        oscOut = (slot.phase < 0.5f) ? 0.8f : -0.8f;
-                        oscOut = FastMath::fastTanh(oscOut * (1.0f + tY));
-                        break;
-                    }
-                    case 13: { // DISCR: Discrete transistor kick
-                        float s = FastMath::fastSinNorm(slot.phase);
-                        oscOut = s > 0.0f ? s * 1.2f : s * 0.8f;
-                        break;
-                    }
-                    case 14: { // VCO-D: Continuous shaped VCO kick
+                    case 3: { // W-FOLD: Perkons triangle wavefold kick with asymmetry and attack fold burst
                         float tri = (slot.phase < 0.5f) ? (4.0f * slot.phase - 1.0f) : (3.0f - 4.0f * slot.phase);
-                        float sine = FastMath::fastSinNorm(slot.phase);
-                        oscOut = (1.0f - tX) * sine + tX * tri;
+                        tri += eG * 0.35f; // Asymmetry bias creates warm even harmonics
+                        float foldDepth = (1.0f + eF * 4.5f) + (eH * 3.0f * slot.timbreEnv);
+                        oscOut = FastMath::fastSinNorm(tri * foldDepth);
                         break;
                     }
-                    default: { // LASER: Fast laser pitch sweep
-                        oscOut = FastMath::fastSinNorm(slot.phase);
+                    case 4: { // MODAL: Acoustic inharmonic membrane kick with damped mode (1.593x) and mallet hardness
+                        float s1 = FastMath::fastSinNorm(slot.phase);
+                        float mode2 = FastMath::fastSinNorm(slot.phase * (1.593f + eG * 0.4f)) * slot.timbreEnv;
+                        oscOut = FastMath::fastTanh((s1 + mode2 * (0.25f + eF * 0.75f)) * (1.0f + eH * 1.5f));
                         break;
                     }
-                }
-                break;
-            }
-
-            case 1: { // TM (Tom)
-                float bodySine = FastMath::fastSinNorm(slot.phase);
-                float shellSine = FastMath::fastSinNorm(slot.phase * (1.4f + tX * 0.4f));
-                switch (activeModel_) {
-                    case 0:  oscOut = bodySine; break; // SINE-T
-                    case 1: { // EFM-T: FM tom
-                        float mF = curFreq * (1.5f + tX * 2.0f);
-                        slot.modPhase += mF * invSampleRate_;
-                        if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
-                        oscOut = FastMath::fastSinNorm(slot.phase + FastMath::fastSinNorm(slot.modPhase) * tY);
-                        break;
-                    }
-                    case 2:  oscOut = 0.65f * bodySine + 0.35f * shellSine; break; // SHELL
-                    case 3:  oscOut = bodySine * (1.0f - 0.3f * slot.phase); break; // PING-L
-                    case 4:  oscOut = FastMath::fastSinNorm(slot.phase * 1.5f); break; // PING-H
-                    case 5:  oscOut = bodySine + slot.clickEnv * 0.5f; break; // ATTACK
-                    case 6:  oscOut = FastMath::fastTanh(bodySine * 1.8f); break; // PUNCH
-                    case 7: { // HEX-V: Wavefold tom
+                    case 5: { // CHIRP: Fast exponential pitch chirp kick with sine/saw morph and body saturation
+                        float s = FastMath::fastSinNorm(slot.phase);
                         float saw = 2.0f * slot.phase - 1.0f;
-                        oscOut = FastMath::fastSinNorm(saw * (1.0f + tX * 3.0f));
+                        float core = (1.0f - eF * 0.5f) * s + (eF * 0.5f) * saw;
+                        oscOut = FastMath::fastTanh(core * (1.2f + eG * 2.4f + eH * 1.8f)) + slot.clickEnv * (eE * 0.6f);
                         break;
                     }
-                    case 8: { // DUAL-V: Beating dual VCO
-                        float v2 = FastMath::fastSinNorm(slot.phase * 1.02f);
-                        oscOut = 0.5f * (bodySine + v2);
+                    case 6: { // DUAL-V: Beating dual-oscillator kick with continuous interval and analog summing
+                        float ratio = 1.002f + eG * 0.498f; // 2-cent beating to musical fifth (1.5x)
+                        float v1 = FastMath::fastSinNorm(slot.phase);
+                        float v2Tri = (slot.phase < 0.5f) ? (4.0f * slot.phase - 1.0f) : (3.0f - 4.0f * slot.phase);
+                        float v2 = (1.0f - eF * 0.6f) * FastMath::fastSinNorm(slot.phase * ratio) + (eF * 0.6f) * FastMath::fastTanh(v2Tri * 2.0f);
+                        oscOut = FastMath::fastTanh((v1 * 0.6f + v2 * 0.5f) * (1.1f + eH * 2.0f));
                         break;
                     }
-                    case 9:  oscOut = FastMath::fastTanh(bodySine * (1.0f + tY * 2.5f)); break; // VCF-T
-                    case 10: oscOut = bodySine * (1.0f - slot.timbreEnv * 0.5f); break; // STRING
-                    case 11: oscOut = bodySine + 0.3f * FastMath::fastSinNorm(slot.phase * 5.0f) * tX; break; // DIGI-T
-                    case 12: oscOut = 0.5f * bodySine + 0.5f * shellSine * tY; break; // FORMNT
-                    case 13: oscOut = bodySine * (0.8f + 0.2f * FastMath::fastSinNorm(slot.phase * 2.0f)); break; // TONAL
-                    case 14: oscOut = (slot.phase < 0.5f) ? (4.0f * slot.phase - 1.0f) : (3.0f - 4.0f * slot.phase); break; // VCO-T
-                    default: oscOut = FastMath::fastTanh(bodySine * 3.0f) * (nextRandBipolar() * 0.15f + 0.85f); break; // GLITCH
+                    default: { // GABBER: Hardcore overdriven gabber kick with extreme preamp gain and diode asymmetry
+                        float s = FastMath::fastSinNorm(slot.phase);
+                        float biased = s + eG * 0.40f; // Diode clipping asymmetry
+                        float punchGain = 1.0f + eH * 2.5f * slot.timbreEnv;
+                        oscOut = FastMath::fastTanh(biased * (3.0f + eF * 9.0f) * punchGain);
+                        break;
+                    }
                 }
                 break;
             }
 
-            case 2: { // SD (Snare)
-                float tone = FastMath::fastSinNorm(slot.phase);
-                float tone2 = FastMath::fastSinNorm(slot.phase * 1.6f);
-                float noise = nextRandBipolar();
+            case 1: { // SD (Snare Drum)
+                float n = nextRandBipolar();
                 switch (activeModel_) {
-                    case 0:  oscOut = (1.0f - tX) * (0.6f * tone + 0.4f * tone2) + tX * noise; break; // SNAP
-                    case 1: { // EFM-S
-                        float mF = curFreq * (2.1f + tX * 3.0f);
+                    case 0: { // TRX-9: 909 dual bridged-T tone + snappy noise
+                        float t1 = FastMath::fastSinNorm(slot.phase);
+                        float t2 = FastMath::fastSinNorm(slot.phase * (1.45f + eF * 0.45f));
+                        float tone = 0.55f * t1 + 0.45f * t2;
+                        float noise = n * (0.4f + eG * 0.8f) * slot.timbreEnv;
+                        float mix = (1.0f - eC * 0.65f) * tone + (eC * 0.85f) * noise;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.8f));
+                        break;
+                    }
+                    case 1: { // TRX-8: 808 tone + snappy noise with tone warmth and attack snap
+                        float t = FastMath::fastSinNorm(slot.phase);
+                        float noise = n * (0.45f + eG * 0.75f) * slot.timbreEnv;
+                        float body = t * (1.0f + eF * 0.8f);
+                        float mix = (1.0f - eC * 0.7f) * body + (eC * 0.9f) * noise;
+                        oscOut = FastMath::fastTanh(mix * (1.0f + eH * 1.5f));
+                        break;
+                    }
+                    case 2: { // EFM-S: 2-op FM snare with envelope punch
+                        float mF = curFreq * (1.8f + eF * 2.8f);
                         slot.modPhase += mF * invSampleRate_;
                         if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
-                        oscOut = 0.5f * FastMath::fastSinNorm(slot.phase + FastMath::fastSinNorm(slot.modPhase) * tY) + 0.5f * noise;
+                        float fmIndex = (eG * 2.8f) + (eH * 2.0f * slot.timbreEnv);
+                        float shell = FastMath::fastSinNorm(slot.phase + FastMath::fastSinNorm(slot.modPhase) * fmIndex);
+                        float wire = n * (0.4f + eG * 0.6f) * slot.timbreEnv;
+                        oscOut = FastMath::fastTanh(((1.0f - eC * 0.6f) * shell + eC * wire) * (1.1f + eH * 1.5f));
                         break;
                     }
-                    case 2:  oscOut = 0.4f * tone + 0.6f * noise * (0.7f + 0.3f * slot.timbreEnv); break; // WIRES
-                    case 3:  oscOut = 0.2f * tone + 0.8f * noise; break; // HP-NOI (606)
-                    case 4:  oscOut = 0.3f * tone + 0.7f * FastMath::fastTanh(noise * 1.5f); break; // CRISP (DR-110)
-                    case 5:  oscOut = 0.5f * (0.7f * tone + 0.3f * tone2) + 0.5f * noise; break; // SHELL (909)
-                    case 6:  oscOut = 0.4f * tone + 0.6f * noise; break; // SIZZL (808)
-                    case 7:  oscOut = FastMath::fastTanh((tone + noise) * (1.0f + tY * 2.0f)); break; // VCF-N
-                    case 8:  oscOut = 0.5f * tone + 0.5f * noise * slot.ampEnv; break; // KAR-S
-                    case 9:  oscOut = 0.3f * tone + 0.7f * (noise > 0.0f ? 0.7f : -0.7f); break; // SUB-S
-                    case 10: oscOut = 0.6f * tone + 0.4f * noise * tX; break; // 6-SINE
-                    case 11: oscOut = 0.15f * tone + 0.85f * noise; break; // MARCH
-                    case 12: oscOut = (tone > 0.0f ? tone * 1.3f : tone * 0.7f) + 0.5f * noise; break; // DISCR
-                    case 13: oscOut = slot.clickEnv * tone + noise; break; // CRACK
-                    case 14: oscOut = FastMath::fastTanh((tone + noise) * 3.0f); break; // EXPLOD
-                    default: oscOut = 0.3f * tone + 0.7f * (noise * (slot.ampEnv > 0.5f ? 1.0f : 0.3f)); break; // POISSN
+                    case 3: { // MODAL: 3-mode cylindrical acoustic shell and membrane resonator
+                        float s1 = FastMath::fastSinNorm(slot.phase);
+                        float s2 = FastMath::fastSinNorm(slot.phase * (1.59f + eF * 0.3f)) * slot.timbreEnv;
+                        float s3 = FastMath::fastSinNorm(slot.phase * (2.14f + eF * 0.5f)) * (slot.timbreEnv * slot.timbreEnv);
+                        float shell = 0.5f * s1 + 0.3f * s2 + 0.2f * s3;
+                        float wire = n * (0.3f + eG * 0.7f) * slot.timbreEnv;
+                        oscOut = FastMath::fastTanh(((1.0f - eC * 0.65f) * shell + eC * wire) * (1.1f + eH * 1.6f));
+                        break;
+                    }
+                    case 4: { // VCF-S: Resonant filtered noise snare (DR-110/KR-55 style)
+                        float t = FastMath::fastSinNorm(slot.phase);
+                        float noiseSizzle = (n > 0.0f ? 1.0f : -1.0f) * (0.5f * n + 0.5f * FastMath::fastSinNorm(slot.phase * (3.0f + eF * 4.0f)));
+                        float wire = noiseSizzle * (0.4f + eG * 0.8f) * slot.timbreEnv;
+                        float mix = (1.0f - eC * 0.6f) * t + (eC * 0.9f) * wire;
+                        oscOut = FastMath::fastTanh(mix * (1.2f + eF * 1.5f + eH * 1.8f));
+                        break;
+                    }
+                    case 5: { // DIGI-S: Digital multi-harmonic 80s snare
+                        float s1 = FastMath::fastSinNorm(slot.phase);
+                        float s2 = FastMath::fastSinNorm(slot.phase * 2.0f);
+                        float s3 = FastMath::fastSinNorm(slot.phase * 3.0f);
+                        float shell = 0.5f * s1 + 0.3f * s2 * eF + 0.2f * s3 * (1.0f - eF);
+                        float digiNoise = (n > 0.0f ? 0.85f : -0.85f) * (0.4f + eG * 0.8f) * slot.timbreEnv;
+                        float mix = (1.0f - eC * 0.6f) * shell + eC * digiNoise;
+                        oscOut = FastMath::fastTanh(mix * (1.2f + eH * 2.0f));
+                        break;
+                    }
+                    case 6: { // SHELL: Deep acoustic wooden shell resonator
+                        float t1 = FastMath::fastSinNorm(slot.phase);
+                        float t2 = FastMath::fastSinNorm(slot.phase * (1.42f + eF * 0.35f));
+                        float wood = 0.65f * t1 + 0.35f * t2;
+                        float rattle = n * (0.3f + eG * 0.7f) * (0.7f * slot.timbreEnv + 0.3f * slot.ampEnv);
+                        float mix = (1.0f - eC * 0.6f) * wood + eC * rattle;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                    default: { // EXPLOD: Industrial hard explode snare with gated blast
+                        float t = FastMath::fastSinNorm(slot.phase);
+                        float blast = n * (0.6f + eG * 1.2f);
+                        float pre = (t * (1.0f + eF * 1.5f) + blast * (0.5f + eC * 0.8f));
+                        oscOut = FastMath::fastTanh(pre * (2.2f + eH * 3.5f));
+                        break;
+                    }
                 }
                 break;
             }
 
-            case 3: { // CP (Clap)
-                float noise = nextRandBipolar();
-                // Multi-burst envelope for authentic claps
+            case 2: { // TM (Toms)
+                switch (activeModel_) {
+                    case 0: { // TRX-9: 909 dual bridged-T resonant tom
+                        float t1 = FastMath::fastSinNorm(slot.phase);
+                        float t2 = FastMath::fastSinNorm(slot.phase * (1.38f + eF * 0.28f));
+                        float body = (1.0f - eG * 0.4f) * t1 + (eG * 0.4f) * t2 * slot.timbreEnv;
+                        oscOut = FastMath::fastTanh(body * (1.1f + eH * 1.8f));
+                        break;
+                    }
+                    case 1: { // TRX-8: 808 deep resonant tom with circuit droop and sub ring
+                        float s = FastMath::fastSinNorm(slot.phase);
+                        float ring = FastMath::fastSinNorm(slot.phase * 2.0f) * (eG * 0.35f);
+                        float mix = (s + ring) * (1.0f - 0.08f * slot.phase * (1.0f - eF * 0.5f));
+                        oscOut = FastMath::fastTanh(mix * (1.0f + eH * 1.4f));
+                        break;
+                    }
+                    case 2: { // SIMM-T: Simmons SDS-V analog sweep tom with pulse harmonic
+                        float s = FastMath::fastSinNorm(slot.phase);
+                        float tri = (slot.phase < 0.5f) ? (4.0f * slot.phase - 1.0f) : (3.0f - 4.0f * slot.phase);
+                        float wave = (1.0f - eF * 0.7f) * s + (eF * 0.7f) * tri;
+                        float pulse = (slot.phase < (0.3f + eG * 0.4f)) ? 0.3f : -0.3f;
+                        oscOut = FastMath::fastTanh((wave + pulse * eG * 0.4f) * (1.2f + eH * 1.8f));
+                        break;
+                    }
+                    case 3: { // MODAL: Acoustic cylindrical shell and membrane tom
+                        float s1 = FastMath::fastSinNorm(slot.phase);
+                        float s2 = FastMath::fastSinNorm(slot.phase * (1.45f + eF * 0.30f)) * slot.timbreEnv;
+                        float mix = 0.65f * s1 + (0.35f + eG * 0.35f) * s2;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                    case 4: { // PING-T: High-resonance pinged tom with vactrol LPG strike
+                        float s = FastMath::fastSinNorm(slot.phase);
+                        float ring = s * (1.0f + eG * 0.6f * FastMath::fastSinNorm(slot.phase * (2.0f + eF)));
+                        oscOut = FastMath::fastTanh(ring * (1.0f + eH * 1.6f));
+                        break;
+                    }
+                    case 5: { // EFM-T: 2-op FM tom with attack punch index spike
+                        float mF = curFreq * (1.25f + eF * 2.25f);
+                        slot.modPhase += mF * invSampleRate_;
+                        if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
+                        float effIndex = (eG * 2.6f) + (eH * 2.2f * slot.timbreEnv);
+                        float mod = FastMath::fastSinNorm(slot.modPhase) * effIndex;
+                        oscOut = FastMath::fastSinNorm(slot.phase + mod * 0.159f);
+                        break;
+                    }
+                    case 6: { // W-FOLD: Perkons triangle wavefold metallic tom
+                        float tri = (slot.phase < 0.5f) ? (4.0f * slot.phase - 1.0f) : (3.0f - 4.0f * slot.phase);
+                        tri += eG * 0.35f;
+                        float fold = (1.0f + eF * 4.0f) + (eH * 2.5f * slot.timbreEnv);
+                        oscOut = FastMath::fastSinNorm(tri * fold);
+                        break;
+                    }
+                    default: { // FORMNT: African talking drum & dual-formant acoustic tom
+                        float s1 = FastMath::fastSinNorm(slot.phase);
+                        float f1 = FastMath::fastSinNorm(slot.phase * (1.5f + eF * 1.3f)) * slot.timbreEnv;
+                        float f2 = FastMath::fastSinNorm(slot.phase * (2.2f + eG * 2.0f)) * (slot.timbreEnv * slot.timbreEnv);
+                        float mix = 0.5f * s1 + 0.35f * f1 + 0.25f * f2;
+                        oscOut = FastMath::fastTanh(mix * (1.2f + eH * 1.6f));
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case 3: { // CP (Claps)
                 slot.burstCount += 1.0f;
                 float burst = 1.0f;
-                if (slot.burstCount < 0.035f * sampleRate_) {
-                    int subStep = static_cast<int>(slot.burstCount / (0.008f * sampleRate_));
-                    burst = (subStep % 2 == 0) ? 1.0f : 0.2f;
+                const float spreadSamples = std::max(48.0f, (0.003f + eB * 0.024f) * sampleRate_);
+                const int numBursts = 2 + static_cast<int>(eC * 3.0f); // 2 to 5 bursts based on BURST knob
+                const float totalBurstTime = spreadSamples * static_cast<float>(numBursts);
+                if (slot.burstCount < totalBurstTime) {
+                    float phaseInBurst = std::fmod(slot.burstCount, spreadSamples) / spreadSamples;
+                    burst = FastMath::fastExp(-phaseInBurst * 4.5f) * 1.25f;
                 }
+                float n = nextRandBipolar();
                 switch (activeModel_) {
-                    case 0:  oscOut = noise * burst; break; // BURST
-                    case 1: { // EFM-C
-                        float fm = FastMath::fastSinNorm(slot.phase * 5.0f) * tY;
-                        oscOut = (noise + fm) * burst;
+                    case 0: { // TRX-9: 909 multi-burst filtered resonant clap
+                        float filtered = (n + FastMath::fastSinNorm(slot.phase * (2.0f + eF * 1.5f)) * (0.35f + eG * 0.35f));
+                        oscOut = FastMath::fastTanh(filtered * (1.2f + eH * 2.2f)) * burst;
                         break;
                     }
-                    case 2:  oscOut = noise * (burst * 0.8f + 0.2f); break; // MULTI
-                    case 3:  oscOut = noise * burst; break; // TRIPLE (808)
-                    case 4:  oscOut = FastMath::fastTanh(noise * 1.5f) * burst; break; // STAGGR (909)
-                    case 5:  oscOut = FastMath::fastTanh(noise * 3.0f * burst); break; // DRIVE
-                    case 6:  oscOut = noise * (0.5f * burst + 0.5f * slot.timbreEnv); break; // MULTI2
-                    case 7:  oscOut = (noise > 0.0f ? noise * 1.2f : noise * 0.8f) * burst; break; // DISCR
-                    case 8:  oscOut = (noise + 0.3f * FastMath::fastSinNorm(slot.phase * 2.0f)) * burst; break; // RESON
-                    case 9:  oscOut = FastMath::fastTanh(noise * 4.0f) * burst; break; // EXPLOD
-                    case 10: oscOut = (noise > 0.3f ? 1.0f : (noise < -0.3f ? -1.0f : 0.0f)) * burst; break; // CRACK
-                    case 11: oscOut = noise * burst * (1.0f + tX); break; // DIGI-C
-                    case 12: oscOut = noise * burst; break; // W-GUID
-                    case 13: oscOut = (noise * 0.7f + 0.3f * FastMath::fastSinNorm(slot.phase)) * burst; break; // MEMBR
-                    case 14: oscOut = FastMath::fastTanh(noise * 2.0f) * burst; break; // SHAPED
-                    default: oscOut = noise * burst * (nextRandBipolar() * 0.2f + 0.8f); break; // VECTOR
+                    case 1: { // TRX-8: 808 multi-burst clap with tone warmth and diffuse noise
+                        float t = FastMath::fastSinNorm(slot.phase);
+                        float mix = n * (0.7f + eG * 0.4f) + t * (0.25f * eF);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.6f)) * burst;
+                        break;
+                    }
+                    case 2: { // HANDS: Multi-person organic acoustic handclap
+                        float n2 = nextRandBipolar();
+                        float n3 = nextRandBipolar();
+                        float crowd = 0.45f * n + 0.35f * n2 + 0.20f * n3;
+                        float flesh = FastMath::fastSinNorm(slot.phase * (1.2f + eF * 0.8f));
+                        float mix = crowd * (1.0f + eG * 0.6f) + flesh * 0.35f;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f)) * burst;
+                        break;
+                    }
+                    case 3: { // CLP-TRP: Vintage Boss HC-2 / EHX Clap Trap
+                        float sq = (slot.phase < 0.5f) ? 0.8f : -0.8f;
+                        float nF = (n > 0.0f ? 0.9f : -0.9f) * 0.7f + sq * (0.35f * eF);
+                        oscOut = FastMath::fastTanh(nF * (1.6f + eH * 2.8f)) * burst;
+                        break;
+                    }
+                    case 4: { // EFM-C: 2-op FM metallic frequency-modulated clap
+                        float fmMod = FastMath::fastSinNorm(slot.phase * (3.5f + eF * 5.0f));
+                        float fmIndex = (eG * 2.2f) + (eH * 1.8f * slot.timbreEnv);
+                        float fm = FastMath::fastSinNorm(slot.phase * 2.0f + fmMod * fmIndex);
+                        oscOut = FastMath::fastTanh((n * 0.6f + fm * 0.6f) * (1.1f + eH * 1.5f)) * burst;
+                        break;
+                    }
+                    case 5: { // W-CLP: Wavefolded distorted industrial clap
+                        float preFold = n + eG * 0.35f;
+                        float folded = FastMath::fastSinNorm(preFold * (1.2f + eF * 4.5f));
+                        oscOut = FastMath::fastTanh(folded * (1.3f + eH * 2.2f)) * burst;
+                        break;
+                    }
+                    case 6: { // GRAIN: Granular micro-burst sizzle clap
+                        float n2 = nextRandBipolar();
+                        float gN = (n * (0.6f + eG * 0.4f) + (n2 > 0.3f ? 0.8f : -0.8f) * (0.3f + eF * 0.5f));
+                        oscOut = FastMath::fastTanh(gN * (1.2f + eH * 2.0f)) * burst;
+                        break;
+                    }
+                    default: { // COMB: Comb-filtered physical clap resonator
+                        float sT = FastMath::fastSinNorm(slot.phase * (2.0f + eF * 4.0f));
+                        float comb = 0.55f * n + 0.45f * sT * (0.5f + eG * 0.5f);
+                        oscOut = FastMath::fastTanh(comb * (1.2f + eH * 1.8f)) * burst;
+                        break;
+                    }
                 }
                 break;
             }
 
-            case 4: { // HH (Hi-Hat)
-                // 6-Osc Inharmonic Metallic Matrix (205.3, 304.4, 369.6, 522.7, 540.0, 800.0 Hz)
-                constexpr float kRatios[6] = { 1.0f, 1.4827f, 1.8003f, 2.5460f, 2.6303f, 3.8967f };
+            case 4: { // HH (Hi-Hats)
+                constexpr float kRatios[6] = { 1.0f, 1.342f, 1.741f, 2.235f, 2.871f, 3.897f };
                 float metalSum = 0.0f;
-                const float clusterBaseHz = curFreq * 3.73f;
+                const float clusterBaseHz = curFreq * (1.8f + eF * 1.4f);
                 for (int m = 0; m < 6; ++m) {
                     slot.clusterPhases[m] += std::clamp(clusterBaseHz * kRatios[m], 20.0f, nyquist_) * invSampleRate_;
                     if (slot.clusterPhases[m] >= 1.0f) slot.clusterPhases[m] -= 1.0f;
                     metalSum += (slot.clusterPhases[m] < 0.5f) ? 0.35f : -0.35f;
                 }
-                float noise = nextRandBipolar();
+                float n = nextRandBipolar();
                 switch (activeModel_) {
-                    case 0:  oscOut = metalSum * 0.7f + noise * 0.3f; break; // 6-OSC (808/909)
-                    case 1:  oscOut = noise * 0.85f + metalSum * 0.15f; break; // BP-MET
-                    case 2:  oscOut = metalSum; break; // 5-OSC
-                    case 3:  oscOut = metalSum * 0.5f + FastMath::fastSinNorm(slot.phase * 8.0f) * 0.5f; break; // PHASE
-                    case 4:  oscOut = metalSum * (noise > 0.0f ? 1.0f : -1.0f); break; // RING-H
-                    case 5: { // EFM-H
-                        float mF = clusterBaseHz * 1.5f;
+                    case 0: { // ROLAND: 6-oscillator Schmitt trigger metallic sum (808/606/110)
+                        float metal = metalSum * (0.4f + eE * 0.6f);
+                        float sizzle = n * (0.2f + eG * 0.8f);
+                        oscOut = FastMath::fastTanh((metal + sizzle) * (1.1f + eH * 1.8f));
+                        break;
+                    }
+                    case 1: { // KORG: Analog pair dual-diode ring mod (KR-55 / Mini Pops)
+                        float s1 = FastMath::fastSinNorm(slot.clusterPhases[0]);
+                        float s2 = FastMath::fastSinNorm(slot.clusterPhases[1] * (1.0f + eF * 0.4f));
+                        float diodeRing = FastMath::fastTanh(s1 * s2 * (2.0f + eE * 3.0f));
+                        float mix = diodeRing * 0.65f + n * (0.3f + eG * 0.5f);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                    case 2: { // EFM-GLS: FM glass hi-hat with shimmering inharmonic overtones
+                        float mF = clusterBaseHz * (3.5f + eF * 4.5f);
                         slot.modPhase += mF * invSampleRate_;
                         if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
-                        oscOut = metalSum * 0.6f + FastMath::fastSinNorm(slot.modPhase) * 0.4f;
+                        float fmIndex = (eG * 2.8f) + (eH * 1.5f * slot.timbreEnv);
+                        float glass = FastMath::fastSinNorm(slot.clusterPhases[0] + FastMath::fastSinNorm(slot.modPhase) * fmIndex);
+                        oscOut = FastMath::fastTanh((glass * (0.6f + eE * 0.4f) + n * 0.35f) * (1.1f + eH * 1.5f));
                         break;
                     }
-                    case 6:  oscOut = metalSum * 0.4f + noise * 0.6f; break; // PLATE
-                    case 7:  oscOut = noise; break; // HP-SHR
-                    case 8:  oscOut = FastMath::fastTanh(metalSum * 1.5f); break; // VCF-M
-                    case 9:  oscOut = (metalSum > 0.0f ? 0.8f : -0.8f); break; // DIGI-H
-                    case 10: oscOut = metalSum * 0.5f + noise * 0.5f; break; // FORMNT
-                    case 11: oscOut = metalSum * FastMath::fastSinNorm(slot.phase * 4.0f); break; // RING-6
-                    case 12: oscOut = (metalSum > 0.0f ? metalSum * 1.2f : metalSum * 0.8f); break; // DISCR
-                    case 13: oscOut = metalSum + slot.clickEnv * 0.5f; break; // PING-H
-                    case 14: oscOut = FastMath::fastTanh((metalSum + noise) * 2.0f); break; // METAL
-                    default: oscOut = noise * 0.7f + metalSum * 0.3f; break; // SIZZL
+                    case 3: { // EFM-GRT: FM gritty distorted metallic hat with feedback noise
+                        float mF = clusterBaseHz * (2.2f + eF * 3.5f);
+                        slot.modPhase += mF * invSampleRate_;
+                        if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
+                        float gritMod = FastMath::fastSinNorm(slot.modPhase + n * (0.3f * eG));
+                        float grit = FastMath::fastTanh(FastMath::fastSinNorm(slot.clusterPhases[0] * 2.0f + gritMod * (2.0f + eE * 2.5f)) * (1.5f + eH * 2.0f));
+                        oscOut = grit;
+                        break;
+                    }
+                    case 4: { // PLATE: Physical bronze/brass plate resonator with modal damping
+                        float p1 = FastMath::fastSinNorm(slot.clusterPhases[0]);
+                        float p2 = FastMath::fastSinNorm(slot.clusterPhases[1]) * slot.timbreEnv;
+                        float p3 = FastMath::fastSinNorm(slot.clusterPhases[3]) * (slot.timbreEnv * slot.timbreEnv);
+                        float plate = 0.5f * p1 + 0.3f * p2 + 0.2f * p3;
+                        float mix = plate * (0.5f + eE * 0.5f) + n * (0.3f + eG * 0.5f);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.6f));
+                        break;
+                    }
+                    case 5: { // CHIME: Metallic overtone chime & harmonic cluster
+                        float c1 = FastMath::fastSinNorm(slot.clusterPhases[2] * (1.0f + eF * 0.2f));
+                        float c2 = FastMath::fastSinNorm(slot.clusterPhases[4] * (1.0f + eF * 0.3f));
+                        float chime = 0.55f * c1 + 0.45f * c2;
+                        float mix = chime * (0.6f + eE * 0.4f) + n * (0.25f + eG * 0.45f);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                    case 6: { // NOISE: Bandpass shaped analog white/pink noise hat (CR-78 style)
+                        float coloredNoise = n * (0.7f + eF * 0.5f);
+                        float tick = (slot.clickEnv > 0.05f) ? (n > 0.0f ? 0.8f : -0.8f) * eH : 0.0f;
+                        oscOut = FastMath::fastTanh((coloredNoise + tick) * (1.2f + eG * 1.2f));
+                        break;
+                    }
+                    default: { // RING-MOD: Inharmonic ring-modulated hat with dense sidebands
+                        float oscA = FastMath::fastSinNorm(slot.clusterPhases[0] * (1.0f + eF * 0.5f));
+                        float oscB = FastMath::fastSinNorm(slot.clusterPhases[2] * (1.4f + eF * 0.8f));
+                        float rm = (oscA * oscB * 2.0f) * (0.6f + eE * 0.4f) + n * (0.3f + eG * 0.5f);
+                        oscOut = FastMath::fastTanh(rm * (1.2f + eH * 1.8f));
+                        break;
+                    }
                 }
                 break;
             }
 
-            case 5: { // CY (Cymbal)
-                float noise = nextRandBipolar();
-                constexpr float kRatios[6] = { 1.0f, 1.34f, 1.71f, 2.22f, 2.87f, 3.45f };
-                float metalSum = 0.0f;
-                const float clusterBaseHz = curFreq * 2.85f;
+            case 5: { // CY (Cymbals)
+                constexpr float kCyRatios[6] = { 1.0f, 1.34f, 1.71f, 2.22f, 2.87f, 3.45f };
+                float cyMetal = 0.0f;
+                const float cyBaseHz = curFreq * (1.5f + eF * 0.8f);
                 for (int m = 0; m < 6; ++m) {
-                    slot.clusterPhases[m] += std::clamp(clusterBaseHz * kRatios[m], 20.0f, nyquist_) * invSampleRate_;
+                    slot.clusterPhases[m] += std::clamp(cyBaseHz * kCyRatios[m], 20.0f, nyquist_) * invSampleRate_;
                     if (slot.clusterPhases[m] >= 1.0f) slot.clusterPhases[m] -= 1.0f;
-                    metalSum += (slot.clusterPhases[m] < 0.5f) ? 0.35f : -0.35f;
+                    cyMetal += (slot.clusterPhases[m] < 0.5f) ? 0.35f : -0.35f;
                 }
+                float n = nextRandBipolar();
                 switch (activeModel_) {
-                    case 0:  oscOut = 0.5f * metalSum + 0.5f * noise; break; // CRASH
-                    case 1:  oscOut = metalSum * (noise > 0.0f ? 0.8f : -0.8f); break; // RING-C
-                    case 2:  oscOut = FastMath::fastSinNorm(slot.phase * 4.0f) * 0.6f + metalSum * 0.4f; break; // BELL-R
-                    case 3:  oscOut = noise * 0.75f + metalSum * 0.25f; break; // SIZZL
-                    case 4:  oscOut = metalSum * 0.8f + noise * 0.2f; break; // EXT-RG
-                    case 5: { // GONG
-                        float gF = curFreq * 0.75f;
-                        oscOut = FastMath::fastSinNorm(slot.phase * 0.75f) * 0.6f + metalSum * 0.4f;
+                    case 0: { // ROLAND: TR-808/606 cymbal matrix with bell overtone and wash punch
+                        float metal = cyMetal * (0.45f + eF * 0.55f);
+                        float wash = n * (0.25f + eH * 0.45f);
+                        float bell = FastMath::fastSinNorm(slot.clusterPhases[0] * 1.5f) * (eG * 0.4f);
+                        oscOut = FastMath::fastTanh((metal + wash + bell) * (1.1f + eH * 1.5f));
                         break;
                     }
-                    case 6:  oscOut = metalSum * 0.6f + noise * 0.4f; break; // PLATE
-                    case 7:  oscOut = FastMath::fastTanh((metalSum + noise) * 2.0f); break; // IND-G
-                    case 8: { // W-CRSH
-                        float folded = FastMath::fastSinNorm(metalSum * (1.0f + tX * 3.0f));
-                        oscOut = 0.6f * folded + 0.4f * noise;
+                    case 1: { // KORG: KR-55 analog diode ring mod cymbal with bell resonance
+                        float s1 = FastMath::fastSinNorm(slot.clusterPhases[0]);
+                        float s2 = FastMath::fastSinNorm(slot.clusterPhases[2] * (1.0f + eF * 0.5f));
+                        float rm = FastMath::fastTanh(s1 * s2 * (2.2f + eF * 2.0f));
+                        float bell = FastMath::fastSinNorm(slot.clusterPhases[1]) * (eG * 0.35f);
+                        float mix = rm * 0.55f + bell + n * (0.3f + eH * 0.3f);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
                         break;
                     }
-                    case 9:  oscOut = (metalSum > 0.0f ? 0.7f : -0.7f) + 0.3f * noise; break; // DIGI-C
-                    case 10: oscOut = FastMath::fastSinNorm(slot.phase * 6.0f) * 0.7f + 0.3f * metalSum; break; // CHIME
-                    case 11: oscOut = 0.4f * metalSum + 0.6f * noise; break; // LONG-S
-                    case 12: oscOut = metalSum * FastMath::fastSinNorm(slot.phase * 2.0f) + 0.3f * noise; break; // SHIMMR
-                    case 13: oscOut = FastMath::fastSinNorm(slot.phase * 3.1415f) * 0.5f + 0.5f * noise; break; // COSMIC
-                    case 14: oscOut = noise; break; // NOISE
-                    default: oscOut = (0.5f * metalSum + 0.5f * noise) * (nextRandBipolar() * 0.15f + 0.85f); break; // GRANUL
+                    case 2: { // EFM-CR: FM crash cymbal with attack FM surge
+                        float mF = cyBaseHz * (1.75f + eF * 2.5f);
+                        slot.modPhase += mF * invSampleRate_;
+                        if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
+                        float fmIndex = (eF * 2.5f) + (eH * 2.5f * slot.timbreEnv);
+                        float crashFm = FastMath::fastSinNorm(slot.clusterPhases[0] + FastMath::fastSinNorm(slot.modPhase) * fmIndex);
+                        oscOut = FastMath::fastTanh((crashFm * 0.65f + n * 0.35f) * (1.1f + eH * 1.6f));
+                        break;
+                    }
+                    case 3: { // EFM-RD: FM ride cymbal with defined bell ping & stick definition
+                        float sBell = FastMath::fastSinNorm(slot.phase * (3.5f + eG * 2.5f));
+                        float ping = sBell * (0.4f + eG * 0.6f) + slot.clickEnv * (eE * 0.5f);
+                        float wash = cyMetal * 0.35f * slot.timbreEnv + n * (0.15f + eH * 0.25f);
+                        oscOut = FastMath::fastTanh((ping + wash) * (1.1f + eH * 1.4f));
+                        break;
+                    }
+                    case 4: { // BRONZE: Physical bronze plate / acoustic B20 cymbal model
+                        float b1 = FastMath::fastSinNorm(slot.clusterPhases[0]);
+                        float b2 = FastMath::fastSinNorm(slot.clusterPhases[1]) * slot.timbreEnv;
+                        float b3 = FastMath::fastSinNorm(slot.clusterPhases[3]) * (slot.timbreEnv * slot.timbreEnv);
+                        float bronze = 0.5f * b1 + 0.3f * b2 + 0.2f * b3;
+                        float mix = bronze * (0.6f + eF * 0.4f) + n * (0.25f + eH * 0.35f);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                    case 5: { // GONG: Deep resonant orchestral gong / tam-tam with blooming wash
+                        float sGong = FastMath::fastSinNorm(slot.phase * (0.6f + eG * 0.4f));
+                        float bloom = FastMath::fastSinNorm(slot.clusterPhases[0] * 1.2f) * slot.timbreEnv;
+                        float mix = sGong * 0.6f + bloom * (0.3f + eF * 0.4f) + cyMetal * 0.2f;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.6f));
+                        break;
+                    }
+                    case 6: { // DUST: Lo-fi vintage dusty tape cymbal with tape compression
+                        float dustNoise = (n > 0.0f ? 0.75f : -0.75f) * 0.3f + n * 0.4f;
+                        float dustMetal = cyMetal * (0.6f - eF * 0.3f);
+                        float mix = dustMetal + dustNoise;
+                        oscOut = FastMath::fastTanh(mix * (1.3f + eH * 2.0f));
+                        break;
+                    }
+                    default: { // CHIME: Bright shimmering splash cymbal & bell cluster
+                        float s1 = FastMath::fastSinNorm(slot.phase * (4.0f + eG * 3.0f));
+                        float s2 = FastMath::fastSinNorm(slot.clusterPhases[4] * (1.0f + eF * 0.3f));
+                        float chime = 0.55f * s1 + 0.45f * s2;
+                        float mix = chime * 0.65f + n * (0.25f + eH * 0.35f);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case 6: { // PC (Aux Percussion)
+                float n = nextRandBipolar();
+                switch (activeModel_) {
+                    case 0: { // RIM-ST: Acoustic & electronic rimshot with shell ring and stick click
+                        float sTone = FastMath::fastSinNorm(slot.phase * (2.2f + eF * 1.2f));
+                        float click = (n > 0.0f ? 0.9f : -0.9f) * slot.clickEnv;
+                        float rim = sTone * (0.6f + eG * 0.4f) + click * (0.4f + eE * 0.6f);
+                        oscOut = FastMath::fastTanh(rim * (1.2f + eH * 2.0f));
+                        break;
+                    }
+                    case 1: { // COWB-8: 808 dual square cowbell with bell ring and striker pop
+                        float sq1 = (slot.phase < 0.5f) ? 0.7f : -0.7f;
+                        float ph2 = slot.phase * (1.40f + eF * 0.20f); ph2 -= static_cast<int>(ph2);
+                        float sq2 = (ph2 < 0.5f) ? 0.7f : -0.7f;
+                        float ring = FastMath::fastSinNorm(slot.phase * 3.5f) * (eG * 0.35f);
+                        oscOut = FastMath::fastTanh((sq1 + sq2 + ring) * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                    case 2: { // CLAVE: Acoustic rosewood clave with dual body resonance
+                        float s1 = FastMath::fastSinNorm(slot.phase);
+                        float s2 = FastMath::fastSinNorm(slot.phase * (1.618f + eF * 0.3f)) * slot.timbreEnv;
+                        float mix = 0.75f * s1 + (0.25f + eG * 0.35f) * s2;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.4f));
+                        break;
+                    }
+                    case 3: { // SHAKR: Granular seed / cabasa / maraca shaker with rub modulation
+                        float n2 = nextRandBipolar();
+                        float rub = FastMath::fastSinNorm(slot.phase * (6.0f + eF * 6.0f));
+                        float seeds = n * (0.6f + eG * 0.4f) + (n2 > 0.4f ? 0.7f : -0.7f) * 0.3f;
+                        float mix = seeds * (0.6f + 0.4f * rub);
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.6f));
+                        break;
+                    }
+                    case 4: { // CONGA: Acoustic conga / bongo with rim-slap pop and shell overtone
+                        float c1 = FastMath::fastSinNorm(slot.phase);
+                        float c2 = FastMath::fastSinNorm(slot.phase * (1.52f + eF * 0.3f)) * slot.timbreEnv;
+                        float slap = slot.clickEnv * (eH * 0.6f) * (n > 0.0f ? 0.8f : -0.8f);
+                        float mix = 0.65f * c1 + (0.35f + eG * 0.35f) * c2 + slap;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.5f));
+                        break;
+                    }
+                    case 5: { // ANVIL: Heavy industrial steel anvil strike with ping & ring
+                        float sAnvil = FastMath::fastSinNorm(slot.phase * 3.8f);
+                        float ring2 = FastMath::fastSinNorm(slot.phase * 7.2f) * slot.timbreEnv * eG;
+                        float ping = slot.clickEnv * (eE * 0.8f);
+                        float mix = FastMath::fastTanh(sAnvil * (1.8f + eF * 3.0f)) + ring2 + ping;
+                        oscOut = FastMath::fastTanh(mix * (1.1f + eH * 1.6f));
+                        break;
+                    }
+                    case 6: { // EFM-PC: 2-op FM percussion synth with attack index spike
+                        float mF = curFreq * (1.5f + eF * 4.0f);
+                        slot.modPhase += mF * invSampleRate_;
+                        if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
+                        float effIndex = (eG * 2.8f) + (eH * 2.2f * slot.timbreEnv);
+                        float mod = FastMath::fastSinNorm(slot.modPhase) * effIndex;
+                        oscOut = FastMath::fastSinNorm(slot.phase + mod * 0.159f);
+                        break;
+                    }
+                    default: { // SCRAP: Metallic friction, spring drum and scrape percussion
+                        float saw = 2.0f * slot.phase - 1.0f;
+                        float scrape = saw * (n > 0.0f ? 0.9f : -0.9f) * (0.6f + eF * 0.6f);
+                        float spring = FastMath::fastSinNorm(slot.phase * 2.5f) * (eG * 0.4f);
+                        oscOut = FastMath::fastTanh((scrape * 0.6f + n * 0.4f + spring) * (1.1f + eH * 1.8f));
+                        break;
+                    }
                 }
                 break;
             }
 
             default: { // FX (Special FX)
-                float noise = nextRandBipolar();
                 switch (activeModel_) {
-                    case 0: { // FM-MRP
-                        float mF = curFreq * (0.5f + tX * 7.5f);
+                    case 0: { // LASER: Extreme pitch dive sci-fi laser with saw/sine morph
+                        float s = FastMath::fastSinNorm(slot.phase);
+                        float saw = 2.0f * slot.phase - 1.0f;
+                        float laser = (1.0f - eF * 0.6f) * s + (eF * 0.6f) * saw;
+                        oscOut = FastMath::fastTanh(laser * (1.2f + eH * 2.2f));
+                        break;
+                    }
+                    case 1: { // SUB-DP: Deep cinema sub-drop boom with 2nd harmonic & wobble
+                        float sub = FastMath::fastSinNorm(slot.phase * 0.5f);
+                        float sub2 = FastMath::fastSinNorm(slot.phase) * (eF * 0.4f);
+                        float wobble = (1.0f + eG * 0.2f * FastMath::fastSinNorm(slot.phase * 0.1f));
+                        oscOut = FastMath::fastTanh((sub + sub2) * wobble * (1.2f + eH * 1.8f));
+                        break;
+                    }
+                    case 2: { // FM-MRP: Dynamic 2-op FM morph and sci-fi warp
+                        float mF = curFreq * (0.5f + eF * 7.5f);
                         slot.modPhase += mF * invSampleRate_;
                         if (slot.modPhase >= 1.0f) slot.modPhase -= 1.0f;
-                        oscOut = FastMath::fastSinNorm(slot.phase + FastMath::fastSinNorm(slot.modPhase) * (tY * 4.0f));
+                        float effIndex = (eG * 4.0f) + (eH * 3.0f * slot.timbreEnv);
+                        float mod = FastMath::fastSinNorm(slot.modPhase) * effIndex;
+                        oscOut = FastMath::fastSinNorm(slot.phase + mod * 0.159f);
                         break;
                     }
-                    case 1: { // W-FOLD
+                    case 3: { // W-FOLD: Triangle wavefolded modular synth zap
+                        float tri = (slot.phase < 0.5f) ? (4.0f * slot.phase - 1.0f) : (3.0f - 4.0f * slot.phase);
+                        tri += eG * 0.4f;
+                        float fold = (1.0f + eF * 6.0f) * (1.0f + eH * 1.5f * slot.timbreEnv);
+                        oscOut = FastMath::fastSinNorm(tri * fold);
+                        break;
+                    }
+                    case 4: { // RING-M: Dual carrier/modulator ring mod with overdrive
+                        float s1 = FastMath::fastSinNorm(slot.phase);
+                        float s2 = FastMath::fastSinNorm(slot.phase * (1.414f + eF * 2.5f));
+                        float rm = s1 * s2 * (2.0f + eG * 2.0f);
+                        oscOut = FastMath::fastTanh(rm * (1.2f + eH * 2.0f));
+                        break;
+                    }
+                    case 5: { // CZ-ZAP: Casio CZ phase distortion resonance zap
+                        float warpAmt = 0.5f + eF * 1.5f;
+                        float pdPhase = (slot.phase < 0.5f)
+                            ? (FastMath::fastPow2(FastMath::fastLog2(std::max(slot.phase * 2.0f, 1e-4f)) * warpAmt) * 0.5f)
+                            : (1.0f - FastMath::fastPow2(FastMath::fastLog2(std::max((1.0f - slot.phase) * 2.0f, 1e-4f)) * warpAmt) * 0.5f);
+                        oscOut = FastMath::fastTanh(FastMath::fastSinNorm(pdPhase) * (1.2f + eH * 1.6f + eG * 0.8f));
+                        break;
+                    }
+                    case 6: { // CHAOS: Chaotic attractor noise burst & radio zap
+                        float n = nextRandBipolar();
+                        float osc = FastMath::fastSinNorm(slot.phase * (2.0f + eF * 3.0f));
+                        float chaos = osc * (1.0f + n * (eG * 1.5f)) + n * (0.3f * eG);
+                        oscOut = FastMath::fastTanh(chaos * (1.5f + eH * 2.5f));
+                        break;
+                    }
+                    default: { // FLANGE: Comb feedback through-zero riser
                         float saw = 2.0f * slot.phase - 1.0f;
-                        oscOut = FastMath::fastSinNorm(saw * (1.0f + tX * 6.0f));
+                        float flgPhase = slot.phase * (1.0f + eF * 0.5f); flgPhase -= static_cast<int>(flgPhase);
+                        float saw2 = 2.0f * flgPhase - 1.0f;
+                        float comb = 0.5f * saw + 0.5f * saw2 * (0.5f + eG * 0.5f);
+                        oscOut = FastMath::fastTanh(comb * (1.3f + eH * 2.0f));
                         break;
                     }
-                    case 2:  oscOut = FastMath::fastSinNorm(slot.phase) * (1.0f - slot.timbreEnv * 0.8f); break; // BT-PNG
-                    case 3:  oscOut = noise * slot.timbreEnv; break; // NOI-BT
-                    case 4:  oscOut = 0.5f * FastMath::fastSinNorm(slot.phase) + 0.5f * FastMath::fastSinNorm(slot.phase * 3.0f); break; // HARMON
-                    case 5:  oscOut = FastMath::fastSinNorm(slot.phase); break; // LASER
-                    case 6:  oscOut = FastMath::fastSinNorm(slot.phase * 0.5f); break; // SUB-DP
-                    case 7: { // SLICER
-                        float pulse = (slot.phase < 0.25f || (slot.phase > 0.5f && slot.phase < 0.75f)) ? 1.0f : 0.0f;
-                        oscOut = FastMath::fastSinNorm(slot.phase * 2.0f) * pulse;
-                        break;
-                    }
-                    case 8:  oscOut = FastMath::fastTanh(FastMath::fastSinNorm(slot.phase) * 5.0f); break; // SCREAM
-                    case 9:  oscOut = FastMath::fastSinNorm(slot.phase) * FastMath::fastSinNorm(slot.phase * (1.0f + tX * 4.0f)); break; // RING-M
-                    case 10: oscOut = FastMath::fastSinNorm(slot.phase * 8.0f); break; // SHRIEK
-                    case 11: oscOut = FastMath::fastSinNorm(slot.phase * (1.0f + slot.timbreEnv * 2.0f)); break; // SHIFTR
-                    case 12: oscOut = FastMath::fastTanh((FastMath::fastSinNorm(slot.phase) + noise) * 2.5f); break; // VORTEX
-                    case 13: oscOut = FastMath::fastSinNorm(slot.phase) * (1.0f - 0.5f * slot.phase); break; // PIPE
-                    case 14: oscOut = FastMath::fastSinNorm(slot.phase * (1.0f + slot.phase * 4.0f)); break; // CZ-ZAP
-                    default: oscOut = noise * FastMath::fastTanh(FastMath::fastSinNorm(slot.phase) * 4.0f); break; // CHAOS
                 }
                 break;
             }
         }
 
-        // 4. Dedicated Sub-Bass Sine Layering
-        if (p.subLevel > 0.01f) {
-            slot.subPhase += curFreq * invSampleRate_;
-            if (slot.subPhase >= 1.0f) slot.subPhase -= 1.0f;
-            const float subSine = FastMath::fastSinNorm(slot.subPhase);
-            oscOut += subSine * p.subLevel;
-        }
-
-        // 5. Transient Click Burst Generator
-        if (slot.clickEnv > 0.001f && p.clickMix > 0.01f) {
-            slot.clickPhase += std::clamp(p.clickTune, 500.0f, nyquist_) * invSampleRate_;
+        // 4. Transient Click Generator
+        if (slot.clickEnv > 0.001f && eE > 0.01f) {
+            slot.clickPhase += std::clamp(curFreq * 8.0f + 1000.0f, 500.0f, nyquist_) * invSampleRate_;
             if (slot.clickPhase >= 1.0f) slot.clickPhase -= 1.0f;
             const float clickOsc = FastMath::fastSinNorm(slot.clickPhase);
-            oscOut += clickOsc * (p.clickMix * 1.5f) * slot.clickEnv;
+            oscOut += clickOsc * (eE * 0.8f) * slot.clickEnv;
         }
 
-        // 6. Body Damping (Dynamic 1-pole HF loss)
-        if (p.damp > 0.01f) {
-            const float dampCutoff = std::clamp((1.0f - p.damp * (1.0f - slot.ampEnv)) * 0.45f, 0.05f, 0.45f);
-            dampState_ += dampCutoff * (oscOut - dampState_);
-            oscOut = dampState_;
-        }
-
-        return oscOut * slot.ampEnv;
+        return oscOut * shapedAmp;
     }
 
     // =========================================================================
@@ -913,7 +1191,7 @@ private:
             } else {
                 lpgVactrolState_ += 0.003f * (targetLpg - lpgVactrolState_);
             }
-            const float lpgCutoff = std::clamp(lpgVactrolState_ * effCutoffHz_ * invSampleRate_ * 3.14159f, 0.001f, 0.45f);
+            const float lpgCutoff = std::clamp(lpgVactrolState_ * p.cutoff * invSampleRate_ * 3.14159f, 0.001f, 0.45f);
             lpgFilterState_ += lpgCutoff * (shaped - lpgFilterState_);
             filtered = lpgFilterState_;
         } else {
@@ -925,13 +1203,6 @@ private:
             }
             vcfSvf_.clampState();
             filtered = rawFilt;
-        }
-
-        if (p.lowBoost > 0.01f) {
-            const float lowCutoff = 80.0f * invSampleRate_;
-            lowBoostState_ += lowCutoff * (filtered - lowBoostState_);
-            const float thump = FastMath::fastTanh(lowBoostState_ * (lowBoostGain_ - 1.0f));
-            filtered += thump;
         }
 
         const bool mojoActive = (p.crush < 47500.0f) || (p.bits < 15.9f) || 
@@ -952,9 +1223,9 @@ private:
 
         const float masterOut = FastMath::fastTanh(filtered * 0.95f) * p.volume;
 
-        const float pan = std::clamp(p.pan + panOff_, -1.0f, 1.0f);
-        const float gainL = (pan <= 0.0f) ? 1.0f : (1.0f - pan);
-        const float gainR = (pan >= 0.0f) ? 1.0f : (1.0f + pan);
+        const float effPan = std::clamp(p.pan + active.latchedOffPan, -1.0f, 1.0f);
+        const float gainL = (effPan <= 0.0f) ? 1.0f : (1.0f - effPan);
+        const float gainR = (effPan >= 0.0f) ? 1.0f : (1.0f + effPan);
 
         outL = masterOut * gainL;
         outR = masterOut * gainR;
@@ -996,10 +1267,7 @@ private:
     TbdAudio::DSPCommon::CytomicSVF vcfSvf_{};
     float lpgVactrolState_{0.0f};
     float lpgFilterState_{0.0f};
-    float lowBoostState_{0.0f};
     float dcBlockerState_{0.0f};
-    float dampState_{0.0f};
-    float lowBoostGain_{1.0f};
 
     float hp1_s1_{0.0f}, hp1_s2_{0.0f};
     float hp2_s1_{0.0f}, hp2_s2_{0.0f};
@@ -1010,8 +1278,6 @@ private:
 
     uint32_t rngState_{0xDEADBEEF};
     uint32_t trigRng_{0x853C49E6};
-    float effCutoffHz_{2000.0f};
-    float panOff_{0.0f};
     std::array<float, 8> latchedDraw_{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 
     int blockCounter_{0};

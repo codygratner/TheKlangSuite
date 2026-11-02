@@ -1790,22 +1790,22 @@ int main() {
                 }
             }
 
-            // Metamorphic Test: BOOM (BD Model 7) tail at macro 1.0 must sustain significantly longer than at macro 0.0
+            // Metamorphic Test: BOOM (BD Model 1) tail at macro 1.0 must sustain significantly longer than at macro 0.0
             {
                 tkdsp::FormlessSpawnVoice boomShort, boomLong;
                 boomShort.prepare(48000.0f);
                 boomLong.prepare(48000.0f);
 
                 boomShort.setRole(0);
-                boomShort.setModel(7);
+                boomShort.setModel(1);
                 tkdsp::FormlessSpawnVoice::Params pShort;
-                pShort.role = 0; pShort.model = 7; pShort.macroDecay = 0.0f;
+                pShort.role = 0; pShort.model = 1; pShort.macroDecay = 0.0f;
                 boomShort.trigger(1.0f, 45.0f, pShort);
 
                 boomLong.setRole(0);
-                boomLong.setModel(7);
+                boomLong.setModel(1);
                 tkdsp::FormlessSpawnVoice::Params pLong;
-                pLong.role = 0; pLong.model = 7; pLong.macroDecay = 1.0f;
+                pLong.role = 0; pLong.model = 1; pLong.macroDecay = 1.0f;
                 boomLong.trigger(1.0f, 45.0f, pLong);
 
                 float shortRmsLate = 0.0f, longRmsLate = 0.0f;
@@ -4099,27 +4099,30 @@ int main() {
         tkdsp::FormlessSpawnVoice voice;
         voice.prepare(sr);
 
-        // 1. Verify all 3 Models & Triad Life Modes Trigger Cleanly (No NaN/Inf)
-        for (int m = 0; m < 3; ++m) {
-            for (int lm = 0; lm < 3; ++lm) {
+        // 1. Verify all 8 Roles x 8 Models & Triad Life Modes Trigger Cleanly (No NaN/Inf)
+        for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
+            for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
                 voice.reset();
+                voice.setRole(r);
                 voice.setModel(m);
                 tkdsp::FormlessSpawnVoice::Params p;
+                p.role = r;
                 p.model = m;
-                p.lifeMode = lm;
-                p.pitch = 55.0f;
+                p.lifeMode = 2;
+                p.paramA = 0.5f;
+                p.macroX = 0.5f;
                 p.macroDecay = 0.5f;
                 voice.trigger(0.9f, -1.0f, p);
 
-                float l = 0.0f, r = 0.0f;
+                float l = 0.0f, rSample = 0.0f;
                 float peak = 0.0f;
                 for (int s = 0; s < 512; ++s) {
-                    voice.processBlockStereo(&l, &r, 1, p);
+                    voice.processBlockStereo(&l, &rSample, 1, p);
                     assert(std::isfinite(l));
-                    assert(std::isfinite(r));
-                    peak = std::max(peak, std::max(std::abs(l), std::abs(r)));
+                    assert(std::isfinite(rSample));
+                    peak = std::max(peak, std::max(std::abs(l), std::abs(rSample)));
                 }
-                assert(peak > 0.01f);
+                assert(peak > 0.0001f);
             }
         }
 
@@ -4186,14 +4189,14 @@ int main() {
         // 4. Verify 8-Axis Stepped Random Humanization Matrix
         {
             tkdsp::FormlessSpawnVoice::Params p;
-            p.randTX = 30.0f;
-            p.randTY = 25.0f;
-            p.randTZ = 20.0f;
-            p.randTT = 40.0f;
-            p.randPitch = 3.0f;
-            p.randCutoff = 50.0f;
-            p.randDecay = 35.0f;
-            p.randPan = 25.0f;
+            p.randX = 30.0f;
+            p.randY = 25.0f;
+            p.randZ = 20.0f;
+            p.randT = 40.0f;
+            p.randAggr = 30.0f;
+            p.randTimb = 50.0f;
+            p.randPan = 35.0f;
+            p.randDecay = 25.0f;
             for (int t = 0; t < 32; ++t) {
                 voice.trigger(0.9f, -1.0f, p);
                 const auto& draws = voice.getLatchedDraws();

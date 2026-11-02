@@ -6,7 +6,7 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
 {
     using namespace formless_spawnParameters::Ids;
 
-    setSize(900, 680);
+    setSize(900, 560);
     setLookAndFeel(&lnf_);
     startTimerHz(30);
 
@@ -33,19 +33,21 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
         if (auto* param = apvts.getParameter(role))
             param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(roleIdx)));
         modelGrid_.setRoleAndModel(roleIdx, modelGrid_.getModel());
+        updateRoleParamLabels(roleIdx);
     };
     roleGrid_.onHover = [this](int roleIdx) {
         HeaderInspector::Readout r;
         r.name = "ROLE: " + juce::String(tkdsp::FormlessSpawnVoice::kRoleNames[roleIdx]);
         r.value = "SEL";
-        static const char* kRoleDescs[7] = {
-            "Bass Drum / Sub-heavy acoustic and electronic kicks",
-            "Tom / Acoustic, tuned resonant and FM percussion",
-            "Snare / Crisp, snappy noise and acoustic shells",
+        static const char* kRoleDescs[8] = {
+            "Bass Drum / Sub thump, acoustic punch and analog kicks",
+            "Snare Drum / Snappy wire, tonal shell and acoustic crack",
+            "Tom / Resonant cylindrical shell and dynamic pitch dive toms",
             "Handclap / Multi-burst acoustic and electronic claps",
-            "Hi-Hat / 6-osc inharmonic metallic cluster and sizzle hats",
+            "Hi-Hat / Inharmonic metallic cluster and sizzle hats",
             "Cymbal / Crash, ride, bell and atmospheric metal washes",
-            "Special FX / Experimental FM warp, wavefold and laser dives"
+            "Percussion / Rimshot, cowbell, clave, conga, anvil & metallic scrap",
+            "Special FX / Experimental FM warp, wavefold, laser dives and chaos"
         };
         r.blurb = kRoleDescs[roleIdx];
         r.accent = juce::Colour(0xFFFF9D00);
@@ -83,43 +85,43 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     addAndMakeVisible(modelGrid_);
 
     // =========================================================================
-    // 3. Setup Card 1 Knobs: Drum Core & Pitch Lab (8)
+    // 3. Setup Card 1 Knobs: Master Macro & Dynamics Lab (Top-Left, 8)
     // =========================================================================
-    setupKnob(pitchKnob_,      pitch,       "PITCH",    "Hz", "base fundamental tuning of oscillator core", juce::Colour(0xFF00C8FF));
-    setupKnob(pitchDepthKnob_, pitch_depth, "P-DEPTH",  "st", "pitch envelope sweep modulation depth",      juce::Colour(0xFF00C8FF), true);
-    setupKnob(pitchDecayKnob_, pitch_decay, "P-DECAY",  "ms", "exponential pitch dive decay time",           juce::Colour(0xFF00C8FF));
-    setupKnob(pitchCurveKnob_, pitch_curve, "P-CURVE",  "",   "pitch envelope bend curve (log to exp)",      juce::Colour(0xFF00C8FF), true);
-    setupKnob(clickTuneKnob_,  click_tune,  "CLK-TUNE", "Hz", "transient beater impact frequency",          juce::Colour(0xFF00C8FF));
-    setupKnob(clickMixKnob_,   click_mix,   "CLK-MIX",  "%",  "initial transient beater click balance",      juce::Colour(0xFF00C8FF));
-    setupKnob(subLevelKnob_,   sub_level,   "SUB-LVL",  "%",  "reinforcing pure sub-bass sine level",        juce::Colour(0xFF00C8FF));
-    setupKnob(lowBoostKnob_,   low_boost,   "LOW-BST",  "dB", "resonant 80Hz low-end thump boost",           juce::Colour(0xFFE08C00));
+    setupKnob(macroXKnob_,     macro_x,     "X: PITCH",  "%", "macro pitch, sweep excursion and root tuning", juce::Colour(0xFF00C8FF));
+    setupKnob(macroYKnob_,     macro_y,     "Y: PUNCH",  "%", "macro transient attack spike and punch snap",  juce::Colour(0xFF00C8FF));
+    setupKnob(macroZKnob_,     macro_z,     "Z: TIMBRE", "%", "macro harmonic waveshaping, fold & overtone",  juce::Colour(0xFF00C8FF));
+    setupKnob(macroTKnob_,     macro_t,     "T: TIME",   "%", "macro pitch envelope and body decay time",     juce::Colour(0xFF00C8FF));
+    setupKnob(velAggrKnob_,    vel_aggr,    "VEL->AGGR", "%", "velocity to synthesis aggression & overdrive",juce::Colour(0xFF00C8FF));
+    setupKnob(velTimbKnob_,    vel_timb,    "VEL->TIMB", "%", "velocity to synthesis brightness & overtones",juce::Colour(0xFF00C8FF));
+    setupKnob(panKnob_,        pan,         "PAN",       "%", "stereo panorama positioning",                 juce::Colour(0xFF8B949E), true);
+    setupKnob(decayCurveKnob_, decay_curve, "DECAY CRV", "",  "envelope discharge curve (exp to log)",       juce::Colour(0xFF8B949E), true);
 
     // =========================================================================
-    // 4. Setup Card 2 Knobs: Model Timbre & Acoustic Lab (8)
+    // 4. Setup Card 2 Knobs: Role Synthesis Lab (Top-Right, 8)
     // =========================================================================
-    setupKnob(timbreXKnob_,    timbre_x,    "TIMBRE-X", "",   "model ratio / timbre primary axis",           juce::Colour(0xFFE5A91E));
-    setupKnob(timbreYKnob_,    timbre_y,    "TIMBRE-Y", "",   "model FM depth / secondary modulation axis",  juce::Colour(0xFFE5A91E));
-    setupKnob(timbreZKnob_,    timbre_z,    "TIMBRE-Z", "",   "diode wavefolding & saturation depth",        juce::Colour(0xFFE5A91E));
-    setupKnob(timbreTKnob_,    timbre_t,    "TIMBRE-T", "ms", "timbre settling & modulation decay time",    juce::Colour(0xFFE5A91E));
-    setupKnob(fmMorphKnob_,    fm_morph,    "FM-MORPH", "",   "modulator waveform morph (sine to noise)",    juce::Colour(0xFFE5A91E));
-    setupKnob(dampKnob_,       damp,        "DAMP",     "%",  "dynamic high-frequency damping",              juce::Colour(0xFFE5A91E));
-    setupKnob(panKnob_,        pan,         "PAN",      "",   "stereo panorama positioning",                 juce::Colour(0xFF8B949E), true);
-    setupKnob(velSensKnob_,    vel_sens,    "VEL-SENS", "%",  "velocity response dynamic scaling",           juce::Colour(0xFF8B949E));
+    setupKnob(paramAKnob_, param_a, "PITCH",   "%", "role synthesis parameter A", juce::Colour(0xFFFFAA00));
+    setupKnob(paramBKnob_, param_b, "P.DEC",   "%", "role synthesis parameter B", juce::Colour(0xFFFFAA00));
+    setupKnob(paramCKnob_, param_c, "P.DEPTH", "%", "role synthesis parameter C", juce::Colour(0xFFFFAA00));
+    setupKnob(paramDKnob_, param_d, "DECAY",   "%", "role synthesis parameter D", juce::Colour(0xFFFFAA00));
+    setupKnob(paramEKnob_, param_e, "CLICK",   "%", "role synthesis parameter E", juce::Colour(0xFFFFAA00));
+    setupKnob(paramFKnob_, param_f, "TIMBRE",  "%", "role synthesis parameter F", juce::Colour(0xFFFFAA00));
+    setupKnob(paramGKnob_, param_g, "DRIVE",   "%", "role synthesis parameter G", juce::Colour(0xFFFFAA00));
+    setupKnob(paramHKnob_, param_h, "PUNCH",   "%", "role synthesis parameter H", juce::Colour(0xFFFFAA00));
+
+    const int initialRole = apvts.getRawParameterValue(role) ? static_cast<int>(apvts.getRawParameterValue(role)->load()) : 0;
+    updateRoleParamLabels(initialRole);
 
     // =========================================================================
-    // 5. Setup Card 3 Pod 1: Stepped Random (2x4 Grid of 8 Small Knobs)
+    // 5. Setup Card 3 Pod 1: Stepped Random (2x4 Grid of 8 Small Knobs, Bottom-Left)
     // =========================================================================
-    // Row 1: Timbre Targets
-    setupKnob(randTXKnob_, rand_tx, "R-TX", "%", "per-hit Timbre X modulation depth", juce::Colour(0xFFB374FF));
-    setupKnob(randTYKnob_, rand_ty, "R-TY", "%", "per-hit Timbre Y modulation depth", juce::Colour(0xFFB374FF));
-    setupKnob(randTZKnob_, rand_tz, "R-TZ", "%", "per-hit Timbre Z modulation depth", juce::Colour(0xFFB374FF));
-    setupKnob(randTTKnob_, rand_tt, "R-TT", "%", "per-hit Timbre T decay modulation depth", juce::Colour(0xFFB374FF));
-
-    // Row 2: Acoustic Targets
-    setupKnob(randPitchKnob_,  rand_pitch,  "R-PITCH", "st", "per-hit pitch dive drift", juce::Colour(0xFFB374FF));
-    setupKnob(randCutoffKnob_, rand_cutoff, "R-CUT",   "%",  "per-hit filter cutoff modulation depth", juce::Colour(0xFFB374FF));
-    setupKnob(randDecayKnob_,  rand_decay,  "R-DECAY", "%",  "per-hit envelope decay jitter", juce::Colour(0xFFB374FF));
-    setupKnob(randPanKnob_,    rand_pan,    "R-PAN",   "%",  "per-hit stereo position modulation", juce::Colour(0xFFB374FF));
+    setupKnob(randXKnob_,     rand_x,     "R-X",     "%", "per-hit Macro X (Pitch) S&H random depth",     juce::Colour(0xFFB374FF));
+    setupKnob(randYKnob_,     rand_y,     "R-Y",     "%", "per-hit Macro Y (Punch) S&H random depth",     juce::Colour(0xFFB374FF));
+    setupKnob(randZKnob_,     rand_z,     "R-Z",     "%", "per-hit Macro Z (Timbre) S&H random depth",    juce::Colour(0xFFB374FF));
+    setupKnob(randTKnob_,     rand_t,     "R-T",     "%", "per-hit Macro T (Time) S&H random depth",      juce::Colour(0xFFB374FF));
+    setupKnob(randAggrKnob_,  rand_aggr,  "R-AGGR",  "%", "per-hit velocity aggression fluctuation depth",juce::Colour(0xFFB374FF));
+    setupKnob(randTimbKnob_,  rand_timb,  "R-TIMB",  "%", "per-hit velocity timbre fluctuation depth",    juce::Colour(0xFFB374FF));
+    setupKnob(randPanKnob_,   rand_pan,   "R-PAN",   "%", "per-hit stereo position modulation depth",     juce::Colour(0xFFB374FF));
+    setupKnob(randDecayKnob_, rand_decay, "R-DECAY", "%", "per-hit Master Macro Decay modulation depth",  juce::Colour(0xFFB374FF));
 
     // =========================================================================
     // 6. Setup Card 3 Pod 2: The Performance Altar (EXACTLY TWO CONTROLS)
@@ -182,6 +184,8 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.label.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
     item.label.setColour(juce::Label::textColourId, juce::Colour(0xFF8B949E));
     item.label.setJustificationType(juce::Justification::centred);
+    item.label.setBorderSize(juce::BorderSize<int>(0));
+    item.label.setInterceptsMouseClicks(false, false);
     addAndMakeVisible(item.label);
 
     item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
@@ -222,248 +226,156 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.slider.addMouseListener(this, false);
 }
 
+namespace {
+const juce::Rectangle<int> kCard1{20, 104, 420, 198};
+const juce::Rectangle<int> kCard2{460, 104, 420, 198};
+const juce::Rectangle<int> kCard3{20, 310, 860, 240};
+const juce::Rectangle<int> kPod1{28, 318, 404, 224};   // kCard1 inset 8 -> columns align 1:1
+const juce::Rectangle<int> kPod2{440, 318, 96, 224};
+const juce::Rectangle<int> kPod3{544, 318, 328, 224};
+
+constexpr int kCellPitch = 98;   // 4 equal cells per 420 card (14px side inset)
+constexpr int kCellInset = 14;
+constexpr int kPod3Divider = 804;
+
+// Centre of column c (0..3) for a card whose left edge is cardX.
+inline int colCentre(int cardX, int c) { return cardX + kCellInset + kCellPitch * c + kCellPitch / 2; }
+} // namespace
+
 void FormlessSpawnAudioProcessorEditor::paint(juce::Graphics& g) {
-    // 1. Master Chassis Background
     g.fillAll(juce::Colour(0xFF0D1117));
 
-    // 2. Header Row 1 Wordmark
     g.setFont(juce::Font(juce::FontOptions(15.0f).withStyle("Bold")));
     g.setColour(juce::Colour(0xFFFFAA00));
-    g.drawText("FORMLESS SPAWN", 16, 8, 150, 28, juce::Justification::centredLeft);
+    g.drawText("FORMLESS SPAWN", 20, 8, 140, 28, juce::Justification::centredLeft);
 
-    // 3. Card 0 Chassis: Voice Navigator & Model Matrix
-    auto card0 = juce::Rectangle<float>(20.0f, 44.0f, 860.0f, 68.0f);
+    auto drawCard = [&g](juce::Rectangle<int> r) {
+        g.setColour(juce::Colour(0xFF13171F));
+        g.fillRoundedRectangle(r.toFloat(), 6.0f);
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 6.0f, 1.0f);
+    };
+    auto drawCardPill = [&g](juce::Rectangle<int> card, int w, const char* text, juce::Colour accent) {
+        auto pill = juce::Rectangle<float>((float)card.getX() + 10.0f, (float)card.getY() + 6.0f, (float)w, 16.0f);
+        g.setColour(juce::Colour(0xFF1F242E));
+        g.fillRoundedRectangle(pill, 3.0f);
+        g.setFont(juce::Font(juce::FontOptions(10.5f).withStyle("Bold")));
+        g.setColour(accent);
+        g.drawText(text, pill, juce::Justification::centred);
+    };
+    auto drawPod = [&g](juce::Rectangle<int> pod, int pillW, const char* text, juce::Colour accent) {
+        g.setColour(juce::Colour(0xFF0E121A));
+        g.fillRoundedRectangle(pod.toFloat(), 5.0f);
+        g.setColour(juce::Colour(0xFF1F2633));
+        g.drawRoundedRectangle(pod.toFloat().reduced(0.5f), 5.0f, 1.0f);
+
+        auto pill = juce::Rectangle<float>((float)pod.getX() + 8.0f, (float)pod.getY() + 5.0f, (float)pillW, 15.0f);
+        g.setColour(juce::Colour(0xFF181C26));
+        g.fillRoundedRectangle(pill, 3.0f);
+        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setColour(accent);
+        g.drawText(text, pill, juce::Justification::centred);
+    };
+
+    // Card 0: Voice Navigator
+    auto card0 = juce::Rectangle<float>(20.0f, 42.0f, 860.0f, 54.0f);
     g.setColour(juce::Colour(0xFF13171F));
     g.fillRoundedRectangle(card0, 6.0f);
     g.setColour(juce::Colour(0xFF262D38));
-    g.drawRoundedRectangle(card0, 6.0f, 1.0f);
-
-    // Role / Model Divider
+    g.drawRoundedRectangle(card0.reduced(0.5f), 6.0f, 1.0f);
     g.setColour(juce::Colour(0xFF21262D));
-    g.drawVerticalLine(274, card0.getY() + 6.0f, card0.getBottom() - 6.0f);
+    g.drawVerticalLine(274, card0.getY() + 4.0f, card0.getBottom() - 4.0f);
 
-    // 4. Card 1 Chassis: Drum Core & Pitch Lab
-    auto card1 = juce::Rectangle<float>(20.0f, 124.0f, 420.0f, 264.0f);
-    g.setColour(juce::Colour(0xFF13171F));
-    g.fillRoundedRectangle(card1, 6.0f);
-    g.setColour(juce::Colour(0xFF262D38));
-    g.drawRoundedRectangle(card1, 6.0f, 1.0f);
+    // Cards 1 & 2
+    drawCard(kCard1);
+    drawCardPill(kCard1, 250, "CARD 1: MASTER MACROS & DYNAMICS", juce::Colour(0xFF00C8FF));
+    drawCard(kCard2);
+    drawCardPill(kCard2, 240, "CARD 2: ROLE SYNTHESIS LAB (A..H)", juce::Colour(0xFFFFAA00));
 
-    auto pill1 = juce::Rectangle<float>(card1.getX() + 10.0f, card1.getY() + 8.0f, 210.0f, 18.0f);
-    g.setColour(juce::Colour(0xFF1F242E));
-    g.fillRoundedRectangle(pill1, 3.0f);
-    g.setFont(juce::Font(juce::FontOptions(10.5f).withStyle("Bold")));
-    g.setColour(juce::Colour(0xFF00C8FF));
-    g.drawText("CARD 1: DRUM CORE & PITCH LAB", pill1, juce::Justification::centred);
+    // Card 3 + pods
+    drawCard(kCard3);
+    drawPod(kPod1, 180, "STEPPED RANDOM HUMANIZER", juce::Colour(0xFFB374FF));
+    drawPod(kPod2, kPod2.getWidth() - 16, "ALTAR", juce::Colour(0xFFFF9D00));
+    drawPod(kPod3, 180, "VCF / MOJO / OUTPUT", juce::Colour(0xFFFF5252));
 
-    // 5. Card 2 Chassis: Model Timbre & Acoustic Lab
-    auto card2 = juce::Rectangle<float>(460.0f, 124.0f, 420.0f, 264.0f);
-    g.setColour(juce::Colour(0xFF13171F));
-    g.fillRoundedRectangle(card2, 6.0f);
-    g.setColour(juce::Colour(0xFF262D38));
-    g.drawRoundedRectangle(card2, 6.0f, 1.0f);
-
-    auto pill2 = juce::Rectangle<float>(card2.getX() + 10.0f, card2.getY() + 8.0f, 230.0f, 18.0f);
-    g.setColour(juce::Colour(0xFF1F242E));
-    g.fillRoundedRectangle(pill2, 3.0f);
-    g.setFont(juce::Font(juce::FontOptions(10.5f).withStyle("Bold")));
-    g.setColour(juce::Colour(0xFFE5A91E));
-    g.drawText("CARD 2: MODEL TIMBRE & ACOUSTIC LAB", pill2, juce::Justification::centred);
-
-    // 6. Card 3 Panoramic Deck
-    auto card3 = juce::Rectangle<float>(20.0f, 400.0f, 860.0f, 264.0f);
-    g.setColour(juce::Colour(0xFF13171F));
-    g.fillRoundedRectangle(card3, 6.0f);
-    g.setColour(juce::Colour(0xFF262D38));
-    g.drawRoundedRectangle(card3, 6.0f, 1.0f);
-
-    // Pod 1: Stepped Random Pod
-    auto pod1 = juce::Rectangle<float>(28.0f, 408.0f, 300.0f, 248.0f);
-    g.setColour(juce::Colour(0xFF0E121A));
-    g.fillRoundedRectangle(pod1, 5.0f);
+    // Pod 3 internals: VCF/Mojo row separator and master-column divider
+    const int p3y = kPod3.getY();
     g.setColour(juce::Colour(0xFF1F2633));
-    g.drawRoundedRectangle(pod1, 5.0f, 1.0f);
-
-    auto pillPod1 = juce::Rectangle<float>(pod1.getX() + 8.0f, pod1.getY() + 6.0f, 150.0f, 16.0f);
-    g.setColour(juce::Colour(0xFF181C26));
-    g.fillRoundedRectangle(pillPod1, 3.0f);
-    g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
-    g.setColour(juce::Colour(0xFFB374FF));
-    g.drawText("STEPPED RANDOM (HASTUR)", pillPod1, juce::Justification::centred);
-
-    // Pod 2: The Performance Altar
-    auto pod2 = juce::Rectangle<float>(338.0f, 408.0f, 200.0f, 248.0f);
-    g.setColour(juce::Colour(0xFF0E121A));
-    g.fillRoundedRectangle(pod2, 5.0f);
-    g.setColour(juce::Colour(0xFF1F2633));
-    g.drawRoundedRectangle(pod2, 5.0f, 1.0f);
-
-    auto pillPod2 = juce::Rectangle<float>(pod2.getX() + 8.0f, pod2.getY() + 6.0f, 184.0f, 16.0f);
-    g.setColour(juce::Colour(0xFF181C26));
-    g.fillRoundedRectangle(pillPod2, 3.0f);
-    g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
-    g.setColour(juce::Colour(0xFFFF9D00));
-    g.drawText("THE PERFORMANCE ALTAR", pillPod2, juce::Justification::centred);
-
-    // Pod 3: VCF & Mojo Strip Pod
-    auto pod3 = juce::Rectangle<float>(548.0f, 408.0f, 324.0f, 248.0f);
-    g.setColour(juce::Colour(0xFF0E121A));
-    g.fillRoundedRectangle(pod3, 5.0f);
-    g.setColour(juce::Colour(0xFF1F2633));
-    g.drawRoundedRectangle(pod3, 5.0f, 1.0f);
-
-    auto pillPod3 = juce::Rectangle<float>(pod3.getX() + 8.0f, pod3.getY() + 6.0f, 180.0f, 16.0f);
-    g.setColour(juce::Colour(0xFF181C26));
-    g.fillRoundedRectangle(pillPod3, 3.0f);
-    g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
-    g.setColour(juce::Colour(0xFFFF5252));
-    g.drawText("VCF & MOJO STRIP (100Hz HP)", pillPod3, juce::Justification::centred);
+    g.drawHorizontalLine(p3y + 113, (float)kPod3.getX() + 8.0f, 796.0f);
+    g.drawVerticalLine((float)kPod3Divider, (float)p3y + 26.0f, (float)kPod3.getBottom() - 8.0f);
 }
 
 void FormlessSpawnAudioProcessorEditor::resized() {
-    // =========================================================================
-    // 1. Header Row 1 Geometry
-    // =========================================================================
-    presetStub_.setBounds(174, 8, 160, 28);
-    headerInspector_.setBounds(342, 8, 340, 28);
-    lifeformRocker_.setBounds(690, 8, 194, 28);
+    // Header: right edge lands on 880 (matches card right edge)
+    presetStub_.setBounds(174, 8, 145, 28);
+    headerInspector_.setBounds(326, 8, 354, 28);
+    lifeformRocker_.setBounds(686, 8, 194, 28);
 
-    // =========================================================================
-    // 2. Card 0 Geometry: Voice Navigator & Model Matrix
-    // =========================================================================
-    roleGrid_.setBounds(28, 52, 236, 52);
-    modelGrid_.setBounds(282, 52, 588, 52);
+    // Card 0
+    roleGrid_.setBounds(28, 46, 236, 48);
+    modelGrid_.setBounds(282, 46, 588, 48);
 
-    // =========================================================================
-    // 3. Card 1 Geometry: Drum Core & Pitch Lab (w=420, y=124..388)
-    // =========================================================================
-    const int c1X = 20;
-    const int c1Y = 124;
-    const int c1Cols[4] = { c1X + 26, c1X + 124, c1X + 222, c1X + 320 };
-
-    // Row 1: PITCH, P-DEPTH, P-DECAY, P-CURVE
-    pitchKnob_.label.setBounds(c1Cols[0] - 6, c1Y + 34, 70, 14);
-    pitchKnob_.slider.setBounds(c1Cols[0], c1Y + 50, 58, 58);
-
-    pitchDepthKnob_.label.setBounds(c1Cols[1] - 6, c1Y + 34, 70, 14);
-    pitchDepthKnob_.slider.setBounds(c1Cols[1], c1Y + 50, 58, 58);
-
-    pitchDecayKnob_.label.setBounds(c1Cols[2] - 6, c1Y + 34, 70, 14);
-    pitchDecayKnob_.slider.setBounds(c1Cols[2], c1Y + 50, 58, 58);
-
-    pitchCurveKnob_.label.setBounds(c1Cols[3] - 6, c1Y + 34, 70, 14);
-    pitchCurveKnob_.slider.setBounds(c1Cols[3], c1Y + 50, 58, 58);
-
-    // Row 2: CLK-TUNE, CLK-MIX, SUB-LVL, LOW-BST
-    clickTuneKnob_.label.setBounds(c1Cols[0] - 6, c1Y + 140, 70, 14);
-    clickTuneKnob_.slider.setBounds(c1Cols[0], c1Y + 156, 58, 58);
-
-    clickMixKnob_.label.setBounds(c1Cols[1] - 6, c1Y + 140, 70, 14);
-    clickMixKnob_.slider.setBounds(c1Cols[1], c1Y + 156, 58, 58);
-
-    subLevelKnob_.label.setBounds(c1Cols[2] - 6, c1Y + 140, 70, 14);
-    subLevelKnob_.slider.setBounds(c1Cols[2], c1Y + 156, 58, 58);
-
-    lowBoostKnob_.label.setBounds(c1Cols[3] - 6, c1Y + 140, 70, 14);
-    lowBoostKnob_.slider.setBounds(c1Cols[3], c1Y + 156, 58, 58);
-
-    // =========================================================================
-    // 4. Card 2 Geometry: Model Timbre & Acoustic Lab (w=420, y=124..388)
-    // =========================================================================
-    const int c2X = 460;
-    const int c2Y = 124;
-    const int c2Cols[4] = { c2X + 26, c2X + 124, c2X + 222, c2X + 320 };
-
-    // Row 1: TIMBRE-X, TIMBRE-Y, TIMBRE-Z, TIMBRE-T
-    timbreXKnob_.label.setBounds(c2Cols[0] - 6, c2Y + 34, 70, 14);
-    timbreXKnob_.slider.setBounds(c2Cols[0], c2Y + 50, 58, 58);
-
-    timbreYKnob_.label.setBounds(c2Cols[1] - 6, c2Y + 34, 70, 14);
-    timbreYKnob_.slider.setBounds(c2Cols[1], c2Y + 50, 58, 58);
-
-    timbreZKnob_.label.setBounds(c2Cols[2] - 6, c2Y + 34, 70, 14);
-    timbreZKnob_.slider.setBounds(c2Cols[2], c2Y + 50, 58, 58);
-
-    timbreTKnob_.label.setBounds(c2Cols[3] - 6, c2Y + 34, 70, 14);
-    timbreTKnob_.slider.setBounds(c2Cols[3], c2Y + 50, 58, 58);
-
-    // Row 2: FM-MORPH, DAMP, PAN, VEL-SENS
-    fmMorphKnob_.label.setBounds(c2Cols[0] - 6, c2Y + 140, 70, 14);
-    fmMorphKnob_.slider.setBounds(c2Cols[0], c2Y + 156, 58, 58);
-
-    dampKnob_.label.setBounds(c2Cols[1] - 6, c2Y + 140, 70, 14);
-    dampKnob_.slider.setBounds(c2Cols[1], c2Y + 156, 58, 58);
-
-    panKnob_.label.setBounds(c2Cols[2] - 6, c2Y + 140, 70, 14);
-    panKnob_.slider.setBounds(c2Cols[2], c2Y + 156, 58, 58);
-
-    velSensKnob_.label.setBounds(c2Cols[3] - 6, c2Y + 140, 70, 14);
-    velSensKnob_.slider.setBounds(c2Cols[3], c2Y + 156, 58, 58);
-
-    // =========================================================================
-    // 5. Card 3 Pod 1: Stepped Random (2x4 Grid of 8 Small Knobs, w=300, y=408..656)
-    // =========================================================================
-    const int pod1X = 28;
-    const int pod1Y = 408;
-
-    const int colOffsets[4] = {16, 86, 156, 226};
-    KnobItem* randRows[2][4] = {
-        {&randTXKnob_,    &randTYKnob_,     &randTZKnob_,    &randTTKnob_},
-        {&randPitchKnob_, &randCutoffKnob_, &randDecayKnob_, &randPanKnob_}
+    // Label sits directly above its slider (label h=14, centred on cx).
+    auto place = [](KnobItem& k, int cx, int labelY, int labelW, int size, int sliderY) {
+        k.label.setBounds(cx - labelW / 2, labelY, labelW, 14);
+        k.slider.setBounds(cx - size / 2, sliderY, size, size);
     };
 
+    // Cards 1 & 2: 2x4 grid, 56px knobs, 98px cells
+    KnobItem* c1[2][4] = {
+        {&macroXKnob_,    &macroYKnob_,    &macroZKnob_,  &macroTKnob_},
+        {&velAggrKnob_,   &velTimbKnob_,   &panKnob_,     &decayCurveKnob_}};
+    KnobItem* c2[2][4] = {
+        {&paramAKnob_, &paramBKnob_, &paramCKnob_, &paramDKnob_},
+        {&paramEKnob_, &paramFKnob_, &paramGKnob_, &paramHKnob_}};
     for (int r = 0; r < 2; ++r) {
-        const int rowY = pod1Y + 38 + r * 102;
+        const int labelY = (r == 0) ? 30 : 114;
         for (int c = 0; c < 4; ++c) {
-            randRows[r][c]->label.setBounds(pod1X + colOffsets[c] - 10, rowY, 64, 14);
-            randRows[r][c]->slider.setBounds(pod1X + colOffsets[c], rowY + 16, 44, 44);
+            place(*c1[r][c], colCentre(kCard1.getX(), c), kCard1.getY() + labelY, kCellPitch, 56, kCard1.getY() + labelY + 14);
+            place(*c2[r][c], colCentre(kCard2.getX(), c), kCard2.getY() + labelY, kCellPitch, 56, kCard2.getY() + labelY + 14);
         }
     }
 
-    // =========================================================================
-    // 6. Card 3 Pod 2: The Performance Altar (EXACTLY TWO CONTROLS)
-    // =========================================================================
-    const int pod2X = 338;
-    const int pod2Y = 408;
+    // Pod 1: identical column centres to Card 1 (shared colCentre) -> exact 1:1 alignment
+    KnobItem* p1[2][4] = {
+        {&randXKnob_,    &randYKnob_,    &randZKnob_,   &randTKnob_},
+        {&randAggrKnob_, &randTimbKnob_, &randPanKnob_, &randDecayKnob_}};
+    for (int r = 0; r < 2; ++r) {
+        const int labelY = kPod1.getY() + ((r == 0) ? 32 : 128);
+        for (int c = 0; c < 4; ++c)
+            place(*p1[r][c], colCentre(kCard1.getX(), c), labelY, kCellPitch, 56, labelY + 14);
+    }
 
-    macroDecayKnob_.label.setBounds(pod2X, pod2Y + 24, 200, 16);
-    macroDecayKnob_.slider.setBounds(pod2X + 48, pod2Y + 44, 104, 104);
+    // Pod 2: Performance Altar (hero knob + strike pad on the pod centreline)
+    {
+        const int cx = kPod2.getCentreX();
+        const int py = kPod2.getY();
+        place(macroDecayKnob_, cx, py + 30, kPod2.getWidth(), 72, py + 44);
+        trigButton_.setBounds(cx - 36, py + 146, 72, 48);
+    }
 
-    trigButton_.setBounds(pod2X + 55, pod2Y + 186, 90, 36);
+    // Pod 3: [3 knobs | 2x2 grid] x 2 rows, then master column behind the divider
+    {
+        const int py = kPod3.getY();
+        const int x0 = kPod3.getX() + 8;          // 552
+        const int pitch = 50;
+        const int gridX = x0 + 3 * pitch + 6;     // 708
+        KnobItem* p3[2][3] = {
+            {&cutoffKnob_, &resonanceKnob_, &preDriveKnob_},
+            {&crushKnob_,  &bitsKnob_,      &tapeGlueKnob_}};
+        FormlessGrid2x2* grids[2] = {&filterTypeBar_, &mojoProfileBar_};
 
-    // =========================================================================
-    // 7. Card 3 Pod 3: VCF, Mojo Strip & Master Output (w=324, y=408..656)
-    // =========================================================================
-    const int pod3X = 548;
-    const int pod3Y = 408;
+        for (int r = 0; r < 2; ++r) {
+            const int labelY = py + ((r == 0) ? 32 : 128);
+            const int sliderY = labelY + 18;      // 48px knob centred on the Pod 1 row centre
+            for (int c = 0; c < 3; ++c)
+                place(*p3[r][c], x0 + pitch / 2 + pitch * c, labelY, pitch, 48, sliderY);
+            grids[r]->setBounds(gridX, sliderY, 88, 48);
+        }
 
-    // Row 1: CUTOFF (Hero 68), RES (56), DRIVE (52), FILTER TYPE 2x2 (98x50)
-    cutoffKnob_.label.setBounds(pod3X + 10, pod3Y + 22, 68, 14);
-    cutoffKnob_.slider.setBounds(pod3X + 10, pod3Y + 38, 68, 68);
-
-    resonanceKnob_.label.setBounds(pod3X + 88, pod3Y + 28, 56, 14);
-    resonanceKnob_.slider.setBounds(pod3X + 88, pod3Y + 44, 56, 56);
-
-    preDriveKnob_.label.setBounds(pod3X + 154, pod3Y + 28, 52, 14);
-    preDriveKnob_.slider.setBounds(pod3X + 154, pod3Y + 46, 52, 52);
-
-    filterTypeBar_.setBounds(pod3X + 214, pod3Y + 46, 98, 50);
-
-    // Row 2: CRUSH (56), BITS (56), TAPE (52), MOJO PROFILE 2x2 (98x50)
-    crushKnob_.label.setBounds(pod3X + 16, pod3Y + 116, 56, 14);
-    crushKnob_.slider.setBounds(pod3X + 16, pod3Y + 132, 56, 56);
-
-    bitsKnob_.label.setBounds(pod3X + 88, pod3Y + 116, 56, 14);
-    bitsKnob_.slider.setBounds(pod3X + 88, pod3Y + 132, 56, 56);
-
-    tapeGlueKnob_.label.setBounds(pod3X + 154, pod3Y + 116, 52, 14);
-    tapeGlueKnob_.slider.setBounds(pod3X + 154, pod3Y + 132, 52, 52);
-
-    mojoProfileBar_.setBounds(pod3X + 214, pod3Y + 134, 98, 50);
-
-    // Row 3: Master Output Anchor: VOLUME (Hero 64)
-    volumeKnob_.label.setBounds(pod3X + 228, pod3Y + 194, 70, 14);
-    volumeKnob_.slider.setBounds(pod3X + 231, pod3Y + 206, 64, 44);
+        // Master column: x = 810..864, centre 837, vertically centred between the two rows
+        place(volumeKnob_, kPod3.getRight() - 8 - 27, py + 88, 54, 54, py + 102);
+    }
 }
 
 void FormlessSpawnAudioProcessorEditor::timerCallback() {
@@ -482,127 +394,127 @@ void FormlessSpawnAudioProcessorEditor::timerCallback() {
         }
     };
 
-    // 1. Timbre X (0..1)
-    const float depthTX = static_cast<float>(randTXKnob_.slider.getValue()) * 0.01f;
-    if (depthTX > 0.001f) {
-        const float baseTX = static_cast<float>(timbreXKnob_.slider.getValue());
-        const float lo = std::clamp(baseTX - depthTX, 0.0f, 1.0f);
-        const float hi = std::clamp(baseTX + depthTX, 0.0f, 1.0f);
-        const float pip = std::clamp(baseTX + processor_.getLatchedDraw(0) * depthTX, 0.0f, 1.0f);
-        updateProp(timbreXKnob_.slider, "randLo", lo);
-        updateProp(timbreXKnob_.slider, "randHi", hi);
-        updateProp(timbreXKnob_.slider, "randPip", pip);
+    // 1. Macro X (0..1)
+    const float depthX = static_cast<float>(randXKnob_.slider.getValue()) * 0.01f;
+    if (depthX > 0.001f) {
+        const float baseVal = static_cast<float>(macroXKnob_.slider.getValue());
+        const float lo = std::clamp(baseVal - depthX, 0.0f, 1.0f);
+        const float hi = std::clamp(baseVal + depthX, 0.0f, 1.0f);
+        const float pip = std::clamp(baseVal + processor_.getLatchedDraw(0) * depthX, 0.0f, 1.0f);
+        updateProp(macroXKnob_.slider, "randLo", lo);
+        updateProp(macroXKnob_.slider, "randHi", hi);
+        updateProp(macroXKnob_.slider, "randPip", pip);
     } else {
-        clearProp(timbreXKnob_.slider);
+        clearProp(macroXKnob_.slider);
     }
 
-    // 2. Timbre Y (0..1)
-    const float depthTY = static_cast<float>(randTYKnob_.slider.getValue()) * 0.01f;
-    if (depthTY > 0.001f) {
-        const float baseTY = static_cast<float>(timbreYKnob_.slider.getValue());
-        const float lo = std::clamp(baseTY - depthTY, 0.0f, 1.0f);
-        const float hi = std::clamp(baseTY + depthTY, 0.0f, 1.0f);
-        const float pip = std::clamp(baseTY + processor_.getLatchedDraw(1) * depthTY, 0.0f, 1.0f);
-        updateProp(timbreYKnob_.slider, "randLo", lo);
-        updateProp(timbreYKnob_.slider, "randHi", hi);
-        updateProp(timbreYKnob_.slider, "randPip", pip);
+    // 2. Macro Y (0..1)
+    const float depthY = static_cast<float>(randYKnob_.slider.getValue()) * 0.01f;
+    if (depthY > 0.001f) {
+        const float baseVal = static_cast<float>(macroYKnob_.slider.getValue());
+        const float lo = std::clamp(baseVal - depthY, 0.0f, 1.0f);
+        const float hi = std::clamp(baseVal + depthY, 0.0f, 1.0f);
+        const float pip = std::clamp(baseVal + processor_.getLatchedDraw(1) * depthY, 0.0f, 1.0f);
+        updateProp(macroYKnob_.slider, "randLo", lo);
+        updateProp(macroYKnob_.slider, "randHi", hi);
+        updateProp(macroYKnob_.slider, "randPip", pip);
     } else {
-        clearProp(timbreYKnob_.slider);
+        clearProp(macroYKnob_.slider);
     }
 
-    // 3. Timbre Z (0..1)
-    const float depthTZ = static_cast<float>(randTZKnob_.slider.getValue()) * 0.01f;
-    if (depthTZ > 0.001f) {
-        const float baseTZ = static_cast<float>(timbreZKnob_.slider.getValue());
-        const float lo = std::clamp(baseTZ - depthTZ, 0.0f, 1.0f);
-        const float hi = std::clamp(baseTZ + depthTZ, 0.0f, 1.0f);
-        const float pip = std::clamp(baseTZ + processor_.getLatchedDraw(2) * depthTZ, 0.0f, 1.0f);
-        updateProp(timbreZKnob_.slider, "randLo", lo);
-        updateProp(timbreZKnob_.slider, "randHi", hi);
-        updateProp(timbreZKnob_.slider, "randPip", pip);
+    // 3. Macro Z (0..1)
+    const float depthZ = static_cast<float>(randZKnob_.slider.getValue()) * 0.01f;
+    if (depthZ > 0.001f) {
+        const float baseVal = static_cast<float>(macroZKnob_.slider.getValue());
+        const float lo = std::clamp(baseVal - depthZ, 0.0f, 1.0f);
+        const float hi = std::clamp(baseVal + depthZ, 0.0f, 1.0f);
+        const float pip = std::clamp(baseVal + processor_.getLatchedDraw(2) * depthZ, 0.0f, 1.0f);
+        updateProp(macroZKnob_.slider, "randLo", lo);
+        updateProp(macroZKnob_.slider, "randHi", hi);
+        updateProp(macroZKnob_.slider, "randPip", pip);
     } else {
-        clearProp(timbreZKnob_.slider);
+        clearProp(macroZKnob_.slider);
     }
 
-    // 4. Timbre T (2..800 ms)
-    const float depthTT = static_cast<float>(randTTKnob_.slider.getValue()) * 0.01f;
-    if (depthTT > 0.001f) {
-        const float baseTT = static_cast<float>(timbreTKnob_.slider.getValue());
-        const float valLo = std::clamp(baseTT * std::pow(2.0f, -2.0f * depthTT), 2.0f, 800.0f);
-        const float valHi = std::clamp(baseTT * std::pow(2.0f,  2.0f * depthTT), 2.0f, 800.0f);
-        const float valPip = std::clamp(baseTT * std::pow(2.0f, 2.0f * processor_.getLatchedDraw(3) * depthTT), 2.0f, 800.0f);
-        const float lo = static_cast<float>(timbreTKnob_.slider.valueToProportionOfLength(valLo));
-        const float hi = static_cast<float>(timbreTKnob_.slider.valueToProportionOfLength(valHi));
-        const float pip = static_cast<float>(timbreTKnob_.slider.valueToProportionOfLength(valPip));
-        updateProp(timbreTKnob_.slider, "randLo", lo);
-        updateProp(timbreTKnob_.slider, "randHi", hi);
-        updateProp(timbreTKnob_.slider, "randPip", pip);
+    // 4. Macro T (0..1)
+    const float depthT = static_cast<float>(randTKnob_.slider.getValue()) * 0.01f;
+    if (depthT > 0.001f) {
+        const float baseVal = static_cast<float>(macroTKnob_.slider.getValue());
+        const float lo = std::clamp(baseVal - depthT, 0.0f, 1.0f);
+        const float hi = std::clamp(baseVal + depthT, 0.0f, 1.0f);
+        const float pip = std::clamp(baseVal + processor_.getLatchedDraw(3) * depthT, 0.0f, 1.0f);
+        updateProp(macroTKnob_.slider, "randLo", lo);
+        updateProp(macroTKnob_.slider, "randHi", hi);
+        updateProp(macroTKnob_.slider, "randPip", pip);
     } else {
-        clearProp(timbreTKnob_.slider);
+        clearProp(macroTKnob_.slider);
     }
 
-    // 5. Pitch (20..200 Hz)
-    const float depthPitch = static_cast<float>(randPitchKnob_.slider.getValue());
-    if (depthPitch > 0.001f) {
-        const float baseP = static_cast<float>(pitchKnob_.slider.getValue());
-        const float valLo = std::clamp(baseP * std::pow(2.0f, -depthPitch / 12.0f), 20.0f, 200.0f);
-        const float valHi = std::clamp(baseP * std::pow(2.0f,  depthPitch / 12.0f), 20.0f, 200.0f);
-        const float valPip = std::clamp(baseP * std::pow(2.0f, processor_.getLatchedDraw(4) * depthPitch / 12.0f), 20.0f, 200.0f);
-        const float lo = static_cast<float>(pitchKnob_.slider.valueToProportionOfLength(valLo));
-        const float hi = static_cast<float>(pitchKnob_.slider.valueToProportionOfLength(valHi));
-        const float pip = static_cast<float>(pitchKnob_.slider.valueToProportionOfLength(valPip));
-        updateProp(pitchKnob_.slider, "randLo", lo);
-        updateProp(pitchKnob_.slider, "randHi", hi);
-        updateProp(pitchKnob_.slider, "randPip", pip);
+    // 5. Vel -> Aggr (0..1)
+    const float depthAggr = static_cast<float>(randAggrKnob_.slider.getValue()) * 0.01f;
+    if (depthAggr > 0.001f) {
+        const float baseVal = static_cast<float>(velAggrKnob_.slider.getValue());
+        const float lo = std::clamp(baseVal - depthAggr, 0.0f, 1.0f);
+        const float hi = std::clamp(baseVal + depthAggr, 0.0f, 1.0f);
+        const float pip = std::clamp(baseVal + processor_.getLatchedDraw(4) * depthAggr, 0.0f, 1.0f);
+        updateProp(velAggrKnob_.slider, "randLo", lo);
+        updateProp(velAggrKnob_.slider, "randHi", hi);
+        updateProp(velAggrKnob_.slider, "randPip", pip);
     } else {
-        clearProp(pitchKnob_.slider);
+        clearProp(velAggrKnob_.slider);
     }
 
-    // 6. Cutoff (20..20000 Hz)
-    const float depthCut = static_cast<float>(randCutoffKnob_.slider.getValue()) * 0.01f;
-    if (depthCut > 0.001f) {
-        const float baseCut = static_cast<float>(cutoffKnob_.slider.getValue());
-        const float valLo = std::clamp(baseCut * std::pow(2.0f, -3.0f * depthCut), 20.0f, 20000.0f);
-        const float valHi = std::clamp(baseCut * std::pow(2.0f,  3.0f * depthCut), 20.0f, 20000.0f);
-        const float valPip = std::clamp(baseCut * std::pow(2.0f, 3.0f * processor_.getLatchedDraw(5) * depthCut), 20.0f, 20000.0f);
-        const float lo = static_cast<float>(cutoffKnob_.slider.valueToProportionOfLength(valLo));
-        const float hi = static_cast<float>(cutoffKnob_.slider.valueToProportionOfLength(valHi));
-        const float pip = static_cast<float>(cutoffKnob_.slider.valueToProportionOfLength(valPip));
-        updateProp(cutoffKnob_.slider, "randLo", lo);
-        updateProp(cutoffKnob_.slider, "randHi", hi);
-        updateProp(cutoffKnob_.slider, "randPip", pip);
+    // 6. Vel -> Timb (0..1)
+    const float depthTimb = static_cast<float>(randTimbKnob_.slider.getValue()) * 0.01f;
+    if (depthTimb > 0.001f) {
+        const float baseVal = static_cast<float>(velTimbKnob_.slider.getValue());
+        const float lo = std::clamp(baseVal - depthTimb, 0.0f, 1.0f);
+        const float hi = std::clamp(baseVal + depthTimb, 0.0f, 1.0f);
+        const float pip = std::clamp(baseVal + processor_.getLatchedDraw(5) * depthTimb, 0.0f, 1.0f);
+        updateProp(velTimbKnob_.slider, "randLo", lo);
+        updateProp(velTimbKnob_.slider, "randHi", hi);
+        updateProp(velTimbKnob_.slider, "randPip", pip);
     } else {
-        clearProp(cutoffKnob_.slider);
+        clearProp(velTimbKnob_.slider);
     }
 
-    // 7. Macro Decay (0..1)
+    // 7. Pan (-1..+1)
+    const float depthPan = static_cast<float>(randPanKnob_.slider.getValue()) * 0.01f;
+    if (depthPan > 0.001f) {
+        const float basePan = static_cast<float>(panKnob_.slider.getValue());
+        const float valLo = std::clamp(basePan - depthPan, -1.0f, 1.0f);
+        const float valHi = std::clamp(basePan + depthPan, -1.0f, 1.0f);
+        const float valPip = std::clamp(basePan + processor_.getLatchedDraw(6) * depthPan, -1.0f, 1.0f);
+        updateProp(panKnob_.slider, "randLo", static_cast<float>(panKnob_.slider.valueToProportionOfLength(valLo)));
+        updateProp(panKnob_.slider, "randHi", static_cast<float>(panKnob_.slider.valueToProportionOfLength(valHi)));
+        updateProp(panKnob_.slider, "randPip", static_cast<float>(panKnob_.slider.valueToProportionOfLength(valPip)));
+    } else {
+        clearProp(panKnob_.slider);
+    }
+
+    // 8. Macro Decay (0..1)
     const float depthDecay = static_cast<float>(randDecayKnob_.slider.getValue()) * 0.01f;
     if (depthDecay > 0.001f) {
         const float baseDecay = static_cast<float>(macroDecayKnob_.slider.getValue());
         const float lo = std::clamp(baseDecay - depthDecay * 0.5f, 0.0f, 1.0f);
         const float hi = std::clamp(baseDecay + depthDecay * 0.5f, 0.0f, 1.0f);
-        const float pip = std::clamp(baseDecay + processor_.getLatchedDraw(6) * depthDecay * 0.5f, 0.0f, 1.0f);
+        const float pip = std::clamp(baseDecay + processor_.getLatchedDraw(7) * depthDecay * 0.5f, 0.0f, 1.0f);
         updateProp(macroDecayKnob_.slider, "randLo", lo);
         updateProp(macroDecayKnob_.slider, "randHi", hi);
         updateProp(macroDecayKnob_.slider, "randPip", pip);
     } else {
         clearProp(macroDecayKnob_.slider);
     }
+}
 
-    // 8. Pan (-1..+1)
-    const float depthPan = static_cast<float>(randPanKnob_.slider.getValue()) * 0.01f;
-    if (depthPan > 0.001f) {
-        const float basePan = static_cast<float>(panKnob_.slider.getValue());
-        const float valLo = std::clamp(basePan - depthPan, -1.0f, 1.0f);
-        const float valHi = std::clamp(basePan + depthPan, -1.0f, 1.0f);
-        const float valPip = std::clamp(basePan + processor_.getLatchedDraw(7) * depthPan, -1.0f, 1.0f);
-        const float lo = static_cast<float>(panKnob_.slider.valueToProportionOfLength(valLo));
-        const float hi = static_cast<float>(panKnob_.slider.valueToProportionOfLength(valHi));
-        const float pip = static_cast<float>(panKnob_.slider.valueToProportionOfLength(valPip));
-        updateProp(panKnob_.slider, "randLo", lo);
-        updateProp(panKnob_.slider, "randHi", hi);
-        updateProp(panKnob_.slider, "randPip", pip);
-    } else {
-        clearProp(panKnob_.slider);
-    }
+void FormlessSpawnAudioProcessorEditor::updateRoleParamLabels(int roleIdx) {
+    roleIdx = std::clamp(roleIdx, 0, tkdsp::FormlessSpawnVoice::kTotalRoles - 1);
+    paramAKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][0], juce::dontSendNotification);
+    paramBKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][1], juce::dontSendNotification);
+    paramCKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][2], juce::dontSendNotification);
+    paramDKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][3], juce::dontSendNotification);
+    paramEKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][4], juce::dontSendNotification);
+    paramFKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][5], juce::dontSendNotification);
+    paramGKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][6], juce::dontSendNotification);
+    paramHKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][7], juce::dontSendNotification);
 }

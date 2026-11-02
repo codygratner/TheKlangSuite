@@ -9,32 +9,32 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
 {
     using namespace formless_spawnParameters::Ids;
 
-    pitchParam_      = apvts_.getRawParameterValue(pitch);
-    pitchDepthParam_ = apvts_.getRawParameterValue(pitch_depth);
-    pitchDecayParam_ = apvts_.getRawParameterValue(pitch_decay);
-    pitchCurveParam_ = apvts_.getRawParameterValue(pitch_curve);
-    clickTuneParam_  = apvts_.getRawParameterValue(click_tune);
-    clickMixParam_   = apvts_.getRawParameterValue(click_mix);
-    subLevelParam_   = apvts_.getRawParameterValue(sub_level);
-    lowBoostParam_   = apvts_.getRawParameterValue(low_boost);
-
-    timbreXParam_    = apvts_.getRawParameterValue(timbre_x);
-    timbreYParam_    = apvts_.getRawParameterValue(timbre_y);
-    timbreZParam_    = apvts_.getRawParameterValue(timbre_z);
-    timbreTParam_    = apvts_.getRawParameterValue(timbre_t);
-    fmMorphParam_    = apvts_.getRawParameterValue(fm_morph);
-    dampParam_       = apvts_.getRawParameterValue(damp);
+    macroXParam_     = apvts_.getRawParameterValue(macro_x);
+    macroYParam_     = apvts_.getRawParameterValue(macro_y);
+    macroZParam_     = apvts_.getRawParameterValue(macro_z);
+    macroTParam_     = apvts_.getRawParameterValue(macro_t);
+    velAggrParam_    = apvts_.getRawParameterValue(vel_aggr);
+    velTimbParam_    = apvts_.getRawParameterValue(vel_timb);
     panParam_        = apvts_.getRawParameterValue(pan);
-    velSensParam_    = apvts_.getRawParameterValue(vel_sens);
+    decayCurveParam_ = apvts_.getRawParameterValue(decay_curve);
 
-    randTXParam_     = apvts_.getRawParameterValue(rand_tx);
-    randTYParam_     = apvts_.getRawParameterValue(rand_ty);
-    randTZParam_     = apvts_.getRawParameterValue(rand_tz);
-    randTTParam_     = apvts_.getRawParameterValue(rand_tt);
-    randPitchParam_  = apvts_.getRawParameterValue(rand_pitch);
-    randCutoffParam_ = apvts_.getRawParameterValue(rand_cutoff);
-    randDecayParam_  = apvts_.getRawParameterValue(rand_decay);
+    paramAParam_     = apvts_.getRawParameterValue(param_a);
+    paramBParam_     = apvts_.getRawParameterValue(param_b);
+    paramCParam_     = apvts_.getRawParameterValue(param_c);
+    paramDParam_     = apvts_.getRawParameterValue(param_d);
+    paramEParam_     = apvts_.getRawParameterValue(param_e);
+    paramFParam_     = apvts_.getRawParameterValue(param_f);
+    paramGParam_     = apvts_.getRawParameterValue(param_g);
+    paramHParam_     = apvts_.getRawParameterValue(param_h);
+
+    randXParam_      = apvts_.getRawParameterValue(rand_x);
+    randYParam_      = apvts_.getRawParameterValue(rand_y);
+    randZParam_      = apvts_.getRawParameterValue(rand_z);
+    randTParam_      = apvts_.getRawParameterValue(rand_t);
+    randAggrParam_   = apvts_.getRawParameterValue(rand_aggr);
+    randTimbParam_   = apvts_.getRawParameterValue(rand_timb);
     randPanParam_    = apvts_.getRawParameterValue(rand_pan);
+    randDecayParam_  = apvts_.getRawParameterValue(rand_decay);
     macroDecayParam_ = apvts_.getRawParameterValue(macro_decay);
     volumeParam_     = apvts_.getRawParameterValue(volume);
 
@@ -68,32 +68,32 @@ bool FormlessSpawnAudioProcessor::isBusesLayoutSupported(const BusesLayout& layo
 }
 
 void FormlessSpawnAudioProcessor::loadVoiceParams(tkdsp::FormlessSpawnVoice::Params& p) const noexcept {
-    if (pitchParam_)      p.pitch = pitchParam_->load(std::memory_order_relaxed);
-    if (pitchDepthParam_) p.pitchDepth = pitchDepthParam_->load(std::memory_order_relaxed);
-    if (pitchDecayParam_) p.pitchDecay = pitchDecayParam_->load(std::memory_order_relaxed);
-    if (pitchCurveParam_) p.pitchCurve = pitchCurveParam_->load(std::memory_order_relaxed);
-    if (clickTuneParam_)  p.clickTune = clickTuneParam_->load(std::memory_order_relaxed);
-    if (clickMixParam_)   p.clickMix = clickMixParam_->load(std::memory_order_relaxed);
-    if (subLevelParam_)   p.subLevel = subLevelParam_->load(std::memory_order_relaxed);
-    if (lowBoostParam_)   p.lowBoost = lowBoostParam_->load(std::memory_order_relaxed);
-
-    if (timbreXParam_)    p.timbreX = timbreXParam_->load(std::memory_order_relaxed);
-    if (timbreYParam_)    p.timbreY = timbreYParam_->load(std::memory_order_relaxed);
-    if (timbreZParam_)    p.timbreZ = timbreZParam_->load(std::memory_order_relaxed);
-    if (timbreTParam_)    p.timbreT = timbreTParam_->load(std::memory_order_relaxed);
-    if (fmMorphParam_)    p.fmMorph = fmMorphParam_->load(std::memory_order_relaxed);
-    if (dampParam_)       p.damp = dampParam_->load(std::memory_order_relaxed);
+    if (macroXParam_)     p.macroX = macroXParam_->load(std::memory_order_relaxed);
+    if (macroYParam_)     p.macroY = macroYParam_->load(std::memory_order_relaxed);
+    if (macroZParam_)     p.macroZ = macroZParam_->load(std::memory_order_relaxed);
+    if (macroTParam_)     p.macroT = macroTParam_->load(std::memory_order_relaxed);
+    if (velAggrParam_)    p.velAggr = velAggrParam_->load(std::memory_order_relaxed);
+    if (velTimbParam_)    p.velTimb = velTimbParam_->load(std::memory_order_relaxed);
     if (panParam_)        p.pan = panParam_->load(std::memory_order_relaxed);
-    if (velSensParam_)    p.velSens = velSensParam_->load(std::memory_order_relaxed);
+    if (decayCurveParam_) p.decayCurve = decayCurveParam_->load(std::memory_order_relaxed);
 
-    if (randTXParam_)     p.randTX = randTXParam_->load(std::memory_order_relaxed);
-    if (randTYParam_)     p.randTY = randTYParam_->load(std::memory_order_relaxed);
-    if (randTZParam_)     p.randTZ = randTZParam_->load(std::memory_order_relaxed);
-    if (randTTParam_)     p.randTT = randTTParam_->load(std::memory_order_relaxed);
-    if (randPitchParam_)  p.randPitch = randPitchParam_->load(std::memory_order_relaxed);
-    if (randCutoffParam_) p.randCutoff = randCutoffParam_->load(std::memory_order_relaxed);
-    if (randDecayParam_)  p.randDecay = randDecayParam_->load(std::memory_order_relaxed);
+    if (paramAParam_)     p.paramA = paramAParam_->load(std::memory_order_relaxed);
+    if (paramBParam_)     p.paramB = paramBParam_->load(std::memory_order_relaxed);
+    if (paramCParam_)     p.paramC = paramCParam_->load(std::memory_order_relaxed);
+    if (paramDParam_)     p.paramD = paramDParam_->load(std::memory_order_relaxed);
+    if (paramEParam_)     p.paramE = paramEParam_->load(std::memory_order_relaxed);
+    if (paramFParam_)     p.paramF = paramFParam_->load(std::memory_order_relaxed);
+    if (paramGParam_)     p.paramG = paramGParam_->load(std::memory_order_relaxed);
+    if (paramHParam_)     p.paramH = paramHParam_->load(std::memory_order_relaxed);
+
+    if (randXParam_)      p.randX = randXParam_->load(std::memory_order_relaxed);
+    if (randYParam_)      p.randY = randYParam_->load(std::memory_order_relaxed);
+    if (randZParam_)      p.randZ = randZParam_->load(std::memory_order_relaxed);
+    if (randTParam_)      p.randT = randTParam_->load(std::memory_order_relaxed);
+    if (randAggrParam_)   p.randAggr = randAggrParam_->load(std::memory_order_relaxed);
+    if (randTimbParam_)   p.randTimb = randTimbParam_->load(std::memory_order_relaxed);
     if (randPanParam_)    p.randPan = randPanParam_->load(std::memory_order_relaxed);
+    if (randDecayParam_)  p.randDecay = randDecayParam_->load(std::memory_order_relaxed);
     if (macroDecayParam_) p.macroDecay = macroDecayParam_->load(std::memory_order_relaxed);
     if (volumeParam_)     p.volume = volumeParam_->load(std::memory_order_relaxed);
 

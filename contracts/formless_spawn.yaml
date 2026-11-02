@@ -1,18 +1,18 @@
 plugin: formless_spawn
 name: Formless Spawn Sovereign Drum Voice
-version: 2.3.0
+version: 2.4.0
 manufacturer: The Cult of Klang
 
 parameters:
   # ==============================================================================
-  # HEADER CONTROLS (4 selectors)
+  # HEADER CONTROLS (3 selectors)
   # ==============================================================================
   - id: role
     name: Drum Role
     short: ROLE
     category: header
     type: choice
-    choices: [BD, TM, SD, CP, HH, CY, FX]
+    choices: [BD, SD, TM, CP, HH, CY, PC, FX]
     default: 0
 
   - id: model
@@ -20,7 +20,7 @@ parameters:
     short: MODEL
     category: header
     type: choice
-    choices: ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"]
+    choices: ["00", "01", "02", "03", "04", "05", "06", "07"]
     default: 0
 
   - id: life_mode
@@ -32,146 +32,61 @@ parameters:
     default: 2
 
   # ==============================================================================
-  # CARD 1: DRUM CORE & PITCH LAB (8 parameters)
+  # CARD 1: MASTER MACRO & DYNAMICS LAB (8 parameters - Top-Left)
   # ==============================================================================
-  - id: pitch
-    name: Base Pitch
-    short: PITCH
-    category: core
+  - id: macro_x
+    name: Macro X (Pitch)
+    short: MACRO-X
+    category: macro
     type: float
     effect: pitch
-    range: [20.0, 200.0]
-    skew_mid: 55.0
-    unit: Hz
-    default: 55.0
-
-  - id: pitch_depth
-    name: Pitch Env Depth
-    short: P-DEPTH
-    category: core
-    type: float
-    effect: pitch
-    range: [-48.0, 48.0]
-    unit: st
-    default: 24.0
-
-  - id: pitch_decay
-    name: Pitch Env Decay
-    short: P-DECAY
-    category: core
-    type: float
-    effect: dynamics
-    range: [2.0, 200.0]
-    skew_mid: 25.0
-    unit: ms
-    default: 25.0
-
-  - id: pitch_curve
-    name: Pitch Env Curve
-    short: P-CURVE
-    category: core
-    type: float
-    effect: dynamics
-    range: [-1.0, 1.0]
-    default: -0.5
-
-  - id: click_tune
-    name: Click Tuning
-    short: CLK-TUNE
-    category: core
-    type: float
-    effect: timbre
-    range: [500.0, 12000.0]
-    skew_mid: 3000.0
-    unit: Hz
-    default: 4000.0
-
-  - id: click_mix
-    name: Click Level
-    short: CLK-MIX
-    category: core
-    type: float
-    effect: timbre
     range: [0.0, 1.0]
-    default: 0.35
+    default: 0.5
 
-  - id: sub_level
-    name: Sub Sine Level
-    short: SUB-LVL
-    category: core
+  - id: macro_y
+    name: Macro Y (Punch)
+    short: MACRO-Y
+    category: macro
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: macro_z
+    name: Macro Z (Timbre)
+    short: MACRO-Z
+    category: macro
     type: float
     effect: timbre
     range: [0.0, 1.0]
     default: 0.5
 
-  - id: low_boost
-    name: Low Boost Thump
-    short: LOW-BST
-    category: core
-    type: float
-    effect: tone
-    range: [0.0, 12.0]
-    unit: dB
-    default: 4.0
-
-  # ==============================================================================
-  # CARD 2: MODEL TIMBRE & ACOUSTIC LAB (8 parameters)
-  # ==============================================================================
-  - id: timbre_x
-    name: Timbre X (Ratio)
-    short: TIMBRE-X
-    category: timbre
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.25
-
-  - id: timbre_y
-    name: Timbre Y (FM Depth)
-    short: TIMBRE-Y
-    category: timbre
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.35
-
-  - id: timbre_z
-    name: Timbre Z (Wavefold)
-    short: TIMBRE-Z
-    category: timbre
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.20
-
-  - id: timbre_t
-    name: Timbre T (Settle)
-    short: TIMBRE-T
-    category: timbre
+  - id: macro_t
+    name: Macro T (Time)
+    short: MACRO-T
+    category: macro
     type: float
     effect: dynamics
-    range: [2.0, 800.0]
-    skew_mid: 40.0
-    unit: ms
-    default: 45.0
+    range: [0.0, 1.0]
+    default: 0.5
 
-  - id: fm_morph
-    name: FM Wave Morph
-    short: FM-MORPH
-    category: timbre
+  - id: vel_aggr
+    name: Vel To Aggression
+    short: VEL-AGGR
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: vel_timb
+    name: Vel To Timbre
+    short: VEL-TIMB
+    category: dynamics
     type: float
     effect: timbre
     range: [0.0, 1.0]
-    default: 0.0
-
-  - id: damp
-    name: Body Damping
-    short: DAMP
-    category: timbre
-    type: float
-    effect: tone
-    range: [0.0, 1.0]
-    default: 0.3
+    default: 0.5
 
   - id: pan
     name: Voice Pan
@@ -182,87 +97,152 @@ parameters:
     range: [-1.0, 1.0]
     default: 0.0
 
-  - id: vel_sens
-    name: Velocity Sensitivity
-    short: VEL-SENS
+  - id: decay_curve
+    name: Decay Curve
+    short: DECAY-CRV
     category: dynamics
     type: float
     effect: dynamics
+    range: [-1.0, 1.0]
+    default: -0.5
+
+  # ==============================================================================
+  # CARD 2: ROLE SYNTHESIS LAB (8 parameters - Top-Right)
+  # ==============================================================================
+  - id: param_a
+    name: Role Param A
+    short: PARAM-A
+    category: synthesis
+    type: float
+    effect: pitch
     range: [0.0, 1.0]
-    default: 0.7
+    default: 0.5
 
-  # ==============================================================================
-  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (16 parameters)
-  # ==============================================================================
-  # Left Pod: Stepped Random Humanization (2x4 Small Knobs, 8 Controls)
-  # Row 1: Timbre Lab Targets
-  - id: rand_tx
-    name: Rand Timbre X
-    short: R-TX
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_ty
-    name: Rand Timbre Y
-    short: R-TY
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_tz
-    name: Rand Timbre Z
-    short: R-TZ
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_tt
-    name: Rand Timbre T
-    short: R-TT
-    category: random
+  - id: param_b
+    name: Role Param B
+    short: PARAM-B
+    category: synthesis
     type: float
     effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
+    range: [0.0, 1.0]
+    default: 0.5
 
-  # Row 2: Acoustic & Core Targets
-  - id: rand_pitch
-    name: Rand Pitch
-    short: R-PITCH
+  - id: param_c
+    name: Role Param C
+    short: PARAM-C
+    category: synthesis
+    type: float
+    effect: pitch
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_d
+    name: Role Param D
+    short: PARAM-D
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_e
+    name: Role Param E
+    short: PARAM-E
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_f
+    name: Role Param F
+    short: PARAM-F
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_g
+    name: Role Param G
+    short: PARAM-G
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_h
+    name: Role Param H
+    short: PARAM-H
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  # ==============================================================================
+  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (18 parameters - Bottom)
+  # ==============================================================================
+  # Left Pod: Stepped Random Humanization (2x4 Grid of 8 Small Knobs)
+  # Row 1: Macro Targets
+  - id: rand_x
+    name: Rand Macro X
+    short: R-X
     category: random
     type: float
     effect: pitch
-    range: [0.0, 12.0]
-    unit: st
-    default: 0.0
-
-  - id: rand_cutoff
-    name: Rand Cutoff
-    short: R-CUT
-    category: random
-    type: float
-    effect: filter
     range: [0.0, 100.0]
     unit: "%"
     default: 0.0
 
-  - id: rand_decay
-    name: Rand Decay
-    short: R-DECAY
+  - id: rand_y
+    name: Rand Macro Y
+    short: R-Y
     category: random
     type: float
     effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_z
+    name: Rand Macro Z
+    short: R-Z
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_t
+    name: Rand Macro T
+    short: R-T
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  # Row 2: Dynamics & Altar Targets
+  - id: rand_aggr
+    name: Rand Aggression
+    short: R-AGGR
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_timb
+    name: Rand Timbre
+    short: R-TIMB
+    category: random
+    type: float
+    effect: timbre
     range: [0.0, 100.0]
     unit: "%"
     default: 0.0
@@ -273,6 +253,16 @@ parameters:
     category: random
     type: float
     effect: output
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_decay
+    name: Rand Macro Decay
+    short: R-DECAY
+    category: random
+    type: float
+    effect: dynamics
     range: [0.0, 100.0]
     unit: "%"
     default: 0.0
@@ -371,4 +361,3 @@ parameters:
     type: choice
     choices: [Clean, MD-12, SP-1200, Iron Tape]
     default: 0
-

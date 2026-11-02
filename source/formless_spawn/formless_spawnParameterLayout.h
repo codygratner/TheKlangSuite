@@ -57,113 +57,113 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // role [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::role, 1}, formless_spawnParameters::Names::role,
-        juce::StringArray{"BD", "TM", "SD", "CP", "HH", "CY", "FX"}, 0));
+        juce::StringArray{"BD", "SD", "TM", "CP", "HH", "CY", "PC", "FX"}, 0));
 
     // model [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::model, 1}, formless_spawnParameters::Names::model,
-        juce::StringArray{"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"}, 0));
+        juce::StringArray{"00", "01", "02", "03", "04", "05", "06", "07"}, 0));
 
     // life_mode [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::life_mode, 1}, formless_spawnParameters::Names::life_mode,
         juce::StringArray{"Synthetic", "Cyborg", "Organic"}, 0));
 
-    // pitch [core]
+    // macro_x [macro]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::pitch, 1}, formless_spawnParameters::Names::pitch, 20.0f, 200.0f, 55.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::macro_x, 1}, formless_spawnParameters::Names::macro_x, 0.0f, 1.0f, 0.5000f));
 
-    // pitch_depth [core]
+    // macro_y [macro]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::pitch_depth, 1}, formless_spawnParameters::Names::pitch_depth, -48.0f, 48.0f, 24.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::macro_y, 1}, formless_spawnParameters::Names::macro_y, 0.0f, 1.0f, 0.5000f));
 
-    // pitch_decay [core]
+    // macro_z [macro]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::pitch_decay, 1}, formless_spawnParameters::Names::pitch_decay, 2.0f, 200.0f, 25.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::macro_z, 1}, formless_spawnParameters::Names::macro_z, 0.0f, 1.0f, 0.5000f));
 
-    // pitch_curve [core]
+    // macro_t [macro]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::pitch_curve, 1}, formless_spawnParameters::Names::pitch_curve, -1.0f, 1.0f, -0.5000f));
+        juce::ParameterID{formless_spawnParameters::Ids::macro_t, 1}, formless_spawnParameters::Names::macro_t, 0.0f, 1.0f, 0.5000f));
 
-    // click_tune [core]
+    // vel_aggr [dynamics]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::click_tune, 1}, formless_spawnParameters::Names::click_tune, 500.0f, 12000.0f, 4000.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::vel_aggr, 1}, formless_spawnParameters::Names::vel_aggr, 0.0f, 1.0f, 0.5000f));
 
-    // click_mix [core]
+    // vel_timb [dynamics]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::click_mix, 1}, formless_spawnParameters::Names::click_mix, 0.0f, 1.0f, 0.3500f));
-
-    // sub_level [core]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::sub_level, 1}, formless_spawnParameters::Names::sub_level, 0.0f, 1.0f, 0.5000f));
-
-    // low_boost [core]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::low_boost, 1}, formless_spawnParameters::Names::low_boost, 0.0f, 12.0f, 4.0000f));
-
-    // timbre_x [timbre]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::timbre_x, 1}, formless_spawnParameters::Names::timbre_x, 0.0f, 1.0f, 0.2500f));
-
-    // timbre_y [timbre]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::timbre_y, 1}, formless_spawnParameters::Names::timbre_y, 0.0f, 1.0f, 0.3500f));
-
-    // timbre_z [timbre]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::timbre_z, 1}, formless_spawnParameters::Names::timbre_z, 0.0f, 1.0f, 0.2000f));
-
-    // timbre_t [timbre]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::timbre_t, 1}, formless_spawnParameters::Names::timbre_t, 2.0f, 800.0f, 45.0000f));
-
-    // fm_morph [timbre]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::fm_morph, 1}, formless_spawnParameters::Names::fm_morph, 0.0f, 1.0f, 0.0000f));
-
-    // damp [timbre]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::damp, 1}, formless_spawnParameters::Names::damp, 0.0f, 1.0f, 0.3000f));
+        juce::ParameterID{formless_spawnParameters::Ids::vel_timb, 1}, formless_spawnParameters::Names::vel_timb, 0.0f, 1.0f, 0.5000f));
 
     // pan [output]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{formless_spawnParameters::Ids::pan, 1}, formless_spawnParameters::Names::pan, -1.0f, 1.0f, 0.0000f));
 
-    // vel_sens [dynamics]
+    // decay_curve [dynamics]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::vel_sens, 1}, formless_spawnParameters::Names::vel_sens, 0.0f, 1.0f, 0.7000f));
+        juce::ParameterID{formless_spawnParameters::Ids::decay_curve, 1}, formless_spawnParameters::Names::decay_curve, -1.0f, 1.0f, -0.5000f));
 
-    // rand_tx [random]
+    // param_a [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::rand_tx, 1}, formless_spawnParameters::Names::rand_tx, 0.0f, 100.0f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::param_a, 1}, formless_spawnParameters::Names::param_a, 0.0f, 1.0f, 0.5000f));
 
-    // rand_ty [random]
+    // param_b [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::rand_ty, 1}, formless_spawnParameters::Names::rand_ty, 0.0f, 100.0f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::param_b, 1}, formless_spawnParameters::Names::param_b, 0.0f, 1.0f, 0.5000f));
 
-    // rand_tz [random]
+    // param_c [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::rand_tz, 1}, formless_spawnParameters::Names::rand_tz, 0.0f, 100.0f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::param_c, 1}, formless_spawnParameters::Names::param_c, 0.0f, 1.0f, 0.5000f));
 
-    // rand_tt [random]
+    // param_d [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::rand_tt, 1}, formless_spawnParameters::Names::rand_tt, 0.0f, 100.0f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::param_d, 1}, formless_spawnParameters::Names::param_d, 0.0f, 1.0f, 0.5000f));
 
-    // rand_pitch [random]
+    // param_e [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::rand_pitch, 1}, formless_spawnParameters::Names::rand_pitch, 0.0f, 12.0f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::param_e, 1}, formless_spawnParameters::Names::param_e, 0.0f, 1.0f, 0.5000f));
 
-    // rand_cutoff [random]
+    // param_f [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::rand_cutoff, 1}, formless_spawnParameters::Names::rand_cutoff, 0.0f, 100.0f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::param_f, 1}, formless_spawnParameters::Names::param_f, 0.0f, 1.0f, 0.5000f));
 
-    // rand_decay [random]
+    // param_g [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::rand_decay, 1}, formless_spawnParameters::Names::rand_decay, 0.0f, 100.0f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::param_g, 1}, formless_spawnParameters::Names::param_g, 0.0f, 1.0f, 0.5000f));
+
+    // param_h [synthesis]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::param_h, 1}, formless_spawnParameters::Names::param_h, 0.0f, 1.0f, 0.5000f));
+
+    // rand_x [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::rand_x, 1}, formless_spawnParameters::Names::rand_x, 0.0f, 100.0f, 0.0000f));
+
+    // rand_y [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::rand_y, 1}, formless_spawnParameters::Names::rand_y, 0.0f, 100.0f, 0.0000f));
+
+    // rand_z [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::rand_z, 1}, formless_spawnParameters::Names::rand_z, 0.0f, 100.0f, 0.0000f));
+
+    // rand_t [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::rand_t, 1}, formless_spawnParameters::Names::rand_t, 0.0f, 100.0f, 0.0000f));
+
+    // rand_aggr [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::rand_aggr, 1}, formless_spawnParameters::Names::rand_aggr, 0.0f, 100.0f, 0.0000f));
+
+    // rand_timb [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::rand_timb, 1}, formless_spawnParameters::Names::rand_timb, 0.0f, 100.0f, 0.0000f));
 
     // rand_pan [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{formless_spawnParameters::Ids::rand_pan, 1}, formless_spawnParameters::Names::rand_pan, 0.0f, 100.0f, 0.0000f));
+
+    // rand_decay [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::rand_decay, 1}, formless_spawnParameters::Names::rand_decay, 0.0f, 100.0f, 0.0000f));
 
     // macro_decay [performance]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

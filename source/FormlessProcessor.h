@@ -55,35 +55,35 @@ private:
     juce::AudioProcessorValueTreeState apvts_;
 
     // Cached raw parameter pointers for lock-free audio thread access
-    std::atomic<float>* pitchParam_{nullptr};
-    std::atomic<float>* pitchDepthParam_{nullptr};
-    std::atomic<float>* pitchDecayParam_{nullptr};
-    std::atomic<float>* pitchCurveParam_{nullptr};
-    std::atomic<float>* clickTuneParam_{nullptr};
-    std::atomic<float>* clickMixParam_{nullptr};
-    std::atomic<float>* subLevelParam_{nullptr};
-    std::atomic<float>* lowBoostParam_{nullptr};
-
-    std::atomic<float>* timbreXParam_{nullptr};
-    std::atomic<float>* timbreYParam_{nullptr};
-    std::atomic<float>* timbreZParam_{nullptr};
-    std::atomic<float>* timbreTParam_{nullptr};
-    std::atomic<float>* fmMorphParam_{nullptr};
-    std::atomic<float>* dampParam_{nullptr};
+    std::atomic<float>* macroXParam_{nullptr};
+    std::atomic<float>* macroYParam_{nullptr};
+    std::atomic<float>* macroZParam_{nullptr};
+    std::atomic<float>* macroTParam_{nullptr};
+    std::atomic<float>* velAggrParam_{nullptr};
+    std::atomic<float>* velTimbParam_{nullptr};
     std::atomic<float>* panParam_{nullptr};
-    std::atomic<float>* velSensParam_{nullptr};
+    std::atomic<float>* decayCurveParam_{nullptr};
+
+    std::atomic<float>* paramAParam_{nullptr};
+    std::atomic<float>* paramBParam_{nullptr};
+    std::atomic<float>* paramCParam_{nullptr};
+    std::atomic<float>* paramDParam_{nullptr};
+    std::atomic<float>* paramEParam_{nullptr};
+    std::atomic<float>* paramFParam_{nullptr};
+    std::atomic<float>* paramGParam_{nullptr};
+    std::atomic<float>* paramHParam_{nullptr};
 
     std::atomic<float> manualTriggerVel_{0.0f};
     std::array<std::atomic<float>, 8> latchedDraw_{};
 
-    std::atomic<float>* randTXParam_{nullptr};
-    std::atomic<float>* randTYParam_{nullptr};
-    std::atomic<float>* randTZParam_{nullptr};
-    std::atomic<float>* randTTParam_{nullptr};
-    std::atomic<float>* randPitchParam_{nullptr};
-    std::atomic<float>* randCutoffParam_{nullptr};
-    std::atomic<float>* randDecayParam_{nullptr};
+    std::atomic<float>* randXParam_{nullptr};
+    std::atomic<float>* randYParam_{nullptr};
+    std::atomic<float>* randZParam_{nullptr};
+    std::atomic<float>* randTParam_{nullptr};
+    std::atomic<float>* randAggrParam_{nullptr};
+    std::atomic<float>* randTimbParam_{nullptr};
     std::atomic<float>* randPanParam_{nullptr};
+    std::atomic<float>* randDecayParam_{nullptr};
     std::atomic<float>* macroDecayParam_{nullptr};
     std::atomic<float>* volumeParam_{nullptr};
 
