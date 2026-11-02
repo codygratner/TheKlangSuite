@@ -9,7 +9,7 @@
 #include <functional>
 
 // ==============================================================================
-// Formless LookAndFeel (Hardware Dial Vectors matching Hastur)
+// Formless LookAndFeel (Vector Dial Mechanics matching Hastur)
 // ==============================================================================
 class FormlessLookAndFeel : public juce::LookAndFeel_V4 {
 public:
@@ -125,7 +125,7 @@ public:
             }
         }
 
-        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
         for (int i = 0; i < numSegs; ++i) {
             bool isActive = (i == activeIndex_);
             auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
@@ -180,7 +180,7 @@ public:
         g.setColour(colours_[activeIndex_]);
         g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
         for (int i = 0; i < 3; ++i) {
             bool isActive = (i == activeIndex_);
             auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
@@ -235,39 +235,52 @@ private:
 
     // Header Selectors
     FormlessSegmentedBar roleBar_{{"BD", "SD", "HH", "PERC", "FX"}};
-    FormlessSegmentedBar modelBar_{{"ER-1", "909", "WAVEFOLD"}};
-    FormlessRocker3      lifeformRocker_{{"Synthetic", "Cyborg", "Organic"}};
+    FormlessSegmentedBar modelBar_{{"ER-1", "909", "FOLD"}};
+    FormlessRocker3      lifeformRocker_{{"SYN", "CYB", "ORG"}};
     FormlessSegmentedBar keyTrackBar_{{"FIXED", "KEY"}};
     juce::TextButton     trigButton_{"TRIG"};
 
-    // The One Big Knob (Centerpiece Performance Macro)
-    KnobItem macroDecayKnob_;
-
-    // Card 1 Knobs
+    // Card 1 Knobs: Drum Core & Pitch Lab (8)
     KnobItem pitchKnob_;        // Hero 72
-    KnobItem punchKnob_;        // Standard 52
-    KnobItem pitchDepthKnob_;   // Hero 72
+    KnobItem pitchDepthKnob_;   // Standard 52 (bipolar)
     KnobItem pitchDecayKnob_;   // Standard 52
+    KnobItem pitchCurveKnob_;   // Standard 52 (bipolar)
+    KnobItem clickTuneKnob_;    // Standard 52
+    KnobItem clickMixKnob_;     // Standard 52
+    KnobItem subLevelKnob_;     // Standard 52
+    KnobItem lowBoostKnob_;     // Standard 52
+
+    // Card 2 Knobs: Model Timbre & Acoustic Lab (8)
     KnobItem timbreXKnob_;      // Standard 52
     KnobItem timbreYKnob_;      // Standard 52
     KnobItem timbreZKnob_;      // Standard 52
+    KnobItem timbreTKnob_;      // Standard 52 (Timbre Settle)
+    KnobItem fmMorphKnob_;      // Standard 52
+    KnobItem dampKnob_;         // Standard 52
+    KnobItem panKnob_;          // Standard 52 (bipolar)
+    KnobItem velSensKnob_;      // Standard 52
 
-    // Card 2 Knobs
-    KnobItem cutoffKnob_;       // Hero 72
-    KnobItem resonanceKnob_;    // Standard 52
-    FormlessSegmentedBar vcfModeBar_{{"24dB", "LPG"}};
-    KnobItem preDriveKnob_;     // Standard 52
-    KnobItem lowBoostKnob_;     // Standard 52
-    KnobItem saturateKnob_;     // Standard 52
-    KnobItem panKnob_;          // Standard 52
+    // Card 3 Left Pod: Stepped Random (4 knobs + 1 button)
+    KnobItem randPitchKnob_;    // Standard 52
+    KnobItem randDecayKnob_;    // Standard 52
+    KnobItem randTimbreKnob_;   // Standard 52
+    KnobItem randScatterKnob_;  // Standard 52
+    FormlessSegmentedBar randModeBar_{{"FREE", "LOOP16"}};
+
+    // Card 3 Center Altar: The One Big Knob (1 Big + 1 Standard)
+    KnobItem macroDecayKnob_;   // Giant 92
     KnobItem volumeKnob_;       // Standard 52
 
-    // Attachments for Selectors
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> roleAttachment_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> modelAttachment_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lifeModeAttachment_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> keyTrackAttachment_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> vcfModeAttachment_;
+    // Card 3 Right Pod: VCF & Universal Mojo Strip (7 knobs + 2 buttons)
+    KnobItem cutoffKnob_;       // Hero 72
+    KnobItem resonanceKnob_;    // Standard 52
+    KnobItem preDriveKnob_;     // Standard 52
+    KnobItem crushKnob_;        // Standard 52
+    KnobItem bitsKnob_;         // Standard 52
+    KnobItem tapeGlueKnob_;     // Standard 52
+    KnobItem mojoMixKnob_;      // Standard 52
+    FormlessSegmentedBar vcfModeBar_{{"DIODE", "LPG"}};
+    FormlessSegmentedBar mojoProfileBar_{{"CLEAN", "MD-12", "SP-12", "IRON"}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessorEditor)
 };

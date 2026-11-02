@@ -43,6 +43,7 @@ public:
 
 private:
     void triggerVoice(float velocity, float noteHz) noexcept;
+    void loadVoiceParams(tkdsp::FormlessSpawnVoice::Params& p) const noexcept;
 
     tkdsp::FormlessSpawnVoice voice_;
     juce::UndoManager undoManager_;
@@ -50,22 +51,40 @@ private:
 
     // Cached raw parameter pointers for lock-free audio thread access
     std::atomic<float>* pitchParam_{nullptr};
-    std::atomic<float>* macroDecayParam_{nullptr};
-    std::atomic<float>* punchParam_{nullptr};
     std::atomic<float>* pitchDepthParam_{nullptr};
     std::atomic<float>* pitchDecayParam_{nullptr};
+    std::atomic<float>* pitchCurveParam_{nullptr};
+    std::atomic<float>* clickTuneParam_{nullptr};
+    std::atomic<float>* clickMixParam_{nullptr};
+    std::atomic<float>* subLevelParam_{nullptr};
+    std::atomic<float>* lowBoostParam_{nullptr};
+
     std::atomic<float>* timbreXParam_{nullptr};
     std::atomic<float>* timbreYParam_{nullptr};
     std::atomic<float>* timbreZParam_{nullptr};
+    std::atomic<float>* timbreTParam_{nullptr};
+    std::atomic<float>* fmMorphParam_{nullptr};
+    std::atomic<float>* dampParam_{nullptr};
+    std::atomic<float>* panParam_{nullptr};
+    std::atomic<float>* velSensParam_{nullptr};
+
+    std::atomic<float>* randPitchParam_{nullptr};
+    std::atomic<float>* randDecayParam_{nullptr};
+    std::atomic<float>* randTimbreParam_{nullptr};
+    std::atomic<float>* randScatterParam_{nullptr};
+    std::atomic<float>* randModeParam_{nullptr};
+    std::atomic<float>* macroDecayParam_{nullptr};
+    std::atomic<float>* volumeParam_{nullptr};
 
     std::atomic<float>* cutoffParam_{nullptr};
     std::atomic<float>* resonanceParam_{nullptr};
     std::atomic<float>* vcfModeParam_{nullptr};
     std::atomic<float>* preDriveParam_{nullptr};
-    std::atomic<float>* lowBoostParam_{nullptr};
-    std::atomic<float>* saturateParam_{nullptr};
-    std::atomic<float>* panParam_{nullptr};
-    std::atomic<float>* volumeParam_{nullptr};
+    std::atomic<float>* crushParam_{nullptr};
+    std::atomic<float>* bitsParam_{nullptr};
+    std::atomic<float>* tapeGlueParam_{nullptr};
+    std::atomic<float>* mojoProfileParam_{nullptr};
+    std::atomic<float>* mojoMixParam_{nullptr};
 
     std::atomic<float>* roleParam_{nullptr};
     std::atomic<float>* modelParam_{nullptr};

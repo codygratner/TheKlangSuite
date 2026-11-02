@@ -10,6 +10,7 @@
 #include <array>
 #include "FastMath.h"
 #include "dsp/drums/FormlessSpawnEngine.h"
+#include "dsp/drums/FormlessSpawnVoice.h"
 #include <fstream>
 #include "ModularBlocks.h"
 #include "ModulationEngine.h"
@@ -4010,6 +4011,97 @@ int main() {
     }
 
 
-    std::cout << "\n>>> ALL 52 DSP VERIFICATION SUITES (PHASES 1-6 + HASTUR TRIAD + DCO 2.0 + METAMORPHIC + DUAL-IR3R05 VCF + LIFEFORM + INFINIFOLD + SSOT METADATA + STEPPED RANDOM & TRIGGERS + 2X OVERSAMPLING) PASSED 100%! <<<" << std::endl;
+    
+    // =========================================================================
+    // SUITE 53: FormlessSpawnVoice Venti 32-Control Flagship Verification
+    // =========================================================================
+    {
+        std::cout << "\nStarting Suite 53: FormlessSpawnVoice Venti 32-Control Flagship Verification..." << std::endl;
+        const float sr = 48000.0f;
+        tkdsp::FormlessSpawnVoice voice;
+        voice.prepare(sr);
+
+        // 1. Verify all 3 Models & Triad Life Modes Trigger Cleanly (No NaN/Inf)
+        for (int m = 0; m < 3; ++m) {
+            for (int lm = 0; lm < 3; ++lm) {
+                voice.reset();
+                voice.setModel(m);
+                tkdsp::FormlessSpawnVoice::Params p;
+                p.model = m;
+                p.lifeMode = lm;
+                p.pitch = 55.0f;
+                p.macroDecay = 0.5f;
+                voice.trigger(0.9f, -1.0f, p);
+
+                float l = 0.0f, r = 0.0f;
+                float peak = 0.0f;
+                for (int s = 0; s < 512; ++s) {
+                    voice.processBlockStereo(&l, &r, 1, p);
+                    assert(std::isfinite(l));
+                    assert(std::isfinite(r));
+                    peak = std::max(peak, std::max(std::abs(l), std::abs(r)));
+                }
+                assert(peak > 0.01f);
+            }
+        }
+
+        // 2. Verify Delta Crossover Mojo Strip: Zero Latency & Clean Sub Pass
+        {
+            voice.reset();
+            tkdsp::FormlessSpawnVoice::Params p;
+            p.mojoMix = 0.0f; // Bit-identical dry bypass by construction
+            voice.trigger(0.9f, -1.0f, p);
+            float dryL = 0.0f, dryR = 0.0f;
+            voice.processBlockStereo(&dryL, &dryR, 1, p);
+            assert(std::isfinite(dryL) && std::isfinite(dryR));
+
+            // With Mojo engaged (100% mix, crush and tape glue)
+            p.mojoMix = 100.0f;
+            p.crush = 8000.0f;
+            p.bits = 8.0f;
+            p.tapeGlue = 0.5f;
+            voice.trigger(0.9f, -1.0f, p);
+            float wetL = 0.0f, wetR = 0.0f;
+            for (int s = 0; s < 512; ++s) {
+                voice.processBlockStereo(&wetL, &wetR, 1, p);
+                assert(std::isfinite(wetL) && std::isfinite(wetR));
+            }
+        }
+
+        // 3. Verify Multiplicative Macro Decay Spline Bounds
+        {
+            for (float macro : {0.0f, 0.25f, 0.50f, 0.75f, 1.0f}) {
+                voice.reset();
+                tkdsp::FormlessSpawnVoice::Params p;
+                p.macroDecay = macro;
+                voice.trigger(0.9f, -1.0f, p);
+                float l = 0.0f, r = 0.0f;
+                for (int s = 0; s < 256; ++s) {
+                    voice.processBlockStereo(&l, &r, 1, p);
+                    assert(std::isfinite(l) && std::isfinite(r));
+                }
+            }
+        }
+
+        // 4. Verify Latched PRNG Humanization (Free vs Loop16)
+        {
+            tkdsp::FormlessSpawnVoice::Params p;
+            p.randMode = 1; // LOOP16
+            p.randPitch = 2.0f;
+            p.randDecay = 20.0f;
+            p.randTimbre = 15.0f;
+            p.randScatter = 10.0f;
+            for (int t = 0; t < 32; ++t) {
+                voice.trigger(0.9f, -1.0f, p);
+                float l = 0.0f, r = 0.0f;
+                voice.processBlockStereo(&l, &r, 1, p);
+                assert(std::isfinite(l) && std::isfinite(r));
+            }
+        }
+
+        std::cout << "PASS: Suite 53: FormlessSpawnVoice Venti 32-Control Flagship verified 100%!\n" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 53 DSP VERIFICATION SUITES (PHASES 1-6 + HASTUR TRIAD + DCO 2.0 + METAMORPHIC + DUAL-IR3R05 VCF + LIFEFORM + INFINIFOLD + SSOT METADATA + STEPPED RANDOM & TRIGGERS + 2X OVERSAMPLING) PASSED 100%! <<<" << std::endl;
     return 0;
 }

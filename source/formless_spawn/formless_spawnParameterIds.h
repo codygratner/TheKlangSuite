@@ -12,21 +12,37 @@ namespace Ids {
     constexpr auto life_mode = "life_mode";
     constexpr auto key_track = "key_track";
     constexpr auto pitch = "pitch";
-    constexpr auto macro_decay = "macro_decay";
-    constexpr auto punch = "punch";
     constexpr auto pitch_depth = "pitch_depth";
     constexpr auto pitch_decay = "pitch_decay";
+    constexpr auto pitch_curve = "pitch_curve";
+    constexpr auto click_tune = "click_tune";
+    constexpr auto click_mix = "click_mix";
+    constexpr auto sub_level = "sub_level";
+    constexpr auto low_boost = "low_boost";
     constexpr auto timbre_x = "timbre_x";
     constexpr auto timbre_y = "timbre_y";
     constexpr auto timbre_z = "timbre_z";
+    constexpr auto timbre_t = "timbre_t";
+    constexpr auto fm_morph = "fm_morph";
+    constexpr auto damp = "damp";
+    constexpr auto pan = "pan";
+    constexpr auto vel_sens = "vel_sens";
+    constexpr auto rand_pitch = "rand_pitch";
+    constexpr auto rand_decay = "rand_decay";
+    constexpr auto rand_timbre = "rand_timbre";
+    constexpr auto rand_scatter = "rand_scatter";
+    constexpr auto rand_mode = "rand_mode";
+    constexpr auto macro_decay = "macro_decay";
+    constexpr auto volume = "volume";
     constexpr auto cutoff = "cutoff";
     constexpr auto resonance = "resonance";
     constexpr auto vcf_mode = "vcf_mode";
     constexpr auto pre_drive = "pre_drive";
-    constexpr auto low_boost = "low_boost";
-    constexpr auto saturate = "saturate";
-    constexpr auto pan = "pan";
-    constexpr auto volume = "volume";
+    constexpr auto crush = "crush";
+    constexpr auto bits = "bits";
+    constexpr auto tape_glue = "tape_glue";
+    constexpr auto mojo_profile = "mojo_profile";
+    constexpr auto mojo_mix = "mojo_mix";
 } // namespace Ids
 
 namespace Names {
@@ -35,24 +51,40 @@ namespace Names {
     constexpr auto life_mode = "Lifeform Character";
     constexpr auto key_track = "Key Tracking";
     constexpr auto pitch = "Base Pitch";
-    constexpr auto macro_decay = "Macro Decay";
-    constexpr auto punch = "Punch Click";
     constexpr auto pitch_depth = "Pitch Env Depth";
     constexpr auto pitch_decay = "Pitch Env Decay";
+    constexpr auto pitch_curve = "Pitch Env Curve";
+    constexpr auto click_tune = "Click Tuning";
+    constexpr auto click_mix = "Click Level";
+    constexpr auto sub_level = "Sub Sine Level";
+    constexpr auto low_boost = "Low Boost Thump";
     constexpr auto timbre_x = "Timbre X (Ratio)";
     constexpr auto timbre_y = "Timbre Y (FM Depth)";
     constexpr auto timbre_z = "Timbre Z (Wavefold)";
+    constexpr auto timbre_t = "Timbre T (Settle)";
+    constexpr auto fm_morph = "FM Wave Morph";
+    constexpr auto damp = "Body Damping";
+    constexpr auto pan = "Voice Pan";
+    constexpr auto vel_sens = "Velocity Sensitivity";
+    constexpr auto rand_pitch = "Rand Pitch";
+    constexpr auto rand_decay = "Rand Decay";
+    constexpr auto rand_timbre = "Rand Timbre";
+    constexpr auto rand_scatter = "Rand Scatter";
+    constexpr auto rand_mode = "Rand Mode";
+    constexpr auto macro_decay = "Macro Decay";
+    constexpr auto volume = "Master Volume";
     constexpr auto cutoff = "Filter Cutoff";
     constexpr auto resonance = "Filter Resonance";
     constexpr auto vcf_mode = "Filter Topology";
     constexpr auto pre_drive = "Pre-Filter Drive";
-    constexpr auto low_boost = "Low Boost Thump";
-    constexpr auto saturate = "Master Saturation";
-    constexpr auto pan = "Voice Pan";
-    constexpr auto volume = "Master Volume";
+    constexpr auto crush = "Mojo Sample Crush";
+    constexpr auto bits = "Mojo Bit Reduction";
+    constexpr auto tape_glue = "Mojo Tape Glue";
+    constexpr auto mojo_profile = "Mojo Profile";
+    constexpr auto mojo_mix = "Mojo Mix";
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 20;
+    constexpr int count = 36;
 } // namespace Total
 } // namespace formless_spawnParameters

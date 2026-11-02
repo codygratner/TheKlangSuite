@@ -1,6 +1,6 @@
 plugin: formless_spawn
 name: Formless Spawn Sovereign Drum Voice
-version: 2.0.0
+version: 2.1.0
 manufacturer: The Cult of Klang
 
 parameters:
@@ -9,6 +9,7 @@ parameters:
   # ==============================================================================
   - id: role
     name: Drum Role
+    short: ROLE
     category: header
     type: choice
     choices: [BD, SD, HH, PERC, FX]
@@ -16,6 +17,7 @@ parameters:
 
   - id: model
     name: Synthesis Model
+    short: MODEL
     category: header
     type: choice
     choices: [Tsathoggua ER-1, Bridged-T 909, Wavefold Core]
@@ -23,6 +25,7 @@ parameters:
 
   - id: life_mode
     name: Lifeform Character
+    short: TRIAD
     category: header
     type: choice
     choices: [Synthetic, Cyborg, Organic]
@@ -30,56 +33,101 @@ parameters:
 
   - id: key_track
     name: Key Tracking
+    short: KEYTRK
     category: header
     type: choice
     choices: [Fixed, Key]
     default: 0
 
   # ==============================================================================
-  # CARD 1: DRUM CORE & TIMBRE LAB (8 parameters)
+  # CARD 1: DRUM CORE & PITCH LAB (8 parameters)
   # ==============================================================================
   - id: pitch
     name: Base Pitch
+    short: PITCH
     category: core
     type: float
     effect: pitch
     range: [20.0, 200.0]
+    skew_mid: 55.0
+    unit: Hz
     default: 55.0
 
-  - id: macro_decay
-    name: Macro Decay
+  - id: pitch_depth
+    name: Pitch Env Depth
+    short: P-DEPTH
+    category: core
+    type: float
+    effect: pitch
+    range: [-48.0, 48.0]
+    unit: st
+    default: 24.0
+
+  - id: pitch_decay
+    name: Pitch Env Decay
+    short: P-DECAY
     category: core
     type: float
     effect: dynamics
-    range: [0.0, 1.0]
-    default: 0.5
+    range: [2.0, 200.0]
+    skew_mid: 25.0
+    unit: ms
+    default: 25.0
 
-  - id: punch
-    name: Punch Click
+  - id: pitch_curve
+    name: Pitch Env Curve
+    short: P-CURVE
+    category: core
+    type: float
+    effect: dynamics
+    range: [-1.0, 1.0]
+    default: -0.5
+
+  - id: click_tune
+    name: Click Tuning
+    short: CLK-TUNE
+    category: core
+    type: float
+    effect: timbre
+    range: [500.0, 12000.0]
+    skew_mid: 3000.0
+    unit: Hz
+    default: 4000.0
+
+  - id: click_mix
+    name: Click Level
+    short: CLK-MIX
+    category: core
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.35
+
+  - id: sub_level
+    name: Sub Sine Level
+    short: SUB-LVL
     category: core
     type: float
     effect: timbre
     range: [0.0, 1.0]
     default: 0.5
 
-  - id: pitch_depth
-    name: Pitch Env Depth
+  - id: low_boost
+    name: Low Boost Thump
+    short: LOW-BST
     category: core
     type: float
-    effect: pitch
-    range: [-48.0, 48.0]
-    default: 24.0
+    effect: tone
+    range: [0.0, 12.0]
+    unit: dB
+    default: 4.0
 
-  - id: pitch_decay
-    name: Pitch Env Decay
-    category: core
-    type: float
-    effect: dynamics
-    range: [2.0, 100.0]
-    default: 25.0
-
+  # ==============================================================================
+  # CARD 2: MODEL TIMBRE & ACOUSTIC LAB (8 parameters)
+  # ==============================================================================
   - id: timbre_x
     name: Timbre X (Ratio)
+    short: TIMBRE-X
     category: timbre
     type: float
     effect: timbre
@@ -88,6 +136,7 @@ parameters:
 
   - id: timbre_y
     name: Timbre Y (FM Depth)
+    short: TIMBRE-Y
     category: timbre
     type: float
     effect: timbre
@@ -96,25 +145,146 @@ parameters:
 
   - id: timbre_z
     name: Timbre Z (Wavefold)
+    short: TIMBRE-Z
     category: timbre
     type: float
     effect: timbre
     range: [0.0, 1.0]
     default: 0.20
 
+  - id: timbre_t
+    name: Timbre T (Settle)
+    short: TIMBRE-T
+    category: timbre
+    type: float
+    effect: dynamics
+    range: [2.0, 800.0]
+    skew_mid: 40.0
+    unit: ms
+    default: 45.0
+
+  - id: fm_morph
+    name: FM Wave Morph
+    short: FM-MORPH
+    category: timbre
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: damp
+    name: Body Damping
+    short: DAMP
+    category: timbre
+    type: float
+    effect: tone
+    range: [0.0, 1.0]
+    default: 0.3
+
+  - id: pan
+    name: Voice Pan
+    short: PAN
+    category: output
+    type: float
+    effect: output
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: vel_sens
+    name: Velocity Sensitivity
+    short: VEL-SENS
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.7
+
   # ==============================================================================
-  # CARD 2: VCF, SATURATION & OUTPUT (8 parameters)
+  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (16 parameters)
   # ==============================================================================
+  # Left Pod: Stepped Random Humanization (5 controls)
+  - id: rand_pitch
+    name: Rand Pitch
+    short: R-PITCH
+    category: random
+    type: float
+    effect: pitch
+    range: [0.0, 3.0]
+    unit: st
+    default: 0.0
+
+  - id: rand_decay
+    name: Rand Decay
+    short: R-DECAY
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 35.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_timbre
+    name: Rand Timbre
+    short: R-TIMBRE
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 25.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_scatter
+    name: Rand Scatter
+    short: R-SCAT
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 20.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_mode
+    name: Rand Mode
+    short: R-MODE
+    category: random
+    type: choice
+    choices: [Free, Loop16]
+    default: 0
+
+  # Center Altar: The Master Macro & Master Out (2 controls)
+  - id: macro_decay
+    name: Macro Decay
+    short: MACRO
+    category: performance
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: volume
+    name: Master Volume
+    short: VOLUME
+    category: output
+    type: float
+    effect: output
+    range: [0.0, 1.0]
+    default: 0.85
+
+  # Right Pod: VCF & Universal Hardware Mojo Strip (9 controls)
   - id: cutoff
     name: Filter Cutoff
+    short: CUTOFF
     category: filter
     type: float
     effect: filter
     range: [20.0, 20000.0]
+    skew_mid: 1000.0
+    unit: Hz
     default: 2000.0
 
   - id: resonance
     name: Filter Resonance
+    short: RES
     category: filter
     type: float
     effect: filter
@@ -123,6 +293,7 @@ parameters:
 
   - id: vcf_mode
     name: Filter Topology
+    short: VCF-MODE
     category: filter
     type: choice
     choices: [24dB Diode, Buchla LPG]
@@ -130,40 +301,57 @@ parameters:
 
   - id: pre_drive
     name: Pre-Filter Drive
+    short: DRIVE
     category: drive
     type: float
     effect: saturation
     range: [0.0, 1.0]
     default: 0.15
 
-  - id: low_boost
-    name: Low Boost Thump
-    category: tone
+  - id: crush
+    name: Mojo Sample Crush
+    short: CRUSH
+    category: mojo
     type: float
-    effect: tone
-    range: [0.0, 1.0]
-    default: 0.35
+    effect: timbre
+    range: [1000.0, 48000.0]
+    skew_mid: 8000.0
+    unit: Hz
+    default: 48000.0
 
-  - id: saturate
-    name: Master Saturation
-    category: drive
+  - id: bits
+    name: Mojo Bit Reduction
+    short: BITS
+    category: mojo
+    type: float
+    effect: timbre
+    range: [4.0, 16.0]
+    unit: bits
+    default: 16.0
+
+  - id: tape_glue
+    name: Mojo Tape Glue
+    short: TAPE
+    category: mojo
     type: float
     effect: saturation
     range: [0.0, 1.0]
-    default: 0.25
-
-  - id: pan
-    name: Voice Pan
-    category: output
-    type: float
-    effect: output
-    range: [-1.0, 1.0]
     default: 0.0
 
-  - id: volume
-    name: Master Volume
-    category: output
+  - id: mojo_profile
+    name: Mojo Profile
+    short: PROFILE
+    category: mojo
+    type: choice
+    choices: [Clean, MD-12, SP-1200, Iron Tape]
+    default: 0
+
+  - id: mojo_mix
+    name: Mojo Mix
+    short: MOJO-MIX
+    category: mojo
     type: float
-    effect: output
-    range: [0.0, 1.0]
-    default: 0.85
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
