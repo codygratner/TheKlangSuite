@@ -353,6 +353,18 @@ static constexpr float kRoleDroopFactor[8] = {
     0.00f  // FX: Zero droop (preserves programmed pitch modulations)
 };
 
+/** Role-masked Organic LPG filter cutoff floor (minimum frequency ratio when optocoupler is fully dark). */
+static constexpr float kRoleLpgCutoffFloor[8] = {
+    0.15f, // BD: Full acoustic drumhead damping (15% floor for heavy sub-bass thud)
+    0.20f, // SD: Deep shell damping (20% floor)
+    0.15f, // TM: Deep tom-tom acoustic damping (15% floor)
+    0.35f, // CP: Moderate clap transient air retention (35% floor)
+    0.65f, // HH: Hi-Hat metallic air defense (65% floor preserves crisp 6-12kHz sizzle)
+    0.60f, // CY: Cymbal bronze shimmer defense (60% floor preserves shimmering alloy wash)
+    0.25f, // PC: Conga/bongo acoustic membrane damping (25% floor)
+    0.40f  // FX: Moderate spectral decay (40% floor)
+};
+
 /**
  * @brief Antiderivative Anti-Aliasing (ADAA1) Numerical Utilities for Formless Spawn.
  * SSoT: Julian Parker / Stefan Bilbao continuous piecewise antiderivative evaluation.

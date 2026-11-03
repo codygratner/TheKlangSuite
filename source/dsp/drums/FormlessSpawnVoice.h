@@ -533,10 +533,13 @@ private:
         float dynCutoffHz = p.cutoff * FastMath::fastPow2(envOctaves);
 
         if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {
-            // Cutoff dynamically hugs optocoupler conductance (0.15 + 0.85 * conductance)
+            // Role-calibrated Optocoupler Conductance Hugging (HH/CY High-Frequency Air Defense)
             const float s = std::clamp(lpgVactrolState_, 0.001f, 1.0f);
-            const float conductance = s * s;
-            dynCutoffHz *= (0.15f + 0.85f * conductance);
+            const int roleIdx = std::clamp(activeRole_, 0, 7);
+            const float floorK = tkdsp::formless::kRoleLpgCutoffFloor[roleIdx];
+            // Linear conductance response for metallic roles (HH/CY) to prevent sudden cliff; quadratic for drum membranes
+            const float conductance = (roleIdx == 4 || roleIdx == 5) ? s : (s * s);
+            dynCutoffHz *= (floorK + (1.0f - floorK) * conductance);
         }
 
         const float rawCutoff = std::clamp(dynCutoffHz, 20.0f, nyquist_);
@@ -681,9 +684,12 @@ private:
         const float origPhase = slot.phase;
         if (p.lifeMode == static_cast<int>(LifeMode::Cyborg)) {
             // Casio CZ illegal resonant wave-wrap on effective phase
-            slot.phase = (origPhase < 0.5f)
+            const float czPhase = (origPhase < 0.5f)
                 ? 2.0f * origPhase * origPhase
                 : 1.0f - 2.0f * (1.0f - origPhase) * (1.0f - origPhase);
+            // Calibrate warp depth: BD/TM preserve solid fundamental core (35% warp), SD/CP/HH/CY/PC/FX get sharp bite (80% warp)
+            const float czDepth = (slot.role == 0 || slot.role == 2) ? 0.35f : 0.80f;
+            slot.phase = (1.0f - czDepth) * origPhase + czDepth * czPhase;
         }
 
         // 3. Synthesis Core Dispatch (8 Roles x 8 Models = 64 Sovereign Models)
@@ -1268,9 +1274,9 @@ private:
             const float rngFlt = static_cast<float>((slot.exciterRng >> 8) & 0x00FFFFFF) * (2.0f / 16777216.0f) - 1.0f;
 
             if (p.lifeMode == static_cast<int>(LifeMode::Cyborg)) {
-                // CYBORG: Radioactive Geiger bitburst + 20us charge-injection spike
-                const float bitBurst = ((slot.exciterRng & 0x01) ? 1.0f : -1.0f) * slot.clickEnv * (eE * 2.8f);
-                exciterImpulse = bitBurst + cyborgChargeSpike_ * (eE * 1.5f);
+                // CYBORG: Radioactive Geiger bitburst + 20us charge-injection spike (calibrated headroom)
+                const float bitBurst = ((slot.exciterRng & 0x01) ? 1.0f : -1.0f) * slot.clickEnv * (eE * 1.35f);
+                exciterImpulse = bitBurst + cyborgChargeSpike_ * (eE * 0.85f);
                 cyborgChargeSpike_ *= 0.95f;
             } else if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {
                 // ORGANIC: Felt/Wood beater compliance slew with velocity hardness (Tekno Law)
@@ -1298,9 +1304,11 @@ private:
             const float sinThump = std::sin(slot.thumpPhase * 6.2831853f) * slot.thumpEnv;
 
             if (p.lifeMode == static_cast<int>(LifeMode::Cyborg)) {
-                // CYBORG: MS-10 screaming diode pair with ADAA1
-                const float raw = sinThump * (eH * 2.0f);
-                punchThump = tkdsp::formless::ADAA::diode(raw, adaaThumpX1_);
+                // CYBORG: Overdriven Germanium diode pair with pure sub-bass weight retention
+                const float raw = sinThump * (eH * 1.5f);
+                const float clipped = tkdsp::formless::ADAA::diode(raw, adaaThumpX1_);
+                // 50% pure fundamental sub anchor + 50% aggressive diode edge
+                punchThump = (0.50f * raw + 0.50f * clipped) * 1.20f;
             } else if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {
                 // ORGANIC: 12AX7 triode tube saturation (rich even harmonics)
                 const float raw = sinThump * (eH * 1.6f);
@@ -1324,9 +1332,14 @@ private:
         float saturatedAudio = totalAudio;
 
         if (p.lifeMode == static_cast<int>(LifeMode::Cyborg)) {
-            // CYBORG: Searing MS-10 Diode Clipping + Infinifold Rail Foldback with ADAA1
-            const float diodeOut = tkdsp::formless::ADAA::diode(saturatedAudio * 1.35f, slot.adaaDiodeX1);
-            saturatedAudio = tkdsp::formless::ADAA::fold(diodeOut, slot.adaaFoldX1, 0.75f, 0.65f);
+            // CYBORG: Searing MS-10 Diode Clipping + Infinifold Rail Foldback with Sub-Bass Defense
+            // 1. Calibrated drive into diode clipper: prevents full-cycle square rail collapse
+            const float diodeIn = saturatedAudio * 0.95f;
+            const float diodeOut = tkdsp::formless::ADAA::diode(diodeIn, slot.adaaDiodeX1);
+            // 2. High-headroom wavefold: threshold 0.95f catches peaks without hollowing the fundamental
+            const float folded = tkdsp::formless::ADAA::fold(diodeOut, slot.adaaFoldX1, 0.95f, 0.50f);
+            // 3. Sub-Bass Defense Anchor: blend 35% solid diode body with 65% toxic folded grit
+            saturatedAudio = 0.35f * diodeOut + 0.65f * folded;
         } else if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {
             // ORGANIC: Safe Bounded Asymmetric Triode Tube Saturation (2nd & 4th harmonics)
             const float x = saturatedAudio * 1.20f;
