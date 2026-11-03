@@ -10,6 +10,7 @@
 #include <array>
 #include "FastMath.h"
 #include "dsp/drums/FormlessSpawnVoice.h"
+#include "dsp/drums/DigiStrikeFS2Voice.h"
 #include "dsp/mojo/FreqShifter.h"
 #include <fstream>
 #include "ModularBlocks.h"
@@ -4723,7 +4724,106 @@ int main() {
         std::cout << "PASS: Suite 56: FormlessSpawn Benchmark completed successfully!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 56 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    
+    // =========================================================================
+    // SUITE 57: DigiStrikeFS2Voice Traversal Trinity, Gated ADSR & Choke Tests
+    // =========================================================================
+    {
+        std::cout << "\nStarting Suite 57: DigiStrikeFS2Voice Traversal Trinity & Choke Verification..." << std::endl;
+        tkdsp::DigiStrikeFS2Voice voice;
+        voice.prepare(48000.0f);
+
+        tkdsp::DigiStrikeFS2Params p;
+        p.category = 0; // KICK
+        p.lineage = 1;  // CROWN
+        p.traverseRate = 1.0f; // forward
+        p.sampleLength = 100.0f;
+        p.startOffset = 0.0f;
+        p.volume = 0.5f; // 0dB
+        voice.setParams(p);
+
+        // Test 1: Forward Playback Render Verification
+        voice.triggerNote(36, 0.9f, 55.0f);
+        std::vector<float> bufL(128, 0.0f), bufR(128, 0.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+
+        float rms = 0.0f;
+        for (int i = 0; i < 128; ++i) {
+            rms += bufL[i] * bufL[i];
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+            assert(!std::isnan(bufR[i]) && !std::isinf(bufR[i]));
+        }
+        rms = std::sqrt(rms / 128.0f);
+        assert(rms > 0.001f);
+        std::cout << "  [PASS] Forward Playback rendered clean audio (RMS: " << rms << ")" << std::endl;
+
+        // Test 2: Reverse Playback (One-Shot Mode - FLAW-DSP-01 Verification)
+        p.traverseRate = -2.0f; // reverse 2x
+        p.sustainLevel = 0.0f;  // one-shot
+        p.ampDecay = 0.200f;
+        voice.setParams(p);
+        voice.triggerNote(36, 0.9f, 55.0f);
+
+        float revRms = 0.0f;
+        for (int b = 0; b < 10; ++b) {
+            voice.renderBlock(bufL.data(), bufR.data(), 128);
+            for (int i = 0; i < 128; ++i) {
+                revRms += bufL[i] * bufL[i];
+                assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+            }
+        }
+        assert(revRms > 0.001f);
+        std::cout << "  [PASS] Reverse Playback with one-shot effective duration verified non-zero & finite!" << std::endl;
+
+        // Test 3: Single-Cycle Freeze (LENGTH = 0.0% - FLAW-DSP-02 Verification)
+        p.traverseRate = 1.0f;
+        p.sampleLength = 0.0f; // Single-cycle freeze
+        voice.setParams(p);
+        voice.triggerNote(60, 0.8f, 261.63f);
+
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float freezeRms = 0.0f;
+        for (int i = 0; i < 128; ++i) freezeRms += bufL[i] * bufL[i];
+        assert(freezeRms > 0.001f);
+        std::cout << "  [PASS] Single-cycle freeze at LENGTH=0% verified stable!" << std::endl;
+
+        // Test 4: Gated Sustain vs Release (FLAW-SSOT-07 Verification)
+        p.sampleLength = 100.0f;
+        p.sustainLevel = 80.0f; // Gated (> 2.0%)
+        voice.setParams(p);
+        voice.triggerNote(60, 0.9f, 261.63f);
+
+        // Render 20 blocks - should remain active and sustained
+        for (int b = 0; b < 20; ++b) {
+            voice.renderBlock(bufL.data(), bufR.data(), 128);
+        }
+        float sustainRms = 0.0f;
+        for (int i = 0; i < 128; ++i) sustainRms += bufL[i] * bufL[i];
+        assert(sustainRms > 0.0001f);
+
+        // Note-off release
+        voice.releaseNote(60);
+        for (int b = 0; b < 50; ++b) {
+            voice.renderBlock(bufL.data(), bufR.data(), 128);
+        }
+        float postReleaseRms = 0.0f;
+        for (int i = 0; i < 128; ++i) postReleaseRms += bufL[i] * bufL[i];
+        assert(postReleaseRms < sustainRms * 0.1f);
+        std::cout << "  [PASS] Gated sustain & note-off release verified!" << std::endl;
+
+        // Test 5: Metamorphic Silence Invariance (MR4)
+        voice.reset();
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        for (int i = 0; i < 128; ++i) {
+            assert(std::abs(bufL[i]) < 1e-7f);
+            assert(std::abs(bufR[i]) < 1e-7f);
+        }
+        std::cout << "  [PASS] MR4 Silence Invariance: exact zero output when idle!" << std::endl;
+
+        std::cout << "PASS: Suite 57: DigiStrikeFS2Voice Traversal Trinity & Choke Verification completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 57 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

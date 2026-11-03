@@ -1,0 +1,436 @@
+plugin: digistrike_fs2
+name: DigiStrike FS2 Sovereign Vintage PCM Workstation
+version: "1.0.0"
+manufacturer: Cracked Chimes
+
+parameters:
+  # ==============================================================================
+  # HEADER CONTROLS (4 selectors)
+  # ==============================================================================
+  - id: category
+    name: Sound Category
+    short: CATEGORY
+    category: header
+    type: choice
+    choices: [KICK, SNAR, TOMS, CLAP, HATS, CYMB, PERC, STAB]
+    default: 0
+
+  - id: lineage
+    name: Sovereign Hardware Lineage
+    short: LINEAGE
+    category: header
+    type: choice
+    choices: [ALL, CROWN, APEX, EMPYR, FALCON, K-WRK, TOKYO, GOTHN, NIPPON, CURIOS]
+    default: 0
+
+  - id: voice_mode
+    name: Voice Playback Mode
+    short: V-MODE
+    category: header
+    type: choice
+    choices: [MONO, GLIDE, POLY]
+    default: 0
+
+  - id: life_mode
+    name: Lifeform Character
+    short: TRIAD
+    category: header
+    type: choice
+    choices: [Synthetic, Cyborg, Organic]
+    default: 2
+
+  # ==============================================================================
+  # CARD 1: MASTER MACRO & DYNAMICS LAB (8 parameters - Top-Left)
+  # ==============================================================================
+  - id: macro_x
+    name: Macro X (Spectral)
+    short: MACRO-X
+    category: macro
+    type: float
+    effect: spectral
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: macro_y
+    name: Macro Y (Punch)
+    short: MACRO-Y
+    category: macro
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: macro_z
+    name: Macro Z (Timbre)
+    short: MACRO-Z
+    category: macro
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: macro_t
+    name: Macro T (Time)
+    short: MACRO-T
+    category: macro
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: vel_aggr
+    name: Vel To Aggression
+    short: VEL-AGGR
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: vel_timb
+    name: Vel To Timbre
+    short: VEL-TIMB
+    category: dynamics
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: pan
+    name: Voice Pan
+    short: PAN
+    category: output
+    type: float
+    effect: output
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: decay_curve
+    name: Decay Curve
+    short: DECAY-CRV
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # CARD 2: UNIFORM SOUND LAB (8 parameters in 4 Functional Pods - Top-Right)
+  # Col 1: P.DEC (K01) / PUNCH (K05)   - Pitch Envelope Pod
+  # Col 2: CLICK (K02) / COMPAND (K06) - Transient Attack & DAC Mojo Pod
+  # Col 3: START (K03) / LENGTH (K07)  - Wavetable / Sample Window Pod
+  # Col 4: TIME (K04)  / MORPH (K08)   - Traversal Motion & Spectral Slice Pod
+  # ==============================================================================
+  - id: pitch_decay
+    name: Pitch Dive Decay Duration
+    short: P.DEC
+    category: synthesis
+    type: float
+    effect: pitch
+    range: [2.0, 250.0]
+    skew_center: 30.0
+    default: 15.0
+    unit: ms
+
+  - id: click_bleed
+    name: Transient Click / Noise Bleed
+    short: CLICK
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    default: 0.0
+    unit: "%"
+
+  - id: start_offset
+    name: Sample Start Offset
+    short: START
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 500.0]
+    skew_center: 20.0
+    default: 0.0
+    unit: ms
+
+  - id: traverse_rate
+    name: Wavetable Frame Traverse Rate
+    short: TIME
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [-4.0, 4.0]
+    default: 1.0
+    unit: x
+
+  - id: pitch_dive
+    name: Transient Pitch Dive Depth
+    short: PUNCH
+    category: synthesis
+    type: float
+    effect: pitch
+    range: [0.0, 100.0]
+    default: 0.0
+    unit: "%"
+
+  - id: dac_compand
+    name: Vintage DAC Companding
+    short: COMPAND
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    default: 50.0
+    unit: "%"
+
+  - id: sample_length
+    name: Playback Window / Scan Length
+    short: LENGTH
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    default: 100.0
+    unit: "%"
+
+  - id: table_morph
+    name: 3D Wave Morph / Tilt
+    short: MORPH
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    default: 0.0
+    unit: "%"
+
+  # ==============================================================================
+  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (22 parameters - Bottom)
+  # ==============================================================================
+  # Left Pod: Stepped Random Humanization (2x4 Grid of 8 Small Knobs)
+  - id: rand_x
+    name: Rand Macro X
+    short: R-X
+    category: random
+    type: float
+    effect: spectral
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_y
+    name: Rand Macro Y
+    short: R-Y
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_z
+    name: Rand Macro Z
+    short: R-Z
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_t
+    name: Rand Macro T
+    short: R-T
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_aggr
+    name: Rand Aggression
+    short: R-AGGR
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_timb
+    name: Rand Timbre
+    short: R-TIMB
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_pan
+    name: Rand Pan
+    short: R-PAN
+    category: random
+    type: float
+    effect: output
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_decay
+    name: Rand Macro Decay
+    short: R-DECAY
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  # Center Altar: The Master Macro & Master Out (3 controls)
+  - id: macro_decay
+    name: Macro Decay
+    short: MACRO
+    category: performance
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: volume
+    name: Master Volume
+    short: VOLUME
+    category: output
+    type: float
+    effect: output
+    range: [0.0, 1.0]
+    default: 0.5
+    unit: dB
+
+  - id: sustain_level
+    name: Gated Sustain Level
+    short: SUSTAIN
+    category: output
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    default: 0.0
+    unit: "%"
+
+  - id: amp_decay
+    name: Master Amp Decay / Release
+    short: AMP-DEC
+    category: output
+    type: float
+    effect: dynamics
+    range: [0.005, 5.0]
+    skew_center: 0.250
+    default: 0.500
+    unit: s
+
+  # Right Pod: VCF & Universal Hardware Mojo Strip (11 controls on Master Bus)
+  - id: cutoff
+    name: Filter Cutoff
+    short: CUTOFF
+    category: filter
+    type: float
+    effect: filter
+    range: [20.0, 20000.0]
+    skew_center: 1000.0
+    unit: Hz
+    default: 1000.0
+
+  - id: resonance
+    name: Filter Resonance
+    short: RES
+    category: filter
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.3
+
+  - id: filter_env_amt
+    name: Filter Env Amount
+    short: FE-AMT
+    category: filter
+    type: float
+    effect: filter
+    range: [-1.0, 1.0]
+    default: 0.0
+    unit: "%"
+
+  - id: filter_decay
+    name: Filter Env Decay
+    short: FE-DEC
+    category: filter
+    type: float
+    effect: filter
+    range: [0.005, 5.0]
+    skew_center: 0.150
+    default: 0.150
+    unit: s
+
+  - id: filter_type
+    name: Filter Type
+    short: TYPE
+    category: filter
+    type: choice
+    choices: [LP, HP, BP, PK]
+    default: 0
+
+  - id: pre_drive
+    name: Pre-Filter Drive
+    short: DRIVE
+    category: drive
+    type: float
+    effect: saturation
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: crush
+    name: Mojo Sample Crush
+    short: CRUSH
+    category: mojo
+    type: float
+    effect: timbre
+    range: [500.0, 48000.0]
+    skew_center: 4000.0
+    unit: Hz
+    default: 48000.0
+
+  - id: shift
+    name: Frequency Shifter
+    short: SHIFT
+    category: mojo
+    type: float
+    effect: pitch
+    range: [-1000.0, 1000.0]
+    unit: Hz
+    default: 0.0
+
+  - id: squash
+    name: Bipolar Squash
+    short: SQUASH
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [-1.0, 1.0]
+    default: 0.0
+    unit: "%"
+
+  - id: wider
+    name: Mojo Wider
+    short: WIDER
+    category: mojo
+    type: float
+    effect: stereo
+    range: [0.0, 2.0]
+    default: 0.0
+    unit: "%"
+
+  - id: master_limiter
+    name: Master Limiter
+    short: LIMIT
+    category: output
+    type: bool
+    default: false

@@ -297,15 +297,15 @@ target_link_libraries(TheShard PRIVATE
 
 # --- 6c. Formless Spawn Plugin Target (Tsathogguan Percussion Workstation) ---
 juce_add_plugin(FormlessSpawn
-    COMPANY_NAME "The Cult of Klang"
+    COMPANY_NAME "Cracked Chimes"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     
-    PLUGIN_MANUFACTURER_CODE Tcok
+    PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Tfsp
-    BUNDLE_ID com.thecultofklang.formlessspawn
+    BUNDLE_ID com.crackedchimes.formlessspawn
     VERSION "1.0.0"
     
     FORMATS ${TKF_FORMATS}
@@ -479,6 +479,91 @@ target_link_libraries(FormlessSpawn_Preview PRIVATE
 if (UNIX AND NOT APPLE)
     target_link_options(TheShard PRIVATE -static-libstdc++ -static-libgcc)
 endif()
+
+# ==============================================================================
+# DigiStrike FS2 Sovereign Vintage PCM Workstation
+# ==============================================================================
+juce_add_plugin(DigiStrikeFS2
+    COMPANY_NAME "Cracked Chimes"
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    
+    PLUGIN_MANUFACTURER_CODE CkCh
+    PLUGIN_CODE Dfs2
+    BUNDLE_ID com.crackedchimes.digistrikefs2
+    VERSION "1.0.0"
+    
+    FORMATS ${TKF_FORMATS}
+    PRODUCT_NAME "DigiStrike FS2"
+    VST3_CAN_REPLACE_VST2 FALSE
+)
+
+target_sources(DigiStrikeFS2 PRIVATE
+    source/FastMath.h
+    source/dsp/drums/DigiStrikeFS2Voice.h
+    source/digistrike_fs2/DigiStrikeFS2Catalog.h
+    source/digistrike_fs2/DigiStrikeFS2ControlInfo.h
+    source/digistrike_fs2/digistrike_fs2ParameterIds.h
+    source/digistrike_fs2/digistrike_fs2ParameterLayout.h
+    source/digistrike_fs2/DigiStrikeFS2Processor.h
+    source/digistrike_fs2/DigiStrikeFS2Processor.cpp
+    source/digistrike_fs2/DigiStrikeFS2Editor.h
+    source/digistrike_fs2/DigiStrikeFS2Editor.cpp
+)
+
+target_include_directories(DigiStrikeFS2 PRIVATE source source/digistrike_fs2)
+
+target_compile_definitions(DigiStrikeFS2 PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+
+if (MSVC)
+    target_compile_options(DigiStrikeFS2 PRIVATE /utf-8)
+endif()
+
+set_target_properties(DigiStrikeFS2 PROPERTIES VST3_AUTO_MANIFEST FALSE)
+
+target_link_libraries(DigiStrikeFS2 PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+add_executable(DigiStrikeFS2_Preview
+    source/digistrike_fs2/DigiStrikeFS2_Preview_main.cpp
+    source/digistrike_fs2/DigiStrikeFS2Processor.cpp
+    source/digistrike_fs2/DigiStrikeFS2Editor.cpp
+)
+
+target_include_directories(DigiStrikeFS2_Preview PRIVATE source source/digistrike_fs2)
+
+target_compile_definitions(DigiStrikeFS2_Preview PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+
+if (MSVC)
+    target_compile_options(DigiStrikeFS2_Preview PRIVATE /utf-8)
+endif()
+
+target_link_libraries(DigiStrikeFS2_Preview PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
 
 
 # 7. Test suite executable

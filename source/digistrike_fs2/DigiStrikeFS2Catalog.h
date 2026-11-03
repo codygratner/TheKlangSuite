@@ -1,0 +1,115 @@
+#pragma once
+
+#include <string_view>
+#include <array>
+#include <cstdint>
+
+// ==============================================================================
+// DigiStrikeFS2Catalog.h — Curated Sovereign Hero Voice Map & Catalog SSoT
+// ==============================================================================
+// Part of The Klang Suite SOCEP Engine. Copyright (c) 2026 Klang Industries.
+// Clean-Room IP Compliance: Zero commercial trademarks.
+// ==============================================================================
+
+namespace DigiStrikeFS2Catalog {
+
+struct VoiceDescriptor {
+    uint16_t voiceId;
+    std::string_view name;
+    uint8_t category;     // 0=KICK, 1=SNAR, 2=TOMS, 3=CLAP, 4=HATS, 5=CYMB, 6=PERC, 7=STAB
+    uint8_t lineage;      // 1=CROWN, 2=APEX, 3=EMPYR, 4=FALCON, 5=K-WRK, 6=TOKYO, 7=GOTHN, 8=NIPPON, 9=CURIOS
+    float defaultPitchHz;
+    float rootKey;        // MIDI note number (e.g. 36 for C1, 60 for C4)
+    bool isLoopable;
+};
+
+// 8x8 Curated Sovereign Hero Matrix (64 Primary Production Voices)
+inline constexpr std::array<VoiceDescriptor, 64> kHeroVoiceMap = {{
+    // --- KICKS (Cat 0) ---
+    {  0, "Crown Punch Kick",     0, 1,  55.0f, 36.0f, false },
+    {  1, "Apex Discrete Kick",    0, 2,  58.0f, 36.0f, false },
+    {  2, "Empyrean 12-Bit Kick",  0, 3,  52.0f, 36.0f, false },
+    {  3, "Falcon Studio Kick",    0, 4,  60.0f, 36.0f, false },
+    {  4, "K-Beat Tight Kick",     0, 5,  62.0f, 36.0f, false },
+    {  5, "Tokyo Matrix Kick",     0, 6,  54.0f, 36.0f, false },
+    {  6, "Gothenburg Click Kick", 0, 7,  65.0f, 36.0f, false },
+    {  7, "Nippon Wave Kick",      0, 8,  50.0f, 36.0f, false },
+
+    // --- SNARES (Cat 1) ---
+    {  8, "Crown Studio Snare",    1, 1, 180.0f, 38.0f, false },
+    {  9, "Apex Gated Snare",      1, 2, 195.0f, 38.0f, false },
+    { 10, "Empyrean Gritty Snare", 1, 3, 175.0f, 38.0f, false },
+    { 11, "Falcon 16-Bit Snare",   1, 4, 210.0f, 38.0f, false },
+    { 12, "K-Beat Heavy Snare",    1, 5, 185.0f, 38.0f, false },
+    { 13, "Tokyo Hybrid Snare",    1, 6, 205.0f, 38.0f, false },
+    { 14, "Gothenburg E-Snare",    1, 7, 220.0f, 38.0f, false },
+    { 15, "Nippon Reverse Snare",  1, 8, 190.0f, 38.0f, false },
+
+    // --- TOMS (Cat 2) ---
+    { 16, "Crown Low Tom",         2, 1,  90.0f, 41.0f, false },
+    { 17, "Apex EPROM Tom",        2, 2, 110.0f, 43.0f, false },
+    { 18, "Empyrean Ring Tom",     2, 3, 130.0f, 45.0f, false },
+    { 19, "Falcon Studio Tom",     2, 4, 150.0f, 47.0f, false },
+    { 20, "K-Beat High Tom",       2, 5, 175.0f, 48.0f, false },
+    { 21, "Tokyo Matrix Tom",      2, 6, 120.0f, 43.0f, false },
+    { 22, "Gothenburg Hex Tom",    2, 7, 105.0f, 41.0f, false },
+    { 23, "Nippon Dynamic Tom",    2, 8, 140.0f, 45.0f, false },
+
+    // --- CLAPS (Cat 3) ---
+    { 24, "Crown Ambience Clap",   3, 1, 800.0f, 39.0f, false },
+    { 25, "Apex Digital Clap",     3, 2, 850.0f, 39.0f, false },
+    { 26, "Empyrean Flam Clap",    3, 3, 780.0f, 39.0f, false },
+    { 27, "Falcon Tight Clap",     3, 4, 920.0f, 39.0f, false },
+    { 28, "K-Beat Slap Clap",      3, 5, 870.0f, 39.0f, false },
+    { 29, "Tokyo Claptrap Burst",  3, 6, 950.0f, 39.0f, false },
+    { 30, "Gothenburg Slic Clap",  3, 7, 830.0f, 39.0f, false },
+    { 31, "Nippon Multi Clap",     3, 8, 890.0f, 39.0f, false },
+
+    // --- HI-HATS (Cat 4) ---
+    { 32, "Crown Closed Hat",      4, 1, 3500.0f, 42.0f, false },
+    { 33, "Apex Discrete Hat",     4, 2, 4200.0f, 42.0f, false },
+    { 34, "Empyrean Sizzle Hat",   4, 3, 3800.0f, 42.0f, false },
+    { 35, "Falcon Open Hat",       4, 4, 3200.0f, 46.0f, false },
+    { 36, "K-Beat Pedal Hat",      4, 5, 4000.0f, 44.0f, false },
+    { 37, "Tokyo Matrix Hat",      4, 6, 4500.0f, 42.0f, false },
+    { 38, "Gothenburg Metal Hat",  4, 7, 5000.0f, 46.0f, false },
+    { 39, "Nippon Variable Hat",   4, 8, 3600.0f, 42.0f, false },
+
+    // --- CYMBALS (Cat 5) ---
+    { 40, "Crown Studio Crash",    5, 1, 2800.0f, 49.0f, false },
+    { 41, "Apex 8-Bit Ride",       5, 2, 3100.0f, 51.0f, false },
+    { 42, "Empyrean Bell Strike",  5, 3, 2400.0f, 53.0f, false },
+    { 43, "Falcon Heavy Crash",    5, 4, 2600.0f, 49.0f, false },
+    { 44, "K-Beat Cup Ride",       5, 5, 3300.0f, 51.0f, false },
+    { 45, "Tokyo Splash Cymbal",   5, 6, 3600.0f, 55.0f, false },
+    { 46, "Gothenburg Dark Wash",  5, 7, 2200.0f, 49.0f, false },
+    { 47, "Nippon Alloy Ride",     5, 8, 2900.0f, 51.0f, false },
+
+    // --- PERCUSSION (Cat 6) ---
+    { 48, "Crown Studio Cowbell",  6, 1, 650.0f, 56.0f, false },
+    { 49, "Apex Woodblock Ping",   6, 2, 920.0f, 76.0f, false },
+    { 50, "Empyrean High Bongo",   6, 3, 340.0f, 60.0f, false },
+    { 51, "Falcon Rimshot Click",  6, 4, 1100.0f, 37.0f, false },
+    { 52, "K-Beat Latin Conga",    6, 5, 260.0f, 62.0f, false },
+    { 53, "Tokyo Shaker Slice",    6, 6, 2800.0f, 70.0f, false },
+    { 54, "Gothenburg Metal Ping", 6, 7, 1450.0f, 65.0f, false },
+    { 55, "Nippon Tambourine",     6, 8, 3800.0f, 54.0f, false },
+
+    // --- STABS & BASS (Cat 7) ---
+    { 56, "Crown Slap Bass E1",    7, 1,  41.2f, 28.0f, true  },
+    { 57, "Apex Digital Growl",    7, 2,  55.0f, 33.0f, true  },
+    { 58, "Empyrean Rave Stab C3", 7, 3, 130.8f, 48.0f, true  },
+    { 59, "Falcon Orch Hit C4",    7, 4, 261.6f, 60.0f, true  },
+    { 60, "K-Works Slap Funk A1",  7, 5,  55.0f, 33.0f, true  },
+    { 61, "Tokyo Techno Chord F3", 7, 6, 174.6f, 53.0f, true  },
+    { 62, "Gothenburg Reso Bass",  7, 7,  65.4f, 36.0f, true  },
+    { 63, "Nippon FM Slap Bass",   7, 8,  49.0f, 31.0f, true  }
+}};
+
+inline const VoiceDescriptor& getHeroVoice(int category, int lineageIndex) noexcept {
+    int cat = (category >= 0 && category < 8) ? category : 0;
+    int lin = (lineageIndex >= 0 && lineageIndex < 8) ? lineageIndex : 0;
+    return kHeroVoiceMap[static_cast<size_t>(cat * 8 + lin)];
+}
+
+} // namespace DigiStrikeFS2Catalog
