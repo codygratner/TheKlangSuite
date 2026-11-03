@@ -2176,12 +2176,10 @@ void HasturAudioProcessorEditor::timerCallback() {
     cutoffDirty |= putProp(cutoffKnob, "cutoffEnvDepth",
         juce::jmax(0.0, prop(hz * std::exp2(8.0 * effEnvDepth)) - k));
     cutoffDirty |= putProp(cutoffKnob, "cutoffLfoDest", lfoDest);
-    cutoffDirty |= putProp(cutoffKnob, "cutoffLfoDepth", (lfoDest == 0)
-        ? prop(hz * std::exp2(2.0 * lfoDepth)) - prop(hz * std::exp2(-2.0 * lfoDepth)) : 0.0);
+    cutoffDirty |= putProp(cutoffKnob, "cutoffLfoDepth", (lfoDest == 0) ? lfoDepth : 0.0f);
     const float bDepth = getParam("burble_depth");
     const float effB = std::copysign(std::pow(std::abs(bDepth), 2.2f), bDepth);
-    cutoffDirty |= putProp(cutoffKnob, "cutoffBurbleDepth",
-        prop(hz * std::exp2(4.0 * effB)) - k);
+    cutoffDirty |= putProp(cutoffKnob, "cutoffBurbleDepth", effB);
     cutoffDirty |= putProp(cutoffKnob, "cutoffFmDepth",  getParam("mod_a_amount"));
     cutoffDirty |= putProp(cutoffKnob, "cutoffFmSource", juce::roundToInt(getParam("mod_a_source")));
     if (cutoffDirty) {

@@ -16,6 +16,60 @@ namespace tkdsp {
 
 namespace FastMath = TbdAudio::FastMath;
 
+struct FormlessSpawnParams {
+    // Header Controls (3)
+    int role{0};             // 0=BD, 1=SD, 2=TM, 3=CP, 4=HH, 5=CY, 6=PC, 7=FX
+    int model{0};            // 0..7
+    int lifeMode{2};         // 0=Synthetic, 1=Cyborg, 2=Organic
+
+    // Card 1: Master Macro & Dynamics Lab (8)
+    float macroX{0.5f};          // 0.0 .. 1.0 (Pitch Macro)
+    float macroY{0.5f};          // 0.0 .. 1.0 (Punch Macro)
+    float macroZ{0.5f};          // 0.0 .. 1.0 (Timbre Macro)
+    float macroT{0.5f};          // 0.0 .. 1.0 (Time Macro)
+    float velAggr{0.5f};         // 0.0 .. 1.0 (Vel -> Aggression)
+    float velTimb{0.5f};         // 0.0 .. 1.0 (Vel -> Timbre)
+    float pan{0.0f};             // -1.0 .. +1.0
+    float decayCurve{0.0f};      // -1.0 .. +1.0
+
+    // Card 2: Role Synthesis Lab (8)
+    float paramA{0.5f};          // 0.0 .. 1.0
+    float paramB{0.5f};          // 0.0 .. 1.0
+    float paramC{0.5f};          // 0.0 .. 1.0
+    float paramD{0.5f};          // 0.0 .. 1.0
+    float paramE{0.5f};          // 0.0 .. 1.0
+    float paramF{0.5f};          // 0.0 .. 1.0
+    float paramG{0.5f};          // 0.0 .. 1.0
+    float paramH{0.5f};          // 0.0 .. 1.0
+
+    // Card 3 Pod 1: Stepped Random Humanization (8)
+    float randX{0.0f};           // 0.0 .. 100.0 %
+    float randY{0.0f};           // 0.0 .. 100.0 %
+    float randZ{0.0f};           // 0.0 .. 100.0 %
+    float randT{0.0f};           // 0.0 .. 100.0 %
+    float randAggr{0.0f};        // 0.0 .. 100.0 %
+    float randTimb{0.0f};        // 0.0 .. 100.0 %
+    float randPan{0.0f};         // 0.0 .. 100.0 %
+    float randDecay{0.0f};       // 0.0 .. 100.0 % (targets macroDecay)
+
+    // Card 3 Pod 2 & 3: Master Altar & Mojo Console (13)
+    float macroDecay{0.5f};      // 0.0 .. 1.0 (Master Macro)
+    float volume{0.5f};          // 0.0 .. 1.0 (0=-inf, 0.5=0dB, 1=+12dB)
+    float ampDecay{1.0f};        // 0.0 .. 1.0 (Uniform Role Logarithmic Decay)
+    float cutoff{1000.0f};       // 20.0 .. 20000.0 Hz
+    float resonance{0.30f};      // 0.0 .. 1.0 (Q in LP/HP/BP, +/-dB in PK)
+    float filterEnvAmt{0.0f};    // -1.0 .. +1.0 (+/-5 Octaves)
+    float filterDecay{0.150f};   // 0.005 .. 5.0 s
+    int   filterType{0};         // 0=LP, 1=HP, 2=BP, 3=PK
+    float preDrive{0.0f};        // 0.0 .. 1.0 (Tanh Drive: 0=clean, 0.5=+6dB, 1.0=+36dB)
+    float crush{48000.0f};       // 500.0 .. 48000.0 Hz
+    float bits{16.0f};           // 2.0 .. 16.0 bits
+    float squash{0.0f};          // -1.0 .. +1.0 (Bipolar Dynamics)
+    float wider{0.0f};           // 0.0 .. 2.0 (Mojo Stereo Widener)
+    bool  masterLimiter{false};  // Master Drum Limiter
+};
+
+
 /**
  * @brief FormlessSpawnVoice — Sovereign 112-Model Percussion Synthesizer Workstation.
  *
@@ -169,58 +223,7 @@ public:
         {      0.70f, 0.40f, 0.85f, 1.00f, 0.75f, 0.45f, 0.70f, 0.65f }
     };
 
-    struct Params {
-        // Header Controls (3)
-        int role{0};             // 0=BD, 1=SD, 2=TM, 3=CP, 4=HH, 5=CY, 6=PC, 7=FX
-        int model{0};            // 0..7
-        int lifeMode{2};         // 0=Synthetic, 1=Cyborg, 2=Organic
-
-        // Card 1: Master Macro & Dynamics Lab (8)
-        float macroX{0.5f};          // 0.0 .. 1.0 (Pitch Macro)
-        float macroY{0.5f};          // 0.0 .. 1.0 (Punch Macro)
-        float macroZ{0.5f};          // 0.0 .. 1.0 (Timbre Macro)
-        float macroT{0.5f};          // 0.0 .. 1.0 (Time Macro)
-        float velAggr{0.5f};         // 0.0 .. 1.0 (Vel -> Aggression)
-        float velTimb{0.5f};         // 0.0 .. 1.0 (Vel -> Timbre)
-        float pan{0.0f};             // -1.0 .. +1.0
-        float decayCurve{0.0f};      // -1.0 .. +1.0
-
-        // Card 2: Role Synthesis Lab (8)
-        float paramA{0.5f};          // 0.0 .. 1.0
-        float paramB{0.5f};          // 0.0 .. 1.0
-        float paramC{0.5f};          // 0.0 .. 1.0
-        float paramD{0.5f};          // 0.0 .. 1.0
-        float paramE{0.5f};          // 0.0 .. 1.0
-        float paramF{0.5f};          // 0.0 .. 1.0
-        float paramG{0.5f};          // 0.0 .. 1.0
-        float paramH{0.5f};          // 0.0 .. 1.0
-
-        // Card 3 Pod 1: Stepped Random Humanization (8)
-        float randX{0.0f};           // 0.0 .. 100.0 %
-        float randY{0.0f};           // 0.0 .. 100.0 %
-        float randZ{0.0f};           // 0.0 .. 100.0 %
-        float randT{0.0f};           // 0.0 .. 100.0 %
-        float randAggr{0.0f};        // 0.0 .. 100.0 %
-        float randTimb{0.0f};        // 0.0 .. 100.0 %
-        float randPan{0.0f};         // 0.0 .. 100.0 %
-        float randDecay{0.0f};       // 0.0 .. 100.0 % (targets macroDecay)
-
-        // Card 3 Pod 2 & 3: Master Altar & Mojo Console (13)
-        float macroDecay{0.5f};      // 0.0 .. 1.0 (Master Macro)
-        float volume{0.5f};          // 0.0 .. 1.0 (0=-inf, 0.5=0dB, 1=+12dB)
-        float ampDecay{1.0f};        // 0.0 .. 1.0 (Uniform Role Logarithmic Decay)
-        float cutoff{1000.0f};       // 20.0 .. 20000.0 Hz
-        float resonance{0.30f};      // 0.0 .. 1.0 (Q in LP/HP/BP, +/-dB in PK)
-        float filterEnvAmt{0.0f};    // -1.0 .. +1.0 (+/-5 Octaves)
-        float filterDecay{0.150f};   // 0.005 .. 5.0 s
-        int   filterType{0};         // 0=LP, 1=HP, 2=BP, 3=PK
-        float preDrive{0.0f};        // 0.0 .. 1.0 (Tanh Drive: 0=clean, 0.5=+6dB, 1.0=+36dB)
-        float crush{48000.0f};       // 500.0 .. 48000.0 Hz
-        float bits{16.0f};           // 2.0 .. 16.0 bits
-        float squash{0.0f};          // -1.0 .. +1.0 (Bipolar Dynamics)
-        float wider{0.0f};           // 0.0 .. 2.0 (Mojo Stereo Widener)
-        bool  masterLimiter{false};  // Master Drum Limiter
-    };
+    using Params = FormlessSpawnParams;
 
     FormlessSpawnVoice() noexcept {
         reset();
