@@ -46,7 +46,7 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
     filterTypeParam_   = apvts_.getRawParameterValue(filter_type);
     preDriveParam_   = apvts_.getRawParameterValue(pre_drive);
     crushParam_      = apvts_.getRawParameterValue(crush);
-    bitsParam_       = apvts_.getRawParameterValue(bits);
+    shiftParam_      = apvts_.getRawParameterValue(shift);
     squashParam_     = apvts_.getRawParameterValue(squash);
     widerParam_      = apvts_.getRawParameterValue(wider);
     masterLimiterParam_ = apvts_.getRawParameterValue(master_limiter);
@@ -109,7 +109,7 @@ void FormlessSpawnAudioProcessor::loadVoiceParams(tkdsp::FormlessSpawnVoice::Par
     if (filterTypeParam_)   p.filterType = static_cast<int>(filterTypeParam_->load(std::memory_order_relaxed));
     if (preDriveParam_)   p.preDrive = preDriveParam_->load(std::memory_order_relaxed);
     if (crushParam_)      p.crush = crushParam_->load(std::memory_order_relaxed);
-    if (bitsParam_)       p.bits = bitsParam_->load(std::memory_order_relaxed);
+    if (shiftParam_)      p.shift = shiftParam_->load(std::memory_order_relaxed);
     if (squashParam_)     p.squash = squashParam_->load(std::memory_order_relaxed);
     if (widerParam_)      p.wider = widerParam_->load(std::memory_order_relaxed);
     if (masterLimiterParam_) p.masterLimiter = masterLimiterParam_->load(std::memory_order_relaxed) > 0.5f;
@@ -176,6 +176,7 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     auto* channelR = (buffer.getNumChannels() > 1) ? buffer.getWritePointer(1) : channelL;
 
     voice_.processBlockStereo(channelL, channelR, numSamples, p);
+    limiterGR_.store(voice_.getLimiterGainReduction(), std::memory_order_relaxed);
 }
 
 juce::AudioProcessorEditor* FormlessSpawnAudioProcessor::createEditor() {

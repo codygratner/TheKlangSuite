@@ -57,6 +57,10 @@ public:
         return 0.0f;
     }
 
+    [[nodiscard]] float getLimiterGR() const noexcept {
+        return limiterGR_.load(std::memory_order_relaxed);
+    }
+
 private:
     void triggerVoice(float velocity, float noteHz) noexcept;
     void loadVoiceParams(tkdsp::FormlessSpawnVoice::Params& p) const noexcept;
@@ -110,7 +114,8 @@ private:
     std::atomic<float>* filterTypeParam_{nullptr};
     std::atomic<float>* preDriveParam_{nullptr};
     std::atomic<float>* crushParam_{nullptr};
-    std::atomic<float>* bitsParam_{nullptr};
+    std::atomic<float>* shiftParam_{nullptr};
+    std::atomic<float> limiterGR_{1.0f};
     std::atomic<float>* squashParam_{nullptr};
     std::atomic<float>* widerParam_{nullptr};
     std::atomic<float>* masterLimiterParam_{nullptr};

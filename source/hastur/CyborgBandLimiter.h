@@ -7,7 +7,7 @@
 namespace CrackedChimes::DSP {
 
 /**
- * @brief Authentic 1980s Roland MB87123 & PPG Wave Band-Limiter Emulation.
+ * @brief Vintage 1980s Hybrid DCO Band-Limiter Emulation.
  * Provides calibrated industrial foldover bite without harsh unmusical chirps.
  */
 class CyborgBandLimiter {
@@ -67,7 +67,7 @@ public:
 class CyborgAnalogBusFilter {
 public:
     void prepare(double sampleRate) noexcept {
-        // Authentic Alpha Juno summing op-amp 1-pole rolloff at 17.5 kHz
+        // Discrete summing op-amp 1-pole rolloff at 17.5 kHz
         const float fc = 17500.0f;
         const float w = 2.0f * 3.14159265358979323846f * fc / static_cast<float>(sampleRate > 1000.0 ? sampleRate : 44100.0);
         alpha_ = w / (1.0f + w);

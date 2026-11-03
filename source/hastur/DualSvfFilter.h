@@ -10,15 +10,19 @@ namespace CrackedChimes::DSP {
 
 
 /**
- * @brief Dual Roland Alpha Juno IR3R05 Extended VCF Engine:
- * - Dual IR3R05 Silicon Emulation (Two 2-pole ZDF SVFs per chip = 4x 2-pole stages total).
+ * @brief Dual Cascaded SVF Extended VCF Engine:
+ * - Dual-SVF Analog Silicon Emulation (Two 2-pole ZDF SVFs per chip = 4x 2-pole stages total).
  * - Zero passband bass loss: authentic dual-SVF 0dB DC gain response.
  * - Mid-Deck 8th-Order Laser Sandwich (8-Pole APF -> Normalized Tanh -> 8-Pole Inv-APF).
  * - Resonant Comb Recirculation Loop across the sandwich.
  * - 3 Deck Routing Modes: Pre-24dB (Bite -> Chip A), Dual-48dB Monolith (Chip A -> Bite -> Chip B), Post-24dB (Chip A -> Bite).
- * - Authentic 4-Position Stepped Roland HPF Deck (0: Flat, 1: 80Hz Bass Bump, 2: 150Hz Cut, 3: 300Hz Cut).
+ * - Authentic 4-Position Stepped Analog HPF Deck (0: Flat, 1: 80Hz Bass Bump, 2: 150Hz Cut, 3: 300Hz Cut).
  */
-class AlphaJunoFilter {
+class DualSvfFilter {
+public:
+    // Backward compatibility alias
+    using AlphaJunoFilter = DualSvfFilter;
+
 public:
     enum DeckMode : uint8_t {
         DECK_PRE_24  = 0, // Sandwich -> Chip A (24dB)
@@ -62,7 +66,7 @@ public:
     }
 
     /**
-     * @brief Process audio sample through the Dual-IR3R05 VCF Engine.
+     * @brief Process audio sample through the Dual-SVF VCF Engine.
      * 
      * @param input Raw audio sample from the mixer.
      * @param cutoffHz Master cutoff frequency (10 Hz to 22000 Hz).
@@ -70,7 +74,7 @@ public:
      * @param deckMode Deck routing (0: Pre-24dB, 1: Dual-48dB, 2: Post-24dB).
      * @param laserBite 8th-order APF phase dispersion & recirculation depth [0.0, 1.0].
      * @param laserDrive Normalized Tanh saturation drive [0.0, 1.0].
-     * @param hpfMode 4-position Roland HPF (0: Off, 1: 80Hz Bass Bump, 2: 150Hz, 3: 300Hz).
+     * @param hpfMode 4-position analog HPF (0: Off, 1: 80Hz Bass Bump, 2: 150Hz, 3: 300Hz).
      * @return Filtered output sample.
      */
     [[nodiscard]] float process(
@@ -123,8 +127,8 @@ public:
         };
         const float g = (wd < 0.75f) ? fastTanPade(wd) : std::tan(std::min(wd, 1.52f));
 
-        // Authentic Roland IR3R05 Local Damping:
-        // In 24dB mode: kDamp in [0.05, 2.0] (Q up to 20.0, singing Roland liquid resonance).
+        // Authentic Dual-SVF Local Damping:
+        // In 24dB mode: kDamp in [0.05, 2.0] (Q up to 20.0, liquid resonance).
         // In Dual-48dB mode: scale damping so 4-stage composite Q^4 <= 36 (+32dB max) to prevent unusable screech cliff.
         const float resNorm = std::clamp(resonance, 0.0f, 1.0f);
         const float resCurve = std::pow(resNorm, 1.5f);
@@ -157,7 +161,7 @@ public:
             }
         }
 
-        // Apply 4-position Roland High-Pass Filter
+        // Apply 4-position Analog High-Pass Filter
         out = processHPF(out, hpfMode);
 
         // Denormal protection
@@ -178,7 +182,7 @@ public:
 
 private:
     /**
-     * @brief Chip A: Roland IR3R05 24dB/oct lowpass (dual 2-pole SVF cascade).
+     * @brief Chip A: Dual-SVF 24dB/oct lowpass (dual 2-pole SVF cascade).
      */
     [[nodiscard]] inline float processChipA(float x, float a1, float a2, float a3) noexcept {
         // Stage 1: 2-pole SVF
@@ -200,7 +204,7 @@ private:
     }
 
     /**
-     * @brief Chip B: Second Roland IR3R05 24dB/oct lowpass (dual 2-pole SVF cascade).
+     * @brief Chip B: Second Dual-SVF 24dB/oct lowpass (dual 2-pole SVF cascade).
      */
     [[nodiscard]] inline float processChipB(float x, float a1, float a2, float a3) noexcept {
         // Stage 3: 2-pole SVF
@@ -267,7 +271,7 @@ private:
     }
 
     /**
-     * @brief 4-Position Authentic Roland High-Pass Filter Deck.
+     * @brief 4-Position Authentic Analog High-Pass Filter Deck.
      */
     [[nodiscard]] inline float processHPF(float sig, int mode) noexcept {
         switch (mode) {
@@ -343,4 +347,5 @@ private:
     float hpS2_ = 0.0f;
 };
 
+using AlphaJunoFilter = DualSvfFilter;
 } // namespace CrackedChimes::DSP

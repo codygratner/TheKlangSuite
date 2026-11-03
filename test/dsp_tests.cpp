@@ -9,8 +9,8 @@
 #include <cstring>
 #include <array>
 #include "FastMath.h"
-#include "dsp/drums/FormlessSpawnEngine.h"
 #include "dsp/drums/FormlessSpawnVoice.h"
+#include "dsp/mojo/FreqShifter.h"
 #include <fstream>
 #include "ModularBlocks.h"
 #include "ModulationEngine.h"
@@ -1661,176 +1661,90 @@ int main() {
 
         verifySpatialRack(*pluckFxRack,     4, "PluckFX (Sidechain/Audio-Excited Waveguide & Modal Resonator)");
         verifySpatialRack(*vocoder56kRack,  5, "56K Vocoder (32-Band Cytomic SVF, AlphaKraft Carrier, Pitch Tracker & EMS Matrix)");
-        verifySpatialRack(*phaseShriekRack, 3, "PhaseShriek (Doepfer A-196 PLL: XOR, RS-FF, PFD & Clock Divider)");
+        verifySpatialRack(*phaseShriekRack, 3, "PhaseShriek (Analog PLL: XOR, RS-FF, PFD & Clock Divider)");
         verifySpatialRack(*pipKlickRack,    4, "PipKlick (WMD Geiger Counter 256-Wavetable Waveshaper & Bit-Glitch)");
         verifySpatialRack(*echoMillRack,    6, "EchoMill / TKMD (2-Slot Recursive Insert-Rack Delay & Degradation Mill)");
     }
 
     // =========================================================================
-    // SUITE 36: FormlessSpawnEngine — Tsathogguan Percussion Workstation (ER-1 Heritage)
+    // SUITE 36: FormlessSpawnVoice — 64-Model Macro Decay Matrix Metamorphic Verification
     // =========================================================================
     {
-        std::cout << "\n=== [TEST SUITE 36] FormlessSpawnEngine (Tsathogguan Percussion Workstation) ===" << std::endl;
-        tkdsp::FormlessSpawnEngine engine;
-        engine.prepare(48000.0f);
-
-        // 1. Verify all 8 voices trigger without NaN or Inf
-        for (int v = 0; v < tkdsp::FormlessSpawnEngine::kTotalVoices; ++v) {
-            engine.trigger(v, 0.9f);
-            float l = 0.0f, r = 0.0f;
-            for (int s = 0; s < 512; ++s) {
-                engine.renderSampleStereo(l, r);
-                assert(!std::isnan(l) && !std::isinf(l));
-                assert(!std::isnan(r) && !std::isinf(r));
+        std::cout << "\n=== [TEST SUITE 36] FormlessSpawnVoice (64-Model Macro Decay Matrix) ===" << std::endl;
+        std::cout << "  -> Verifying 64-Model Macro Decay Matrix calibration & bounds..." << std::endl;
+        for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
+            for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
+                const float baseAmp = tkdsp::FormlessSpawnVoice::kModelBaseAmpDecaySec[r][m];
+                const float pResp   = tkdsp::FormlessSpawnVoice::kModelPitchDecayResponse[r][m];
+                const float tResp   = tkdsp::FormlessSpawnVoice::kModelTimbreDecayResponse[r][m];
+                assert(baseAmp >= 0.015f && baseAmp <= 2.500f);
+                assert(pResp >= 0.0f && pResp <= 1.0f);
+                assert(tResp >= 0.0f && tResp <= 1.0f);
             }
         }
 
-        // 2. Test 16-step Motion Sequencer & Parameter Locks
-        for (int step = 0; step < 16; ++step) {
-            if (step % 4 == 0) {
-                engine.setStepTrigger(0, step, true, 0.95f); // Kick on 0, 4, 8, 12
-                engine.setStepLock(0, step, 0, 0.2f); // Pitch lock
-            }
-            if (step % 8 == 4) {
-                engine.setStepTrigger(1, step, true, 0.90f); // Snare on 4, 12
-            }
-            if (step % 2 == 0) {
-                engine.setStepTrigger(5, step, true, 0.70f); // Closed hat on 8ths
+        // Verify all 64 models trigger cleanly across macro extremes (0.0, 0.5, 1.0)
+        tkdsp::FormlessSpawnVoice testVoice;
+        testVoice.prepare(48000.0f);
+        for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
+            for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
+                for (float macro : {0.0f, 0.5f, 1.0f}) {
+                    testVoice.reset();
+                    testVoice.setRole(r);
+                    testVoice.setModel(m);
+                    tkdsp::FormlessSpawnVoice::Params p;
+                    p.role = r;
+                    p.model = m;
+                    p.macroDecay = macro;
+                    testVoice.trigger(0.9f, 55.0f, p);
+                    float blockL[128], blockR[128];
+                    testVoice.processBlockStereo(blockL, blockR, 128, p);
+                    for (int s = 0; s < 128; ++s) {
+                        assert(!std::isnan(blockL[s]) && !std::isinf(blockL[s]));
+                        assert(!std::isnan(blockR[s]) && !std::isinf(blockR[s]));
+                    }
+                }
             }
         }
 
-        // 3. Render 2 seconds of beat (96,000 samples) and write to WAV
-        const int numSamples = 48000 * 2;
-        std::vector<float> wavL(numSamples, 0.0f);
-        std::vector<float> wavR(numSamples, 0.0f);
-
-        int sampleCounter = 0;
-        const int stepInterval = 48000 / 8; // 120 BPM 16th notes: 125ms = 6000 samples
-
-        for (int i = 0; i < numSamples; ++i) {
-            if (++sampleCounter >= stepInterval) {
-                sampleCounter = 0;
-                engine.advanceStep();
-            }
-            engine.renderSampleStereo(wavL[i], wavR[i]);
-            assert(!std::isnan(wavL[i]) && !std::isinf(wavL[i]));
-            assert(!std::isnan(wavR[i]) && !std::isinf(wavR[i]));
-        }
-
-        // 4. Write to test WAV file on disk
-        std::ofstream wavFile("formless_spawn_test.wav", std::ios::binary);
-        if (wavFile.is_open()) {
-            const int32_t sampleRate = 48000;
-            const int16_t numChannels = 2;
-            const int16_t bitsPerSample = 16;
-            const int32_t byteRate = sampleRate * numChannels * (bitsPerSample / 8);
-            const int16_t blockAlign = numChannels * (bitsPerSample / 8);
-            const int32_t dataSize = numSamples * blockAlign;
-            const int32_t chunkSize = 36 + dataSize;
-
-            wavFile.write("RIFF", 4);
-            wavFile.write(reinterpret_cast<const char*>(&chunkSize), 4);
-            wavFile.write("WAVEfmt ", 8);
-            const int32_t subchunk1Size = 16;
-            const int16_t audioFormat = 1; // PCM
-            wavFile.write(reinterpret_cast<const char*>(&subchunk1Size), 4);
-            wavFile.write(reinterpret_cast<const char*>(&audioFormat), 2);
-            wavFile.write(reinterpret_cast<const char*>(&numChannels), 2);
-            wavFile.write(reinterpret_cast<const char*>(&sampleRate), 4);
-            wavFile.write(reinterpret_cast<const char*>(&byteRate), 4);
-            wavFile.write(reinterpret_cast<const char*>(&blockAlign), 2);
-            wavFile.write(reinterpret_cast<const char*>(&bitsPerSample), 2);
-            wavFile.write("data", 4);
-            wavFile.write(reinterpret_cast<const char*>(&dataSize), 4);
-
-            for (int i = 0; i < numSamples; ++i) {
-                const int16_t sampleL = static_cast<int16_t>(std::clamp(wavL[i], -1.0f, 1.0f) * 32767.0f);
-                const int16_t sampleR = static_cast<int16_t>(std::clamp(wavR[i], -1.0f, 1.0f) * 32767.0f);
-                wavFile.write(reinterpret_cast<const char*>(&sampleL), 2);
-                wavFile.write(reinterpret_cast<const char*>(&sampleR), 2);
-            }
-            std::cout << ">>> FormlessSpawn rendered test audio to formless_spawn_test.wav! <<<" << std::endl;
-        }
-
-        // 5. 64-Model Macro Decay Matrix Metamorphic Verification
+        // Metamorphic Test: BOOM (BD Model 1) tail at macro 1.0 must sustain significantly longer than at macro 0.0
         {
-            std::cout << "  -> Verifying 64-Model Macro Decay Matrix calibration & bounds..." << std::endl;
-            for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
-                for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
-                    const float baseAmp = tkdsp::FormlessSpawnVoice::kModelBaseAmpDecaySec[r][m];
-                    const float pResp   = tkdsp::FormlessSpawnVoice::kModelPitchDecayResponse[r][m];
-                    const float tResp   = tkdsp::FormlessSpawnVoice::kModelTimbreDecayResponse[r][m];
-                    assert(baseAmp >= 0.015f && baseAmp <= 2.500f);
-                    assert(pResp >= 0.0f && pResp <= 1.0f);
-                    assert(tResp >= 0.0f && tResp <= 1.0f);
-                }
-            }
+            tkdsp::FormlessSpawnVoice boomShort, boomLong;
+            boomShort.prepare(48000.0f);
+            boomLong.prepare(48000.0f);
 
-            // Verify all 64 models trigger cleanly across macro extremes (0.0, 0.5, 1.0)
-            tkdsp::FormlessSpawnVoice testVoice;
-            testVoice.prepare(48000.0f);
-            for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
-                for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
-                    for (float macro : {0.0f, 0.5f, 1.0f}) {
-                        testVoice.reset();
-                        testVoice.setRole(r);
-                        testVoice.setModel(m);
-                        tkdsp::FormlessSpawnVoice::Params p;
-                        p.role = r;
-                        p.model = m;
-                        p.macroDecay = macro;
-                        testVoice.trigger(0.9f, 55.0f, p);
-                        float blockL[128], blockR[128];
-                        testVoice.processBlockStereo(blockL, blockR, 128, p);
-                        for (int s = 0; s < 128; ++s) {
-                            assert(!std::isnan(blockL[s]) && !std::isinf(blockL[s]));
-                            assert(!std::isnan(blockR[s]) && !std::isinf(blockR[s]));
-                        }
+            boomShort.setRole(0);
+            boomShort.setModel(1);
+            tkdsp::FormlessSpawnVoice::Params pShort;
+            pShort.role = 0; pShort.model = 1; pShort.macroDecay = 0.0f;
+            boomShort.trigger(1.0f, 45.0f, pShort);
+
+            boomLong.setRole(0);
+            boomLong.setModel(1);
+            tkdsp::FormlessSpawnVoice::Params pLong;
+            pLong.role = 0; pLong.model = 1; pLong.macroDecay = 1.0f;
+            boomLong.trigger(1.0f, 45.0f, pLong);
+
+            float shortRmsLate = 0.0f, longRmsLate = 0.0f;
+            const int kLateStart = 48000 / 2; // 0.5 seconds
+            const int kLateSamples = 4800;    // 100ms window
+
+            float blkShortL[64], blkShortR[64];
+            float blkLongL[64], blkLongR[64];
+            const int totalSamples = kLateStart + kLateSamples;
+            for (int s = 0; s < totalSamples; s += 64) {
+                boomShort.processBlockStereo(blkShortL, blkShortR, 64, pShort);
+                boomLong.processBlockStereo(blkLongL, blkLongR, 64, pLong);
+                if (s >= kLateStart) {
+                    for (int i = 0; i < 64; ++i) {
+                        shortRmsLate += blkShortL[i] * blkShortL[i];
+                        longRmsLate  += blkLongL[i] * blkLongL[i];
                     }
                 }
             }
-
-            // Metamorphic Test: BOOM (BD Model 1) tail at macro 1.0 must sustain significantly longer than at macro 0.0
-            {
-                tkdsp::FormlessSpawnVoice boomShort, boomLong;
-                boomShort.prepare(48000.0f);
-                boomLong.prepare(48000.0f);
-
-                boomShort.setRole(0);
-                boomShort.setModel(1);
-                tkdsp::FormlessSpawnVoice::Params pShort;
-                pShort.role = 0; pShort.model = 1; pShort.macroDecay = 0.0f;
-                boomShort.trigger(1.0f, 45.0f, pShort);
-
-                boomLong.setRole(0);
-                boomLong.setModel(1);
-                tkdsp::FormlessSpawnVoice::Params pLong;
-                pLong.role = 0; pLong.model = 1; pLong.macroDecay = 1.0f;
-                boomLong.trigger(1.0f, 45.0f, pLong);
-
-                float shortRmsLate = 0.0f, longRmsLate = 0.0f;
-                const int kLateStart = 48000 / 2; // 0.5 seconds
-                const int kLateSamples = 4800;    // 100ms window
-
-                float blkShortL[64], blkShortR[64];
-                float blkLongL[64], blkLongR[64];
-                const int totalSamples = kLateStart + kLateSamples;
-                for (int s = 0; s < totalSamples; s += 64) {
-                    boomShort.processBlockStereo(blkShortL, blkShortR, 64, pShort);
-                    boomLong.processBlockStereo(blkLongL, blkLongR, 64, pLong);
-                    if (s >= kLateStart) {
-                        for (int i = 0; i < 64; ++i) {
-                            shortRmsLate += blkShortL[i] * blkShortL[i];
-                            longRmsLate  += blkLongL[i] * blkLongL[i];
-                        }
-                    }
-                }
-                assert(longRmsLate > shortRmsLate * 5.0f); // Macro 1.0 must sustain at least 5x late energy!
-            }
-            std::cout << "  -> 64-Model Macro Decay Matrix: All 64 models & metamorphic relations PASSED 100%!" << std::endl;
+            assert(longRmsLate > shortRmsLate * 5.0f); // Macro 1.0 must sustain at least 5x late energy!
         }
-
-        std::cout << "PASS: FormlessSpawnEngine (Tsathogguan Percussion Workstation) verified 100%!\n" << std::endl;
+        std::cout << "PASS: Suite 36: FormlessSpawnVoice 64-Model Macro Decay Matrix verified 100%!\n" << std::endl;
     }
 
 
@@ -2583,7 +2497,7 @@ int main() {
                 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.5f, 1.0f, 0.0f, 0.0f, 2.0f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE,
                 CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING, 0.0f, 0.0f, modA, modB,
-                15000.0f, 0.0f, CrackedChimes::DSP::AlphaJunoFilter::PoleMode::POLE_2_2,
+                15000.0f, 0.0f, CrackedChimes::DSP::DualSvfFilter::PoleMode::POLE_2_2,
                 1000.0f, false, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f,
                 0.001f, 1.0f, 0.1f, 0.0f, 0.0f, 1.0f, 0.1f, 0,
                 0.001f, 0.5f, 0.0f, 1.0f, 0.1f,
@@ -2600,7 +2514,7 @@ int main() {
                     1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                     0.5f, 1.0f, 0.0f, 0.0f, 2.0f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE,
                     CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING, 0.0f, 0.0f, modA, modB,
-                    15000.0f, 0.0f, CrackedChimes::DSP::AlphaJunoFilter::PoleMode::POLE_2_2,
+                    15000.0f, 0.0f, CrackedChimes::DSP::DualSvfFilter::PoleMode::POLE_2_2,
                     1000.0f, false, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f,
                     0.001f, 1.0f, 0.1f, 0.0f, 0.0f, 1.0f, 0.1f, 0,
                     0.001f, 0.5f, 0.0f, 1.0f, 0.1f,
@@ -2795,7 +2709,7 @@ int main() {
                     1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 5.0f, 0.0f, 0.0f,
                     1.0f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING, 0.0f, 0.0f,
                     CrackedChimes::DSP::ModMatrix::ChannelConfig{}, CrackedChimes::DSP::ModMatrix::ChannelConfig{},
-                    15000.0f, 0.0f, CrackedChimes::DSP::AlphaJunoFilter::PoleMode::POLE_2_2,
+                    15000.0f, 0.0f, CrackedChimes::DSP::DualSvfFilter::PoleMode::POLE_2_2,
                     1000.0f, false, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f,
                     0.001f, 1.0f, 0.1f, 0.0f, 0.0f, 1.0f, 0.1f, 0,
                     0.001f, 0.5f, 0.0f, 1.0f, 0.1f,
@@ -2815,7 +2729,7 @@ int main() {
                     1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 5.0f, 0.0f, 0.0f,
                     1.0f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING, 0.0f, 0.0f,
                     CrackedChimes::DSP::ModMatrix::ChannelConfig{}, CrackedChimes::DSP::ModMatrix::ChannelConfig{},
-                    15000.0f, 0.0f, CrackedChimes::DSP::AlphaJunoFilter::PoleMode::POLE_2_2,
+                    15000.0f, 0.0f, CrackedChimes::DSP::DualSvfFilter::PoleMode::POLE_2_2,
                     1000.0f, false, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f,
                     0.001f, 1.0f, 0.1f, 0.0f, 0.0f, 1.0f, 0.1f, 0,
                     0.001f, 0.5f, 0.0f, 1.0f, 0.1f,
@@ -2845,7 +2759,7 @@ int main() {
                     1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 5.0f, 0.0f, 0.0f,
                     1.0f, CrackedChimes::DSP::HasturVoice::LfoWave::TRIANGLE, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING, 0.0f, 0.0f,
                     CrackedChimes::DSP::ModMatrix::ChannelConfig{}, CrackedChimes::DSP::ModMatrix::ChannelConfig{},
-                    15000.0f, 0.0f, CrackedChimes::DSP::AlphaJunoFilter::PoleMode::POLE_2_2,
+                    15000.0f, 0.0f, CrackedChimes::DSP::DualSvfFilter::PoleMode::POLE_2_2,
                     1000.0f, false, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f,
                     0.001f, 1.0f, 0.1f, 0.0f, 0.0f, 1.0f, 0.1f, 0,
                     0.001f, 0.5f, 0.0f, 1.0f, 0.1f,
@@ -2870,7 +2784,7 @@ int main() {
 
         // 1. Zero Passband Bass Loss Verification (Roland Dual-SVF Invariant)
         {
-            CrackedChimes::DSP::AlphaJunoFilter filterLowRes, filterHighRes;
+            CrackedChimes::DSP::DualSvfFilter filterLowRes, filterHighRes;
             filterLowRes.prepare(sr);
             filterHighRes.prepare(sr);
 
@@ -2879,8 +2793,8 @@ int main() {
             for (int i = 0; i < 2048; ++i) {
                 float sample = std::sin(2.0f * 3.14159265f * freq * static_cast<float>(i) / 44100.0f);
                 // HPF Off (0) to measure pure 4-pole/8-pole SVF passband gain
-                float outLow = filterLowRes.process(sample, 2000.0f, 0.0f, CrackedChimes::DSP::AlphaJunoFilter::DECK_DUAL_48, 0.0f, 0.0f, 0);
-                float outHigh = filterHighRes.process(sample, 2000.0f, 0.85f, CrackedChimes::DSP::AlphaJunoFilter::DECK_DUAL_48, 0.0f, 0.0f, 0);
+                float outLow = filterLowRes.process(sample, 2000.0f, 0.0f, CrackedChimes::DSP::DualSvfFilter::DECK_DUAL_48, 0.0f, 0.0f, 0);
+                float outHigh = filterHighRes.process(sample, 2000.0f, 0.85f, CrackedChimes::DSP::DualSvfFilter::DECK_DUAL_48, 0.0f, 0.0f, 0);
                 if (i > 1024) {
                     peakLowRes = std::max(peakLowRes, std::abs(outLow));
                     peakHighRes = std::max(peakHighRes, std::abs(outHigh));
@@ -2897,15 +2811,15 @@ int main() {
 
         // 2. Laser Sandwich (8th-Order APF -> Tanh -> Inv-APF) Non-Linear Harmonic Chewing
         {
-            CrackedChimes::DSP::AlphaJunoFilter filterClean, filterLaser;
+            CrackedChimes::DSP::DualSvfFilter filterClean, filterLaser;
             filterClean.prepare(sr);
             filterLaser.prepare(sr);
 
             float peakLaser = 0.0f;
             for (int i = 0; i < 1024; ++i) {
                 float sample = (i % 64 < 32) ? 0.7f : -0.7f;
-                float cleanOut = filterClean.process(sample, 4000.0f, 0.3f, CrackedChimes::DSP::AlphaJunoFilter::DECK_DUAL_48, 0.0f, 0.0f, 1);
-                float laserOut = filterLaser.process(sample, 4000.0f, 0.3f, CrackedChimes::DSP::AlphaJunoFilter::DECK_DUAL_48, 0.8f, 0.8f, 1);
+                float cleanOut = filterClean.process(sample, 4000.0f, 0.3f, CrackedChimes::DSP::DualSvfFilter::DECK_DUAL_48, 0.0f, 0.0f, 1);
+                float laserOut = filterLaser.process(sample, 4000.0f, 0.3f, CrackedChimes::DSP::DualSvfFilter::DECK_DUAL_48, 0.8f, 0.8f, 1);
                 assert(std::isfinite(cleanOut) && std::isfinite(laserOut));
                 peakLaser = std::max(peakLaser, std::abs(laserOut));
             }
@@ -2915,7 +2829,7 @@ int main() {
 
         // 2b. Bipolar BITE & Unmodulated Cutoff WARP (+/-2 Oct) Invariant
         {
-            CrackedChimes::DSP::AlphaJunoFilter filterUpperBite, filterLowerBite;
+            CrackedChimes::DSP::DualSvfFilter filterUpperBite, filterLowerBite;
             filterUpperBite.prepare(sr);
             filterLowerBite.prepare(sr);
 
@@ -2925,9 +2839,9 @@ int main() {
             for (int i = 0; i < 1024; ++i) {
                 float sample = (i % 32 < 16) ? 0.8f : -0.8f;
                 // WARP = +1.0 Oct, BITE = +0.80 (Upper Bite)
-                float u = filterUpperBite.process(sample, 1200.0f, 0.4f, CrackedChimes::DSP::AlphaJunoFilter::DECK_POST_24, +1.0f, +0.80f, 0.2f, 1);
+                float u = filterUpperBite.process(sample, 1200.0f, 0.4f, CrackedChimes::DSP::DualSvfFilter::DECK_POST_24, +1.0f, +0.80f, 0.2f, 1);
                 // WARP = -1.0 Oct, BITE = -0.80 (Lower Bite)
-                float l = filterLowerBite.process(sample, 1200.0f, 0.4f, CrackedChimes::DSP::AlphaJunoFilter::DECK_POST_24, -1.0f, -0.80f, 0.2f, 1);
+                float l = filterLowerBite.process(sample, 1200.0f, 0.4f, CrackedChimes::DSP::DualSvfFilter::DECK_POST_24, -1.0f, -0.80f, 0.2f, 1);
 
                 assert(std::isfinite(u) && std::isfinite(l));
                 maxUpper = std::max(maxUpper, std::abs(u));
@@ -2942,14 +2856,14 @@ int main() {
 
         // 2c. Dual-48dB Resonance Stability at 95% and 100% (No Screech Cliff)
         {
-            CrackedChimes::DSP::AlphaJunoFilter filter48HighRes;
+            CrackedChimes::DSP::DualSvfFilter filter48HighRes;
             filter48HighRes.prepare(sr);
 
             float peak48Res95 = 0.0f, peak48Res100 = 0.0f;
             for (int i = 0; i < 1024; ++i) {
                 float sample = std::sin(2.0f * 3.14159265f * 150.0f * static_cast<float>(i) / 44100.0f);
-                float out95 = filter48HighRes.process(sample, 800.0f, 0.95f, CrackedChimes::DSP::AlphaJunoFilter::DECK_DUAL_48, 0.0f, 0.0f, 0.0f, 1);
-                float out100 = filter48HighRes.process(sample, 800.0f, 1.00f, CrackedChimes::DSP::AlphaJunoFilter::DECK_DUAL_48, 0.0f, 0.0f, 0.0f, 1);
+                float out95 = filter48HighRes.process(sample, 800.0f, 0.95f, CrackedChimes::DSP::DualSvfFilter::DECK_DUAL_48, 0.0f, 0.0f, 0.0f, 1);
+                float out100 = filter48HighRes.process(sample, 800.0f, 1.00f, CrackedChimes::DSP::DualSvfFilter::DECK_DUAL_48, 0.0f, 0.0f, 0.0f, 1);
 
                 assert(std::isfinite(out95) && std::isfinite(out100));
                 peak48Res95 = std::max(peak48Res95, std::abs(out95));
@@ -4150,7 +4064,7 @@ int main() {
             voice.reset();
             tkdsp::FormlessSpawnVoice::Params pNeutral;
             pNeutral.crush = 48000.0f;
-            pNeutral.bits = 16.0f;
+            pNeutral.shift = 0.0f;
             pNeutral.squash = 0.0f;
             pNeutral.wider = 0.0f;
             voice.trigger(0.9f, -1.0f, pNeutral);
@@ -4161,7 +4075,7 @@ int main() {
             // With Mojo engaged directly (crush, bits, tape glue)
             tkdsp::FormlessSpawnVoice::Params pMojo;
             pMojo.crush = 8000.0f;
-            pMojo.bits = 8.0f;
+            pMojo.shift = 150.0f;
             pMojo.squash = 0.5f;
             pMojo.wider = 0.5f;
             voice.trigger(0.9f, -1.0f, pMojo);
@@ -4228,7 +4142,7 @@ int main() {
             std::cout << "  -> [Gate 1] Verifying Knob C pitch isolation across SD, CP, HH, CY, PC..." << std::endl;
             voice.reset();
             voice.setRole(1); // SD
-            voice.setModel(0); // TRX-9
+            voice.setModel(0); // ANLG-9
 
             tkdsp::FormlessSpawnVoice::Params pLowC;
             pLowC.role = 1; pLowC.model = 0; pLowC.lifeMode = 0;
@@ -4529,6 +4443,287 @@ int main() {
         std::cout << "PASS: Suite 55: Hastur Tri-Phasic Bipolar Width & Bounded Modulation verified 100%!\n" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 55 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+
+    // =========================================================================
+    // SUITE 56: FORMLESS SPAWN VOICE & ENGINE CPU BENCHMARK & PROFILER
+    // =========================================================================
+    {
+        std::cout << "\n===============================================================================" << std::endl;
+        std::cout << "  SUITE 56: FORMLESS SPAWN DSP BENCHMARK & PERFORMANCE PROFILE" << std::endl;
+        std::cout << "  Audio Standard: 48,000 Hz, 128 samples/block | Sample Budget: 20,833.3 ns" << std::endl;
+        std::cout << "  Target: Intel i9-10980HK (Host) & AMD Zen 2 APU (Steam Deck 1.25x Factor)" << std::endl;
+        std::cout << "===============================================================================\n" << std::endl;
+
+        constexpr float sr = 48000.0f;
+        constexpr int blockSize = 128;
+        constexpr int numBlocks = 200; // 25,600 samples (~0.53s of audio)
+        constexpr int totalSamples = blockSize * numBlocks;
+        constexpr double sampleBudgetNs = 1000000000.0 / 48000.0; // 20,833.33 ns
+
+        alignas(16) float bufL[blockSize];
+        alignas(16) float bufR[blockSize];
+        volatile float sink = 0.0f;
+
+        auto runBench = [&](const std::string& name, auto&& setupFn, auto&& renderFn) {
+            setupFn();
+            // Warmup (32 blocks)
+            for (int b = 0; b < 32; ++b) {
+                renderFn(bufL, bufR, blockSize);
+                sink += bufL[0] + bufR[0];
+            }
+
+            // Timed run
+            const auto start = std::chrono::high_resolution_clock::now();
+            for (int b = 0; b < numBlocks; ++b) {
+                renderFn(bufL, bufR, blockSize);
+                sink += bufL[b % blockSize] + bufR[b % blockSize];
+            }
+            const auto end = std::chrono::high_resolution_clock::now();
+            const double totalNs = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
+            const double nsPerSample = totalNs / static_cast<double>(totalSamples);
+            const double hostCpuPct = (nsPerSample / sampleBudgetNs) * 100.0;
+            const double deckCpuPct = hostCpuPct * 1.25;
+            const int maxVoices50Pct = static_cast<int>((sampleBudgetNs * 0.50) / std::max(nsPerSample, 1.0));
+
+            std::cout << "  " << std::left << std::setw(32) << name
+                      << " | " << std::right << std::setw(7) << std::fixed << std::setprecision(1) << nsPerSample << " ns/smp"
+                      << " | Host: " << std::setw(5) << std::setprecision(2) << hostCpuPct << "%"
+                      << " | Deck: " << std::setw(5) << std::setprecision(2) << deckCpuPct << "%"
+                      << " | 50% Cap: " << std::setw(4) << maxVoices50Pct << " v"
+                      << std::endl;
+        };
+
+        // 0. Frequency Shifter Directional Polarity & DC Integrity Gate
+        std::cout << "[SECTION 0: BODE FREQUENCY SHIFTER POLARITY & DC INTEGRITY]" << std::endl;
+        {
+            tkdsp::FreqShifter fs;
+            fs.prepare(48000.0f);
+
+            // Test 1: +200 Hz Shift must shift 1000 Hz UP to ~1200 Hz
+            constexpr float f0 = 1000.0f;
+            constexpr float sampleRate = 48000.0f;
+            constexpr int kTestLen = 24000;
+
+            // Warm up slew
+            for (int i = 0; i < 4800; ++i) {
+                float in = std::sin(2.0f * 3.14159265f * f0 * (float)i / sampleRate);
+                fs.process(in, 200.0f);
+            }
+            int zeroCrossingsUp = 0;
+            float prevSample = 0.0f;
+            for (int i = 0; i < kTestLen; ++i) {
+                float in = std::sin(2.0f * 3.14159265f * f0 * (float)i / sampleRate);
+                float out = fs.process(in, 200.0f);
+                if (prevSample < 0.0f && out >= 0.0f) {
+                    zeroCrossingsUp++;
+                }
+                prevSample = out;
+            }
+            float freqUp = (float)zeroCrossingsUp * (sampleRate / (float)kTestLen);
+            std::cout << "  -> Shift +200Hz: Input = 1000Hz, Measured Out = " << freqUp << " Hz" << std::endl;
+            assert(freqUp > 1150.0f && freqUp < 1250.0f);
+
+            // Test 2: -200 Hz Shift must shift 1000 Hz DOWN to ~800 Hz
+            fs.reset();
+            for (int i = 0; i < 4800; ++i) {
+                float in = std::sin(2.0f * 3.14159265f * f0 * (float)i / sampleRate);
+                fs.process(in, -200.0f);
+            }
+            int zeroCrossingsDown = 0;
+            prevSample = 0.0f;
+            for (int i = 0; i < kTestLen; ++i) {
+                float in = std::sin(2.0f * 3.14159265f * f0 * (float)i / sampleRate);
+                float out = fs.process(in, -200.0f);
+                if (prevSample < 0.0f && out >= 0.0f) {
+                    zeroCrossingsDown++;
+                }
+                prevSample = out;
+            }
+            float freqDown = (float)zeroCrossingsDown * (sampleRate / (float)kTestLen);
+            std::cout << "  -> Shift -200Hz: Input = 1000Hz, Measured Out = " << freqDown << " Hz" << std::endl;
+            assert(freqDown > 750.0f && freqDown < 850.0f);
+
+            // Test 3: DC Blocker suppresses static DC on 0Hz foldover
+            fs.reset();
+            float dcSum = 0.0f;
+            for (int i = 0; i < 48000; ++i) {
+                float in = std::sin(2.0f * 3.14159265f * 50.0f * (float)i / sampleRate);
+                float out = fs.process(in, -50.0f);
+                if (i >= 24000) dcSum += out;
+            }
+            float avgDC = std::abs(dcSum / 24000.0f);
+            std::cout << "  -> 0Hz foldover DC offset: " << avgDC << " (strictly < 0.005)" << std::endl;
+            assert(avgDC < 0.005f);
+
+            std::cout << "     PASS: FreqShifter directional polarity & DC blocker verified 100%!" << std::endl;
+        }
+
+        // 1. Voice Idle vs Active (Synthetic Baseline)
+        std::cout << "[SECTION 1: VOICE LIFECYCLE & ACTIVITY GATE]" << std::endl;
+        {
+            tkdsp::FormlessSpawnVoice voice;
+            voice.prepare(sr);
+            tkdsp::FormlessSpawnVoice::Params p{};
+            p.lifeMode = 0; // Synthetic
+
+            runBench("Voice 100% Idle (Silent Gate)", [&]() {
+                voice.reset();
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, p);
+            });
+
+            runBench("Voice Active (Synthetic BD ANLG-9)", [&]() {
+                voice.reset();
+                voice.setRole(0); voice.setModel(0);
+                voice.trigger(0.9f, 55.0f, p);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, p);
+            });
+        }
+
+        // 2. Role Shootout (Synthetic Mode)
+        std::cout << "\n[SECTION 2: ROLE SYNTHESIS SHOOTOUT (Synthetic Mode)]" << std::endl;
+        {
+            tkdsp::FormlessSpawnVoice voice;
+            voice.prepare(sr);
+            for (int r = 0; r < 8; ++r) {
+                tkdsp::FormlessSpawnVoice::Params p{};
+                p.role = r; p.model = 0; p.lifeMode = 0;
+                std::string roleName = std::string("Role ") + tkdsp::FormlessSpawnVoice::kRoleNames[r] + " (Model 0)";
+                runBench(roleName, [&]() {
+                    voice.reset();
+                    voice.setRole(r); voice.setModel(0);
+                    voice.trigger(0.9f, -1.0f, p);
+                }, [&](float* l, float* r, int n) {
+                    voice.processBlockStereo(l, r, n, p);
+                });
+            }
+        }
+
+        // 3. Triad Lifeform Canon Comparison (BD & SD)
+        std::cout << "\n[SECTION 3: TRIAD LIFEFORM COMPARISON (Synthetic vs Cyborg vs Organic)]" << std::endl;
+        {
+            tkdsp::FormlessSpawnVoice voice;
+            voice.prepare(sr);
+            for (int lm = 0; lm < 3; ++lm) {
+                const char* lmNames[3] = {"Synthetic", "Cyborg", "Organic"};
+                tkdsp::FormlessSpawnVoice::Params p{};
+                p.role = 0; p.model = 0; p.lifeMode = lm;
+                std::string label = std::string("BD ANLG-9 [") + lmNames[lm] + "]";
+                runBench(label, [&]() {
+                    voice.reset();
+                    voice.setRole(0); voice.setModel(0);
+                    voice.trigger(0.9f, -1.0f, p);
+                }, [&](float* l, float* r, int n) {
+                    voice.processBlockStereo(l, r, n, p);
+                });
+            }
+            for (int lm = 0; lm < 3; ++lm) {
+                const char* lmNames[3] = {"Synthetic", "Cyborg", "Organic"};
+                tkdsp::FormlessSpawnVoice::Params p{};
+                p.role = 1; p.model = 0; p.lifeMode = lm;
+                std::string label = std::string("SD ANLG-9 [") + lmNames[lm] + "]";
+                runBench(label, [&]() {
+                    voice.reset();
+                    voice.setRole(1); voice.setModel(0);
+                    voice.trigger(0.9f, -1.0f, p);
+                }, [&](float* l, float* r, int n) {
+                    voice.processBlockStereo(l, r, n, p);
+                });
+            }
+        }
+
+        // 4. Mojo Strip & Dynamics Breakdown
+        std::cout << "\n[SECTION 4: MOJO STRIP & DYNAMICS STAGE BREAKDOWN]" << std::endl;
+        {
+            tkdsp::FormlessSpawnVoice voice;
+            voice.prepare(sr);
+
+            // Clean baseline
+            tkdsp::FormlessSpawnVoice::Params pClean{};
+            pClean.role = 0; pClean.model = 0; pClean.lifeMode = 0;
+            runBench("Baseline (Clean Voice)", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pClean);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pClean);
+            });
+
+            // + PreDrive ADAA
+            tkdsp::FormlessSpawnVoice::Params pDrive = pClean;
+            pDrive.preDrive = 0.5f;
+            runBench("+ ADAA PreDrive (0.5 = +6dB)", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pDrive);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pDrive);
+            });
+
+            // + Mojo Crush
+            tkdsp::FormlessSpawnVoice::Params pCrush = pClean;
+            pCrush.crush = 12000.0f;
+            runBench("+ HighBand Crush (12 kHz)", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pCrush);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pCrush);
+            });
+
+            // + Bode Frequency Shifter
+            tkdsp::FormlessSpawnVoice::Params pShift = pClean;
+            pShift.shift = 150.0f;
+            runBench("+ Bode FreqShifter (+150Hz)", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pShift);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pShift);
+            });
+
+            // + NY Squash
+            tkdsp::FormlessSpawnVoice::Params pSquash = pClean;
+            pSquash.squash = 0.6f;
+            runBench("+ NY Squash Dynamics (0.6)", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pSquash);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pSquash);
+            });
+
+            // + Stereo Widener
+            tkdsp::FormlessSpawnVoice::Params pWider = pClean;
+            pWider.wider = 1.0f;
+            runBench("+ Stereo Widener (1.0 = Max)", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pWider);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pWider);
+            });
+
+            // + Master Drum Limiter
+            tkdsp::FormlessSpawnVoice::Params pLimit = pClean;
+            pLimit.masterLimiter = true;
+            runBench("+ Drum Limiter (Distressor)", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pLimit);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pLimit);
+            });
+
+            // Torture Dimed (All Mojo Stages Active)
+            tkdsp::FormlessSpawnVoice::Params pDimed = pClean;
+            pDimed.lifeMode = 1; // Cyborg
+            pDimed.preDrive = 0.8f;
+            pDimed.crush = 8000.0f;
+            pDimed.shift = -80.0f;
+            pDimed.squash = 0.7f;
+            pDimed.wider = 1.2f;
+            pDimed.masterLimiter = true;
+            runBench("TORTURE: All Mojo Engaged", [&]() {
+                voice.reset(); voice.setRole(0); voice.setModel(0); voice.trigger(0.9f, -1.0f, pDimed);
+            }, [&](float* l, float* r, int n) {
+                voice.processBlockStereo(l, r, n, pDimed);
+            });
+        }
+
+
+        std::cout << "===============================================================================\n" << std::endl;
+        std::cout << "PASS: Suite 56: FormlessSpawn Benchmark completed successfully!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 56 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
+

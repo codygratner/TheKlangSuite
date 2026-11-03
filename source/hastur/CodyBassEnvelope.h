@@ -13,7 +13,7 @@ namespace CrackedChimes::DSP {
  * SSoT: Decoupled Snap-Body-Morph Architecture
  * - Snap: 0.1ms .. 25ms independent transient micro-stage. Never alters decay time.
  * - Decay: 20ms .. 8.0s logarithmic body duration (supports DAW tempo sync).
- * - Curvature: -1.0 (Acid Blip: alpha=6) .. 0.0 (Moog Pluck: alpha=2) .. +1.0 (808 Sub-Shelf: alpha=0.66).
+ * - Curvature: -1.0 (Acid Blip: alpha=6) .. 0.0 (Exponential Pluck: alpha=2) .. +1.0 (Parabolic Sub-Shelf: alpha=0.66).
  * - Sustain: 0.0 = One-Shot (808 Kick Mode), > 0.0 = Gated Synth Bass.
  * - Pitch Dive: Integrated transient pitch drop for kicks (0 .. +48 st).
  * - Velocity Matrix: Dynamic Snap compression, Dive scaling, and Amp headroom.
@@ -95,7 +95,7 @@ public:
      * @brief Process one sample of the SubStator Bass Dynamics Engine.
      * @param snapSec Transient duration [0.0001s, 0.025s].
      * @param decaySec Master body duration [0.020s, 8.0s].
-     * @param curvature Morph geometry [-1.0, +1.0] (Blip <-> Moog <-> 808).
+     * @param curvature Morph geometry [-1.0, +1.0] (Blip <-> Exponential <-> Sub-Shelf).
      * @param sustainLevel Gated plateau [0.0, 1.0] (0.0 = One-Shot Kick Mode).
      * @param releaseSec Key-off duration [0.005s, 3.0s].
      * @param pitchDiveSemi Instant pitch drop depth [0.0, 48.0 semitones].
@@ -190,8 +190,8 @@ public:
 
                     // Continuous Curvature Transfer Function: alpha = 2.0 * 3.0^(-curvature)
                     // -1.0 -> alpha = 6.0  (Acid Blip: drops 90% in first 30% time)
-                    //  0.0 -> alpha = 2.0  (Moog Pluck: classic analog 1-pole RC capacitor)
-                    // +1.0 -> alpha = 0.66 (Parabolic 808 Sub-Shelf: holds >50% power past halfway mark)
+                    //  0.0 -> alpha = 2.0  (Exponential Pluck: classic analog 1-pole RC capacitor)
+                    // +1.0 -> alpha = 0.66 (Parabolic Sub-Shelf: holds >50% power past halfway mark)
                     const float c = std::clamp(curvature, -1.0f, 1.0f);
                     const float alpha = 2.0f * TbdAudio::FastMath::fastPow2(-c * 1.5849625f);
                     const float normDec = (u > 1e-5f)

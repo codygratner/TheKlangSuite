@@ -8,7 +8,7 @@
 namespace CrackedChimes::DSP {
 
 /**
- * @brief Vortex Multi-Stage Filter & Timbre Modulation Engine (Reimagined Roland Alpha Juno)
+ * @brief Vortex Multi-Stage Filter & Timbre Modulation Engine (Multi-Stage Metamorphic Envelope Engine)
  * 
  * SSoT: 5+2 Macro Model with Emancipated Directional Inversions
  * - Attack & Snap: Rise duration and initial transient strike.
@@ -16,7 +16,7 @@ namespace CrackedChimes::DSP {
  * - Aftershock (0% .. 100%): Secondary mid-note detonation (L2 up to 150% for screaming filter overdrive).
  * - Decay: Master deterministic time budget (T2 + T3) with DAW tempo-sync.
  * - Sustain & Release: Holding level and key-off tail duration with capacitor pickup.
- * - KeyRateTrack & Buchla 281 Looping: High-register scaling and cyclic LFO mode.
+ * - KeyRateTrack & Function Generator Looping: High-register scaling and cyclic LFO mode.
  * - Soft Saturation Output Guard: Prevents Nyquist blowup during extreme aftershock boosts.
  */
 class VortexEnvelope {
@@ -170,7 +170,7 @@ public:
                 if (stagePhase_ >= 1.0) {
                     val_ = L3;
                     if (loopMode != LoopMode::OFF) {
-                        // Buchla 281 function-generator loop
+                        // Function generator cyclic loop
                         stage_ = Stage::ATTACK;
                         stagePhase_ = 0.0;
                         attackStartVal_ = val_;

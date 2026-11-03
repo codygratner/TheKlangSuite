@@ -1,6 +1,6 @@
 plugin: hastur
-name: Hastur Dual-IR3R05 Synthesizer
-version: 1.0.3
+name: Hastur Metamorphic Bass Synthesizer
+version: 1.0.4
 manufacturer: CrackedChimes
 
 parameters:
@@ -139,7 +139,7 @@ parameters:
     default: 0.0
 
   # ==============================================================================
-  # BAY 3: DUAL IR3R05 VCF (15 parameters)
+  # BAY 3: DUAL SVF VCF (15 parameters)
   # ==============================================================================
   - id: cutoff
     name: Cutoff
@@ -531,7 +531,7 @@ parameters:
     default: 0.0
 
   - id: alpha_chorus
-    name: Alpha Chorus
+    name: Analog Chorus
     category: master
     type: float
     effect: timbre

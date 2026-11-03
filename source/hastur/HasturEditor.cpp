@@ -58,7 +58,7 @@ juce::Path createWaveformPath(int idx, juce::Rectangle<float> r, bool isLfo) {
         return p;
     }
 
-    // 14 Authentic Roland Alpha Juno DCO Waves
+    // 14 Divided Logic DCO Waves
     switch (idx) {
         case 0: // Pulse 1: 50% Square
             p.startNewSubPath(x, y + 3.0f);
@@ -988,7 +988,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     });
 
     setupButtonBar(dcoTopoButtons, dcoTopoLabel, "dco_chopper_topo", "CHOP", HasturColours::kDco);
-    // 5 Full Octaves of Pitch Strangle (1.0x to 32.0x) - Inspired by Korg Electribe EA-1
+    // 5 Full Octaves of Pitch Strangle (1.0x to 32.0x)
     setupRotaryKnob(osc1MultKnob, "osc1_mult", "STRANGLE", HasturColours::kDco);
     osc1MultKnob.slider.textFromValueFunction = [](double val) {
         return juce::String::formatted("%.1fx", val);
@@ -1116,7 +1116,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
 
     // =========================================================================
-    // BAY 2: STEM MIXER (Functional Color: Roland Gold)
+    // BAY 2: STEM MIXER (Functional Color: Amber Gold)
     // =========================================================================
     setupMixerSlider(osc1LevelSlider, "osc1_level", "CORE", HasturColours::kDco);
     setupMixerSlider(subLevelSlider, "osc2_level", "SUB", HasturColours::kSub);
@@ -1188,7 +1188,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 // PWM LFO controls migrated to Bay 1 Morph Engine Pod
 
     // =========================================================================
-    // BAY 3: DUAL IR3R05 VCF (Functional Color: Crimson Coral)
+    // BAY 3: DUAL SVF VCF (Functional Color: Crimson Coral)
     // =========================================================================
     // SOTA Top Acid Pentad (5 Linear 72px Hero Knobs: CUTOFF, RES, ENV AMT, DECAY, ACCENT)
     bindInspector({&filterDeckGrid}, "filter_deck", HasturColours::kVcf);
@@ -1467,7 +1467,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     ampTimeKnob.slider.updateText();
 
     // =========================================================================
-    // BAY 6: MASTER OUTPUT (Functional Color: Roland Gold)
+    // BAY 6: MASTER OUTPUT (Functional Color: Amber Gold)
     // =========================================================================
     setupRotaryKnob(glideTimeKnob, "glide_time", "GLIDE", HasturColours::kOutput);
     glideTimeKnob.slider.textFromValueFunction = [formatTime](double val) {
@@ -1572,7 +1572,7 @@ void HasturAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
     g.setColour(getAccentColour());
     g.fillRect(8, 40, kBaseWidth - 16, 2);
 
-    // Solid Section Header Badges (TAL-Pha SOTA - WCAG AAA/AA)
+    // Solid Section Header Badges (WCAG AAA/AA)
     auto drawBay = [&](int x, int y, int w, int h, const juce::String& title, juce::Colour badgeCol) {
         auto bounds = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y),
                                              static_cast<float>(w), static_cast<float>(h));
@@ -1698,11 +1698,11 @@ void HasturAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
     // Pod 2: Sub-Stator Pod (Row 1 Left & Mid: Sub Chew, Sub Spit)
     drawSubtlePod(309, 604, 172, 96);
 
-    // Pod 3: Dual IR3R05 VCF Pod (Row 2: Filter Twist, Stab, Orbit)
+    // Pod 3: Dual SVF VCF Pod (Row 2: Filter Twist, Stab, Orbit)
     drawSubtlePod(309, 706, 265, 98);
 
     // =========================================================================
-    // BAY 3: DUAL IR3R05 VCF (x: 592, y: 44, w: 554, h: 410)
+    // BAY 3: DUAL SVF VCF (x: 592, y: 44, w: 554, h: 410)
     // =========================================================================
     drawBay(592, 44, 554, 410, "VCF", HasturColours::kVcf);
 
@@ -1919,7 +1919,7 @@ void HasturAudioProcessorEditor::layoutControls() {
     }
 
     // =========================================================================
-    // BAY 3: DUAL IR3R05 VCF (x: 592, y: 44, w: 554, h: 410)
+    // BAY 3: DUAL SVF VCF (x: 592, y: 44, w: 554, h: 410)
     // =========================================================================
     // --- ROW 1: THE MASTER VCF FILTER PENTAD (Centerline Y = 136.0) ---
     // ONE BIG KNOB (80px): Cutoff

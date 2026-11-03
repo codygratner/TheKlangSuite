@@ -343,50 +343,6 @@ target_link_libraries(FormlessSpawn PRIVATE
     juce::juce_recommended_warning_flags
 )
 
-# --- 6d. The Crucible Workbench Plugin Target (Real-Time DSP Testbed) ---
-juce_add_plugin(CrucibleWorkbench
-    COMPANY_NAME "The Cult of Klang"
-    IS_SYNTH TRUE
-    NEEDS_MIDI_INPUT TRUE
-    NEEDS_MIDI_OUTPUT FALSE
-    IS_MIDI_EFFECT FALSE
-    
-    PLUGIN_MANUFACTURER_CODE Tcok
-    PLUGIN_CODE Tcwb
-    BUNDLE_ID com.thecultofklang.crucibleworkbench
-    
-    FORMATS ${TKF_FORMATS}
-    PRODUCT_NAME "Crucible Workbench"
-    VST3_CAN_REPLACE_VST2 FALSE
-)
-
-target_sources(CrucibleWorkbench PRIVATE
-    source/FastMath.h
-    source/CrucibleWorkbenchProcessor.h
-    source/CrucibleWorkbenchProcessor.cpp
-    source/CrucibleWorkbenchEditor.h
-    source/CrucibleWorkbenchEditor.cpp
-)
-
-target_include_directories(CrucibleWorkbench PRIVATE source)
-
-target_compile_definitions(CrucibleWorkbench PUBLIC
-    JUCE_VST3_CAN_REPLACE_VST2=0
-    JUCE_WEB_BROWSER=0
-    JUCE_USE_CURL=0
-)
-
-set_target_properties(CrucibleWorkbench PROPERTIES VST3_AUTO_MANIFEST FALSE)
-
-target_link_libraries(CrucibleWorkbench PRIVATE
-    TheKlangDSP
-    ${TKF_JUCE_MODULES}
-    TkfAssets
-    PUBLIC
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags
-)
 
 # --- 6e. Hastur Plugin Target (The Bass Synth in Yellow - Testbed Edition) ---
 juce_add_plugin(Hastur
@@ -399,7 +355,7 @@ juce_add_plugin(Hastur
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Hst1
     BUNDLE_ID com.crackedchimes.hastur
-    VERSION "1.0.3"
+    VERSION "1.0.4"
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "Hastur"
@@ -410,12 +366,12 @@ target_sources(Hastur PRIVATE
     source/FastMath.h
     source/hastur/VactrolLPG.h
     source/hastur/LadderFilter.h
-    source/hastur/AlphaJunoDCO.h
+    source/hastur/HasturDCO.h
     source/hastur/AlphaOscillator.h
     source/hastur/AllPassFilter4.h
-    source/hastur/DoepferA196PLL.h
+    source/hastur/AnalogPLL.h
     source/hastur/ModMatrix.h
-    source/hastur/AlphaJunoFilter.h
+    source/hastur/DualSvfFilter.h
     source/hastur/PllSubOsc.h
     source/hastur/SampleHoldNoise.h
     source/hastur/CodyBassEnvelope.h

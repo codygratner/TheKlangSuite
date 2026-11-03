@@ -8,7 +8,7 @@
 namespace CrackedChimes::DSP {
 
 /**
- * @brief Doepfer A-196 Style Phase-Locked Loop Sub-Oscillator with Instability & XOR Phase Comparator.
+ * @brief Analog Phase-Locked Loop (PLL) Sub-Oscillator with Instability & XOR Phase Comparator.
  */
 class PllSubOsc {
 public:
@@ -39,8 +39,8 @@ public:
      * @param freq2Hz Osc 2 fundamental frequency (Hz, with offset).
      * @param source Tracking source (Osc 1, Osc 1&2 XOR, Osc 2).
      * @param octaveOffset Octave shift (+1, 0, -1, -2).
-     * @param shapeIdx One of the 14 Alpha Juno shapes (0..13).
-     * @param instability Doepfer A-196 tracking lag, phase jitter, and cycle-slip depth [0.0, 1.0].
+     * @param shapeIdx One of the 14 divided logic shapes (0..13).
+     * @param instability PLL tracking lag, phase jitter, and cycle-slip depth [0.0, 1.0].
      * @param pwm Pulse width modulation [-1.0, 1.0].
      * @return Generated sub-oscillator sample.
      */

@@ -367,16 +367,15 @@ parameters:
     unit: Hz
     default: 48000.0
 
-  - id: bits
-    name: Mojo Bit Reduction
-    short: BITS
+  - id: shift
+    name: Frequency Shifter
+    short: SHIFT
     category: mojo
     type: float
-    effect: timbre
-    range: [2.0, 16.0]
-    step: 1.0
-    unit: bits
-    default: 16.0
+    effect: pitch
+    range: [-1000.0, 1000.0]
+    unit: Hz
+    default: 0.0
 
   - id: squash
     name: Bipolar Squash

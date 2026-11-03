@@ -7,7 +7,7 @@
 namespace CrackedChimes::DSP {
 
 /**
- * @brief Complete Eurorack Doepfer A-196 Phase-Locked Loop (PLL) Subsystem with 8x Multisampling.
+ * @brief Complete Analog Phase-Locked Loop (PLL) Subsystem with 8x Multisampling.
  * 
  * Features:
  * - 8x Sub-Sample Oversampling for ultra-low jitter, sub-sample edge detection, and audio-rate PLL FM.
@@ -18,7 +18,10 @@ namespace CrackedChimes::DSP {
  * - Multi-source Lock input (PLL VCO, Osc 3, XOR 3/V).
  * - Slew (Loop Filter cutoff 0.5 Hz to 2000 Hz).
  */
-class DoepferA196PLL {
+class AnalogPLL {
+public:
+    using DoepferA196PLL = AnalogPLL;
+
 public:
     static constexpr int OVERSAMPLE_FACTOR = 8;
 
@@ -279,4 +282,5 @@ private:
     float pc3State_ = 0.0f;
 };
 
+using DoepferA196PLL = AnalogPLL;
 } // namespace CrackedChimes::DSP

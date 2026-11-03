@@ -79,7 +79,7 @@ private:
     // masterSpreadParam_ excised
     std::atomic<float>* oscSlopParam_{nullptr};
 
-    // Bay 3: Dual IR3R05 VCF
+    // Bay 3: Dual SVF VCF
     std::atomic<float>* cutoffParam_{nullptr};
     std::atomic<float>* resonanceParam_{nullptr};
     std::atomic<float>* filterEnvDecayParam_{nullptr};

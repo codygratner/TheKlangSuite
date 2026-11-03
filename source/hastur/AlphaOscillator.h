@@ -15,13 +15,13 @@ namespace CrackedChimes::DSP {
 
 
 /**
- * @brief Single Alpha Juno DCO 2.0 Core: 12 MHz Master Crystal Clock Timebase,
- * 16-Wave Multi-Octave Hoover Matrix & SuperSaw Swarm Engine ("Bees in a Box"),
+ * @brief Single Logic DCO 2.0 Core: 12 MHz Master Crystal Clock Timebase,
+ * 16-Wave Multi-Octave Hoover Matrix & Unison Saw Swarm Engine ("Bees in a Box"),
  * Pre/Post-Chopper 4-Pole APF Routing, Dedicated -1 Oct Sub & Front-Panel Stem Mixer.
  * 
- * SSoT: Roland MB87123 6-Voice DCO IC (12 MHz Master Crystal Clock),
+ * SSoT: Divided Logic DCO (12 MHz Master Crystal Clock),
  * Intel 8253 timer / CD4024 ripple counter R-2R staircase,
- * Noise Engineering Infinifold, and Sequential Pro-One sync.
+ * Noise Engineering Infinifold, and Hard oscillator sync.
  */
 class AlphaOscillator {
 public:
@@ -195,7 +195,7 @@ public:
         const float p = TbdAudio::Oscillators::PolyBLEP::wrapPhase(phase);
         const float m = std::clamp(morph, 0.0f, 1.0f);
         switch (family) {
-            case 0: { // SAW: Authentic Roland Alpha Juno 2x Chopper Saw PWM (Dual-Pulse Spike at 2x rate)
+            case 0: { // SAW: Divided 2x Chopper Saw PWM (Dual-Pulse Spike at 2x rate)
                 const float rawSaw = (lifeMode == 1)
                     ? CyborgBandLimiter::processSaw(p, dt, 1)
                     : TbdAudio::Oscillators::PolyBLEP::saw(p, dt);
@@ -250,7 +250,7 @@ public:
                 }
                 return y;
             }
-            case 3: // EXOTIC: System 100M Warm Round Sine -> Casio CZ Resonant Sine
+            case 3: // EXOTIC: Warm Saturated Sine -> Phase Distortion Resonant Sine
             default: {
                 constexpr float kTwoPi = 6.28318530717958647692f;
                 const float s = std::sin(p * kTwoPi);
@@ -758,7 +758,7 @@ public:
         subOut_ = subDcFilter_.process(apfSub.audioOut);
         burbleMod_ = apfSub.burbleMod;
 
-        // 5. SuperSaw-85 Swarm Engine ("Bees in a Box")
+        // 5. Unison Saw Swarm Engine ("Bees in a Box")
         swarmLfoPhase_ += static_cast<float>((0.6 + static_cast<double>(swarmDepth_) * 6.5) * invSr_);
         if (swarmLfoPhase_ >= 1.0f) swarmLfoPhase_ -= 1.0f;
 
@@ -827,7 +827,7 @@ public:
         const float rawCore = generateFamilyWave(waveFamily_, slavePhase_, effDts, morph_, pwm, lifeMode_);
 
         // Bipolar BITE Attenuverter (-1.0 to +1.0):
-        // Center 0.00 = 100% clean Roland feedforward passthrough (Maw Open)
+        // Center 0.00 = 100% clean feedforward passthrough (Maw Open)
         // Calibrated: Knob extremes [-1.0, +1.0] scale to [-0.70, +0.70] internal feedback (the sweet spot!)
         // Clockwise > 0.00: Upper Bite / The Fang (In-phase, subharmonic period-doubling f0/2 lock)
         // Counter-Clockwise < 0.00: Lower Bite / The Underbite (Anti-phase, 3rd-harmonic clarinet chew)

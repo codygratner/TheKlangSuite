@@ -218,10 +218,9 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
             juce::ParameterID{formless_spawnParameters::Ids::crush, 1}, formless_spawnParameters::Names::crush, nr, 48000.0000f));
     }
 
-    // bits [mojo]
+    // shift [mojo]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::bits, 1}, formless_spawnParameters::Names::bits,
-        juce::NormalisableRange<float>{2.0000f, 16.0000f, 1.0000f, 1.0000f}, 16.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::shift, 1}, formless_spawnParameters::Names::shift, -1000.0000f, 1000.0000f, 0.0000f));
 
     // squash [dynamics]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

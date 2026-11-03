@@ -2,7 +2,7 @@
 
 #include "AlphaOscillator.h"
 #include "SampleHoldNoise.h"
-#include "AlphaJunoFilter.h"
+#include "DualSvfFilter.h"
 #include "AllPassFilter4.h"
 #include "CodyBassEnvelope.h"
 #include "VortexEnvelope.h"
@@ -25,11 +25,11 @@ namespace FastMath = TbdAudio::FastMath;
  * @brief Cracked Chimes Hastur Monosynth Voice Engine (Workhorse Edition).
  * 
  * SOTA Single-Folio Acid & Bass Synthesizer:
- * - Dual Alpha Juno DCO Cores (Osc 1 Core & Osc 2 Sync/Offset) with 18 PolyBLEP shapes.
+ * - Dual Divided Logic DCO Cores (Osc 1 Core & Osc 2 Sync/Offset) with 18 PolyBLEP shapes.
  * - Dual Pitch-Tracking 4-Pole All-Pass Filters with S-Curve Octave Dispersion (-1..0..+2 Oct) & Tanh saturation.
  * - Formant Sync Modes between Osc 1 and Osc 2 (Hard, Soft, Metal, APF Hard, APF Soft, APF Metal).
  * - Dedicated 5-Lane Mixer Block (Osc 1 Raw, Osc 1 APF, Osc 2 Raw, Osc 2 APF, Noise S&H) with Tanh Summing Saturation.
- * - Extended Roland IR3R05 VCF with 4 Pole Topologies (1/3, 2/2, 3/1, 4-Loop) and Mid-Filter APF+Tanh.
+ * - Extended Dual-SVF VCF with 4 Pole Topologies (1/3, 2/2, 3/1, 4-Loop) and Mid-Filter APF+Tanh.
  * - Dedicated Amp Block with 3 Gate Modes (Envelope, Gate, Drone) and Master Post-Amp Saturation.
  * - Universal Dual-Channel Audio-Rate Cross-Modulation Matrix (Mod A & Mod B).
  * - Cody's Precision Bass Envelope (Staccato 1:99 to 99:1 Boom) and Global Sine/Noise LFOs.
@@ -466,9 +466,9 @@ public:
         const float effWidth      = widthCv_.process(globalWidth, isOrganic);
         const float effMixerDrive = mixerDriveCv_.process(mixerDrive, isOrganic);
 
-        // 2. Evaluate Vortex Filter Envelope -> IR3R05 VCF Cutoff
+        // 2. Evaluate Vortex Filter Envelope -> Dual-SVF VCF Cutoff
         const auto loopMode = static_cast<VortexEnvelope::LoopMode>(std::clamp(filterLoop, 0, 2));
-        // TB-303 Acid Accent Detection & Modulation
+        // Acid Accent Detection & Modulation
         float accentFactor = 0.0f;
         if (velocity_ >= (100.0f / 127.0f)) {
             accentFactor = std::clamp((velocity_ - (100.0f / 127.0f)) / (27.0f / 127.0f), 0.0f, 1.0f);
@@ -685,7 +685,7 @@ public:
             pre2xL[0], pre2xL[1], pre2xR[0], pre2xR[1]
         );
 
-        // Stage 3: Run Dual IR3R05 VCF, Master LPG, and Post-Amp Saturation at 2x rate (2 ticks)
+        // Stage 3: Run Dual-SVF VCF, Master LPG, and Post-Amp Saturation at 2x rate (2 ticks)
         const float coreNyquist2x = static_cast<float>(hostSampleRate_ * 0.96);
         float sub2xL[2] = {0.0f, 0.0f};
         float sub2xR[2] = {0.0f, 0.0f};
@@ -926,7 +926,7 @@ public:
         const ModMatrix::ChannelConfig& modA,
         const ModMatrix::ChannelConfig& modB,
         float cutoffHz, float resonance,
-        AlphaJunoFilter::PoleMode poleMode,
+        DualSvfFilter::PoleMode poleMode,
         float midApfCutoff, bool midApfEnabled,
         float midDrive,
         float hpCutoffHz, float envDepth, float keyTrack, float modDepth,
@@ -974,7 +974,7 @@ public:
     [[nodiscard]] float processSample(
         // Card 1: Osc 1 (Pitch Offset, Mult Self-Sync & Pitch-Tracking APF)
         int osc1Wave, float osc1PitchOffsetSemi, float osc1Mult, float osc1ApfPitchTrackOct, float osc1Drive,
-        // In-between Card: Metalizer (Elektron A4 Post-APF Metal Sync)
+        // In-between Card: Metalizer (Audio-Rate Post-APF Metal Sync)
         float metalizerAmount,
         // Card 2: Osc 2 (Pitch Offset, Mult Self-Sync & Pitch-Tracking APF)
         int osc2Wave, float osc2PitchOffsetSemi, float osc2Mult, float osc2ApfPitchTrackOct, float osc2Drive,
@@ -992,9 +992,9 @@ public:
         // Card 6: Universal Mod A & Mod B Matrix
         const ModMatrix::ChannelConfig& modA,
         const ModMatrix::ChannelConfig& modB,
-        // Card 7: Extended Roland IR3R05 VCF Block
+        // Card 7: Extended Dual-SVF VCF Block
         float cutoffHz, float resonance,
-        AlphaJunoFilter::PoleMode poleMode,
+        DualSvfFilter::PoleMode poleMode,
         float midApfCutoff, bool midApfEnabled,
         float midDrive,
         float hpCutoffHz, float envDepth, float keyTrack, float modDepth,
@@ -1091,7 +1091,7 @@ public:
         const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * std::pow(2.0f, osc1ApfPitchTrackOct), 10.0f, nyquist);
         const float effOsc2ApfCutoff = std::clamp(std::abs(f2) * std::pow(2.0f, osc2ApfPitchTrackOct), 10.0f, nyquist);
 
-        // 10. Metalizer: Elektron A4 Mutual Metal Sync (1 -> 2 AND 2 -> 1)
+        // 10. Metalizer: Mutual Audio-Rate Metal Sync (1 -> 2 AND 2 -> 1)
         // Listens to post-MULT + post-APF/Tanh saturated output both ways!
         // Linear mapping to Bresenham positive-edge counter across full 0.0 -> 1.0 range
         const float effMetalizer = std::clamp(metalizerAmount, 0.0f, 1.0f);
@@ -1151,7 +1151,7 @@ public:
             10.0f,
             22000.0f);
 
-        // 16. Extended Roland IR3R05 VCF with Mid-Filter APF and 4 Pole Modes
+        // 16. Extended Dual-SVF VCF with Mid-Filter APF and 4 Pole Modes
         const float effMidApfCutoff = std::clamp(midApfCutoff, 20.0f, nyquist);
 
         float filtered = filter_.process(
@@ -1245,8 +1245,8 @@ private:
     AlphaOscillator osc1_;
     AlphaOscillator osc2_;
     SampleHoldNoise noiseGen_;
-    AlphaJunoFilter filter_;
-    AlphaJunoFilter filterR_;
+    DualSvfFilter filter_;
+    DualSvfFilter filterR_;
     VactrolLPG masterLpgR_;
     OnePoleHP masterSideHp_;
     VortexEnvelope vortexEnv_;
@@ -1259,7 +1259,7 @@ private:
     std::array<NoteEntry, 16> noteStack_{};
     int noteStackSize_ = 0;
 
-    // Sequential Pro-2 Tuned Feedback
+    // Nonlinear Tuned Resonant Feedback
     static constexpr size_t kFbDelaySize = 4096;
     std::array<float, kFbDelaySize> fbDelayBuffer_{};
     size_t fbDelayWriteIdx_ = 0;

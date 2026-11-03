@@ -262,7 +262,7 @@ static constexpr float kRoleMinAmpDecaySec[8] = {
 };
 
 static constexpr float kRoleMaxAmpDecaySec[8] = {
-    3.500f, // BD: up to 3.5s (808 boom)
+    3.500f, // BD: up to 3.5s (deep sub boom)
     2.000f, // SD: up to 2.0s (gated reverb shell)
     3.000f, // TM: up to 3.0s (floor tom)
     1.500f, // CP: up to 1.5s (ambient room tail)
@@ -370,31 +370,49 @@ static constexpr float kRoleLpgCutoffFloor[8] = {
  * SSoT: Julian Parker / Stefan Bilbao continuous piecewise antiderivative evaluation.
  */
 struct ADAA {
-    // 1st-Order Antiderivative Anti-Aliasing for tanh(g * x)
-    [[nodiscard]] static inline float tanh(float x, float& x1, float g = 1.0f) noexcept {
+    // 1st-Order Antiderivative Anti-Aliasing for tanh(g * x) with cached state (Win #1)
+    [[nodiscard]] static inline float tanh(float x, float& x1, float& f1, float g = 1.0f) noexcept {
         const float diff = x - x1;
         float y = 0.0f;
+        auto F = [g](float v) noexcept {
+            const float gv = std::abs(g * v);
+            if (gv > 16.0f) return (gv - 0.69314718056f) / g;
+            return (gv + std::log1p(std::exp(-2.0f * gv)) - 0.69314718056f) / g;
+        };
+        const float fx = F(x);
         if (std::abs(diff) > 1e-5f) {
-            auto F = [g](float v) noexcept {
-                const float gv = std::abs(g * v);
-                return (gv + std::log1p(std::exp(-2.0f * gv)) - 0.69314718056f) / g;
-            };
-            y = (F(x) - F(x1)) / diff;
+            y = (fx - f1) / diff;
         } else {
-            y = std::tanh(g * 0.5f * (x + x1));
+            y = FastMath::fastTanh(g * 0.5f * (x + x1));
         }
         x1 = x;
+        f1 = fx;
         return y;
     }
 
+    [[nodiscard]] static inline float tanh(float x, float& x1, float g = 1.0f) noexcept {
+        auto F = [g](float v) noexcept {
+            const float gv = std::abs(g * v);
+            if (gv > 16.0f) return (gv - 0.69314718056f) / g;
+            return (gv + std::log1p(std::exp(-2.0f * gv)) - 0.69314718056f) / g;
+        };
+        float f1 = F(x1);
+        return tanh(x, x1, f1, g);
+    }
+
     // 1st-Order Antiderivative Anti-Aliasing for overdriven diode: w = 2.2*x + 0.45*x*|x| -> tanh(w)
+    [[nodiscard]] static inline float diode(float x, float& x1, float& f1) noexcept {
+        const float w = 2.2f * x + 0.45f * x * std::abs(x);
+        return tanh(w, x1, f1, 1.0f);
+    }
+
     [[nodiscard]] static inline float diode(float x, float& x1) noexcept {
         const float w = 2.2f * x + 0.45f * x * std::abs(x);
         return tanh(w, x1, 1.0f);
     }
 
-    // Piecewise ADAA1 for foldback: fold(v) = (v > 0.85) ? 0.85 - (v-0.85)*0.7 : ((v < -0.85) ? -0.85 - (v+0.85)*0.7 : v)
-    [[nodiscard]] static inline float fold(float x, float& x1, float thresh = 0.85f, float scale = 0.70f) noexcept {
+    // Piecewise ADAA1 for foldback with cached state (Win #1)
+    [[nodiscard]] static inline float fold(float x, float& x1, float& f1, float thresh = 0.85f, float scale = 0.70f) noexcept {
         const float diff = x - x1;
         auto F = [thresh, scale](float v) noexcept {
             const float av = std::abs(v);
@@ -405,11 +423,11 @@ struct ADAA {
             const float intFold = (1.0f + scale) * thresh * excess - 0.5f * scale * excess * excess;
             return 0.5f * thresh * thresh + intFold;
         };
+        const float sgnX = (x >= 0.0f) ? 1.0f : -1.0f;
+        const float sgnFx = sgnX * F(x);
         float y = 0.0f;
         if (std::abs(diff) > 1e-5f) {
-            const float sgnX = (x >= 0.0f) ? 1.0f : -1.0f;
-            const float sgnX1 = (x1 >= 0.0f) ? 1.0f : -1.0f;
-            y = (sgnX * F(x) - sgnX1 * F(x1)) / diff;
+            y = (sgnFx - f1) / diff;
         } else {
             const float mid = 0.5f * (x + x1);
             if (mid > thresh) y = thresh - (mid - thresh) * scale;
@@ -417,7 +435,21 @@ struct ADAA {
             else y = mid;
         }
         x1 = x;
+        f1 = sgnFx;
         return y;
+    }
+
+    [[nodiscard]] static inline float fold(float x, float& x1, float thresh = 0.85f, float scale = 0.70f) noexcept {
+        auto F = [thresh, scale](float v) noexcept {
+            const float av = std::abs(v);
+            if (av <= thresh) return 0.5f * v * v;
+            const float excess = av - thresh;
+            const float intFold = (1.0f + scale) * thresh * excess - 0.5f * scale * excess * excess;
+            return 0.5f * thresh * thresh + intFold;
+        };
+        const float sgnX1 = (x1 >= 0.0f) ? 1.0f : -1.0f;
+        float f1 = sgnX1 * F(x1);
+        return fold(x, x1, f1, thresh, scale);
     }
 };
 

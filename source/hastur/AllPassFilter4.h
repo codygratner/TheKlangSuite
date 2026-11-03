@@ -7,7 +7,7 @@ namespace CrackedChimes::DSP {
 
 /**
  * @brief 4th-Order All-Pass Filter (APF) with Cutoff, Tanh Saturation, and Noise Engineering Infinifold.
- * SSoT: Roland IR3R05 phase dispersion + Noise Engineering wavefolding + 6-permutation topology.
+ * SSoT: Analog phase dispersion + Noise Engineering wavefolding + 6-permutation topology.
  */
 class AllPassFilter4 {
 public:

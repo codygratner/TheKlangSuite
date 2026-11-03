@@ -142,7 +142,7 @@ namespace Names {
     constexpr auto amp_velocity = "Amp Velocity";
     constexpr auto osc_slop = "Osc Slop";
     constexpr auto post_amp_drive = "Post Amp Drive";
-    constexpr auto alpha_chorus = "Alpha Chorus";
+    constexpr auto alpha_chorus = "Analog Chorus";
     constexpr auto global_width = "Stereo Width";
     constexpr auto output_level = "Master Volume";
     constexpr auto life_mode = "Life Mode";

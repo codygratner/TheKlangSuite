@@ -100,7 +100,7 @@ struct WaveformPreviewEngine {
             // A. Family Wave Generation
             float rawCore = 0.0f;
             switch (family) {
-                case 0: { // SAW: Authentic Roland Alpha Juno 2x Chopper Saw PWM (Dual-Pulse Spikes)
+                case 0: { // SAW: Divided 2x Chopper Saw PWM (Dual-Pulse Spikes)
                     const float rawSaw = 1.0f - 2.0f * p;
                     if (morph > 0.001f) {
                         const float w = std::clamp(morph * 0.45f, 0.0f, 0.45f);
@@ -256,7 +256,7 @@ struct WaveformPreviewEngine {
 
             const float phase = subPhase;
 
-            // A. Authentic Alpha Juno Sub Pulse Train
+            // A. Divided Logic Sub Pulse Train
             float rawSub = -1.0f;
             if (phase < 0.5f) {
                 if (subTrain == 0) {

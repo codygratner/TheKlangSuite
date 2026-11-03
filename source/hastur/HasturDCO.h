@@ -7,10 +7,13 @@
 namespace CrackedChimes::DSP {
 
 /**
- * @brief Dual Alpha Juno DCOs with Dual-Vortex Cross-Modulation & Metal Sync.
- * SSoT: Roland Alpha Juno (JU-1/2/MKS-50), Elektron Analog Four SNC, Korg EA-1.
+ * @brief Dual Logic DCOs with Dual-Vortex Cross-Modulation & Metal Sync.
+ * SSoT: Divided Logic DCO, Dual-Directional Soft Sync, and Pitch Strangle.
  */
-class AlphaJunoDCO {
+class HasturDCO {
+public:
+    using AlphaJunoDCO = HasturDCO;
+
 public:
     enum class SyncMode : uint8_t {
         OFF = 0,
@@ -142,7 +145,7 @@ public:
                     break;
 
                 case SyncMode::METAL_MUTUAL:
-                    // Elektron A4 style mutual sync: wrap in either nudges the other
+                    // Bi-directional mutual sync: wrap in either nudges the other
                     if (wrap1) {
                         phase2_ = phase2_ * (1.0f - hardSync);
                     }
@@ -216,4 +219,5 @@ private:
     float lastF2_ = 130.81f;
 };
 
+using AlphaJunoDCO = HasturDCO;
 } // namespace CrackedChimes::DSP

@@ -821,6 +821,92 @@ public:
 // ==============================================================================
 // Formless Spawn AudioProcessorEditor
 // ==============================================================================
+// ==============================================================================
+// LimiterTactileButton: Tactile Limit Button with 3-State Hardware Jewel LED Pip
+// ==============================================================================
+class LimiterTactileButton : public juce::Button {
+public:
+    LimiterTactileButton() : juce::Button("LIMIT") {
+        setClickingTogglesState(true);
+    }
+
+    void updateTelemetry(float gr) noexcept {
+        if (std::abs(gr - currentGr_) > 0.004f) {
+            currentGr_ = gr;
+            repaint();
+        }
+    }
+
+    void paintButton(juce::Graphics& g, bool /*shouldDrawButtonAsHighlighted*/, bool /*shouldDrawButtonAsDown*/) override {
+        auto bounds = getLocalBounds().toFloat();
+        const bool on = getToggleState();
+
+        // 1. Tactile Bezel / Chassis
+        const auto bgCol = on ? juce::Colour(0xFF21262D) : juce::Colour(0xFF161B22);
+        g.setColour(bgCol);
+        g.fillRoundedRectangle(bounds, 3.0f);
+
+        // Border outline
+        const auto borderCol = on ? juce::Colour(0xFF484F58) : juce::Colour(0xFF30363D);
+        g.setColour(borderCol);
+        g.drawRoundedRectangle(bounds.reduced(0.5f), 3.0f, 1.0f);
+
+        // 2. Hardware Jewel LED Pip (5px circular lens at x=7, centered vertically)
+        const float ledX = 7.0f;
+        const float ledY = bounds.getCentreY() - 2.5f;
+        const juce::Rectangle<float> ledRect(ledX, ledY, 5.0f, 5.0f);
+
+        // Outer cathode ring
+        g.setColour(juce::Colour(0xFF0D1117));
+        g.fillEllipse(ledRect.expanded(1.0f));
+
+        if (!on) {
+            // Unlit dark cathode
+            g.setColour(juce::Colour(0xFF21262D));
+            g.fillEllipse(ledRect);
+        } else {
+            // Active Reactive Emitter:
+            // Green: GR == 0 dB (gr > 0.9441)
+            // Yellow: 0.5 dB <= GR < 4 dB (0.6310 <= gr <= 0.9441)
+            // Red: GR >= 4 dB (gr < 0.6310)
+            juce::Colour ledCol;
+            juce::Colour glowCol;
+            if (currentGr_ > 0.9441f) {
+                ledCol = juce::Colour(0xFF39D353); // Bright Green
+                glowCol = juce::Colour(0x662EA043);
+            } else if (currentGr_ >= 0.6310f) {
+                ledCol = juce::Colour(0xFFF3CA3E); // Amber / Yellow
+                glowCol = juce::Colour(0x66D29922);
+            } else {
+                ledCol = juce::Colour(0xFFFF3B30); // Blistering Red
+                glowCol = juce::Colour(0x88DA3633);
+            }
+
+            // Radial glow halo
+            g.setColour(glowCol);
+            g.fillEllipse(ledRect.expanded(2.5f));
+
+            // Core bright emitter lens
+            g.setColour(ledCol);
+            g.fillEllipse(ledRect);
+
+            // Specular micro-pip
+            g.setColour(juce::Colours::white.withAlpha(0.6f));
+            g.fillEllipse(juce::Rectangle<float>(ledX + 1.0f, ledY + 1.0f, 1.5f, 1.5f));
+        }
+
+        // 3. Typography Label "LIMIT"
+        const auto textCol = on ? juce::Colours::white : juce::Colour(0xFF8B949E);
+        g.setColour(textCol);
+        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        const juce::Rectangle<float> labelArea(15.0f, 0.0f, bounds.getWidth() - 17.0f, bounds.getHeight());
+        g.drawText("LIMIT", labelArea, juce::Justification::centred, false);
+    }
+
+private:
+    float currentGr_{1.0f};
+};
+
 class FormlessSpawnAudioProcessorEditor : public juce::AudioProcessorEditor,
                                           public juce::Timer {
 public:
@@ -898,10 +984,11 @@ private:
     KnobItem            filterDecayKnob_;
     KnobItem            preDriveKnob_;
     KnobItem            crushKnob_;
-    KnobItem            bitsKnob_;
+    KnobItem            shiftKnob_;
     KnobItem            squashKnob_;
     KnobItem            widerKnob_;
-    juce::TextButton    limiterButton_;
+    LimiterTactileButton limiterButton_;
+    float               guiLimiterGr_{1.0f};
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> limiterAttachment_;
     KnobItem            volumeKnob_;
     KnobItem            ampDecayKnob_;

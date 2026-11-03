@@ -7,6 +7,27 @@
 - [**v0.3.1 (Editor Quality & Data Schema)**](#session-2026-10-07-0554-9241988e-1227-466e-a0a5-446d61a69d77) — Schema Separation, Tree UX, Callouts. (257/257 GUI Tests, 100% DSP)
 - [**v0.3.0 (Architecture)**](#session-2026-10-06-1304-8fe6b97b-f027-4cc9-8cc2-d5f67ccfb0c9) — Headless GUI Tests, .pkg Installer. (160 Parity Matches)
 
+
+### Session 2026-11-03: Hastur v1.0.4 & Formless Spawn IP Scrub + Crucible Workbench Retirement
+- **Hastur v1.0.4 Release**: Completely filed serial numbers off trademarks and proprietary brand names across the codebase:
+  - Renamed AlphaJunoFilter -> DualSvfFilter (DualSvfFilter.h).
+  - Renamed AlphaJunoDCO -> HasturDCO (HasturDCO.h).
+  - Renamed DoepferA196PLL -> AnalogPLL (AnalogPLL.h).
+  - Contract & UI blurbs updated: Hastur Metamorphic Bass Synthesizer, Analog Chorus, cascaded dual-SVF filter cutoff.
+  - Purged dead archive code in source/hastur/archive/.
+- **Formless Spawn Model Matrix Scrub**:
+  - Replaced Roland / Korg hi-hat & cymbal model names with circuit-accurate non-infringing identifiers: SCHMITT (CMOS Schmitt Inverter sum) and DIODE (passive diode bridge ring modulator).
+  - Replaced TRX-8 and TRX-9 with ANLG-8 and ANLG-9.
+  - Replaced EFM-* with FM-*.
+  - Replaced SIMM-T with HEXCESS, CLP-TRP with CP-BRST, COWB-8 with ANLG-CB, and CZ-ZAP with PD-ZAP.
+  - IP-washed all internal comments across drum DSP headers.
+- **Crucible Workbench Retirement**:
+  - Completely purged obsolete CrucibleWorkbench plugin target and 5 dead source files (CrucibleWorkbenchProcessor.*, CrucibleWorkbenchEditor.*, FormlessSpawnEngine.h), eliminating >4,200 lines of dead code.
+- **Verification & Deployment**:
+  - All 56 DSP verification suites in dsp_tests passed 100%.
+  - UI Gate verified 0 bounding-box collisions on both hastur and ormless_spawn.
+  - Built Release VST3s for both plugins and deployed to C:\Program Files\Common Files\VST3\.
+
 ## Section A: Executive Institutional Memory & Lessons Learned
 
 > **Note:** On 2026-10-08, the Agentic Architecture Audit and Deep Docs pass was completed. See [2026-10-08_Agentic_Architecture_Deep_Research.md](https://github.com/codygratner/TheKlangResearch/blob/main/agentic/2026-10-08_Agentic_Architecture_Deep_Research.md) for details.
@@ -781,3 +802,11 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
   - `FormlessSpawnVoice.h`: Implemented Sub-Bass Defense pre-VCA foldback anchor (35% diode / 65% fold), role-weighted CZ phase-wrap, anchored thump, and linear LPG conductance for metallic roles.
   - Verification: `dsp_tests` 100% PASS (Suite 54 Triad RMS balance & idle silence verified), `FormlessSpawn_Preview` PASS, `FormlessSpawn_VST3` PASS, deployed to `C:\Program Files\Common Files\VST3\Formless Spawn.vst3`.
   - Active Plan Target: `FORMLESS_SPAWN` · Status: `DEPLOYED`
+
+### Session: 2026-11-03 07:51 (manual_run)
+- **Chat Role:** DSP Researcher
+- **Primary Objectives:** Auditioned APF -> Bode Frequency Shifter -> Inverted APF topology in WebAudio Sensory Lab
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 0266be6 fix(formless): calibrate Cyborg Sub-Bass Defense and Organic LPG metallic air defense, d73c803 fix(dsp, hastur): extract FormlessSpawnParams for Clang/GCC CI compatibility and synchronize Cutoff LFO/Burble telemetry arcs
+  - Branch: `0.4.0-dev` (0266be6)
+  - Active Plan Target: `FACTORY_FLOOR` · Status: `UNKNOWN`

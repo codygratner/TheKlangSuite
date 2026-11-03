@@ -168,18 +168,12 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     const auto purpleCol = juce::Colour(0xFFBC8CFF);
     setupKnob(preDriveKnob_,     pre_drive,       "DRIVE",     "%",  "pre-filter analog saturation and drive",     purpleCol);
     setupKnob(crushKnob_,        crush,           "CRUSH",     "Hz", "mojo sample rate decimation frequency",      purpleCol);
-    setupKnob(bitsKnob_,         bits,            "BITS",      "bit","mojo word-length bit reduction",             purpleCol);
+    setupKnob(shiftKnob_,        shift,           "SHIFT",     "Hz", "bode frequency shifter (+/-1000Hz)",         purpleCol, true);
     setupKnob(squashKnob_,       squash,          "SQUASH",    "%",  "bipolar dynamics: thin/snappy vs thick/huge",purpleCol, true);
     setupKnob(widerKnob_,        wider,           "WIDER",     "%",  "mono-compatible stereo spatial widener",     purpleCol);
 
     // Row 3: Master Output VCA & Distressor Limiter (Blistering Red 0xFFFF3B30)
     const auto redCol = juce::Colour(0xFFFF3B30);
-    limiterButton_.setButtonText("LIMIT");
-    limiterButton_.setClickingTogglesState(true);
-    limiterButton_.setColour(juce::TextButton::buttonOnColourId, redCol);
-    limiterButton_.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF161B22));
-    limiterButton_.setColour(juce::TextButton::textColourOnId, juce::Colours::white);
-    limiterButton_.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF8B949E));
     limiterAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         apvts, master_limiter, limiterButton_);
     addAndMakeVisible(limiterButton_);
@@ -481,7 +475,7 @@ void FormlessSpawnAudioProcessorEditor::resized() {
         // Row 1 (Mojo Strip): DRIVE, CRUSH, BITS, SQUASH, and WIDER knob
         place(preDriveKnob_,     x0 + pitch / 2 + pitch * 0, labelY1, pitch, 48, sliderY1);
         place(crushKnob_,        x0 + pitch / 2 + pitch * 1, labelY1, pitch, 48, sliderY1);
-        place(bitsKnob_,         x0 + pitch / 2 + pitch * 2, labelY1, pitch, 48, sliderY1);
+        place(shiftKnob_,        x0 + pitch / 2 + pitch * 2, labelY1, pitch, 48, sliderY1);
         place(squashKnob_,       x0 + pitch / 2 + pitch * 3, labelY1, pitch, 48, sliderY1);
         place(widerKnob_,        x0 + pitch / 2 + pitch * 4, labelY1, pitch, 48, sliderY1);
 
@@ -507,6 +501,15 @@ void FormlessSpawnAudioProcessorEditor::timerCallback() {
             s.repaint();
         }
     };
+
+    // Update Limiter 3-State Telemetry LED (with GUI optical decay)
+    const float rawGr = processor_.getLimiterGR();
+    if (rawGr < guiLimiterGr_) {
+        guiLimiterGr_ = rawGr; // Instant attack on transient
+    } else {
+        guiLimiterGr_ += (1.0f - guiLimiterGr_) * 0.22f; // ~90ms optical release
+    }
+    limiterButton_.updateTelemetry(guiLimiterGr_);
 
     const auto tele = processor_.getTelemetrySnapshot();
 

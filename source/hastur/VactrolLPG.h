@@ -108,14 +108,14 @@ private:
  * @brief Vactrol Low Pass Gate & Lifeform VCA Engine (VTL5C3/VTL5C4 optocoupler model + Tetsuo Hybrid).
  * 
  * Paradigms:
- * - SYNTHETIC (Clean & Precise): 1985 Roland Transconductance (OTA) VCA with 4th-order algebraic soft headroom.
- * - CYBORG (Gross Abomination - Tetsuo): Korg MS-10 Overdriven OTA -> Leaky Passive Vactrol LPG (-38.4 dB bleed floor).
+ * - SYNTHETIC (Clean & Precise): Precision Transconductance (OTA) VCA with 4th-order algebraic soft headroom.
+ * - CYBORG (Gross Abomination - Tetsuo): Overdriven Discrete OTA -> Leaky Passive Vactrol LPG (-38.4 dB bleed floor).
  * - ORGANIC (Sexy & Droppy): Active Tube-Based Resonant Low-Pass Gate (Q = 1.25, 12AX7 triode saturation, 4 Hz DC decoupling).
  */
 class VactrolLPG {
 public:
     enum class BackendMode : uint8_t {
-        VCA     = 0, // Clean 1985 Roland OTA VCA with algebraic headroom (SYNTHETIC)
+        VCA     = 0, // Clean Precision OTA VCA with algebraic headroom (SYNTHETIC)
         LPG     = 1, // Resonant Active Tube Low Pass Gate (ORGANIC)
         CYBORG  = 2  // Overdriven MS-10 OTA + Leaky Passive Vactrol LPG (CYBORG)
     };
@@ -189,7 +189,7 @@ public:
         const float target = std::clamp(controlLevel, 0.0f, 1.0f);
 
         // =====================================================================
-        // 1. SYNTHETIC: Clean 1985 Roland Transconductance (OTA) VCA
+        // 1. SYNTHETIC: Clean Precision Transconductance (OTA) VCA
         // Linear control response + 4th-order algebraic soft headroom saturation
         // =====================================================================
         if (mode_ == BackendMode::VCA) {
@@ -199,7 +199,7 @@ public:
         }
 
         // =====================================================================
-        // 2. CYBORG: Korg MS-10 Overdriven OTA -> Leaky Passive Vactrol LPG
+        // 2. CYBORG: Overdriven Discrete OTA -> Leaky Passive Vactrol LPG
         // - Defective dark optical bleed floor: 0.012 (-38.4 dB)
         // - Sluggish fatigued phosphor optical slew (55ms / 920ms)
         // - MS-10 OTA differential pair saturation: tanh(1.75*x + 0.22*x^2)
@@ -333,7 +333,7 @@ private:
 /**
  * @brief Universal Control Slew Engine across 3 Lifeforms.
  * - Synthetic: 4ms symmetric linear slew.
- * - Organic: Buchla 292 / VTL5C3 dual-exponential optical CdS lag on negative movement.
+ * - Organic: Dual-exponential optical vactrol CdS lag on negative movement.
  * - Cyborg: 6-bit DAC ladder quantization (64 levels) with 1-pole smoothing.
  */
 class UniversalControlSlew {

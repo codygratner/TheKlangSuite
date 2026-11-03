@@ -40,7 +40,7 @@ HasturAudioProcessor::HasturAudioProcessor()
     // master_spread excised
     oscSlopParam_           = apvts_.getRawParameterValue("osc_slop");
 
-    // Bay 3: Dual IR3R05 VCF
+    // Bay 3: Dual SVF VCF
     cutoffParam_            = apvts_.getRawParameterValue("cutoff");
     resonanceParam_         = apvts_.getRawParameterValue("resonance");
     filterEnvDecayParam_    = apvts_.getRawParameterValue("filter_env_decay");

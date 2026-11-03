@@ -6,7 +6,7 @@
 namespace CrackedChimes::DSP {
 
 /**
- * @brief 4-Pole (24 dB/oct) Non-Linear Resonant Ladder Filter (Moog / CEM3320 style).
+ * @brief 4-Pole (24 dB/oct) Non-Linear Resonant Ladder Filter (Classic 4-pole analog ladder style).
  *        Features self-oscillation at high resonance and warm saturating feedback.
  */
 class LadderFilter {

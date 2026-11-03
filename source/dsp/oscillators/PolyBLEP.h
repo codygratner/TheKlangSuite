@@ -74,12 +74,12 @@ namespace PolyBLEP {
 }
 
 /**
- * Evaluate the 14 authentic Roland Alpha Juno (MB87123) DCO single-cycle waveforms [0..13]:
+ * Evaluate the 14 divided logic DCO single-cycle waveforms [0..13]:
  * - Group 1 (Pulse): 0: Pulse 1 (50% Square), 1: Pulse 2 (25% Narrow), 2: Pulse 3 (PWM Pulse)
  * - Group 2 (Saw):   3: Saw 1 (Pure Saw), 4: Saw 2 (Chopped 2x), 5: Saw 3 (PWM Saw), 6: Saw 4 (Chopped 4x), 7: Saw 5 (Hoover Saw)
  * - Group 3 (Sub):   8: Sub 1 (Square /2), 9: Sub 2 (Pulse /2), 10: Sub 3 (Sub Chopped 2x), 11: Sub 4 (Sub Chopped 4x), 12: Sub 5 (Square /4), 13: Sub 6 (Pulse /4)
  * 
- * SSoT: Roland Alpha Juno-1/2/MKS-50 Service Manuals, 12 MHz divided DCO XOR logic, and Cody's Vitaltable specs.
+ * SSoT: 12 MHz divided DCO XOR logic, and Cody's Vitaltable specs.
  */
 [[nodiscard]] inline float alphaWave14(int shapeIdx, float phase, float dt, float pwm) noexcept {
     const int idx = std::clamp(shapeIdx, 0, 13);
@@ -116,7 +116,7 @@ namespace PolyBLEP {
             return v;
         }
 
-        case 5: { // Saw 3: PWM Saw (Authentic Roland Alpha Juno / TAL-Pha)
+        case 5: { // Saw 3: PWM Saw (Divided Dual-Pulse PWM)
             const float s_uni = p;
             const float p2 = wrapPhase(p * 2.0f);
             const float u = (p2 < pw) ? s_uni : 0.0f;

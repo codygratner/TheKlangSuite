@@ -44,7 +44,7 @@ namespace Ids {
     constexpr auto filter_type = "filter_type";
     constexpr auto pre_drive = "pre_drive";
     constexpr auto crush = "crush";
-    constexpr auto bits = "bits";
+    constexpr auto shift = "shift";
     constexpr auto squash = "squash";
     constexpr auto wider = "wider";
     constexpr auto master_limiter = "master_limiter";
@@ -88,7 +88,7 @@ namespace Names {
     constexpr auto filter_type = "Filter Type";
     constexpr auto pre_drive = "Pre-Filter Drive";
     constexpr auto crush = "Mojo Sample Crush";
-    constexpr auto bits = "Mojo Bit Reduction";
+    constexpr auto shift = "Frequency Shifter";
     constexpr auto squash = "Bipolar Squash";
     constexpr auto wider = "Mojo Wider";
     constexpr auto master_limiter = "Master Limiter";

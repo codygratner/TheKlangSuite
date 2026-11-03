@@ -132,8 +132,8 @@ inline constexpr Control kControls[] = {
     { hasturParameters::Ids::mod_b_source,         "AM Source", "modulation source for vca am",    kModBSource },
     { hasturParameters::Ids::mod_b_amount,         "AM Depth",  "bipolar audio rate vca am depth" },
 
-    // 4. Dual Roland IR3R05 VCF & Burble (Bay 3)
-    { hasturParameters::Ids::cutoff,               "Cutoff",    "dual IR3R05 filter cutoff frequency" },
+    // 4. Dual Cascaded SVF VCF & Burble (Bay 3)
+    { hasturParameters::Ids::cutoff,               "Cutoff",    "cascaded dual-SVF filter cutoff frequency" },
     { hasturParameters::Ids::resonance,            "Res",       "filter resonance peak" },
     { hasturParameters::Ids::filter_env_decay,     "Decay",     "filter envelope decay" },
     { hasturParameters::Ids::burble_depth,         "Burble",    "sub to cutoff fm" },

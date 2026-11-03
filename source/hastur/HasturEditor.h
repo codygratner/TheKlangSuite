@@ -20,13 +20,13 @@
 namespace HasturColours {
     static const juce::Colour kDco       = juce::Colour(0xFF00C8F0); // 2000s Movie Poster Blue
     static const juce::Colour kSub       = juce::Colour(0xFFFF7A1A); // 2000s Movie Poster Orange
-    static const juce::Colour kVcf       = juce::Colour(0xFF7DFF3B); // TB-303 Acid Green
+    static const juce::Colour kVcf       = juce::Colour(0xFF7DFF3B); // Acid Green
     static const juce::Colour kMixer     = juce::Colour(0xFFFF3347); // Blistering Red
     static const juce::Colour kOutput    = juce::Colour(0xFFFF3347); // Blistering Red
     static const juce::Colour kVca       = juce::Colour(0xFFFF3347); // Blistering Red
     static const juce::Colour kNoise     = juce::Colour(0xFFB66DFF); // Spectral Purple
     static const juce::Colour kLfo       = juce::Colour(0xFFF2E10F); // Caustic Hastur Yellow
-    static const juce::Colour kTextWhite = juce::Colour(0xFFF0F6FC); // Roland Silkscreen White
+    static const juce::Colour kTextWhite = juce::Colour(0xFFF0F6FC); // Silkscreen White
     static const juce::Colour kChassisBg = juce::Colour(0xFF0D1117); // Carbon Chassis
     static const juce::Colour kBayBg     = juce::Colour(0xFF161B22); // Recessed Bay Deck
 
@@ -305,7 +305,7 @@ public:
                 auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
                 
                 if (i < static_cast<int>(glyphProviders_.size()) && glyphProviders_[i] != nullptr) {
-                    // Render Vector Waveform Glyph (TAL-Pha SOTA)
+                    // Render Vector Waveform Glyph (High Contrast)
                     auto glyphBounds = segRect.reduced(segW * 0.18f, bounds.getHeight() * 0.22f);
                     auto glyphPath = glyphProviders_[i](glyphBounds);
                     float strokeW = isActive ? 2.0f : 1.5f;
@@ -1033,7 +1033,7 @@ public:
         Readout d;
         d.name = "HASTUR";
         d.value = "READY";
-        d.blurb = "dual-ir3r05 metamorphic analog bass synthesizer";
+        d.blurb = "cascaded dual-svf metamorphic analog bass synthesizer";
         d.accent = juce::Colour(0xFF7DFF3B);
         d.isDefault = true;
         setReadout(d);
@@ -1638,7 +1638,7 @@ private:
     juce::Label filterLfoDestLabel;
     SegmentedButtonBar filterLfoDestButtons{{"CUTOFF", "ORBIT"}};
 
-    // VCF Controls (Dual Roland IR3R05 Extended VCF)
+    // VCF Controls (Dual Cascaded SVF Extended VCF)
     Grid2x2Bar filterDeckGrid{"DECK", {"DUO-48", "PRE-24", "POST-24"}};
     SliderItem cutoffKnob;     // Hero 72
     SliderItem resKnob;        // Hero 72
