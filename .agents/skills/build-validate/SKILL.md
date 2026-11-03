@@ -93,11 +93,60 @@ Present a clear, high-level summary:
 - **Host Validation (`pluginval`):** ✅ In-process validation passed
 ```
 
-### 7. 2-Strike Factory Floor Escalation Protocol
-If compilation or unit test execution fails during an automated phase:
-1. Klang Industries executing on **Tier 2 (Flash High)** is allowed up to **2 iterative attempts** to resolve the compiler or test failure.
-2. If unresolved after **2 attempts**:
-   - **Hard Pause:** Do NOT make further speculative edits.
-   - **Issue Tier Upgrade Advisory:** Present an advisory recommending escalation to **Tier 1: Gemini 3.1 Pro (Thinking: High)**.
-   - **Pause for Confirmation:** Stop and wait for user confirmation before proceeding.
+### 7. Autonomous Multi-Model Escalation Ladder (SOCEP Hyperdrive v3.1)
+When compilation, unit tests, or UI gates fail:
+
+1. **Composite Runner Execution**:
+   Execute the single-shot composite check:
+   ```powershell
+   python tools/socep_runner.py check --plugin <plugin> --phase <N> --target <target>
+   ```
+   - **Exit `0` (PASS)**: All checks green. Returns a 1-line receipt `<40` tokens. Advance phase immediately.
+   - **Exit `3` (INFRA)**: Missing build dir, CMake error, or build timeout. **Never escalates to Claude**. Alerts operator with infrastructure defect card.
+   - **Exit `1` (ACTIONABLE)**: Parse the 1-line JSON response.
+     - **Strike 0 (Free In-Process Remedy — UI Gate Only)**:
+       If failure is UI radar collision with opt-in tunables, `ui_gate.py --auto-heal` adjusts pixel bounds in-place without consuming Claude quota.
+     - **Strike 1 (Localized Remediation — Sonnet)**:
+       - Baseline target files are snapshotted to `.agents/scratch/socep/<slug>/p<N>/baseline/`.
+       - Diagnostic packager `tools/strike_pack.py` generates `diag_p<N>_s1.md` (<6KB with unfolded $\pm 15$ lines of source context).
+       - Invoke `claude_ask`:
+         ```python
+         call_mcp_tool(
+             ServerName="claude",
+             ToolName="claude_ask",
+             Arguments={
+                 "model": "sonnet",
+                 "effort": "high",
+                 "fold": False,
+                 "files": [<target_files>, diag_path],
+                 "output_path": ".agents/scratch/socep/patches/p<N>_s1.patch",
+                 "prompt": "Fix root cause and cascading errors. Smallest diff (<=150 lines). Standard unified diff only."
+             }
+         )
+         ```
+       - Apply patch: `python tools/socep_runner.py apply --patch .agents/scratch/socep/patches/p<N>_s1.patch --plugin <plugin> --phase <N>`.
+       - Re-run `python tools/socep_runner.py check ...`.
+     - **Strike 2 (Structural Autopsy with Negative Evidence — Opus)**:
+       - If Strike 1 fails to resolve the issue:
+         - Target files are restored from `.agents/scratch/socep/<slug>/p<N>/baseline/` (`git checkout --` is banned).
+         - Invoke `claude_ask`:
+           ```python
+           call_mcp_tool(
+               ServerName="claude",
+               ToolName="claude_ask",
+               Arguments={
+                   "model": "opus",
+                   "effort": "high",
+                   "fold": False,
+                   "files": [<target_files>, diag_path, ".agents/scratch/socep/patches/p<N>_s1.patch"],
+                   "output_path": ".agents/scratch/socep/patches/p<N>_s2.patch",
+                   "prompt": "Strike 1 failed with attached patch and diagnostic. Apply structural fix from baseline. Smallest diff (<=150 lines). Standard unified diff only."
+               }
+           )
+           ```
+         - Apply patch and re-check.
+     - **Circuit Breaker Halt**:
+       - If unresolved after Strike 2, or if error fingerprint detects A -> B -> A oscillation:
+         - Hard pause. Emit 25-line defect card with root-cause summary, fingerprint history, and patch paths.
+         - Do NOT make further speculative edits. Alert operator.
 

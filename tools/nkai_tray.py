@@ -40,7 +40,7 @@ CANDIDATE_ROOTS = [
     Path(r"c:\_\Vault"),
     Path(r"C:\Dev\TheKlangSuite"),
 ]
-for root in CANDIDATE_ROOTS:
+for root in reversed(CANDIDATE_ROOTS):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -92,6 +92,8 @@ CMD_GEMINI_INFO = 1012
 CMD_CLAUDE_INFO = 1013
 CMD_REFRESH_QUOTA = 1014
 CMD_OPEN_TELEMETRY = 1015
+CMD_CLAUDE_PRO_STATUS = 1016
+CMD_OPEN_CLAUDE_STREAM = 1017
 
 USER32 = ctypes.windll.user32
 
@@ -142,17 +144,35 @@ def parse_quota(q_data: dict) -> dict:
 
 
 def make_dynamic_quadrant_hicon(
-    g5: float, gw: float, online: bool, context_mb: float, state_code: int = 0, size: int = 16
+    g5: float, gw: float, c5: float = 1.0, cw: float = 1.0, online: bool = True, state_code: int = 0, size: int = 16, c_resting: bool = False, c_active: bool = False
 ) -> int:
     """
-    Synthesizes the canonical 4-quadrant taskbar icon in memory:
-    - Top-Left:     5-Hour Allowance (Green >75%, Amber 40-75%, Orange 15-40%, Red <15%)
-    - Top-Right:    Weekly Allowance (Green >75%, Amber 40-75%, Orange 15-40%, Red <15%)
-    - Bottom-Left:  Server Status (:3030 Health — Cyan #06b6d4 online, Red #ef4444 offline)
-    - Bottom-Right: Context Size MB (Green <1.5MB, Amber 1.5-2.5MB, Orange 2.5-3.5MB, Red >=3.5MB)
+    Synthesizes the Centaur Dual-Engine 4-Quadrant HUD in memory:
+    - Top Row (Gemini):      Top-Left 5h Allowance | Top-Right Weekly Allowance
+    - Bottom Row (Claude):    Bottom-Left 5h Allowance | Bottom-Right Weekly Allowance
+    - Center Heartbeat Pip:   Neon Blue (#06b6d4) online | Amber (#eab308) degraded
+    - Disconnect State:       Full Solid Crimson Red (#ef4444) when offline
     """
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
+
+    # Disconnect State: Full Crimson Red Icon Alarm
+    if not online:
+        corner_r = max(2, size // 5)
+        draw.rounded_rectangle(
+            [0, 0, size - 1, size - 1],
+            radius=corner_r,
+            fill=(239, 68, 68, 255),       # Solid Red #ef4444
+            outline=(185, 28, 28, 255),    # Dark Crimson #b91c1c
+            width=1,
+        )
+        # In-memory PNG byte stream conversion
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        png_data = buf.getvalue()
+        return USER32.CreateIconFromResourceEx(
+            png_data, len(png_data), True, 0x00030000, size, size, 0
+        )
 
     # Baseplate with rounded border
     corner_r = max(2, size // 5)
@@ -174,24 +194,6 @@ def make_dynamic_quadrant_hicon(
         else:
             return (239, 68, 68, 255)   # Crimson Red #ef4444
 
-    def context_color(mb: float):
-        if mb < 1.5:
-            return (34, 197, 94, 255)   # Emerald Green #22c55e (< 1.5 MB)
-        elif mb < 2.5:
-            return (234, 179, 8, 255)   # Amber #eab308 (1.5 - 2.5 MB)
-        elif mb < 3.5:
-            return (249, 115, 22, 255)  # Orange #f97316 (2.5 - 3.5 MB)
-        else:
-            return (239, 68, 68, 255)   # Crimson Red #ef4444 (>= 3.5 MB Harvest Due)
-
-    def server_color(is_on: bool, st_code: int):
-        if not is_on:
-            return (239, 68, 68, 255)   # Red: Offline
-        elif st_code == 1:
-            return (234, 179, 8, 255)   # Amber: Attention / degraded
-        else:
-            return (6, 182, 212, 255)   # Neon Cyan #06b6d4: Online & Nominal
-
     pad = max(2, int(size * 0.125))
     gutter = max(2, int(size * 0.125))
     mid = size // 2
@@ -207,14 +209,31 @@ def make_dynamic_quadrant_hicon(
     y1_bot = mid + half_g
     y2_bot = size - 1 - pad
 
-    # Square 1 (Top-Left): 5-Hour Allowance
+    # Top Row: Gemini Engine (Left: 5h, Right: Weekly)
     draw.rectangle([x1_left, y1_top, x2_left, y2_top], fill=quota_color(g5))
-    # Square 2 (Top-Right): Weekly Allowance
     draw.rectangle([x1_right, y1_top, x2_right, y2_top], fill=quota_color(gw))
-    # Square 3 (Bottom-Left): Context Size (Taskbar / AGY alignment)
-    draw.rectangle([x1_left, y1_bot, x2_left, y2_bot], fill=context_color(context_mb))
-    # Square 4 (Bottom-Right): Server Status (Systray corner alignment)
-    draw.rectangle([x1_right, y1_bot, x2_right, y2_bot], fill=server_color(online, state_code))
+
+    # Bottom Row: Claude Pro Engine
+    # Bottom-Left: 5h Allowance (Amber when resting, Electric Cyan pulse when active)
+    if c_resting:
+        draw.rectangle([x1_left, y1_bot, x2_left, y2_bot], fill=(245, 158, 11, 255))  # Amber #f59e0b
+    elif c_active:
+        draw.rectangle([x1_left, y1_bot, x2_left, y2_bot], fill=(6, 182, 212, 255))   # Electric Cyan #06b6d4
+    else:
+        draw.rectangle([x1_left, y1_bot, x2_left, y2_bot], fill=quota_color(c5))
+
+    # Bottom-Right: Weekly Allowance
+    draw.rectangle([x1_right, y1_bot, x2_right, y2_bot], fill=quota_color(cw))
+
+    # Center Heartbeat Pip (Neon Blue Online, Amber Degraded)
+    pip_color = (234, 179, 8, 255) if state_code == 1 else (6, 182, 212, 255)
+    pip_r = max(1, size // 10)
+    draw.ellipse(
+        [mid - pip_r, mid - pip_r, mid + pip_r, mid + pip_r],
+        fill=pip_color,
+        outline=(18, 18, 22, 255),
+        width=1 if size >= 24 else 0
+    )
 
     # In-memory PNG byte stream conversion
     buf = io.BytesIO()
@@ -244,13 +263,18 @@ def get_clipboard_text_win32(hwnd: Optional[int] = None) -> str:
 
     try:
         import subprocess
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
         res = subprocess.run(
             ["powershell", "-NoProfile", "-Command", "Get-Clipboard"],
             capture_output=True,
             text=True,
             encoding="utf-8",
             check=False,
-            timeout=2.0
+            timeout=2.0,
+            startupinfo=startupinfo,
+            creationflags=0x08000000
         )
         return res.stdout.strip()
     except Exception:
@@ -272,8 +296,8 @@ class NkaiTrayApp:
         self.last_lclick_time = 0.0
         self._pending_balloon: Optional[tuple] = None
 
-        # Build initial HICON
-        self.current_hicon = make_dynamic_quadrant_hicon(1.0, 1.0, True, 0.0, 0, size=self.icon_size)
+        # Build initial HICON (Dual-Engine Centaur Quota Grid)
+        self.current_hicon = make_dynamic_quadrant_hicon(1.0, 1.0, 1.0, 1.0, True, 0, size=self.icon_size)
 
         # Register TaskbarCreated message for Explorer crash & sleep recovery
         self.wm_taskbar_created = win32gui.RegisterWindowMessage("TaskbarCreated")
@@ -345,16 +369,18 @@ class NkaiTrayApp:
     def _rebuild_icon(self):
         """Generates a new dynamic 4-quadrant HICON and frees the previous handle with zero GDI leak."""
         is_online = self.latest_health.get("is_online", True)
-        active_mb = float(self.latest_health.get("active_transcript_mb", 0.0))
         state_code = int(self.latest_health.get("state_code", 0))
 
         new_hicon = make_dynamic_quadrant_hicon(
             g5=self.allowances.get("g_5h", 1.0),
             gw=self.allowances.get("g_wk", 1.0),
+            c5=self.allowances.get("c_5h", 1.0),
+            cw=self.allowances.get("c_wk", 1.0),
             online=is_online,
-            context_mb=active_mb,
             state_code=state_code,
             size=self.icon_size,
+            c_resting=self.allowances.get("c_resting", False),
+            c_active=self.allowances.get("c_active", False),
         )
         old_hicon = self.current_hicon
         self.current_hicon = new_hicon
@@ -366,22 +392,25 @@ class NkaiTrayApp:
 
     def _format_tooltip(self, health: dict) -> str:
         """
-        Formats a compact multi-line tooltip under 127 chars matching the 4-quadrant layout:
-        TL: 5h Allowance | TR: Weekly Allowance | BL: Context Size | BR: Server Status
+        Formats a compact multi-line tooltip under 127 chars matching the Centaur layout:
+        Top: Gemini (5h / Wk) | Bot: Claude (5h / Wk) | Center: Server (:3030)
         """
-        active_mb = float(health.get("active_transcript_mb", 0.0))
-        is_heavy = (active_mb >= 3.5) or (health.get("active_heavy_transcripts", 0) > 0)
-        heavy_tag = " ⚠️ [HARVEST DUE]" if is_heavy else ""
-
         g_5h = self.allowances.get("g_5h", 1.0)
         g_wk = self.allowances.get("g_wk", 1.0)
+        c_5h = self.allowances.get("c_5h", 1.0)
+        c_wk = self.allowances.get("c_wk", 1.0)
+        c_resting = self.allowances.get("c_resting", False)
+        c_rest_str = self.allowances.get("c_rest_str", "")
+        c_active = self.allowances.get("c_active", False)
         is_online = health.get("is_online", True)
         status_name = "ONLINE" if is_online else "OFFLINE"
 
+        claude_status = "ACTIVE" if c_active else (f"RESTING ({c_rest_str})" if c_resting else f"{c_5h*100:.0f}%")
+
         lines = [
-            f"N'kai [{status_name} :3030] · Log: {active_mb:.1f} MB{heavy_tag}",
-            f"5h: {g_5h*100:.0f}% · Wk: {g_wk*100:.0f}%",
-            "TL: 5h · TR: Wk · BL: Context · BR: Server"
+            f"N'kai Centaur [{status_name} :3030]",
+            f"Gemini: 5h {g_5h*100:.0f}% · Wk {g_wk*100:.0f}%",
+            f"Claude: 5h {claude_status} · Wk {c_wk*100:.0f}%"
         ]
         return "\n".join(lines)[:127]
 
@@ -405,16 +434,21 @@ class NkaiTrayApp:
                 health = evaluate_system_health()
                 self.latest_health = health
 
-                # Quota allowance probe every 30 seconds
+                # Allowance probe (synced with daemon health or periodic ConnectRPC probe)
                 quota_changed = False
-                if (now - last_quota_check > 30.0) or (last_quota_check == 0.0):
+                new_allowances = health.get("allowances")
+                if new_allowances:
+                    if new_allowances != self.allowances:
+                        self.allowances = new_allowances
+                        quota_changed = True
+                elif (now - last_quota_check > 30.0) or (last_quota_check == 0.0):
                     last_quota_check = now
                     try:
                         from tools import quota
                         q_data = quota.get_quota_summary()
-                        new_allowances = parse_quota(q_data)
-                        if new_allowances != self.allowances:
-                            self.allowances = new_allowances
+                        parsed = parse_quota(q_data)
+                        if parsed != self.allowances:
+                            self.allowances = parsed
                             quota_changed = True
                     except Exception as e:
                         debug_log(f"Quota poll exception: {e}")
@@ -605,21 +639,29 @@ class NkaiTrayApp:
             win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_ROUTE_CLIPBOARD_LOOP, "📌 Route Clipboard ➔ Open Loop")
             win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
 
-                        # Live telemetry status indicator (Disabled/Grayed info row)
+            # Live telemetry status indicator (Disabled/Grayed info rows)
             is_online = self.latest_health.get("is_online", True)
             server_dot = "🔷" if is_online else "🔴"
             active_mb = self.latest_health.get("active_transcript_mb", 0.0)
             ctx_dot = "🟢" if active_mb < 1.5 else ("🟡" if active_mb < 2.5 else ("🟠" if active_mb < 3.5 else "🔴"))
             g_5h = self.allowances.get("g_5h", 1.0)
             g_wk = self.allowances.get("g_wk", 1.0)
+            c_5h = self.allowances.get("c_5h", 1.0)
+            c_wk = self.allowances.get("c_wk", 1.0)
+            c_resting = self.allowances.get("c_resting", False)
+            c_rest_str = self.allowances.get("c_rest_str", "")
+            c_active = self.allowances.get("c_active", False)
+
             g5_dot = "🟢" if g_5h > 0.75 else ("🟡" if g_5h > 0.40 else "🔴")
-            gw_dot = "🟢" if g_wk > 0.75 else ("🟡" if g_wk > 0.40 else "🔴")
+            c_dot = "🔵" if c_active else ("🟠" if c_resting else ("🟢" if c_5h > 0.75 else ("🟡" if c_5h > 0.40 else "🔴")))
+            c_status_str = f"RESTING ({c_rest_str})" if c_resting else ("ACTIVE" if c_active else f"{c_5h*100:.0f}%")
 
             win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_STATUS_INFO, f"{server_dot} Server: {'ONLINE' if is_online else 'OFFLINE'} (Port {DEFAULT_PORT})")
             win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_OPEN_TELEMETRY, f"{ctx_dot} Context Size: {active_mb:.2f} MB / 3.5 MB")
-            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_GEMINI_INFO, f"{g5_dot} 5-Hour Allowance: {g_5h*100:.1f}%")
-            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_CLAUDE_INFO, f"{gw_dot} Weekly Allowance: {g_wk*100:.1f}%")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_GEMINI_INFO, f"{g5_dot} Gemini: 5h {g_5h*100:.0f}% · Wk {g_wk*100:.0f}%")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_CLAUDE_INFO, f"{c_dot} Claude: 5h {c_status_str} · Wk {c_wk*100:.0f}%")
 
+            win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_CLAUDE_STREAM, "👁️ View Claude Stream (latest_live.md)")
             win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_REFRESH_QUOTA, "🔄 Refresh Allowance Now")
             win32gui.AppendMenu(menu, win32con.MF_SEPARATOR, 0, "")
 
@@ -658,6 +700,15 @@ class NkaiTrayApp:
             self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#mail")
         elif cmd == CMD_OPEN_RUNWAY:
             self._open_url(f"http://127.0.0.1:{DEFAULT_PORT}/cockpit.html#agenda")
+        elif cmd == CMD_OPEN_CLAUDE_STREAM:
+            try:
+                live_file = Path(r"c:\_\Vault\.agents\scratch\latest_live.md")
+                if not live_file.exists():
+                    live_file.parent.mkdir(parents=True, exist_ok=True)
+                    live_file.write_text("# Claude Live Stream\nNo active Claude stream currently running.\n", encoding="utf-8")
+                os.startfile(str(live_file))
+            except Exception as e:
+                debug_log(f"Failed to open live stream: {e}")
         elif cmd == CMD_ROUTE_CLIPBOARD_LOOP:
             threading.Thread(target=self._run_async_route_clipboard, args=("open_loops",), daemon=True).start()
         elif cmd == CMD_ROUTE_CLIPBOARD_RUNWAY:
@@ -675,15 +726,23 @@ class NkaiTrayApp:
 
     def _run_async_refresh_quota(self):
         try:
-            from tools import quota
-            q_data = quota.get_quota_summary(force_refresh=True)
-            self.allowances = parse_quota(q_data)
-            health = self.latest_health or evaluate_system_health()
+            from tools.nkai_daemon import get_model_allowances
+            self.allowances = get_model_allowances(force_refresh=True)
+            health = self.latest_health or evaluate_system_health(assume_online=True)
+            self.latest_health = health
             self.current_tooltip = self._format_tooltip(health)
+            self._rebuild_icon()
             win32gui.PostMessage(self.hwnd, WM_STATUS_UPDATE, self.current_state, 0)
+            g_5h = self.allowances.get("g_5h", 1.0)
+            g_wk = self.allowances.get("g_wk", 1.0)
+            c_5h = self.allowances.get("c_5h", 1.0)
+            c_wk = self.allowances.get("c_wk", 1.0)
+            c_resting = self.allowances.get("c_resting", False)
+            c_rest_str = self.allowances.get("c_rest_str", "")
+            c_status = f"RESTING ({c_rest_str})" if c_resting else f"{c_5h*100:.0f}%"
             self._pending_balloon = (
-                "📊 Allowance Refreshed",
-                f"Gemini: {self.allowances['g_wk']*100:.1f}% Wk · {self.allowances['g_5h']*100:.1f}% 5h",
+                "📊 Allowances Refreshed",
+                f"Gemini: 5h {g_5h*100:.0f}% · Wk {g_wk*100:.0f}%\nClaude: 5h {c_status} · Wk {c_wk*100:.0f}%",
             )
             win32gui.PostMessage(self.hwnd, WM_BALLOON_NOTIFY, 0, 0)
         except Exception as e:

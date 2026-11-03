@@ -25,6 +25,9 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
+# Anthropic ToS & Anti-Abuse Compliance: Mark process as unattended daemon
+os.environ["KLANG_UNATTENDED_DAEMON"] = "1"
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 

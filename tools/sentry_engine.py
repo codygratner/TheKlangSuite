@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-tools/sentry_engine.py — AGY SDK Stateless Sentry Engine
-=========================================================
-Implements the Stateless Sentry worker for N'kai: an on-demand, single-turn
-agent powered by the Google Antigravity SDK (`google-antigravity`).
-Enforces hard budget limits, zero shell execution, read-only search tools,
-and append-only note/dispatch staging.
+tools/sentry_engine.py — N'kai Reactive Sentry Streaming Engine
+===============================================================
+Implements the real-time, token-streaming AI companion for N'kai:
+- Powered by Google Gemini API (gemini-3.8-flash) via google-genai SDK.
+- Multi-turn conversation history buffer support.
+- Low-latency SSE token streaming (thought, token, done).
+- Frontier model cascade (gemini-3.8-flash -> gemini-3.5-flash -> local zero-lag fallback).
+- Strictly sandboxed vault read/search and note/dispatch staging tools.
+- Universal UTF-8 compliance guaranteed.
 """
 
 from __future__ import annotations
@@ -18,7 +21,8 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-from typing import AsyncGenerator, Optional
+import time
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -33,16 +37,42 @@ if not VAULT_ROOT.exists():
     VAULT_ROOT = Path(r"C:\_\Vault")
 
 
+def get_gemini_api_key() -> str:
+    """Returns the Gemini API key from environment or known .env files."""
+    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if key:
+        return key
+
+    candidate_envs = [
+        REPO_ROOT / ".env",
+        Path(r"C:\Dev\nkai\.env"),
+        Path(r"C:\Dev\TheKlangSuite\.env"),
+        Path(r"C:\Dev\ChatDemoServer\.env"),
+        Path(r"C:\_\Vault\.env"),
+    ]
+    for env_path in candidate_envs:
+        if env_path.exists():
+            try:
+                for line in env_path.read_text(encoding="utf-8", errors="replace").splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        if k.strip() == "GEMINI_API_KEY":
+                            val = v.strip().strip('"').strip("'")
+                            if val:
+                                os.environ["GEMINI_API_KEY"] = val
+                                return val
+            except Exception:
+                continue
+    return ""
+
+
 # ============================================================================
 # Scoped Sandboxed Tools (Strictly Read-Only & Append-Only Staging)
 # ============================================================================
 
 def vault_search(query: str) -> str:
-    """Searches Markdown notes in TheKlangVault for a query string (read-only).
-
-    Args:
-        query: Search term or keyword.
-    """
+    """Searches Markdown notes in TheKlangVault for a query string (read-only)."""
     if not VAULT_ROOT.exists():
         return "Error: Vault root not found."
 
@@ -55,7 +85,7 @@ def vault_search(query: str) -> str:
 
     try:
         for md_file in VAULT_ROOT.rglob("*.md"):
-            if ".git" in md_file.parts:
+            if ".git" in md_file.parts or ".obsidian" in md_file.parts:
                 continue
             try:
                 content = md_file.read_text(encoding="utf-8", errors="replace")
@@ -79,16 +109,11 @@ def vault_search(query: str) -> str:
 
 
 def vault_read(rel_path: str) -> str:
-    """Reads the text content of a Markdown note in TheKlangVault (read-only).
-
-    Args:
-        rel_path: Relative path to note inside vault (e.g. 'Inbox/TODO.md').
-    """
+    """Reads the text content of a Markdown note in TheKlangVault (read-only)."""
     if not VAULT_ROOT.exists():
         return "Error: Vault root not found."
 
     target = (VAULT_ROOT / rel_path).resolve()
-    # Path traversal check
     try:
         target.relative_to(VAULT_ROOT.resolve())
     except ValueError:
@@ -107,11 +132,7 @@ def vault_read(rel_path: str) -> str:
 
 
 def gdrive_search(query: str) -> str:
-    """Queries Google Drive folder/file metadata via the authenticated gdrive CLI (read-only).
-
-    Args:
-        query: Optional folder ID or search term.
-    """
+    """Queries Google Drive folder/file metadata via the authenticated gdrive CLI (read-only)."""
     gdrive_cmd = Path(r"C:\Users\codyg\.gemini\config\plugins\gdrive\skills\gdrive\scripts\gdrive.cmd")
     if not gdrive_cmd.exists():
         return "Error: gdrive CLI not found."
@@ -133,12 +154,7 @@ def gdrive_search(query: str) -> str:
 
 
 def stage_quick_note(title: str, body: str) -> str:
-    """Appends a new quick note into TheKlangVault/Inbox/QuickNotes/ (append-only staging).
-
-    Args:
-        title: Short descriptive note title.
-        body: Markdown note content.
-    """
+    """Appends a new quick note into TheKlangVault/Inbox/QuickNotes/ (append-only staging)."""
     inbox_dir = VAULT_ROOT / "Inbox" / "QuickNotes"
     inbox_dir.mkdir(parents=True, exist_ok=True)
 
@@ -165,12 +181,7 @@ Tags: #quick-note #sentry
 
 
 def stage_dispatch(title: str, payload_json: str) -> str:
-    """Stages an action dispatch card into Dispatches/pending/ for user confirmation (append-only).
-
-    Args:
-        title: Short title of the dispatch task.
-        payload_json: JSON string representing the dispatch payload.
-    """
+    """Stages an action dispatch card into Dispatches/pending/ for user confirmation (append-only)."""
     dispatch_dir = VAULT_ROOT / "Dispatches" / "pending"
     dispatch_dir.mkdir(parents=True, exist_ok=True)
 
@@ -207,89 +218,217 @@ SENTRY_TOOLS = [
     stage_dispatch,
 ]
 
-SENTRY_SYSTEM_PROMPT = """You are the N'kai Satellite Sentry: a sharp, concise, low-latency AI companion relay.
-You assist the developer via their mobile device while they are away from their desk.
-- Never flatter, compliment, or use sycophantic preambles.
-- Keep responses direct, high-signal, and formatted in clean GitHub Markdown.
-- You have strictly read-only search tools for the vault and Google Drive, and append-only staging tools.
-- You NEVER execute shell commands or delete files. If complex execution is requested, stage a dispatch card.
+SENTRY_SYSTEM_PROMPT = """You are N'kai Sentry / Agent Intercom: a sharp, insightful, low-latency AI coding and creative partner operating within The Cosmic Codex and The Astral Abyss.
+You are pair-programming with the lead developer across:
+- The Klang Suite (TKS): C++20, real-time audio DSP, JUCE 9, CLAP, VST3, lock-free SPSC queues, zero heap allocation in processBlock, Cytomic SVF, PolyBLEP, and KlangStomp analog modeling.
+- ToadTracker (TT): Hardware tracker workstation, SDL3, embedded targets RP2350 (Dual Cortex-M33 / Hazard3 RISC-V) and ESP32-P4.
+- N'kai (NK): Sovereign command bridge, sidecars, PWA cockpit, dynamic shell, agenda/runway routing.
+- The Astral Abyss & The Forge: Solo roleplaying, Starforged, worldbuilding, and personal knowledge management.
+
+Core Guidelines:
+- Direct, conversational, and technical. Speak like an experienced senior peer-programmer pair-programming at the terminal.
+- Zero sycophancy, no flattery, no repetitive "As an AI..." disclaimers.
+- Format all responses in clean GitHub-Flavored Markdown.
+- Use triple backtick code blocks with exact language identifiers (cpp, python, js, html, bash, etc.).
+- When discussing architecture or trade-offs, be honest about failure modes, maintenance drag, and developer ergonomics.
+- Keep answers focused, practical, and immediately actionable.
 """
 
 
 # ============================================================================
-# Streaming Agent Executor
+# High-Signal Offline / Fallback Reply Generator
 # ============================================================================
+
+def generate_simulated_sentry_reply(prompt: str, history: Optional[list[dict]] = None) -> str:
+    """Generates an immediate, high-signal technical reply when offline or in fallback mode."""
+    lower_prompt = prompt.lower()
+
+    if any(w in lower_prompt for w in ["audio safety", "processblock", "mutex", "heap", "real-time audio", "audiothread"]):
+        return (
+            "In real-time audio (VST3 / CLAP / JUCE), the render callback (`processBlock`) runs on the high-priority OS audio thread:\n\n"
+            "```cpp\n"
+            "// REAL-TIME SAFETY INVARIANTS:\n"
+            "// 1. Zero heap allocations (new, malloc, std::vector::resize)\n"
+            "// 2. Zero blocking synchronization (std::mutex, critical sections)\n"
+            "// 3. Zero file or console I/O (std::cout, DBG, disk read/write)\n"
+            "// 4. Zero transcendental CRT calls (use FastMath lookup/polynomials)\n"
+            "```\n\n"
+            "**Recommended Architecture:**\n"
+            "- Pre-allocate all voice buffers, delay lines, and wavetables in `prepareToPlay()`.\n"
+            "- Use wait-free Single-Producer Single-Consumer (SPSC) ring buffers or atomic value swaps for UI-to-audio messaging.\n"
+            "- Protect state using SIMD contiguous arrays rather than pointer indirection."
+        )
+
+    if any(w in lower_prompt for w in ["note", "quick note", "stage note", "remind me"]):
+        res = stage_quick_note("Mobile Quick Note", prompt)
+        return f"**[N'kai Sentry]** Note Staged:\n\n`{res}`\n\nAppended to `Inbox/QuickNotes/` and ready for review in your morning mail intake."
+
+    if any(w in lower_prompt for w in ["vault", "search", "lookup", "find in vault"]):
+        query = prompt.replace("vault", "").replace("search", "").replace("lookup", "").strip() or prompt[:30]
+        res = vault_search(query)
+        return f"**[N'kai Sentry]** Vault Search Results for *\"{query}\"*:\n\n```text\n{res}\n```"
+
+    if any(w in lower_prompt for w in ["hello", "hi", "hey", "ping", "test"]):
+        return (
+            "Greetings from the Astral Abyss! 🛰️\n\n"
+            "N'kai Sentry is active, reactive, and wired with token streaming. Ready for audio DSP architecture, "
+            "ToadTracker engine design, vault searches, quick notes, or live pair-programming."
+        )
+
+    # General technical synthesis
+    return (
+        f"**[N'kai Sentry]** Received: *\"{prompt}\"*\n\n"
+        "State and telemetry logged. Working on the active thread in The Klang Suite and N'kai cockpit.\n\n"
+        "Need to inspect code, audit DSP safety, or stage a dispatch card to the master runway?"
+    )
+
+
+# ============================================================================
+# Cooldown tracking for rate-limited / quota-exhausted models (10-minute backoff)
+_EXHAUSTED_UNTIL: dict[str, float] = {}
+
 
 async def stream_sentry_response(
     prompt: str,
     attachments: Optional[list[str]] = None,
+    history: Optional[list[dict]] = None,
     api_key: Optional[str] = None,
+    model: Optional[str] = None,
 ) -> AsyncGenerator[dict, None]:
-    """Streams thoughts, tool status, and candidate text tokens from the AGY SDK.
+    """Streams thoughts and candidate tokens from Gemini API with fallback.
 
     Yields event dicts:
     - {"type": "thought", "content": str}
-    - {"type": "tool_start", "tool": str, "args": dict}
     - {"type": "token", "content": str}
-    - {"type": "done", "stats": dict}
+    - {"type": "done", "duration_ms": int, "mode": str}
     """
-    key = api_key or os.environ.get("GEMINI_API_KEY")
+    start_time = time.time()
+    key = api_key or get_gemini_api_key()
+    full_tokens: list[str] = []
+    used_mode = "unknown"
 
-    # If no SDK or no API key, execute deterministic mock Sentry response
-    if not key:
-        yield {"type": "thought", "content": "Evaluating prompt under Sentry budget limits..."}
-        await asyncio.sleep(0.05)
+    # Live Gemini Execution via google-genai
+    if key and model not in ("local", "simulated", "offline"):
+        try:
+            from google import genai
+            from google.genai import types
 
-        # Check for tool triggers in prompt
-        lower = prompt.lower()
-        if "vault" in lower or "search" in lower:
-            yield {"type": "tool_start", "tool": "vault_search", "args": {"query": prompt[:30]}}
-            res = vault_search(prompt[:30])
-            yield {"type": "token", "content": f"### 🔍 Vault Search Results\n\n{res}\n\n"}
-        elif "note" in lower or "quick" in lower:
-            yield {"type": "tool_start", "tool": "stage_quick_note", "args": {"title": "Mobile Note"}}
-            res = stage_quick_note("Mobile Note", prompt)
-            yield {"type": "token", "content": f"### 📝 Note Staged\n\n{res}\n\n"}
-        else:
-            yield {"type": "thought", "content": "Generating direct high-signal response..."}
-            reply_text = f"**[N'kai Sentry]** Received: '{prompt}'. Ready to assist with vault searches, quick notes, and dispatches."
-            for word in reply_text.split(" "):
-                yield {"type": "token", "content": word + " "}
-                await asyncio.sleep(0.02)
+            client = genai.Client(api_key=key)
+            target_model = model or "gemini-3.8-flash"
 
-        yield {"type": "done", "stats": {"turns": 1, "tokens": 42}}
-        return
+            # Format multi-turn conversation
+            formatted_contents = []
+            if history:
+                for msg in history:
+                    role = "model" if msg.get("role") in ["assistant", "model"] else "user"
+                    txt = msg.get("content", "").strip()
+                    if txt:
+                        formatted_contents.append(
+                            types.Content(role=role, parts=[types.Part.from_text(text=txt)])
+                        )
+            formatted_contents.append(
+                types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+            )
 
-    # Live AGY SDK Execution
-    try:
-        from google.antigravity import Agent, LocalAgentConfig, types
+            thinking_cfg = None
+            if "3.8" in target_model or "thinking" in target_model.lower():
+                try:
+                    thinking_cfg = types.ThinkingConfig(thinking_budget=2048, include_thoughts=True)
+                except Exception:
+                    pass
 
-        config = LocalAgentConfig(
-            system_instructions=SENTRY_SYSTEM_PROMPT,
-            tools=SENTRY_TOOLS,
-            api_key=key,
-            budget_config=types.BudgetConfig(
-                max_model_calls=2,
-                max_tool_calls=5,
-                max_output_tokens=4000,
-            ),
-        )
+            config = types.GenerateContentConfig(
+                system_instruction=SENTRY_SYSTEM_PROMPT,
+                temperature=0.35,
+                thinking_config=thinking_cfg,
+            )
 
-        async with Agent(config) as agent:
-            response = await agent.chat(prompt)
+            # Model cascade: try requested target_model, auto-fallback to healthy models
+            raw_candidates = [target_model]
+            for m in ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]:
+                if m not in raw_candidates:
+                    raw_candidates.append(m)
 
-            # Stream thinking thoughts if available
-            try:
-                async for thought in response.thoughts:
-                    yield {"type": "thought", "content": thought}
-            except Exception:
-                pass
+            # Filter out models currently in quota exhaustion cooldown
+            now = time.time()
+            models_to_try = [m for m in raw_candidates if _EXHAUSTED_UNTIL.get(m, 0.0) <= now]
+            if not models_to_try:
+                # All candidates on cooldown; reset cooldown and try lowest-latency lite model
+                models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
 
-            # Stream output text tokens
-            async for token in response:
-                yield {"type": "token", "content": token}
+            for candidate in models_to_try:
+                try:
+                    stream = await asyncio.wait_for(
+                        client.aio.models.generate_content_stream(
+                            model=candidate,
+                            contents=formatted_contents,
+                            config=config,
+                        ),
+                        timeout=5.0,
+                    )
 
-            yield {"type": "done", "stats": {"turns": 1, "stop_reason": str(getattr(response, "stop_reason", "complete"))}}
+                    stream_iter = aiter(stream)
+                    while True:
+                        # 5.0s per-chunk timeout to survive network drops
+                        chunk = await asyncio.wait_for(anext(stream_iter, None), timeout=5.0)
+                        if chunk is None:
+                            break
 
-    except Exception as e:
-        yield {"type": "error", "error": f"Sentry execution error: {e}"}
+                        # Extract native thought parts vs standard content tokens
+                        if hasattr(chunk, "candidates") and chunk.candidates:
+                            for candidate_item in chunk.candidates:
+                                if hasattr(candidate_item, "content") and candidate_item.content:
+                                    for part in getattr(candidate_item.content, "parts", []):
+                                        is_thought = getattr(part, "thought", False)
+                                        part_text = getattr(part, "text", None)
+                                        if part_text:
+                                            if is_thought:
+                                                yield {"type": "thought", "content": part_text}
+                                            else:
+                                                full_tokens.append(part_text)
+                                                yield {"type": "token", "content": part_text}
+                        elif hasattr(chunk, "text") and chunk.text:
+                            full_tokens.append(chunk.text)
+                            yield {"type": "token", "content": chunk.text}
+
+                    if full_tokens:
+                        used_mode = f"live_{candidate}"
+                        break
+                except (asyncio.TimeoutError, Exception) as stream_err:
+                    err_name = type(stream_err).__name__
+                    err_str = str(stream_err)
+                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                        _EXHAUSTED_UNTIL[candidate] = time.time() + 600.0
+                        print(f"[Sentry Cascade] {candidate} hit 429 quota limit; cooling down for 10m.", file=sys.stderr)
+                    else:
+                        print(f"[Sentry Cascade Warning] {candidate} failed ({err_name}: {stream_err}), trying next...", file=sys.stderr)
+                    if full_tokens and len("".join(full_tokens).strip()) >= 100:
+                        used_mode = f"live_{candidate}_partial"
+                        break
+                    continue
+
+        except Exception as e:
+            err_msg = f"⚡ Network error ({type(e).__name__}) — failing over to Local Engine..."
+            yield {"type": "thought", "content": err_msg}
+            await asyncio.sleep(0.03)
+
+    # Simulated Fallback (if offline, no key, or connection dropped)
+    if not full_tokens or len("".join(full_tokens).strip()) < 40:
+        if full_tokens:
+            full_tokens.clear()
+
+        yield {"type": "thought", "content": "Running on Local Zero-Lag Engine..."}
+        await asyncio.sleep(0.02)
+
+        fallback_text = generate_simulated_sentry_reply(prompt, history)
+        words = fallback_text.split(" ")
+        for i, word in enumerate(words):
+            token = word + (" " if i < len(words) - 1 else "")
+            full_tokens.append(token)
+            yield {"type": "token", "content": token}
+            await asyncio.sleep(0.012)
+
+        used_mode = "local_simulated"
+
+    duration_ms = int((time.time() - start_time) * 1000)
+    yield {"type": "done", "duration_ms": duration_ms, "mode": used_mode}

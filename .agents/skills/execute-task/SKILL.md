@@ -20,7 +20,7 @@ Execute the automated factory engineering pipeline on demand for the active blue
 - **Strict Audio-Thread Rules:** Never bypass real-time safety checks (`audiothread-guard`) when modifying DSP code.
 - **Single Source of Truth:** Tasks and backlog items must originate exclusively from local workspace files (`PLAN.md` or `docs/BACKLOG.md`). Zero clipboard sniffing.
 - **Phase Boundaries:** Complete and verify one phase at a time unless `--all` is explicitly passed.
-- **Subagent Factory Delegation (`--subagent` or Research Trigger):** When invoked during an active research/triage session (or when `--subagent` is passed), `execute-task` delegates the pipeline (`Code Edits -> audiothread-guard -> build-validate -> step-verify`) to a dedicated `Factory Implementation Subagent` (`invoke_subagent(Model="flash")`) to protect main context. Escalates to `Model="pro"` on 2 strikes.
+- **Subagent Factory Delegation (`--subagent` or Research Trigger):** When invoked during an active research/triage session (or when `--subagent` is passed), `execute-task` delegates the pipeline (`Code Edits -> audiothread-guard -> build-validate -> step-verify`) to a dedicated `Factory Implementation Subagent` (`invoke_subagent(Model="flash")`) to protect main context. Escalates via SOCEP Hyperdrive ladder.
 
 ---
 
@@ -46,13 +46,16 @@ Inspect the invocation arguments:
 
 ---
 
-### 2. Builder Pause Gate & Model Advisory
-Before executing Phase 1 or calling any editing/compilation tool:
-1. Output a concise briefing card with the active phase, target files, and verification criteria.
-2. Render the Model Advisory banner at the very bottom of the response.
-3. **CRITICAL GUARDRAIL (NO MODAL ON EXECUTION START):** Under NO circumstances invoke `ask_question` here (interactive modals freeze the IDE interface and prevent changing the model dropdown in the IDE footer).
-4. Pause in regular chat text:
-   > Please verify or adjust your model dropdown in the IDE footer to match the advisory above, then reply **`proceed`** to begin Phase 1.
+### 2. Proactive Specialist Evaluation Gate (SOCEP Hyperdrive v3.1)
+Before Step 1 (Code Implementation):
+1. Parse the active phase in `PLAN.md` for the explicit `ASSIST:` tag.
+2. If `ASSIST:` is present and not `none` (e.g. `sonnet:layout`, `sonnet:paint`, `opus:dsp`):
+   - Invoke `claude_ask`:
+     - `model` mapped from tag (`sonnet` or `opus`).
+     - `fold=False`, `output_path=".agents/scratch/socep/patches/p<N>_proactive.patch"`.
+   - Verify fence against `Target Files:`, check diff via `git apply --check`, and apply.
+3. If no `ASSIST:` tag is present or tag is `none`, zero proactive Claude calls are made.
+4. Proceed immediately to Step 1 without manual model dropdown change pauses.
 
 ---
 

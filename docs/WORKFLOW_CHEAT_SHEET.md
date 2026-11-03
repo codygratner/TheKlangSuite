@@ -1,4 +1,4 @@
-# ⚡ The Klang Suite: Developer Workflow Cheat Sheet
+﻿# ⚡ The Klang Suite: Developer Workflow Cheat Sheet
 > **A 1-Page High-Density Operational Reference for Human Developers & AI Agents**  
 > *Companion:* See [`docs/CHEAT_SHEET.md`](CHEAT_SHEET.md) for ecosystem glossary and [`docs/GLOSSARY.md`](GLOSSARY.md) for UI taxonomy.
 
@@ -95,6 +95,44 @@ powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1
 
 # 10. Rhyl'al's Book Sovereign Vault Sync & Frontmatter Repair (/rhylals-book-vault)
 python C:\Dev\rhylals-book-vault\sync_vault.py
+
+# 11. Autonomous Context Lifecycle Governor (Milestone M3)
+python tools/governor.py status      # Check context token saturation and health zone
+python tools/governor.py hook        # Run 5-second post-turn governor harvest (<1.2s)
+python tools/governor.py clear       # Atomic pre-clear harvest & 0-token transcript reset
+python tools/governor.py resume      # Inspect Cold-Boot Resumption Capsule
+
+# 12. Windows Systray Bloat Guard & Drift Sentinel
+python tools/bloat_guard.py status   # Audit active processes & UWP autostart drift (<3ms)
+python tools/bloat_guard.py enforce  # Terminate rogue Copilot/Teams & re-lock registry
+
+# 13. Cross-Chat Fleet Switchboard & Tower Build Isolation (Milestone M4)
+python tools/fleet.py status         # Check queue depths & active role leases
+python tools/fleet.py send --to TKS --tag BUILD_REQUEST --payload '{"target": "dsp_tests"}'
+python tools/fleet.py drain --for COSMOS
+
+# 14. Macro Emergence Engine: 1-Bullet Autonomous Execution (Milestone M6)
+python tools/emergence.py run --bullet "- Add ladder filter drive saturation"
+python tools/emergence.py status     # Inspect 3-strike circuit breaker state
+
+# 11. Autonomous Context Lifecycle Governor (Milestone M3)
+python tools/governor.py status      # Check context token saturation and health zone
+python tools/governor.py hook        # Run 5-second post-turn governor harvest (<1.2s)
+python tools/governor.py clear       # Atomic pre-clear harvest & 0-token transcript reset
+python tools/governor.py resume      # Inspect Cold-Boot Resumption Capsule
+
+# 12. Windows Systray Bloat Guard & Drift Sentinel
+python tools/bloat_guard.py status   # Audit active processes & UWP autostart drift (<3ms)
+python tools/bloat_guard.py enforce  # Terminate rogue Copilot/Teams & re-lock registry
+
+# 13. Cross-Chat Fleet Switchboard & Tower Build Isolation (Milestone M4)
+python tools/fleet.py status         # Check queue depths & active role leases
+python tools/fleet.py send --to TKS --tag BUILD_REQUEST --payload '{"target": "dsp_tests"}'
+python tools/fleet.py drain --for COSMOS
+
+# 14. Macro Emergence Engine: 1-Bullet Autonomous Execution (Milestone M6)
+python tools/emergence.py run --bullet "- Add ladder filter drive saturation"
+python tools/emergence.py status     # Inspect 3-strike circuit breaker state
 ```
 
 ---
@@ -123,3 +161,4 @@ python C:\Dev\rhylals-book-vault\sync_vault.py
   * **Nav (`Left Shift` / `West`)**: `+Arrows` 2D spatial matrix navigation (`Up: Song -> Chain -> Phrase -> Synth`, `Right: Table`), `+Edit` (`Shift+X`) paste/interpolate.
   * **Shoulder Superpowers**: `L1` (`Right Shift`) Context Menu & Block Highlight · `R1` (`Backspace`/`Delete`) Non-Destructive A/B Undo Toggle · `L1+R1+Left/Right` Linear History Scrub.
   * **"The Toad" Leverless Southpaw Hardware (`BACKLOG-15`)**: Reverse variant places the angled Kailh Choc arrow cluster under the **Right Hand** and modifiers (`Edit`, `Alt`, `Nav`, `Play`, `L1`, `R1`) under the **Left Hand** for 100% `m8.run` muscle-memory parity.
+

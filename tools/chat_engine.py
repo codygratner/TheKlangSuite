@@ -49,6 +49,22 @@ def get_active_conversation_path(conv_id_override: Optional[str] = None) -> Opti
         if cand.exists():
             return cand
 
+    # Check pinned active conversation ID file
+    for p_id_file in [
+        REPO_ROOT / ".agents" / "pipeline" / "active_conversation_id.txt",
+        Path(r"C:\_\Vault\.agents\pipeline\active_conversation_id.txt"),
+        Path(r"C:\Dev\nkai\.agents\pipeline\active_conversation_id.txt"),
+        Path(r"C:\Dev\TheKlangSuite\.agents\pipeline\active_conversation_id.txt"),
+        BRAIN_ROOT / "active_conversation_id.txt",
+    ]:
+        try:
+            if p_id_file.exists():
+                cid = p_id_file.read_text(encoding="utf-8").strip()
+                if cid and (BRAIN_ROOT / cid).exists():
+                    return BRAIN_ROOT / cid
+        except Exception:
+            pass
+
     if not BRAIN_ROOT.exists():
         return None
 
@@ -141,18 +157,42 @@ def parse_transcript_turns(
         created_at = step.get("created_at") or ""
         step_idx = step.get("step_index", 0)
 
-        # Detect User input turn start
-        if stype == "USER_INPUT" or source == "USER_EXPLICIT":
-            clean_text = re.sub(r"</?USER_REQUEST>", "", content).strip()
-            # Remove any trailing additional metadata blocks
-            clean_text = re.sub(r"<ADDITIONAL_METADATA>[\s\S]*?</ADDITIONAL_METADATA>", "", clean_text).strip()
-            clean_text = re.sub(r"<CONTEXT_SUMMARY>[\s\S]*?</CONTEXT_SUMMARY>", "", clean_text).strip()
+        # Detect User input turn start (including injected mobile prompts via AGY CLI)
+        is_mobile_prompt = False
+        mobile_prompt_text = ""
+        if stype == "SYSTEM_MESSAGE" and f"sender={conv_id}" in content:
+            m = re.search(r"content=([\s\S]*?)(?:\n</SYSTEM_MESSAGE>|$)", content)
+            if m:
+                p = m.group(1).strip()
+                if not p.startswith("Task id ") and not p.startswith("Autonomous ping") and not p.startswith("Silent test"):
+                    is_mobile_prompt = True
+                    mobile_prompt_text = p
+
+        if stype == "USER_INPUT" or source == "USER_EXPLICIT" or is_mobile_prompt:
+            if is_mobile_prompt:
+                clean_text = mobile_prompt_text
+            else:
+                clean_text = re.sub(r"</?USER_REQUEST>", "", content).strip()
+                # Remove any trailing additional metadata blocks
+                clean_text = re.sub(r"<ADDITIONAL_METADATA>[\s\S]*?</ADDITIONAL_METADATA>", "", clean_text).strip()
+                clean_text = re.sub(r"<CONTEXT_SUMMARY>[\s\S]*?</CONTEXT_SUMMARY>", "", clean_text).strip()
+
+            # If previous turn exists and had NO agent response yet, merge consecutive follow-ups
+            # into the same active turn to prevent ghost/orphaned "executing" cards on mobile
+            if current_turn is not None and not current_turn.get("agent_response"):
+                current_turn["user_prompt"] += "\n\n" + clean_text
+                current_turn.setdefault("user_prompts", []).append(clean_text)
+                current_turn["step_index"] = step_idx
+                current_turn["turn_id"] = current_turn.get("turn_id") or step_idx
+                continue
 
             current_turn = {
                 "turn_index": len(turns) + 1,
+                "turn_id": step_idx,
                 "step_index": step_idx,
                 "timestamp": created_at,
                 "user_prompt": clean_text,
+                "user_prompts": [clean_text],
                 "agent_response": "",
                 "thinking": "",
                 "tool_calls": [],
@@ -171,48 +211,124 @@ def parse_transcript_turns(
             if calls and isinstance(calls, list):
                 for c in calls:
                     t_name = c.get("name") or c.get("tool_name") or "tool"
-                    t_summary = c.get("toolSummary") or c.get("summary") or ""
-                    t_action = c.get("toolAction") or ""
+                    args = c.get("args") or c.get("parameters") or {}
+                    if isinstance(args, str):
+                        try:
+                            args = json.loads(args)
+                        except Exception:
+                            args = {}
+
+                    t_summary = c.get("toolSummary") or c.get("summary") or args.get("toolSummary") or ""
+                    if isinstance(t_summary, str):
+                        t_summary = t_summary.strip('"\'')
+                    t_action = c.get("toolAction") or args.get("toolAction") or ""
+                    t_path = ""
+                    raw_path = args.get("Path") or ""
+                    line_spec = ""
+                    t_cmd = args.get("CommandLine") or ""
+                    t_add = 0
+                    t_del = 0
+
+                    if t_name in ("edit_file", "write_file", "read_file"):
+                        if raw_path:
+                            t_path = Path(raw_path).name
+                        if t_name == "edit_file":
+                            t_action = "Edited"
+                            repl = args.get("Replacement", "")
+                            targ = args.get("Target", "")
+                            t_add = len(repl.splitlines()) if repl else 0
+                            t_del = len(targ.splitlines()) if targ else 0
+                            t_summary = f"{t_path} +{t_add} -{t_del}"
+                        elif t_name == "write_file":
+                            t_action = "Wrote"
+                            content_lines = len((args.get("Content") or "").splitlines())
+                            t_add = content_lines
+                            t_summary = f"{t_path} +{t_add}"
+                        elif t_name == "read_file":
+                            t_action = "Analyzed"
+                            s_line = args.get("StartLine", 1)
+                            e_line = args.get("EndLine", "")
+                            line_spec = f"#L{s_line}-{e_line}" if e_line else ""
+                            t_summary = f"{t_path} {line_spec}".strip()
+                    elif t_name == "run_command":
+                        t_action = "Ran"
+                        if not t_summary:
+                            t_summary = t_cmd[:60] if t_cmd else "command"
+                    elif t_name == "invoke_subagent":
+                        t_action = "Message from"
+                        s_role = args.get("Role") or "Subagent"
+                        s_type = args.get("TypeName") or "self"
+                        s_model = args.get("Model") or "Gemini 3.8 Flash"
+                        s_prompt = args.get("Prompt") or ""
+                        t_summary = f"{s_role} ({s_type})"
+                        current_turn.setdefault("subagents", []).append({
+                            "role": s_role,
+                            "model": s_model,
+                            "type": s_type,
+                            "prompt": s_prompt,
+                            "status": "done" if current_turn.get("status") == "done" else "running",
+                            "trace": s_prompt[:280] + ("..." if len(s_prompt) > 280 else "")
+                        })
+
                     current_turn["tool_calls"].append({
                         "name": t_name,
+                        "action": t_action,
                         "summary": t_summary,
-                        "action": t_action
+                        "path": t_path,
+                        "full_path": raw_path,
+                        "line_spec": line_spec,
+                        "cmd": t_cmd,
+                        "add": t_add,
+                        "del": t_del
                     })
 
             # Extract agent response text
             if stype == "PLANNER_RESPONSE" and content:
                 current_turn["agent_response"] = content
                 current_turn["status"] = "done"
+                if "subagents" in current_turn:
+                    for s in current_turn["subagents"]:
+                        s["status"] = "done"
 
-    # Check for recent pending mobile prompt dispatches from action_history.jsonl (only in live workspace)
-    if conv_dir is None:
-        action_log = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "action_history.jsonl"
-        if action_log.exists():
-            try:
-                lines = action_log.read_text(encoding="utf-8").strip().splitlines()
-                for line in lines[-5:]:
-                    act = json.loads(line)
-                    if act.get("action") == "PROMPT_DISPATCH":
-                        p_text = act.get("prompt", "").strip()
-                        if p_text == "Testing chat send from mobile":
-                            continue
-                        already_in = any(
-                            p_text[:30] in t.get("user_prompt", "") or t.get("user_prompt", "")[:30] in p_text
-                            for t in turns[-5:]
-                        )
-                        if not already_in and p_text:
-                            turns.append({
-                                "turn_index": len(turns) + 1,
-                                "step_index": 999999,
-                                "timestamp": act.get("timestamp", ""),
-                                "user_prompt": p_text,
-                                "agent_response": "",
-                                "thinking": "",
-                                "tool_calls": [],
-                                "status": "pending"
-                            })
-            except Exception:
-                pass
+    # Check for recent pending mobile prompt dispatches from action_history.jsonl
+    action_log = REPO_ROOT / ".agents" / "pipeline" / "mailbag" / "action_history.jsonl"
+    if action_log.exists():
+        try:
+            lines = action_log.read_text(encoding="utf-8").strip().splitlines()
+            now_dt = datetime.now()
+            for line in lines[-5:]:
+                act = json.loads(line)
+                if act.get("action") == "PROMPT_DISPATCH":
+                    p_text = act.get("prompt", "").strip()
+                    if p_text == "Testing chat send from mobile":
+                        continue
+                    ts_str = act.get("timestamp", "")
+                    if ts_str:
+                        try:
+                            act_dt = datetime.fromisoformat(ts_str)
+                            if (now_dt - act_dt).total_seconds() > 90:
+                                continue
+                        except Exception:
+                            pass
+                    already_in = any(
+                        p_text[:30] in t.get("user_prompt", "") or t.get("user_prompt", "")[:30] in p_text
+                        for t in turns[-5:]
+                    )
+                    if not already_in and p_text:
+                        turns.append({
+                            "turn_index": len(turns) + 1,
+                            "turn_id": 999999,
+                            "step_index": 999999,
+                            "timestamp": act.get("timestamp", ""),
+                            "user_prompt": p_text,
+                            "user_prompts": [p_text],
+                            "agent_response": "",
+                            "thinking": "",
+                            "tool_calls": [],
+                            "status": "pending"
+                        })
+        except Exception:
+            pass
 
     # Determine if agent is currently working
     is_running = False
@@ -277,6 +393,16 @@ def render_markdown_simple(md_text: str) -> str:
     escaped = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', escaped)
     escaped = re.sub(r'`([^`]+)`', r'<code class="chat-inline-code">\1</code>', escaped)
 
+    # Method B+ Hegelian Scaffolding Step Headings
+    escaped = re.sub(r'^### 1\. 🟢 Pros \[Thesis\]', r'<h4 class="chat-h4 pcda-step pcda-thesis">[STEP 1/4] 🟢 PROS (THESIS)</h4>', escaped, flags=re.MULTILINE)
+    escaped = re.sub(r'^### 2\. 🟡 Cons \[Thesis Friction\]', r'<h4 class="chat-h4 pcda-step pcda-friction">[STEP 2/4] 🟡 CONS (THESIS FRICTION)</h4>', escaped, flags=re.MULTILINE)
+    escaped = re.sub(r'^### 3\. 🔴 Devil\'s Advocate \[Antithesis & Systemic Traps\]', r'<h4 class="chat-h4 pcda-step pcda-antithesis">[STEP 3/4] 🔴 DEVIL\'S ADVOCATE (ANTITHESIS & CRITICAL FAILURES)</h4>', escaped, flags=re.MULTILINE)
+    escaped = re.sub(r'^### 4\. 🟣 The 80/20 Resolution \[Synthesis & Invariant\]', r'<h4 class="chat-h4 pcda-step pcda-resolution">[STEP 4/4] 🟣 80/20 RESOLUTION (SYNTHESIS & INVARIANT)</h4>', escaped, flags=re.MULTILINE)
+
+    # Epistemic Grounding Duality Tags
+    escaped = re.sub(r'\[Verified:\s*([^\]]+)\]', r'<span class="pcda-verified">[Verified: \1]</span>', escaped)
+    escaped = re.sub(r'⚠️\s*\[Unverified:\s*([^\]]+)\]', r'<span class="pcda-unverified">⚠️ [Unverified: \1]</span>', escaped)
+
     # Headings
     escaped = re.sub(r'^### (.*)$', r'<h4 class="chat-h4">\1</h4>', escaped, flags=re.MULTILINE)
     escaped = re.sub(r'^## (.*)$', r'<h3 class="chat-h3">\1</h3>', escaped, flags=re.MULTILINE)
@@ -300,6 +426,10 @@ def render_markdown_simple(md_text: str) -> str:
 
 def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
     """Generates the self-contained N'kai Chat Board HTML."""
+    static_file = REPO_ROOT / "sidecars" / "panel" / "chat_board.html"
+    if static_file.exists():
+        return static_file.read_text(encoding="utf-8")
+
     data = parse_transcript_turns(conv_id_override=conv_id_override, max_turns=20)
     conv_id = data.get("conv_id", "active_session")
     is_running = data.get("is_running", False)
@@ -616,6 +746,188 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
     .chat-link {{
       color: var(--accent);
       text-decoration: underline;
+    }}
+
+    /* Method B+ Hegelian Scaffolding Accents */
+    .pcda-step {{
+      font-size: 13px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      margin: 14px 0 6px 0;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }}
+    .pcda-step.pcda-thesis {{
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }}
+    .pcda-step.pcda-friction {{
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }}
+    .pcda-step.pcda-antithesis {{
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }}
+    .pcda-step.pcda-resolution {{
+      color: #c084fc;
+      background: rgba(192, 132, 252, 0.1);
+      border: 1px solid rgba(192, 132, 252, 0.3);
+    }}
+    .pcda-verified {{
+      color: #34d399;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(52, 211, 153, 0.1);
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }}
+    .pcda-unverified {{
+      color: #fbbf24;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(251, 191, 36, 0.1);
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }}
+
+    /* Subagent Crucible Deck */
+    .subagent-crucible-deck {{
+      background: rgba(192, 132, 252, 0.05);
+      border: 1px solid rgba(192, 132, 252, 0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 8px 0;
+    }}
+    .crucible-deck-header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--purple);
+      margin-bottom: 8px;
+    }}
+    .subagent-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 8px;
+    }}
+    .subagent-pill {{
+      background: rgba(17, 22, 32, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-sans);
+    }}
+    .subagent-pill.running {{
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.15);
+    }}
+    .subagent-pill.done {{
+      border-color: rgba(52, 211, 153, 0.4);
+    }}
+    .subagent-top {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+    }}
+    .subagent-status {{
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }}
+    .subagent-status.running {{
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+    }}
+    .subagent-status.done {{
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--green);
+    }}
+    .subagent-role {{
+      font-size: 11px;
+      color: var(--text-muted);
+    }}
+    .subagent-model {{
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: #a855f7;
+    }}
+    .subagent-trace-toggle {{
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+      text-align: left;
+      padding: 3px 0 0 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }}
+    .subagent-trace-toggle:hover {{
+      color: #fff;
+    }}
+    .subagent-trace-body {{
+      background: rgba(9, 13, 19, 0.8);
+      border: 1px solid rgba(38, 51, 69, 0.5);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      line-height: 1.4;
+      margin-top: 4px;
+    }}
+
+    /* Reactive Typing Animation & Indicator */
+    .typing-cursor {{
+      display: inline-block;
+      width: 7px;
+      height: 15px;
+      background: var(--accent);
+      margin-left: 3px;
+      animation: cursor-blink 0.8s infinite;
+      vertical-align: middle;
+      border-radius: 1px;
+    }}
+    @keyframes cursor-blink {{
+      0%, 100% {{ opacity: 1; }}
+      50% {{ opacity: 0; }}
+    }}
+    .typing-tag {{
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 7px;
+      border-radius: 4px;
+      animation: pulse-glow 1.5s infinite;
+    }}
+    @keyframes pulse-glow {{
+      0%, 100% {{ opacity: 1; }}
+      50% {{ opacity: 0.6; }}
     }}
 
     /* Sticky Bottom Input Bar */
@@ -1065,6 +1377,38 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
         const agentResp = t.agent_response || '';
         const thinking = t.thinking || '';
         const tools = t.tool_calls || [];
+        const subagents = t.subagents || [];
+
+        let subagentsHtml = '';
+        if (subagents.length > 0) {{
+          const subagentCards = subagents.map(s => `
+            <div class="subagent-pill ${{s.status === 'done' ? 'done' : 'running'}}">
+              <div class="subagent-top">
+                <span class="subagent-role">🤖 ${{escapeHtml(s.role)}}</span>
+                <span class="subagent-status ${{s.status === 'done' ? 'done' : 'running'}}">${{s.status === 'done' ? 'DONE' : 'REASONING'}}</span>
+              </div>
+              <div class="subagent-model">${{escapeHtml(s.model)}}</div>
+              ${{s.trace ? `
+                <div class="subagent-thinking-drawer">
+                  <button class="subagent-trace-toggle" type="button" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                    ▶ Deliberation Trace
+                  </button>
+                  <div class="subagent-trace-body" style="display: none;">${{escapeHtml(s.trace)}}</div>
+                </div>
+              ` : ''}}
+            </div>
+          `).join('');
+
+          subagentsHtml = `
+            <div class="subagent-crucible-deck">
+              <div class="crucible-deck-header">
+                <span>🧠 CRUCIBLE SUBAGENTS (${{subagents.length}} Active)</span>
+                <span style="font-size: 10px; color: var(--green);">CONSENSUS ENGINE</span>
+              </div>
+              <div class="subagent-grid">${{subagentCards}}</div>
+            </div>
+          `;
+        }}
 
         let toolsHtml = '';
         if (tools.length > 0) {{
@@ -1105,6 +1449,7 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
               <div>${{formatMarkdownSimple(userPrompt)}}</div>
             </div>
             ${{thinkingHtml}}
+            ${{subagentsHtml}}
             ${{toolsHtml}}
             ${{agentHtml}}
           </div>
@@ -1134,6 +1479,16 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       if (!text) return '';
       let escaped = escapeHtml(text);
 
+      // Method B+ Hegelian Scaffolding Step Headings
+      escaped = escaped.replace(/### 1\\. 🟢 Pros \\[Thesis\\]/g, '<h4 class="chat-h4 pcda-step pcda-thesis">[STEP 1/4] 🟢 PROS (THESIS)</h4>');
+      escaped = escaped.replace(/### 2\\. 🟡 Cons \\[Thesis Friction\\]/g, '<h4 class="chat-h4 pcda-step pcda-friction">[STEP 2/4] 🟡 CONS (THESIS FRICTION)</h4>');
+      escaped = escaped.replace(/### 3\\. 🔴 Devil\'s Advocate \\[Antithesis &amp; Systemic Traps\\]/g, '<h4 class="chat-h4 pcda-step pcda-antithesis">[STEP 3/4] 🔴 DEVIL\'S ADVOCATE (ANTITHESIS & CRITICAL FAILURES)</h4>');
+      escaped = escaped.replace(/### 4\\. 🟣 The 80\\/20 Resolution \\[Synthesis &amp; Invariant\\]/g, '<h4 class="chat-h4 pcda-step pcda-resolution">[STEP 4/4] 🟣 80/20 RESOLUTION (SYNTHESIS & INVARIANT)</h4>');
+
+      // Epistemic Grounding Duality Tags
+      escaped = escaped.replace(/\\[Verified:\\s*([^\\]]+)\\]/g, '<span class="pcda-verified">[Verified: $1]</span>');
+      escaped = escaped.replace(/⚠️\\s*\\[Unverified:\\s*([^\\]]+)\\]/g, '<span class="pcda-unverified">⚠️ [Unverified: $1]</span>');
+
       // Inline Images: ![alt](url)
       escaped = escaped.replace(/!\\[([^\\]]*)\\]\\(([^)]+)\\)/g, (match, alt, src) => {{
         let cleanSrc = src.trim().split('\\\\').join('/');
@@ -1160,6 +1515,15 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
       escaped = escaped.replace(/```([\\s\\S]*?)```/g, '<pre class="chat-code-block"><code>$1</code></pre>');
       escaped = escaped.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<strong>$1</strong>');
       escaped = escaped.replace(/`([^`]+)`/g, '<code class="chat-inline-code">$1</code>');
+
+      // Headings
+      escaped = escaped.replace(/^### (.*)$/gm, '<h4 class="chat-h4">$1</h4>');
+      escaped = escaped.replace(/^## (.*)$/gm, '<h3 class="chat-h3">$1</h3>');
+      escaped = escaped.replace(/^# (.*)$/gm, '<h2 class="chat-h2">$1</h2>');
+
+      // Bullets
+      escaped = escaped.replace(/^- (.*)$/gm, '<li class="chat-li">$1</li>');
+
       return escaped.replace(/\\n/g, '<br/>');
     }}
 
@@ -1231,7 +1595,54 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
 
       // 2. Mobile / External Web: Stream via Sentry (/api/sentry/stream) with fallback
       try {{
-        showToast('🛰️ Sentry processing...');
+        const stream = document.getElementById('chat-stream');
+        let turnDiv = null;
+        let agentTextEl = null;
+        let thinkingBox = null;
+        let thinkingTextEl = null;
+        let toolsBox = null;
+        let typingTag = null;
+
+        if (stream) {{
+          turnDiv = document.createElement('div');
+          turnDiv.className = 'turn-card';
+          turnDiv.innerHTML = `
+            <div class="turn-header">
+              <span class="turn-badge" style="background:rgba(168,85,247,0.15); color:var(--purple);">Live Stream</span>
+              <span>Just now</span>
+            </div>
+            <div class="user-bubble">
+              <div class="user-label"><span>👤</span> You (Mobile Intercom)</div>
+              <div>${{formatMarkdownSimple(fullPrompt)}}</div>
+            </div>
+            <div class="agent-bubble" style="margin-top: 10px;">
+              <div class="agent-label" style="display:flex; justify-content:space-between; align-items:center;">
+                <span><span>🛰️</span> N'kai Sentry (Live Stream)</span>
+                <span class="typing-tag" id="live-typing-tag">● TYPING...</span>
+              </div>
+              <div class="thinking-accordion" id="stream-thinking-box" style="display:none; margin:8px 0;">
+                <div class="thinking-summary">🧠 Reasoning...</div>
+                <div class="thinking-text" id="stream-thinking-text" style="font-size:12px; color:var(--purple); margin-top:4px; font-family:var(--font-mono);"></div>
+              </div>
+              <div id="stream-tools-box" style="display:none; margin-bottom:8px;"></div>
+              <div class="agent-text markdown-body" id="stream-agent-text" style="min-height: 24px; padding: 4px 0;">
+                <span class="typing-cursor"></span>
+              </div>
+            </div>
+          `;
+          stream.appendChild(turnDiv);
+          window.scrollTo({{ top: document.body.scrollHeight, behavior: 'smooth' }});
+
+          agentTextEl = turnDiv.querySelector('#stream-agent-text');
+          thinkingBox = turnDiv.querySelector('#stream-thinking-box');
+          thinkingTextEl = turnDiv.querySelector('#stream-thinking-text');
+          toolsBox = turnDiv.querySelector('#stream-tools-box');
+          typingTag = turnDiv.querySelector('#live-typing-tag');
+        }}
+
+        inp.value = '';
+        inp.style.height = 'auto';
+
         const res = await fetch('/api/sentry/stream', {{
           method: 'POST',
           headers: {{
@@ -1242,95 +1653,66 @@ def generate_chat_board_html(conv_id_override: Optional[str] = None) -> str:
         }});
 
         if (res.status === 401) {{
-          showToast('🔒 Unauthorized: Sentry token required. Re-pair at /qr');
-          if (btn) {{ btn.disabled = false; btn.textContent = 'Send'; }}
-          return;
+          showToast('🔒 Auth expired. Retrying via /api/chat/send...');
+          if (typingTag) {{ typingTag.textContent = '⚠️ Auth Fallback'; typingTag.style.color = 'var(--yellow)'; }}
+          throw new Error('401 Unauthorized');
         }}
 
         if (res.ok && res.body) {{
-          inp.value = '';
-          inp.style.height = 'auto';
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
+          let fullText = '';
+          let fullThought = '';
 
-          // Append User turn immediately to DOM
-          const chatList = document.getElementById('chat-stream-list');
-          if (chatList) {{
-            const userCard = document.createElement('div');
-            userCard.className = 'chat-card';
-            userCard.innerHTML = `
-              <div class="user-bubble">
-                <div class="user-label"><span>👤</span> You (Mobile Intercom)</div>
-                <div class="user-text">${{formatMarkdownSimple(fullPrompt)}}</div>
-              </div>
-            `;
-            chatList.appendChild(userCard);
+          while (true) {{
+            const {{ value, done }} = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, {{ stream: true }});
+            const blocks = buffer.split('\\n\\n');
+            buffer = blocks.pop(); // keep trailing partial
 
-            // Create Assistant stream card
-            const streamCard = document.createElement('div');
-            streamCard.className = 'chat-card';
-            streamCard.innerHTML = `
-              <div class="agent-bubble">
-                <div class="agent-label"><span>🛰️</span> N'kai Sentry (Mobile Relay)</div>
-                <div class="thinking-accordion" id="stream-thinking-box" style="display:none; margin-bottom:8px;">
-                  <div class="thinking-summary">🧠 Reasoning...</div>
-                  <div class="thinking-text" id="stream-thinking-text" style="font-size:12px; color:var(--purple); margin-top:4px; font-family:var(--font-mono);"></div>
-                </div>
-                <div id="stream-tools-box" style="display:none; margin-bottom:8px;"></div>
-                <div class="agent-text markdown-body" id="stream-agent-text"></div>
-              </div>
-            `;
-            chatList.appendChild(streamCard);
-            window.scrollTo({{ top: document.body.scrollHeight, behavior: 'smooth' }});
-
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let buffer = '';
-            let fullText = '';
-            let fullThought = '';
-
-            const agentTextEl = document.getElementById('stream-agent-text');
-            const thinkingBox = document.getElementById('stream-thinking-box');
-            const thinkingTextEl = document.getElementById('stream-thinking-text');
-            const toolsBox = document.getElementById('stream-tools-box');
-
-            while (true) {{
-              const {{ value, done }} = await reader.read();
-              if (done) break;
-              buffer += decoder.decode(value, {{ stream: true }});
-              const blocks = buffer.split('\\n\\n');
-              buffer = blocks.pop(); // keep trailing partial
-
-              for (const block of blocks) {{
-                if (!block.trim()) continue;
-                const match = block.match(/event:\\s*([a-zA-Z0-9_-]+)\\ndata:\\s*(.+)/s);
-                if (match) {{
-                  const evType = match[1];
-                  try {{
-                    const data = JSON.parse(match[2]);
-                    if (evType === 'thought' && data.content) {{
-                      fullThought += data.content + ' ';
-                      if (thinkingBox) thinkingBox.style.display = 'block';
-                      if (thinkingTextEl) thinkingTextEl.textContent = fullThought;
-                    }} else if (evType === 'tool_start' && data.tool) {{
-                      if (toolsBox) {{
-                        toolsBox.style.display = 'block';
-                        toolsBox.innerHTML += `<span class="tool-chip" style="margin-right:4px;">⚙️ ${{escapeHtml(data.tool)}}</span>`;
-                      }}
-                    }} else if (evType === 'token' && data.content) {{
-                      fullText += data.content;
-                      if (agentTextEl) agentTextEl.innerHTML = formatMarkdownSimple(fullText);
-                      window.scrollTo({{ top: document.body.scrollHeight }});
-                    }} else if (evType === 'done') {{
-                      if (navigator.vibrate) navigator.vibrate(15);
-                      showToast('✅ Sentry response complete');
+            for (const block of blocks) {{
+              if (!block.trim()) continue;
+              const match = block.match(/event:\\s*([a-zA-Z0-9_-]+)\\ndata:\\s*(.+)/s);
+              if (match) {{
+                const evType = match[1];
+                try {{
+                  const data = JSON.parse(match[2]);
+                  if (evType === 'thought' && data.content) {{
+                    fullThought += data.content + ' ';
+                    if (thinkingBox) thinkingBox.style.display = 'block';
+                    if (thinkingTextEl) thinkingTextEl.textContent = fullThought;
+                  }} else if (evType === 'tool_start' && data.tool) {{
+                    if (toolsBox) {{
+                      toolsBox.style.display = 'block';
+                      toolsBox.innerHTML += `<span class="tool-chip" style="margin-right:4px;">⚙️ ${{escapeHtml(data.tool)}}</span>`;
                     }}
-                  }} catch (err) {{}}
-                }}
+                  }} else if (evType === 'token' && data.content) {{
+                    fullText += data.content;
+                    if (agentTextEl) agentTextEl.innerHTML = formatMarkdownSimple(fullText) + '<span class="typing-cursor"></span>';
+                    window.scrollTo({{ top: document.body.scrollHeight }});
+                  }} else if (evType === 'done') {{
+                    if (agentTextEl) {{
+                      const cur = agentTextEl.querySelector('.typing-cursor');
+                      if (cur) cur.remove();
+                    }}
+                    if (typingTag) {{
+                      typingTag.textContent = '✓ SENT TO HARNESS';
+                      typingTag.style.background = 'rgba(52, 211, 153, 0.15)';
+                      typingTag.style.color = 'var(--green)';
+                      typingTag.style.borderColor = 'rgba(52, 211, 153, 0.3)';
+                    }}
+                    if (navigator.vibrate) navigator.vibrate(15);
+                    showToast('✅ Response streamed & relayed to Agent');
+                  }}
+                }} catch (err) {{}}
               }}
             }}
           }}
 
           if (btn) {{ btn.disabled = false; btn.textContent = 'Send'; }}
-          setTimeout(() => refreshChatHistory(true), 1500);
+          setTimeout(() => refreshChatHistory(true), 2500);
           return;
         }}
       }} catch (err) {{
@@ -1403,6 +1785,26 @@ def build_and_save_chat_board(out_path: Optional[Path] = None) -> Path:
             nkai_plugin_mirror.write_text(html_content, encoding="utf-8")
         except Exception:
             pass
+
+    gemini_plugin_mirror = Path.home() / ".gemini" / "config" / "plugins" / "nkai" / "sidecars" / "panel" / "chat_board.html"
+    if gemini_plugin_mirror.parent.exists():
+        try:
+            gemini_plugin_mirror.write_text(html_content, encoding="utf-8")
+        except Exception:
+            pass
+
+    # Mirror to TheKlangSuite and Vault ui_ux paths
+    extra_mirrors = [
+        Path(r"c:\Dev\TheKlangSuite\.agents\sidecar\chat_board.html"),
+        Path(r"c:\Dev\TheKlangVault\Research\ui_ux\chat_board.html"),
+        Path(r"c:\_\Vault\New Klang City\Research\ui_ux\chat_board.html"),
+    ]
+    for em in extra_mirrors:
+        if em.parent.exists():
+            try:
+                em.write_text(html_content, encoding="utf-8")
+            except Exception:
+                pass
 
     # Mirror to brain artifacts directory
     if "CONVERSATION_ID" in os.environ:

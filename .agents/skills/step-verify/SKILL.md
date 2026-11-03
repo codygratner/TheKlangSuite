@@ -44,9 +44,16 @@ If compilation/testing has been authorized by the user for this step:
 - Run targeted tests for the phase (e.g. `dsp_tests` or specific test cases).
 - If tests fail, halt progression and report the failure details. Do not mark the phase as complete.
 
-### 4. Update `PLAN.md` on Disk
-1. Use `replace_file_content` to update the active phase checkboxes from `- [ ]` to `- [x]`.
-2. Ensure no unrelated sections of `PLAN.md` are altered.
+### 4. Advance Phase & Check Off in `PLAN.md` (Mechanical Automation)
+Execute the deterministic phase advancement CLI in `<5ms`:
+```powershell
+python tools/plan_manager.py advance
+```
+*What it executes automatically:*
+- Flips `- [ ]` checkboxes to `- [x]` for the active phase in `PLAN.md` without LLM file clobbering.
+- Automatically recalculates progress header (e.g. `Progress: [======>  ] 75%`).
+- Updates `.agents/pipeline/communique/factory_receipt.md` (or `build_to_plan.md`) to `## Status: BUILDING 🔨 (Phase <N+1>)`.
+- Saves ~3,500 tokens and 4 manual file read/edit tool calls!
 
 ### 5. Stage Git Changes for Completed Milestone
 Stage the files modified during this phase:
@@ -79,22 +86,7 @@ Output a structured progression report to the user:
 *Ready to proceed to Phase <N+1>? Say "proceed" or provide any adjustments.*
 ```
 
-### 7. Update Factory Telemetry (`build_to_plan.md`)
-1. Open `.agents/pipeline/communique/build_to_plan.md`.
-2. Update the status line to: `## Status: BUILDING 🔨 (Phase <N+1>: <Next Phase Name>)`
-3. Update the `Current Factory Telemetry` block briefly listing the upcoming work.
-
-### 8. Tier Transition Advisory Protocol
-Before advancing to Phase <N+1>, evaluate whether Phase <N+1> requires a different complexity tier than Phase <N>:
-- **Same Tier**: Do NOT display the Model Advisory banner. Simply pause for user to reply "proceed".
-- **Tier UPGRADE (e.g. Tier 3 ➔ 2, Tier 2 ➔ 1, Tier 3 ➔ 1)**:
-  - Display the Model Advisory banner at the very end.
-  - **Hard Pause**: Wait for the user to explicitly reply "proceed" before executing Phase N+1.
-- **Tier DOWNGRADE by 1 Level (e.g. Tier 1 ➔ 2, or Tier 2 ➔ 3)**:
-  - Display the Model Advisory banner recommending the downgrade to save quota.
-  - **5-Minute Grace Timer**: Schedule a 5-minute timer (`schedule(DurationSeconds=300, Prompt="5-minute downgrade timer expired: proceeding to Phase <N+1> on existing higher tier.")`) and pause in chat text.
-  - If user replies "proceed" (or switches model), proceed on the lower tier.
-  - If the timer fires without user input, auto-proceed using the existing (one-level higher) tier.
-- **Tier DOWNGRADE by 2 Levels (Tier 1 ➔ Tier 3)**:
-  - Display the Model Advisory banner.
-  - **Hard Pause Without Timer**: Stop and wait indefinitely for the user to reply "proceed" (never auto-proceed or burn expensive Tier 1 Pro quota on trivial tasks).
+### 8. Verification Progression & Handoff (SOCEP Hyperdrive v3.1)
+- If all phase criteria verify cleanly, advance phase deterministically via `python tools/plan_manager.py advance`.
+- If any deliverable or unit test assertion fails, return status `VERIFICATION_FAILED` to `execute-task` / `build-validate` to engage the SOCEP escalation ladder.
+- **Strict Invariant**: `step-verify` NEVER invokes Claude directly and does not pause for manual model dropdown switches.

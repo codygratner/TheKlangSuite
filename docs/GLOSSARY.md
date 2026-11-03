@@ -75,6 +75,8 @@ To prevent identity collisions across codebases, logging tags (`TKS_LOG`), asset
 | **`TKB`** | **The Klang Box** | Embedded Hardware | Standalone hardware synthesizer (Daisy Seed / Teensy 4.1 / dadamachines TBD-16). |
 | **`TKR`** | **The Klang R1** | Instrument Plugin | 7-voice Electribe ER-1 tribute rhythm synthesizer. |
 | **`TKC`** | **The Klang Cultivator** | Utility Plugin | Standalone MIDI CC / CV / MPE modulation generator rack. |
+| **`TKDSP`** | **The Klang DSP** | C++ DSP Engine | Platform-agnostic, header-only C++20 audio synthesis & FX engine implementing the Universal 16-Control Canon. |
+| **`KlangStudio`** | **KlangStudio** | Interface Studio | Dual-mode visual workbench (Continuous Vector Faceplate CAD + ToadTracker 320x240 Character Screen Studio). |
 
 > [!WARNING]
 > **Acronym Collision Guardrail**: No new plugin or spin-off product may adopt an acronym that collides with registered letters (`S`, `F`, `P`, `M`, `E`, `B`, `R`, `C`). `TKS` is strictly forbidden for individual plugins.
@@ -98,7 +100,9 @@ To prevent identity collisions across codebases, logging tags (`TKS_LOG`), asset
 | **`Targeted Opus DSP Swap Protocol`** | Model Governance | A human-in-the-loop surgical model switching workflow where the user pairs with Gemini 3.8 Flash High for 95% of daily engineering and temporarily swaps the IDE footer dropdown to `Claude 5.5 Opus (Thinking: High)` *strictly* when prompted by a Tier 1 Model Advisory banner for heavy C++ DSP algorithms or 2-strike factory escalations. | Codified in `GEMINI.md` to prevent "Ferrari in a traffic jam" token burn while guaranteeing frontier reasoning for real-time differential equations and SIMD FastMath. |
 | **`Mandatory Downgrade Chime`** | Quota Safeguard | A prominent completion banner (`🟢 TASK CONCLUDED: Downgrade to Flash High`) emitted immediately upon finishing a Tier 1 DSP phase or during `task-finish`. | Immunizes the user against the "Forgetful Downgrade Trap", preventing accidental burning of premium Opus allowance on routine documentation, JSON schemas, or CMake edits. |
 | **`Argon Reconvene Trigger`** | Roadmap Trigger | An architectural reconvene milestone event scheduled to fire when Google's **Gemini 4 Argon** reaches public General Availability in the IDE dropdown. | Formally initiates a head-to-head C++ audio DSP benchmark between Gemini 4 Argon and Claude 5.5 Opus High to determine the primary Tier 1 engine. |
-| **`Lean Chat Footer`** | Ambient Telemetry | A clean, single-line status footer providing direct 1-click side pane access via `[ 📬 Open N'kai Board ](sidecar://nkai/panel/)`, omitting legacy repetitive subagent labels while preserving the SemVer roadmap track. | Appended to active chat responses to provide 1-click sidecar opening without noisy visual clutter. |
+| **`Ambient Status Footer`** | Ambient Telemetry | The canonical 3-line status footer appended to chat responses, containing Line 1 (Focus), Line 2 (Navigation Pills), and Line 3 (Ecosystem versions: `TKS`, `TT`, `NK`, `PCDA`). | Codified in `Agent Rules/footer.md`, providing 1-click access to Mailbag, Agenda, Runway, Scratchpad, and Cheat Sheet. |
+| **`2-Tier Dialectic Standard`** | Review Protocol | Bounded dialectic standard separating routine advisory feedback from deep architectural crucible runs. | Tier 2: Ambient Micro-PCDA (<125 words: Upside, Blind Spot, 80/20 Verdict) for informal questions; Tier 1: Heavy Crucible PCDA (4-part Hegelian scaffold + Epistemic Grounding) for `/pcda`. |
+| **`Context Lifecycle Suite`** | Memory & Planning | The unified context management trinity (`context-harvest`, `context-clear`, `context-bundle`). | `context-harvest` saves chat achievements to disk; `context-clear` wipes transcript to 0 tokens; `context-bundle` compiles code snapshots for external Gemini Web planning. |
 
 > [!TIP]
 > **PCDA Conversational Format**: When the user requests a "PCDA" on any topic, agents format the response systematically:
@@ -375,9 +379,10 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
 
 * **Web Access State Machine**: The 4-tier security lattice governing external HTTP calls (`search_web`, `read_url_content`, `curl`) to protect privacy and token economics while eliminating prompt fatigue: `RESTRICTED` (default lock), `QUERY_ONLY` (1-shot), `SKILL_SESSION` (active skill/research duration), and `GLOBAL_TEMPORARY` (full context window).
 * **Heavy / Aggressive PCDA Auto-Elevation**: The explicit conversational trigger rule where user requests for "heavy", "aggressive", "deep", or "strongest" PCDAs, dialectics, or audits automatically elevate web access to `SKILL_SESSION` for that sprint without pausing for interactive confirmation, while continuing to emit the mandatory `[ 🌐 Web Access: ACTIVE (SKILL_SESSION) ]` security footer.
-* **Dual-Track Dispatch Contract**: The environmental boundary separating native IDE execution from mobile web triage:
-  1. *Native AGY Extension (`sidecar://nkai/panel`)*: Uses Native Zero-Copy IPC (`window.sidecar.agent.sendMessage`) to trigger the active workspace agent immediately.
-  2. *External Web & Mobile (`nkai_serve.py`, port 3030)*: Runs inside a standard browser sandbox where IDE IPC is unavailable; automatically falls back to HTTP `/api/action` logging to the inter-project data bus (`tools/bus.py` in `Dispatches/`) and clipboard banner for 0-token passive safety.
+* **Tri-Track Dispatch Contract**: The environmental boundary separating native IDE execution, mobile web triage, and direct language server streaming:
+  1. *Track 1: Direct ConnectRPC Bridge (`#chat`)*: Zero-friction bidirectional streaming connection directly to `language_server.exe:58110` with sub-20ms local transcript extraction and Pydantic v2 data contracts.
+  2. *Track 2: Native AGY Extension (`sidecar://nkai/panel`)*: Uses Native Zero-Copy IPC (`window.sidecar.agent.sendMessage`) to trigger the active workspace agent immediately.
+  3. *Track 3: External Web & Mobile (`nkai_serve.py`, port 3030)*: Runs inside a standard browser sandbox where IDE IPC is unavailable; automatically falls back to HTTP `/api/action` logging to the inter-project data bus (`tools/bus.py` in `Dispatches/`) and clipboard banner for 0-token passive safety.
 
 ---
 
@@ -416,3 +421,54 @@ To eliminate token bloat, maintenance rot, and synchronization drift caused by p
      - *Planning Trigger*: `"unfurl the star-maps"` (initiates high-level architectural or campaign planning).
      - *Research Trigger*: `"align the void-lenses"` (initiates deep research, RFC synthesis, or dialectical inquiry).
      - *Execution Trigger*: `"make it so"` (authorizes macro execution, system realignment, or bus dispatches).
+
+---
+
+## 38. The 4-Axis Skill Modifier Taxonomy Canon
+
+The sovereign orthogonal taxonomy standardizing all skill and prompt modifiers across the ecosystem into four non-overlapping dimensions:
+
+$$\mathbf{\text{Execution Profile}} = \mathbf{\text{Scale (Depth)}} \times \mathbf{\text{Stance (Rigor)}} \times \mathbf{\text{Perimeter (Network)}} \times \mathbf{\text{Surface (Output)}}$$
+
+* **Axis 1: Scale & Depth (Execution Budget)**:
+  * **`light`** *(micro, quick, lean)*: Main orchestrator only (0 subagents), fast single-turn execution, $<150\text{ words}$ (e.g. 3-bullet check).
+  * **`standard`** *(default)*: Normal single-file or routine task flow, $250 - 600\text{ words}$.
+  * **`deep`** *(exhaustive, full)*: Multi-file/multi-repo cross-referencing, autonomous subagents authorized (Flash Tiered or Pro), $1,000+\text{ words}$ or durable disk report.
+  * **`heavy`** *(computational weight)*: Specifically reserved for high-burden mathematical DSP proofs, polyphonic benchmark torture suites (`dsp-bench`), or lock-free concurrency audits (`audiothread-guard`).
+* **Axis 2: Stance & Dialectic Rigor (Cognitive Lens)**:
+  * **`standard`** *(default)*: Constructive problem-solving, implementation velocity.
+  * **`crucible`** *(adversarial, stress-test, devils-advocate)*: Method B Hegelian Inquisitor actively challenging baseline premises with mandatory "Where I Disagree", "6-Month Failure Mode", 4-part collapsible drawers, and an Epistemic Grounding Ledger (`[Verified: ...]` vs `⚠️ [Unverified: ...]`). *Not a depth level—it is an adversarial stance applicable to any scale.*
+* **Axis 3: Perimeter & Connectivity (Data Boundary)**:
+  * **`online`** *(web, fetch)*: Web search enabled (`search_web`, `read_url_content`) for live docs, GitHub, and forums.
+  * **`offline`** *(airgap, local, no-web)*: Strict zero external network access. Restricted exclusively to local disk: `The Cosmic Codex` (`C:\_\Vault`), local code (`C:\Dev\TheKlangSuite`), offline gear manuals in `Synth Lab/`, and local SQLite FTS5 indexes (`codex-search`, `m8_corpus.db`). Guaranteed sovereign privacy.
+* **Axis 4: Surface & Medium (Presentation Layer)**:
+  * **`chat`** *(default)*: Clean Markdown rendered directly in the chat feed. Zero HTML sidecars.
+  * **`board`** *(artifact, sidecar, html)*: Generates a standalone interactive Neo-Slate HTML board in the side-panel webview (e.g. `crucible_board.html`, `research_board.html`).
+* **5. The Hammer Suite (Ultra-Heavy Composite Overdrive)**:
+  * *Aliases*: `the hammer`, `hammer`, `--hammer`, `sledge hammer`, `sledgehammer`, `hammer smashed face`, `chainsaw`, `insane`, `overdrive`, `brutal`.
+  * *Definition*: The shorthand composite trigger vocabulary that instantly authorizes the absolute heaviest, most rigorous execution profile across all four axes simultaneously:
+    $$\mathbf{The\ Hammer} \equiv \mathbf{Scale: deep/heavy} \times \mathbf{Stance: crucible} \times \mathbf{Perimeter: online} \times \mathbf{Surface: board}$$
+  * *Protocol*: Automatically spawns parallel research/diagnostic subagent swarms (Pro Tier 1 + Flash Tier 2), enables extended thinking, enforces the unsparing 4-lens PCDA matrix (Premortem, Contrarian, Devil's Advocate, Alien/Formal) + Epistemic Grounding Ledger (`[Verified: ...]` vs `⚠️ [Unverified: ...]`), delivers file-first directly to disk, and executes deterministic multi-tier verification gates.
+
+
+---
+
+## 39. The Zen 5-Pillar Architecture & ClockTab Focus Deck
+
+* **Zen SPA Paradigm**: N'kai's minimalist single-canvas single-page application (SPA) topology that eliminates clunky multi-pane splitters, frame pooling, and nested dropdowns in favor of five unified, high-performance pillars with smooth View Transitions (`document.startViewTransition`) and zero layout thrashing.
+* **The 5 Core Pillars (Strict Priority Order)**:
+  1. **📊 Pillar 1: Telemetry & ClockTab Focus Deck (`#telemetry`)**: Giant tabular digital clock (12h/24h toggle, pulsing colons, optional seconds, live date), dynamic browser tab title time sync (`HH:MM • N'kai`), rolling 5-hour allowance reset countdown and weekly quota countdown pills, Pomodoro focus sprint timer (25m focus, 50m deep sprint, stopwatch + Web Audio chime alerts), and embedded studio scratchpad with 1-click push to `SCRATCHPAD.md` via `/api/sp/append`.
+  2. **💬 Pillar 2: Sentry Chat & Direct Antigravity Intercom (`#chat`)**: Direct ConnectRPC over HTTPS to `language_server.exe` (`127.0.0.1:58110`), sub-12ms CSRF token discovery, Pydantic v2 data contract layer, pinned chat swapper (`🎲 The Game Room`, `🔥🏗️ Klang Industries`), sub-20ms local transcript extraction, and permanent latching of `🌌 The Astral Abyss` as index 0 default.
+  3. **🎛️ Pillar 3: Synth News Feed (`#news`)**: Curated audio DSP, synthesizer release, and tracker intelligence feed.
+  4. **🧭 Pillar 4: Agenda Deck (`#agenda`)**: Living cross-pillar delivery horizon, active flight paths, and Inter-Project Data Bus dispatch status.
+  5. **📬 Pillar 5: Morning Mailbag (`#mail`)**: Stream-of-consciousness triage, quick-capture input bar, overflow splitting, and in-card response drawers.
+* **Windows 11 System Tray & Daemon Supervisor (`tools/nkai_tray.py` + `tools/nkai_serve.py`)**: Dynamic 16x16 / 32x32 4-quadrant pixel icon showing real-time health, quota, and daemon activity, Win32 Named Mutex single-instance latching (`Local\NkaiTraySingleInstanceMutex`), and right-click menu mapped directly to the 5 Core Pillars.
+
+---
+
+## 40. The Direct Antigravity Bridge & Autonomous Binary Autopsy Engine
+
+* **Direct Antigravity Bridge (`tools/agy_bridge.py`)**: The low-latency Python/HTTPS client connecting N'kai directly to Google Antigravity's core background daemon (`language_server.exe` on port dynamic, e.g. `58110`). Discovers active port via TCP socket scan and extracts CSRF tokens from the unauthenticated root HTML inspection frame in <12ms, enabling web and mobile pair-programming directly with the desktop agent.
+* **Pydantic v2 Contract Layer (`tools/agy_models.py`)**: Rust-backed Pydantic v2 data models enforcing strict schema contracts (`AgyConversation`, `AgyMessage`, `AgySendPayload`, `AgyHealthStatus`) for all ConnectRPC communication, eliminating schema drift and parse failures.
+* **Autonomous Binary Autopsy Engine (`tools/agy_autopsy.py`)**: The PE binary tomography scanner that parses `language_server.exe` to extract all 358 ConnectRPC method symbols in <500ms. Validates contract integrity against upstream updates, detects breaking protocol mutations, triggers automated self-healing, and emits immutable release receipts (`AGY_AUTOPSY_RECEIPT.json`).
+* **The Astral Abyss Sovereign HQ Latch**: The permanent configuration invariant pinning `🌌 The Astral Abyss` (`6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41`) at Index 0 as the default active conversation across all N'kai chat interfaces, complete with dedicated Sovereign HQ banner and sub-20ms local transcript hydration.

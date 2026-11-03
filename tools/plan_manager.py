@@ -9,6 +9,8 @@ Part of the Zero-Token Mechanical Automation Suite (Flight 3).
 """
 
 import argparse
+import datetime
+import shutil
 import json
 import os
 import re
@@ -143,6 +145,103 @@ def update_receipt_status(receipt_paths: List[Path], new_status: str, active_not
                 p.write_text(updated, encoding="utf-8")
         except Exception as e:
             print(f"⚠️ Failed to update receipt {p.name}: {e}", file=sys.stderr)
+
+
+
+def detect_target_plugin(content: str) -> str:
+    """Detects the active plugin target from PLAN.md or communique text."""
+    known_plugins = ["hastur", "farmer", "planter", "formless", "shard", "crucible", "toadtracker", "mme"]
+    content_lower = content.lower()
+    for p in known_plugins:
+        if p in content_lower:
+            return p
+    return "hastur"
+
+
+def generate_symbol_slice(plugin_name: str, plan_path: Path) -> Optional[Path]:
+    """Generates a compact symbol and line-number map for the active plugin (<50ms)."""
+    tks_root = Path(r"C:\Dev\TheKlangSuite")
+    code_root = tks_root if tks_root.exists() and not (REPO_ROOT / "source").exists() else REPO_ROOT
+    src_dir = code_root / "source" / plugin_name
+    if not src_dir.exists():
+        src_dir = code_root / "source"
+
+    slice_lines = [
+        f"# 🧭 RepoGraph Symbol Slice: {plugin_name.upper()}",
+        f"**Generated**: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  ",
+        f"**Target Directory**: `{src_dir.relative_to(code_root)}`  ",
+        "",
+        "## 📍 Core Lifecycle & UI Method Line Map",
+        "| File | Method | Line | Definition Snippet |",
+        "| :--- | :--- | :---: | :--- |",
+    ]
+
+    target_methods = [
+        "createParameterLayout", "setupControls", "resized", "paint",
+        "paintCanvas", "layoutControls", "processBlock", "prepareToPlay"
+    ]
+
+    # Scan .cpp and .h files
+    for p in sorted(src_dir.glob("*")):
+        if p.suffix in [".cpp", ".h"]:
+            try:
+                lines = p.read_text(encoding="utf-8", errors="ignore").splitlines()
+                for i, line in enumerate(lines, 1):
+                    for m in target_methods:
+                        if re.search(r"\b" + m + r"\s*\(", line):
+                            clean_snip = line.strip().replace("|", "\\|")[:70]
+                            slice_lines.append(f"| `{p.name}` | `{m}()` | `{i}` | `{clean_snip}` |")
+            except Exception:
+                pass
+
+    # Read APVTS parameter IDs from contracts/<plugin>.yaml
+    contract_file = code_root / "contracts" / f"{plugin_name}.yaml"
+    if contract_file.exists():
+        try:
+            import yaml
+            cdata = yaml.safe_load(contract_file.read_text(encoding="utf-8"))
+            params = cdata.get("parameters", [])
+            slice_lines.extend([
+                "",
+                f"## 🎛️ SSoT APVTS Parameters ({len(params)} Registered in `{contract_file.name}`)",
+                "| Parameter ID | Name | Type | Range / Choices |",
+                "| :--- | :--- | :---: | :--- |",
+            ])
+            for param in params:
+                pid = param.get("id", "")
+                pname = param.get("name", "")
+                ptype = param.get("type", "float")
+                prange = param.get("range", param.get("choices", ""))
+                slice_lines.append(f"| `{pid}` | {pname} | `{ptype}` | `{prange}` |")
+        except Exception:
+            pass
+
+    # Write output to .agents/scratch/active_symbol_slice.md
+    out_dir = REPO_ROOT / ".agents" / "scratch"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / "active_symbol_slice.md"
+    out_file.write_text("\n".join(slice_lines) + "\n", encoding="utf-8")
+    return out_file
+
+
+def query_expel_lessons(plugin_name: str) -> List[str]:
+    """Queries .agents/pipeline/experiential_lessons.jsonl for past lessons on this plugin."""
+    lessons_file = REPO_ROOT / ".agents" / "pipeline" / "experiential_lessons.jsonl"
+    if not lessons_file.exists():
+        return []
+    matches = []
+    try:
+        lines = lessons_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+        for line in lines:
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            p = rec.get("plugin", "").lower()
+            if p == plugin_name.lower() or p == "general":
+                matches.append(rec.get("lesson", ""))
+    except Exception:
+        pass
+    return matches
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -404,6 +503,143 @@ def cmd_advance(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ingest(args: argparse.Namespace) -> int:
+    """Ingests a plan from factory dispatch and sets status to IN_PROGRESS."""
+    cdir = get_communique_dir()
+    dispatch_paths = [cdir / "factory_dispatch.md", cdir / "plan_to_build.md"]
+    receipt_paths = [cdir / "factory_receipt.md", cdir / "build_to_plan.md"]
+
+    found = False
+    for dp in dispatch_paths:
+        if dp.exists():
+            content = dp.read_text(encoding="utf-8")
+            if re.search(r"Status:\s*(?:READY_FOR_EXECUTION|PLAN_AMENDED)", content, re.IGNORECASE):
+                updated = re.sub(
+                    r"Status:\s*[^\n]+",
+                    "Status: IN_PROGRESS",
+                    content,
+                    count=1,
+                    flags=re.IGNORECASE,
+                )
+                if not args.dry_run:
+                    dp.write_text(updated, encoding="utf-8")
+                print(f"📬 Ingested contract from {dp.name} -> Status: IN_PROGRESS")
+                found = True
+                break
+
+    if not found:
+        print("ℹ️ No pending dispatch contract found (already in progress or completed).")
+
+    update_receipt_status(receipt_paths, "BUILDING 🔨 (Phase 1)", "Ingested blueprint; executing Phase 1.", dry_run=args.dry_run)
+
+    # 1. RepoGraph Symbol Slicer (<50ms)
+    plan_path = Path(args.plan)
+    plan_content = plan_path.read_text(encoding="utf-8") if plan_path.exists() else ""
+    target_plugin = detect_target_plugin(plan_content)
+    slice_path = generate_symbol_slice(target_plugin, plan_path)
+    if slice_path and slice_path.exists():
+        print(f"🧭 RepoGraph Slice Ready: .agents/scratch/active_symbol_slice.md (Zero-Grep Fast Path)")
+
+    # 2. ExpeL Past Pitfalls Surface
+    past_lessons = query_expel_lessons(target_plugin)
+    if past_lessons:
+        print(f"⚠️ [ExpeL Memory] Past pitfalls surfaced for '{target_plugin}':")
+        for lesson in past_lessons[-3:]:
+            print(f"   • {lesson}")
+
+    return 0
+
+
+def cmd_finish(args: argparse.Namespace) -> int:
+    """Verifies all phases are complete, archives PLAN.md, and updates receipts to COMPLETED."""
+    import datetime
+    import shutil
+
+    plan_path = Path(args.plan)
+    if not plan_path.exists():
+        print(f"❌ Error: PLAN.md not found at {plan_path}", file=sys.stderr)
+        return 1
+
+    content = plan_path.read_text(encoding="utf-8")
+    _, sections, _ = parse_plan_sections(content)
+
+    incomplete = [s["full_title"] for s in sections if not s["is_complete"]]
+    if incomplete and not args.force:
+        print("❌ Cannot finish task! Incomplete phases remain:", file=sys.stderr)
+        for s in incomplete:
+            print(f"   • {s}", file=sys.stderr)
+        print("Use --force to archive anyway.", file=sys.stderr)
+        return 1
+
+    # Derive slug
+    slug = args.slug
+    if not slug:
+        m = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
+        if m:
+            raw_title = m.group(1).strip()
+            slug = re.sub(r"[^a-zA-Z0-9_-]+", "_", raw_title).strip("_").lower()
+        else:
+            slug = "completed_plan"
+
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    archive_dir = REPO_ROOT / ".agents" / "pipeline" / "plans" / "completed"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    archive_file = archive_dir / f"{today}_{slug}.md"
+
+    # ExpeL Autonomous Pitfall Harvest
+    if getattr(args, "lesson", None):
+        lesson_str = args.lesson.strip()
+        if lesson_str:
+            lessons_file = REPO_ROOT / ".agents" / "pipeline" / "experiential_lessons.jsonl"
+            lessons_file.parent.mkdir(parents=True, exist_ok=True)
+            record = {
+                "timestamp": datetime.datetime.now().isoformat(),
+                "plugin": slug.split("_")[0].lower() if slug else "general",
+                "lesson": lesson_str,
+                "slug": slug,
+            }
+            if ":" in lesson_str:
+                parts = lesson_str.split(":", 1)
+                record["plugin"] = parts[0].strip().lower()
+            if not args.dry_run:
+                with open(lessons_file, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                print(f"🧠 [ExpeL Harvest] Logged experiential lesson to: {lessons_file.relative_to(REPO_ROOT)}")
+            else:
+                print(f"🧠 [DRY-RUN] Would log experiential lesson: {record}")
+
+    if args.dry_run:
+        print(f"🔍 [DRY-RUN] Would archive PLAN.md -> {archive_file}")
+        print("🔍 [DRY-RUN] Would reset PLAN.md to idle")
+        print("🔍 [DRY-RUN] Would update receipts to COMPLETED ✅")
+        return 0
+
+    # Archive
+    shutil.copy2(plan_path, archive_file)
+    plan_path.write_text("# Implementation Plan\n\n*No active plan. Ready for next assignment from New Klang City.*\n", encoding="utf-8")
+
+    # Update receipts
+    receipt_paths = get_receipt_paths(content)
+    update_receipt_status(receipt_paths, "COMPLETE ✅", f"Archived plan to {archive_file.name}", dry_run=False)
+
+    # Update dispatches
+    cdir = get_communique_dir()
+    for dp in [cdir / "factory_dispatch.md", cdir / "plan_to_build.md"]:
+        if dp.exists():
+            try:
+                raw_d = dp.read_text(encoding="utf-8")
+                raw_d = re.sub(r"Status:\s*[^\n]+", "Status: COMPLETED", raw_d, count=1, flags=re.IGNORECASE)
+                dp.write_text(raw_d, encoding="utf-8")
+            except Exception as e:
+                print(f"⚠️ Failed to update dispatch {dp.name}: {e}", file=sys.stderr)
+
+    print("🎉 Task Successfully Completed & Archived!")
+    print(f"   • Archived to: {archive_file.relative_to(REPO_ROOT)}")
+    print(f"   • Reset root PLAN.md")
+    print(f"   • Updated dispatch and receipts to COMPLETED ✅")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="📋 1-Command Phase Advancement & Telemetry for PLAN.md (Zero-Token Mechanical Clerk)"
@@ -435,6 +671,17 @@ def main() -> int:
     parser_advance = subparsers.add_parser("advance", help="Check off active phase and advance to next phase")
     parser_advance.add_argument("--dry-run", action="store_true", help="Show what would be advanced without writing")
 
+    # Subcommand: ingest
+    parser_ingest = subparsers.add_parser("ingest", help="Ingest plan from communiqué dispatch and set status to IN_PROGRESS")
+    parser_ingest.add_argument("--dry-run", action="store_true", help="Show what would be ingested without writing")
+
+    # Subcommand: finish
+    parser_finish = subparsers.add_parser("finish", help="Archive completed plan and update receipts to COMPLETED")
+    parser_finish.add_argument("--slug", type=str, help="Custom archive filename slug (defaults to title)")
+    parser_finish.add_argument("--force", "-f", action="store_true", help="Force archive even if incomplete phases remain")
+    parser_finish.add_argument("--dry-run", action="store_true", help="Simulate archival without touching disk")
+    parser_finish.add_argument("--lesson", type=str, default=None, help="ExpeL experiential lesson learned ('<plugin>:<comp> | <symptom> -> <fix>')")
+
     args = parser.parse_args()
 
     if args.command == "status":
@@ -445,6 +692,10 @@ def main() -> int:
         return cmd_uncheck(args)
     elif args.command == "advance":
         return cmd_advance(args)
+    elif args.command == "ingest":
+        return cmd_ingest(args)
+    elif args.command == "finish":
+        return cmd_finish(args)
 
     return 0
 

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "default_board_id": "morning_mail",
-  "active_lab_id": null,
+  "active_lab_id": "fx_and_osc",
   "staged_labs": [],
   "boards": [
     {
@@ -12,8 +12,8 @@
       "board_type": "evergreen",
       "file_path": ".agents/sidecar/morning_mail_inbox.html",
       "environment": "PRODUCTION",
-      "card_count": 0,
-      "updated_at": "2026-10-11T20:00:00"
+      "card_count": 105,
+      "updated_at": "2026-10-24T05:52:56.317261"
     },
     {
       "id": "runway",
@@ -23,8 +23,8 @@
       "board_type": "evergreen",
       "file_path": ".agents/sidecar/runway_board.html",
       "environment": "PRODUCTION",
-      "card_count": 39,
-      "updated_at": "2026-10-13T00:27:04.095275"
+      "card_count": 41,
+      "updated_at": "2026-10-14T06:20:13.231950"
     },
     {
       "id": "system_sanity_audit",
@@ -32,7 +32,7 @@
       "description": "Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory",
       "category": "archived",
       "board_type": "lab",
-      "file_path": ".agents/sidecar/audit_triage_board.html",
+      "file_path": ".agents/sidecar/archives/2026-10-12_system_sanity_audit.html",
       "environment": "PRODUCTION",
       "card_count": 12,
       "updated_at": "2026-10-12T13:13:13"
@@ -45,30 +45,63 @@
       "board_type": "custom",
       "file_path": ".agents/sidecar/sandbox_mail_inbox.html",
       "environment": "SANDBOX",
-      "card_count": 7,
-      "updated_at": "2026-10-11T20:00:00"
+      "card_count": 8,
+      "updated_at": "2026-10-16T05:53:23.577462"
     },
     {
       "id": "tackle_first",
-      "title": "\ud83c\udf0c What Would You Like to Tackle First?",
+      "title": "🌌 What Would You Like to Tackle First?",
       "description": "Cosmic Codex Priority Radar: Interactive triage for Google Drive, Vault Ingestion & Active Flights",
-      "category": "active",
+      "category": "archived",
       "board_type": "custom",
-      "file_path": ".agents/sidecar/tackle_first_board.html",
+      "file_path": ".agents/sidecar/archives/2026-10-12_tackle_first_board.html",
       "environment": "PRODUCTION",
       "card_count": 6,
       "updated_at": "2026-10-12T20:01:26.093404"
     },
     {
       "id": "chat",
-      "title": "\ud83d\udcac Agent Chat & Live Intercom",
+      "title": "💬 Agent Chat & Live Intercom",
       "description": "Real-time conversation feed, tool execution telemetry, and mobile prompt dispatch",
       "category": "active",
       "board_type": "evergreen",
       "file_path": ".agents/sidecar/chat_board.html",
       "environment": "PRODUCTION",
       "card_count": 1,
-      "updated_at": "2026-10-13T06:24:53.836139"
+      "updated_at": "2026-10-19T05:51:06.020279"
+    },
+    {
+      "id": "fx_and_osc",
+      "title": "🎛️ The Big FX & OSC Board",
+      "description": "Hardware visualizer & audio-thread safe catalog across 39 sound engines & expanded FX",
+      "category": "active",
+      "board_type": "lab",
+      "file_path": ".agents/sidecar/fx_and_osc_board.html",
+      "environment": "PRODUCTION",
+      "card_count": 39,
+      "updated_at": "2026-10-13T13:47:00"
+    },
+    {
+      "id": "synth_news",
+      "title": "Synth News & Hardware Radar",
+      "description": "Continuous surveillance across 7 synth publications cross-referenced with The Cosmic Codex gear lexicon",
+      "category": "active",
+      "board_type": "evergreen",
+      "file_path": ".agents/sidecar/synth_news_board.html",
+      "environment": "PRODUCTION",
+      "card_count": 38,
+      "updated_at": "2026-10-19T22:30:00"
+    },
+    {
+      "id": "telemetry",
+      "title": "AGY System and Model Telemetry",
+      "description": "Real-time ConnectRPC model allowances, transcript lifecycle, process footprint, and network latency",
+      "category": "active",
+      "board_type": "evergreen",
+      "file_path": ".agents/sidecar/telemetry_board.html",
+      "environment": "PRODUCTION",
+      "card_count": 5,
+      "updated_at": "2026-10-24T00:30:00"
     }
   ]
 }

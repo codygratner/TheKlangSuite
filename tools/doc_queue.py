@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Deep Docs Queue Manager (Flight 15 / Topic 6.11)
+Deep Docs Queue Manager (Flight 15 / Topic 6.11 / Deep-Docs 2.0)
 Manages the staging queue for deep technical research papers, guides, and autopsies.
+Supports P0 STALE_DRIFT priority elevation from AST drift detection.
 """
 
 from datetime import datetime
@@ -65,6 +66,50 @@ def queue_deep_doc(
     return item
 
 
+def bump_or_enqueue_stale(
+    target_file: str,
+    title: str = "",
+    reason: str = "AST body-hash or symbol drift detected",
+    queue_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """Elevates an existing doc to P0 STALE_DRIFT or enqueues a new item if not found."""
+    data = load_doc_queue(queue_path)
+    queue: List[Dict[str, Any]] = data.get("queue", [])
+
+    norm_target = target_file.replace("\\", "/").strip().lower()
+
+    # Search existing queue
+    for item in queue:
+        existing_target = item.get("target_file", "").replace("\\", "/").strip().lower()
+        if existing_target == norm_target or existing_target.endswith(norm_target) or norm_target.endswith(existing_target):
+            item["status"] = "STALE_DRIFT"
+            item["priority"] = "P0"
+            item["reason"] = reason
+            item["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            if title and (not item.get("title") or item["title"] == "Untitled"):
+                item["title"] = title
+            save_doc_queue(data, queue_path)
+            return item
+
+    # If not found, enqueue fresh item
+    doc_id = f"doc-{len(queue) + 1:02d}"
+    item = {
+        "id": doc_id,
+        "title": title or Path(target_file).stem.replace("_", " ").title(),
+        "audience": "Developers & Musicians",
+        "target_file": target_file.replace("\\", "/"),
+        "status": "STALE_DRIFT",
+        "priority": "P0",
+        "reason": reason,
+        "created_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "updated_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    queue.append(item)
+    data["queue"] = queue
+    save_doc_queue(data, queue_path)
+    return item
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -81,6 +126,12 @@ if __name__ == "__main__":
     add_parser.add_argument("--audience", default="Developers & Musicians", help="Target audience")
     add_parser.add_argument("--priority", default="P1", help="Priority (e.g. P0, P1, P2)")
 
+    # bump
+    bump_parser = subparsers.add_parser("bump", help="Bump or enqueue a stale document with P0 priority")
+    bump_parser.add_argument("--target", required=True, help="Target file path")
+    bump_parser.add_argument("--title", default="", help="Title of the document")
+    bump_parser.add_argument("--reason", default="AST drift detected", help="Reason for stale classification")
+
     args = parser.parse_args()
 
     if args.command == "add":
@@ -91,10 +142,18 @@ if __name__ == "__main__":
             priority=args.priority,
         )
         print(f"Added [{item['id']}] '{item['title']}' -> {item['target_file']}")
+    elif args.command == "bump":
+        item = bump_or_enqueue_stale(
+            target_file=args.target,
+            title=args.title,
+            reason=args.reason
+        )
+        print(f"Bumped/Enqueued [{item['id']}] '{item['title']}' -> {item['target_file']} (P0: STALE_DRIFT)")
     else:
         q = load_doc_queue()
         items = q.get("queue", [])
         print(f"Deep Docs Queue ({len(items)} items queued):")
         for it in items:
-            print(f"  [{it['id']}] ({it.get('priority', 'P1')}) {it['title']} -> {it['target_file']} ({it.get('status', 'QUEUED')})")
-
+            prio = it.get("priority", "P1")
+            stat = it.get("status", "QUEUED")
+            print(f"  [{it['id']}] ({prio}) {it['title']} -> {it['target_file']} ({stat})")

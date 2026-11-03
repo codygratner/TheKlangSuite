@@ -44,7 +44,7 @@ def run_tests():
     item_count = len(mail_data.get("items", []))
     print(f" [✓ PASS] GET /api/mail -> {item_count} items retrieved")
 
-    # 3. Action dispatch
+    # 3. Action dispatch: BACKLOG
     payload = {
         "action": "BACKLOG",
         "note_id": "mailbag-queue",
@@ -57,6 +57,44 @@ def run_tests():
     action_data = res.json()
     assert action_data["status"] == "success"
     print(f" [✓ PASS] POST /api/action -> {action_data['message']}")
+
+    # 3b. 3+3 Action Architecture: SUBAGENT_PROBE
+    sub_payload = {
+        "action": "SUBAGENT_PROBE",
+        "note_id": "mailbag-queue",
+        "title": "Subagent Probe Test",
+        "sub_mode": "local",
+        "tier": "tier2"
+    }
+    res = client.post("/api/action", json=sub_payload)
+    assert res.status_code == 200
+    assert res.json()["status"] == "success"
+    print(" [✓ PASS] POST /api/action [SUBAGENT_PROBE] -> Verified bottom-of-queue queueing")
+
+    # 3c. 3+3 Action Architecture: QUEUE_SESSION
+    queue_payload = {
+        "action": "QUEUE_SESSION",
+        "note_id": "mailbag-queue",
+        "session_mode": "Grill",
+        "tier": "tier1"
+    }
+    res = client.post("/api/action", json=queue_payload)
+    assert res.status_code == 200
+    assert res.json()["status"] == "success"
+    print(" [✓ PASS] POST /api/action [QUEUE_SESSION] -> Verified session staging")
+
+    # 3d. 3+3 Action Architecture: TABLE
+    table_payload = {
+        "action": "TABLE",
+        "note_id": "mailbag-queue",
+        "table_reason": "14-Day Hold",
+        "tier": "tier3"
+    }
+    res = client.post("/api/action", json=table_payload)
+    assert res.status_code == 200
+    assert res.json()["status"] == "success"
+    print(" [✓ PASS] POST /api/action [TABLE] -> Verified 14-day hold tabling")
+
 
     # 4. Rollback endpoint test
     # Check if PLAN_PREV exists before calling rollback

@@ -25,10 +25,11 @@ Ingest architectural blueprints and signed dispatch contracts published by New K
      - Extract **Task Name**, **Active Milestone**, **Recommended Model Tier**, **Strategic Objective**, and **Directives**.
      - If `STATUS: PLAN_AMENDED`, highlight the amendment changelog prominently in the terminal.
      - Verify that [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) at root matches this task. If `PLAN.md` is empty or holds an older blueprint, synchronize the directives into `PLAN.md`.
-     - Update `.agents/pipeline/communique/factory_dispatch.md` setting:
-       `Status: IN_PROGRESS` (with timestamp).
-     - Update `.agents/pipeline/communique/factory_receipt.md` setting:
-       `## Status: BUILDING 🔨 (Phase 1: <Phase Name>)` (ensuring New Klang City has real-time factory telemetry).
+     - Execute automated contract ingestion CLI:
+       ```powershell
+       python tools/plan_manager.py ingest
+       ```
+       *(Automatically transitions dispatch to `IN_PROGRESS` and sets receipt to `BUILDING 🔨 (Phase 1)` in <5ms)*
      - Proceed directly to **Section 3 (Briefing & Model Gate)**.
    - **Case B: `STATUS: COMPLETED` or `STATUS: DRAFTING` (No Pending Dispatch)**:
      - Check [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) on disk.

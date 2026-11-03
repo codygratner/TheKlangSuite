@@ -27,6 +27,14 @@ if hasattr(sys.stderr, "reconfigure"):
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEV_ROOT = REPO_ROOT.parent
 
+try:
+    from tools.validate_js import lint_html
+except ImportError:
+    try:
+        from validate_js import lint_html
+    except ImportError:
+        lint_html = None
+
 # Repository roots
 ROOTS = {
     "TKS": REPO_ROOT,
@@ -76,6 +84,34 @@ DEFAULT_MAPPINGS = [
         "targets": [
             ("NKAI", "sidecars/panel/chat_board.html"),
             ("NKAI", "plugin/sidecars/panel/chat_board.html"),
+        ],
+    },
+    {
+        "id": "cockpit_shell",
+        "description": "N'kai Sovereign Cockpit Deck (Flight 24/25)",
+        "source": ("TKS", ".agents/sidecar/cockpit.html"),
+        "targets": [
+            ("NKAI", "sidecars/panel/cockpit.html"),
+            ("NKAI", "plugin/sidecars/panel/cockpit.html"),
+            ("NKAI", "bundle/templates/cockpit.html"),
+        ],
+    },
+    {
+        "id": "viewer_pillar",
+        "description": "N'kai Document Viewer & Scratchpad Pillar",
+        "source": ("TKS", ".agents/sidecar/viewer.html"),
+        "targets": [
+            ("NKAI", "sidecars/panel/viewer.html"),
+            ("NKAI", "plugin/sidecars/panel/viewer.html"),
+        ],
+    },
+    {
+        "id": "service_worker",
+        "description": "N'kai Sovereign Service Worker (Flight 25)",
+        "source": ("TKS", ".agents/sidecar/sw.js"),
+        "targets": [
+            ("NKAI", "sidecars/panel/sw.js"),
+            ("NKAI", "plugin/sidecars/panel/sw.js"),
         ],
     },
 ]
@@ -197,6 +233,12 @@ def sync_mappings(
             logs.append(f"⚠️ Source missing for '{item['id']}': {src_path}")
             skipped += len(item["targets"])
             continue
+
+        if lint_html and src_path.suffix.lower() == '.html':
+            if not lint_html(src_path):
+                logs.append(f"🛑 [JS-LINT-ERROR] Refusing to sync malformed HTML with syntax/bracket errors: {src_path}")
+                skipped += len(item["targets"])
+                continue
 
         for tgt in item["targets"]:
             if tgt["status"] == "IN_SYNC":

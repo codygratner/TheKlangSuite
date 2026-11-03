@@ -348,14 +348,13 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         }
     }
 
-    // 2. DCO Morph LFO Arc
+    // 2. DCO Morph LFO Arc (Bounded Headroom Shift Parity with HasturVoice.h:561)
     if (slider.getProperties().contains("morphLfoAmount")) {
         float lfoAmt = static_cast<float>(slider.getProperties().getWithDefault("morphLfoAmount", 0.0));
         if (lfoAmt > 0.001f) {
             float m = sliderPosProportional;
-            float halfSpan = lfoAmt * 0.5f;
-            float lo = std::clamp(m - halfSpan, 0.0f, 1.0f);
-            float hi = std::clamp(m + halfSpan, 0.0f, 1.0f);
+            float lo = std::clamp(m * (1.0f - lfoAmt), 0.0f, 1.0f);
+            float hi = std::clamp(m + lfoAmt * (1.0f - m), 0.0f, 1.0f);
 
             float arcStart = rotaryStartAngle + lo * sweep;
             float arcEnd   = rotaryStartAngle + hi * sweep;
@@ -370,14 +369,13 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         }
     }
 
-    // 3. Orbit LFO Arc
+    // 3. Orbit LFO Arc (Bounded Headroom Shift Parity with HasturVoice.h:605)
     if (slider.getProperties().contains("orbitLfoAmount")) {
         float lfoAmt = static_cast<float>(slider.getProperties().getWithDefault("orbitLfoAmount", 0.0));
         if (lfoAmt > 0.001f) {
             float k = sliderPosProportional;
-            float halfSpan = lfoAmt * 0.5f;
-            float lo = std::clamp(k - halfSpan, 0.0f, 1.0f);
-            float hi = std::clamp(k + halfSpan, 0.0f, 1.0f);
+            float lo = std::clamp(k * (1.0f - lfoAmt), 0.0f, 1.0f);
+            float hi = std::clamp(k + lfoAmt * (1.0f - k), 0.0f, 1.0f);
 
             float arcStart = rotaryStartAngle + lo * sweep;
             float arcEnd   = rotaryStartAngle + hi * sweep;
@@ -392,7 +390,7 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         }
     }
 
-    // 4. Master Volume AM X-Mod Arc
+    // 4. Master Volume AM X-Mod Arc (Bounded Headroom Shift)
     if (slider.getProperties().contains("amXModAmount")) {
         float amAmt = static_cast<float>(slider.getProperties().getWithDefault("amXModAmount", 0.0));
         if (std::abs(amAmt) > 0.001f) {
@@ -400,12 +398,11 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
             juce::Colour amCol = (amSrc == 2) ? HasturColours::kSub : HasturColours::kDco;
 
             float vNorm = sliderPosProportional;
-            float vAngle = rotaryStartAngle + vNorm * sweep;
-            float targetNorm = std::clamp(vNorm + amAmt, 0.0f, 1.0f);
-            float targetAngle = rotaryStartAngle + targetNorm * sweep;
+            float loNorm = std::clamp(vNorm * (1.0f - amAmt), 0.0f, 1.0f);
+            float hiNorm = std::clamp(vNorm + amAmt * (1.0f - vNorm), 0.0f, 1.0f);
 
-            float a1 = std::min(vAngle, targetAngle);
-            float a2 = std::max(vAngle, targetAngle);
+            float a1 = rotaryStartAngle + loNorm * sweep;
+            float a2 = rotaryStartAngle + hiNorm * sweep;
 
             juce::Path amArc;
             amArc.addCentredArc(centre.x, centre.y, radius - 1.5f, radius - 1.5f, 0.0f, a1, a2, true);
@@ -438,8 +435,8 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         int lfoDest = static_cast<int>(slider.getProperties().getWithDefault("cutoffLfoDest", 0));
         float lfoAmt = static_cast<float>(slider.getProperties().getWithDefault("cutoffLfoDepth", 0.0));
         if (lfoDest == 0 && lfoAmt > 0.001f) {
-            float loNorm = std::max(0.0f, kNorm - lfoAmt * 0.5f);
-            float hiNorm = std::min(1.0f, kNorm + lfoAmt * 0.5f);
+            float loNorm = std::clamp(kNorm * (1.0f - lfoAmt), 0.0f, 1.0f);
+            float hiNorm = std::clamp(kNorm + lfoAmt * (1.0f - kNorm), 0.0f, 1.0f);
             float a1 = rotaryStartAngle + loNorm * sweep;
             float a2 = rotaryStartAngle + hiNorm * sweep;
             if (a2 > a1 + 0.005f) {
@@ -453,7 +450,9 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         // Ring 3: Burble Depth (R = 38.0f)
         float burbleAmt = static_cast<float>(slider.getProperties().getWithDefault("cutoffBurbleDepth", 0.0));
         if (std::abs(burbleAmt) > 0.001f) {
-            float tgtNorm = std::clamp(kNorm + burbleAmt, 0.0f, 1.0f);
+            float tgtNorm = (burbleAmt >= 0.0f)
+                ? std::clamp(kNorm + burbleAmt * (1.0f - kNorm), 0.0f, 1.0f)
+                : std::clamp(kNorm + burbleAmt * kNorm, 0.0f, 1.0f);
             float aTgt = rotaryStartAngle + tgtNorm * sweep;
             float a1 = std::min(thetaK, aTgt);
             float a2 = std::max(thetaK, aTgt);
@@ -471,7 +470,9 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
             int fmSrc = static_cast<int>(slider.getProperties().getWithDefault("cutoffFmSource", 0));
             juce::Colour fmCol = (fmSrc == 2) ? HasturColours::kNoise : HasturColours::kDco;
 
-            float tgtNorm = std::clamp(kNorm + fmAmt, 0.0f, 1.0f);
+            float tgtNorm = (fmAmt >= 0.0f)
+                ? std::clamp(kNorm + fmAmt * (1.0f - kNorm), 0.0f, 1.0f)
+                : std::clamp(kNorm + fmAmt * kNorm, 0.0f, 1.0f);
             float aTgt = rotaryStartAngle + tgtNorm * sweep;
             float a1 = std::min(thetaK, aTgt);
             float a2 = std::max(thetaK, aTgt);

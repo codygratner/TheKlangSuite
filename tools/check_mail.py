@@ -183,19 +183,30 @@ def extract_note_metadata(file_path: Path):
         fm_text = fm_match.group(1)
         body = fm_match.group(2)
 
+        current_key = None
         for line in fm_text.splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
+            trimmed = line.strip()
+            if not trimmed or trimmed.startswith("#"):
                 continue
-            km = re.match(r"^([a-zA-Z0-9_\-\.]+)\s*:\s*(.*)$", line)
+            if trimmed.startswith("- ") and current_key:
+                val = trimmed[2:].strip().strip("'\"")
+                if isinstance(fm_dict.get(current_key), list):
+                    fm_dict[current_key].append(val)
+                else:
+                    fm_dict[current_key] = [val] if val else []
+                continue
+            km = re.match(r"^([a-zA-Z0-9_\-\.]+)\s*:\s*(.*)$", trimmed)
             if km:
                 k = km.group(1).lower()
+                current_key = k
                 v = km.group(2).strip().strip("'\"")
                 if v.startswith("[") and v.endswith("]"):
                     items = [x.strip().strip("'\"") for x in v[1:-1].split(",") if x.strip()]
                     fm_dict[k] = items
-                else:
+                elif v:
                     fm_dict[k] = v
+                else:
+                    fm_dict[k] = []
 
         if "title" in fm_dict and isinstance(fm_dict["title"], str):
             title = fm_dict["title"].strip()
@@ -342,6 +353,11 @@ def extract_note_metadata(file_path: Path):
     if not pillars:
         pillars = infer_pillars(title, tags, body)
 
+    has_domain_tag = any(t in [x.lower() for x in tags] for t in ["d", "dev", "factory", "p", "personal", "abyss", "life", "gear", "f", "forge", "tks", "tt", "nk", "tkr", "agy", "tbd-16"])
+    if not has_domain_tag and not (fm_dict.get("pillars") or fm_dict.get("pillar")):
+        if "untagged" not in tags:
+            tags.append("untagged")
+
     return {
         "id": file_path.stem,
         "file_name": file_path.name,
@@ -398,11 +414,60 @@ def scan_inbox(inbox_dir: Path):
     notes = []
     md_files = sorted(inbox_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
     for f in md_files:
-        if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD", "SCRATCHPAD.MD"]:
+        if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD", "SCRATCHPAD.MD", "HOUSEHOLD.MD"]:
             data = extract_note_metadata(f)
             if data:
                 notes.append(data)
     return notes
+
+
+def sweep_root_inbox_to_staging(base_dir: Path) -> list:
+    """
+    Sweeps loose markdown notes from base_dir into base_dir/Staging/,
+    injecting or normalizing YAML frontmatter (title, date, staged, priority, pillars, tags, status).
+    Preserves existing body content and ignores system/persistent files.
+    """
+    if not base_dir.exists():
+        return []
+
+    staging_dir = base_dir / "Staging"
+    staging_dir.mkdir(parents=True, exist_ok=True)
+
+    skip_names = {
+        "README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD",
+        "WELCOME_TO_THE_UNIVERSAL_INBOX.MD", "SCRATCHPAD.MD", "HOUSEHOLD.MD"
+    }
+
+    swept_files = []
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    for f in sorted(base_dir.glob("*.md"), key=lambda x: x.stat().st_mtime):
+        if not f.is_file() or f.name.startswith(".") or f.name.upper() in skip_names:
+            continue
+
+        try:
+            content = f.read_text(encoding="utf-8", errors="replace")
+            meta = extract_note_metadata(f) or {}
+
+            clean_title = meta.get("title") or f.stem.replace("_", " ")
+
+            # File creation/capture date
+            date_val = meta.get("date")
+            # Preserve minimal user content without forcing 8-line frontmatter bloat!
+            # If the file lacks YAML frontmatter entirely, add a minimal tags block
+            full_content = content
+            if not content.strip().startswith("---"):
+                full_content = f"---\ntags: []\n---\n\n{content.strip()}\n"
+
+            target_path = staging_dir / f.name
+            target_path.write_text(full_content, encoding="utf-8")
+            f.unlink()
+            swept_files.append(target_path)
+            print(f"📦 [SWEEP] Staged '{f.name}' -> Staging/{f.name}")
+        except Exception as e:
+            print(f"⚠️ [SWEEP] Could not sweep '{f.name}': {e}")
+
+    return swept_files
 
 
 def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
@@ -415,6 +480,9 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
         base_dir = inbox_dir.parent
     else:
         base_dir = inbox_dir
+
+    # Sweep loose root inbox notes into Staging/
+    sweep_root_inbox_to_staging(base_dir)
 
     tabled_dir = base_dir / "Tabled"
     staging_dir = base_dir / "Staging"
@@ -469,6 +537,7 @@ def scan_all_inbox_notes(inbox_dir: Path, scan_archive: bool = False) -> list:
     if base_dir.resolve() == DEFAULT_VAULT_INBOX.resolve():
         alt_inbox = Path(r"C:\Dev\TheKlangVault\Inbox")
         if alt_inbox.exists() and alt_inbox.resolve() != base_dir.resolve():
+            sweep_root_inbox_to_staging(alt_inbox)
             for n in scan_inbox(alt_inbox):
                 if n.get("id"):
                     notes_by_id[str(n["id"])] = n
@@ -622,14 +691,22 @@ def parse_docket_file(docket_path: Path, backlog_path: Path = None):
         sn_m = re.search(r"-\s*\*\*Source Note(?: / User Prompt)?:\*\*\s*(.+)", section_text)
         source_note = sn_m.group(1).strip() if sn_m else "Conversation & Vibe Coding"
 
-        # Extract clean excerpt
-        lines = [
-            line.strip()
-            for line in section_text.splitlines()
-            if line.strip() and not line.strip().startswith("#") and not line.strip().startswith("---")
-        ]
-        clean_lines = [re.sub(r"[*_`]", "", l) for l in lines]
-        excerpt = " ".join(clean_lines[:3])[:280] + ("..." if len(" ".join(clean_lines[:3])) > 280 else "")
+        # Extract executive pitch if explicitly present, else clean excerpt
+        pitch_m = re.search(r"-\s*\*\*Executive Pitch:\*\*\s*([^\n\r]+(?:\n[ \t]+[^\n\r]+)*)", section_text)
+        if pitch_m:
+            raw_pitch = pitch_m.group(1).strip()
+            excerpt = re.sub(r"[*_`]", "", raw_pitch)
+        else:
+            lines = [
+                line.strip()
+                for line in section_text.splitlines()
+                if line.strip() and not line.strip().startswith("#") and not line.strip().startswith("---")
+                and not re.match(r"^-\s*\*\*(?:Source Note|Tier|Priority|Pillars|Dependencies|Tags)", line.strip())
+            ]
+            clean_lines = [re.sub(r"[*_`]", "", l) for l in lines]
+            excerpt = " ".join(clean_lines[:3])[:280] + ("..." if len(" ".join(clean_lines[:3])) > 280 else "")
+            if not excerpt:
+                excerpt = " ".join([re.sub(r"[*_`]", "", l) for l in section_text.splitlines() if l.strip()][:3])[:280]
 
         # Model tier classification (explicit metadata first, keyword fallback second)
         tier_m = re.search(r"\bTier:\s*(?:Tier\s*)?(\d+|pro|flash|minimal)", section_text, re.IGNORECASE)
@@ -851,6 +928,25 @@ def build_mail_queue(
             "frontmatter": it.get("frontmatter", {}),
         })
 
+    # 1b. Collect existing synthesized cards (e.g. ramble cards) to preserve them across runs
+    existing_synthesized_items = []
+    existing_synthesized_sources = set()
+    for it_id, old_it in existing_by_id.items():
+        is_ramble = it_id.startswith("ramble-") or old_it.get("src_type") == "ramble" or "ramble" in old_it.get("tags", [])
+        if is_ramble:
+            try:
+                syn_item = MailItem.model_validate(old_it)
+                existing_synthesized_items.append(syn_item)
+                if syn_item.file_name:
+                    existing_synthesized_sources.add(syn_item.file_name.lower().strip())
+                if syn_item.source_file:
+                    existing_synthesized_sources.add(Path(syn_item.source_file).name.lower().strip())
+                    existing_synthesized_sources.add(Path(syn_item.source_file).stem.lower().strip())
+                if syn_item.split_group:
+                    existing_synthesized_sources.add(syn_item.split_group.lower().strip())
+            except Exception:
+                pass
+
     # Collect known docket source note names to avoid duplicate cards
     docket_source_names = set()
     for it in docket_items:
@@ -861,12 +957,14 @@ def build_mail_queue(
         docket_source_names.add(Path(sn).name.lower().strip())
         docket_source_names.add(str(it.get("title", "")).lower().strip())
 
-    # 2. Ingest notes (skipping those already formalized as curated docket items)
+    # 2. Ingest notes (skipping those already formalized as curated docket items or synthesized cards)
     for n in notes:
         fn = str(n.get("file_name", "")).lower().strip()
         stem = Path(fn).stem.lower().strip()
         t = str(n.get("title", "")).lower().strip()
         if fn in docket_source_names or stem in docket_source_names or t in docket_source_names:
+            continue
+        if fn in existing_synthesized_sources or stem in existing_synthesized_sources:
             continue
 
         item_id = str(n.get("id") or n.get("file_name", "note"))
@@ -876,13 +974,24 @@ def build_mail_queue(
         verdict_notes = None
         if old_it:
             old_st = old_it.get("status")
-            if old_st and old_st != "PENDING":
+            if old_st and old_st not in ("PENDING", "STAGED"):
                 try:
                     note_status = TriageStatus(old_st)
                 except ValueError:
                     pass
             verdict = old_it.get("verdict")
             verdict_notes = old_it.get("verdict_notes")
+
+        fm_dict = n.get("frontmatter", {}) if isinstance(n.get("frontmatter"), dict) else {}
+        fm_status = str(fm_dict.get("status", "")).lower().strip()
+
+        if not verdict:
+            if n.get("is_tabled") or "tabled" in [t.lower() for t in n.get("tags", [])] or fm_status == "tabled":
+                note_status = TriageStatus.TABLED
+            elif fm_status == "staged":
+                note_status = TriageStatus.STAGED
+            elif fm_status == "untriaged" or note_status in (TriageStatus.PENDING, TriageStatus.STAGED):
+                note_status = TriageStatus.PENDING
 
         agent_reply = old_it.get("agent_reply") if old_it else None
         agent_reply_at = old_it.get("agent_reply_at") if old_it else None
@@ -1184,7 +1293,7 @@ def build_mail_queue(
             unreferenced_raw_items.sort(key=lambda x: str(x.created_at or ""), reverse=True)
             unreferenced_raw_items.sort(key=lambda x: pri_rank.get(x.priority, 2))
 
-            final_items = overlay_mail_items + unreferenced_raw_items
+            final_items = overlay_mail_items + unreferenced_raw_items + existing_synthesized_items
             queue = MailQueue(
                 schema_version="1.0.0",
                 last_scanned=datetime.datetime.now().isoformat(),
@@ -1238,6 +1347,9 @@ def build_mail_queue(
             agent_reply_at=r.get("agent_reply_at"),
             has_reply=bool(r.get("agent_reply") and str(r.get("agent_reply")).strip()),
         ))
+
+    # Append preserved synthesized items (e.g. decomposed ramble cards)
+    std_items.extend(existing_synthesized_items)
 
     queue = MailQueue(
         schema_version="1.0.0",
@@ -1318,21 +1430,31 @@ def archive_harvested_notes(inbox_dir: Path, notes: list, receipt_path: Path, qu
         if not rel_p:
             continue
         src = Path(rel_p).resolve()
-        # Only archive files that are directly in live_dir (not already in Archive)
-        if src.parent.resolve() == live_dir.resolve() and src.parent.resolve() != archive_dir.resolve():
+        # Only archive files that are directly in live_dir or Staging/QuickNotes (not already in Archive)
+        valid_parents = (live_dir.resolve(), (live_dir / "Staging").resolve(), (live_dir / "QuickNotes").resolve())
+        if src.parent.resolve() in valid_parents and src.parent.resolve() != archive_dir.resolve():
             safe_name = src.name.replace(" ", "_")
             dst = archive_dir / safe_name
             try:
-                # 1. Inject clean YAML frontmatter if missing
+                # 1. Inject or update clean YAML frontmatter with archived timestamp
                 text_content = src.read_text(encoding="utf-8", errors="replace")
+                arch_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                if not re.match(r"^---\s*\n.*?\n---\s*\n", text_content, re.DOTALL):
+                fm_m = re.match(r"^---\s*\r?\n(.*?)\r?\n---\s*\r?\n?(.*)$", text_content, re.DOTALL)
+                if fm_m:
+                    fm_body = fm_m.group(1)
+                    note_rest = fm_m.group(2)
+                    if "archived:" not in fm_body:
+                        fm_body += f'\narchived: "{arch_now}"'
+                    fm_body = re.sub(r'status:\s*["\']?[^"\']*\n?', 'status: "archived"\n', fm_body)
+                    src.write_text(f"---\n{fm_body.strip()}\n---\n\n{note_rest.lstrip()}", encoding="utf-8")
+                else:
                     clean_title = note.get("title") or src.stem.replace("_", " ")
                     note_date = note.get("date") or datetime.date.today().strftime("%Y-%m-%d")
                     note_pri = note.get("priority") or "P2"
                     note_pillars = note.get("target_pillars") or infer_pillars(clean_title, note.get("tags", []), text_content)
                     pil_json = json.dumps(note_pillars)
-                    frontmatter = f"---\ntitle: \"{clean_title}\"\ndate: \"{note_date}\"\npriority: \"{note_pri}\"\ntags: [\"inbox\", \"raw-ramble\"]\npillars: {pil_json}\nstatus: \"untriaged\"\n---\n\n"
+                    frontmatter = f"---\ntitle: \"{clean_title}\"\ndate: \"{note_date}\"\nstaged: \"{note_date}\"\narchived: \"{arch_now}\"\npriority: \"{note_pri}\"\ntags: [\"inbox\", \"archived\"]\npillars: {pil_json}\nstatus: \"archived\"\n---\n\n"
                     src.write_text(frontmatter + text_content, encoding="utf-8")
 
                 shutil.move(str(src), str(dst))
@@ -1619,15 +1741,19 @@ def handle_archive_card(
                 candidates.append(inbox_dir / p.name)
                 candidates.append(inbox_dir / p)
                 candidates.append(inbox_dir / "Tabled" / p.name)
+                candidates.append(inbox_dir / "Staging" / p.name)
                 candidates.append(Path(r"C:\_\Vault\Inbox") / p.name)
                 candidates.append(Path(r"C:\_\Vault\Inbox") / p)
                 candidates.append(Path(r"C:\_\Vault\Inbox\Tabled") / p.name)
+                candidates.append(Path(r"C:\_\Vault\Inbox\Staging") / p.name)
                 if " " in p.name:
                     p_safe = Path(p.name.replace(" ", "_"))
                     candidates.append(inbox_dir / p_safe)
                     candidates.append(inbox_dir / "Tabled" / p_safe)
+                    candidates.append(inbox_dir / "Staging" / p_safe)
                     candidates.append(Path(r"C:\_\Vault\Inbox") / p_safe)
                     candidates.append(Path(r"C:\_\Vault\Inbox\Tabled") / p_safe)
+                    candidates.append(Path(r"C:\_\Vault\Inbox\Staging") / p_safe)
 
         found_src = None
         for cand in candidates:
@@ -1672,6 +1798,123 @@ def handle_archive_card(
     print(f"   • Ledger updated: {queue_path.name}")
     print(f"   • Regenerated board: {rendered_board}")
     return 0
+
+
+def handle_toggle_card_domain(
+    target_id: str,
+    target_realm: str = "dev",
+    queue_path: Optional[Path] = None,
+    out_path: Optional[Path] = None,
+    is_sandbox: bool = False,
+) -> dict:
+    """
+    Toggles a card between Dev (Factory: TKS) and Personal (Abyss: PERSONAL),
+    updating note frontmatter on disk and the mail_queue.json ledger.
+    """
+    q_file = queue_path or Path(DEFAULT_MAIL_QUEUE)
+    if not q_file.exists():
+        return {"ok": False, "error": f"Queue not found at {q_file}"}
+
+    try:
+        raw_json = q_file.read_text(encoding="utf-8")
+        queue = MailQueue.model_validate_json(raw_json)
+    except Exception as e:
+        return {"ok": False, "error": f"Failed reading queue: {e}"}
+
+    clean_target = re.sub(r"[^a-zA-Z0-9_-]", "_", target_id).lower()
+    matched_item = None
+    for item in queue.items:
+        clean_item_id = re.sub(r"[^a-zA-Z0-9_-]", "_", item.id).lower()
+        if (
+            item.id.lower() == target_id.lower()
+            or clean_item_id == clean_target
+            or item.title.lower().strip() == target_id.lower().strip()
+        ):
+            matched_item = item
+            break
+
+    if not matched_item:
+        return {"ok": False, "error": f"Card '{target_id}' not found in {q_file}"}
+
+    new_pillar = "TKS" if target_realm.lower() in ("dev", "factory") else "PERSONAL"
+    matched_item.target_pillars = [new_pillar]
+    if hasattr(matched_item, "pillars"):
+        matched_item.pillars = [new_pillar]
+
+    # Update note file on disk
+    if not is_sandbox:
+        inbox_dir = resolve_inbox_directory()
+        candidates = [
+            Path(matched_item.source_file or ""),
+            Path(matched_item.rel_path or ""),
+            inbox_dir / "Staging" / (matched_item.file_name or f"{matched_item.id}.md"),
+            inbox_dir / (matched_item.file_name or f"{matched_item.id}.md"),
+            Path(r"C:\_\Vault\Inbox\Staging") / (matched_item.file_name or f"{matched_item.id}.md"),
+            Path(r"C:\_\Vault\Inbox") / (matched_item.file_name or f"{matched_item.id}.md"),
+        ]
+        note_path = None
+        for c in candidates:
+            if c and c.is_file() and c.exists():
+                note_path = c
+                break
+
+        if note_path and note_path.exists():
+            try:
+                content = note_path.read_text(encoding="utf-8", errors="replace")
+                # Update pillars in frontmatter
+                if re.search(r"^pillars:\s*.*$", content, re.MULTILINE):
+                    content = re.sub(r"^pillars:\s*.*$", f'pillars: ["{new_pillar}"]', content, flags=re.MULTILINE)
+                elif content.strip().startswith("---"):
+                    content = content.replace("---\n", f'---\npillars: ["{new_pillar}"]\n', 1)
+
+                # Update tags: remove old domain tag, insert new domain tag
+                old_tag = "personal" if new_pillar == "TKS" else "dev"
+                new_tag = "dev" if new_pillar == "TKS" else "personal"
+                if re.search(r"^tags:\s*\[(.*)\]", content, re.MULTILINE):
+                    def _replace_tags(m):
+                        raw = m.group(1)
+                        t_list = [t.strip().strip("'\"#") for t in raw.split(",") if t.strip()]
+                        t_list = [t for t in t_list if t.lower() != old_tag]
+                        if new_tag not in [t.lower() for t in t_list]:
+                            t_list.append(new_tag)
+                        return f'tags: {json.dumps(t_list)}'
+                    content = re.sub(r"^tags:\s*\[(.*)\]", _replace_tags, content, flags=re.MULTILINE)
+                note_path.write_text(content, encoding="utf-8")
+                print(f"🔄 Updated note '{note_path.name}' pillar -> {new_pillar}")
+            except Exception as e:
+                print(f"⚠️ Failed to update note frontmatter: {e}")
+
+    # Persist and mirror queue
+    try:
+        q_file.write_text(queue.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        for mirror in [
+            Path(r"C:\Dev\TheKlangSuite\.agents\pipeline\mailbag\mail_queue.json"),
+            Path(r"C:\_\Vault\.agents\pipeline\mailbag\mail_queue.json"),
+        ]:
+            if mirror.resolve() != q_file.resolve():
+                mirror.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(q_file, mirror)
+    except Exception as e:
+        print(f"⚠️ Failed to save queue: {e}")
+
+    # Fast board regeneration if requested
+    if out_path:
+        try:
+            env = "SANDBOX" if is_sandbox else "PRODUCTION"
+            schema = BoardSchema(
+                schema_version="1.0.0",
+                board_id="morning_mail",
+                title="N'kai Morning Mail Inbox & Triage Lab",
+                subtitle=f"Dynamic Triage: {q_file.name}",
+                environment=env,
+                cards=queue.items,
+                allowance_budget=200000,
+            )
+            render_board(schema, out_path)
+        except Exception:
+            pass
+
+    return {"ok": True, "card_id": target_id, "new_pillar": new_pillar, "realm": target_realm}
 
 
 def main():
@@ -1933,6 +2176,34 @@ def main():
     out_file = Path(args.out).resolve() if args.out else Path(DEFAULT_OUTPUT_HTML).resolve()
     generated = generate_html_inbox_board(inbox_dir, notes, docket_items, out_file, queue=queue, environment="PRODUCTION")
     print(f"✅ Generated Morning Mail Inbox: {generated} ({len(docket_items)} docket items, {len(notes)} archive notes)")
+
+    # Mirror generated board and queue to all sidecar distribution paths
+    if not args.sandbox:
+        mirror_targets = [
+            Path(r"C:\Dev\TheKlangSuite\.agents\sidecar\morning_mail_inbox.html"),
+            Path(r"C:\_\Vault\.agents\sidecar\morning_mail_inbox.html"),
+            Path(r"c:\Dev\nkai\sidecars\panel\morning_mail_inbox.html"),
+            Path(r"c:\Dev\nkai\plugin\sidecars\panel\morning_mail_inbox.html"),
+        ]
+        for target in mirror_targets:
+            try:
+                if target.resolve() != generated.resolve():
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(generated, target)
+            except Exception:
+                pass
+
+        q_mirror_targets = [
+            Path(r"C:\Dev\TheKlangSuite\.agents\pipeline\mailbag\mail_queue.json"),
+            Path(r"C:\_\Vault\.agents\pipeline\mailbag\mail_queue.json"),
+        ]
+        for q_target in q_mirror_targets:
+            try:
+                if q_target.resolve() != queue_file.resolve():
+                    q_target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(queue_file, q_target)
+            except Exception:
+                pass
 
     if not args.no_browser:
         try:

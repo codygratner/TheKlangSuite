@@ -79,6 +79,26 @@
 | **`/audiothread-guard`**| Audio Safety | Strict AST/regex audit checking audio path for heap allocations, mutexes, and blocking I/O. |
 | **`/web-qa`** | Sidecar QA | Audits interactive sidecars in Headless Chrome for DOM balance, JS errors, and audio sandbox. |
 | **`/update-docs`** | Sync Gauntlet | Reconciles Backlog, Catalog, Dev History, System Map, and mirrors Obsidian Vault. |
+| **`/governor`** | `governor.py` | Autonomous Context Lifecycle Governor: `status`, `harvest`, `clear`, `hook`, `auto`. |
+| **`/bloat-guard`**| `bloat_guard.py` | Auto-terminates Copilot/Teams bloatware and locks UWP autostart against Windows Updates. |
+| **`/fleet`** | `fleet.py` | Decentralized peer switchboard: monotonic ULID store-and-forward and Tower build isolation. |
+| **`/emergence`** | `emergence.py` | 1-Bullet Autonomous Execution pipeline across Router, Memory, PCDA, Governor, and Fleet. |
+| **`/chronicle`** | `chronicle.py` | Tri-Partite Bi-Temporal Institutional Memory: 4,376 SQLite FTS5 nodes with sub-2ms query. |
+| **`/router`** | `router.py` | <1.5ms AST model tier classifier routing mechanistic tasks to Flash and deep DSP to Argon/Opus. |
+
+---
+
+## 🎛️ The 10X Sovereign OS Command Battery
+
+| Command | Subcommands | Purpose & SLA |
+| :--- | :--- | :--- |
+| **`python tools/governor.py`** | `status` · `harvest` · `clear` · `hook` · `auto` | Shields active context from saturation (>350k tokens); creates Cold-Boot Resumption Capsules. SLA: <12ms. |
+| **`python tools/bloat_guard.py`** | `status` · `audit` · `enforce` | Audits & enforces Copilot and Teams autostart suppression across Windows Updates. SLA: <3ms. |
+| **`python tools/fleet.py`** | `status` · `send` · `drain` · `route` | One-file-per-packet store-and-forward peer switchboard with monotonic ULIDs & Tower isolation. SLA: <5ms. |
+| **`python tools/emergence.py`** | `run --bullet` · `status` · `reset` | 1-Bullet Autonomous Execution from mobile thought to verified code; 3-strike circuit breaker. SLA: <4ms. |
+| **`python tools/chronicle.py`** | `status` · `search` | Bi-temporal SQLite FTS5 memory archive preserving negative constraints across 0-token clears. SLA: <2ms. |
+| **`python tools/router.py`** | `classify` · `stats` | Auto-Tier Classifier selecting Flash vs. Argon vs. Opus in <10ms with zero token burn. |
+| **`python tools/sp.py`** | `pull` · `peek` · `status` | Atomic scratchpad ingestion: archives note to `Archive/Scratchpads/` and clears `SCRATCHPAD.md`. |
 
 ---
 
@@ -100,8 +120,8 @@
 * **Ambient Status Footer & 3-Surface Navigation Invariant**:
   Responses conclude with a 2-line ambient status footer:
   Line 1: `Focus: <Current Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver>`
-  Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/SCRATCHPAD.md)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
-* **The Scratchpad Protocol**: Dedicated [`C:\_\Vault\SCRATCHPAD.md`](file:///C:/_/Vault/SCRATCHPAD.md) file for live reading notes and multi-point stream-of-consciousness chat reactions, structured with `# Multi-Point Replies` and `# Quick Notes`, permanently excluded from mailbag scans and directly accessible via the chat footer or *"Check scratchpad"* prompt.
+  Line 2: `[ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](SCRATCHPAD.md)` *(+ `· [ 🔬 Lab: <topic> ](...)` when active)*.
+* **The Scratchpad Protocol**: Dedicated [`C:\_\Vault\SCRATCHPAD.md`](SCRATCHPAD.md) file for live reading notes and multi-point stream-of-consciousness chat reactions, structured with `# Multi-Point Replies` and `# Quick Notes`, permanently excluded from mailbag scans and directly accessible via the chat footer or *"Check scratchpad"* prompt.
 
 ---
 
@@ -134,7 +154,7 @@
 
 ## 📜 Permanent Documentation Invariant
 
-* **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](file:///c:/Dev/TheKlangSuite/docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md) in the exact same commit pass.
+* **Mandatory Dual-File Synchronization**: Whenever terminology, workflow metaphors (such as aviation flight stages), agent skills, or system guardrails are created, renamed, or modified, the agent MUST proactively update both [`docs/GLOSSARY.md`](Docs/GLOSSARY.md) and [`docs/CHEAT_SHEET.md`](Docs/CHEAT_SHEET.md) in the exact same commit pass.
 
 ---
 
@@ -327,7 +347,7 @@
   3. *DAG Prerequisite Extraction*: Identify hard technical dependencies (infrastructure before UI, saturation before filters).
   4. *Contiguous Critical Path*: Assign contiguous ranks `1..N` where every step has an explicit "Why Here?" causal rationale.
 * **When to Call for a Rejigger**: Whenever facing backlog paralysis (>20 unranked tickets), flight deadlocks (missing unbuilt dependencies), or signal-chain aliasing (audio graph out of order).
-* **Reference**: [Topological Dialectical Sorting RFC](file:///C:/Dev/Research/agentic/topological_dialectical_sorting_the_rejigger_pattern.md) | [Spec](file:///c:/Dev/TheKlangSuite/docs/specs/topological_dialectical_sorting_rejigger.md).
+* **Reference**: [Topological Dialectical Sorting RFC](Docs/topological_dialectical_sorting_the_rejigger_pattern.md) | [Spec](Docs/specs/topological_dialectical_sorting_rejigger.md).
 
 ---
 
@@ -337,9 +357,9 @@
   1. **Surface 1 (Evergreen #1: The Mailbag — `morning_mail`)**: Daily capture stream with in-board `#quick-capture-input` bar and debounced `#btn-grab-mail` appending to `C:\_\Vault\Inbox/<YYYY-MM-DD>_Quick_Notes.md`.
   2. **Surface 2 (Evergreen #2: The Flight Runway — `runway`)**: Delivery horizon built by `tools/build_runway.py` from `docs/BACKLOG.md` Act III with `[ 🚀 Active Flights ]`, `[ 📦 Shipped & Milestones ]`, and `[ 📋 All ]` filter rails.
   3. **Surface 3 (Session Surface: The Lab — `lab`)**: Single active ephemeral research slot. Emits `#lab-all-clear-banner` celebration when cards reach 0; concluded via `tools/conclude_lab.py` staging harvests to `.agents/pipeline/staging/souls/`.
-* **The Scratchpad Protocol**: Stream-of-consciousness reading notes file [`C:\_\Vault\SCRATCHPAD.md`](file:///C:/_/Vault/SCRATCHPAD.md) permanently excluded from mailbag harvesting.
-* **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](file:///C:/_/Vault/SCRATCHPAD.md) · [ 📖 Cheat Sheet ](file:///c:/Dev/TheKlangSuite/docs/CHEAT_SHEET.md)`.
-* **Reference**: [Design Spec](file:///c:/Dev/TheKlangSuite/docs/specs/nkai_three_surfaces_and_runway_board.md).
+* **The Scratchpad Protocol**: Stream-of-consciousness reading notes file [`C:\_\Vault\SCRATCHPAD.md`](SCRATCHPAD.md) permanently excluded from mailbag harvesting.
+* **Ambient Navigation Line**: `Focus: <Focus> | TKS-<ver> · TT-<ver> · NK-<ver> · TR-<ver> · [ 📬 Mailbag ](sidecar://nkai/panel/?board=morning_mail) · [ 🛫 Runway ](sidecar://nkai/panel/?board=runway) · [ 📝 Scratchpad ](SCRATCHPAD.md) · [ 📖 Cheat Sheet ](Docs/CHEAT_SHEET.md)`.
+* **Reference**: [Design Spec](Docs/specs/nkai_three_surfaces_and_runway_board.md).
 
 ---
 
@@ -374,7 +394,7 @@
 * **`PCDA-TDS` (Topological Sorter / The Resequencer)**: Hegelian Friction $\to$ DAG Dependency Extraction $\to$ Linearized $1..N$ Contiguous Execution Array.
   * **`PCDA-TDS-Lite`**: Fast in-memory Kahn's algorithm (BFS) extracting Wave 0 (now) vs Wave 1+ in $<5\text{ms}$ for daily mailbag triage.
   * **`PCDA-TDS-Heavy`**: Full Critical Path Method (CPM) with Forward/Backward passes, Float calculation ($Float = 0$), and dialectical cycle-breaking for multi-flight Runways and DSP signal chains.
-* **Reference**: [PCDACore Specification](file:///C:/Dev/PCDACore/PCDACore.md) | [Resequence Specification](file:///C:/Dev/PCDACore/Resequence.md).
+* **Reference**: [PCDACore Specification](Docs/PCDACore.md) | [Resequence Specification](Docs/Resequence.md).
 
 ---
 
@@ -416,7 +436,8 @@ The Cosmic Codex and N'kai operate on a strict, 6-realm taxonomy to prevent exec
 | **`⚡ vault`** | `#vault` | `v` | Obsidian plugins (`cosmos-*`), templates, graph hygiene, PKM workflows, styling | `Templates/`, `.obsidian/` |
 
 ### 🚀 Inbox 1-Tap Capture Protocol (Templater)
-* **Trigger**: Creating any note in `Inbox/` (or `Inbox/Staging/`) automatically executes [`Templates/Inbox_Note_Template.md`](file:///c:/_/Vault/Templates/Inbox_Note_Template.md).
+* **Trigger**: Creating any note in `Inbox/` (or `Inbox/Staging/`) automatically executes [`Templates/Inbox_Note_Template.md`](Templates/Inbox_Note_Template.md).
 * **Modal Picker**: An Obsidian `SuggestModal` pops up immediately with the 6 realms above.
 * **Ergonomics**: 1 tap on mobile or 1 keystroke + Enter on desktop selects the realm, generates clean YAML (`tags: [inbox, <realm>]`), and drops the cursor straight onto line 1 of the note body for instant typing or image pasting.
+
 

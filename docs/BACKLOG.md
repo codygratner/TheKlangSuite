@@ -7,7 +7,7 @@
 > 2. **v0.3.1 (Editor Quality & Data Schema)**: Standalone Tree UX, Limiter Callout, Two-Line Status Bar, pluginval Runner. — ✅ COMPLETED
 > 3. **v0.3.2 (Agent Infrastructure & Logging)**: Guardrails Audit, Unified Filterable Master Tree, Dedicated Text Schema, Developer Logging (TKS_LOG). — ✅ COMPLETED
 > 4. **v0.4.0 (Interface & Experience)**: Complete Clean-Slate UX Overhaul, Neo-Slate Vector UI (Kilohearts/Vital/Pigments aesthetic), 4-Controls-Per-Card Architecture, Header Nav & Stereo Scope, Popover Callouts, 7-Theme Engine, & Desktop Sanity Testing. — 🔨 ACTIVE (Pre-Release Sanity & Research)
-> 5. **v0.4.5 (The Klang Planter Refresh)**: Rebuilding The Klang Planter on TKF's Neo-Slate Foundation — 4-Controls-Per-Card, Header Nav, Vector Dice Buttons, Popover Callouts, & Universal Theming Parity. — ⏳ PLANNED
+> 5. **v0.4.5 (The Agrarian Metamorphosis: The Klang Planter & The Klang Farmer Evolution)**: Elevating TKP into 'The Autonomous Generative Seed & Germinate Machine' and rethinking TKF into the ultimate 'Living Modular Biosphere & Macro-Patchbay Ecosystem'. Since The Kombine (TKK) and The Klang Mill (TKM) now masterfully handle all unified 12-sound choke rhythm, 2D vector morphing, Oberheim multi-SEM polyphony, and multi-effects, TKP and TKF evolve into deep, non-redundant generative and physical synthesis sanctuaries. — ⏳ PLANNED
 > 6. **v0.5.0 (Sound & Chaos + The Klang Hub)**: Unified "Mega" FX Modules (Drive w/ Tanh/Wavefolder/Faturator, Thickener w/ Chorus/Ensemble), FX Picker pre-selections, Alpha Juno oscillators, Mixer Cross-mod (ER-1 Mk2/Spectral), Preset Morphing, Spreadhseet Mod Matrix, Klang Hub, Dual Sample Players.
 > 7. **v0.6.0 (Pro Workflow)**: Direct Render-to-Sample (Auto-load to Player/Wavetable), JSON Preset Browser, 2x/4x Oversampling, 4 TBD-16 Macros, Zero-Server GitHub Crash Reporting, One-Time Quick Tour, & Linux Headless CI.
 > 8. **v0.9.0 (The Spring Cleaning Audit)**: Pencils down. Comprehensive Tech Debt Amnesty, code refactoring, and AI-Slop purge.
@@ -28,7 +28,7 @@
 - [v0.3.2 "Agent Infrastructure & Guardrails Audit"](#-milestone-v032-agent-infrastructure--guardrails-audit) (Completed)
 - [v0.3.3 "The Hardening Gauntlet"](#-milestone-v033-the-hardening-gauntlet) (Completed)
 - [v0.4.0 "The Interface & Experience Update"](#-milestone-v040-the-interface--experience-update) (Completed)
-- [v0.4.5 "The Klang Planter Refresh"](#-milestone-v045-the-klang-planter-refresh) (Planned)
+- [v0.4.5 "The Agrarian Metamorphosis: Planter & Farmer Evolution"](#-milestone-v045-the-agrarian-metamorphosis-the-klang-planter--the-klang-farmer-evolution) (Planned)
 - [v0.5.0 "The Sound & Chaos Update"](#-milestone-v050-the-sound--chaos-update)
 - [v0.6.0 "The Pro Workflow Update"](#-milestone-v060-the-pro-workflow-update)
 - [v0.7.0 "The Visual Polish & UI Mastery Update"](#-milestone-v070-the-visual-polish--ui-mastery-update)
@@ -448,26 +448,46 @@ Comprehensive automated audit cross-referencing all 204 legacy v0.2.0 parameters
 
 ---
 
-## 🚀 Milestone: v0.4.5 "The Klang Planter Refresh"
-*Focus: Bringing The Klang Planter to 100% architectural, visual, and interaction parity with The Klang Farmer's modernized v0.4.0 Neo-Slate foundation.*
+## 🚀 Milestone: v0.4.5 "The Agrarian Metamorphosis: The Klang Planter & The Klang Farmer Evolution"
+*Focus: Elevating both The Klang Planter (TKP) and The Klang Farmer (TKF) into non-redundant, transcendent creative instruments. With **The Kombine (TKK)** mastering all unified 12-sound choke rhythm, 2D vector morphing, Oberheim Multi-SEM polyphony, and chromatic acid bass, paired with **The Klang Mill (TKM)** as the dedicated 6-pedal multi-effects playground, TKP and TKF are liberated from standard drum synth and static multi-card roles to become living generative organisms and modular bio-acoustic laboratories.*
 
-### 1. Planter 4-Controls-Per-Card & Chassis Architecture
-- Re-architect `PlanterEditor` to follow the standardized 4-controls-per-card modular layout.
-- Eliminate legacy monolithic panel groupings in favor of clean, swappable synth module cards.
-- Implement header navigation tabs with integrated oscilloscope and master limiter callout.
+---
 
-### 2. Neo-Slate Vector UI & Theming Parity
-- Apply the dark matte titanium and JetBrains Mono vector design language to Planter.
-- Connect Planter to the unified 7-palette theme engine (`ParameterManager::loadTheme`, quick-change swatches).
-- Replace all legacy controls with Arcade Meter Sliders and vector `DiceButton` randomizers.
+### PART 1: The Klang Planter (TKP) Metamorphosis
+**"The Autonomous Generative 'Seed & Germinate' Machine"**
+- **The Autonomous "Seed & Germinate" Polyrhythm Engine:**
+  - Plant algorithmic Euclidean / cellular seeds with variable germination rates, branching mutations, and cross-pollination between parts.
+  - Organic polyrhythmic drift: voices dynamically mutate step timing, velocity micro-accents, and burst ratchets based on autonomous growth vectors.
+  - 4 Master Growth Encoders: `GERMINATE` (Ecosystem density), `MUTATE` (Cellular divergence & random branching), `PRUNE` (Decay & dynamic weeding), and `HARVEST` (Freeze / lock current generation into a playable kit).
+- **Bio-Physical Resonator Synthesis Core:**
+  - Vegetative membranes & resonators: Physical modeling of coupled botanical masses, struck hollow woodblocks, bowed bamboo reeds, and water droplets.
+  - Chaotic cellular feedback loops inspired by SOMA Enner and Buchla 200e systems.
+  - Sympathetic Resonance Bus: Internal acoustic coupling between all planted voices for realistic mechanical body interaction.
+- **Neo-Slate Vector UI & Theming Parity:**
+  - Real-time cellular / botanical visualizer of active rhythm seeds and branch nodes.
+  - Arcade Meter Sliders, vector DiceButton randomizers, and living growth gesture pads.
 
-### 3. Popover Callouts & Interaction Scheme
-- Adopt the Horizontal Action-Bar popover on right-click for all Planter sliders.
-- Enforce the universal interaction contract: Double-click = Smart Text Entry, Alt-click = Default Reset, Right-click = Popover Callout.
+---
 
-### 4. Regression & Parity Validation
-- Expand `gui_tests` to achieve 100% parameter reflection and component coverage across the refreshed Planter.
-- Verify dual-config Debug and Release passes with zero regressions.
+### PART 2: The Klang Farmer (TKF) Metamorphosis
+**"The Living Modular Biosphere & Macro-Patchbay Ecosystem" (The Grand Cultivator)**
+*Core Intent: Rather than just an 8-card FM drum machine (which The Kombine now completely supersedes), TKF becomes the expansive West Coast / East Coast hybrid semi-modular synthesis laboratory—a deep, patchable living acoustic biome.*
+- **The Semi-Modular Macro Patchbay:**
+  - Virtual 0-Coast / Buchla-inspired drag-and-drop or pin-matrix routing between operators, complex function generators, wavefolders, and lowpass gates (LPGs).
+  - Cross-modulation matrix: Audio-rate FM, AM, filter frequency modulation, and chaotic feedback between up to 4 autonomous synthesis cores.
+- **Physical Soil & Environmental Acoustics Engine:**
+  - Waveguide mesh physical modeling of subterranean resonators, acoustic soil damping, tensioned drum skins, and acoustic chambers.
+  - Non-linear magnetic tape hysteresis, mechanical spring reverbs, and analog bucket-brigade delay lines embedded into the voice architecture.
+- **The Sovereign Klang-Brain 2.0:**
+  - Deep algorithmic counterpoint (Fugue, Matriceal polymeter, Turing LFSR, and Markov chain pitch/gate sequencers) driving polyphonic modular voices with full microtonal tuning (Scala / MTS-ESP).
+- **Infinite Scalable Workspace:**
+  - Scalable modular canvas (from 800x600 compact card mode to multi-monitor sprawling modular rack mode) with interactive oscilloscope patch-cords and real-time Lissajous phase monitors.
+
+---
+
+### PART 3: Ecosystem Parity & Regression Validation
+- Expand `gui_tests` and `dsp_tests` to verify generative clock stability, lock-free parameter reflection, and real-time safety.
+- Verify dual-config Debug and Release passes with zero regressions across the entire suite.
 
 ---
 
@@ -798,6 +818,20 @@ Transform the dual-FM drum synthesizer into a dual-threat drum and bass machine 
   - Translate the 16-route hardware matrix (CyDrums Manual p.65) into TKS modular parameters with dual-LFO expansion, envelope-to-pitch ramps, and velocity-to-wavetable position routing.
 - **Microcontroller & Embedded Safety**:
   - Strict allocation-free real-time C++ audio core designed to run identically across desktop VST3/CLAP and bare-metal embedded targets (RP2350 / ESP32-P4 / dadamachines TBD-16).
+
+### 13. [EPIC] Sovereign Pantheon Architecture & Legacy Namespace Retirement — 🔨 ACTIVE / STAGED
+*Canon Reference: [`pantheon_canon_and_nomenclature.md`](file:///c:/_/Vault/New%20Klang%20City/Research/specs/pantheon_canon_and_nomenclature.md)*  
+*PCDA Synthesis: [`artifact_pantheon_nomenclature_refactor_and_dev_release_pcda.md`](file:///C:/Users/codyg/.gemini/antigravity/brain/6d5f68bf-c7b4-4129-bf75-1f5dc5e1fa41/artifact_pantheon_nomenclature_refactor_and_dev_release_pcda.md)*  
+*Goal: Systematically migrate user-facing branding and internal class namespaces from legacy agrarian metaphors ("Farmer", "Planter") to the Sovereign Pantheon instruments (**The Shard**, **The Relic**, **The Foundry**, **The Augur**, **The Monolith**) through a 3-stage non-breaking pipeline.*
+- **Stage 1: Dev Release & Binary Aliasing (`0.4.0-dev.1`) — ✅ COMPLETED**:
+  - Packaged `TheShard_v0.4.0-dev.1_win64.zip` containing `The Shard.exe`, `The Shard.vst3`, `shard_ux_wireframe.html`, and `TESTER_GUIDE.md`.
+  - Built and verified automated packager `tools/cut_dev_release.py`.
+  - Ratified Unipolar (`6pm -> Noon -> 6pm` clockwise) and Bipolar (`6pm <- Noon -> 6pm` bidirectional) rotary encoder canon across Web Audio and JUCE `UIComponents.cpp`.
+- **Stage 2: Argon Dedicated Refactoring Flight (Planned)**:
+  - Mechanical rename of `PlanterProcessor` -> `ShardProcessor`, `PlanterEditor` -> `ShardEditor`, APVTS prefix mapping, and header guards.
+  - Verification of bit-for-bit backward preset compatibility (`.ttrp` / `.tkpl`).
+- **Stage 3: Legacy File Sunset & Archival (Planned)**:
+  - Archive obsolete `Planter*` / `Farmer*` artifacts to `Archive/Legacy_v0.3/`.
 
 ---
 
@@ -1349,6 +1383,35 @@ Extract a clean, standalone GitHub Template Repository incorporating all lessons
     - **Native Renoise `.xrns` Project Exporter** (`BACKLOG-06`): Direct XML/miniz export of 4-column note patterns referencing TKS VST3 plugins with auto-rendered presets.
     - **The Universal Interchange Engine** (`BACKLOG-07`): Git-backed song bundles (`.ttb`), append-only action journal (`actions.jsonl`), non-destructive sample lineage manifest (`samples.json`), M8 binary ingestion (`.m8s`), and the Non-Destructive "Time-Travel Slot Importer" ("Pluck from History").
     - **SOTA NerdSEQ Architectural Synthesis (`XMAP`)** (`BACKLOG-09`): 32 1-to-many SOWER/Hydra routing nodes, polymorphic track personas, and asynchronous table automators.
+    - **Expanded Multi-Column Chain Screen (`toad::ExpandedChainView`)** (`BACKLOG-36`): Reclaims wasted screen space with phrase repeats (`REP`), follow actions (`ACT`: `NEXT`, `LOOP`, `STOP`, `RAND`, `JUMP`), probability (`PRB`), 16-step mini-roll previews, and phrase names/instrument labels.
+    - **Instrument-to-Channel Routing Matrix & Poly Fan-Out (`toad::RoutingMatrix`)** (`BACKLOG-37`): Strict "In-Track" default (`ROUTE_IN_TRACK = 0xFF`), drum piece channel breakout for linear drumming, and Oberheim/Vermona 8-voice polyphonic voice fan-out across independent mixer channels.
+    - **Renoise-Style Modular Note & FX Sub-Lanes (`toad::ModularTrackLanes`)** (`BACKLOG-30`): 1..12 note sub-lanes + 1..8 FX sub-lanes per track with dynamic track folding.
+    - **Polymorphic Tracks & Unified Drum View Persona (`toad::PolymorphicTrack`)** (`BACKLOG-31`): SOTA linear drum programming and step-sequencing personas within tracker channels.
+    - **The Unified Clip/Chain Architecture (`toad::UnifiedClip`)** (`BACKLOG-35`): Co-equal execution across Song Arranger cells and Live Matrix clip slots.
+    - **Bidirectional Renoise `.xrns` 100% Importer & Transpiler (`toad::RenoiseImporter`)** (`BACKLOG-38`): Complete loss-free ingestion of Renoise `.xrns` songs, mapping 294k `0Y` probability uses, multi-note lanes, and drum channel splits.
+    - **Native Redux `.xrni` Multi-Sample & Modulation Engine (`toad::XrniEngine`)** (`BACKLOG-39`): Native parsing and zero-allocation polyphonic execution of `.xrni` multi-sample velocity/key zones and modulation sets.
+    - **Dedicated Hardware Instrument & Device Profile Engine (`INST_TYPE_HARDWARE`)** (`BACKLOG-40`): 14-bit high-resolution NRPN (0..16383), manufacturer SysEx byte streams (Roland Alpha Juno / MKS-50 checksummed packets), and declarative JSON hardware profiles (`sequential_pro2.json`, `korg_er1.json`, `elektron_mduw.json`).
+    - **The SP-404 "Skip-Back" Instant Resampling Buffer (`toad::SkipBackEngine`)** (`BACKLOG-41`): Continuous 30s circular RAM buffer of master output and external studio inputs; 1-touch freeze to sample pool.
+    - **Elektron-Style Phrase Trig Conditions (`toad::TrigCondition`)** (`BACKLOG-42`): `1:2`, `1:4`, `FILL`, `!FILL`, `PRE`, and `!PRE` conditions for organic phrase evolution.
+    - **The Elektron "Control-All" Global Modifier & Momentary Punch-In Live FX** (`BACKLOG-43`): Global macro hold across 8 tracks with instant non-destructive snap-back, plus momentary live beat rolls, tape stop, and vinyl sim.
+    - **Polymetric Track Loop Lengths & Time-Scale Multipliers (`toad::PolymetricClock`)** (`BACKLOG-44`): Decoupled per-track loop lengths (1..64 steps) and fractional clock multipliers (`1/4x` to `4x`).
+    - **Studio "Hydra" 1-to-Many Multi-Target Macro Commander (`toad::MacroHydra`)** (`BACKLOG-45`): Broadcast macro knobs driving physical studio synths (NRPN, SysEx, CC) and internal DSP tracks simultaneously.
+    - **Korg "Active Step" Live Muting & Direction Modes (`toad::PlayheadDirection`)** (`BACKLOG-46`): Live step skipping and Pendulum/Brownian playhead direction modes.
+    - **Native DC-Coupled CV/Gate Engine for Modular Rigs (`toad::CvGateEngine`)** (`BACKLOG-47`): Sample-accurate 1V/Octave Pitch CV, Gates, and Modulation CV output directly via Expert Sleepers ES-9 audio interface.
+    - **Retroactive "Capture MIDI" Continuous Performance Buffer (`toad::MidiCapture`)** (`BACKLOG-48`): Continuous circular MIDI buffer retroactively transcribing unrecorded noodling into tracker phrases.
+    - **The Elektron-Tracker P-Lock Engine & 16-Trig Live Inspector HUD (`toad::StepLockEngine`)** (`BACKLOG-49`): Hold physical step key + tweak encoder to insert/update FX parameter locks with real-time Arcadia widescreen HUD; White Keys = 16 Steps, Black Keys = Screen jumping & P-Lock parameter banking (Filter, Env, Mod, FX, Flow).
+    - **Analog 16-Encoder Step Sequencer Mode & Dynamic Flow Strip (`toad::KnobPerStepEngine`)** (`BACKLOG-50`): Knob-per-step analog sequencing across 16 encoders (Pitch, Velocity, Gate, Filter Cutoff, Flow) paired with 16-button active/inactive step skipping.
+    - **Sample-Accurate Block Slicing & Sub-Tick Timing (`toad::BlockSlicer`)** (`BACKLOG-51`): Eliminates groove timing jitter by slicing buffer blocks at exact sample offsets where ticks/events fall.
+    - **Lock-Free SPSC UI-to-Audio Command Queue (`toad::CommandQueue`)** (`BACKLOG-52`): Decouples UI thread from real-time audio thread via atomic ring buffer, guaranteeing zero torn reads.
+    - **Anti-Click Voice Stealing & New Note Actions (NNA) (`toad::VoiceManager`)** (`BACKLOG-53`): 1ms exponential micro-fade and NNA modes (`CUT`, `CONTINUE`, `OFF`, `FADE`) eliminating DC pops.
+    - **SunVox-Style Meta-Module Containers & Cross-Point Pin Matrix (`toad::MetaModule`)** (`BACKLOG-54`): 2D pin matrix routing and 8-macro container instruments adapted to gamepad ergonomics.
+    - **SunVox Modular Instrument Engine (`INST_TYPE_SUNVOX`)** (`BACKLOG-55`): Ingests and plays `.sunsynth` patches and songs via `sunvox_lib` with 16 exposed macro parameters.
+    - **Buzz Machine Host Engine (`INST_TYPE_BUZZMACHINE`)** (`BACKLOG-56`): Native hosting and sequencing of Jeskola Buzz generator and effect machines.
+    - **Universal Signal Follower & Audio Modulation Engine (`toad::SignalFollower`)** (`BACKLOG-57`): SunVox `Sound2Ctl` & Renoise `*Signal Follower` audio envelope peak tracking for universal sidechain ducking.
+    - **Vital Wavetable & Waveform Synthesis Suite Integration (`toad::WaveEditor` / `tks::WavetableStudio`)** (`BACKLOG-58`): Integrates Matt Tytel's GPLv3 Vital wavetable tools (harmonic partial editor, spline curves, wavefold/warp modifiers, audio resynthesis) into `TheKlangDSP`, `KlangCoreEditor`, and ToadTracker for 100% clean-room single-cycle waveform (SCW) and wavetable generation.
+    - **ToadTracker Theme Cloud Sync & Git Registry (`toad::ThemeSync` / `tks::ThemeHub`)** (`BACKLOG-59`): Git-backed public theme repository with 1-click publishing from TKE, live preview rendering, and seamless OTA/SD card synchronization for hardware and desktop devices.
+    - **Procedural Waveform Registry & Dynamic Synthesis Sync (`toad::WaveRegistry` / `tks::WaveHub`)** (`BACKLOG-60`): Dual-format waveform asset pipeline supporting baked 2048-sample WAVs and lightweight `.wave.json` procedural recipes (harmonics, spline nodes, Vital warp modifiers: spectral, barber pole, squeeze) rendered dynamically on-the-fly with Git cloud sync.
+    - **Titan Wavsynth Engine Expansion (`toad::SuperWavsynth` / `INST_TYPE_TITAN_WAVSYNTH`)** (`BACKLOG-61`): Upgrades M8 Wavsynth with 1:1 backward compatibility mode plus an Expanded Titan Mode incorporating Vital's spectral/barber-pole warps, Serum's phase bends/quantize, Z3TA+'s 16-function waveshaper matrix, Pigments' wavefolder/unison chords, and NI Razor's 320-partial additive frequency shifting.
 
 - **Strict Invariants Preserved**:
   - **GPLv3 Copyleft Invariant**: Universal SPDX tags and clean FOSS provenance across all shared C++ DSP code.

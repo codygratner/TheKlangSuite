@@ -15,6 +15,24 @@ Assemble a clean, condensed snapshot of relevant code, interfaces, directory lay
 
 ## Workflow
 
+### 0. Automated Deterministic Extraction (Primary Execution)
+Instead of searching and reading multiple large source files into LLM chat context, execute the zero-token Python snapshot compiler:
+```bash
+python tools/context_extract.py [flags]
+```
+- **Conversational Discovery (Default):** `python tools/context_extract.py -c -o`
+- **Direct Plan Mode:** `python tools/context_extract.py -p -c -o`
+- **Named Scope Preset:** `python tools/context_extract.py --scope oscillators -c`
+- **Explicit Target Files:** `python tools/context_extract.py --files source/FileA.h source/FileB.h -c`
+- **Terse Shield Mode:** `python tools/context_extract.py --terse`
+
+The Python compiler automatically:
+1. Resolves targets from the manifest in `.agents/extract_clues.md` (or CLI overrides) with 0 LLM token overhead.
+2. Ingests the spec document, builds the directory tree, and strips boilerplate license headers.
+3. Assembles `context_snapshot.md` in <100ms.
+4. Copies directly to the OS clipboard (`-c`) and opens `https://gemini.google.com` (`-o`).
+5. Displays the Pro Model reminder banner.
+
 ### 1. Flag Detection & Command Parsing
 Inspect the invocation:
 - Flag `--clipboard` or `-c`: Auto-copy markdown to OS clipboard.

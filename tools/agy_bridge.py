@@ -139,7 +139,8 @@ def _extract_csrf_from_cmdline() -> Optional[str]:
     try:
         import subprocess
         script = 'Get-CimInstance Win32_Process -Filter "name = \'language_server.exe\' and CommandLine like \'%--standalone%\'" | Select-Object -ExpandProperty CommandLine'
-        res = subprocess.run(["powershell", "-NoProfile", "-Command", script], capture_output=True, text=True, encoding="utf-8")
+        creationflags = 0x08000000 if sys.platform == "win32" else 0
+    res = subprocess.run(["powershell", "-NoProfile", "-Command", script], capture_output=True, text=True, encoding="utf-8", creationflags=creationflags)
         m = re.search(r"--csrf_token[=\s]+([a-f0-9\-]+)", res.stdout)
         if m:
             return m.group(1)
@@ -381,7 +382,7 @@ def get_conversation_history(conv_id: str, limit: int = 50) -> List[Dict[str, An
     return [t.model_dump() for t in turns[-limit:]]
 
 
-def send_user_message(conv_id: str, prompt: str, model_id: Optional[str] = None) -> Dict[str, Any]:
+def send_user_message(conv_id: str, prompt: str, model_id: Optional[str] = None, media: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
     """Dispatches a user prompt to language_server.exe for the given conversation."""
     payload: Dict[str, Any] = {
         "cascadeId": conv_id,
@@ -396,6 +397,18 @@ def send_user_message(conv_id: str, prompt: str, model_id: Optional[str] = None)
             }
         ],
     }
+    if media:
+        cleaned_media = []
+        for m in media:
+            uri = m.get("uri") or m.get("abs_path") or m.get("path") or ""
+            uri = str(uri).replace("\\", "/")
+            mime_type = m.get("mime_type") or m.get("mimeType") or "image/png"
+            cleaned_media.append({
+                "uri": uri,
+                "mimeType": mime_type,
+                "mime_type": mime_type
+            })
+        payload["media"] = cleaned_media
     if model_id:
         payload["cascadeConfig"] = {
             "plannerConfig": {

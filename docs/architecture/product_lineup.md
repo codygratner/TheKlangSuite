@@ -1,27 +1,31 @@
-# The Klang Suite: Product Lineup & Core Intent Matrix
+# The Cult of Klang: Canonical Product Lineup & Lore Matrix
 
-The Klang Suite is an open-source, data-driven audio synthesis and sound design ecosystem developed in modern C++20 and JUCE 9. This document formalizes the official **Product Matrix, Acronym Taxonomy, and Core Intent** for every instrument, editor, and hardware offering in the suite.
+The Cult of Klang is an underground, sovereign audio synthesis and sound design imprint developed in modern C++20 and JUCE 9. This document formalizes the official **Product Matrix, Acronym Taxonomy, and Core Intent** for every instrument, editor, and hardware offering across the ecosystem.
 
 ---
 
-## 🏛️ Acronym Taxonomy & Collision Safeguards
+## 🏛️ Acronym Taxonomy & Clean-Room Lineup
 
-To prevent naming collisions across C++ header guards, logging macros (`TKS_LOG`), Git repositories, and documentation, the following three-letter acronyms are permanently reserved:
+To ensure brand clarity, acoustic prestige, and zero naming collisions across C++ header guards, logging macros, and file formats, the following three-letter acronyms are ratified:
 
-| Acronym | Product Name | Category | Primary Form Factor |
-| :--- | :--- | :--- | :--- |
-| **TKS** | **The Klang Suite** | Master Ecosystem / Framework | The entire software, DSP, and tooling umbrella |
-| **TKF** | **The Klang Farmer** | Flagship Instrument | VST3 / AU / Standalone Audio Plugin |
-| **TKP** | **The Klang Planter** | Performance Synthesizer | VST3 / AU / Standalone Audio Plugin |
-| **TKE** | **The Klang Editor** | Developer & Modder Deck | Standalone JUCE Application |
-| **TKM** | **The Klang Mill** | Multi-Effects Playground | VST3 / AU Audio Plugin |
-| **TKR** | **The Klang R1 (TKR-1)** | 7-Voice Rhythm Synthesizer | VST3 / AU / Standalone Audio Plugin |
-| **TKB** | **The Klang Box** | Embedded Hardware Platform | Dedicated Microcontroller Desktop / Eurorack Hardware |
+| Code | Canonical Name | Old Device | Role & Category | Primary Form Factor |
+| :---: | :--- | :--- | :--- | :--- |
+| **`TT`** | **ToadTracker** | ToadTracker | Flagship Standalone Workstation | Standalone Desktop (16:9 Widescreen) |
+| **`TR`** | **The Relic** | TKR1 / TKR4 / Kombine | Flagship Vector, Choke & Multi-SEM Synth | VST3 / AU / CLAP / Standalone (The "Redux" to TT) |
+| **`TF`** | **The Foundry** | The Klang Mill | 6-Pedal Industrial Multi-Effects Rack | VST3 / AU Audio Plugin (Housing Klang Mega-Effects) |
+| **`TP`** | **The Prophet** | The Klang Planter | Autonomous Generative Resonator Machine | VST3 / AU / Standalone Audio Plugin |
+| **`TM`** | **The Monolith** | The Klang Farmer | Subterranean Semi-Modular Biosphere Lab | VST3 / AU / Standalone Audio Plugin |
+| **`TB`** | **The Box** | The Klang Box | Embedded Hardware Platform | Dedicated Microcontroller Desktop / Eurorack Hardware |
+| **`KE`** | **Klang Editor** | The Klang Editor | Preset, Combi, Theme & Modder Deck | Standalone JUCE Application |
 
-> [!IMPORTANT]
-> **TKS vs. TKB Convention**:  
-> `TKS` is reserved exclusively for **The Klang Suite** (framework code, `TKS_LOG`, system architecture).  
-> All embedded microcontroller hardware offerings use **`TKB`** (**The Klang Box**), with hardware variant designations (e.g. `TKB-Daisy`, `TKB-8`).
+> [!NOTE]
+> **Complete Retirement of Agrarian Nomenclature**:
+> All agrarian/farming names (*The Farmer*, *The Planter*, *The Kombine*, *The Mill*) are officially eradicated from UI surfaces in favor of lore-native monolith names:
+> * **The Monolith (`TM`)**: The grand semi-modular synthesis biosphere.
+> * **The Foundry (`TF`)**: The molten metal multi-effects playground.
+> * **The Prophet (`TP`)**: The autonomous generative polyrhythm organism.
+> * **The Relic (`TR`)**: The flagship vector & 12-patch Oberheim Multi-SEM workstation.
+> * The "Klang" prefix is reserved strictly for the **5 Signature Klang Mega-Effects** (KlangWarp, KlangDelay, KlangSpace, KlangMod, KlangEquinox) and **Klang Editor (`KE`)**.
 
 ---
 
@@ -29,132 +33,105 @@ To prevent naming collisions across C++ header guards, logging macros (`TKS_LOG`
 
 ```
  ┌────────────────────────────────────────────────────────────────────────┐
- │                      THE KLANG SUITE (TKS)                             │
+ │                      THE CULT OF KLANG                                 │
  ├────────────────────────┬───────────────────────┬───────────────────────┤
- │  FLAGSHIP SYNTHESIS    │  PERFORMANCE & SPEED  │  EFFECTS & RACK       │
- │  TKF: The Klang Farmer │  TKP: The Klang       │  TKM: The Klang Mill  │
- │  (Modular Sound Lab)   │       Planter         │  (1x6 Pedalboard)     │
- │                        │  (BIA Drums & Bass)   │                       │
+ │  MODULAR BIOSPHERE     │  GENERATIVE ORGANISM  │  EFFECTS & FORGE      │
+ │  TM: The Monolith      │  TP: The Prophet      │  TF: The Foundry      │
+ │  (Patchbay & Resonator)│  (Seed & Germinate)   │  (6-Pedal Playground) │
  ├────────────────────────┼───────────────────────┼───────────────────────┤
- │  RHYTHM & GROOVE       │  DEVELOPER DECK       │  PHYSICAL HARDWARE    │
- │  TKR: The Klang R1     │  TKE: The Klang       │  TKB: The Klang Box   │
- │  (7-Voice ER-1 Homage) │       Editor          │  (Embedded Seed,      │
- │                        │  (Data & Theme Deck)  │   Daisy, Teensy 8-Out)│
+ │  VECTOR, CHOKE & SEM   │  DEVELOPER DECK       │  PHYSICAL HARDWARE    │
+ │  TR: The Relic         │  KE: Klang Editor     │  TB: The Box          │
+ │  (Multi-SEM & Vector)  │  (Data & Theme Deck)  │  (Embedded Seed,      │
+ │  [replaces Kombine/R1] │                       │   Daisy, Teensy 8-Out)│
  └────────────────────────┴───────────────────────┴───────────────────────┘
 ```
 
 ---
 
-### 1. The Klang Farmer (TKF)
-**"The Flagship Percussion Synthesizer"**
+### 1. The Monolith (TM)
+**"The Subterranean Semi-Modular Biosphere & Macro-Patchbay Laboratory" (The Cosmic Pillar)**
 
-- **Core Intent**: The deep, uncompromising sound design laboratory. Designed for complex, modular percussive sound sculpting, layered FM synthesis, metallic transients, and extended acoustic modeling.
+- **Core Intent**: The deep, uncompromising semi-modular sound design laboratory. Liberated from static drum roles by The Relic, The Monolith becomes an expansive West Coast / East Coast hybrid synthesis biosphere—patching complex CV networks, chaotic feedback, wavefolders, and physical subterranean acoustic modeling.
 - **Form Factor**: VST3 / AU / Standalone.
 - **Architecture**:
-  - Full 8-card modular rack surface (800x600 to 4K scalable).
-  - Dual Carrier / Modulator FM operator architecture with morphable waveforms.
-  - Multi-mode resonant filter with dedicated sample & hold drive.
-  - Dedicated Transient Shaper with independent pitch/noise envelope decay curves.
-  - Dynamic 8-slot multi-instance DSP effect rack with serial/parallel routing.
-  - Full chromatic MIDI tracking, microtonal tuning, and polyphonic voice allocation.
-  - **The Klang-Brain Modulation Engine**: 4-mode algorithmic modulation generator (Fugue counterpoint, Matriceal polymeter, Metropolix/M8 accumulators, Turing LFSR) operating in Continuous DAW sync and DSI Pro 2 Triggered Key-Advance modes.
+  - Full modular rack surface (800x600 to 4K scalable) with interactive virtual patch-cables and oscilloscope monitors.
+  - Semi-modular macro patchbay: cross-modulation between operators, complex function generators (Maths style), wavefolders, and lowpass gates.
+  - Subterranean environmental acoustic engine: waveguide mesh physical modeling of acoustic resonators, tensioned membranes, and wooden cavities.
+  - Deep microtonal polyphony (Scala / MTS-ESP) and the sovereign Klang-Brain 2.0 algorithmic counterpoint sequencer.
 
 ---
 
-### 2. The Klang Planter (TKP)
-**"The Lean & Mean Drum and Bass Synth"**
+### 2. The Prophet (TP)
+**"The Autonomous Generative 'Seed & Germinate' Machine" (The Oracle of Resonance)**
 
-- **Core Intent**: A punchy, fast, highly expressive synthesizer inspired by the immediacy of Eurorack modules like the Noise Engineering *Basimilus Iteritas Alter* (BIA)—but built with chromatic polyphony, DAW automation, and full **Note-Off** ADSR release.
+- **Core Intent**: An autonomous, bio-physical generative percussion and melodic organism. Where The Relic provides surgical tracker control and vintage Oberheim/choke polyphony, The Prophet is alive, evolving, and unpredictably organic.
 - **Form Factor**: VST3 / AU / Standalone.
 - **Architecture**:
-  - Curated 8-module surface: Carrier, Modulator, Harmonic Wavefolder, Spread, Noise/Transient, SVF Filter, Envelope Shaper, and Master Limiter.
-  - Dual operating personas: **Percussion Mode** (rapid transient strikes and metallic decay) and **Bass Mode** (deep FM sub-bass, glide/portamento, dual-oscillator hard sync).
-  - Integrated high-performance header visualizer (30 Hz smoothed oscilloscope with peak VU meters).
-  - Popover Callout Mini-Cards for deep-dive settings without cluttering the main surface.
+  - Bio-rhythmic germination: internal self-mutating cellular automata sequencers that grow from deterministic "seeds" into complex polymetric grooves.
+  - Modal resonator bank: non-linear physical models of struck bars, marimbas, metallic plates, bells, and membrane skins.
+  - Micro-tuning drift and probabilistic envelope branching.
 
 ---
 
-### 3. The Klang Editor (TKE)
-**"The Standalone Data, Theme & Curve Inspector"**
+### 3. The Foundry (TF)
+**"The 6-Pedal Industrial Multi-Effects Playground & Forge"**
 
-- **Core Intent**: The developer, modder, and sound designer control deck. Decouples parameter calibration, JSON schema authoring, and UI theme design from DAW testing sessions.
+- **Core Intent**: The sonic forge where signals are crushed, modulated, space-warped, and tempered through a brutalist 6-pedal virtual pedalboard.
+- **Form Factor**: VST3 / AU Audio Plugin.
+- **Architecture**:
+  - Houses the **5 Signature Klang Mega-Effects** (KlangWarp, KlangDelay, KlangSpace, KlangMod, KlangEquinox).
+  - Integrates the **KlangStomp Pantheon**: Swedish Saw (`HM`), Zone of Terror (`MZ`), Rodent (`RT`), Russian Pi (`MF`), Green Screamer (`TS`), Velcro Face (`FF`), Ixion Centaur (`KC`), Yellow 250 (`YD`), Geiger Decimator (`GC`), ChopChop (`CC`), PipKlick (`PK`), Vocoder 56K (`VC`).
+  - Flexible routing: Serial cascade, dual parallel branches with cross-mixing, and mid/side splitting.
+
+---
+
+### 4. The Relic (TR)
+**"The Flagship Vector, Choke & Multi-SEM Workstation Engine" (The Redux to ToadTracker)**
+
+- **Core Intent**: The definitive standalone and hosted rhythm/synth engine of The Cult of Klang. Blends 12-sound triplet choking, SP-1200 chromatic mono choking, continuous 2D equal-power vector morphing, and Oberheim Multi-SEM independent voice card allocation.
+- **Form Factor**: VST3 / AU / CLAP / Standalone.
+- **Architecture**:
+  - **Combi (`.ttrc`) & Patch (`.ttrp`) Architecture**: 12 independent sound slots with root notes, continuous tuning, vintage slop, and Ableton unison warp.
+  - **QuadraMod Engine**: 4 continuous audio-rate modulators per voice (AHD, Drum, LFO, ADSR).
+  - **TetraTable Engine**: 4 discrete tick-rate micro-sequencing tables (`ATBL`, `BTBL`, `CTBL`, `DTBL`) with `VECT-XXYY` coordinate automation.
+
+---
+
+### 5. Klang Editor (KE)
+**"The Standalone Data, Preset & Theme Deck"**
+
+- **Core Intent**: The developer, modder, and sound designer control deck. Decouples parameter calibration, Combi/Patch authoring, and UI LookAndFeel design from DAW runtimes.
 - **Form Factor**: Standalone JUCE Desktop Utility.
 - **Architecture**:
   - Unified Master Tree View with multi-state layer filters (`[Controls]`, `[Layout]`, `[Theme]`).
   - Interactive parameter calibration workspace: test skew factors, snap points, and tactile responses live before saving.
-  - Real-time LookAndFeel and color theme editor with live preview across Farmer and Planter chassis.
-  - Two-way pre-indexed Cross-Reference ("Where Used") inspection map.
-  - One-click snapshot generation and test artifact auditing.
+  - Real-time LookAndFeel and color theme editor with live preview across all Cult of Klang instruments.
 
 ---
 
-### 4. The Klang Mill (TKM)
-**"The Industrial Multi-Effects Playground"**
-
-- **Core Intent**: A standalone multi-effects rack inspired by classic analog studio rackmounts and boutique stompbox pedalboards (e.g. *Soundtoys Effect Rack*). Designed to dirty, smear, widen, and mangle any incoming audio track in seconds.
-- **Form Factor**: VST3 / AU Audio Plugin.
-- **Architecture**:
-  - Tactile 1x6 horizontal chassis: Input Stage $\to$ 4 Serial Multi-FX Slots $\to$ Master Limiter & Output.
-  - Access to the full 26-algorithm DSP effects catalog (Phase Smear, Tape Saturation, Resonant Comb, Spectral Reverb, Granular Glitch).
-  - **Global Slop Control**: Injects organic, non-linear analog component drift and micro-fluctuations across all 4 active pedals simultaneously.
-  - Instant one-click stomp bypass toggles on every pedal slot with zero routing matrix friction.
-
----
-
-### 5. The Klang R1 (TKR-1)
-**"The 7-Voice Rhythm Synthesizer"**
-
-- **Core Intent**: A fast-paced, tactile, zero-tab drum machine paying tribute to the iconic *Korg Electribe ER-1*. Engineered for rapid-fire beat-making, intuitive live finger drumming, and aggressive synthetic rhythm grooves.
-- **Form Factor**: VST3 / AU / Standalone.
-- **Architecture**:
-  - 7 dedicated voice strips displayed simultaneously with zero tab switching:
-    - **Voices 1–4**: Pure FM Synth (Kicks, resonant sub-bass, punchy snares, toms, laser zaps).
-    - **Voices 5–7**: Percussion & Metallic (Closed Hat, Open Hat with auto-choke, Cymbal/Crash).
-  - **Octave-Invariant White Key Triggering**: White keys in any octave map to Voices 1–7 (`C` through `B`), keeping pitches fixed to front-panel knobs for foolproof live finger drumming.
-  - **Ring Modulator**: Audio-rate cross-modulation between Voice 1 and Voice 2 for metallic industrial clangs.
-  - **DAW Multi-Out Bus Architecture**: 8 stereo output pairs (Master Mix + 7 individual voice stems) with auto-mute routing when routed to aux channels.
-  - **The Klang-Brain Rhythm Engine**: Integrated 4-mode generative sequencer (Fugue, Matriceal, Metropolix/M8, Turing LFSR) generating procedural rhythms with Continuous DAW sync and DSI Pro 2 Triggered Key-Advance modes.
-
----
-
-### 6. The Klang Box (TKB)
+### 6. The Box (TB)
 **"The Embedded Hardware Synthesizer Platform"**
 
-- **Core Intent**: The physical embodiment of The Klang Suite's pure C++ DSP engine running on dedicated microcontrollers, bringing zero-allocation real-time sound synthesis into standalone hardware grooveboxes and Eurorack setups.
+- **Core Intent**: The physical hardware embodiment of The Cult of Klang's pure C++ DSP engine running on dedicated microcontrollers, bringing zero-allocation real-time sound synthesis into standalone hardware grooveboxes and Eurorack setups.
 - **Form Factor**: Physical Hardware Desktop Units & Eurorack Modules.
 - **Hardware Editions**:
-  - **TKB-Daisy (Electro-Smith Daisy Seed)**: STM32H750 ARM Cortex-M7 @ 480 MHz with 64 MB SDRAM, stereo 24-bit 96 kHz codec, 4 endless encoders, and OLED display. Available as a compact stereo tabletop unit and Eurorack module.
-  - **TKB-8 (Studio Edition — PJRC Teensy 4.1)**: Flagship studio drum synthesizer powered by an NXP i.MX RT1062 Cortex-M7 @ 600 MHz and a Cirrus Logic CS42448 multi-channel codec. Features **8 discrete 1/4" analog outputs** with switched normalled jacks for routing individual voices to outboard analog gear.
-  - **TKB-TBD (dadamachines tbd-16 Integration)**: Direct deployment onto the open-source dual-core ESP32-P4 RISC-V + RP2350 groovebox, mapping 4-knob cards 1:1 onto the unit's 4 physical push-encoders.
+  - **TB-Daisy (Electro-Smith Daisy Seed)**: STM32H750 ARM Cortex-M7 @ 480 MHz with 64 MB SDRAM, stereo 24-bit 96 kHz codec, 4 endless encoders, and OLED display.
+  - **TB-8 (Studio Edition — PJRC Teensy 4.1)**: Flagship studio drum synthesizer powered by an NXP i.MX RT1062 Cortex-M7 @ 600 MHz and a Cirrus Logic CS42448 multi-channel codec. Features **8 discrete 1/4" analog outputs** for routing individual voices to outboard gear.
+  - **TB-TBD (dadamachines tbd-16 Integration)**: Direct deployment onto the open-source dual-core ESP32-P4 RISC-V + RP2350 groovebox.
   - **Zynthian V5 Port**: Headless Linux LV2/CLAP integration on Raspberry Pi 5 with 1:1 optical encoder mapping.
-
----
-
-## 🛠️ Foundational Ecosystem & Infrastructure
-
-Behind the musician-facing instruments lies the architectural infrastructure that powers the suite:
-
-1. **The Klang Boilerplate**:
-   - Modern C++20 / JUCE 9 open-source plugin starter template repository.
-   - Packages the zero-allocation DSP core, `TbdAudio::FastMath`, JSON-driven APVTS parameter schemas, and the headless `gui_tests` reflection suite for the open-source audio developer community.
-2. **The Klang Vault**:
-   - Private Obsidian Second Brain and Asymmetric Sync Bridge (`tools/sync_obsidian_vault.ps1`).
-   - Enables conflict-free mobile note capture via Obsidian Sync, offline documentation reading, and live build/error telemetry reporting.
 
 ---
 
 ## 🚨 Product Identity Drift Guardrail (The "Stay in Your Lane" Policy)
 
-To preserve the focus and punch of each offering, **New Klang City (Planning Headquarters)** is officially chartered to monitor incoming ideas, `/plan` drafts, and `/grill-me` interviews for **scope drift**.
-
-Whenever a proposed feature threatens to blur a product's core identity, the agent will flag it:
+To preserve the focus and punch of each offering, **The Cult of Klang** monitors incoming ideas for **scope drift**:
 
 | Product | The Core Trap (Scope Drift) | The Guardrail Response |
 | :--- | :--- | :--- |
-| **TKF** *(Farmer)* | **Dumbing it down**: Stripping out modular modulation, operator routing, or parameter depth to make it "easy". | *Flag*: "Farmer is the flagship sound-design laboratory. Keep the depth; if you want rapid sweet-spots, route this idea to Planter!" |
-| **TKP** *(Planter)* | **Feature creep & menu bloat**: Adding multi-page tabs, deep sub-menus, or multi-slot FX racks. | *Flag*: "Planter is the lean & mean BIA machine. Keep it single-surface and immediate. If it needs 8 pages, it belongs in Farmer!" |
-| **TKM** *(Mill)* | **Identity confusion**: Adding synth oscillators, MIDI note playback, or complex modulation matrices. | *Flag*: "Mill is a pure multi-effects rack (Soundtoys style). It processes external audio; it does not generate notes." |
-| **TKR** *(R1)* | **Tab & complexity clutter**: Adding tabs, sample layering, or micro-editing menus that break live finger drumming. | *Flag*: "R1 is an ER-1 tribute console. All 7 voice strips must stay on one screen with octave-invariant white-key triggers." |
-| **TKB** *(The Klang Box)* | **Embedded unfriendliness**: Allocating heap memory, exceeding microcontroller SRAM/Flash budgets, or confusing acronyms (`TKS`). | *Flag*: "TKB is dedicated bare-metal hardware. Keep DSP zero-allocation, enforce hardware budgets, and protect the `TKB` designation." |
-| **TKE** *(Editor)* | **Engine bloat**: Adding audio playback, recording, or turning the developer deck into a mini-DAW. | *Flag*: "The Klang Editor is an offline declarative data, curve, and theme inspector. Keep it lean and decoupled from DAW runtimes." |
+| **`TM`** *(The Monolith)* | **Dumbing it down**: Stripping out modular modulation, operator routing, or parameter depth to make it "easy". | *Flag*: "The Monolith is the flagship sound-design laboratory. Keep the depth; if you want immediate generative patches, route this to The Prophet!" |
+| **`TP`** *(The Prophet)* | **Feature creep & menu bloat**: Adding multi-page tabs, deep sub-menus, or multi-slot FX racks. | *Flag*: "The Prophet is an immediate generative organism. Keep it single-surface and alive. If it needs 8 pages of routing, it belongs in The Monolith!" |
+| **`TF`** *(The Foundry)* | **Identity confusion**: Adding synth oscillators, MIDI note playback, or complex tracker sequencers. | *Flag*: "The Foundry is a pure 6-pedal multi-effects forge (Soundtoys style). It processes external audio; it does not generate notes." |
+| **`TR`** *(The Relic)* | **Breaking the Redux paradigm**: Stripping the 4 tables or 2D vector morphing. | *Flag*: "The Relic is the sovereign Redux instrument. Keep the 12 patches and 4 tables accessible and 100% bi-directional with ToadTracker!" |
+| **`TB`** *(The Box)* | **Embedded unfriendliness**: Allocating heap memory or exceeding microcontroller SRAM/Flash budgets. | *Flag*: "The Box is dedicated bare-metal hardware. Keep DSP zero-allocation and enforce hardware memory limits." |
+| **`KE`** *(Klang Editor)* | **Engine bloat**: Adding audio playback, recording, or turning the developer deck into a mini-DAW. | *Flag*: "Klang Editor is an offline declarative data, curve, and theme inspector. Keep it lean and decoupled from DAW runtimes." |
 

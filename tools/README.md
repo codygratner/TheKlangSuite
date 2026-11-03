@@ -13,7 +13,7 @@ All scripts, servers, CLI wrappers, and generators residing in `tools/` MUST adh
    - Primary CLI tools (`nkai_serve.py`, `check_mail.py`, `pcda_format.py`, `nkai_ledger.py`) MUST run using standard library modules only (`sys`, `os`, `pathlib`, `argparse`, `http.server`, `json`).
    - UTF-8 stdout hardening is mandatory on Windows (`sys.stdout.reconfigure(encoding='utf-8')`).
 2. **Global Pydantic Data Services**:
-   - Advanced validation tools (`preset_audit.py`, `plan_queue.py`, and `nkai_api.py`) use the global Pydantic v2 environment (`pip install pydantic`), avoiding fragile virtualenv setups.
+   - Advanced validation tools (`preset_audit.py`, `plan_queue.py`, `nkai_api.py`, `agy_models.py`, `agy_bridge.py`, and `agy_autopsy.py`) use the global Pydantic v2 environment (`pip install pydantic`), avoiding fragile virtualenv setups.
 3. **Zero Contamination of Factory Floor**:
    - Tooling scripts, HTML sidecars, and automation runners belong strictly to New Klang City (`TARGET: TOOLING_HARNESS`).
    - Under NO circumstances should tooling or web tasks be dispatched to Klang Industries (`TARGET: FACTORY_FLOOR`).

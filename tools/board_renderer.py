@@ -12,6 +12,8 @@ from pathlib import Path
 import re
 import sys
 from typing import Optional
+import urllib.parse
+
 
 # Universal UTF-8 Environment Invariant (Flight 18)
 if hasattr(sys.stdout, "reconfigure"):
@@ -206,9 +208,7 @@ def render_dossier_drawer_html(clean_id: str, dossier: DossierDrawer) -> str:
     profile_name = pcda.get("profile_name", "")
     profile_badge = (
         f'<div style="margin-bottom: 8px;">'
-        f'<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; '
-        f'color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); '
-        f'padding: 2px 8px; border-radius: 12px;">'
+        f'<span class="badge-lens-active">'
         f'🔬 Active Lens: {html.escape(profile_name)}</span></div>'
     ) if profile_name else ""
 
@@ -220,9 +220,9 @@ def render_dossier_drawer_html(clean_id: str, dossier: DossierDrawer) -> str:
         lenses_items = []
         for lk, lv in lenses.items():
             lenses_items.append(
-                f'<div style="background: rgba(30, 41, 59, 0.4); padding: 6px 10px; border-radius: 4px; border-left: 2px solid #38bdf8;">'
-                f'<div style="font-size: 10px; font-weight: 700; color: #38bdf8; text-transform: uppercase;">{html.escape(lk.replace("_", " ").title())}</div>'
-                f'<div style="font-size: 11px; color: var(--text-main); margin-top: 2px;">{html.escape(str(lv))}</div></div>'
+                f'<div class="lens-item-card">'
+                f'<div class="lens-item-title">{html.escape(lk.replace("_", " ").title())}</div>'
+                f'<div class="lens-item-desc">{html.escape(str(lv))}</div></div>'
             )
         lenses_html = f'<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 10px;">{"".join(lenses_items)}</div>'
 
@@ -259,9 +259,9 @@ def render_dossier_drawer_html(clean_id: str, dossier: DossierDrawer) -> str:
           <button class="action-chip" id="tab-res-{clean_id}" onclick="switchDossierTab('{clean_id}', 'research', event)" style="cursor: pointer;">🔬 Research Dossier</button>
         </div>
         <div class="dossier-pane" id="pane-{clean_id}-source">
-          <div class="markdown-body" style="font-size: 11px; line-height: 1.5;">{src_rendered}</div>
+          <div class="markdown-body">{src_rendered}</div>
         </div>
-        <div class="dossier-pane" id="pane-{clean_id}-pcda" style="display: none; font-size: 11px;">
+        <div class="dossier-pane" id="pane-{clean_id}-pcda" style="display: none;">
           {profile_badge}
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
             <div style="background: rgba(16, 185, 129, 0.08); border-left: 2px solid #10b981; padding: 8px 10px; border-radius: 4px;">
@@ -277,7 +277,7 @@ def render_dossier_drawer_html(clean_id: str, dossier: DossierDrawer) -> str:
           {res_html}
           {lenses_html}
         </div>
-        <div class="dossier-pane" id="pane-{clean_id}-research" style="display: none; font-size: 11px;">
+        <div class="dossier-pane" id="pane-{clean_id}-research" style="display: none;">
           {citations_block}
           {precedents_block}
           {gotchas_block}
@@ -335,44 +335,43 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     scope = "docket" if is_docket else "archive"
 
     # Status resolution
-    if it.status == TriageStatus.PENDING:
-        status = "untriaged"
-        badge_text = "⚪ UNTRIAGED"
-        badge_cls = "badge-unhandled"
-    elif it.status == TriageStatus.APPROVED:
-        status = "approved"
-        badge_text = "✅ APPROVED"
-        badge_cls = "badge-approved"
-    elif it.status == TriageStatus.BACKLOG:
-        status = "backlog"
-        badge_text = "📥 BACKLOG"
-        badge_cls = "badge-dispatched"
-    elif it.status == TriageStatus.COMPLETED:
-        status = "completed"
-        badge_text = "✅ COMPLETED"
-        badge_cls = "badge-completed"
-    elif it.status == TriageStatus.GRAVEYARD:
-        status = "graveyard"
-        badge_text = "🪦 GRAVEYARD"
-        badge_cls = "badge-graveyard"
-    elif it.status == TriageStatus.PCDA:
-        status = "pcda"
-        badge_text = "⚖️ PCDA"
-        badge_cls = "badge-pcda"
-    elif it.status == TriageStatus.RESEARCH:
-        status = "research"
-        badge_text = "🔬 RESEARCH"
-        badge_cls = "badge-research"
-    else:
-        status = it.status.value.lower()
-        badge_text = f"⚡ {it.status.value}"
-        badge_cls = "badge-dispatched"
+    tags_lower = [t.lower().lstrip("#") for t in (it.tags or [])]
+    fm_dict = getattr(it, "frontmatter", {}) if isinstance(getattr(it, "frontmatter", {}), dict) else {}
+    fm_status = str(fm_dict.get("status", "")).lower().strip()
+    is_tabled_item = (it.status == TriageStatus.TABLED or "tabled" in tags_lower or getattr(it, "is_tabled", False) or fm_status == "tabled")
+    is_staged_item = (it.status == TriageStatus.STAGED or fm_status == "staged")
+
+    effective_status = it.status
+    if is_tabled_item:
+        effective_status = TriageStatus.TABLED
+    elif is_staged_item:
+        effective_status = TriageStatus.STAGED
+    elif it.status == TriageStatus.PENDING:
+        effective_status = TriageStatus.PENDING
+
+    status_map = {
+        TriageStatus.PENDING: ("untriaged", "⚪ UNTRIAGED", "badge-status-untriaged"),
+        TriageStatus.APPROVED: ("approved", "⚡ APPROVED", "badge-status-approved"),
+        TriageStatus.BACKLOG: ("backlog", "📥 BACKLOG", "badge-status-backlog"),
+        TriageStatus.COMPLETED: ("completed", "✅ COMPLETED", "badge-status-completed"),
+        TriageStatus.GRAVEYARD: ("graveyard", "🪦 GRAVEYARD", "badge-status-graveyard"),
+        TriageStatus.PCDA: ("pcda", "⚖️ PCDA", "badge-status-pcda"),
+        TriageStatus.RESEARCH: ("research", "🔬 RESEARCH", "badge-status-research"),
+        TriageStatus.TABLED: ("tabled", "🗂️ TABLED", "badge-status-tabled"),
+        TriageStatus.INVESTIGATING: ("investigating", "🤖 PROBING", "badge-status-investigating"),
+        TriageStatus.STAGED: ("staged", "📦 STAGED", "badge-status-staged"),
+    }
+    status, badge_text, badge_cls = status_map.get(
+        effective_status,
+        (effective_status.value.lower(), f"⚡ {effective_status.value.upper()}", "badge-status-untriaged")
+    )
 
     is_dispatched = (status != "untriaged")
-    priority = it.priority.value
-    priority_badge = '<span class="mail-priority-badge badge-p0" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">🚨 P0 TOP PRIORITY</span>' if priority == "P0" else ""
-
-    tags_lower = [t.lower().lstrip("#") for t in (it.tags or [])]
+    priority = (it.priority.value if hasattr(it.priority, "value") else str(it.priority)).upper()
+    pri_key = priority.lower()
+    pri_icons = {"p0": "🚨", "p1": "🟠", "p2": "🟡", "p3": "⚪"}
+    pri_icon = pri_icons.get(pri_key, "🟡")
+    priority_badge = f'<span class="badge badge-{pri_key}">{pri_icon} {priority}</span>'
 
     # Attention tags (Phase 4)
     attention_badges = []
@@ -387,13 +386,13 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     attention_badges_html = "".join(attention_badges)
 
     # Quick Note chip (Phase 2)
-    quicknote_chip = '<span class="badge badge-quicknote" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Quick Note (Filename only)">📝 quick-note</span>' if "quick-note" in tags_lower else ""
+    quicknote_chip = '<span class="badge badge-quicknote" title="Quick Note (Filename only)">📝 quick-note</span>' if "quick-note" in tags_lower else ""
 
     # Tabled chip (Phase 3)
-    tabled_chip = '<span class="badge badge-tabled" style="background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent-authored note tabled in Inbox/Tabled/">🗂 Tabled by agent</span>' if "tabled" in tags_lower else ""
+    tabled_chip = '<span class="badge badge-status-tabled" title="Agent-authored note tabled in Inbox/Tabled/">🗂 Tabled by agent</span>' if "tabled" in tags_lower else ""
 
-    # Staged chip (Phase 3 Staging Shelf)
-    staged_chip = '<span class="badge badge-staged" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Note held on Inbox/Staging workbench">📦 Staged</span>' if "staged" in tags_lower else ""
+    # Staged chip (Phase 3 Staging Shelf) - only if not already primary status
+    staged_chip = '<span class="badge badge-status-staged" title="Note held on Inbox/Staging workbench">📦 Staged</span>' if ("staged" in tags_lower and status != "staged") else ""
 
     # Overflow chip (Phase 1)
     overflow_chip = ""
@@ -402,21 +401,32 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
         sg = getattr(it, "split_group", "") or Path(it.source_file or it.source_note or it.file_name or "").stem
         overflow_count = overflow_map.get(sg, 0)
         if overflow_count > 0:
-            overflow_chip = f'<span class="badge badge-overflow" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="{overflow_count} ideas in overflow queue">⤵ {overflow_count} in overflow</span>'
+            overflow_chip = f'<span class="badge badge-overflow" title="{overflow_count} ideas in overflow queue">⤵ {overflow_count} in overflow</span>'
 
     has_overflow = (overflow_count > 0)
 
     deps = it.dependencies or []
-    dep_badges = "".join([f'<span class="mail-prereq-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px;">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
+    dep_badges = "".join([f'<span class="badge badge-p1">⚠️ Prereq: {html.escape(d)}</span>' for d in deps])
     dep_chip = f'<button class="action-chip chip-prereq" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);" onclick="filterByPrereq(this)" data-prereq="{html.escape(deps[0], quote=True)}" title="Triage prerequisite first"><span>💡</span> Triage Prereq First</button>' if deps else ""
 
     merged_chip = ""
     if getattr(it, "merged_count", 0) > 1:
-        merged_chip = f'<span class="badge badge-merged" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Merged from {it.merged_count} notes">🧩 merged from {it.merged_count} notes</span>'
+        merged_chip = f'<span class="badge badge-merged" title="Merged from {it.merged_count} notes">🧩 merged from {it.merged_count} notes</span>'
 
     pillars = it.target_pillars or infer_pillars(it.title, it.tags, it.body)
-    pillar_badges = render_pillar_badges(pillars)
+    pillar_badges_list = []
+    for pil in pillars:
+        p_info = PILLAR_METADATA.get(pil, {})
+        p_icon = p_info.get("icon", "🏷️")
+        pillar_badges_list.append(f'<span class="badge badge-pillar" onclick="applyPillarFilter(\'{pil}\', event)" title="Filter by {pil}">{p_icon} {pil}</span>')
+    pillar_badges = "".join(pillar_badges_list)
     pillars_attr = html.escape(",".join(pillars), quote=True)
+
+    tier_icons = {"tier1": "💎", "tier2": "⚡", "tier3": "🍃"}
+    tier_labels = {"tier1": "Tier 1 Pro", "tier2": "Tier 2 Flash", "tier3": "Tier 3 Lite"}
+    t_icon = tier_icons.get(tier, "⚡")
+    t_label = tier_labels.get(tier, "Tier 2 Flash")
+    tier_badge_html = f'<span class="badge badge-tier-{tier}">{t_icon} {t_label}</span>'
 
     docket_badge = f'<span class="badge badge-docket" title="From Curated Morning Mail Docket">⭐ DOCKET #{idx}</span>' if is_docket else ""
 
@@ -424,18 +434,18 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     file_pill_icon = "📌" if is_docket else "📄"
     file_pill_esc = html.escape(file_pill_text)
     file_pill_display = file_pill_esc[:42] + ("..." if len(file_pill_esc) > 42 else "")
-    file_pill = f'<span class="mail-file-pill" title="{file_pill_esc}">{file_pill_icon} {file_pill_display}</span>'
+    file_pill = f'<span class="file-pill" title="{file_pill_esc}">{file_pill_icon} {file_pill_display}</span>'
 
     dispatch_banner_html = ""
     if status == "approved":
         dispatch_banner_html = f"""
         <div class="mail-dispatch-banner">
-          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
-            <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <div class="dispatch-banner-box banner-approved">
+            <div class="dispatch-banner-header">
               <span>✅ Approved for Implementation</span>
-              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(it.verdict_notes or '')}</span>
+              <span class="dispatch-banner-notes">{html.escape(it.verdict_notes or '')}</span>
             </div>
-            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+            <div class="dispatch-banner-body">
               Approved. Scheduled into active development runway.
             </div>
           </div>
@@ -443,12 +453,12 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     elif status == "backlog":
         dispatch_banner_html = f"""
         <div class="mail-dispatch-banner">
-          <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
-            <div style="color: #34d399; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <div class="dispatch-banner-box banner-backlog">
+            <div class="dispatch-banner-header">
               <span>📥 Cataloged in Backlog</span>
-              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(it.verdict_notes or '')}</span>
+              <span class="dispatch-banner-notes">{html.escape(it.verdict_notes or '')}</span>
             </div>
-            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+            <div class="dispatch-banner-body">
               Documented in <strong>docs/BACKLOG.md</strong>.
             </div>
           </div>
@@ -456,12 +466,12 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     elif status == "completed":
         dispatch_banner_html = f"""
         <div class="mail-dispatch-banner">
-          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
-            <div style="color: var(--accent-blue); font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <div class="dispatch-banner-box banner-completed">
+            <div class="dispatch-banner-header">
               <span>✅ Completed & Codified</span>
-              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(it.verdict_notes or '')}</span>
+              <span class="dispatch-banner-notes">{html.escape(it.verdict_notes or '')}</span>
             </div>
-            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+            <div class="dispatch-banner-body">
               Feature has shipped and is permanently codified in master specifications.
             </div>
           </div>
@@ -469,12 +479,12 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     elif status == "graveyard":
         dispatch_banner_html = f"""
         <div class="mail-dispatch-banner">
-          <div style="background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-family: var(--font-mono); font-size: 11px;">
-            <div style="color: #f87171; font-weight: 700; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <div class="dispatch-banner-box banner-graveyard">
+            <div class="dispatch-banner-header">
               <span>🪦 Archived in Strategy Graveyard</span>
-              <span style="font-size: 10px; color: var(--text-muted);">{html.escape(it.verdict_notes or '')}</span>
+              <span class="dispatch-banner-notes">{html.escape(it.verdict_notes or '')}</span>
             </div>
-            <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+            <div class="dispatch-banner-body">
               Concept rejected with architectural rationale documented.
             </div>
           </div>
@@ -499,14 +509,14 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
             </div>
           </div>
         </div>"""
-        reply_badge = '<span class="badge badge-reply" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="Agent assessment attached">💬 Agent Reply</span>'
+        reply_badge = '<span class="badge badge-reply" title="Agent assessment attached">💬 Agent Reply</span>'
 
     # Multi-Drawer Dossier (Flight 3 / Topic 17 / rj-25)
     dossier_html = ""
     dossier_badge = ""
     if getattr(it, "dossier", None):
         dossier_html = render_dossier_drawer_html(clean_id, it.dossier)
-        dossier_badge = '<span class="badge badge-dossier" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;" title="2-Pass Bounded Research Dossier Available">🔬 Dossier Ready</span>'
+        dossier_badge = '<span class="badge badge-dossier" title="2-Pass Bounded Research Dossier Available">🔬 Dossier Ready</span>'
 
     # Card frontmatter and tag chips
     fm_obj = getattr(it, "frontmatter", {}) or {}
@@ -564,93 +574,335 @@ def render_card_html(it: MailItem, i: int, overflow_map: Optional[dict] = None) 
     is_pending = (it.status == TriageStatus.PENDING)
     initial_display = "" if is_pending else ' style="display: none;"'
 
+    # Obsidian deep link URI
+    note_name = it.file_name or (Path(it.source_file).name if it.source_file else "Note.md")
+    note_clean_name = re.sub(r"\.md$", "", note_name)
+    obsidian_href = f"obsidian://open?vault=Vault&file={urllib.parse.quote(note_clean_name)}"
+
+    # PCDA Drawer Content
+    pcda_badge_text = "Audit"
+    if getattr(it, "dossier", None) and it.dossier.pcda_dialectic:
+        pcda = it.dossier.pcda_dialectic
+        pros = pcda.get("pros", [])
+        cons = pcda.get("cons", [])
+        da = pcda.get("devils_advocate", "")
+        res = pcda.get("resolution", "")
+        pcda_badge_text = "Audit Ready"
+
+        items = []
+        if pros:
+            p_list = "".join([f"<li>{html.escape(str(p))}</li>" for p in pros[:2]])
+            items.append(f'<div class="pcda-lens lens-thesis"><strong style="color:#34d399;">🟢 Thesis:</strong><ul style="margin:4px 0 0 16px; padding:0;">{p_list}</ul></div>')
+        if cons:
+            c_list = "".join([f"<li>{html.escape(str(c))}</li>" for c in cons[:2]])
+            items.append(f'<div class="pcda-lens lens-friction"><strong style="color:#fbbf24;">🟡 Friction:</strong><ul style="margin:4px 0 0 16px; padding:0;">{c_list}</ul></div>')
+        if da:
+            items.append(f'<div class="pcda-lens lens-antithesis"><strong style="color:#f87171;">🔴 Antithesis:</strong><p style="margin:4px 0 0 0;">{html.escape(str(da))}</p></div>')
+        if res:
+            items.append(f'<div class="pcda-lens lens-resolution"><strong style="color:#c084fc;">🟣 80/20 Resolution:</strong><p style="margin:4px 0 0 0;">{html.escape(str(res))}</p></div>')
+        pcda_content_html = f'<div class="pcda-synopsis-grid">{"".join(items)}</div>' if items else '<div class="drawer-empty-notice">PCDA recorded.</div>'
+    else:
+        pcda_content_html = '<div class="drawer-empty-notice">No PCDA dialectic recorded yet. Dispatch via [🤖 Subagent: PCDA Audit] or [📋 Queue: PCDA].</div>'
+
+    # Research Drawer Content
+    rsch_badge_text = "Report"
+    if getattr(it, "dossier", None) and it.dossier.research_dossier:
+        rd = it.dossier.research_dossier
+        citations = rd.get("citations", [])
+        precedents = rd.get("precedents", [])
+        gotchas = rd.get("gotchas", [])
+        ref_count = len(citations) + len(precedents)
+        rsch_badge_text = f"{ref_count} Refs" if ref_count > 0 else "Ready"
+
+        r_items = []
+        if citations:
+            c_lines = "".join([f'<li>{html.escape(str(c.get("title", "")))} ({html.escape(str(c.get("source", "")))})</li>' for c in citations[:3] if isinstance(c, dict)])
+            r_items.append(f'<div style="margin-bottom:6px;"><strong style="color:#38bdf8;">Citations & Benchmarks:</strong><ul style="margin:2px 0 0 16px; padding:0;">{c_lines}</ul></div>')
+        if precedents:
+            p_lines = "".join([f'<li>🏛️ {html.escape(str(p))}</li>' for p in precedents[:3]])
+            r_items.append(f'<div style="margin-bottom:6px;"><strong style="color:#38bdf8;">Precedents:</strong><ul style="margin:2px 0 0 16px; padding:0;">{p_lines}</ul></div>')
+        if gotchas:
+            g_lines = "".join([f'<li>⚡ {html.escape(str(g))}</li>' for g in gotchas[:3]])
+            r_items.append(f'<div style="margin-bottom:6px;"><strong style="color:#fbbf24;">Platform Gotchas:</strong><ul style="margin:2px 0 0 16px; padding:0;">{g_lines}</ul></div>')
+        rsch_content_html = "".join(r_items) if r_items else '<div class="drawer-empty-notice">Research dossier attached.</div>'
+    else:
+        rsch_content_html = '<div class="drawer-empty-notice">No background research harvested yet. Dispatch via [🤖 Subagent: Local Code] or [🌐 Web / SOTA].</div>'
+
+    is_personal_realm = any(p in ("PERSONAL", "FORGE", "ABYSS") for p in pillars)
+    card_realm = "abyss" if is_personal_realm else "factory"
+    if is_personal_realm:
+        target_realm = "dev"
+        realm_btn_label = "🛠️ Send to Factory"
+        realm_btn_title = "Move card to Realm Factory (Dev)"
+        realm_btn_cls = "to-dev"
+    else:
+        target_realm = "abyss"
+        realm_btn_label = "🌌 Send to Abyss"
+        realm_btn_title = "Move card to Realm Abyss (Creative/Lore)"
+        realm_btn_cls = "to-personal"
+
+    domain_btn_html = (
+        f'<button id="btn-domain-toggle-{clean_id}" class="domain-toggle-btn {realm_btn_cls}" '
+        f'onclick="toggleCardDomain(\'{card_id}\', \'{clean_id}\', \'{target_realm}\', event)" '
+        f'title="{realm_btn_title}">'
+        f'<span>{realm_btn_label}</span>'
+        f'</button>'
+    )
+
+    summary_text = render_markdown_to_html(it.excerpt) if it.excerpt else (render_markdown_to_html(it.preview) if it.preview else '<p>No summary synthesized.</p>')
+
     return f"""
-      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}"{initial_display} id="{card_id}" data-card-id="{clean_id}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}" data-has-reply="{str(has_reply).lower()}">
-        <div class="mail-card-header" onclick="toggleCardCollapse('{card_id}', event)">
-          <div class="mail-header-left">
-            <span class="mail-idx-badge">#{rank_val}</span>
-            <span class="mail-status-badge {badge_cls}" id="badge-{card_id}">{badge_text}</span>
-            {priority_badge}
-            {attention_badges_html}
-            {dep_badges}
-            {merged_chip}
-            {quicknote_chip}
-            {tabled_chip}
-            {staged_chip}
-            {overflow_chip}
-            {docket_badge}
-            {reply_badge}
-            {dossier_badge}
+      <div class="mail-card {'dispatched' if is_dispatched else ''} {status}"{initial_display} id="{card_id}" data-card-id="{clean_id}" data-realm="{card_realm}" data-title="{title_esc}" data-tier="{tier}" data-status="{status}" data-scope="{scope}" data-priority="{priority.lower()}" data-pillars="{pillars_attr}" data-index="{i}" data-has-overflow="{str(has_overflow).lower()}" data-overflow-count="{overflow_count}" data-has-reply="{str(has_reply).lower()}">
+        
+        <!-- ROW 1: [Large #N] [Pin Button] [Date] ..................... [Domain Toggle] [Isolated Reload] -->
+        <div class="header-row-1">
+          <span class="card-idx-large">#{rank_val}</span>
+          <button id="btn-pin-{clean_id}" class="card-pin-btn" onclick="togglePinCard('{card_id}', event)" title="Pin card to focus tray">
+            <span class="pin-icon">📌</span>
+          </button>
+          <span class="date-badge-inline">{date_esc}</span>
+          {domain_btn_html}
+          <button id="btn-card-refresh-{clean_id}" class="reload-btn-isolated" onclick="refreshSingleCard('{card_id}', event)" title="Refresh card status">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- ROW 2: PUNCHY TITLE (100% HEAVY LIFTING ON CARD FACE) -->
+        <div class="header-row-2">
+          <div class="card-title-heavy">{title_esc}</div>
+          {meta_row_html}
+        </div>
+
+        <!-- ROW 3: UNIFIED METADATA RIBBON -->
+        <div class="header-row-3">
+          <span class="badge {badge_cls}" id="badge-{card_id}">{badge_text}</span>
+          {priority_badge}
+          {pillar_badges}
+          {tier_badge_html}
+          {file_pill}
+          {attention_badges_html}
+          {dep_badges}
+          {merged_chip}
+          {quicknote_chip}
+          {tabled_chip}
+          {staged_chip}
+          {overflow_chip}
+          {docket_badge}
+        </div>
+
+        <!-- ZERO BODY EXCERPT ON CARD FACE: STRAIGHT INTO THE 4-TAB DRAWER -->
+        <div class="tabbed-drawer">
+          <div class="drawer-tab-grid" id="drawer-tabs-{clean_id}">
+            <button class="drawer-tab-btn" id="tab-btn-{clean_id}-orig" onclick="switchCardDrawerTab('{clean_id}', 'orig')">
+              <span class="tab-icon">✍️</span>
+              <span class="tab-label">Original</span>
+              <span class="tab-badge-count">Raw Note</span>
+            </button>
+            <button class="drawer-tab-btn active" id="tab-btn-{clean_id}-summ" onclick="switchCardDrawerTab('{clean_id}', 'summ')">
+              <span class="tab-icon">🎯</span>
+              <span class="tab-label">Summary</span>
+              <span class="tab-badge-count">Pitch</span>
+            </button>
+            <button class="drawer-tab-btn" id="tab-btn-{clean_id}-pcda" onclick="switchCardDrawerTab('{clean_id}', 'pcda')">
+              <span class="tab-icon">⚖️</span>
+              <span class="tab-label">PCDA</span>
+              <span class="tab-badge-count">{pcda_badge_text}</span>
+            </button>
+            <button class="drawer-tab-btn" id="tab-btn-{clean_id}-rsch" onclick="switchCardDrawerTab('{clean_id}', 'rsch')">
+              <span class="tab-icon">🔬</span>
+              <span class="tab-label">Research</span>
+              <span class="tab-badge-count">{rsch_badge_text}</span>
+            </button>
           </div>
-          <div class="mail-header-right">
-            <div class="mail-pill-group">
-              {pillar_badges}
+
+          <div class="drawer-panes-wrapper" id="drawer-panes-wrapper-{clean_id}">
+            <!-- Tab 1: Original Raw Note -->
+            <div class="drawer-content-pane" id="pane-{clean_id}-orig" style="display: none;">
+              <div class="raw-note-box">
+                <div class="raw-meta-header">
+                  <span><strong>Note:</strong> <code>{file_esc}</code></span>
+                  <span style="display: flex; align-items: center; gap: 6px;">
+                    <span>Obsidian Inbox</span>
+                    <a href="{obsidian_href}" class="obsidian-link" target="_blank" title="Open in Obsidian desktop app">Open in Obsidian ↗</a>
+                  </span>
+                </div>
+                <div class="markdown-body">
+                  {fm_box_html}
+                  {body_rendered if body_rendered else excerpt_esc}
+                </div>
+              </div>
+              <div class="tag-container-tray">
+                <span class="tag-tray-label">TAGS:</span>
+                {tag_chips_html}
+              </div>
             </div>
-            <span class="mail-tier-badge badge-{tier}">{tier_label}</span>
-            {file_pill}
-            <span class="mail-date">{date_esc}</span>
-            <button id="btn-card-refresh-{clean_id}" class="card-refresh-btn" onclick="refreshSingleCard('{card_id}', event)" title="Refresh card status">🔄</button>
+
+            <!-- Tab 2: Summary Pitch (Active on Load) -->
+            <div class="drawer-content-pane" id="pane-{clean_id}-summ" style="display: block;">
+              <div class="summary-box">
+                <div class="summary-box-title">🎯 Executive Pitch & Synthesis</div>
+                {summary_text}
+              </div>
+            </div>
+
+            <!-- Tab 3: PCDA Dialectic -->
+            <div class="drawer-content-pane" id="pane-{clean_id}-pcda" style="display: none;">
+              {pcda_content_html}
+            </div>
+
+            <!-- Tab 4: Research Harvest -->
+            <div class="drawer-content-pane" id="pane-{clean_id}-rsch" style="display: none;">
+              {rsch_content_html}
+            </div>
           </div>
         </div>
-        <div class="mail-card-title">{title_esc}</div>
-        {meta_row_html}
-        <div class="mail-card-excerpt">{excerpt_esc}</div>
-        <details class="mail-body-details">
-          <summary class="mail-body-toggle">👁️ View Ingested Note & Context ({it.word_count} words)</summary>
-          <div class="mail-body-rendered">{fm_box_html}{body_rendered}</div>
-        </details>
-        {drawer_html}
-        {dossier_html}
+
         {dispatch_banner_html}
-        <div class="mail-card-actions">
-          <span class="actions-label">Dispatch Action:</span>
-          <div class="mail-chip-group">
-            {dep_chip}
-            <button id="btn-approve-{clean_id}" class="action-chip chip-approve" onclick="dispatchMailAction('{card_id}', 'approve')" title="Approve for immediate implementation">
-              <span>✅</span> Approve
+
+        <!-- PRIMARY ACTION SECTION: TERMINAL DISPATCHES (3 BUTTONS) -->
+        <div class="action-deck" id="dispatch-section-{clean_id}">
+          <div class="eyebrow-label">
+            Terminal Dispatch &middot; Clears from Mailbag
+          </div>
+          <div class="grid-dispatch-adaptive">
+            <button id="btn-approve-{clean_id}" class="btn-dispatch box-approve" onclick="dispatchMailAction('{card_id}', 'approve')" title="Approve for immediate runway build">
+              <span class="btn-icon">✅</span>
+              <span class="btn-label">Approve</span>
+              <span class="btn-sublabel">(Runway)</span>
             </button>
-            <button id="btn-backlog-{clean_id}" class="action-chip chip-backlog" onclick="dispatchMailAction('{card_id}', 'backlog')" title="Add to docs/BACKLOG.md">
-              <span>📥</span> Backlog
+            <button id="btn-backlog-{clean_id}" class="btn-dispatch box-backlog" onclick="dispatchMailAction('{card_id}', 'backlog')" title="Add to docs/BACKLOG.md">
+              <span class="btn-icon">📥</span>
+              <span class="btn-label">Backlog</span>
+              <span class="btn-sublabel">(Roadmap)</span>
             </button>
-            <button id="btn-research-{clean_id}" class="action-chip chip-research" onclick="dispatchMailAction('{card_id}', 'research')" title="Route to TheKlangResearch">
-              <span>🔬</span> Research
-            </button>
-            <button id="btn-graveyard-{clean_id}" class="action-chip chip-graveyard" onclick="dispatchMailAction('{card_id}', 'graveyard')" title="Reject and record in Graveyard">
-              <span>🪦</span> Graveyard
-            </button>
-            <button id="btn-pcda-{clean_id}" class="action-chip chip-pcda" onclick="dispatchMailAction('{card_id}', 'pcda')" title="Request 4-Lens PCDA Dialectic">
-              <span>⚖️</span> PCDA
+            <button id="btn-graveyard-{clean_id}" class="btn-dispatch box-graveyard" onclick="dispatchMailAction('{card_id}', 'graveyard')" title="Reject concept & archive to Strategy Graveyard">
+              <span class="btn-icon">🪦</span>
+              <span class="btn-label">Graveyard</span>
+              <span class="btn-sublabel">(Kill)</span>
             </button>
           </div>
         </div>
-        <div class="mail-session-launchers" style="display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(38, 51, 69, 0.6); flex-wrap: wrap;">
-          <span class="actions-label" style="font-size: 10px; color: var(--text-muted);">Session Launch:</span>
-          <button id="btn-discuss-{clean_id}" class="action-chip chip-session-discuss" 
-            onclick="handleDiscussCardClick('{card_id}', event)" 
-            oncontextmenu="handleDiscussCardLongPress('{card_id}', event)" 
-            ontouchstart="handleDiscussCardTouchStart('{card_id}', event)" 
-            ontouchend="handleDiscussCardTouchEnd('{card_id}', event)" 
-            ontouchmove="handleDiscussCardTouchMove('{card_id}', event)" 
-            title="Tap: Auto-Send to Chat | Long-Press / Right-Click: Pre-fill Chat Input">
-            <span>💬</span> Discuss in Chat
-          </button>
-          <button id="btn-workshop-{clean_id}" class="action-chip chip-session-workshop" onclick="latchCardToWorkshop('{card_id}')" title="Send to Active Workshop Cutting Mat">
-            <span>🛠️</span> Workshop
-          </button>
-          <button id="btn-launch-grill-{clean_id}" class="action-chip chip-session-grill" onclick="launchSessionAction('{card_id}', 'grill-lab')" title="Launch Grill-Lab visual architectural interview">
-            <span>🔬</span> Grill-Lab
-          </button>
-          <button id="btn-launch-research-{clean_id}" class="action-chip chip-session-research" onclick="launchSessionAction('{card_id}', 'deep-research')" title="Launch Deep Research subagent exploration">
-            <span>🧠</span> Deep Research
-          </button>
-          <button id="btn-launch-plan-{clean_id}" class="action-chip chip-session-plan" onclick="launchSessionAction('{card_id}', 'draft-plan')" title="Draft implementation plan in Antigravity">
-            <span>🔨</span> Draft Plan
-          </button>
-          <button id="btn-compile-prompt-{clean_id}" class="action-chip chip-session-compile" onclick="compileReasoningPrompt('{card_id}')" title="Compile dense dialectical prompt for flagship reasoning model & copy to clipboard">
-            <span>🧠</span> Compile Prompt
-          </button>
+
+        <!-- SECONDARY ACTION SECTION: INVESTIGATION & STAGING (3 BUTTONS) -->
+        <div class="action-deck" id="session-section-{clean_id}">
+          <div class="eyebrow-label">
+            Investigate & Stage &middot; Keeps in Flight
+          </div>
+          <div class="grid-session-adaptive">
+            <button class="btn-session box-subagent" id="btn-action-subagent-{clean_id}" onclick="toggleActionTray('{clean_id}', 'subagent')">
+              <span class="btn-icon">🤖</span>
+              <span class="btn-label">Subagent</span>
+              <span class="btn-sublabel">(Probe)</span>
+            </button>
+            <button class="btn-session box-queue" id="btn-action-queue-{clean_id}" onclick="toggleActionTray('{clean_id}', 'queue')">
+              <span class="btn-icon">📋</span>
+              <span class="btn-label">Queue</span>
+              <span class="btn-sublabel">(Session)</span>
+            </button>
+            <button class="btn-session box-table" id="btn-action-table-{clean_id}" onclick="toggleActionTray('{clean_id}', 'table')">
+              <span class="btn-icon">⏳</span>
+              <span class="btn-label">Table</span>
+              <span class="btn-sublabel">(Hold)</span>
+            </button>
+          </div>
+
+          <!-- Micro-Tray: Subagent Probe -->
+          <div class="micro-tray" id="tray-subagent-{clean_id}" style="display: none;">
+            <div class="micro-tray-header">
+              <span>🤖 <strong>Subagent Probe:</strong> Slide card to bottom of queue while agent works</span>
+              <button onclick="toggleActionTray('{clean_id}', 'none')" style="background:none; border:none; color:#94a3b8; cursor:pointer;">✕</button>
+            </div>
+            <div class="micro-tray-grid-4">
+              <button class="micro-grid-btn sub-btn-local" onclick="dispatchSubagentProbe('{clean_id}', 'local')">
+                <span class="micro-icon">🔬</span>
+                <span class="micro-label">Local Code</span>
+              </button>
+              <button class="micro-grid-btn sub-btn-web" onclick="dispatchSubagentProbe('{clean_id}', 'web')">
+                <span class="micro-icon">🌐</span>
+                <span class="micro-label">Web / SOTA</span>
+              </button>
+              <button class="micro-grid-btn sub-btn-pcda" onclick="dispatchSubagentProbe('{clean_id}', 'pcda')">
+                <span class="micro-icon">⚖️</span>
+                <span class="micro-label">PCDA Audit</span>
+              </button>
+              <button class="micro-grid-btn sub-btn-prompt" onclick="dispatchSubagentProbe('{clean_id}', 'prompt')">
+                <span class="micro-icon">📦</span>
+                <span class="micro-label">Ext Prompt</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Micro-Tray: Queue for Today's Session -->
+          <div class="micro-tray" id="tray-queue-{clean_id}" style="display: none;">
+            <div class="micro-tray-header">
+              <span>📋 <strong>Stage for Post-Triage Session:</strong> Ready when you reach Inbox Zero</span>
+              <button onclick="toggleActionTray('{clean_id}', 'none')" style="background:none; border:none; color:#94a3b8; cursor:pointer;">✕</button>
+            </div>
+            <div class="micro-tray-grid-4" style="margin-bottom: 6px;">
+              <button class="micro-grid-btn queue-btn-grill" onclick="dispatchQueueSession('{clean_id}', 'Grill')">
+                <span class="micro-icon">🔥</span>
+                <span class="micro-label">Grill Me</span>
+              </button>
+              <button class="micro-grid-btn queue-btn-workshop" onclick="dispatchQueueSession('{clean_id}', 'Workshop')">
+                <span class="micro-icon">🛠️</span>
+                <span class="micro-label">Workshop</span>
+              </button>
+              <button class="micro-grid-btn queue-btn-pcda" onclick="dispatchQueueSession('{clean_id}', 'PCDA')">
+                <span class="micro-icon">⚖️</span>
+                <span class="micro-label">PCDA</span>
+              </button>
+              <button class="micro-grid-btn queue-btn-discuss" onclick="dispatchQueueSession('{clean_id}', 'Discuss')">
+                <span class="micro-icon">💬</span>
+                <span class="micro-label">Discuss</span>
+              </button>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 6px;">
+              <button class="micro-grid-btn queue-btn-plan" onclick="dispatchQueueSession('{clean_id}', 'Plan')" style="flex: 1;">
+                <span class="micro-icon">📐</span>
+                <span class="micro-label">Plan Spec</span>
+              </button>
+              <button class="micro-grid-btn queue-btn-launch" onclick="dispatchImmediateChat('{clean_id}')" style="flex: 1;">
+                <span class="micro-icon">🚀</span>
+                <span class="micro-label">Launch Chat Now</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Micro-Tray: Table Gate -->
+          <div class="micro-tray" id="tray-table-{clean_id}" style="display: none;">
+            <div class="micro-tray-header">
+              <span>⏳ <strong>Table Gate:</strong> Defer into Inbox/Tabled/</span>
+              <button onclick="toggleActionTray('{clean_id}', 'none')" style="background:none; border:none; color:#94a3b8; cursor:pointer;">✕</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+              <button class="micro-grid-btn table-btn-hold" onclick="dispatchTableGate('{clean_id}', '14-Day Hold')">
+                <span class="micro-icon">📅</span>
+                <span class="micro-label">14-Day Hold</span>
+              </button>
+              <button class="micro-grid-btn table-btn-gate" onclick="dispatchTableGate('{clean_id}', 'Gate A: v0.4.1 Release')">
+                <span class="micro-icon">🔒</span>
+                <span class="micro-label">Gate A: v0.4.1</span>
+              </button>
+              <button class="micro-grid-btn table-btn-note" id="btn-trigger-custom-note-{clean_id}" onclick="toggleCustomTableInput('{clean_id}')">
+                <span class="micro-icon">✍️</span>
+                <span class="micro-label">Add Note</span>
+              </button>
+            </div>
+
+            <!-- Inline Custom Note Input Drawer -->
+            <div id="table-custom-row-{clean_id}" style="display: none; margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.08);">
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <input type="text" id="table-custom-input-{clean_id}" class="table-custom-input" placeholder="Type blocker or context note..." onkeydown="if(event.key==='Enter') submitCustomTable('{clean_id}')">
+                <button class="micro-grid-btn table-btn-note table-custom-submit" onclick="submitCustomTable('{clean_id}')">Save & Table</button>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
+
 """
 
 
@@ -659,7 +911,23 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     tmpl_file = resolve_master_template(template_path)
     template_str = tmpl_file.read_text(encoding="utf-8")
 
-    items = schema.cards
+    def resolve_effective_status(item):
+        t_low = [t.lower().lstrip("#") for t in (item.tags or [])]
+        fm_dict = getattr(item, "frontmatter", {}) if isinstance(getattr(item, "frontmatter", {}), dict) else {}
+        fm_status = str(fm_dict.get("status", "")).lower().strip()
+        if item.status == TriageStatus.TABLED or "tabled" in t_low or getattr(item, "is_tabled", False) or fm_status == "tabled":
+            return TriageStatus.TABLED
+        if item.status == TriageStatus.STAGED or fm_status == "staged":
+            return TriageStatus.STAGED
+        return item.status
+
+    # Air Traffic Control Principle: Exclude historical completed items unless explicitly requested
+    include_completed = getattr(schema, "include_completed", False) or (schema.environment.upper() == "SANDBOX")
+    if not include_completed:
+        items = [it for it in schema.cards if resolve_effective_status(it) != TriageStatus.COMPLETED]
+    else:
+        items = list(schema.cards)
+
     total_count = len(items)
 
     # Load overflow mappings for Phase 1
@@ -697,17 +965,23 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
         )
     pillar_buttons_html = "\n        ".join(pillar_buttons)
 
-    # 2. Tally Status / Triage categories across all items
-    untriaged_count = sum(1 for it in items if it.status == TriageStatus.PENDING)
-    approved_count = sum(1 for it in items if it.status == TriageStatus.APPROVED)
-    backlog_count = sum(1 for it in items if it.status == TriageStatus.BACKLOG)
-    completed_count = sum(1 for it in items if it.status == TriageStatus.COMPLETED)
-    research_count = sum(1 for it in items if it.status in (TriageStatus.RESEARCH, TriageStatus.PCDA))
-    graveyard_count = sum(1 for it in items if it.status == TriageStatus.GRAVEYARD)
-    pcda_count = sum(1 for it in items if it.status == TriageStatus.PCDA)
+    # 2. Tally Status / Triage categories across all active items
+    untriaged_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.PENDING)
+    approved_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.APPROVED)
+    backlog_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.BACKLOG)
+    completed_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.COMPLETED)
+    research_count = sum(1 for it in items if resolve_effective_status(it) in (TriageStatus.RESEARCH, TriageStatus.PCDA))
+    graveyard_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.GRAVEYARD)
+    pcda_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.PCDA)
+    staged_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.STAGED)
+    tabled_count = sum(1 for it in items if resolve_effective_status(it) == TriageStatus.TABLED)
     p0_count = sum(1 for it in items if it.priority == PriorityLevel.P0)
     docket_count = sum(1 for it in items if it.id.startswith("docket-"))
-    dispatched_count = approved_count + backlog_count + completed_count + research_count + graveyard_count
+
+    # Zone 1 vs Zone 2 tallies
+    active_count = untriaged_count + staged_count + tabled_count
+    dealt_with_count = approved_count + backlog_count + completed_count + research_count + graveyard_count
+    dispatched_count = dealt_with_count
 
     # 3. Render Cards
     cards_html = [render_card_html(it, i, overflow_map) for i, it in enumerate(items, 1)]
@@ -729,6 +1003,8 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     output_html = output_html.replace("{{OVERFLOW_FILTER_PILL}}", overflow_pill_html)
     output_html = output_html.replace("{{CARDS_HTML}}", cards_joined)
     output_html = output_html.replace("{{ENVIRONMENT}}", "SANDBOX" if is_sandbox else "PRODUCTION")
+    output_html = output_html.replace("{{ACTIVE_COUNT}}", str(active_count))
+    output_html = output_html.replace("{{DEALT_WITH_COUNT}}", str(dealt_with_count))
     output_html = output_html.replace("{{TOTAL_COUNT}}", str(total_count))
     output_html = output_html.replace("{{OVERFLOW_COUNT}}", str(total_overflow))
     output_html = output_html.replace("{{UNTRIAGED_COUNT}}", str(untriaged_count))
@@ -738,6 +1014,8 @@ def render_board(schema: BoardSchema, out_path: Path, template_path: Optional[Pa
     output_html = output_html.replace("{{RESEARCH_COUNT}}", str(research_count))
     output_html = output_html.replace("{{GRAVEYARD_COUNT}}", str(graveyard_count))
     output_html = output_html.replace("{{PCDA_COUNT}}", str(pcda_count))
+    output_html = output_html.replace("{{STAGED_COUNT}}", str(staged_count))
+    output_html = output_html.replace("{{TABLED_COUNT}}", str(tabled_count))
     output_html = output_html.replace("{{P0_COUNT}}", str(p0_count))
     output_html = output_html.replace("{{DOCKET_COUNT}}", str(docket_count))
     output_html = output_html.replace("{{DISPATCHED_COUNT}}", str(dispatched_count))

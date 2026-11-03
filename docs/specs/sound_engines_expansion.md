@@ -113,3 +113,34 @@ A dedicated **Sub-Bass 808 Pitch-Envelope Punch & West Coast Wavefolding Oscilla
 - **Exponential Pitch-Drop Envelope**: Instantaneous multi-octave transient snap decaying smoothly into phase-locked sub-bass fundamental ($25\,\text{Hz}\text{--}180\,\text{Hz}$).
 - **Asymmetric Wavefolder & Padé Clippers**: Multi-stage sine wavefolding and asymmetric diode saturation adding aggressive mid-range bark without losing low-end weight.
 - **Transient Click / Noise Exciter**: Phase-coherent impulse and filtered noise burst for cutting through dense industrial mixes.
+
+---
+
+## 7. Engine 6: `TitanWav` / `KlangTitan` (`include/dsp/oscillators/TitanWav.h`)
+
+The flagship **Universal Wavetable, Spectral & Waveshaping Oscillator**, shared 1:1 between **TheKlangSuite** (`TKF` / `TKP`) and **ToadTracker** (`toad::SuperWavsynth` / `toad::WavetableVoice` / `INST_TYPE_TITAN_WAVSYNTH`).
+
+### Cross-Ecosystem Export Invariant
+`TitanWav` guarantees that ToadTracker songs, instruments, and `.tkp` presets utilizing the M8 Wavsynth or Titan Wavsynth engines load bit-for-bit with identical timbre, frame alignment, and modulation response inside The Klang Farmer (TKF) running as a VST3/AU in any DAW.
+
+### Architectural Heritage
+Synthesizes the core innovations from 5 legendary wavetable/additive instruments while maintaining 1:1 backward compatibility with Dirtywave M8 Wavsynth:
+- **Dirtywave M8**: 128 wavetables, frame size, position scan, forward/reverse/pingpong playback, mirror, cut.
+- **Vital Audio Vital**: Frequency-domain Fourier spectral tilt, spectral comb/notch masks, continuous Barber Pole (Shepard-Risset) phase rotation.
+- **Xfer Records Serum 2**: Phase distortion opcodes (`Bend+`, `Bend-`, `Bend+/-`, `Asym`, `Flip`, `Mirror-2`, `Quantize` phase decimation).
+- **Cakewalk Z3TA+**: 16-point non-linear waveshaping matrix with cycle-level resonance (`RESO`) and diode rectification.
+- **Arturia Pigments**: Oscillator-core Buchla wavefolding and single-voice unison chord stacking.
+- **Native Instruments Razor**: 320-partial additive resynthesis with uniform frequency shifting ($\Delta f$) and zero-phase formant waterbed filtering.
+
+### 8-Parameter Mapping (`TitanWav` / `KlangTitan`)
+| Param | Name | Range / Law | DSP Function |
+| :---: | :--- | :--- | :--- |
+| **0** | **Pitch** | $20\,\text{Hz} \dots 4000\,\text{Hz}$ (Exp) | Fundamental oscillator frequency ($f_0$). |
+| **1** | **Table / Wave** | Discrete `0..127` | Selects from 128 single-cycle or multi-frame wavetables (M8 factory tables + user `.wave.json` / `.wt` tables). |
+| **2** | **Scan / Pos** | $0.0 \dots 1.0$ | Continuous wavetable frame position scan ($0\dots 255$) with spectral cross-fading. |
+| **3** | **Warp Mode** | Discrete `0..6` | `0: M8 Classic Warp`, `1: Vital Spectral Tilt`, `2: Vital Barber Pole`, `3: Serum Bend+/-`, `4: Serum Quantize`, `5: Z3TA+ Cycle Reso`, `6: Razor Frequency Shift`. |
+| **4** | **Warp Depth** | $0.0 \dots 1.0$ | Intensity and transfer-curve depth of the active warp algorithm. |
+| **5** | **Shaper / Fold** | $0.0 \dots 1.0$ | Pre-filter oscillator-core wavefolding and asymmetric saturation drive. |
+| **6** | **Formant / Tilt** | $0.0 \dots 1.0$ | Multi-peak vowel formant filter navigation ($A, E, I, O, U$) and high-frequency spectral tilt. |
+| **7** | **Unison / Chord** | $0.0 \dots 1.0$ | Unison detune spread ($0.0\dots 0.5$) and single-voice Chord Stacking ($0.6$: Octave, $0.7$: 5th, $0.8$: Min7, $0.9$: Maj7, $1.0$: Sus4). |
+

@@ -1,117 +1,46 @@
-# 🥋 Unified Plan: Hastur HS-01 Elevated Lifeform Anti-Aliasing Architecture (Opus + Argon)
+# PLAN: Hastur Tri-Phasic Bipolar Width & Bounded Headroom Modulation Overhaul
 
-> **PCDACore Specification Standard** (Pillar 1: Dialectic Cognition · Pillar 2: Resequence DAG · Pillar 3: Crucible Execution)  
-> **Heavy Tier Synthesis**: Gemini 4 Argon & Claude Opus 5.5 / Sonnet Pro Bridge  
-> **Track:** `TRACK: DSP` (2x Unified Monolithic Enclosure, ADAA1 Non-Linearities, Rate-Invariant Vactrol) | **Target:** `hastur`  
-> **Autoplan State Dossier:** `.agents/scratch/autoplan_state/hastur_lifeform_alias_fix/`  
-> **Status:** 🟢 **COMPLETED & VERIFIED (52/52 SUITES GREEN)**
+### Executive Summary
+Implement the operator-ratified Tri-Phasic Bipolar Width Engine on the Master WIDTH dial (`global_width`) alongside the SOTA `boundedShift` modulation architecture across Hastur.
 
----
-
-## 🔬 Section 1: The Research Triad & Forensic Breakthrough
-
-### 1. The Root Cause & Why All Three Modes Aliased at High Notes
-* **The Downstream 1x Saturation Seam**:
-  In `HasturVoice.h`, the 2x oversampler decimator was placed *before* the Lifeform stage (`masterLpg_`) and `postAmpDrive`. The non-linear saturation polynomials (Synthetic 4th-order algebraic soft clipper, Organic 12AX7 cubic tube, Cyborg MS-10 OTA, and post-amp $\tanh$) executed at **1x host sample rate** (44.1/48 kHz).
-* **Why 2x Oversampling Alone is Insufficient for Hard $\tanh$**:
-  As Opus proved, at C8 ($4186\text{ Hz}$), high drive in `postAmpDrive` ($5\times$ gain) pushes $\tanh$ into hard saturation where harmonics decay as $\sim 1/n$. Even with 2x oversampling (Nyquist $= 44.1\text{ kHz}$ at 44.1k host), harmonic $n \ge 17$ folds back into the audible band at $-25\text{ dBc}$.
-* **The Cyborg 1x Failure**:
-  Cyborg was previously running completely at 1x host rate. At high notes (C6–C8), its asymmetric diode clamp, MS-10 OTA, and 8x chopper threw dozens of loud inharmonic foldover spurs across the entire spectrum.
-
-### 2. The 4 Foundational Architectural Upgrades (OP-1 to OP-4)
-* **OP-1 (Unified 2x Domain & Zero Rate Switching)**:
-  - Run **ALL 3 modes (Synthetic, Cyborg, Organic)** inside the monolithic 2x core (`voiceCoreSr = 2.0 * hostSampleRate_`).
-  - `voiceCoreSr` is a compile-time constant for the voice. **Delete dynamic rate re-preparation in `setLifeMode()`**. Live mode switching becomes 100% click-free and zero-latency!
-  - Cyborg retains its full industrial personality via its asymmetric diode seam, 17.5 kHz bus filter (now running inside the 2x loop to actively roll off ultrasonics), and BBD decimation.
-  - Linear sub-sample interpolation of `ampGateSig` across the two 2x ticks.
-* **OP-2 (1st-Order Antiderivative Anti-Aliasing - ADAA1)**:
-  - Apply 1st-order ADAA to `postAmpDrive` $\tanh$, Cyborg MS-10 OTA $\tanh$, and Cyborg's asymmetric diode clamp $[-0.72, +0.32]$.
-  - Tanh antiderivative: $F(x) = |x| + \frac{1}{g} \ln(1 + e^{-2g|x|}) - \frac{\ln(2)}{g}$, with L'Hôpital midpoint fallback when $|x_n - x_{n-1}| < 10^{-5}$.
-  - Diode clamp antiderivative: exact piecewise quadratic $F(x) = \int \text{clamp}(x, L, U) dx$.
-* **OP-3 (Rate-Invariant Vactrol & Stereo Optimization)**:
-  - Scale Vactrol dual-exponential decay via $c_{2x} = \sqrt{c_{\text{ref}}}$ to preserve exact physical release timing.
-  - Use exact exponential for leaky DC blocker: $\alpha = 1 - e^{-2\pi f_c T}$.
-  - Share the optical follower integration and SVF coefficient $g = \tan(\pi f_c / f_s)$ across L and R, roughly halving transcendental calls while keeping independent stereo SVF state.
-  - Center Cyborg edge-tear smoothstep on 0.75 over $[0.70, 0.80]$.
-* **OP-4 (8192-Point Blackman-Harris Coherent FFT Gauntlet - Suite 52)**:
-  - Benchmark on coherent frequency bins near C6 (1046 Hz), C7 (2093 Hz), and C8 (4186 Hz).
-  - Maximum torture configuration: `drive = 1.0`, `resonance = 0.85`, open cutoff.
-  - Assert: Synthetic $\ge 42\text{ dB}$, Organic $\ge 40\text{ dB}$, Cyborg $\ge 34\text{ dB}$ spur rejection.
+1. **Bipolar Width Dial ($W \in [-1, +1]$)**:
+   - **Noon ($W = 0.0$)**: 100% Stadium Stereo ($S = 1.0$, $O = 1.0$, stereo quadrature Alpha Chorus).
+   - **7:00 Min ($W < 0.0 \to -1.0$)**: Coherent True Mono ($S \to 0$, $O \to 0$ even filter cutoffs, constant-power rotated in-phase mono chorus).
+   - **5:00 Max ($W > 0.0 \to +1.0$)**: Center-Panned Dual-Peak Mono ($S \to 0$, filters remain 100% split $O = 1.0$, stereo chorus panned center with rich comb/flange coloration).
+2. **Constant-Power Alpha Chorus Rotation**: Replaces polarity-interpolation with unit-norm rotation vector $(-c_T, s_T)$, eliminating the mid-dial dead hole at $W = -0.5$.
+3. **Bounded Headroom Modulation (`boundedShift`)**:
+   - Morph LFO: smooth headroom scaling replacing triangle-fold direction reversals.
+   - Filter LFO (Cutoff + Orbit): clamped semitone headroom $[10\text{ Hz}, 0.45 f_s]$ with $\pm 60\text{st}$ cap; smooth unclipped orbit swing.
+   - X-Mod FM: $k_{\text{max}} = 3.0$ ratio cap with $1\text{ Hz}$ floor, eliminating phase stalls.
 
 ---
 
-## 🎯 Section 2: Build Execution Manifest Anchors
+### Phase 1: Contract & Parameter Codegen
+- [ ] Update `global_width` in `contracts/hastur.yaml` to `range: [-1.0, 1.0]`, default: `0.0`.
+- [ ] Run `python tools/codegen_apvts.py -p hastur` to synchronize `HasturParameterIds.h` and `HasturParameterLayout.h`.
+- [ ] Update `setupRotaryKnob(globalWidthKnob, ...)` in `HasturEditor.cpp` with center detent return (`0.0`) and dynamic text readout.
 
-### 1. Agentless Localization Scope
-* **Authorized Files**:
-  - `source/hastur/VactrolLPG.h` (rate-invariant coeffs, shared optical follower, ADAA1 helper, centered smoothstep)
-  - `source/hastur/HasturVoice.h` (unified 2x core for all modes, eliminate re-prep in `setLifeMode`, enclose LPG and post-amp drive in 2x loop with sub-sample amp interpolation)
-  - `source/hastur/AllPassFilter4.h` (clamp max cutoff to $0.42 \times f_s$)
-  - `test/dsp_tests.cpp` (implement Suite 52 coherent FFT gauntlet)
-* **Read-Only / Protected Files**:
-  - `contracts/hastur.yaml` (Zero APVTS parameter changes)
-  - `source/hastur/HasturEditor.*` (Zero UI changes required)
+### Phase 2: Core DSP Bipolar Width, Constant-Power Chorus & Bounded Modulation
+- [ ] In `HasturProcessor.cpp`:
+  - [ ] Connect `global_width` to `voice_.processSampleStereo(...)` master spread.
+  - [ ] Add mono-channel write protection for DAW mono tracks.
+- [ ] In `HasturVoice.h`:
+  - [ ] Add 10ms one-pole parameter smoother for $W$, computing $S$ and $O$.
+  - [ ] Implement `boundedShift` helper function.
+  - [ ] Apply `boundedShift` to Morph LFO (`dco_morph`).
+  - [ ] Apply `boundedShift` and $O$ scaling to Filter Orbit (`filter_orbit`).
+  - [ ] Apply clamped semitone headroom to Filter Cutoff LFO.
+  - [ ] Apply constant-power trigonometric rotation to Alpha Chorus wet-R channel.
+  - [ ] Apply $S$ to Master Mid/Side stage.
+- [ ] In `ModMatrix.h`:
+  - [ ] Apply ratio cap and $1\text{ Hz}$ floor to linear oscillator FM.
+- [ ] Run `python tools/context_bus_bridge.py build --target dsp_tests --dispatch` in The Tower. Assert all test suites pass.
 
----
+### Phase 3: Headless UI & Spatial Radar Gate
+- [ ] Compile `Hastur_Preview` via Tower build bridge.
+- [ ] Run `python tools/ui_gate.py --plugin hastur --pillars A,C`.
 
-## 🚀 Section 3: The Canonical 4-Phase Fast-Loop Sequence
-
-### Phase 1: ADAA1 Math Primitives & Vactrol Rate Invariance [GATE 1]
-- [x] 1.1 In `source/hastur/VactrolLPG.h`:
-  - Implement struct `ADAA`:
-    - `static inline float tanh(float x, float x1, float g, float& s)`
-    - `static inline float clamp(float x, float x1, float minVal, float maxVal)`
-  - Update `VactrolLPG::prepare(double sampleRate)`:
-    - Use rate-invariant dual-exponential formula: $c = \sqrt{0.72 e^{-T_h/\tau_1} + 0.28 e^{-T_h/\tau_2}}$.
-    - Use exact DC blocker: $\alpha = 1.0 - \exp(-2.0 \pi f_c T)$.
-  - In `mode == BackendMode::CYBORG`:
-    - Replace hard edge-tear branch with smoothstep centered on 0.75 over $[0.70, 0.80]$:
-      ```cpp
-      const float absIn = std::abs(audioIn);
-      float tearWeight = 0.0f;
-      if (absIn > 0.70f) {
-          const float u = std::min(1.0f, (absIn - 0.70f) * 10.0f);
-          tearWeight = u * u * (3.0f - 2.0f * u);
-      }
-      const float edgeTear = (audioIn - cyborgFilterState_) * (0.08f * cEff * tearWeight);
-      ```
-    - Apply ADAA1 to MS-10 OTA saturation $\tanh(1.75 x + 0.22 x |x|)$.
-  - Add `processStereo(float inL, float inR, float controlLevel, float& outL, float& outR)` to evaluate optical follower and SVF $g$ coefficient once per stereo pair.
-- [x] 1.2 In `source/hastur/AllPassFilter4.h`:
-  - Clamp internal break frequency to $0.42 \times f_s$ in `processAPFLifeform` and `processInvertedAPF`.
-
-### Phase 2: Unified 2x Voice Domain & Monolithic Enclosure [GATE 2]
-- [x] 2.1 In `source/hastur/HasturVoice.h`:
-  - In `prepare(double sampleRate)`:
-    - Unify `voiceCoreSr = hostSampleRate_ * 2.0` across **all three modes** (Synthetic, Cyborg, Organic).
-    - Prepare `osc1_`, `osc2_`, `filter_`, `filterR_`, `cyborgBusFilterL_`, `cyborgBusFilterR_`, `masterLpg_`, `masterLpgR_` at `voiceCoreSr`.
-  - In `setLifeMode(LifeMode mode)`:
-    - Set mode state only (`lifeMode_ = mode`).
-    - **Remove calls to `prepare()` and `decimator_.reset()`** — zero state wipes, zero mode-switch clicks!
-- [x] 2.2 In `processStereoSample()`:
-  - Enclose the entire signal chain inside the 2x oversampling loop ($k < 2$):
-    - Sub-sample interpolate `ampGateSig`: $A[k] = A_{\text{prev}} + (k + 1) \cdot 0.5 \cdot (A_{\text{curr}} - A_{\text{prev}})$.
-    - For Cyborg mode: apply ADAA1 diode clamp $[-0.72, +0.32]$ and run 17.5 kHz bus filter at 2x rate.
-    - Evaluate `masterLpg_.processStereo(subFiltL[k], subFiltR[k], A[k], lpgOutL[k], lpgOutR[k])`.
-    - Apply `postAmpDrive` using `ADAA::tanh` at 2x rate.
-  - Downsample the saturated, shaped stereo output via `decimator_.downsample(postL[0], postL[1], postR[0], postR[1], outSigL, outSigR)`.
-  - Tap `subFiltL/R` before the LPG stage to maintain exact SSoT semantics for `prevPostFilter_` feeding `ModMatrix`.
-
-### Phase 3: Empirical Anti-Aliasing Gauntlet in `dsp_tests.cpp` (Suite 52) [GATE 3]
-- [x] 3.1 In `test/dsp_tests.cpp`:
-  - Add **SUITE 52: Hastur HS-01 Elevated Lifeform Anti-Aliasing Gauntlet**:
-    - Synthesize steady-state 8192-sample buffers at coherent bin frequencies near C6 (1046.5 Hz), C7 (2093.0 Hz), and C8 (4186.0 Hz).
-    - Test all 3 Lifeform modes under maximum drive (`postAmpDrive = 1.0`, `mixerDrive = 1.0`, `resonance = 0.85`, cutoff open).
-    - Apply 7-term Blackman-Harris window and 8192-point FFT.
-    - Measure peak fundamental vs. maximum inharmonic aliased spur in the audio band ($20\text{ Hz} \dots 20\text{ kHz}$).
-    - Assert:
-      - Synthetic Mode: $\ge 42\text{ dB}$ spur rejection.
-      - Organic Mode: $\ge 40\text{ dB}$ spur rejection.
-      - Cyborg Mode: $\ge 34\text{ dB}$ spur rejection.
-  - Verify all 52 DSP test suites pass 100%.
-
-### Phase 4: Tower Build & Fast-Sweep Validation [GATE 4 & 5]
-- [x] 4.1 Run Tower build bridge:
-  `python tools/context_bus_bridge.py build --target dsp_tests --dispatch`
-- [x] 4.2 Confirm 52/52 test suites green.
-- [x] 4.3 Verify clean packaging of `Hastur_VST3`.
+### Phase 4: VST3 Packaging & Hot-Swap Deployment
+- [ ] Compile target `Hastur_VST3` via Tower build bridge.
+- [ ] Deploy binary to `C:\Program Files\Common Files\VST3\Hastur.vst3`.
+- [ ] Run `python tools/plan_manager.py finish`.

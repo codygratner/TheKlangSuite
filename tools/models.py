@@ -20,9 +20,22 @@ class EcosystemPillar(str, Enum):
     TKR = "TKR"        # TheKlangResearch (RFCs, Papers & DSP Math)
     AGY = "AGY"        # Antigravity (Skills, Harness, Rules & Workflows)
     TBD16 = "TBD-16"    # Hardware (ESP32-P4 / Microcontroller Firmware)
+    PERSONAL = "PERSONAL"  # Personal & Life (Household, Ergonomics, Gear, Wishlists)
+    FORGE = "FORGE"        # The Forge (Solo TTRPG, Starforged, Creative Writing & Lore)
+
+ICONOGRAPHY_FILE = Path(__file__).resolve().parent / "iconography.json"
+try:
+    if ICONOGRAPHY_FILE.exists():
+        with open(ICONOGRAPHY_FILE, "r", encoding="utf-8") as _f:
+            ICONOGRAPHY = json.load(_f)
+    else:
+        ICONOGRAPHY = {}
+except Exception:
+    ICONOGRAPHY = {}
 
 
 PILLAR_METADATA = {
+
     "TKS": {
         "name": "The Klang Suite",
         "emoji": "🎹",
@@ -36,7 +49,7 @@ PILLAR_METADATA = {
         "emoji": "🐸",
         "desc": "Tracker Engine & M8 Bridge",
         "color": "#10b981",
-        "bg": "rgba(16, 185, 129, 0.15)",
+        "bg": "rgba(160, 185, 129, 0.15)",
         "border": "rgba(16, 185, 129, 0.35)",
     },
     "NK": {
@@ -71,6 +84,22 @@ PILLAR_METADATA = {
         "bg": "rgba(234, 88, 12, 0.15)",
         "border": "rgba(234, 88, 12, 0.35)",
     },
+    "PERSONAL": {
+        "name": "Personal & Life",
+        "emoji": "🏠",
+        "desc": "Personal, Household, Ergonomics & Gear",
+        "color": "#ec4899",
+        "bg": "rgba(236, 72, 153, 0.15)",
+        "border": "rgba(236, 72, 153, 0.35)",
+    },
+    "FORGE": {
+        "name": "The Forge",
+        "emoji": "🎲",
+        "desc": "Solo TTRPG, Starforged & Creative Lore",
+        "color": "#a855f7",
+        "bg": "rgba(168, 85, 247, 0.15)",
+        "border": "rgba(168, 85, 247, 0.35)",
+    },
 }
 
 
@@ -91,7 +120,7 @@ def infer_pillars(title: str, tags: Optional[List[str]] = None, body: str = "") 
         if b_upper in PILLAR_METADATA and b_upper not in matched:
             matched.append(b_upper)
 
-    if any(t in tag_set for t in ["tks", "theklangsuite", "klang"]) and "TKS" not in matched:
+    if any(t in tag_set for t in ["d", "dev", "factory", "tks", "theklangsuite", "klang"]) and "TKS" not in matched:
         matched.append("TKS")
     if any(t in tag_set for t in ["tt", "toadtracker", "tracker"]) and "TT" not in matched:
         matched.append("TT")
@@ -103,6 +132,10 @@ def infer_pillars(title: str, tags: Optional[List[str]] = None, body: str = "") 
         matched.append("AGY")
     if any(t in tag_set for t in ["tbd-16", "tbd16", "hardware", "firmware"]) and "TBD-16" not in matched:
         matched.append("TBD-16")
+    if any(t in tag_set for t in ["p", "personal", "abyss", "household", "gear", "life"]) and "PERSONAL" not in matched:
+        matched.append("PERSONAL")
+    if any(t in tag_set for t in ["f", "forge", "rpg", "ttrpg", "starforged", "creative"]) and "FORGE" not in matched:
+        matched.append("FORGE")
 
     # 2. Targeted Keyword rules
     keywords = {
@@ -132,6 +165,13 @@ def infer_pillars(title: str, tags: Optional[List[str]] = None, body: str = "") 
             "esp32", "p4", "i2s", "codec", "rotary encoder", "teensy", "firmware",
             "gpio", "eurorack", "pcb", "tbd-16"
         ],
+        "PERSONAL": [
+            "fridge", "refrigerator", "appliance", "trackball", "ergonomic", "ergonomics",
+            "desk", "mouse", "chair", "wishlist", "guitar to midi", "guitar"
+        ],
+        "FORGE": [
+            "ttrpg", "mythic", "starforged", "ironsworn", "worldbuilding", "solo rpg", "tabletop"
+        ],
     }
 
     for pillar, kws in keywords.items():
@@ -141,9 +181,9 @@ def infer_pillars(title: str, tags: Optional[List[str]] = None, body: str = "") 
                     matched.append(pillar)
                     break
 
-    # If nothing matched, default to TKS
+    # If nothing matched, default to PERSONAL (Cosmic Codex life/thought default)
     if not matched:
-        matched.append("TKS")
+        matched.append("PERSONAL")
 
     return matched
 
@@ -165,6 +205,8 @@ class TriageStatus(str, Enum):
     RESEARCH = "RESEARCH"
     GRAVEYARD = "GRAVEYARD"
     PCDA = "PCDA"
+    INVESTIGATING = "INVESTIGATING"
+    STAGED = "STAGED"
 
 
 class TriageActionType(str, Enum):
@@ -175,6 +217,11 @@ class TriageActionType(str, Enum):
     APPROVE = "APPROVE"
     TABLE = "TABLE"
     KILL = "KILL"
+    SUBAGENT = "SUBAGENT"
+    SUBAGENT_PROBE = "SUBAGENT_PROBE"
+    QUEUE = "QUEUE"
+    QUEUE_SESSION = "QUEUE_SESSION"
+
 
 
 class PCDAEngineType(str, Enum):
@@ -529,6 +576,7 @@ class RambleCard(BaseModel):
             char_count=len(body_text),
             word_count=len(body_text.split()),
             tier=tier,
+            src_type=MailSourceType.RAMBLE,
             idx=self.idea_index,
             split_group=self.split_group,
             agent_reply=self.agent_reply,

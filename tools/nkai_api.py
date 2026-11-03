@@ -120,13 +120,17 @@ except ImportError:
 class TriageActionRequest(BaseModel):
     model_config = ConfigDict(extra="allow")
 
-    action: str = Field(description="Action name: backlog, research, graveyard, pcda, approve, table, kill")
+    action: str = Field(description="Action name: approve, backlog, graveyard, subagent, queue, table, kill")
     note_id: Optional[str] = Field(default=None, description="Identifier of the targeted mailbag note")
     topic_id: Optional[str] = Field(default=None, description="Identifier of the targeted sanity audit topic")
     title: Optional[str] = Field(default="", description="Title or excerpt of the item")
     notes: Optional[str] = Field(default="", description="Optional rationale or triage notes")
     tier: Optional[str] = Field(default="tier2", description="Complexity tier: tier1, tier2, tier3")
     source: Optional[str] = Field(default="sidecar", description="Source client: sidecar, webview, cli")
+    sub_mode: Optional[str] = Field(default=None, description="Subagent probe mode: local, web, pcda, prompt")
+    session_mode: Optional[str] = Field(default=None, description="Session queue mode: Grill, Workshop, PCDA, Discuss, Plan")
+    table_reason: Optional[str] = Field(default=None, description="Table hold reason or custom note")
+
 
 
 class DispatchRequest(BaseModel):
@@ -253,6 +257,15 @@ async def dispatch_action(payload: TriageActionRequest) -> Dict[str, Any]:
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
     action_clean = payload.action.strip().upper()
 
+    if action_clean in ("SET_REALM", "TOGGLE_DOMAIN", "SET_DOMAIN") and payload.note_id:
+        try:
+            from check_mail import handle_toggle_card_domain
+            target_realm = str(getattr(payload, "target", "") or payload.notes or "dev").lower()
+            res = handle_toggle_card_domain(target_id=payload.note_id, target_realm=target_realm)
+            return res
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
     record = {
         "id": str(uuid.uuid4()),
         "action": action_clean,
@@ -295,6 +308,10 @@ async def dispatch_action(payload: TriageActionRequest) -> Dict[str, Any]:
                 "TABLED": TriageStatus.TABLED,
                 "KILL": TriageStatus.KILLED,
                 "KILLED": TriageStatus.KILLED,
+                "SUBAGENT": TriageStatus.INVESTIGATING,
+                "SUBAGENT_PROBE": TriageStatus.INVESTIGATING,
+                "QUEUE": TriageStatus.STAGED,
+                "QUEUE_SESSION": TriageStatus.STAGED,
             }
             new_status = status_map.get(action_clean, TriageStatus.APPROVED)
 
@@ -303,7 +320,16 @@ async def dispatch_action(payload: TriageActionRequest) -> Dict[str, Any]:
                     prev_status = item.status
                     item.status = new_status
                     item.verdict = action_clean
-                    item.verdict_notes = payload.notes
+
+                    effective_notes = payload.notes or ""
+                    if not effective_notes:
+                        if payload.sub_mode:
+                            effective_notes = f"Subagent mode: {payload.sub_mode}"
+                        elif payload.session_mode:
+                            effective_notes = f"Session mode: {payload.session_mode}"
+                        elif payload.table_reason:
+                            effective_notes = f"Table reason: {payload.table_reason}"
+                    item.verdict_notes = effective_notes
                     updated_note = True
 
                     # Generate atomic transaction receipt
@@ -321,7 +347,15 @@ async def dispatch_action(payload: TriageActionRequest) -> Dict[str, Any]:
                     with open(MAIL_TX_FILE, "w", encoding="utf-8") as f:
                         json.dump(tx.model_dump(), f, indent=2)
                         f.write("\n")
+
+                    # Slide to bottom of queue if Subagent probe
+                    if action_clean in ("SUBAGENT", "SUBAGENT_PROBE"):
+                        queue.items.remove(item)
+                        queue.items.append(item)
+                        for i, it in enumerate(queue.items, 1):
+                            it.idx = i
                     break
+
 
             if updated_note:
                 with open(MAIL_QUEUE_FILE, "w", encoding="utf-8") as f:

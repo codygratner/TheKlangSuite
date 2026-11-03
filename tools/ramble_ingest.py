@@ -36,6 +36,7 @@ try:
     from tools.models import (
         MailItem,
         MailQueue,
+        MailSourceType,
         PriorityLevel,
         RambleCard,
         RambleExtractionResult,
@@ -47,6 +48,7 @@ except ImportError:
         from models import (
             MailItem,
             MailQueue,
+            MailSourceType,
             PriorityLevel,
             RambleCard,
             RambleExtractionResult,
@@ -60,6 +62,7 @@ except ImportError:
         from models import (
             MailItem,
             MailQueue,
+            MailSourceType,
             PriorityLevel,
             RambleCard,
             RambleExtractionResult,
@@ -73,7 +76,7 @@ DEFAULT_MAIL_QUEUE = Path(r".agents/pipeline/mailbag/mail_queue.json")
 DEFAULT_OVERFLOW_FILE = Path(r".agents/pipeline/mailbag/overflow.json")
 
 
-def resolve_inbox_directory(dir_override: Optional[str] = None, scan_archive: bool = False) -> Path:
+def resolve_inbox_directory(dir_override: Optional[str] = None, scan_archive: bool = False, scan_staging: bool = False) -> Path:
     """Resolves target inbox directory with hierarchical fallbacks."""
     if dir_override:
         target = Path(dir_override).resolve()
@@ -81,6 +84,10 @@ def resolve_inbox_directory(dir_override: Optional[str] = None, scan_archive: bo
             archive_target = target / "Archive"
             if archive_target.exists():
                 return archive_target
+        if scan_staging:
+            staging_target = target / "Staging"
+            if staging_target.exists():
+                return staging_target
         return target
 
     if DEFAULT_VAULT_INBOX.exists():
@@ -88,6 +95,10 @@ def resolve_inbox_directory(dir_override: Optional[str] = None, scan_archive: bo
             archive_path = DEFAULT_VAULT_INBOX / "Archive"
             if archive_path.exists():
                 return archive_path
+        if scan_staging:
+            staging_path = DEFAULT_VAULT_INBOX / "Staging"
+            if staging_path.exists():
+                return staging_path
         return DEFAULT_VAULT_INBOX
 
     if FALLBACK_LOCAL_INBOX.exists():
@@ -95,6 +106,10 @@ def resolve_inbox_directory(dir_override: Optional[str] = None, scan_archive: bo
             archive_path = FALLBACK_LOCAL_INBOX / "Archive"
             if archive_path.exists():
                 return archive_path
+        if scan_staging:
+            staging_path = FALLBACK_LOCAL_INBOX / "Staging"
+            if staging_path.exists():
+                return staging_path
         return FALLBACK_LOCAL_INBOX
 
     return Path.cwd()
@@ -534,6 +549,21 @@ def append_cards_to_mail_queue(cards: List[RambleCard], queue_path: Path, dry_ru
     else:
         queue = MailQueue()
 
+    # Purge superseded raw note placeholders if present
+    raw_stems = set()
+    for card in cards:
+        if card.source_note:
+            raw_stems.add(Path(card.source_note).stem)
+            raw_stems.add(Path(card.source_note).name)
+
+    if raw_stems:
+        filtered_items = []
+        for it in queue.items:
+            if (it.id in raw_stems or it.file_name in raw_stems) and not it.id.startswith("ramble-") and getattr(it, "src_type", None) != MailSourceType.RAMBLE:
+                continue
+            filtered_items.append(it)
+        queue.items = filtered_items
+
     existing_map: Dict[str, int] = {it.id: idx for idx, it in enumerate(queue.items)}
     added = 0
     updated = 0
@@ -560,7 +590,10 @@ def append_cards_to_mail_queue(cards: List[RambleCard], queue_path: Path, dry_ru
 
 def archive_processed_notes(processed_files: List[Path], inbox_dir: Path, dry_run: bool = False) -> List[Path]:
     """Moves successfully ingested notes from inbox_dir to inbox_dir/Archive."""
-    archive_dir = inbox_dir / "Archive"
+    if inbox_dir.name.lower() in ("staging", "tabled", "quicknotes"):
+        archive_dir = inbox_dir.parent / "Archive"
+    else:
+        archive_dir = inbox_dir / "Archive"
     moved: List[Path] = []
 
     for f in processed_files:
@@ -581,7 +614,9 @@ def main():
         description="N'kai 'Rambles' Ingestion Engine: Decomposes unstructured thoughts into 3-Bullet Decision Cards."
     )
     parser.add_argument("--file", "-f", type=str, help="Path to a single markdown ramble note.")
+    parser.add_argument("--dir", type=str, default=None, help="Custom inbox directory to scan.")
     parser.add_argument("--inbox", action="store_true", help="Scan active notes in TheKlangVault/Inbox/.")
+    parser.add_argument("--staging", action="store_true", help="Scan Staging subfolder instead of root inbox.")
     parser.add_argument("--scan-archive", action="store_true", help="Scan archived notes in TheKlangVault/Inbox/Archive/.")
     parser.add_argument("--chat", action="store_true", default=True, help="Output clean Markdown cards to console (default).")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON structure.")
@@ -604,7 +639,7 @@ def main():
         files_to_process.append(target_f)
         inbox_dir = target_f.parent
     else:
-        inbox_dir = resolve_inbox_directory(scan_archive=args.scan_archive)
+        inbox_dir = resolve_inbox_directory(dir_override=args.dir, scan_archive=args.scan_archive, scan_staging=args.staging)
         if not inbox_dir.exists():
             print(f"❌ Error: Inbox directory not found: {inbox_dir}", file=sys.stderr)
             sys.exit(1)
@@ -612,6 +647,17 @@ def main():
             f for f in sorted(inbox_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
             if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD", "SCRATCHPAD.MD"]
         ]
+
+        # Auto-fallback: if root inbox has 0 files and Staging exists, check Staging/
+        if not files_to_process and not args.scan_archive and (inbox_dir / "Staging").exists():
+            staging_dir = inbox_dir / "Staging"
+            staged_files = [
+                f for f in sorted(staging_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
+                if f.is_file() and not f.name.startswith(".") and f.name.upper() not in ["README.MD", "INDEX.MD", "ARCHIVE_INDEX.MD", "WELCOME_TO_THE_UNIVERSAL_INBOX.MD", "SCRATCHPAD.MD"]
+            ]
+            if staged_files:
+                files_to_process = staged_files
+                inbox_dir = staging_dir
 
     if not files_to_process:
         if args.json:

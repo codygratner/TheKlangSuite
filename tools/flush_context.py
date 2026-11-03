@@ -185,9 +185,9 @@ def harvest_active_session() -> dict:
             except Exception:
                 pass
 
-        # Write context_clues_build.md
-        clues_path = Path(r"c:\Dev\TheKlangSuite\context_clues_build.md")
-        clues_content = f"""# Context Clues: Implementation & Build Chat
+        # Write context_clues_tower.md
+        clues_path = Path(r"c:\Dev\TheKlangSuite\context_clues_tower.md")
+        clues_content = f"""# Context Clues: The Klang Tower (Implementation & Build Chat)
 - **Session Timestamp:** {now_str}
 - **Conversation ID:** `{conv_id}`
 - **Active Objective:** {recent_prompt}

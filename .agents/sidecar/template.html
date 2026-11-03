@@ -6,35 +6,39 @@
   <title>The Klang Suite - UX Research &amp; Brainstorming Hub</title>
   <style>
     :root {
-          --bg-base: #0d1117;
-          --bg-panel: #161b22;
-          --bg-card: #21262d;
-          --border: #30363d;
-          --text-main: #c9d1d9;
-          --text-muted: #8b949e;
-          --accent-blue: #58a6ff;
-          --accent-green: #3fb950;
-          --accent-red: #f85149;
-          --accent-neon: #0ff;
-          --accent-amber: #ffab70;
-          --accent-pink: #f43f5e;
-          --font-mono: 'JetBrains Mono', 'Consolas', monospace;
-          --font-sans: 'Inter', -apple-system, sans-serif;
-        }
+      --background: #0d1117;
+      --foreground: #c9d1d9;
+      --bg-base: #0d1117;
+      --bg-panel: #161b22;
+      --bg-card: #21262d;
+      --border: #30363d;
+      --text-main: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-red: #f85149;
+      --accent-neon: #0ff;
+      --accent-amber: #ffab70;
+      --accent-pink: #f43f5e;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
     
-        * { box-sizing: border-box; }
+    * { box-sizing: border-box; }
     
-        html, body {
-          height: 100vh;
-          margin: 0;
-          padding: 0;
-          background-color: var(--bg-base);
-          color: var(--text-main);
-          font-family: var(--font-sans);
-          overflow-y: auto;
-          font-size: 1rem;
-          transition: font-size 0.15s ease;
-        }
+    html, body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-base) !important;
+      background: var(--bg-base) !important;
+      color: var(--text-main) !important;
+      font-family: var(--font-sans);
+      overflow-y: auto;
+      font-size: 1rem;
+      transition: font-size 0.15s ease;
+    }
     
         /* Two-Tier Header Architecture (Topics 6.9 & 6.10) */
         .app-header {
@@ -1500,6 +1504,1087 @@
             font-size: 10px;
           }
         }
+    
+    /* ==========================================================================
+       Multi-Board Switcher & Hub Modal (Flight 14 / Topic 6.11 / rj-05)
+       ========================================================================== */
+    .board-switcher-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 27, 34, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .board-switcher-btn:hover {
+      background: rgba(33, 38, 45, 0.95);
+      border-color: var(--accent-amber);
+      box-shadow: 0 0 12px rgba(255, 171, 112, 0.25);
+      transform: translateY(-1px);
+    }
+    
+    .board-switcher-btn .board-icon {
+      font-size: 14px;
+    }
+    
+    .board-switcher-btn .board-title {
+      color: var(--accent-amber);
+      letter-spacing: 0.02em;
+    }
+    
+    .board-switcher-btn .board-caret {
+      font-size: 11px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+    
+    .board-switcher-btn:hover .board-caret {
+      color: var(--accent-amber);
+      transform: translateY(1px);
+    }
+    
+    .board-switcher-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+    }
+    
+    .board-switcher-modal.open {
+      pointer-events: auto;
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .board-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 7, 12, 0.78);
+      backdrop-filter: blur(8px);
+    }
+    
+    .board-modal-container {
+      position: relative;
+      z-index: 2;
+      width: 92%;
+      max-width: 620px;
+      max-height: 85vh;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    @keyframes modalScaleIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    
+    .board-modal-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 17, 23, 0.5);
+    }
+    
+    .board-modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .board-modal-icon {
+      font-size: 18px;
+    }
+    
+    .board-modal-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+    
+    .board-modal-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(88, 166, 255, 0.15);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+    }
+    
+    .board-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+    
+    .board-modal-close:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    
+    .board-modal-search {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(22, 27, 34, 0.6);
+    }
+    
+    .board-modal-search .search-icon {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    
+    .board-search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 13px;
+    }
+    
+    .board-search-input::placeholder {
+      color: var(--text-muted);
+    }
+    
+    .board-modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .board-modal-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .board-section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .board-section-header h4 {
+      margin: 0;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    
+    .section-indicator {
+      font-size: 8px;
+    }
+    
+    .section-indicator.active-dot {
+      color: #3fb950;
+    }
+    
+    .section-indicator.staging-dot {
+      color: #f59e0b;
+    }
+    
+    .section-indicator.archived-dot {
+      color: #a855f7;
+    }
+    
+    .section-indicator.sandbox-dot {
+      color: #ec4899;
+    }
+    
+    .board-toggle-sandbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    
+    .board-toggle-sandbox-label:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(236, 72, 153, 0.4);
+    }
+    
+    .board-toggle-sandbox-label input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: #ec4899;
+    }
+    
+    .section-count {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+    }
+    
+    .board-cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .board-entry-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+      width: 100%;
+    }
+    
+    .board-entry-item:hover {
+      background: rgba(48, 54, 61, 0.85);
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .board-entry-item.is-current {
+      border-color: var(--accent-amber);
+      background: rgba(255, 171, 112, 0.08);
+    }
+    
+    .board-entry-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .board-entry-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .board-entry-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    
+    .board-entry-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    
+    .board-entry-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .badge-env-prod {
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(63, 185, 80, 0.12);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      color: #3fb950;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+    
+    .badge-env-sandbox {
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(255, 171, 112, 0.15);
+      border: 1px solid rgba(255, 171, 112, 0.4);
+      color: #ffab70;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+    
+    .badge-cards-count {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+    
+    .board-modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: rgba(13, 17, 23, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .board-footer-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    
+    .board-footer-hint kbd {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 10px;
+    }
+    
+    /* Mailbag Intake & Triage v2 Badges & Session Chips (Flight 7) */
+    .badge-overflow {
+      background: rgba(148, 163, 184, 0.15);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-quicknote {
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-tabled {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-attention {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      letter-spacing: 0.02em;
+    }
+    .badge-attention-important {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+    }
+    .badge-attention-bloated {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    .badge-attention-incomplete {
+      background: rgba(148, 163, 184, 0.2);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+    .badge-attention-spike {
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+      border: 1px solid rgba(34, 211, 238, 0.45);
+    }
+    .chip-session-grill {
+      color: #a855f7;
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+    .chip-session-grill:hover {
+      background: rgba(168, 85, 247, 0.18);
+      border-color: #a855f7;
+    }
+    .chip-session-research {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+    .chip-session-research:hover {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: #38bdf8;
+    }
+    .chip-session-plan {
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.35);
+    }
+    .chip-session-plan:hover {
+      background: rgba(52, 211, 153, 0.18);
+      border-color: #34d399;
+    }
+    
+    /* ==========================================================================
+       Per-Card Response Drawer (Flight 19 / rj-08)
+       ========================================================================== */
+    .card-drawer-container {
+      margin: 10px 0;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      background: rgba(15, 23, 42, 0.65);
+      border-left: 3px solid #a855f7;
+    }
+    
+    .card-drawer-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(30, 41, 59, 0.5);
+      border: none;
+      color: #cbd5e1;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease, color 0.15s ease;
+      user-select: none;
+    }
+    
+    .card-drawer-toggle:hover {
+      background: rgba(168, 85, 247, 0.15);
+      color: #f1f5f9;
+    }
+    
+    .drawer-toggle-icon {
+      font-size: 13px;
+      line-height: 1;
+    }
+    
+    .drawer-toggle-label {
+      flex: 1;
+      letter-spacing: 0.02em;
+      color: #e2e8f0;
+    }
+    
+    .drawer-toggle-caret {
+      font-size: 12px;
+      transition: transform 0.2s ease;
+      color: var(--text-muted);
+    }
+    
+    .card-drawer-toggle[aria-expanded="true"] .drawer-toggle-caret {
+      transform: rotate(180deg);
+    }
+    
+    .card-drawer-content {
+      background: #070b12;
+      border-top: 1px solid rgba(168, 85, 247, 0.2);
+    }
+    
+    .card-drawer-content[hidden] {
+      display: none !important;
+    }
+    
+    .card-drawer-content:not([hidden]) {
+      display: block;
+      animation: drawerSlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes drawerSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .drawer-inner {
+      padding: 12px 14px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-main);
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    
+    .drawer-inner h3, .drawer-inner h4, .drawer-inner h5 {
+      color: #f8fafc;
+      margin: 10px 0 6px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+    
+    .drawer-inner p {
+      margin: 6px 0;
+    }
+    
+    .drawer-inner ul, .drawer-inner ol {
+      margin: 6px 0 6px 18px;
+      padding-left: 0;
+    }
+    
+    .drawer-inner li {
+      margin: 3px 0;
+    }
+    
+    .drawer-inner code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: #c084fc;
+    }
+    
+    .drawer-inner pre {
+      background: #030712;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin: 8px 0;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    
+    .drawer-inner pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: #e2e8f0;
+    }
+    
+    .drawer-inner blockquote {
+      border-left: 3px solid #a855f7;
+      margin: 8px 0;
+      padding-left: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    
+    .drawer-inner hr {
+      border: 0;
+      border-top: 1px solid rgba(168, 85, 247, 0.2);
+      margin: 10px 0;
+    }
+    
+    /* ==========================================================================
+       Mobile Companion & Touch Ergonomics Architecture (N'kai v0.3.0 / Section 14)
+       Touch Target Law (>= 44px), 100dvh viewport stability, momentum filter rails,
+       and sticky bottom thumb navigation bar.
+       ========================================================================== */
+    
+    /* Root and scroll container viewport stability */
+    .inbox-container, .app-container, .mail-stream-wrapper {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    
+    /* Base thumb bar hidden on desktop viewports (> 640px) */
+    .mobile-thumb-bar {
+      display: none !important;
+    }
+    
+    @media (max-width: 640px) {
+      /* Dynamic viewport & body padding to prevent thumb bar content clipping */
+      body {
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+    
+      /* Two-Tier Header Mobile Adaptations */
+      .header-tier-top {
+        padding: 8px 12px;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+    
+      .header-tier-bottom {
+        padding: 6px 8px;
+        gap: 6px;
+        overflow-x: hidden;
+      }
+    
+      /* Filter Rails: Smooth Momentum Touch-Scrolling */
+      .rail-row {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .rail-row::-webkit-scrollbar {
+        display: none;
+      }
+    
+      .rail-chips {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-bottom: 2px;
+      }
+      .rail-chips::-webkit-scrollbar {
+        display: none;
+      }
+    
+      /* Filter Pill Touch Targets (>= 38px) */
+      .pill-btn, .filter-chip, .header-pill {
+        min-height: 38px;
+        padding: 6px 14px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        font-size: 12px;
+      }
+    
+      /* Card Layout on Mobile: Full width, 12px-14px padding */
+      .mail-card {
+        padding: 14px 12px;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        border-radius: 8px;
+      }
+    
+      .mail-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    
+      .mail-header-right {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+    
+      /* Touch Target Law: Minimum 44px x 44px tap targets on interactive actions */
+      .card-btn,
+      .action-chip,
+      .session-launcher-btn,
+      .chip-session-grill,
+      .chip-session-research,
+      .chip-session-plan,
+      .chip-approve,
+      .chip-backlog,
+      .chip-research,
+      .chip-graveyard,
+      .chip-pcda,
+      [id^="btn-approve-"],
+      [id^="btn-backlog-"],
+      [id^="btn-research-"],
+      [id^="btn-graveyard-"],
+      [id^="btn-pcda-"],
+      [id^="btn-launch-"],
+      .card-drawer-toggle,
+      .mail-body-toggle {
+        min-height: 44px;
+        min-width: 44px;
+        touch-action: manipulation;
+      }
+    
+      .mail-card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        margin-top: 10px;
+      }
+    
+      .mail-chip-group {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        width: 100%;
+      }
+    
+      .mail-chip-group .action-chip {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 13px;
+        box-sizing: border-box;
+      }
+    
+      .mail-session-launchers {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        width: 100%;
+      }
+    
+      .mail-session-launchers .action-chip,
+      .mail-session-launchers .session-launcher-btn {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 12px;
+        box-sizing: border-box;
+      }
+    
+      .mail-body-toggle {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+    
+      /* Sticky Bottom Thumb Navigation Bar */
+      .mobile-thumb-bar {
+        display: flex !important;
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px;
+        background: rgba(9, 13, 19, 0.96);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border);
+        justify-content: space-around;
+        align-items: center;
+        gap: 8px;
+        box-sizing: border-box;
+        width: 100%;
+      }
+    
+      .thumb-bar-btn {
+        flex: 1;
+        min-height: 44px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 6px 4px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg-panel);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s ease;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+    
+      .thumb-bar-btn:active,
+      .thumb-bar-btn.active {
+        background: rgba(56, 189, 248, 0.18);
+        color: var(--accent-blue);
+        border-color: var(--accent-blue);
+      }
+    
+      .thumb-bar-btn .thumb-icon {
+        font-size: 16px;
+        line-height: 1;
+      }
+    
+      .thumb-bar-btn .thumb-label {
+        font-size: 10px;
+        letter-spacing: 0.02em;
+      }
+    }
+    
+    @media (min-width: 641px) {
+      .mobile-thumb-bar {
+        display: none !important;
+      }
+    }
+    
+    /* ==========================================================================
+       Flight 20: Quick Capture Bar, Grab Button & Lab All-Clear Banner
+       ========================================================================== */
+    
+    .extension-only {
+      display: none !important;
+    }
+    
+    body.nkai-extension-mode .extension-only {
+      display: inline-flex !important;
+    }
+    
+    .quick-capture-cluster {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 440px;
+      min-width: 180px;
+    }
+    
+    .quick-capture-input {
+      width: 100%;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    
+    .quick-capture-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+      background: var(--bg-card);
+    }
+    
+    .quick-capture-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    
+    .quick-capture-btn:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+    
+    .quick-capture-btn:disabled, .header-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    @keyframes spinIcon {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .spinning {
+      animation: spinIcon 0.8s linear infinite !important;
+      pointer-events: none;
+    }
+    
+    /* ==========================================================================
+       Ephemeral Lab Triumph Banner (#lab-all-clear-banner)
+       ========================================================================== */
+    @keyframes allClearGlow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4), 0 0 16px rgba(52, 211, 153, 0.2);
+        border-color: rgba(52, 211, 153, 0.6);
+      }
+      50% {
+        box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.12), 0 0 24px rgba(52, 211, 153, 0.4);
+        border-color: #6ee7b7;
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4), 0 0 16px rgba(52, 211, 153, 0.2);
+        border-color: rgba(52, 211, 153, 0.6);
+      }
+    }
+    
+    .lab-all-clear-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(56, 189, 248, 0.08) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.5);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 14px 20px 20px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      animation: allClearGlow 3s ease-in-out infinite;
+    }
+    
+    .all-clear-content {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+      min-width: 240px;
+    }
+    
+    .all-clear-icon {
+      font-size: 26px;
+      line-height: 1;
+    }
+    
+    .all-clear-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .all-clear-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      color: #34d399;
+      letter-spacing: 0.02em;
+    }
+    
+    .all-clear-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    
+    .btn-conclude-lab {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #34d399;
+      color: #a7f3d0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    
+    .btn-conclude-lab:hover {
+      background: rgba(16, 185, 129, 0.35);
+      color: #fff;
+      border-color: #6ee7b7;
+      transform: translateY(-1px);
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.3);
+    }
+    
+    /* ==========================================================================
+       Network Host Switcher Pill & Modal (Topic 6.13 / Remote Access)
+       ========================================================================== */
+    .network-pill {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.25);
+      color: var(--accent-blue);
+      font-weight: 700;
+    }
+    .network-pill.tailscale-active {
+      background: rgba(52, 211, 153, 0.08);
+      border-color: rgba(52, 211, 153, 0.25);
+      color: var(--accent-green);
+    }
+    .network-option-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .network-option-card:hover {
+      border-color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.04);
+    }
+    .network-option-card.is-active {
+      border-color: var(--accent-green);
+      background: rgba(52, 211, 153, 0.06);
+    }
+    .btn-subtle {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      min-height: 36px;
+    }
+    .btn-subtle:hover {
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+    
+    
+    
+    
+    
   </style>
 </head>
 <body>
@@ -4935,27 +6020,40 @@
           },
     
           dispatchAction: function(actionPayload) {
+            const isSandbox = (typeof window !== 'undefined' && window.NKAI_ENVIRONMENT === 'SANDBOX');
+            let payload = actionPayload;
+            if (isSandbox) {
+              if (typeof payload === 'string') {
+                if (!payload.startsWith('[QA_TEST_MOCK]')) {
+                  payload = '[QA_TEST_MOCK] ' + payload;
+                }
+              } else if (payload && typeof payload === 'object') {
+                if (payload.prompt && typeof payload.prompt === 'string' && !payload.prompt.startsWith('[QA_TEST_MOCK]')) {
+                  payload.prompt = '[QA_TEST_MOCK] ' + payload.prompt;
+                }
+              }
+            }
             const env = this.detect();
-            const text = typeof actionPayload === 'string' ? actionPayload : JSON.stringify(actionPayload, null, 2);
+            const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
     
             // Mode 1: Antigravity IDE UI Extension (Zero-Copy Native IPC)
             if (env === 'extension') {
               try {
                 window.sidecar.agent.sendMessage(text);
                 if (typeof playHaptic === 'function') playHaptic('action');
-                showToast('⚡ Sent to Agent! Prompt delivered directly via Native IPC.');
+                showToast(isSandbox ? '🧪 [QA_TEST_MOCK] Sent to Agent!' : '⚡ Sent to Agent! Prompt delivered directly via Native IPC.');
                 return true;
               } catch (err) {
                 console.warn('[NkaiEnv] Extension dispatch failed, falling back to clipboard:', err);
               }
             }
     
-            // Mode 2: Local Sidecar Server / FastAPI Bridge
-            if (env === 'server' || typeof fetch === 'function') {
-              const bridgeUrl = (window.nkaiBridgeUrl || (window.location && window.location.origin ? window.location.origin : 'http://127.0.0.1:8000'));
-              const isObject = typeof actionPayload === 'object' && actionPayload !== null;
+            // Mode 2: Local Sidecar Server / FastAPI Bridge (Bypassed in SANDBOX mode)
+            if (!isSandbox && (env === 'server' || typeof fetch === 'function')) {
+              const bridgeUrl = (window.nkaiBridgeUrl || (window.location && window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:') ? window.location.origin : 'http://127.0.0.1:3030'));
+              const isObject = typeof payload === 'object' && payload !== null;
               const endpoint = '/api/action';
-              const bodyPayload = isObject ? actionPayload : { action: actionPayload, prompt: text, timestamp: Date.now() };
+              const bodyPayload = isObject ? payload : { action: payload, prompt: text, timestamp: Date.now() };
     
               fetch(`${bridgeUrl}${endpoint}`, {
                 method: 'POST',
@@ -5054,6 +6152,9 @@
         }
     
         function playHaptic(type) {
+          if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            try { navigator.vibrate(15); } catch (e) {}
+          }
           if (audioMuted) return;
           try {
             const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -5419,8 +6520,287 @@
           }
         }
     
+        /* ==========================================================================
+           Multi-Board Hub & Session Manager (Flight 14 / Topic 6.11 / rj-05)
+           ========================================================================== */
+        const DEFAULT_BOARD_REGISTRY = {
+          version: "1.0.0",
+          default_board_id: "morning_mail",
+          boards: [
+            {
+              id: "morning_mail",
+              title: "Morning Mail Inbox & Triage Lab",
+              description: "Daily operational triage for developer voice memos, mailbag cards, and backlog tickets",
+              category: "active",
+              board_type: "evergreen",
+              file_path: ".agents/sidecar/morning_mail_inbox.html",
+              environment: "PRODUCTION",
+              card_count: 0
+            },
+            {
+              id: "runway",
+              title: "Ecosystem Delivery Runway",
+              description: "Cross-project strategic delivery horizon mapped from docs/BACKLOG.md Act III",
+              category: "active",
+              board_type: "evergreen",
+              file_path: ".agents/sidecar/runway_board.html",
+              environment: "PRODUCTION",
+              card_count: 38
+            },
+            {
+              id: "system_sanity_audit",
+              title: "System Sanity Audit & Triage Lab",
+              description: "Forensic Method B Dialectics across Messaging, Capture, Sidecars & Memory",
+              category: "archived",
+              board_type: "lab",
+              file_path: ".agents/sidecar/audit_triage_board.html",
+              environment: "PRODUCTION",
+              card_count: 12
+            },
+            {
+              id: "sandbox_mail",
+              title: "Canonical QA Sandbox Test Board",
+              description: "Deterministic test fixture with 7 synthetic cards for regression testing and UI/UX validation",
+              category: "sandbox",
+              board_type: "custom",
+              file_path: ".agents/sidecar/sandbox_mail_inbox.html",
+              environment: "SANDBOX",
+              card_count: 7
+            }
+          ]
+        };
+    
+        let activeBoardRegistry = null;
+    
+        function isSandboxVisible() {
+          try {
+            return localStorage.getItem('nkai_show_sandbox') === 'true';
+          } catch (e) {
+            return false;
+          }
+        }
+    
+        function handleToggleSandbox(isChecked) {
+          try {
+            localStorage.setItem('nkai_show_sandbox', isChecked ? 'true' : 'false');
+          } catch (e) {}
+          if (typeof playHapticTick === 'function') playHapticTick();
+          if (activeBoardRegistry) {
+            renderBoardLists(activeBoardRegistry);
+          }
+          filterBoardList();
+        }
+    
+        function getActiveBoardId() {
+          try {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('board')) {
+              return urlParams.get('board');
+            }
+          } catch (e) {}
+          if (typeof window.NKAI_ENVIRONMENT !== 'undefined' && window.NKAI_ENVIRONMENT === 'SANDBOX') {
+            return 'sandbox_mail';
+          }
+          return 'morning_mail';
+        }
+    
+        function initBoardRegistry() {
+          // 1. Check embedded registry JSON in page
+          const embeddedScript = document.getElementById('nkai-board-registry-data');
+          if (embeddedScript && embeddedScript.textContent) {
+            const raw = embeddedScript.textContent.trim();
+            if (raw && !raw.includes('{{')) {
+              try {
+                activeBoardRegistry = JSON.parse(raw);
+              } catch (e) {
+                console.warn('[Nkai] Failed to parse embedded board registry:', e);
+              }
+            }
+          }
+    
+          if (!activeBoardRegistry) {
+            activeBoardRegistry = DEFAULT_BOARD_REGISTRY;
+          }
+    
+          // Sync sandbox toggle state
+          const toggleSbx = document.getElementById('toggle-show-sandbox');
+          if (toggleSbx) {
+            toggleSbx.checked = isSandboxVisible();
+          }
+    
+          // 2. Render initial boards in modal
+          renderBoardLists(activeBoardRegistry);
+    
+          // 3. Try async fetch in server/extension mode
+          if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
+            fetch('/api/boards?_t=' + Date.now())
+              .then(res => res.json())
+              .then(data => {
+                if (data && data.registry) {
+                  activeBoardRegistry = data.registry;
+                  renderBoardLists(activeBoardRegistry);
+                }
+              })
+              .catch(() => {});
+          }
+    
+          // 4. Keyboard shortcuts
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+              toggleBoardSwitcherModal(false);
+            }
+          });
+        }
+    
+        function toggleBoardSwitcherModal(explicitState) {
+          const modal = document.getElementById('board-switcher-modal');
+          if (!modal) return;
+    
+          const shouldOpen = explicitState !== undefined ? explicitState : !modal.classList.contains('open');
+    
+          if (shouldOpen) {
+            modal.style.display = 'flex';
+            void modal.offsetWidth;
+            modal.classList.add('open');
+            const searchInput = document.getElementById('board-search-input');
+            if (searchInput) {
+              searchInput.value = '';
+              filterBoardList();
+              setTimeout(() => searchInput.focus(), 50);
+            }
+            const toggleSbx = document.getElementById('toggle-show-sandbox');
+            if (toggleSbx) {
+              toggleSbx.checked = isSandboxVisible();
+            }
+            if (typeof playHapticTick === 'function') playHapticTick();
+          } else {
+            modal.classList.remove('open');
+            setTimeout(() => {
+              if (!modal.classList.contains('open')) {
+                modal.style.display = 'none';
+              }
+            }, 200);
+          }
+        }
+    
+        function renderBoardLists(registry) {
+          if (!registry || !registry.boards) return;
+    
+          const currentId = getActiveBoardId();
+          const showSandbox = isSandboxVisible();
+    
+          const toggleSbx = document.getElementById('toggle-show-sandbox');
+          if (toggleSbx && toggleSbx.checked !== showSandbox) {
+            toggleSbx.checked = showSandbox;
+          }
+    
+          const isSandboxBoard = b => (b.category && b.category.toLowerCase() === 'sandbox') || (b.environment && b.environment.toUpperCase() === 'SANDBOX');
+    
+          const activeBoards = registry.boards.filter(b => b.category && b.category.toLowerCase() === 'active' && !isSandboxBoard(b));
+          const stagingBoards = registry.boards.filter(b => b.category && b.category.toLowerCase() === 'staging' && !isSandboxBoard(b));
+          const archivedBoards = registry.boards.filter(b => b.category && b.category.toLowerCase() === 'archived' && !isSandboxBoard(b));
+          const sandboxBoards = registry.boards.filter(b => isSandboxBoard(b));
+    
+          function createBoardCard(board) {
+            const isCurrent = board.id === currentId;
+            const envBadge = (board.environment && board.environment.toUpperCase() === 'SANDBOX')
+              ? '<span class="badge-env-sandbox">SANDBOX</span>'
+              : '<span class="badge-env-prod">PROD</span>';
+            const cardCountText = board.card_count !== undefined ? `${board.card_count} cards` : '';
+            const currentBadge = isCurrent ? '<span style="color:var(--accent-amber);font-size:11px;font-weight:700;">● CURRENT</span>' : '';
+            const icon = board.id === 'morning_mail' ? '📬' : (board.id === 'runway' ? '🛫' : (board.id === 'sandbox_mail' ? '🧪' : '🔬'));
+    
+            return `
+              <button class="board-entry-item ${isCurrent ? 'is-current' : ''}" onclick="switchBoard('${board.id}')" data-board-id="${board.id}">
+                <div class="board-entry-left">
+                  <div class="board-entry-title">
+                    <span>${icon}</span>
+                    <span>${board.title}</span>
+                    ${currentBadge}
+                  </div>
+                  <div class="board-entry-desc">${board.description || ''}</div>
+                </div>
+                <div class="board-entry-right">
+                  <div class="board-entry-badges">
+                    ${envBadge}
+                  </div>
+                  <span class="badge-cards-count">${cardCountText}</span>
+                </div>
+              </button>
+            `;
+          }
+    
+          function updateCategorySection(sectionId, listId, countId, boards, shouldShow) {
+            const sectionEl = document.getElementById(sectionId);
+            const listEl = document.getElementById(listId);
+            const countEl = document.getElementById(countId);
+    
+            if (countEl) countEl.textContent = boards.length;
+    
+            if (!shouldShow || boards.length === 0) {
+              if (sectionEl) sectionEl.style.display = 'none';
+              if (listEl) listEl.innerHTML = '';
+            } else {
+              if (sectionEl) sectionEl.style.display = 'flex';
+              if (listEl) {
+                listEl.innerHTML = boards.map(createBoardCard).join('');
+              }
+            }
+          }
+    
+          updateCategorySection('active-boards-section', 'active-boards-list', 'active-boards-count', activeBoards, true);
+          updateCategorySection('staging-boards-section', 'staging-boards-list', 'staging-boards-count', stagingBoards, true);
+          updateCategorySection('archived-boards-section', 'archived-boards-list', 'archived-boards-count', archivedBoards, true);
+          updateCategorySection('sandbox-boards-section', 'sandbox-boards-list', 'sandbox-boards-count', sandboxBoards, showSandbox);
+        }
+    
+        function filterBoardList() {
+          const searchInput = document.getElementById('board-search-input');
+          const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+    
+          const items = document.querySelectorAll('.board-entry-item');
+          items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (!query || text.includes(query)) {
+              item.style.display = 'flex';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        }
+    
+        function switchBoard(boardId) {
+          if (typeof playHaptic === 'function') playHaptic('tab');
+    
+          let targetFile = 'morning_mail_inbox.html';
+          if (activeBoardRegistry && activeBoardRegistry.boards) {
+            const board = activeBoardRegistry.boards.find(b => b.id === boardId);
+            if (board && board.file_path) {
+              targetFile = board.file_path.split('/').pop();
+            }
+          }
+          if (boardId === 'morning_mail') targetFile = 'morning_mail_inbox.html';
+          if (boardId === 'runway') targetFile = 'runway_board.html';
+          if (boardId === 'sandbox_mail') targetFile = 'sandbox_mail_inbox.html';
+          if (boardId === 'system_sanity_audit') targetFile = 'audit_triage_board.html';
+          if (boardId === 'audit_triage') targetFile = 'audit_triage_board.html';
+    
+          const isServer = window.location.protocol.startsWith('http');
+          const timestamp = Date.now();
+    
+          if (isServer) {
+            window.location.href = `/${targetFile}?_t=${timestamp}`;
+          } else {
+            window.location.href = targetFile;
+          }
+        }
+    
         function initNkaiCore() {
           initAudioHaptics();
+          initBoardRegistry();
+          initMobileThumbBar();
+          initExtensionMode();
+          checkAllClearState();
           if (typeof updateAutopsyScoreboard === 'function') {
             updateAutopsyScoreboard();
           }
@@ -5433,6 +6813,304 @@
           }
         }
     
+        /* Mobile Companion Thumb Navigation Protocol (N'kai v0.3.0 / Section 14) */
+        function initMobileThumbBar() {
+          const btnUntriaged = document.getElementById('thumb-btn-untriaged');
+          const btnP0 = document.getElementById('thumb-btn-p0');
+          const btnAll = document.getElementById('thumb-btn-all');
+          const btnHub = document.getElementById('thumb-btn-hub');
+    
+          const triggerThumb = (action) => {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) {
+              try { navigator.vibrate(15); } catch (e) {}
+            }
+            if (typeof playHaptic === 'function') playHaptic('tab');
+    
+            if (action === 'hub') {
+              if (typeof toggleBoardSwitcherModal === 'function') {
+                toggleBoardSwitcherModal(true);
+              }
+              return;
+            }
+    
+            document.querySelectorAll('.thumb-bar-btn').forEach(b => {
+              if (b.id !== 'thumb-btn-hub') b.classList.toggle('active', b.id === ('thumb-btn-' + action));
+            });
+    
+            if (typeof applyStatusFilter === 'function') {
+              applyStatusFilter(action);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+    
+          if (btnUntriaged) btnUntriaged.addEventListener('click', (e) => { e.preventDefault(); triggerThumb('untriaged'); });
+          if (btnP0) btnP0.addEventListener('click', (e) => { e.preventDefault(); triggerThumb('p0'); });
+          if (btnAll) btnAll.addEventListener('click', (e) => { e.preventDefault(); triggerThumb('all'); });
+          if (btnHub) btnHub.addEventListener('click', (e) => { e.preventDefault(); triggerThumb('hub'); });
+        }
+    
+        function launchSessionAction(cardId, sessionType) {
+          if (typeof playHaptic === 'function') playHaptic('action');
+    
+          const card = document.getElementById(cardId);
+          const rawTitle = card ? (card.getAttribute('data-title') || 'Topic') : 'Topic';
+          const cleanTitle = rawTitle.replace(/^[^\w\s]+/, '').replace(/^\[[^\]]+\]\s*/, '').trim();
+    
+          let prompt = '';
+          let actionLabel = '';
+    
+          if (sessionType === 'grill-lab') {
+            prompt = `/grill-lab --topic "${cleanTitle}"`;
+            actionLabel = 'Grill-Lab';
+          } else if (sessionType === 'deep-research') {
+            prompt = `Conduct deep architectural research on: "${cleanTitle}". Analyze requirements, failure modes, industry standards, and trade-offs.`;
+            actionLabel = 'Deep Research';
+          } else if (sessionType === 'draft-plan') {
+            prompt = `/plan "Draft architectural implementation plan for ${cleanTitle}"`;
+            actionLabel = 'Draft Plan';
+          }
+    
+          let dispatched = false;
+          if (typeof window !== 'undefined' && window.sidecar && window.sidecar.agent && typeof window.sidecar.agent.sendMessage === 'function') {
+            try {
+              window.sidecar.agent.sendMessage(prompt);
+              dispatched = true;
+            } catch (e) {
+              console.warn('[Nkai] Native IPC dispatch error:', e);
+            }
+          } else if (window.NkaiEnv && typeof window.NkaiEnv.dispatchAction === 'function') {
+            try {
+              window.NkaiEnv.dispatchAction(prompt);
+              dispatched = true;
+            } catch (e) {
+              console.warn('[Nkai] NkaiEnv dispatch error:', e);
+            }
+          }
+    
+          if (dispatched) {
+            if (typeof showToast === 'function') showToast(`🚀 Dispatched ${actionLabel} to Antigravity Agent!`);
+          } else {
+            if (typeof copyToClipboardSilently === 'function') copyToClipboardSilently(prompt);
+            if (typeof showToast === 'function') showToast(`📋 Copied ${actionLabel} prompt to clipboard! Paste in chat (Ctrl+V)`);
+          }
+        }
+    
+        /* ==========================================================================
+           Per-Card Response Drawer Controller (Flight 19 / rj-08)
+           ========================================================================== */
+        function toggleResponseDrawer(cardId) {
+          const clean = cardId.startsWith('drawer-') ? cardId.substring(7) : cardId;
+          const drawer = document.getElementById('drawer-' + clean) || document.getElementById(cardId);
+          const btn = document.getElementById('btn-drawer-' + clean) || document.getElementById('btn-' + cardId);
+          if (!drawer || !btn) return;
+    
+          const isClosed = drawer.hasAttribute('hidden') || !drawer.classList.contains('is-open');
+          if (isClosed) {
+            drawer.removeAttribute('hidden');
+            drawer.classList.add('is-open');
+            btn.setAttribute('aria-expanded', 'true');
+          } else {
+            drawer.setAttribute('hidden', '');
+            drawer.classList.remove('is-open');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+    
+          if (typeof playHaptic === 'function') {
+            try {
+              playHaptic('tick');
+            } catch (e) {}
+          }
+        }
+    
+        /* ==========================================================================
+           Flight 20: Quick Capture Bar, Grab Button & Lab All-Clear Lifecycle
+           ========================================================================== */
+    
+        function isExtensionModeActive() {
+          if (typeof window.NKAI_EXTENSION_MODE === 'boolean') {
+            return window.NKAI_EXTENSION_MODE;
+          }
+          if (typeof window.sidecar !== 'undefined') return true;
+          if (typeof window.location !== 'undefined') {
+            if (window.location.protocol === 'http:' || window.location.protocol === 'https:') return true;
+          }
+          return false;
+        }
+    
+        function initExtensionMode() {
+          window.NKAI_EXTENSION_MODE = isExtensionModeActive();
+          const qc = document.getElementById('quick-capture-container');
+          const gb = document.getElementById('btn-grab-mail');
+    
+          if (window.NKAI_EXTENSION_MODE) {
+            if (typeof document !== 'undefined' && document.body) {
+              document.body.classList.add('nkai-extension-mode');
+            }
+            if (qc) qc.style.display = 'inline-flex';
+            if (gb) gb.style.display = 'inline-flex';
+          } else {
+            if (typeof document !== 'undefined' && document.body) {
+              document.body.classList.remove('nkai-extension-mode');
+            }
+            if (qc) qc.style.display = 'none';
+            if (gb) gb.style.display = 'none';
+          }
+        }
+    
+        function submitQuickNote() {
+          const input = document.getElementById('quick-capture-input');
+          const btn = document.getElementById('btn-quick-capture');
+          if (!input) return;
+          const text = input.value.trim();
+          if (!text) return;
+    
+          if (btn) btn.disabled = true;
+          input.disabled = true;
+    
+          const headers = { 'Content-Type': 'application/json' };
+          if (window.sidecar && window.sidecar.token) {
+            headers['x-sidecar-token'] = window.sidecar.token;
+          }
+    
+          fetch('/api/quick-note', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ text })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.ok) {
+              input.value = '';
+              if (typeof playHaptic === 'function') playHaptic('action');
+              if (typeof showToast === 'function') showToast('📝 Quick note saved to daily catchall!');
+              setTimeout(() => {
+                if (typeof forceReloadCanvas === 'function') forceReloadCanvas();
+                else window.location.href = window.location.pathname + '?t=' + Date.now();
+              }, 400);
+            } else {
+              if (typeof showToast === 'function') showToast('⚠️ Note error: ' + (data.error || 'unknown'));
+            }
+          })
+          .catch(err => {
+            if (typeof showToast === 'function') showToast('⚠️ Note save failed: ' + err.message);
+          })
+          .finally(() => {
+            if (btn) btn.disabled = false;
+            input.disabled = false;
+            input.focus();
+          });
+        }
+    
+        function triggerMailGrab() {
+          const btn = document.getElementById('btn-grab-mail');
+          if (btn) btn.classList.add('spinning');
+    
+          const headers = { 'Content-Type': 'application/json' };
+          if (window.sidecar && window.sidecar.token) {
+            headers['x-sidecar-token'] = window.sidecar.token;
+          }
+    
+          fetch('/api/check-mail', {
+            method: 'POST',
+            headers: headers
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (typeof playHaptic === 'function') playHaptic('action');
+            if (typeof showToast === 'function') {
+              showToast(data.debounced ? '⏳ Mail check debounced (<500ms)' : '📬 Grabbed new mail from Vault!');
+            }
+            setTimeout(() => {
+              if (typeof forceReloadCanvas === 'function') forceReloadCanvas();
+              else window.location.href = window.location.pathname + '?t=' + Date.now();
+            }, 400);
+          })
+          .catch(err => {
+            if (typeof showToast === 'function') showToast('⚠️ Mail grab failed: ' + err.message);
+          })
+          .finally(() => {
+            if (btn) btn.classList.remove('spinning');
+          });
+        }
+    
+        function checkAllClearState() {
+          const banner = document.getElementById('lab-all-clear-banner');
+          if (!banner) return;
+    
+          let isLab = false;
+          const urlParams = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search) : null;
+          const currentBoardId = urlParams ? (urlParams.get('board') || '') : '';
+    
+          if (window.NKAI_REGISTRY && window.NKAI_REGISTRY.boards) {
+            const found = window.NKAI_REGISTRY.boards.find(b => b.id === currentBoardId);
+            if (found && (found.board_type === 'lab' || found.id.includes('lab') || found.id.includes('audit'))) {
+              isLab = true;
+            }
+          }
+          if (!isLab && (currentBoardId.includes('lab') || currentBoardId.includes('audit'))) {
+            isLab = true;
+          }
+          if (!isLab && typeof document !== 'undefined' && document.title.toLowerCase().includes('lab')) {
+            isLab = true;
+          }
+    
+          let untriagedCount = 0;
+          if (typeof triageStats !== 'undefined' && typeof triageStats.untriaged === 'number') {
+            untriagedCount = triageStats.untriaged;
+          } else {
+            const untriagedPill = document.getElementById('count-status-untriaged');
+            if (untriagedPill) {
+              untriagedCount = parseInt(untriagedPill.innerText, 10) || 0;
+            }
+          }
+    
+          const totalCount = (typeof triageStats !== 'undefined' && typeof triageStats.total === 'number')
+            ? triageStats.total
+            : (document.querySelectorAll('.mail-card').length);
+    
+          if (isLab && untriagedCount === 0 && totalCount > 0) {
+            banner.style.display = 'flex';
+          } else {
+            banner.style.display = 'none';
+          }
+        }
+    
+        function concludeCurrentLab() {
+          const urlParams = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search) : null;
+          const currentBoardId = urlParams ? (urlParams.get('board') || '') : '';
+          const btn = document.getElementById('btn-conclude-lab');
+          if (btn) {
+            btn.disabled = true;
+            btn.innerText = '🏁 Concluding...';
+          }
+    
+          const headers = { 'Content-Type': 'application/json' };
+          if (window.sidecar && window.sidecar.token) {
+            headers['x-sidecar-token'] = window.sidecar.token;
+          }
+    
+          fetch('/api/conclude-lab', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ slug: currentBoardId })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (typeof playHaptic === 'function') playHaptic('tab');
+            if (typeof showToast === 'function') showToast('🏁 Lab concluded! Takeaways staged to souls/.');
+            setTimeout(() => {
+              window.location.href = '/?board=morning_mail';
+            }, 800);
+          })
+          .catch(err => {
+            if (typeof showToast === 'function') showToast('⚠️ Conclude error: ' + err.message);
+            if (btn) {
+              btn.disabled = false;
+              btn.innerText = '🏁 Conclude Lab & Stage Insights';
+            }
+          });
+        }
+    
         if (typeof document !== 'undefined') {
           if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initNkaiCore);
@@ -5440,6 +7118,7 @@
             initNkaiCore();
           }
         }
+    
   </script>
 </body>
 </html>

@@ -85,6 +85,10 @@ This is the central directory for all high-level documentation, rules, and histo
 - [verify_context_clues.py](../tools/verify_context_clues.py) — Markdown hyperlink integrity auditor.
 - [verify_utf8.py](../tools/verify_utf8.py) — Universal UTF-8 Invariant auditor and CLI stream enforcer.
 - [registry.json](../.agents/pipeline/boards/registry.json) — Canonical Multi-Board Hub registry catalog.
+- [agy_bridge.py](../tools/agy_bridge.py) — Direct ConnectRPC bridge to Antigravity `language_server.exe`.
+- [agy_models.py](../tools/agy_models.py) — Pydantic v2 data contract layer for Antigravity IPC.
+- [agy_autopsy.py](../tools/agy_autopsy.py) — 358-symbol ConnectRPC binary tomography and self-healing engine.
+- [nkai_tray.py](../tools/nkai_tray.py) — Windows 11 system tray supervisor with 4-quadrant health icon.
 - [master_control_schema.json](../assets/controls/master_control_schema.json) — Master DSP parameter schema across all 8 modules (202 parameters).
 - [preset.schema.json](../assets/presets/$schema/preset.schema.json) — Universal preset JSON schema generated from Pydantic `PresetPayload`.
 
@@ -93,6 +97,6 @@ This is the central directory for all high-level documentation, rules, and histo
 The Klang ecosystem consists of five interconnected repositories:
 - **The Klang Suite** (`c:\Dev\TheKlangSuite`): Polyphonic synthesizers and VST3 plugins.
 - **ToadTracker** (`c:\Dev\ToadTracker`): 16-step embedded hardware groovebox.
-- **N'kai** (`c:\Dev\nkai`): Asymmetric sidecar framework & interactive triage lab ([github.com/codygratner/nkai](https://github.com/codygratner/nkai)).
+- **N'kai** (`c:\Dev\nkai`): Zen SPA Cockpit, ClockTab Focus Deck, Direct AGY Bridge & Triage Engine ([github.com/codygratner/nkai](https://github.com/codygratner/nkai)).
 - **The Klang Research** (`c:\Dev\Research`): Centralized research repository, exploratory canvases, and soul harvests ([github.com/codygratner/TheKlangResearch](https://github.com/codygratner/TheKlangResearch)).
 - **The Cosmos (Master Vault)** (`C:\_\Vault` / `C:\Dev\TheKlangVault`): Consolidated master Zettelkasten, creative lab, private studio hub, and the Inter-Project Data Bus (`Dispatches/`).

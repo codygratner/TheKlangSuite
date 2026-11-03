@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 class SidecarAuditor:
     def __init__(self, file_path: str, auto_fix: bool = False):
-        self.file_path = Path(file_path)
+        self.file_path = Path(file_path).resolve()
         self.auto_fix = auto_fix
         self.issues = []
         self.warnings = []
@@ -46,8 +46,8 @@ class SidecarAuditor:
             unescaped_path_matches = re.finditer(r'([A-Za-z]:\\[^`"\'\n]+)', script)
             for m in unescaped_path_matches:
                 raw_path = m.group(1)
-                # Check if it has \u which is parsed as unicode escape in JS
-                if re.search(r'\\u[0-9a-fA-F]{0,3}[^0-9a-fA-F]', raw_path) or r'\u' in raw_path:
+                # Check if it has \u or \U which is parsed as unicode escape in JS
+                if re.search(r'\\u[0-9a-fA-F]{0,3}[^0-9a-fA-F]', raw_path, re.IGNORECASE) or r'\u' in raw_path.lower():
                     self.issues.append(f"Fatal JS Syntax Hazard in <script #{idx+1}>: Unescaped Windows path with '\\u' sequence: '{raw_path}'. In JavaScript, '\\u' requires 4 hex digits and will throw SyntaxError!")
                     if self.auto_fix:
                         # Fix: convert backslashes to forward slashes or escape them
@@ -88,12 +88,59 @@ class SidecarAuditor:
             if 'localStorage.getItem(\'nkai_audio_muted\')' not in self.content:
                 self.warnings.append("Audio Hygiene: Web Audio found without persistent localStorage mute state.")
 
+    def audit_navigation_and_scroll(self):
+        """Verifies that sidebar anchor navigation and scroll targets are robust."""
+        if 'sidebar-item' in self.content or 'nav-item' in self.content:
+            if 'scroll-margin-top' not in self.content:
+                self.warnings.append("Navigation Offset: CSS missing 'scroll-margin-top' on section targets. Sticky header may obscure scrolled content.")
+            if '.sidebar-item' in self.content and 'preventDefault' not in self.content:
+                self.issues.append("Navigation Trap: '.sidebar-item' click handler missing 'e.preventDefault()', which causes broken native hash jumps.")
+
+    def audit_local_file_navigation_safety(self):
+        """Audits switchBoard and navigation handlers for unconditional query strings on file://."""
+        if "switchBoard" in self.content:
+            if "isServer" not in self.content:
+                self.issues.append("Windows file:// Navigation Hazard: 'switchBoard' lacks 'isServer' check. Unconditional query strings cause 'file not found' on Windows file:///.")
+            if re.search(r'window\.location\.href\s*=\s*`\$\{targetFile\}\?[^`]*`', self.content):
+                self.issues.append("Windows file:// Navigation Hazard: Found query string appended directly to targetFile without protocol guard.")
+
+    def audit_chrome_runtime_console(self):
+        """Runs Chrome headless to detect runtime JS errors or SyntaxErrors."""
+        chrome_paths = [
+            Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
+            Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
+        ]
+        exe = next((p for p in chrome_paths if p.exists()), None)
+        if not exe:
+            return
+
+        import subprocess
+        try:
+            url = self.file_path.as_uri()
+            res = subprocess.run([
+                str(exe),
+                "--headless=new",
+                "--disable-gpu",
+                "--enable-logging=stderr",
+                "--dump-dom",
+                url
+            ], capture_output=True, text=True, errors="replace", timeout=10)
+            for line in res.stderr.splitlines():
+                if "CONSOLE" in line and ("error" in line.lower() or "syntaxerror" in line.lower() or "uncaught" in line.lower()):
+                    self.issues.append(f"Browser Runtime JS Error: {line.strip()}")
+        except Exception as e:
+            self.warnings.append(f"Headless Chrome Verification Skipped: {e}")
+
+
     def run(self) -> bool:
         self.audit_tag_balance()
         self.audit_js_syntax_and_escapes()
         self.audit_overlay_pointer_events()
         self.audit_cache_busting_refresh()
         self.audit_audio_haptics()
+        self.audit_navigation_and_scroll()
+        self.audit_local_file_navigation_safety()
+        self.audit_chrome_runtime_console()
 
         passed = (len(self.issues) == 0)
         return passed

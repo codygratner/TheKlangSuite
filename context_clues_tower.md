@@ -29,13 +29,13 @@
 ---
 
 ## 🎯 Immediate Return Agenda & Status
-- **Current Objective:** Address incoming mail regarding "AGY stuff you can do", then advance to Flight 28 (Subagent Queue-of-1 & Mi-Go Canister Engine).
+- **Current Objective:** Completed all 7 Quick Wins from the Ecosystem-Wide Tooling & Skills Audit (plan_manager, bus fast-path, global skills, compat_check linter, agenda shadow cache, tool drift, context_extract & extract_clues). Ready for Flight 33 (DSP Efficiency & Saturation Core) or next milestone flight.
 - **TKS Return Directive (Generative UI Spikes)**: When pivoting to TKS v0.4.1 / v0.5.0, immediately invoke `generative_ui` to prototype interactive, side-by-side HTML/CSS mockups of the 8-knob card layouts, dual-deck front/back flip, and TBD-16 encoder ergonomics before writing C++ JUCE components!
 - **Execution State:** `IDLE / READY`
 - **Active Blueprint:** [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md)
 - **Flight Horizon**:
-  - Flights 24-27 100% complete and verified live on mobile Safari.
-  - Advance to Flight 28 (Subagent Queue-of-1 & Mi-Go Canister Engine).
+  - All 7 Tooling & Skills Quick Wins 100% complete and verified across all repositories.
+  - Advance to Flight 33 (DSP Saturation Core) or user-directed priority.
 
 ---
 

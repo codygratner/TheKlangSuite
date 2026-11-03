@@ -15,6 +15,15 @@ Perform a pre-build or pre-release compatibility audit of `CMakeLists.txt` and C
 
 ## Workflow
 
+### 0. Automated Deterministic Audit (Primary Execution)
+Execute the fast Python compatibility linter first. This deterministic tool inspects `CMakeLists.txt` and all C++ headers and source files in <150ms without reading dozens of files into context:
+```bash
+python tools/compat_check.py --terse
+```
+- **If Clean:** Outputs 1 token-shield line (`✅ Cross-Platform & JUCE 9.0.3: 0 violations across CMakeLists.txt and N source files [Xms]`). Output the summary report directly.
+- **If Violations Detected:** Returns exact line numbers and offending declarations for surgical remediation.
+- **Full Report Mode:** Run `python tools/compat_check.py` to generate the complete publication-grade Markdown report automatically.
+
 ### 1. CMake Cross-Platform Configuration Audit
 Inspect [`CMakeLists.txt`](file:///c:/Dev/TheKlangSuite/CMakeLists.txt) for critical cross-platform declarations:
 

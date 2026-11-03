@@ -152,11 +152,12 @@ def dispatch_prompt(
     target_conv: str,
     prompt: str,
     model_query: str = "flash-high",
+    media: Optional[List[Dict[str, str]]] = None,
     bypass_quota_gate: bool = False,
     bypass_idle_gate: bool = False
 ) -> Dict[str, Any]:
     """
-    Dispatches a prompt to target conversation with explicit model configuration.
+    Dispatches a prompt to target conversation with explicit model configuration and optional media attachments.
     """
     # 1. Resolve Target Conversation ID
     conv_id = KNOWN_CONVERSATIONS.get(target_conv.upper(), target_conv)
@@ -208,6 +209,19 @@ def dispatch_prompt(
             }
         }
     }
+
+    if media:
+        cleaned_media = []
+        for m in media:
+            uri = m.get("uri") or m.get("abs_path") or m.get("path") or ""
+            uri = str(uri).replace("\\", "/")
+            mime_type = m.get("mime_type") or m.get("mimeType") or "image/png"
+            cleaned_media.append({
+                "uri": uri,
+                "mimeType": mime_type,
+                "mime_type": mime_type
+            })
+        payload["media"] = cleaned_media
 
     t0 = time.perf_counter()
     res = execute_rpc("SendUserCascadeMessage", payload)

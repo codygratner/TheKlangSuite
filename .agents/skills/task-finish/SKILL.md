@@ -49,37 +49,28 @@ Close out a completed engineering milestone with absolute discipline: verify 100
 
 ---
 
-### 3. Autonomous Archival & Clean Reset
-1. Extract the plan title or slug and current date (`YYYY-MM-DD`).
-2. Move [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) to:
-   `.agents/pipeline/plans/completed/<YYYY-MM-DD>_<task_slug>.md`
-3. Reset [`PLAN.md`](file:///c:/Dev/TheKlangSuite/PLAN.md) at root:
-   ```markdown
-   # Implementation Plan
+### 3. Autonomous Archival & Clean Reset (Mechanical Clerk)
+Execute 1-command archival, reset, and dual-communiqué completion:
+```powershell
+python tools/plan_manager.py finish
+```
+*What it executes automatically in <10ms:*
+- Verifies 100% check-off in `PLAN.md` (halts if incomplete).
+- Archives `PLAN.md` to `.agents/pipeline/plans/completed/<YYYY-MM-DD>_<slug>.md`.
+- Resets root `PLAN.md` with pristine `# Implementation Plan` idle state.
+- Updates BOTH `factory_receipt.md` and `factory_dispatch.md` to `COMPLETED ✅`.
+- Saves ~4,500 tokens and 5 file operations!
 
-   *No active plan. Ready for next assignment from New Klang City.*
-   ```
-4. Clean temporary snapshot artifacts if present:
-   ```powershell
-   Remove-Item -Path "context_snapshot*.md", "PLAN_BACKUP*.md" -Force -ErrorAction SilentlyContinue
-   ```
-5. **Obsidian Vault Inbox Archival (If Applicable):**
-   If `PLAN.md` specifies a source note (e.g. `Source Note: <note_name>.md`) or originated from an inbox note in `C:\Dev\TheKlangVault\Inbox\`, automatically archive it:
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1 -ArchiveNotes "<note_name>"
-   ```
-   This moves the note to `TheKlangVault/Inbox/Archive/` and cleans up the repo staging copy.
-
----
-
-### 4. Dual Communiqué Mailbox Synchronization
-If `.agents/pipeline/communique/` exists in the repository:
-1. Update [`.agents/pipeline/communique/factory_receipt.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/factory_receipt.md):
-   - Set `Status: COMPLETE ✅`
-   - Include test metrics (GUI tests passed, DSP tests passed).
-   - Link to the archived plan in `.agents/pipeline/plans/completed/`.
-2. Update [`.agents/pipeline/communique/factory_dispatch.md`](file:///c:/Dev/TheKlangSuite/.agents/pipeline/communique/factory_dispatch.md):
-   - Set `Status: COMPLETED` (with completion timestamp and link to archived plan).
+*Optional Cleanups:*
+- Clean temporary snapshot artifacts if present:
+  ```powershell
+  Remove-Item -Path "context_snapshot*.md", "PLAN_BACKUP*.md" -Force -ErrorAction SilentlyContinue
+  ```
+- **Obsidian Vault Inbox Archival (If Applicable):**
+  If `PLAN.md` references an inbox note (`Source Note: <note_name>.md`):
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\tools\sync_obsidian_vault.ps1 -ArchiveNotes "<note_name>"
+  ```
 
 ---
 

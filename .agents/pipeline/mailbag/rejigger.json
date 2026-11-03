@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-10-13T06:15:00-05:00",
+  "generated_at": "2026-10-13T20:55:00-05:00",
   "generated_by": "Flash High - Complete Archive Audit & Rejigger",
-  "notes": "Structural overlay covering 100% of archived mail & fresh inbox (54 primary cards rj-01 through rj-54). Includes multi-source provenance and relational cross-card linking.",
+  "notes": "Structural overlay covering 100% of archived mail & fresh inbox (63 primary cards rj-01 through rj-63). Includes multi-source provenance and relational cross-card linking.",
   "cards": [
     {
       "id": "rj-01",
@@ -59,28 +59,12 @@
     {
       "id": "rj-02",
       "rank": 2,
-      "priority": "P0",
-      "status": "BACKLOG",
-      "tier": "tier3",
-      "pillars": [
-        "AGY",
-        "NK",
-        "TKS"
-      ],
-      "title": "Universal UTF-8 Invariant (quick win)",
-      "summary": "Promoted P1 -> P0. Windows cp1252 crashes hit every tooling session (three times today alone). Tiny fix, removes daily friction for everything downstream.",
-      "angles": [
-        "sys.stdout/stderr.reconfigure(encoding='utf-8') in every tools/*.py entrypoint",
-        "PYTHONUTF8=1 in harness wrappers",
-        "One-line rule in GEMINI.md"
-      ],
-      "next_action": "Dispatch to Flash builder: sweep tools/ + nkai/tools, add rule.",
-      "sources": [
-        "docket-18",
-        "UTF-8"
-      ],
-      "verdict": "BACKLOG",
-      "verdict_notes": "2026-10-11: Backlogged as BACKLOG.md N'kai Flight 18 (P0 quick win, next up)."
+      "loop_id": "LOOP-34",
+      "title": "Multi-Machine Engines (MME) Venti 32-Control Suite",
+      "status": "OPEN_LOOP",
+      "priority": "P1",
+      "core_intent": "Role-based drum synthesizer suite (MME-BD..MME-FX) unifying MD, Perkons, Vermona, Modor, Syncussion, Jomox into Venti 4x8 engines.",
+      "action_route": "Tabled on open loop LOOP-34 for execution post-autonomous night sweep."
     },
     {
       "id": "rj-03",
@@ -1027,7 +1011,7 @@
       "id": "rj-32",
       "rank": 32,
       "priority": "P1",
-      "status": "PENDING",
+      "status": "BACKLOG",
       "tier": "tier2",
       "pillars": [
         "TKS",
@@ -1044,7 +1028,9 @@
       "sources": [
         "Component Presets As Well",
         "docket-10"
-      ]
+      ],
+      "verdict": "BACKLOG",
+      "verdict_notes": "Cataloged into docs/BACKLOG.md under Milestone v0.6.0 Pro Workflow & ToadTracker cross-pillar architecture."
     },
     {
       "id": "rj-33",
@@ -1075,7 +1061,7 @@
       "id": "rj-34",
       "rank": 34,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "BACKLOG",
       "tier": "tier1",
       "pillars": [
         "TKS",
@@ -1092,13 +1078,15 @@
       "sources": [
         "CyDrums Research",
         "docket-12"
-      ]
+      ],
+      "verdict": "BACKLOG",
+      "verdict_notes": "Cataloged into docs/BACKLOG.md under Milestone v0.5.0 Sound & Chaos Spike §12."
     },
     {
       "id": "rj-35",
       "rank": 35,
       "priority": "P2",
-      "status": "PENDING",
+      "status": "BACKLOG",
       "tier": "tier2",
       "pillars": [
         "TT",
@@ -1115,7 +1103,9 @@
       "sources": [
         "Toad vs M8",
         "docket-9"
-      ]
+      ],
+      "verdict": "BACKLOG",
+      "verdict_notes": "Cataloged into docs/BACKLOG.md under Spin-Offs §3 ToadTracker Architecture Roadmap."
     },
     {
       "id": "rj-36",
@@ -1619,6 +1609,252 @@
       ],
       "related_cards": [
         "rj-42"
+      ]
+    },
+    {
+      "id": "rj-55",
+      "rank": 55,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "AGY",
+        "NK",
+        "COSMOS"
+      ],
+      "title": "Google Apps Triage: Chrome Tab Graveyard, Send to Obsidian Extension & Calendar/Mail Cleanup",
+      "summary": "Comprehensive triage for the user's high-friction personal toolchain: 1) Hundreds of overflowing Chrome tabs -> cleanup strategy + custom Manifest V3 Chrome extension ('Send to Obsidian Inbox' with contextual reason/note field), 2) Google Calendar event management, 3) Gmail decluttering for kajillion unread emails.",
+      "angles": [
+        "🎯 Core Intent: Free user from cognitive tab-debt and cluttered inbox backlogs across Chrome, Calendar, and Gmail",
+        "🛠️ Custom Chrome Extension: Lightweight MV3 extension with hotkey/popup to capture current URL, page title, and user note directly to C:\\_\\Vault\\Inbox as a Markdown mail note",
+        "📅 Google Workspace Skills Integration: Leverage bundled gcalendar, gmail, and gdrive skills for clean, agentic automation passes",
+        "🚦 Action Route: Approve -> build 'Send to Obsidian' Chrome extension in a dedicated project directory"
+      ],
+      "next_action": "Approve -> draft spec for 'Send to Obsidian' Chrome extension and plan calendar/email sweep.",
+      "sources": [
+        "Google Apps"
+      ],
+      "related_cards": [
+        "rj-02",
+        "rj-54"
+      ]
+    },
+    {
+      "id": "rj-56",
+      "rank": 56,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "The Ramble Engine: Stream-of-Consciousness Mobile Capture & Automated Morning Rejigger",
+      "summary": "Resolves the tension between structured mail vs. late-night stream-of-consciousness mobile ranting. Employs an automated morning scheduled sweep (or pre-flight harvest hook) that ingests raw rambles from Obsidian Inbox, runs an LLM topological rejigger pass, and presents polished, actionable triage cards on the Morning Mail board.",
+      "angles": [
+        "🎯 Core Intent: Zero friction for late-night mobile brain dumps; let the user write raw stream-of-consciousness text without worrying about structure",
+        "🤖 Autonomous Morning Rejigger: Scheduled background agent sweeps raw inbox at 06:00, clusters topics, splits multi-idea rambles, and generates fresh rejigger.json cards",
+        "🧠 PCDA Stress Test: Method B+ sanity check on whether stream-of-consciousness ingestion creates runaway loop queues vs. bounded cards",
+        "🚦 Action Route: Approve -> schedule morning sweep automation and codify Ramble Engine protocol"
+      ],
+      "next_action": "Approve -> schedule automated 06:00 morning rejigger sweep.",
+      "sources": [
+        "Ramble Engine"
+      ],
+      "related_cards": [
+        "rj-54",
+        "rj-42"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-14 12:39:02: Pruned during mailbag triage. Overflow queue and split engine live."
+    },
+    {
+      "id": "rj-57",
+      "rank": 57,
+      "priority": "P2",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "TKR",
+        "AGY"
+      ],
+      "title": "Local Gemini Notebook: Air-Gapped Private RAG & Offline Document Synthesis",
+      "summary": "Investigates a lightweight, private NotebookLM alternative for non-Google/air-gapped users or local LLM pipelines (Ollama, llama.cpp, LocalAI). Converts PDFs, markdown dossiers, and transcripts into chunked embeddings with multi-source citation and synthesis.",
+      "angles": [
+        "🎯 Core Intent: Private, air-gapped document question-answering and synthesis for friends/collaborators who cannot use cloud Google services",
+        "📄 PDF Ingestion Pipeline: Zero-dependency or lightweight python PDF-to-Markdown extractor that deposits directly into Obsidian/Vault",
+        "🧠 Synthesis Modes: Source-grounded summarization, audio/podcast script generation, and structured outline compiler",
+        "🚦 Action Route: Approve -> research open-source offline Notebook alternatives (e.g. Open-NotebookLM) and build lightweight PDF-to-MD utility"
+      ],
+      "next_action": "Approve -> table until local LLM benchmarking or create standalone python PDF extractor.",
+      "sources": [
+        "Gemini Notebook-Like"
+      ],
+      "related_cards": [
+        "rj-43"
+      ]
+    },
+    {
+      "id": "rj-58",
+      "rank": 58,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "COSMOS",
+        "NK"
+      ],
+      "title": "Obsidian New File Templates & Frontmatter Defaults",
+      "summary": "Configures obsidian templater/core template rules so new files created in Obsidian automatically populate clean frontmatter (date, tags, priority, pillars) without manual typing, preventing untitled notes or missing metadata.",
+      "angles": [
+        "🎯 Core Intent: Eliminate zero-byte 'Untitled.md' files and guarantee consistent tags on quick capture",
+        "⚙️ Configuration: Set default folder template in Obsidian for Inbox/ with frontmatter snippet",
+        "🚦 Action Route: Approve -> configure template in .obsidian/plugins/ or write quick note template"
+      ],
+      "next_action": "Approve -> create default template for Inbox/.",
+      "sources": [
+        "Obsidian New File Templates"
+      ],
+      "related_cards": [
+        "rj-02"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "2026-10-14 12:39:02: Pruned during mailbag triage. Obsidian template rules active."
+    },
+    {
+      "id": "rj-59",
+      "rank": 59,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "Confirm-to-Close: 1-Click 'Discuss in Chat' & 'Route to Agenda' on Cards",
+      "summary": "Requested in note 'Mobile and Obsidian Discuss in Chat Button.md'. Shipped: Added [ 💬 Discuss in Chat ] and [ 📌 Route to Agenda ] action buttons to all cards in morning_mail_inbox.html, agenda_board.html, and shell.html with mobile URL dispatch and native clipboard fallbacks.",
+      "angles": [
+        "✅ Shipped Feature: Discuss in Chat primes prompt box or opens Intercom/Chat board",
+        "✅ Shipped Feature: Route to Agenda transfers cards to Agenda Flight Deck parking lot",
+        "🚦 Action Route: Mark COMPLETED and move backing note to Archive/"
+      ],
+      "next_action": "Approve to archive note.",
+      "sources": [
+        "Mobile and Obsidian Discuss in Chat Button"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "Shipped in Morning Mail & Agenda Board releases. Backing note ready for archive.",
+      "related_cards": [
+        "rj-54"
+      ]
+    },
+    {
+      "id": "rj-60",
+      "rank": 60,
+      "priority": "P1",
+      "status": "COMPLETED",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "Confirm-to-Close: N'kai Master Cockpit (Side-by-Side Split View & Swap Sides)",
+      "summary": "Requested in note 'Lofi AGY Chat.md'. Shipped: Built cockpit.html featuring responsive split-screen with Chat on Left, Board on Right, [ ⇄ Swap Sides ] toggle, draggable resize divider, and board selector dropdown.",
+      "angles": [
+        "✅ Shipped Feature: Master Cockpit with side-by-side Chat + Boards",
+        "✅ Shipped Feature: Swap sides (Left/Right) matching user spatial mental model",
+        "✅ Shipped Feature: Live systolic LED fuel gauge and tray integration",
+        "🚦 Action Route: Mark COMPLETED and move backing note to Archive/"
+      ],
+      "next_action": "Approve to archive note.",
+      "sources": [
+        "Lofi AGY Chat"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "Shipped as cockpit.html and integrated into system tray and footer.",
+      "related_cards": [
+        "rj-03",
+        "rj-54"
+      ]
+    },
+    {
+      "id": "rj-61",
+      "rank": 61,
+      "priority": "P1",
+      "status": "PENDING",
+      "tier": "tier2",
+      "pillars": [
+        "NK",
+        "AGY"
+      ],
+      "title": "N'kai Daemon Active Presence, Notification Suppressor & Chat Image Pasting",
+      "summary": "Advanced daemon telemetry from 'Nkai D(a)emon.md': 1) Detect active presence on mobile/sidecar to suppress desktop notification spam when user is looking at the screen, 2) Image pasting support in N'kai Chat box, 3) Hegelian PCDA on chat engine roadmap, 4) Lore canon: The daemon is a formless spawn of N'kai.",
+      "angles": [
+        "📱 Smart Presence: Heartbeat ping from mobile web UI disables redundant desktop notifications while session is active",
+        "🖼️ Multimodal Paste: Base64 clipboard image handler in chat_board.html and sentry_engine.py",
+        "🐙 Lore Canonization: Formalize the Daemon as Formless Spawn in The Cosmic Codex",
+        "🚦 Action Route: Approve -> add active presence heartbeat to tools/nkai_serve.py and implement image pasting"
+      ],
+      "next_action": "Approve -> implement active presence heartbeat in nkai_serve.py.",
+      "sources": [
+        "Nkai D(a)emon"
+      ],
+      "related_cards": [
+        "rj-03",
+        "rj-56"
+      ]
+    },
+    {
+      "id": "rj-62",
+      "rank": 62,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "AGY",
+        "COSMOS"
+      ],
+      "title": "Confirm-to-Close: Micro-PCDA Annotations & Prompt Friction Triggers",
+      "summary": "Requested in 'PCDA Annotations.md'. Shipped: Codified in Agent Rules/workflow_and_runway.md as the Ambient Micro-PCDA trial with online source citations whenever evaluating proposals.",
+      "angles": [
+        "✅ Shipped Directive: Micro-PCDA rules codified in workflow_and_runway.md",
+        "✅ Shipped Directive: Active trial running on decision questions",
+        "🚦 Action Route: Mark COMPLETED and move backing note to Archive/"
+      ],
+      "next_action": "Approve to archive note.",
+      "sources": [
+        "PCDA Annotations"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "Codified in workflow_and_runway.md. Backing note ready for archive.",
+      "related_cards": [
+        "rj-02"
+      ]
+    },
+    {
+      "id": "rj-63",
+      "rank": 63,
+      "priority": "P2",
+      "status": "COMPLETED",
+      "tier": "tier3",
+      "pillars": [
+        "COSMOS",
+        "NK"
+      ],
+      "title": "Confirm-to-Close: Obsidian TODO & Sovereign Root Separation",
+      "summary": "Documented in 'Obsidian TODO.md'. Shipped: Root containment verified for BACKLOG.md and Agenda.md, Track 6 Solo RPG integrated, default startup note configured in new-tab-default-page.",
+      "angles": [
+        "✅ Shipped Architecture: Sovereign root containment and separation of concerns",
+        "🚦 Action Route: Mark COMPLETED and move backing note to Archive/"
+      ],
+      "next_action": "Approve to archive note.",
+      "sources": [
+        "Obsidian TODO"
+      ],
+      "verdict": "COMPLETED",
+      "verdict_notes": "Architecture codified. Backing note ready for archive.",
+      "related_cards": [
+        "rj-01"
       ]
     }
   ]

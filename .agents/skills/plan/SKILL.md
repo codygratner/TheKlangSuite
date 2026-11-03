@@ -13,6 +13,23 @@ description: Universal Dual-Cycle Chainsaw Crucible Planning Engine. Runs two fu
 
 ---
 
+## 🛑 Underspecified / Accidental Invocation Fallback Protocol
+
+> 🛡️ **Zero-Panic Casual Clarification (No-Modal Rule)**:
+> If `/plan` (or `plan`, `/plan-chainsaw`) is triggered:
+> - Without a concrete feature, architectural topic, or spec to plan, OR
+> - With a vague or open-ended statement (e.g. *"ok, I'm wondering if we can try something? /plan"*), OR
+> - When the user accidentally presses `Enter` instead of `Shift+Enter` before finishing their prompt:
+>
+> 1. **DO NOT launch the interactive `ask_question` modal** or present multiple-choice questionnaires.
+> 2. **DO NOT panic, guess, or synthesize speculative task lists**.
+> 3. **DO NOT spawn subagents or generate empty plan artifacts**.
+> 4. **DO reply directly in chat with a warm, conversational prompt**:
+>    > *"What are you looking to plan?"* or *"What would you like to try?"*
+> 5. Wait for the user to provide their plan intent before proceeding with Cycle 1 Chainsaw.
+
+---
+
 ## 🧭 The Dual-Cycle 4-Pass Architecture
 
 ```mermaid

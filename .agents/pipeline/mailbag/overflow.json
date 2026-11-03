@@ -1,7 +1,713 @@
 [
   {
-    "split_group": "Submersible_Compressor",
-    "title": "Submersible Pressure Gauge Calibration",
-    "source_note": "TheKlangVault/Inbox/Submersible_Compressor.md"
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\LOOP-34 Multi-Machine Engines (MME) Venti Suite.md",
+    "idea_index": 4,
+    "title": "┌───────────────────────────────────────────────────────────",
+    "core_intent": "┌─────────────────────────────────────────────────────────────────────────────────┐ │ BANK 0: THE JAM CARD — ROLE-SPECIFIC UNIVERSAL CONTROLS (Controls 01–08) │ │ [ 01: MODEL ] [ 02: PITCH ] [ 03: DECAY ] [ 04: PUNCH ] │ │ [ 05: PARAM ] [ 06: PARAM ] [ 07: PARAM ] [ 08: PARAM ] │ ├─────────────────────────────────────────────────────────────────────────────────┤ │ BANK 1: THE UNIVERSAL HARDWARE TONE & MOJO STRIP (Controls 09–16) │ │ [ 09: FLTF ] [ 10: FLTW ] [ 11: FLTQ ] [ 12: EQ-F ] │ │ [ 13: EQ-G ] [ 14: SRR ] [ 15: BRR ] [ 16: DIST ] │ ├─────────────────────────────────────────────────────────────────────────────────┤ │ BANK 2: THE MODEL-SPECIFIC TIMBRE LAB (Controls 17–24) │ │ [ 17: MOD-X ] [ 18: MOD-Y ] [ 19: MOD-Z ] [ 20: MOD-T ] │ │ [ 21: SUB/O ] [ 22: FM/WT ] [ 23: DAMP ] [ 24: SPACE ] │ ├─────────────────────────────────────────────────────────────────────────────────┤ │ BANK 3: THE DEEP ACOUSTIC & MODULATION LAB (Controls 25–32) │ │ [ 25: P-CRV ] [ 26: A-CRV ] [ 27: V-SENS] [ 28: V-DEST] │ │ [ 29: WIRE/D] [ 30: DISP ] [ 31: FLAM ] [ 32: MACRO ] │ └─────────────────────────────────────────────────────────────────────────────────┘.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "ui",
+      "p1"
+    ],
+    "raw_snippet": "┌─────────────────────────────────────────────────────────────────────────────────┐ │ BANK 0: THE JAM CARD — ROLE-SPECIFIC UNIVERSAL CONTROLS (Controls 01–08) │ │ [ 01: MODEL ] [ 02: PITCH ] [ 03: DECAY ] [ 04: PUNCH ] │ │ [ 05: PARAM ] [ 06: PARAM ] [ 07: PARAM ] [ 08: PARAM ] │...",
+    "confidence_score": 0.8,
+    "split_group": "LOOP-34 Multi-Machine Engines (MME) Venti Suite",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\LOOP-34 Multi-Machine Engines (MME) Venti Suite.md",
+    "idea_index": 5,
+    "title": "### 👑 The 16-Knob Golden Rule - Banks 0 & 1 (Knobs 01–16):",
+    "core_intent": "### 👑 The 16-Knob Golden Rule - Banks 0 & 1 (Knobs 01–16): Covers 100% of live jamming and production needs.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "ui",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "### 👑 The 16-Knob Golden Rule - Banks 0 & 1 (Knobs 01–16): Covers 100% of live jamming and production needs. (Page 1 = Drum Model + Body; Page 2 = Universal Base/Width Filter, EQ, SRR, BRR, Distortion). - Banks 2 & 3 (Knobs 17–32): Dedicated to the deep synthesis laboratory (Modo...",
+    "confidence_score": 0.8,
+    "split_group": "LOOP-34 Multi-Machine Engines (MME) Venti Suite",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\LOOP-34 Multi-Machine Engines (MME) Venti Suite.md",
+    "idea_index": 6,
+    "title": "FX & Oscillator Catalog Expansion Wishlist",
+    "core_intent": "Explore and prototype a wide catalog of vintage drum models, lo-fi degradation, chiptune oscillators, and modulation effects.",
+    "proposed_mechanism": "Modular DSP blocks and algorithm expansion in ModularBlocks.h",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "## 🏛️ Integrated Drum Machine Provenance - Elektron Machinedrum: TRX (Analog), EFM (FM), P-I (Physical modeling), GND (Chiptune). - Pearl Syncussion SY-1 (1979): Mode A (Laser dub toms/kicks), Mode B (FM bells), Mode C (Explosive snares), Mode D (Noise hats), Mode E (Noise-modula...",
+    "confidence_score": 0.8,
+    "split_group": "LOOP-34 Multi-Machine Engines (MME) Venti Suite",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\LOOP-34 Multi-Machine Engines (MME) Venti Suite.md",
+    "idea_index": 7,
+    "title": "## 📋 Next Execution Steps & Tooling Research 1.",
+    "core_intent": "## 📋 Next Execution Steps & Tooling Research 1.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "p1"
+    ],
+    "raw_snippet": "## 📋 Next Execution Steps & Tooling Research 1. Tooling & Ergonomics Research: Standardize an atomic CLI command (e.g. python tools/tkc.py loop add or tools/loop.py) and unified schema for instantaneously staging open loops across tkccanon.json, tools/tkc.db, and rejigger.json in...",
+    "confidence_score": 0.85,
+    "split_group": "LOOP-34 Multi-Machine Engines (MME) Venti Suite",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 4,
+    "title": "All engine parameter surfaces are structured in discrete",
+    "core_intent": "All engine parameter surfaces are structured in discrete multiples of 8, natively mapping to 8-knob hardware controllers, M8 8-column pages, and hex boundaries (0x08, 0x10, 0x18, 0x20):.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "ui",
+      "p1"
+    ],
+    "raw_snippet": "All engine parameter surfaces are structured in discrete multiples of 8, natively mapping to 8-knob hardware controllers, M8 8-column pages, and hex boundaries (0x08, 0x10, 0x18, 0x20):",
+    "confidence_score": 0.8,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 5,
+    "title": "FX & Oscillator Catalog Expansion Wishlist",
+    "core_intent": "Explore and prototype a wide catalog of vintage drum models, lo-fi degradation, chiptune oscillators, and modulation effects.",
+    "proposed_mechanism": "Modular DSP blocks and algorithm expansion in ModularBlocks.h",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "| Tier | Controls | Topology | Target Engine Lineage & Use Cases | | :--- | :---: | :---: | :--- | | Short | 8 | 1 Bank × 8<br>(or 2×4) | Clean-Room MD / MnM Machines & Simple Vintage Chips<br>• Machinedrum E12, TRX, EFM rhythm voices<br>• Monomachine BND, SID, SWAVE oscillators<...",
+    "confidence_score": 0.8,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 6,
+    "title": "Rather than writing bespoke synths for every engine,",
+    "core_intent": "Rather than writing bespoke synths for every engine, wrappers encapsulate voice playability and post-processing:.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "Rather than writing bespoke synths for every engine, wrappers encapsulate voice playability and post-processing:",
+    "confidence_score": 0.8,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 7,
+    "title": "### 3.1 Standard Wrapper Types 1.",
+    "core_intent": "### 3.1 Standard Wrapper Types 1.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "p1"
+    ],
+    "raw_snippet": "### 3.1 Standard Wrapper Types 1. DrumWrapper: - One-shot triggering with velocity-sensitive pitch and amp decay. - Dedicated choke group routing (Chokes 1–8) and transient click envelope. - Reverse and sample-start offset modulation. 2. MonoWrapper: - Monophonic legato note prio...",
+    "confidence_score": 0.8,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 8,
+    "title": "FX & Oscillator Catalog Expansion Wishlist",
+    "core_intent": "Explore and prototype a wide catalog of vintage drum models, lo-fi degradation, chiptune oscillators, and modulation effects.",
+    "proposed_mechanism": "Modular DSP blocks and algorithm expansion in ModularBlocks.h",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "### 3.2 Standard Wrapper Control Modules - Filter Block: Multi-mode State Variable Filter (SVF: LP/BP/HP/Notch) or 4-pole Transistor Ladder. Controls: Cutoff, Resonance, Filter Drive, Envelope Depth, Velocity Tracking, Key Tracking. - Envelope Trio: 1. Pitch/Mod Env: Attack, Deca...",
+    "confidence_score": 0.85,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 9,
+    "title": "### 4.1 Native ToadTracker Instrument Types - TT-Sliver:",
+    "core_intent": "### 4.1 Native ToadTracker Instrument Types - TT-Sliver: Single or triple-engine instrument wrapped in a standard voice environment.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "p1"
+    ],
+    "raw_snippet": "### 4.1 Native ToadTracker Instrument Types - TT-Sliver: Single or triple-engine instrument wrapped in a standard voice environment. Highly optimized for memory, CPU, and fast tracker sequencing. - TT-Relic: Multi-timbral 4-slot monster instrument where each slot houses 3 sub-eng...",
+    "confidence_score": 0.8,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 10,
+    "title": "### 4.2 Bidirectional Preset Morphing (Upgrade & Downgrade)",
+    "core_intent": "### 4.2 Bidirectional Preset Morphing (Upgrade & Downgrade) [ Upgrade Action ] TT-Sliver ───────────────────► TT-Relic (Promoted into Slot 1; Slots 2-4 populated) ◄─────────────────── [ Downgrade Action ] - Downgrade (Relic $\\to$ Sliver): - Ingesting a complex 4-slot Relic preset into a TT-Sliver track cleanly extracts Slot 1 (or mixes down active sub-engines into a single unified voice), safely shedding inactive slots without crashing.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "### 4.2 Bidirectional Preset Morphing (Upgrade & Downgrade) [ Upgrade Action ] TT-Sliver ───────────────────► TT-Relic (Promoted into Slot 1; Slots 2-4 populated) ◄─────────────────── [ Downgrade Action ] - Downgrade (Relic $\\to$ Sliver): - Ingesting a complex 4-slot Relic preset...",
+    "confidence_score": 0.8,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 11,
+    "title": "1.",
+    "core_intent": "1.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "PCDA",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "1. The Handheld 2-Card Screen Ceiling (320×240 Display): - Problem: A Venti engine (32 controls) inside a 32-control wrapper produces 64 parameters (8 pages on an M8/TT tracker). - Invariant: Handheld tracker UIs enforce a strict 2-Card Navigation Ceiling: - Card 1: Engine Block ...",
+    "confidence_score": 0.88,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion.md",
+    "idea_index": 12,
+    "title": "## 6.",
+    "core_intent": "## 6.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "dsp",
+      "p1"
+    ],
+    "raw_snippet": "## 6. Action Items & Runway Execution - ] Phase 1: Author [docs/specs/SPECTSETTUNIVERSALENGINEWRAPPERS.md specifying RFC 8785 JSON preset schema. - [ ] Phase 2: Define C++ abstract interfaces tkdsp::EngineBase<Capacity> and tkdsp::SynthWrapper<EngineT> in TheKlangDSP. - [ ] Phase...",
+    "confidence_score": 0.85,
+    "split_group": "Universal Engine & Wrapper Architecture 4-Tier Sizing & Relic Ingestion",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Slivers.md",
+    "idea_index": 4,
+    "title": "Then we make a standard 16 to 32 control “wrapper” that",
+    "core_intent": "Then we make a standard 16 to 32 control “wrapper” that turns an engine (oscillator) into a full fledged synth.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "dsp"
+    ],
+    "raw_snippet": "Then we make a standard 16 to 32 control “wrapper” that turns an engine (oscillator) into a full fledged synth. Maybe there can be like TYPES of wrappers. We kinda already have this with drum/mono/poly modes. I’d like the wrappers to be as universal as possible, so we don’t need ...",
+    "confidence_score": 0.9,
+    "split_group": "Slivers",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Slivers.md",
+    "idea_index": 5,
+    "title": "Th wrappers need like all the normal stuff like filter,",
+    "core_intent": "Th wrappers need like all the normal stuff like filter, amp, envs (at least pitch/mod, filter and amp).",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "PCDA",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble",
+      "dsp"
+    ],
+    "raw_snippet": "Th wrappers need like all the normal stuff like filter, amp, envs (at least pitch/mod, filter and amp). Maybe some other stuff like SRR/BRR from MD and the 4 grit fx from the Pro 2,",
+    "confidence_score": 0.88,
+    "split_group": "Slivers",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Slivers.md",
+    "idea_index": 6,
+    "title": "Maybe (since relic can do 4 sets of 3 engines), slivers can",
+    "core_intent": "Maybe (since relic can do 4 sets of 3 engines), slivers can load 3 engines with a mixer in the wrapper?",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "RESEARCH",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "Maybe (since relic can do 4 sets of 3 engines), slivers can load 3 engines with a mixer in the wrapper? We can flesh this out more later",
+    "confidence_score": 0.85,
+    "split_group": "Slivers",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\M8 Randomness.md",
+    "idea_index": 4,
+    "title": "To achieve strict 1:1 parity for ToadTracker, the PRNG",
+    "core_intent": "To achieve strict 1:1 parity for ToadTracker, the PRNG algorithm must be black-box reverse-engineered by AGY rather than guessed.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "To achieve strict 1:1 parity for ToadTracker, the PRNG algorithm must be black-box reverse-engineered by AGY rather than guessed. </context>",
+    "confidence_score": 0.8,
+    "split_group": "M8 Randomness",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\M8 Randomness.md",
+    "idea_index": 5,
+    "title": "<sedcommandmechanics> The SED XX command (where XX is 00 to",
+    "core_intent": "<sedcommandmechanics> The SED XX command (where XX is 00 to FF) forces the random number generator into a known state for that specific track.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<sedcommandmechanics> The SED XX command (where XX is 00 to FF) forces the random number generator into a known state for that specific track. When SED XX is called, all subsequent generative commands (e.g., RND, CHA) will output the exact same sequence of values every time the p...",
+    "confidence_score": 0.8,
+    "split_group": "M8 Randomness",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\M8 Randomness.md",
+    "idea_index": 6,
+    "title": "<derivationmethodology> <task>AGY must deduce the M8's",
+    "core_intent": "<derivationmethodology> <task>AGY must deduce the M8's exact PRNG algorithm and seed tables using audio-domain data extraction.</task> <step1harnesssetup> Create a test .m8s file using the Python harness.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "dsp"
+    ],
+    "raw_snippet": "<derivationmethodology> <task>AGY must deduce the M8's exact PRNG algorithm and seed tables using audio-domain data extraction.</task> <step1harnesssetup> Create a test .m8s file using the Python harness. - Track 1, Row 00: SED 01 (Set seed to 1). - Row 01-40: Trigger a basic sin...",
+    "confidence_score": 0.85,
+    "split_group": "M8 Randomness",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\M8 Randomness.md",
+    "idea_index": 7,
+    "title": "<toadtrackercxximplementation> <description> Once the",
+    "core_intent": "<toadtrackercxximplementation> <description> Once the algorithm is deduced from the audio extraction, it must be implemented in ToadTracker's C++ audio engine.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<toadtrackercxximplementation> <description> Once the algorithm is deduced from the audio extraction, it must be implemented in ToadTracker's C++ audio engine. </description>",
+    "confidence_score": 0.85,
+    "split_group": "M8 Randomness",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\M8 Randomness.md",
+    "idea_index": 8,
+    "title": "<deterministicmode> <usecase>When SED XX is present in the",
+    "core_intent": "<deterministicmode> <usecase>When SED XX is present in the sequence.</usecase> <implementation> - Maintain a uint32t currentseed integer inside the TrackState struct (ensuring one PRNG state per track, not a global state).",
+    "proposed_mechanism": "NK module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "NK",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<deterministicmode> <usecase>When SED XX is present in the sequence.</usecase> <implementation> - Maintain a uint32t currentseed integer inside the TrackState struct (ensuring one PRNG state per track, not a global state). - Upon reading a SED XX command, immediately overwrite cu...",
+    "confidence_score": 0.85,
+    "split_group": "M8 Randomness",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\M8 Randomness.md",
+    "idea_index": 9,
+    "title": "<freerunningmode> <usecase>When SED XX is NOT used,",
+    "core_intent": "<freerunningmode> <usecase>When SED XX is NOT used, ToadTracker must provide randomness that feels authentic to the M8 without being locked to a static seed.</usecase> <implementation> - If no SED command has been fired for the track, initialize the track's currentseed using a high-resolution timer (e.g., std::chrono::highresolutionclock::now().timesinceepoch().count()) or a hardware-level entropy source (esprandom() on the ESP32-P4/S3).",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "RESEARCH",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<freerunningmode> <usecase>When SED XX is NOT used, ToadTracker must provide randomness that feels authentic to the M8 without being locked to a static seed.</usecase> <implementation> - If no SED command has been fired for the track, initialize the track's currentseed using a hi...",
+    "confidence_score": 0.85,
+    "split_group": "M8 Randomness",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 4,
+    "title": "<m8dataset source=\"Dirtywave GitHub / Factory SD Card",
+    "core_intent": "<m8dataset source=\"Dirtywave GitHub / Factory SD Card image\"> <file name=\"Trash80 - Flute Alchemy\"><purpose>Macrosynth parsing (Bowed physical modeling) and FM engine translation.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "ui",
+      "dsp"
+    ],
+    "raw_snippet": "<m8dataset source=\"Dirtywave GitHub / Factory SD Card image\"> <file name=\"Trash80 - Flute Alchemy\"><purpose>Macrosynth parsing (Bowed physical modeling) and FM engine translation. (Available on factory SD or Trash80's WeeklyBeats page).</purpose></file> <file name=\"Craig Williams...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 5,
+    "title": "<harnessandautomatedexportprotocols> <description>",
+    "core_intent": "<harnessandautomatedexportprotocols> <description> Full-song renders compound sub-sample timing drift, making null-testing flaky and slow.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<harnessandautomatedexportprotocols> <description> Full-song renders compound sub-sample timing drift, making null-testing flaky and slow. The automated CI/CD rendering pipelines MUST generate chunked ground-truth 32-bit float, 44.1kHz WAV files by isolating and rendering single ...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 6,
+    "title": "<m8protocol> <parsing>Utilize existing Python harness to",
+    "core_intent": "<m8protocol> <parsing>Utilize existing Python harness to extract .m8s synth states, tables, and phrase arrays.</parsing> <audioexport>Automate M8 Headless emulator via CLI bindings to stream single Chains or Phrases to disk.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "dsp"
+    ],
+    "raw_snippet": "<m8protocol> <parsing>Utilize existing Python harness to extract .m8s synth states, tables, and phrase arrays.</parsing> <audioexport>Automate M8 Headless emulator via CLI bindings to stream single Chains or Phrases to disk. Do not render full songs. Render small, isolated 16-ste...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 7,
+    "title": "<renoiseprotocol> <parsing>Extract .xrns (ZIP), parse",
+    "core_intent": "<renoiseprotocol> <parsing>Extract .xrns (ZIP), parse Song.xml via Python xml.etree.ElementTree.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<renoiseprotocol> <parsing>Extract .xrns (ZIP), parse Song.xml via Python xml.etree.ElementTree. Extract <PatternPool> and <Tracks>.</parsing> <audioexport> Use Renoise Headless CLI or a custom Renoise Lua script via the Renoise Tools API to systematically isolate and render sing...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 8,
+    "title": "<bulletproofevaluationmethodology> <description> Audio",
+    "core_intent": "<bulletproofevaluationmethodology> <description> Audio comparisons will fail due to imperceptible sub-sample latency, DC offsets, or block-size discrepancies between the Steam Deck/Desktop engines and the native renderers.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<bulletproofevaluationmethodology> <description> Audio comparisons will fail due to imperceptible sub-sample latency, DC offsets, or block-size discrepancies between the Steam Deck/Desktop engines and the native renderers. Analyze pattern-sized chunks to localize errors to specif...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 9,
+    "title": "<preprocessingpipeline> <step>DC Offset Removal: Subtract",
+    "core_intent": "<preprocessingpipeline> <step>DC Offset Removal: Subtract the mean of the signal to prevent low-frequency bias in RMSE calculations.</step> <step>Cross-Correlation Delay Alignment: Engine block processing (e.g., JUCE 512-sample blocks vs WebAssembly 128-sample blocks) introduces latency.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "PCDA",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<preprocessingpipeline> <step>DC Offset Removal: Subtract the mean of the signal to prevent low-frequency bias in RMSE calculations.</step> <step>Cross-Correlation Delay Alignment: Engine block processing (e.g., JUCE 512-sample blocks vs WebAssembly 128-sample blocks) introduces ...",
+    "confidence_score": 0.88,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 10,
+    "title": "<analysistype name=\"1.",
+    "core_intent": "<analysistype name=\"1.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<analysistype name=\"1. Time-Domain Null Testing (RMSE)\"> <usecase>Deterministic tracks (samples, synced LFOs) measured across single patterns.</usecase> <method>Post-alignment, invert generated phase, sum signals, calculate RMSE. Target: -inf dB (digital silence).</method> </anal...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 11,
+    "title": "<analysistype name=\"2.",
+    "core_intent": "<analysistype name=\"2.",
+    "proposed_mechanism": "NK module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "NK",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<analysistype name=\"2. Frequency-Domain Spectral Convergence\"> <usecase>Free-running LFOs, analog-modeled drift, probabilistic Yxx grains.</usecase> <method>Frobenius norm of the difference between STFT magnitudes divided by target STFT magnitude. Ignores phase; measures pure tim...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 12,
+    "title": "<analysistype name=\"3.",
+    "core_intent": "<analysistype name=\"3.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble",
+      "dsp"
+    ],
+    "raw_snippet": "<analysistype name=\"3. Impulse Response (Dirac) Sweep Testing\"> <usecase>Verifying custom DSP voices (Alpha Juno PWM, wavefolder, allpass disperser, fastTanh).</usecase> <method>Inject a single digital impulse (Dirac delta) into isolated Renoise/M8 DSP chains and ToadTracker C++ ...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 13,
+    "title": "<analysistype name=\"4.",
+    "core_intent": "<analysistype name=\"4.",
+    "proposed_mechanism": "TT module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TT",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<analysistype name=\"4. Real-time Safety & Architecture Validation\"> <usecase>Enforcing ToadTracker's strict audio thread guardrails on Steam Deck and WebAssembly.</usecase> <method>Run headless audio renders under LLVM AddressSanitizer (ASan) and ThreadSanitizer (TSan). Wrap all ...",
+    "confidence_score": 0.85,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 14,
+    "title": "<pythonevaluationharness> python import numpy as np import",
+    "core_intent": "<pythonevaluationharness> python import numpy as np import librosa from scipy import signal from scipy.io import wavfile.",
+    "proposed_mechanism": "NK module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "NK",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "<pythonevaluationharness> python import numpy as np import librosa from scipy import signal from scipy.io import wavfile",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 15,
+    "title": "Def alignsignals(target, generated): \"\"\"Uses",
+    "core_intent": "def alignsignals(target, generated): \"\"\"Uses cross-correlation to fix sub-sample/block latency offsets.\"\"\" correlation = signal.correlate(target, generated, mode=\"full\") delay = np.argmax(correlation) - (len(generated) - 1) if delay > 0: return target[delay:], generated[:len(generated)-delay] elif delay < 0: return target[:len(target)+delay], generated[-delay:] return target, generated.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "def alignsignals(target, generated): \"\"\"Uses cross-correlation to fix sub-sample/block latency offsets.\"\"\" correlation = signal.correlate(target, generated, mode=\"full\") delay = np.argmax(correlation) - (len(generated) - 1) if delay > 0: return target[delay:], generated[:len(gene...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 16,
+    "title": "Def calculatemetrics(filetarget, filegen): sr, target =",
+    "core_intent": "def calculatemetrics(filetarget, filegen): sr, target = wavfile.read(filetarget) , gen = wavfile.read(filegen).",
+    "proposed_mechanism": "NK module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "NK",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "def calculatemetrics(filetarget, filegen): sr, target = wavfile.read(filetarget) , gen = wavfile.read(filegen)",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 17,
+    "title": "# 1.",
+    "core_intent": "# 1.",
+    "proposed_mechanism": "NK module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "NK",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "# 1. Preprocessing (DC offset removal) target = target - np.mean(target) gen = gen - np.mean(gen)",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 18,
+    "title": "# 2.",
+    "core_intent": "# 2.",
+    "proposed_mechanism": "TKS module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKS",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "# 2. Phase/Delay Alignment targetaligned, genaligned = alignsignals(target, gen)",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 19,
+    "title": "# 3.",
+    "core_intent": "# 3.",
+    "proposed_mechanism": "NK module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "NK",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "# 3. Time-Domain Null Test (RMSE) diff = targetaligned - genaligned rmse = np.sqrt(np.mean(diff2))",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 20,
+    "title": "# 4.",
+    "core_intent": "# 4.",
+    "proposed_mechanism": "NK module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "NK",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "# 4. Spectral Convergence (Frobenius norm of STFTs) Starget = np.abs(librosa.stft(targetaligned)) Sgen = np.abs(librosa.stft(genaligned)) numerator = np.linalg.norm(Starget - Sgen, ord='fro') denominator = np.linalg.norm(Starget, ord='fro') spectralloss = numerator / denominator ...",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
+  },
+  {
+    "source_note": "C:\\_\\Vault\\Inbox\\Staging\\Tracks to Train On.md",
+    "idea_index": 21,
+    "title": "Return {\"rmse\": rmse, \"spectralconvergence\": spectralloss}",
+    "core_intent": "return {\"rmse\": rmse, \"spectralconvergence\": spectralloss} </pythonevaluationharness> </bulletproofevaluationmethodology>.",
+    "proposed_mechanism": "TKR module architecture & pipeline implementation",
+    "action_route": "BACKLOG",
+    "target_pillar": "TKR",
+    "tags": [
+      "ramble"
+    ],
+    "raw_snippet": "return {\"rmse\": rmse, \"spectralconvergence\": spectralloss} </pythonevaluationharness> </bulletproofevaluationmethodology>",
+    "confidence_score": 0.8,
+    "split_group": "Tracks to Train On",
+    "agent_reply": null,
+    "agent_reply_at": null
   }
 ]
