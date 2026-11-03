@@ -143,7 +143,7 @@ namespace Names {
     constexpr auto osc_slop = "Osc Slop";
     constexpr auto post_amp_drive = "Post Amp Drive";
     constexpr auto alpha_chorus = "Alpha Chorus";
-    constexpr auto global_width = "Global Width";
+    constexpr auto global_width = "Stereo Width";
     constexpr auto output_level = "Master Volume";
     constexpr auto life_mode = "Life Mode";
     constexpr auto trigger_mode = "Voice Trigger Mode";

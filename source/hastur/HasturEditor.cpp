@@ -868,12 +868,18 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     constrainer.setSizeLimits(kMinWidth, kMinHeight, kMaxWidth, kMaxHeight);
     setConstrainer(&constrainer);
 
-    // 2. Arm Resizable Gripper
+    // 2. Arm Resizable Gripper (constrainer handles resize limits)
     setResizable(true, true);
-    setResizeLimits(kMinWidth, kMinHeight, kMaxWidth, kMaxHeight);
 
-    // 3. Set Canonical 4:3 Canvas Dimensions
-    setSize(kBaseWidth, kBaseHeight);
+    // 3. Set Canonical 4:3 Canvas Dimensions, clamped to primary display work area
+    if (auto* d = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()) {
+        const auto ua = d->userArea.reduced(40);
+        const float s = juce::jlimit(0.5f, 1.0f, juce::jmin(ua.getWidth() / float(kBaseWidth),
+                                                            ua.getHeight() / float(kBaseHeight)));
+        setSize(juce::roundToInt(kBaseWidth * s), juce::roundToInt(kBaseHeight * s));
+    } else {
+        setSize(kBaseWidth, kBaseHeight);
+    }
 
     // 4. Mount Content Container
     addAndMakeVisible(contentContainer);
@@ -891,21 +897,8 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     contentContainer.addMouseListener(this, true);
 
     contentContainer.addAndMakeVisible(lifeModeToggle);
-    if (auto* param = processor_.getAPVTS().getRawParameterValue("life_mode")) {
-        int lm = juce::roundToInt(param->load(std::memory_order_relaxed));
-        lastLifeMode_ = lm;
-        lifeModeToggle.setState(lm);
-    }
     headerLabel.setColour(juce::Label::textColourId, getAccentColour());
     presetStub.setAccentColour(getAccentColour());
-
-    lifeModeToggle.onSelect = [this](int selIdx) {
-        if (auto* param = processor_.getAPVTS().getParameter("life_mode")) {
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(selIdx)));
-        }
-        lastLifeMode_ = selIdx;
-        updateColours();
-    };
 
     // =========================================================================
     // BAY 1: DCO & SUB-STATOR (x: 14, y: 44, w: 364, h: 490)
@@ -1110,11 +1103,6 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
         }
     });
     contentContainer.addAndMakeVisible(subTrainGrid);
-    subTrainGrid.onSelect = [this](int idx) {
-        if (auto* param = processor_.getAPVTS().getParameter("sub_pulse_train")) {
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
-        }
-    };
 
     // Bay 1 bindings to inspector
     bindInspector({&dcoFamilyButtons, &dcoFamilyLabel}, "dco_wave_family", HasturColours::kDco);
@@ -1140,12 +1128,6 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     filterModSourceGrid.setAccentColour(HasturColours::kVcf);
     filterModSourceGrid.setItemColours({HasturColours::kDco, HasturColours::kDco, HasturColours::kNoise});
     contentContainer.addAndMakeVisible(filterModSourceGrid);
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("mod_a_source"))
-        filterModSourceGrid.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
-    filterModSourceGrid.onSelect = [this](int idx) {
-        if (auto* param = processor_.getAPVTS().getParameter("mod_a_source"))
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
-    };
     bindInspector({&filterModSourceGrid}, "mod_a_source", HasturColours::kVcf);
 
     setupRotaryKnob(filterModAmountKnob, "mod_a_amount", "FM DEPTH", HasturColours::kVcf);
@@ -1157,12 +1139,6 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     ampModSourceGrid.setAccentColour(HasturColours::kVca);
     ampModSourceGrid.setItemColours({HasturColours::kDco, HasturColours::kDco, HasturColours::kSub});
     contentContainer.addAndMakeVisible(ampModSourceGrid);
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("mod_b_source"))
-        ampModSourceGrid.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
-    ampModSourceGrid.onSelect = [this](int idx) {
-        if (auto* param = processor_.getAPVTS().getParameter("mod_b_source"))
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
-    };
     bindInspector({&ampModSourceGrid}, "mod_b_source", HasturColours::kVca);
 
     setupRotaryKnob(ampModAmountKnob, "mod_b_amount", "AM DEPTH", HasturColours::kVca);
@@ -1261,12 +1237,14 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
     // Secondary Row: TWIST, STAB, SLASH, ORBIT (Standard 52px)
     setupRotaryKnob(filterWarpKnob, "filter_warp", "TWIST", HasturColours::kVcf);
+    filterWarpKnob.slider.setDoubleClickReturnValue(true, 0.0);
     filterWarpKnob.slider.textFromValueFunction = [](double val) {
         return juce::String::formatted("%.2f", val);
     };
     filterWarpKnob.slider.updateText();
 
     setupRotaryKnob(laserBiteKnob, "laser_bite", "STAB", HasturColours::kVcf);
+    laserBiteKnob.slider.setDoubleClickReturnValue(true, 0.0);
     laserBiteKnob.slider.textFromValueFunction = [](double val) {
         return juce::String::formatted("%.2f", val);
     };
@@ -1304,13 +1282,6 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
     filterDeckGrid.setAccentColour(HasturColours::kVcf);
     contentContainer.addAndMakeVisible(filterDeckGrid);
-    filterDeckGrid.onSelect = [this](int idx) {
-        // idx 0 -> DUO-48 (param 1), idx 1 -> PRE-24 (param 0), idx 2 -> POST-24 (param 2)
-        int paramVal = (idx == 0) ? 1 : (idx == 1) ? 0 : 2;
-        if (auto* param = processor_.getAPVTS().getParameter("filter_deck")) {
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(paramVal)));
-        }
-    };
     // Filter LFO Engine Pod Setups
     setupRotaryKnob(lfoAmountKnob, "filter_lfo_depth", "LFO AMT", HasturColours::kLfo);
     lfoAmountKnob.slider.setDoubleClickReturnValue(true, 0.0f);
@@ -1361,6 +1332,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     lfoRateModeButtons.setAccentColour(HasturColours::kLfo);
     contentContainer.addAndMakeVisible(lfoRateModeButtons);
     lfoRateModeButtons.onSelect = [this](int idx) {
+        processor_.setUiLfoRateMode(idx);
         if (idx == 0) {
             lfoRateKnob.slider.textFromValueFunction = [](double val) {
                 return juce::String::formatted("%.2f Hz", val);
@@ -1379,6 +1351,9 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
         }
         lfoRateKnob.slider.updateText();
     };
+    int initialLfoRateMode = processor_.getUiLfoRateMode();
+    lfoRateModeButtons.setState(initialLfoRateMode);
+    if (lfoRateModeButtons.onSelect) lfoRateModeButtons.onSelect(initialLfoRateMode);
 
     // Row 2 Selectors
     setupButtonBar(filterLfoDestButtons, filterLfoDestLabel, "filter_lfo_dest", "DEST", HasturColours::kLfo);
@@ -1434,11 +1409,6 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
         }
     });
     contentContainer.addAndMakeVisible(lfoFamilyGrid);
-    lfoFamilyGrid.onSelect = [this](int idx) {
-        if (auto* param = processor_.getAPVTS().getParameter("lfo_wave")) {
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
-        }
-    };
 
     // =========================================================================
     // BAY 5: VCA & TRANSIENTS (Functional Color: Blistering Red)
@@ -1474,11 +1444,6 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
     ampGateGrid.setAccentColour(HasturColours::kVca);
     contentContainer.addAndMakeVisible(ampGateGrid);
-    ampGateGrid.onSelect = [this](int idx) {
-        if (auto* param = processor_.getAPVTS().getParameter("amp_gate_mode")) {
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
-        }
-    };
 
     setupRotaryKnob(ampVelocityKnob, "amp_velocity", "VELOCITY", HasturColours::kVca);
     ampVelocityKnob.slider.setDoubleClickReturnValue(true, 0.0f);
@@ -1488,6 +1453,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     ampVelocityKnob.slider.updateText();
 
     setupRotaryKnob(ampPunchKnob, "pitch_punch_depth", "PUNCH", HasturColours::kVca);
+    ampPunchKnob.slider.setDoubleClickReturnValue(true, 0.0);
     ampPunchKnob.slider.textFromValueFunction = [](double val) {
         return juce::String::formatted("%.2f st", val);
     };
@@ -1554,8 +1520,13 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     postAmpDriveKnob.slider.updateText();
 
     setupRotaryKnob(globalWidthKnob, "global_width", "WIDTH", HasturColours::kOutput);
+    globalWidthKnob.slider.setDoubleClickReturnValue(true, 0.0);
     globalWidthKnob.slider.textFromValueFunction = [](double val) {
-        return juce::String::formatted("%.0f%%", val * 100.0);
+        if (std::abs(val) < 0.005)
+            return juce::String("STEREO (100%)");
+        if (val < 0.0)
+            return juce::String::formatted("MONO (%.0f%%)", -val * 100.0);
+        return juce::String::formatted("CENTER (%.0f%%)", val * 100.0);
     };
     globalWidthKnob.slider.updateText();
 
@@ -1565,6 +1536,9 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     };
     outputLevelKnob.slider.updateText();
 
+    // Bind all discrete controls with SOTA RAII Attachments
+    bindDiscreteControls();
+
     // Layout all controls into canonical non-overlapping coordinates
     layoutControls();
 
@@ -1573,6 +1547,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
 HasturAudioProcessorEditor::~HasturAudioProcessorEditor() {
     stopTimer();
+    contentContainer.removeMouseListener(this);
     setLookAndFeel(nullptr);
 }
 
@@ -1782,6 +1757,43 @@ void HasturAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
 
     // Tier 4 Voice Trigger Pod
     drawSubtlePod(883, 814, 255, 38);  // Voice Trigger Pod
+}
+
+void HasturAudioProcessorEditor::bindDiscreteControls() {
+    discreteAttachments_.clear();
+
+    // 1. Bay 1: DCO & Sub-Stator
+    bindDiscrete(dcoFamilyButtons,     "dco_wave_family");
+    bindDiscrete(dcoTopoButtons,       "dco_chopper_topo");
+    bindDiscrete(subOctaveButtons,     "sub_octave");
+    bindDiscrete(subTrainGrid,         "sub_pulse_train");
+    bindDiscrete(subApfTapButtons,     "sub_apf_tap");
+
+    // 2. Bay 2: Audio-Rate X-Mod Sources
+    bindDiscrete(filterModSourceGrid,  "mod_a_source");
+    bindDiscrete(ampModSourceGrid,     "mod_b_source");
+
+    // 3. Bay 3: Filter & Burble
+    auto deckRemap = [](int x) { return (x == 1) ? 0 : (x == 0) ? 1 : 2; };
+    bindDiscrete(filterDeckGrid,       "filter_deck", deckRemap, deckRemap);
+    bindDiscrete(burbleModeButtons,    "burble_mode");
+
+    // 4. Bay 4: Filter LFO & Modulation
+    bindDiscrete(filterLfoDestButtons, "filter_lfo_dest");
+    bindDiscrete(lfoSyncButtons,       "lfo_sync");
+    bindDiscrete(lfoFamilyGrid,        "lfo_wave");
+
+    // 5. Bay 5: VCA & Voice Trigger
+    bindDiscrete(ampGateGrid,          "amp_gate_mode");
+    bindDiscrete(trigModeButtons,      "trigger_mode");
+    bindDiscrete(glideModeButtons,     "glide_mode");
+
+    // 6. Header: Lifeform Mode
+    bindDiscrete(lifeModeToggle,       "life_mode", nullptr, nullptr, [this](int lm) {
+        lastLifeMode_ = lm;
+        updateColours();
+        repaint();
+    });
 }
 
 void HasturAudioProcessorEditor::layoutControls() {
@@ -2078,30 +2090,7 @@ void HasturAudioProcessorEditor::timerCallback() {
             updateInspectorForComponent(lockedComponent_.getComponent(), {});
         }
     }
-    auto syncBar = [this](SegmentedButtonBar& bar, const juce::String& paramId) {
-        if (auto* p = processor_.getAPVTS().getRawParameterValue(paramId)) {
-            bar.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
-        }
-    };
-
-    syncBar(dcoFamilyButtons,       "dco_wave_family");
-    syncBar(dcoTopoButtons,         "dco_chopper_topo");
-    syncBar(subOctaveButtons,       "sub_octave");
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("sub_pulse_train")) {
-        subTrainGrid.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
-    }
-    syncBar(subApfTapButtons,       "sub_apf_tap");
-    syncBar(burbleModeButtons,      "burble_mode");
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("filter_deck")) {
-        int val = juce::roundToInt(p->load(std::memory_order_relaxed));
-        int gridIdx = (val == 1) ? 0 : (val == 0) ? 1 : 2;
-        filterDeckGrid.setState(gridIdx);
-    }
-    syncBar(filterLfoDestButtons,   "filter_lfo_dest");
-    syncBar(lfoSyncButtons,         "lfo_sync");
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("lfo_wave")) {
-        lfoFamilyGrid.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
-    }
+    // Note: Discrete controls now handled event-driven by DiscreteParamAttachment
     if (lfoWaveVisualizer != nullptr) {
         int wIdx = 0;
         float shp = 0.5f;
@@ -2114,15 +2103,6 @@ void HasturAudioProcessorEditor::timerCallback() {
             lastLfoWaveIdx_ = wIdx;
             lfoShapeKnob.slider.updateText();
         }
-    }
-    syncBar(glideModeButtons,       "glide_mode");
-// alpha_chorus is continuous slider
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("mod_a_source"))
-        filterModSourceGrid.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("mod_b_source"))
-        ampModSourceGrid.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("amp_gate_mode")) {
-        ampGateGrid.setState(juce::roundToInt(p->load(std::memory_order_relaxed)));
     }
 
     if (ampEnvVisualizer != nullptr) {
@@ -2141,15 +2121,7 @@ void HasturAudioProcessorEditor::timerCallback() {
         ampEnvVisualizer->setSubStatorParams(snapSec, decaySec, 0.0f, susLevel, relSec, 0.0f);
     }
 
-    if (auto* p = processor_.getAPVTS().getRawParameterValue("life_mode")) {
-        int lm = juce::roundToInt(p->load(std::memory_order_relaxed));
-        if (lm != lastLifeMode_) {
-            lastLifeMode_ = lm;
-            lifeModeToggle.setState(lm);
-            updateColours();
-            repaint();
-        }
-    }
+    // Note: life_mode is event-driven by DiscreteParamAttachment
 
     // ---- Modulation Telemetry Radar (Message Thread; Relaxed Atomics Only) ----
     auto& apvts = processor_.getAPVTS();
@@ -2272,12 +2244,6 @@ void HasturAudioProcessorEditor::setupMixerSlider(SliderItem& item, const juce::
 void HasturAudioProcessorEditor::setupButtonBar(SegmentedButtonBar& bar, const juce::String& paramId, juce::Colour col) {
     bar.setAccentColour(col);
     contentContainer.addAndMakeVisible(bar);
-
-    bar.onSelect = [this, paramId](int idx) {
-        if (auto* param = processor_.getAPVTS().getParameter(paramId)) {
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
-        }
-    };
     bindInspector({&bar}, paramId, col);
 }
 
@@ -2290,12 +2256,6 @@ void HasturAudioProcessorEditor::setupButtonBar(SegmentedButtonBar& bar, juce::L
 
     bar.setAccentColour(col);
     contentContainer.addAndMakeVisible(bar);
-
-    bar.onSelect = [this, paramId](int idx) {
-        if (auto* param = processor_.getAPVTS().getParameter(paramId)) {
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
-        }
-    };
     bindInspector({&bar, &label}, paramId, col);
 }
 
@@ -2332,10 +2292,12 @@ void HasturAudioProcessorEditor::openWaveformModal(WaveformPickerButton& button,
         }
     );
     activeWaveModal_->onDismiss = [this] {
-        if (activeWaveModal_ != nullptr) {
-            contentContainer.removeChildComponent(activeWaveModal_.get());
-            activeWaveModal_.reset();
-        }
+        juce::MessageManager::callAsync([safeThis = juce::Component::SafePointer<HasturAudioProcessorEditor>(this)] {
+            if (safeThis != nullptr && safeThis->activeWaveModal_ != nullptr) {
+                safeThis->contentContainer.removeChildComponent(safeThis->activeWaveModal_.get());
+                safeThis->activeWaveModal_.reset();
+            }
+        });
     };
 
     activeWaveModal_->setBounds(contentContainer.getLocalBounds());

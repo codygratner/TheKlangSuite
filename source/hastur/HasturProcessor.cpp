@@ -5,7 +5,8 @@
 }
 
 [[nodiscard]] static constexpr float stepRandomRange(float v, float lo, float hi, float amount, float r) noexcept {
-    return (amount <= 0.0f) ? v : lo + (hi - lo) * stepRandomNorm((v - lo) / (hi - lo), amount, r);
+    const float span = hi - lo;
+    return (amount <= 0.0f || std::abs(span) < 1e-6f) ? v : lo + span * stepRandomNorm((v - lo) / span, amount, r);
 }
 
 #include "HasturProcessor.h"
@@ -16,6 +17,7 @@ HasturAudioProcessor::HasturAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts_(*this, &undoManager_, "HasturParams", createParameterLayout())
 {
+    voice_.seed(static_cast<uint64_t>(juce::Random::getSystemRandom().nextInt64()));
     // Bay 1: DCO
     osc1MultParam_          = apvts_.getRawParameterValue("osc1_mult");
     osc1ApfPitchTrackParam_ = apvts_.getRawParameterValue("osc1_apf_pitch_track");
@@ -125,48 +127,22 @@ bool HasturAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) co
 void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
     const int numSamples = buffer.getNumSamples();
+    const int numChannels = buffer.getNumChannels();
+    auto* left = (numChannels > 0) ? buffer.getWritePointer(0) : nullptr;
+    auto* right = (numChannels > 1) ? buffer.getWritePointer(1) : nullptr;
 
-    // 1. Process Incoming MIDI
-    for (const auto metadata : midiMessages) {
-        const auto msg = metadata.getMessage();
-        if (msg.isNoteOn()) {
-            const float glideSec = glideTimeParam_ ? glideTimeParam_->load(std::memory_order_relaxed) : 0.005f;
-            const auto glideMode = (glideModeParam_ && glideModeParam_->load(std::memory_order_relaxed) > 0.5f)
-                ? CrackedChimes::DSP::HasturVoice::GlideMode::LEGATO
-                : CrackedChimes::DSP::HasturVoice::GlideMode::ALWAYS;
-            const int tmIdx = triggerModeParam_ ? static_cast<int>(std::round(triggerModeParam_->load(std::memory_order_relaxed))) : 2;
-            CrackedChimes::DSP::HasturVoice::TriggerMode trigMode = CrackedChimes::DSP::HasturVoice::TriggerMode::AUTO;
-            if (tmIdx == 0) trigMode = CrackedChimes::DSP::HasturVoice::TriggerMode::RETRIG;
-            else if (tmIdx == 1) trigMode = CrackedChimes::DSP::HasturVoice::TriggerMode::LEGATO;
-            else trigMode = CrackedChimes::DSP::HasturVoice::TriggerMode::AUTO;
-            const auto lfoTrig = (lfoSyncParam_ && lfoSyncParam_->load(std::memory_order_relaxed) > 0.5f)
-                ? CrackedChimes::DSP::HasturVoice::LfoTriggerMode::ALL_NEW_NOTES
-                : CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING;
-            voice_.noteOn(msg.getNoteNumber(), msg.getFloatVelocity(), glideSec, lfoTrig, true, glideMode, trigMode);
-        } else if (msg.isNoteOff()) {
-            voice_.noteOff(msg.getNoteNumber());
-        } else if (msg.isAllNotesOff() || msg.isAllSoundOff()) {
-            voice_.reset();
-            pitchBendNorm_ = 0.0f;
-        } else if (msg.isPitchWheel()) {
-            pitchBendNorm_ = std::clamp(static_cast<float>(msg.getPitchWheelValue() - 8192) / 8192.0f, -1.0f, 1.0f);
-        }
-    }
-
-    // 2. Fetch Parameters
+    // 1. Fetch Parameters once at block start
     const auto lifeMode = static_cast<CrackedChimes::DSP::HasturVoice::LifeMode>(
-        static_cast<int>(lifeModeParam_ ? lifeModeParam_->load(std::memory_order_relaxed) : 2));
+        std::clamp(static_cast<int>(lifeModeParam_ ? lifeModeParam_->load(std::memory_order_relaxed) : 2), 0, 2));
     voice_.setLifeMode(lifeMode);
 
     const float bendRange = pitchBendRangeParam_ ? pitchBendRangeParam_->load(std::memory_order_relaxed) : 2.0f;
-    voice_.setPitchBend(pitchBendNorm_, bendRange);
-
-    const float vibRate  = vibratoRateParam_  ? vibratoRateParam_->load(std::memory_order_relaxed)  : 5.5f;
-    const float vibDepth = vibratoDepthParam_ ? vibratoDepthParam_->load(std::memory_order_relaxed) : 0.0f;
+    const float vibRate   = vibratoRateParam_  ? vibratoRateParam_->load(std::memory_order_relaxed)  : 5.5f;
+    const float vibDepth  = vibratoDepthParam_ ? vibratoDepthParam_->load(std::memory_order_relaxed) : 0.0f;
     voice_.setVibrato(vibRate, vibDepth);
 
     const auto ampGateMode = static_cast<CrackedChimes::DSP::HasturVoice::AmpGateMode>(
-        static_cast<int>(ampGateModeParam_ ? ampGateModeParam_->load(std::memory_order_relaxed) : 0));
+        std::clamp(static_cast<int>(ampGateModeParam_ ? ampGateModeParam_->load(std::memory_order_relaxed) : 0), 0, 2));
     const float postAmpDrive = postAmpDriveParam_ ? postAmpDriveParam_->load(std::memory_order_relaxed) : 0.0f;
     const float outputLevel  = outputLevelParam_  ? outputLevelParam_->load(std::memory_order_relaxed) : 0.8f;
 
@@ -189,22 +165,22 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const float osc2Level        = osc2LevelParam_ ? osc2LevelParam_->load(std::memory_order_relaxed) : 0.8f;
     const float noiseLevel       = noiseLevelParam_ ? noiseLevelParam_->load(std::memory_order_relaxed) : 0.0f;
     const float mixerDrive       = mixerDriveParam_ ? mixerDriveParam_->load(std::memory_order_relaxed) : 0.0f;
-    const float masterSpread     = 1.0f;
-    const float oscSlop          = oscSlopParam_ ? oscSlopParam_->load(std::memory_order_relaxed) : 0.05f;
+    const float masterSpread     = globalWidthParam_ ? globalWidthParam_->load(std::memory_order_relaxed) : 0.0f;
+    const float oscSlop          = oscSlopParam_ ? oscSlopParam_->load(std::memory_order_relaxed) : 0.0f;
 
     // Bay 3: VCF Block & VCF Dynamics
     const float cutoff           = cutoffParam_ ? cutoffParam_->load(std::memory_order_relaxed) : 1200.0f;
     const float resonance        = resonanceParam_ ? resonanceParam_->load(std::memory_order_relaxed) : 0.0f;
     const float filterDecay      = filterEnvDecayParam_ ? filterEnvDecayParam_->load(std::memory_order_relaxed) : 0.400f;
     const float burbleDepth      = burbleDepthParam_ ? burbleDepthParam_->load(std::memory_order_relaxed) : 0.0f;
-    const int   burbleMode       = burbleModeParam_ ? static_cast<int>(burbleModeParam_->load(std::memory_order_relaxed)) : 1;
+    const int   burbleMode       = burbleModeParam_ ? static_cast<int>(burbleModeParam_->load(std::memory_order_relaxed)) : 0;
     const float laserDrive       = laserDriveParam_ ? laserDriveParam_->load(std::memory_order_relaxed) : 0.0f;
     const float filterWarp       = filterWarpParam_ ? filterWarpParam_->load(std::memory_order_relaxed) : 0.0f;
     const float laserBite        = laserBiteParam_ ? laserBiteParam_->load(std::memory_order_relaxed) : 0.0f;
     const float filterOrbit      = filterOrbitParam_ ? filterOrbitParam_->load(std::memory_order_relaxed) : 0.0f;
     const int   filterDeck       = filterDeckParam_ ? static_cast<int>(filterDeckParam_->load(std::memory_order_relaxed)) : 0;
     const float envDepth         = envDepthParam_ ? envDepthParam_->load(std::memory_order_relaxed) : 0.5f;
-    const float filterVelocity   = filterVelocityParam_ ? filterVelocityParam_->load(std::memory_order_relaxed) : 0.5f;
+    const float filterVelocity   = filterVelocityParam_ ? filterVelocityParam_->load(std::memory_order_relaxed) : 0.0f;
     const float keyTrack         = keyTrackParam_ ? keyTrackParam_->load(std::memory_order_relaxed) : 0.0f;
     const float filterLfoDepth   = filterLfoDepthParam_ ? filterLfoDepthParam_->load(std::memory_order_relaxed) : 0.0f;
     const float lfoShape         = lfoShapeParam_ ? lfoShapeParam_->load(std::memory_order_relaxed) : 0.5f;
@@ -219,19 +195,27 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const float filterRelease    = filterDecay;
 
     // Bay 4: Global Modulation & Mod Matrix
-    const float globalWidth      = globalWidthParam_ ? globalWidthParam_->load(std::memory_order_relaxed) : 0.5f;
+    const float globalWidth      = masterSpread;
     const float pwLfoRate        = pwLfoRateParam_ ? pwLfoRateParam_->load(std::memory_order_relaxed) : 0.85f;
     const float pwLfoAmount      = pwLfoAmountParam_ ? pwLfoAmountParam_->load(std::memory_order_relaxed) : 0.0f;
     const float widthEnv         = 0.0f;
     const float ampVelocity      = ampVelocityParam_ ? ampVelocityParam_->load(std::memory_order_relaxed) : 0.0f;
-    const int filterLfoDest      = filterLfoDestParam_ ? static_cast<int>(filterLfoDestParam_->load(std::memory_order_relaxed)) : 0;
+    const int   filterLfoDest    = filterLfoDestParam_ ? static_cast<int>(filterLfoDestParam_->load(std::memory_order_relaxed)) : 0;
     const float lfoRate          = lfoRateParam_ ? lfoRateParam_->load(std::memory_order_relaxed) : 2.5f;
     const auto  lfoWave          = static_cast<CrackedChimes::DSP::HasturVoice::LfoWave>(
         std::clamp(static_cast<int>(lfoWaveParam_ ? lfoWaveParam_->load(std::memory_order_relaxed) : 0), 0, 3));
-    const auto  lfoTrig          = (lfoSyncParam_ && lfoSyncParam_->load(std::memory_order_relaxed) > 0.5f)
+    const auto  lfoTrig          = (lfoSync > 0)
         ? CrackedChimes::DSP::HasturVoice::LfoTriggerMode::ALL_NEW_NOTES
         : CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING;
     const float glideSec         = glideTimeParam_ ? glideTimeParam_->load(std::memory_order_relaxed) : 0.005f;
+    const auto  glideMode        = (glideModeParam_ && glideModeParam_->load(std::memory_order_relaxed) > 0.5f)
+        ? CrackedChimes::DSP::HasturVoice::GlideMode::LEGATO
+        : CrackedChimes::DSP::HasturVoice::GlideMode::ALWAYS;
+
+    const int tmIdx = triggerModeParam_ ? static_cast<int>(std::round(triggerModeParam_->load(std::memory_order_relaxed))) : 2;
+    CrackedChimes::DSP::HasturVoice::TriggerMode trigMode = (tmIdx == 0) ? CrackedChimes::DSP::HasturVoice::TriggerMode::RETRIG
+                                                         : (tmIdx == 1) ? CrackedChimes::DSP::HasturVoice::TriggerMode::LEGATO
+                                                                        : CrackedChimes::DSP::HasturVoice::TriggerMode::AUTO;
 
     int modASrc = modASourceParam_ ? juce::roundToInt(modASourceParam_->load(std::memory_order_relaxed)) : 0;
     CrackedChimes::DSP::ModMatrix::ChannelConfig modA;
@@ -259,14 +243,9 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const float ampRelease       = ampEnvReleaseParam_ ? ampEnvReleaseParam_->load(std::memory_order_relaxed) : 0.100f;
     const float pitchPunchDepth  = pitchPunchDepthParam_ ? pitchPunchDepthParam_->load(std::memory_order_relaxed) : 0.0f;
     const float pitchPunchTime   = pitchPunchTimeParam_ ? pitchPunchTimeParam_->load(std::memory_order_relaxed) : 0.020f;
-
-    // Bay 6: Master Stage
     const float alphaChorus      = alphaChorusParam_ ? alphaChorusParam_->load(std::memory_order_relaxed) : 0.0f;
 
-    const auto amt = [](const std::atomic<float>* p) noexcept {
-        return p ? std::clamp(p->load(std::memory_order_relaxed), 0.0f, 1.0f) : 0.0f;
-    };
-
+    auto amt = [](std::atomic<float>* p) noexcept { return p ? p->load(std::memory_order_relaxed) : 0.0f; };
     const float mOsc1Warp  = stepRandomRange(osc1ApfOct,  -2.0f,  2.0f, amt(randCoreWarpParam_),    voice_.getStepRand(0));
     const float mBite      = stepRandomRange(dcoBite,     -1.0f,  1.0f, amt(randCoreBiteParam_),    voice_.getStepRand(1));
     const float mMelt      = stepRandomRange(osc1Drive,    0.0f,  1.0f, amt(randCoreMeltParam_),    voice_.getStepRand(2));
@@ -277,44 +256,74 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const float mStab      = stepRandomRange(laserBite,   -1.0f,  1.0f, amt(randFilterStabParam_),  voice_.getStepRand(7));
     const float mOrbit     = stepRandomRange(filterOrbit, -1.0f,  1.0f, amt(randFilterOrbitParam_), voice_.getStepRand(8));
 
-    auto* left = buffer.getWritePointer(0);
-    auto* right = buffer.getWritePointer(1);
+    // 2. Factor out MIDI message handling (Sample-Accurate Slicing)
+    auto handleMidi = [&](const juce::MidiMessage& msg) noexcept {
+        if (msg.isNoteOn()) {
+            voice_.noteOn(msg.getNoteNumber(), msg.getFloatVelocity(), glideSec, lfoTrig, true, glideMode, trigMode);
+        } else if (msg.isNoteOff()) {
+            voice_.noteOff(msg.getNoteNumber());
+        } else if (msg.isAllSoundOff()) {
+            voice_.reset();
+            pitchBendNorm_ = 0.0f;
+            voice_.setPitchBend(0.0f, bendRange);
+        } else if (msg.isAllNotesOff()) {
+            voice_.releaseAll();
+        } else if (msg.isPitchWheel()) {
+            const int v = msg.getPitchWheelValue();
+            pitchBendNorm_ = (v >= 8192) ? static_cast<float>(v - 8192) / 8191.0f : static_cast<float>(v - 8192) / 8192.0f;
+            voice_.setPitchBend(pitchBendNorm_, bendRange);
+        }
+    };
 
-    // 3. Render Stereo Voice Samples
-    for (int i = 0; i < numSamples; ++i) {
-        float sL = 0.0f, sR = 0.0f;
-        voice_.processStereoSample(
-            dcoFamily, dcoTopo, dcoMorph,
-            mStrangle, mOsc1Warp, mMelt,
-            mBite,
-            0.0f,
-            subOctave, subPulseTrain,
-            osc1Level, osc2Level, 0.0f, noiseLevel, mixerDrive,
-            globalWidth, pwLfoRate, pwLfoAmount, widthEnv,
-            lfoRate, lfoWave, lfoTrig, glideSec, oscSlop,
-            modA, modB,
-            cutoff, resonance, filterDeck, mTwist, mStab, laserDrive,
-            mOrbit, 0, envDepth, filterVelocity, keyTrack, filterLfoDepth, 0.0f,
-            filterAttack, filterSnap, filterDecay, filterBloom,
-            filterAftershock, filterSustain, filterRelease, 0,
-            ampSnap, ampDecay, ampCurvature, ampSustain, ampRelease,
-            pitchPunchDepth, pitchPunchTime,
-            ampGateMode, postAmpDrive, masterSpread, outputLevel,
-            sL, sR,
-            mChew, subApfTap, burbleDepth, burbleMode, alphaChorus,
-            mSpit,
-            ampVelocity,
-            filterLfoDest,
-            lfoShape,
-            lfoSync
-        );
+    // 3. Render sub-blocks up to MIDI timestamps
+    int samplePos = 0;
+    auto renderTo = [&](int targetSample) noexcept {
+        for (; samplePos < targetSample; ++samplePos) {
+            float sL = 0.0f, sR = 0.0f;
+            voice_.processStereoSample(
+                dcoFamily, dcoTopo, dcoMorph,
+                mStrangle, mOsc1Warp, mMelt,
+                mBite,
+                0.0f,
+                subOctave, subPulseTrain,
+                osc1Level, osc2Level, 0.0f, noiseLevel, mixerDrive,
+                globalWidth, pwLfoRate, pwLfoAmount, widthEnv,
+                lfoRate, lfoWave, lfoTrig, glideSec, oscSlop,
+                modA, modB,
+                cutoff, resonance, filterDeck, mTwist, mStab, laserDrive,
+                mOrbit, 0, envDepth, filterVelocity, keyTrack, filterLfoDepth, 0.0f,
+                filterAttack, filterSnap, filterDecay, filterBloom,
+                filterAftershock, filterSustain, filterRelease, 0,
+                ampSnap, ampDecay, ampCurvature, ampSustain, ampRelease,
+                pitchPunchDepth, pitchPunchTime,
+                ampGateMode, postAmpDrive, masterSpread, outputLevel,
+                sL, sR,
+                mChew, subApfTap, burbleDepth, burbleMode, alphaChorus,
+                mSpit,
+                ampVelocity,
+                filterLfoDest,
+                lfoShape,
+                lfoSync
+            );
 
-        left[i] = sL;
-        right[i] = sR;
+            if (left != nullptr) left[samplePos] = sL;
+            if (right != nullptr) right[samplePos] = sR;
+        }
+    };
+
+    for (const auto metadata : midiMessages) {
+        const int msgPos = std::clamp(metadata.samplePosition, 0, numSamples);
+        renderTo(msgPos);
+        handleMidi(metadata.getMessage());
     }
+    renderTo(numSamples);
 
-    TbdAudio::FastMath::sanitizeBuffer(left, numSamples);
-    TbdAudio::FastMath::sanitizeBuffer(right, numSamples);
+    // 4. Sanitize both output channels and auto-heal voice state from NaN blowup
+    const bool badL = (left != nullptr) && TbdAudio::FastMath::sanitizeBuffer(left, numSamples);
+    const bool badR = (right != nullptr) && TbdAudio::FastMath::sanitizeBuffer(right, numSamples);
+    if (badL || badR) {
+        voice_.reset();
+    }
 }
 
 juce::AudioProcessorEditor* HasturAudioProcessor::createEditor() {
@@ -323,6 +332,7 @@ juce::AudioProcessorEditor* HasturAudioProcessor::createEditor() {
 
 void HasturAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto state = apvts_.copyState();
+    state.setProperty("ui_lfo_rate_mode", uiLfoRateMode_.load(std::memory_order_relaxed), nullptr);
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
@@ -330,32 +340,36 @@ void HasturAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
 void HasturAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if (xmlState != nullptr && xmlState->hasTagName(apvts_.state.getType())) {
-        apvts_.replaceState(juce::ValueTree::fromXml(*xmlState));
+        auto tree = juce::ValueTree::fromXml(*xmlState);
+        if (tree.hasProperty("ui_lfo_rate_mode")) {
+            uiLfoRateMode_.store(static_cast<int>(tree.getProperty("ui_lfo_rate_mode", 0)), std::memory_order_relaxed);
+        }
 
-        // Legacy Preset Migration Shim for Sub-Oscillator:
-        // Maps legacy sub_mode (0..5) into (sub_octave, sub_pulse_train):
-        // 0: (-1, 0), 1: (-1, 1), 2: (-1, 2), 3: (-1, 4), 4: (-2, 0), 5: (-2, 1)
-        int legacyMode = -1;
-        for (auto* child : xmlState->getChildIterator()) {
-            if (child->getStringAttribute("id") == "sub_mode") {
-                legacyMode = static_cast<int>(child->getDoubleAttribute("value", -1.0));
-                break;
-            }
-        }
-        if (legacyMode >= 0 && legacyMode <= 5) {
-            int octChoice = 1; // -1 Octave (indices: 0=-2, 1=-1, 2=0, 3=+1)
-            int trainChoice = 0;
+        // Legacy Preset Migration Shim for Sub-Oscillator (consume once, strip from tree):
+        if (auto legacy = tree.getChildWithProperty("id", "sub_mode"); legacy.isValid()) {
+            const int legacyMode = static_cast<int>(legacy.getProperty("value", -1));
+            tree.removeChild(legacy, nullptr);
+            auto setChoice = [&](const char* id, int val) {
+                if (auto c = tree.getChildWithProperty("id", id); c.isValid()) {
+                    c.setProperty("value", val, nullptr);
+                } else {
+                    juce::ValueTree p("PARAM");
+                    p.setProperty("id", id, nullptr);
+                    p.setProperty("value", val, nullptr);
+                    tree.appendChild(p, nullptr);
+                }
+            };
             switch (legacyMode) {
-                case 0: octChoice = 1; trainChoice = 0; break;
-                case 1: octChoice = 1; trainChoice = 1; break;
-                case 2: octChoice = 1; trainChoice = 2; break;
-                case 3: octChoice = 1; trainChoice = 4; break;
-                case 4: octChoice = 0; trainChoice = 0; break;
-                case 5: octChoice = 0; trainChoice = 1; break;
+                case 0: setChoice("sub_octave", 1); setChoice("sub_pulse_train", 0); break;
+                case 1: setChoice("sub_octave", 1); setChoice("sub_pulse_train", 1); break;
+                case 2: setChoice("sub_octave", 1); setChoice("sub_pulse_train", 2); break;
+                case 3: setChoice("sub_octave", 1); setChoice("sub_pulse_train", 4); break;
+                case 4: setChoice("sub_octave", 0); setChoice("sub_pulse_train", 0); break;
+                case 5: setChoice("sub_octave", 0); setChoice("sub_pulse_train", 1); break;
+                default: break;
             }
-            if (auto* p = apvts_.getParameter("sub_octave")) p->setValueNotifyingHost(p->convertTo0to1(static_cast<float>(octChoice)));
-            if (auto* p = apvts_.getParameter("sub_pulse_train")) p->setValueNotifyingHost(p->convertTo0to1(static_cast<float>(trainChoice)));
         }
+        apvts_.replaceState(tree);
     }
 }
 

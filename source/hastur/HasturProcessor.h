@@ -45,6 +45,10 @@ public:
         return voice_.getStepRandAtomic(i);
     }
 
+    std::atomic<int> uiLfoRateMode_{0};
+    void setUiLfoRateMode(int mode) noexcept { uiLfoRateMode_.store(mode, std::memory_order_relaxed); }
+    [[nodiscard]] int getUiLfoRateMode() const noexcept { return uiLfoRateMode_.load(std::memory_order_relaxed); }
+
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

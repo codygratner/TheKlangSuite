@@ -97,7 +97,8 @@ inline constexpr Option kLifeMode[] = {
 
 inline constexpr Option kTriggerMode[] = {
     {"RETRIG", "every note retriggers envelopes and resamples random"},
-    {"LEGATO", "legato phrases hold envelopes and random values"}
+    {"LEGATO", "legato phrases hold envelopes and random values"},
+    {"AUTO",   "single-column auto-legato with 15ms grace window"}
 };
 
 // ==============================================================================

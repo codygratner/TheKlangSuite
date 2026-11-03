@@ -118,11 +118,11 @@ private:
                 break;
             case Destination::FILTER_CUTOFF:
                 if (cfg.type == Type::LINEAR_FM) {
-                    res.cutoffMult *= std::clamp(1.0f + val * 2.0f, 0.02f, 16.0f);
+                    res.cutoffMult *= std::clamp(1.0f + val * 0.75f, 0.05f, 4.0f);
                 } else if (cfg.type == Type::EXPONENTIAL_FM) {
-                    res.cutoffMult *= std::pow(2.0f, val * 4.0f);
+                    res.cutoffMult *= std::pow(2.0f, val * 2.5f);
                 } else {
-                    res.cutoffMult *= std::clamp(1.0f + val, 0.02f, 10.0f);
+                    res.cutoffMult *= std::clamp(1.0f + val * 0.75f, 0.05f, 4.0f);
                 }
                 break;
             case Destination::POST_FILTER_LEVEL:

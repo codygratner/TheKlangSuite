@@ -37,6 +37,13 @@ namespace FastMath = TbdAudio::FastMath;
  */
 class HasturVoice {
 public:
+    [[nodiscard]] static constexpr float boundedShift(float k, float lo, float hi, float amount, float s) noexcept {
+        const float a = std::clamp(amount, 0.0f, 1.0f);
+        const float x = a * std::clamp(s, -1.0f, 1.0f);
+        return k + x * (x >= 0.0f ? (hi - k) : (k - lo));
+    }
+
+public:
     enum class LifeMode : uint8_t {
         SYNTHETIC = 0,
         CYBORG    = 1,
@@ -109,6 +116,8 @@ public:
         slewCv_.prepare(hostSampleRate_);
         mixerDriveCv_.prepare(hostSampleRate_);
         bendCoeff_ = 1.0f - std::exp(-1.0f / (0.005f * static_cast<float>(hostSampleRate_)));
+        slopLeak_ = std::exp(-static_cast<float>(invSampleRate_) / 0.30f);
+        slopInnov_ = std::sqrt(std::max(0.0f, 1.0f - slopLeak_ * slopLeak_)) * 0.198f;
 
         reset();
     }
@@ -135,6 +144,7 @@ public:
         }
 
         pwLfoPhase_ = 0.0f;
+        effMasterSpread_ = 0.0f;
         bbdSampleCounter_ = false;
         bbdHoldL_ = 0.0f;
         bbdHoldR_ = 0.0f;
@@ -309,22 +319,28 @@ public:
         }
 
         currentNote_ = midiNote;
-        targetPitchHz_ = 440.0f * FastMath::fastPow2((static_cast<float>(midiNote) - 69.0f) * (1.0f / 12.0f));
+        tgtSemi_ = static_cast<float>(midiNote);
+        targetPitchHz_ = 440.0f * FastMath::fastPow2((tgtSemi_ - 69.0f) * (1.0f / 12.0f));
         bool shouldGlide = (glideSec > 0.0005f);
         if (glideMode == GlideMode::LEGATO && !isLegato) {
             shouldGlide = false; // LGTO mode: only glide if already holding a note
         }
         if (!shouldGlide) {
+            curSemi_ = tgtSemi_;
             currentPitchHz_ = targetPitchHz_;
         }
         velocity_ = std::clamp(velocity, 0.01f, 1.0f);
         gate_ = true;
 
-        const bool shouldRetrig = (trigMode == TriggerMode::RETRIG) || !isLegato;
+        const auto ampStage = ampEnv_.getStage();
+        const bool envReleased = ampEnv_.isIdle() || ampStage == CodyBassEnvelope::Stage::RELEASE;
+        const bool shouldRetrig = (trigMode == TriggerMode::RETRIG) || !isLegato || (!isHolding && envReleased);
         if (shouldRetrig) {
             vortexEnv_.noteOn(midiNote, velocity_);
             ampEnv_.noteOn(velocity_, autoChoke);
-            osc1_.resetSubPhase();
+            if (ampEnv_.isIdle() || ampStage == CodyBassEnvelope::Stage::CHOKE) {
+                osc1_.resetSubPhase();
+            }
 
             // Sample fresh 9-element stepped random vector
             for (int i = 0; i < 9; ++i) {
@@ -381,7 +397,8 @@ public:
 
         if (noteStackSize_ > 0 && activeNoteCount_ > 0) {
             currentNote_ = noteStack_[noteStackSize_ - 1].noteNumber;
-            targetPitchHz_ = 440.0f * FastMath::fastPow2((static_cast<float>(currentNote_) - 69.0f) * (1.0f / 12.0f));
+            tgtSemi_ = static_cast<float>(currentNote_);
+            targetPitchHz_ = 440.0f * FastMath::fastPow2((tgtSemi_ - 69.0f) * (1.0f / 12.0f));
         } else {
             gate_ = false;
             noteStackSize_ = 0;
@@ -435,6 +452,13 @@ public:
         currentSampleCount_++;
         const float nyquist = static_cast<float>(sampleRate_ * 0.48);
 
+        // 10ms one-pole smoother across all life modes for click-free width sweeps
+        const float widthSmoothCoeff = static_cast<float>(1.0 - std::exp(-invSampleRate_ / 0.010));
+        effMasterSpread_ += widthSmoothCoeff * (masterSpread - effMasterSpread_);
+        const float W = std::clamp(effMasterSpread_, -1.0f, 1.0f);
+        const float spreadS = 1.0f - std::abs(W);
+        const float orbitScaleO = (W < 0.0f) ? (1.0f + W) : 1.0f;
+
         // 1. Organic Vactrol CV Slew Smoothing (Organic Life Mode only)
         const bool isOrganic = (lifeMode_ == LifeMode::ORGANIC);
         const float effCutoffHz   = cutoffCv_.process(cutoffHz, isOrganic);
@@ -465,35 +489,27 @@ public:
             ampSnap, ampDecay, ampCurvature, ampSustain, ampRelease,
             pitchPunchDepth, pitchPunchTime, 0.5f, punchPitchSemi);
 
-        // 4. Frequency Glide Slew towards target pitch (Constant-Rate Analog Slew Law)
-        if (std::abs(currentPitchHz_ - targetPitchHz_) > 0.01f) {
-            if (glideTimeSec <= 0.0005f) {
-                currentPitchHz_ = targetPitchHz_;
-            } else {
-                float curSemi = 69.0f + 12.0f * std::log2(std::max(10.0f, currentPitchHz_) * (1.0f / 440.0f));
-                float tgtSemi = 69.0f + 12.0f * std::log2(std::max(10.0f, targetPitchHz_) * (1.0f / 440.0f));
-                float diffSemi = tgtSemi - curSemi;
-                float maxStepSemi = (12.0f / std::max(0.01f, glideTimeSec)) * static_cast<float>(invSampleRate_);
-                float rcStep = diffSemi * (1.0f - std::exp(-static_cast<float>(invSampleRate_) / std::max(0.0005f, glideTimeSec * 0.25f)));
-                if (std::abs(rcStep) > maxStepSemi) {
-                    rcStep = (rcStep > 0.0f ? maxStepSemi : -maxStepSemi);
-                }
-                curSemi += rcStep;
-                if (std::abs(tgtSemi - curSemi) < 0.01f) {
-                    currentPitchHz_ = targetPitchHz_;
-                } else {
-                    currentPitchHz_ = 440.0f * FastMath::fastPow2((curSemi - 69.0f) * (1.0f / 12.0f));
-                }
-            }
+        // 4. Frequency Glide Slew towards target pitch (integrated in semitone domain)
+        if (glideTimeSec <= 0.0005f || std::abs(tgtSemi_ - curSemi_) < 1e-4f) {
+            curSemi_ = tgtSemi_;
         } else {
-            currentPitchHz_ = targetPitchHz_;
+            const float T = std::max(0.0005f, glideTimeSec);
+            const float diffSemi = tgtSemi_ - curSemi_;
+            const float glideK = 1.0f - std::exp(-static_cast<float>(invSampleRate_) / (0.25f * T));
+            const float maxStepSemi = (12.0f / T) * static_cast<float>(invSampleRate_);
+            const float step = std::clamp(diffSemi * glideK, -maxStepSemi, maxStepSemi);
+            curSemi_ += step;
+            if (std::abs(tgtSemi_ - curSemi_) < 0.005f) {
+                curSemi_ = tgtSemi_;
+            }
         }
+        currentPitchHz_ = 440.0f * FastMath::fastPow2((curSemi_ - 69.0f) * (1.0f / 12.0f));
 
         // 5. Compute Analog Slop Wander (Brownian Random Walk with differential Core/Sub detune)
         if (oscSlop > 0.001f) {
             slopPrng_ = slopPrng_ * 1664525u + 1013904223u;
             const float white1 = static_cast<float>(static_cast<int32_t>(slopPrng_)) * 4.6566129e-10f;
-            slopWander1_ = slopWander1_ * 0.99992f + white1 * 0.0025f;
+            slopWander1_ = slopWander1_ * slopLeak_ + white1 * slopInnov_;
             slopWander1_ = std::clamp(slopWander1_, -1.0f, 1.0f);
         } else {
             slopWander1_ = 0.0f;
@@ -541,11 +557,8 @@ public:
         if (pwLfoPhase_ >= 1.0f) pwLfoPhase_ -= std::floor(pwLfoPhase_);
         const float pwLfoVal = std::sin(pwLfoPhase_ * 6.28318530717958647692f);
 
-        // 7. Modulated Morph with Smooth Triangle Boundary Folding
-        float rawM = morph + pwLfoVal * (pwLfoAmount * 0.5f);
-        if (rawM < 0.0f) rawM = -rawM;
-        if (rawM > 1.0f) rawM = 2.0f - rawM;
-        const float effMorph = std::clamp(rawM, 0.0f, 1.0f);
+        // 7. Modulated Morph with Bounded Headroom Shift (No Seams, Full Span)
+        const float effMorph = boundedShift(std::clamp(morph, 0.0f, 1.0f), 0.0f, 1.0f, pwLfoAmount, pwLfoVal);
         const float effPwm = 0.0f;
 
         // 8. Mod Matrix
@@ -560,7 +573,7 @@ public:
         modSrc.postFilter  = prevPostFilter_;
 
         const auto modRes = ModMatrix::compute(modA, modB, modSrc);
-        f1 = (f1 + modRes.linFmOsc1Hz) * modRes.expFmOsc1Mult;
+        f1 = std::clamp((f1 + modRes.linFmOsc1Hz) * modRes.expFmOsc1Mult, 1.0f, static_cast<float>(sampleRate_ * 1.92f));
 
         // 9. DCO 2.0 Timbre Core & 5-Lane Stem Mixer Summation
         osc1_.setWaveFamily(waveFamily);
@@ -589,9 +602,27 @@ public:
         float lfoCutoffSemi = 0.0f;
         float effOrbit = filterOrbit;
         if (filterLfoDest == 1) {
-            effOrbit = std::clamp(filterOrbit + lfoVal * filterLfoDepth, -1.0f, 1.0f);
+            effOrbit = boundedShift(filterOrbit, -1.0f, 1.0f, filterLfoDepth, lfoVal);
         } else {
-            lfoCutoffSemi = lfoVal * filterLfoDepth * 24.0f;
+            // Clamped Asymmetric Semitone Headroom [10Hz, 0.45*fs] with +/-60st musical cap
+            const float fMin = 10.0f;
+            const float fMax = static_cast<float>(hostSampleRate_ * 0.45);
+            const float fBase = std::clamp(effCutoffHz * keyTrackMult * FastMath::fastPow2(cutoffModSemitones * (1.0f / 12.0f)), fMin, fMax);
+            const float logBase = std::log2(fBase);
+            const float hiSt = std::min(60.0f, 12.0f * (std::log2(fMax) - logBase));
+            const float loSt = std::min(60.0f, 12.0f * (logBase - std::log2(fMin)));
+            const float x = std::clamp(lfoVal * filterLfoDepth, -1.0f, 1.0f);
+            lfoCutoffSemi = (x >= 0.0f) ? (x * hiSt) : (x * loSt);
+        }
+        // Scale orbit by bipolar width orbit factor O:
+        // W < 0 => collapses to 0 for even filters (Coherent True Mono)
+        // W > 0 => enforces minimum dual-peak split (kDualPeakMin = 0.30f)
+        if (W < 0.0f) {
+            effOrbit *= (1.0f + W);
+        } else {
+            constexpr float kDualPeakMin = 0.30f; // ~ +/-0.6 oct at W = +1
+            const float sgn = (effOrbit < 0.0f) ? -1.0f : 1.0f;
+            effOrbit = sgn * std::max(std::abs(effOrbit), W * kDualPeakMin);
         }
         const float totalModMult = FastMath::fastPow2((cutoffModSemitones + lfoCutoffSemi) * (1.0f / 12.0f));
 
@@ -711,19 +742,19 @@ public:
             subFiltTapL[k] = subFiltL;
             subFiltTapR[k] = subFiltR;
 
+            // Pre-LPG Saturation with ADAA1 at 2x rate (Singing Tail Invariant)
+            if (postAmpDrive > 0.001f) {
+                const float driveGain = 1.0f + postAmpDrive * 4.0f;
+                subFiltL = ADAA::tanh(subFiltL * driveGain, adaaAmpL_, 1.0f);
+                subFiltR = ADAA::tanh(subFiltR * driveGain, adaaAmpR_, 1.0f);
+            } else {
+                adaaAmpL_ = subFiltL;
+                adaaAmpR_ = subFiltR;
+            }
+
             // Master LPG Processing at 2x rate
             float lpgOutL = masterLpg_.process(subFiltL, ampGateTick[k]);
             float lpgOutR = masterLpgR_.process(subFiltR, ampGateTick[k]);
-
-            // Post-Amp Saturation with ADAA1 at 2x rate
-            if (postAmpDrive > 0.001f) {
-                const float driveGain = 1.0f + postAmpDrive * 4.0f;
-                lpgOutL = ADAA::tanh(lpgOutL * driveGain, adaaAmpL_, 1.0f);
-                lpgOutR = ADAA::tanh(lpgOutR * driveGain, adaaAmpR_, 1.0f);
-            } else {
-                adaaAmpL_ = lpgOutL;
-                adaaAmpR_ = lpgOutR;
-            }
 
             sub2xL[k] = lpgOutL;
             sub2xR[k] = lpgOutR;
@@ -771,8 +802,8 @@ public:
             const float phaseOffset = (alphaChorus <= 0.5f) ? 0.25f : (0.25f + (alphaChorus - 0.5f) * 0.5f);
             const float lfoSinR = std::sin((chorusLfoPhase_ + phaseOffset) * 6.283185307179586f);
 
-            const float apfBaseCutoff = 800.0f;
-            const float apfDepth = alphaChorus * 1.8f;
+            const float apfBaseCutoff = 1200.0f;
+            const float apfDepth = alphaChorus * 1.0f;
             const float apfCutoffL = std::clamp(apfBaseCutoff * FastMath::fastPow2(lfoSinL * apfDepth), 100.0f, nyquist);
             const float apfCutoffR = std::clamp(apfBaseCutoff * FastMath::fastPow2(lfoSinR * apfDepth), 100.0f, nyquist);
 
@@ -790,23 +821,28 @@ public:
                 }
             }
 
-            const float wetMix = std::min(1.0f, alphaChorus * 1.5f);
-            const float wetL = 0.7071f * (midL + apfOutL);
-            const float wetR = 0.7071f * (midR - apfOutR);
-            finalMidL = (1.0f - wetMix) * midL + wetMix * wetL;
-            finalMidR = (1.0f - wetMix) * midR + wetMix * wetR;
+            const float wet = std::min(1.0f, alphaChorus * 1.5f);
+            const float th = 1.5707963f * std::clamp(-W, 0.0f, 1.0f); // 7:00 side
+            const float cT = std::cos(th), sT = std::sin(th);
+            const float dS = 0.5f * (apfOutL - apfOutR); // decorrelated side
+            const float dM = 0.5f * (apfOutL + apfOutR); // in-phase mid
+            const float comb = std::clamp(W, 0.0f, 1.0f); // 5:00 side: comb/flange allowed
+            const float midWet = 0.5f * (sT + comb) * dM;
+            const float sideWet = cT * dS;
+            finalMidL = midL + wet * (midWet + sideWet);
+            finalMidR = midR + wet * (midWet - sideWet);
         }
 
         const float midSum = 0.5f * (finalMidL + finalMidR);
         float sideDiff = 0.5f * (finalMidL - finalMidR);
         sideDiff = masterSideHp_.process(sideDiff);
 
-        if (masterSpread <= 0.00001f) {
+        if (spreadS <= 0.00001f) {
             outLeft  = (monoSub + midSum) * outputLevel;
             outRight = (monoSub + midSum) * outputLevel;
         } else {
-            outLeft  = (monoSub + midSum + sideDiff * masterSpread) * outputLevel;
-            outRight = (monoSub + midSum - sideDiff * masterSpread) * outputLevel;
+            outLeft  = (monoSub + midSum + sideDiff * spreadS) * outputLevel;
+            outRight = (monoSub + midSum - sideDiff * spreadS) * outputLevel;
         }
 
         // 14. History Buffers
@@ -1048,7 +1084,7 @@ public:
         const auto modRes = ModMatrix::compute(modA, modB, modSrc);
 
         // Apply Frequency Modulations (Through-Zero linear FM permitted)
-        f1 = (f1 + modRes.linFmOsc1Hz) * modRes.expFmOsc1Mult;
+        f1 = std::clamp((f1 + modRes.linFmOsc1Hz) * modRes.expFmOsc1Mult, 1.0f, static_cast<float>(sampleRate_ * 1.92f));
         f2 = (f2 + modRes.linFmOsc2Hz) * modRes.expFmOsc2Mult;
 
         // 9. Pitch-Following APF Cutoffs (-1..0..+2 Octave Tracking with abs for TZFM)
@@ -1146,11 +1182,11 @@ public:
                 break;
         }
 
-        float outSignal = masterLpg_.process(filtered, ampGateSig);
-
         if (postAmpDrive > 0.001f) {
-            outSignal = std::tanh(outSignal * (1.0f + postAmpDrive * 4.0f));
+            filtered = std::tanh(filtered * (1.0f + postAmpDrive * 4.0f));
         }
+
+        float outSignal = masterLpg_.process(filtered, ampGateSig);
 
         // 18. Store Cross-Modulation History Buffers
         prevOsc1_      = osc1Out;
@@ -1264,10 +1300,17 @@ private:
     uint32_t lfoPrng_ = 0xC0DEC0DEu;
     bool  lfoRunning_ = true;
     float pwLfoPhase_ = 0.0f;
+    float effMasterSpread_{0.0f};
+
+    float curSemi_{60.0f};
+    float tgtSemi_{60.0f};
 
     float slopWander1_ = 0.0f;
     float slopWander2_ = 0.0f;
+    float slopLeak_{0.99992f};
+    float slopInnov_{0.0025f};
     uint32_t slopPrng_ = 0x5EED1234u;
+    uint64_t baseSeed_{0x85432107C0DEC0DEull};
 
     float bendTargetSemi_{0.0f};
     float bendSemi_{0.0f};
@@ -1291,6 +1334,27 @@ private:
     std::array<std::atomic<float>, 9> stepRandAtom_{};
 
 public:
+    void seed(uint64_t s) noexcept {
+        baseSeed_ = s;
+        auto mix = [](uint64_t k) {
+            k += 0x9E3779B97F4A7C15ull;
+            k = (k ^ (k >> 30)) * 0xBF58476D1CE4E5B9ull;
+            k = (k ^ (k >> 27)) * 0x94D049BB133111EBull;
+            return static_cast<uint32_t>(k ^ (k >> 31)) | 1u;
+        };
+        stepRandSeed_ = mix(s);
+        lfoPrng_ = mix(s + 1);
+        slopPrng_ = mix(s + 2);
+    }
+
+    void releaseAll() noexcept {
+        noteStackSize_ = 0;
+        activeNoteCount_ = 0;
+        gate_ = false;
+        ampEnv_.noteOff();
+        vortexEnv_.noteOff();
+    }
+
     [[nodiscard]] float random01() noexcept {
         stepRandSeed_ ^= (stepRandSeed_ << 13);
         stepRandSeed_ ^= (stepRandSeed_ >> 17);

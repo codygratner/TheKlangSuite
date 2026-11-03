@@ -36,14 +36,18 @@ namespace Ids {
     constexpr auto rand_decay = "rand_decay";
     constexpr auto macro_decay = "macro_decay";
     constexpr auto volume = "volume";
+    constexpr auto amp_decay = "amp_decay";
     constexpr auto cutoff = "cutoff";
     constexpr auto resonance = "resonance";
+    constexpr auto filter_env_amt = "filter_env_amt";
+    constexpr auto filter_decay = "filter_decay";
     constexpr auto filter_type = "filter_type";
     constexpr auto pre_drive = "pre_drive";
     constexpr auto crush = "crush";
     constexpr auto bits = "bits";
-    constexpr auto tape_glue = "tape_glue";
-    constexpr auto mojo_profile = "mojo_profile";
+    constexpr auto squash = "squash";
+    constexpr auto wider = "wider";
+    constexpr auto master_limiter = "master_limiter";
 } // namespace Ids
 
 namespace Names {
@@ -76,17 +80,21 @@ namespace Names {
     constexpr auto rand_decay = "Rand Macro Decay";
     constexpr auto macro_decay = "Macro Decay";
     constexpr auto volume = "Master Volume";
+    constexpr auto amp_decay = "Master Amp Decay";
     constexpr auto cutoff = "Filter Cutoff";
     constexpr auto resonance = "Filter Resonance";
+    constexpr auto filter_env_amt = "Filter Env Amount";
+    constexpr auto filter_decay = "Filter Env Decay";
     constexpr auto filter_type = "Filter Type";
     constexpr auto pre_drive = "Pre-Filter Drive";
     constexpr auto crush = "Mojo Sample Crush";
     constexpr auto bits = "Mojo Bit Reduction";
-    constexpr auto tape_glue = "Mojo Tape Glue";
-    constexpr auto mojo_profile = "Mojo Profile";
+    constexpr auto squash = "Bipolar Squash";
+    constexpr auto wider = "Mojo Wider";
+    constexpr auto master_limiter = "Master Limiter";
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 37;
+    constexpr int count = 41;
 } // namespace Total
 } // namespace formless_spawnParameters

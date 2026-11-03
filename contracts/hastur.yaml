@@ -1,6 +1,6 @@
 plugin: hastur
 name: Hastur Dual-IR3R05 Synthesizer
-version: 1.0.1
+version: 1.0.3
 manufacturer: CrackedChimes
 
 parameters:
@@ -212,8 +212,8 @@ parameters:
     category: filter
     type: choice
     effect: timbre
-    choices: ['Off', 'Exp', 'Lin', 'Flip']
-    default: 'Exp'
+    choices: ['XFM', 'LFM']
+    default: 'XFM'
 
   - id: filter_deck
     name: Filter Deck
@@ -539,12 +539,12 @@ parameters:
     default: 0.0
 
   - id: global_width
-    name: Global Width
+    name: Stereo Width
     category: master
     type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
+    effect: pan
+    range: [-1.0, 1.0]
+    default: 0.0
 
   - id: output_level
     name: Master Volume

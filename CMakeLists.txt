@@ -399,7 +399,7 @@ juce_add_plugin(Hastur
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Hst1
     BUNDLE_ID com.crackedchimes.hastur
-    VERSION "1.0.2"
+    VERSION "1.0.3"
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "Hastur"
@@ -477,6 +477,37 @@ if (MSVC)
 endif()
 
 target_link_libraries(Hastur_Preview PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+# --- 6g. Formless Spawn Headless UI Fast-Preview Target ---
+add_executable(FormlessSpawn_Preview
+    source/FormlessSpawn_Preview_main.cpp
+    source/ParameterManager.cpp
+    source/UIComponents.cpp
+    source/FormlessProcessor.cpp
+    source/FormlessEditor.cpp
+)
+
+target_include_directories(FormlessSpawn_Preview PRIVATE source)
+
+target_compile_definitions(FormlessSpawn_Preview PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+
+if (MSVC)
+    target_compile_options(FormlessSpawn_Preview PRIVATE /utf-8)
+endif()
+
+target_link_libraries(FormlessSpawn_Preview PRIVATE
     TheKlangDSP
     ${TKF_JUCE_MODULES}
     TkfAssets

@@ -215,9 +215,10 @@ public:
                 cyborgVactrolState_ += (1.0f - decayCoeff) * (target - cyborgVactrolState_);
             }
 
-            // B. Effective control with 0.012 (-38.4 dB) optical bleed floor
+            // B. Effective control with activity-gated optical bleed floor
             constexpr float kBleedFloor = 0.012f;
-            const float cEff = std::clamp(cyborgVactrolState_ + kBleedFloor, kBleedFloor, 1.0f);
+            const float bleed = kBleedFloor * std::min(1.0f, cyborgVactrolState_ * 50.0f);
+            const float cEff = std::clamp(cyborgVactrolState_ + bleed, 0.0f, 1.0f);
 
             // C. MS-10 OTA Differential Saturation with ADAA1
             const float xIn = audioIn * cEff;
@@ -282,7 +283,7 @@ public:
 
         // C. Asymmetric 12AX7 Triode Tube Saturation on Resonant Output
         const float vTube = lp * 1.25f;
-        const float yTube = vTube + 0.18f * (vTube * vTube) - 0.05f * (vTube * vTube * vTube);
+        const float yTube = std::tanh((vTube + 0.28f * vTube * vTube) / (1.0f + 0.28f * std::abs(vTube)));
 
         // D. Optical Conductance Gating
         const float out = yTube * std::clamp(s, 0.0001f, 1.0f);

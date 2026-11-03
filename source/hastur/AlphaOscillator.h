@@ -38,6 +38,9 @@ public:
         noiseGen_.reset(0x13579BDFu);
         sideHp_.setCutoff(120.0f, static_cast<float>(sampleRate_));
         biteHfFilter_.setCutoff(14500.0f, static_cast<float>(sampleRate_));
+        subDcFilter_.prepare(sampleRate_, 5.0);
+        coreDcFilter_.prepare(sampleRate_, 5.0);
+        biteDcFilter_.prepare(sampleRate_, 5.0);
         reset();
     }
 
@@ -467,7 +470,8 @@ public:
         const double dPeriod = static_cast<double>(periodTicks);
 
         // MULT: 12 MHz Master Crystal Reload Quantization for Slave Accumulator
-        const float m = std::clamp((mult != 1.0f) ? mult : mult_, 1.0f, 32.0f);
+        const float mMax = std::max(1.0f, 0.45f * static_cast<float>(sampleRate_) / std::max(effFreq, 1.0f));
+        const float m = std::clamp((mult != 1.0f) ? mult : mult_, 1.0f, std::min(32.0f, mMax));
         const uint32_t slavePeriodTicks = static_cast<uint32_t>(
             std::clamp(std::round(dPeriod / static_cast<double>(m)), 1.0, dPeriod)
         );
@@ -485,7 +489,7 @@ public:
             if (crystalTicks_ >= dPeriod) crystalTicks_ = std::fmod(crystalTicks_, dPeriod);
             wrapped_ = true;
             if (syncAmount_ >= 0.0f) {
-                const double syncTarget = std::fmod(crystalTicks_ * static_cast<double>(m), dSlavePeriod);
+                const double syncTarget = std::fmod(crystalTicks_, dSlavePeriod);
                 slaveTicks_ = (1.0 - static_cast<double>(syncAmount_)) * slaveTicks_ + static_cast<double>(syncAmount_) * syncTarget;
             } else {
                 const double h = static_cast<double>(std::abs(syncAmount_));
@@ -579,7 +583,8 @@ public:
         const float dt0 = quantizedFreq * static_cast<float>(invSr_);
 
         // MULT: 12 MHz Master Crystal Reload Quantization for Slave Accumulator
-        const float m = std::clamp((mult != 1.0f) ? mult : mult_, 1.0f, 32.0f);
+        const float mMax = std::max(1.0f, 0.45f * static_cast<float>(sampleRate_) / std::max(f, 1.0f));
+        const float m = std::clamp((mult != 1.0f) ? mult : mult_, 1.0f, std::min(32.0f, mMax));
         const uint32_t slavePeriodTicks = static_cast<uint32_t>(
             std::clamp(std::round(dPeriod / static_cast<double>(m)), 1.0, dPeriod)
         );
@@ -619,7 +624,7 @@ public:
             if (crystalTicks_ >= dPeriod) crystalTicks_ = std::fmod(crystalTicks_, dPeriod);
             wrapped_ = true;
             if (syncAmount_ >= 0.0f) {
-                const double syncTarget = std::fmod(crystalTicks_ * static_cast<double>(m), dSlavePeriod);
+                const double syncTarget = std::fmod(crystalTicks_, dSlavePeriod);
                 slaveTicks_ = (1.0 - static_cast<double>(syncAmount_)) * slaveTicks_ + static_cast<double>(syncAmount_) * syncTarget;
             } else {
                 const double h = static_cast<double>(std::abs(syncAmount_));

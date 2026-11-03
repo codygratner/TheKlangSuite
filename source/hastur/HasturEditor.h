@@ -42,8 +42,31 @@ namespace HasturWaveUI {
 }
 
 // ==============================================================================
-// Custom Lightweight Controls
+// Custom Lightweight Controls & SOTA RAII Attachments
 // ==============================================================================
+
+class DiscreteParamAttachment {
+public:
+    DiscreteParamAttachment(juce::RangedAudioParameter& param,
+                            std::function<void(float)> uiUpdateCallback,
+                            juce::UndoManager* undoManager = nullptr)
+        : attachment_(param,
+                      [cb = std::move(uiUpdateCallback)](float normVal) {
+                          if (cb) cb(normVal);
+                      },
+                      undoManager)
+    {
+        attachment_.sendInitialUpdate();
+    }
+
+    void setValueAsCompleteGesture(float newValue) {
+        attachment_.setValueAsCompleteGesture(newValue);
+    }
+
+private:
+    juce::ParameterAttachment attachment_;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DiscreteParamAttachment)
+};
 class RockerToggle : public juce::Component {
 public:
     RockerToggle(const juce::String& leftText, const juce::String& rightText)
@@ -1499,8 +1522,8 @@ public:
 
     static constexpr int kBaseWidth   = 1160;
     static constexpr int kBaseHeight  = 870;
-    static constexpr int kMinWidth    = 870;   // 0.75x
-    static constexpr int kMinHeight   = 652;
+    static constexpr int kMinWidth    = 580;   // 0.50x
+    static constexpr int kMinHeight   = 435;
     static constexpr int kMaxWidth    = 1740;  // 1.50x
     static constexpr int kMaxHeight   = 1305;
 
@@ -1688,6 +1711,52 @@ private:
     void mouseDown(const juce::MouseEvent& e) override;
     void mouseDrag(const juce::MouseEvent& e) override;
     void mouseUp(const juce::MouseEvent& e) override;
+
+    template <typename ControlType>
+    void bindDiscrete(ControlType& control, const juce::String& paramId) {
+        if (auto* param = processor_.getAPVTS().getParameter(paramId)) {
+            auto att = std::make_unique<DiscreteParamAttachment>(
+                *param,
+                [&control](float val) {
+                    control.setState(juce::roundToInt(val));
+                }
+            );
+            auto* rawAtt = att.get();
+            control.onSelect = [rawAtt](int idx) {
+                rawAtt->setValueAsCompleteGesture(static_cast<float>(idx));
+            };
+            discreteAttachments_.push_back(std::move(att));
+        }
+    }
+
+    template <typename ControlType>
+    void bindDiscrete(ControlType& control, const juce::String& paramId,
+                      std::function<int(int)> uiToParam,
+                      std::function<int(int)> paramToUi,
+                      std::function<void(int)> extraCallback = nullptr) {
+        if (auto* param = processor_.getAPVTS().getParameter(paramId)) {
+            auto att = std::make_unique<DiscreteParamAttachment>(
+                *param,
+                [&control, paramToUi, extraCallback](float val) {
+                    int paramVal = juce::roundToInt(val);
+                    int uiVal = paramToUi ? paramToUi(paramVal) : paramVal;
+                    control.setState(uiVal);
+                    if (extraCallback) extraCallback(paramVal);
+                }
+            );
+            auto* rawAtt = att.get();
+            control.onSelect = [rawAtt, uiToParam, extraCallback](int idx) {
+                int paramVal = uiToParam ? uiToParam(idx) : idx;
+                rawAtt->setValueAsCompleteGesture(static_cast<float>(paramVal));
+                if (extraCallback) extraCallback(paramVal);
+            };
+            discreteAttachments_.push_back(std::move(att));
+        }
+    }
+
+    void bindDiscreteControls();
+
+    std::vector<std::unique_ptr<DiscreteParamAttachment>> discreteAttachments_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HasturAudioProcessorEditor)
 };

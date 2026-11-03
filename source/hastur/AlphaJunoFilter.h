@@ -128,7 +128,7 @@ public:
         // In Dual-48dB mode: scale damping so 4-stage composite Q^4 <= 36 (+32dB max) to prevent unusable screech cliff.
         const float resNorm = std::clamp(resonance, 0.0f, 1.0f);
         const float resCurve = std::pow(resNorm, 1.5f);
-        const float kDampScale = (deckMode == DECK_DUAL_48) ? 1.58f : 1.95f;
+        const float kDampScale = (deckMode == DECK_DUAL_48) ? 1.58f : 1.78f;
         const float kDamp = 2.0f - kDampScale * resCurve;
 
         // 2-pole ZDF SVF coefficients
@@ -196,7 +196,7 @@ private:
         s1_2_ = 2.0f * v2 - s1_2_;
         s2_2_ = 2.0f * lp2 - s2_2_;
 
-        return lp2;
+        return std::tanh(lp2 * 1.0f);
     }
 
     /**
@@ -218,7 +218,7 @@ private:
         s1_4_ = 2.0f * v4 - s1_4_;
         s2_4_ = 2.0f * lp4 - s2_4_;
 
-        return lp4;
+        return std::tanh(lp4 * 1.0f);
     }
 
     /**

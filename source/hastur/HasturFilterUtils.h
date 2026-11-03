@@ -8,9 +8,12 @@ namespace CrackedChimes::DSP {
 struct LeakyDCBlocker {
     float x1 = 0.0f;
     float y1 = 0.0f;
-    static constexpr float kR = 0.9992f; // ~10 Hz high-pass at 48 kHz
+    float R = 0.9992f; // Defaults to ~10 Hz at 48 kHz
+    inline void prepare(double fs, double fcHz = 5.0) noexcept {
+        R = static_cast<float>(std::exp(-6.28318530717958647692 * fcHz / std::max(fs, 1000.0)));
+    }
     inline float process(float x) noexcept {
-        const float y = x - x1 + kR * y1;
+        const float y = x - x1 + R * y1;
         x1 = x;
         y1 = y;
         return y;
