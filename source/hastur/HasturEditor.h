@@ -1048,30 +1048,18 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        // Unified Monolithic OLED Ribbon (w: 566px, h: 28px, >= 13pt typography, zero nested box)
+        // Unified Monolithic OLED Ribbon (w: 566px, h: 28px, >= 13pt typography, pure gear manual text)
         // Col 1: Name (x: 10, w: 105, h: 28, 13pt bold)
         auto nameRect = juce::Rectangle<float>(10.0f, 0.0f, 105.0f, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
-        // Col 2: Value (x: 118, w: 90, h: 28, 13pt bold)
-        auto valRect = juce::Rectangle<float>(118.0f, 0.0f, 90.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
-        g.setColour(HasturColours::kTextWhite);
-        g.drawText(readout_.value, valRect, juce::Justification::centredLeft, true);
-
-        // Col 3: Separator (x: 210, w: 12, h: 28)
-        auto sepRect = juce::Rectangle<float>(210.0f, 0.0f, 12.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(13.0f)));
-        g.setColour(juce::Colour(0xFF8B949E));
-        g.drawText(juce::CharPointer_UTF8("\xe2\x80\x94"), sepRect, juce::Justification::centred);
-
-        // Col 4: Explanation blurb (x: 226, w: 330, h: 28, 13pt)
-        auto blurbRect = juce::Rectangle<float>(226.0f, 0.0f, 330.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(13.0f)));
+        // Col 2: Explanation blurb across the full 445px area (x: 120, w: bounds.getWidth() - 128.0f, 2 lines)
+        auto blurbRect = juce::Rectangle<float>(120.0f, 0.0f, bounds.getWidth() - 128.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(12.5f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
-        g.drawText(readout_.blurb, blurbRect, juce::Justification::centredLeft, true);
+        g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
     }
 
 private:
@@ -1086,6 +1074,9 @@ public:
     HasturLookAndFeel();
     void setAccentColour(juce::Colour c);
     juce::Colour getAccentColour() const noexcept { return accentColour_; }
+
+    static void drawKiloheartsValueBadge(juce::Graphics& g, const juce::Rectangle<float>& bounds,
+                                         const juce::String& text, juce::Colour accentColour);
 
     void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
                           float sliderPosProportional, float rotaryStartAngle,
@@ -1540,6 +1531,9 @@ private:
 
     HasturAudioProcessor& processor_;
     HasturLookAndFeel lnf_;
+
+    juce::Component::SafePointer<juce::Slider> activeBadgeSlider_;
+    juce::int64 activeBadgeExpiry_{0};
     juce::ComponentBoundsConstrainer constrainer;
     ContentCanvas contentContainer;
 
@@ -1709,6 +1703,7 @@ private:
     void mouseDown(const juce::MouseEvent& e) override;
     void mouseDrag(const juce::MouseEvent& e) override;
     void mouseUp(const juce::MouseEvent& e) override;
+    void mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel) override;
 
     template <typename ControlType>
     void bindDiscrete(ControlType& control, const juce::String& paramId) {

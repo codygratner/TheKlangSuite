@@ -306,6 +306,7 @@ juce_add_plugin(FormlessSpawn
     PLUGIN_MANUFACTURER_CODE Tcok
     PLUGIN_CODE Tfsp
     BUNDLE_ID com.thecultofklang.formlessspawn
+    VERSION "1.0.0"
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "Formless Spawn"
@@ -320,6 +321,7 @@ target_sources(FormlessSpawn PRIVATE
     source/FormlessProcessor.cpp
     source/FormlessEditor.h
     source/FormlessEditor.cpp
+    source/formless_spawn/FormlessControlInfo.h
     source/dsp/drums/FormlessSpawnVoice.h
 )
 
@@ -355,7 +357,7 @@ juce_add_plugin(Hastur
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Hst1
     BUNDLE_ID com.crackedchimes.hastur
-    VERSION "1.0.4"
+    VERSION "1.0.5"
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "Hastur"

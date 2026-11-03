@@ -8,6 +8,23 @@
 - [**v0.3.0 (Architecture)**](#session-2026-10-06-1304-8fe6b97b-f027-4cc9-8cc2-d5f67ccfb0c9) — Headless GUI Tests, .pkg Installer. (160 Parity Matches)
 
 
+### Session 2026-11-03: Kilohearts Knob Value Popups & Gear Manual Inspector Overhaul (Hastur v1.0.5 & Formless Spawn v1.0.0 Debut)
+- **Kilohearts In-Dial Value Badges**:
+  - Implemented high-contrast ephemeral obsidian badges (`juce::Colour(0xFA090D12)`) in the bottom arc gap of all rotary knobs across Hastur and Formless Spawn.
+  - Zero idle clutter; badges pop up on click, drag, or mouse wheel, rendering crisp engineering units (`+12.0 dB`, `1.24 s`, `440 Hz`, `+100%`) bounded to `getWidth() - 6.0f`.
+  - Ephemeral 350ms hysteresis timer automatically dismisses badge after interaction ends.
+- **Pure Text Gear Manual Inspector**:
+  - Stripped redundant numeric value and dash separator from the top `HeaderInspector`, expanding the explanation display into a dedicated rich text ribbon with 2-line fitted text (`drawFittedText(..., 2)`).
+  - Overhauled all 70 parameter blurbs in `source/hastur/HasturControlInfo.h` with The Writer's authoritative Gear Manual explanations.
+  - Created `source/formless_spawn/FormlessControlInfo.h` with comprehensive 28 master controls, 64 role-level parameter blurbs across the 8 synthesis roles, and Triad Sonic Canon descriptions.
+- **Formless Spawn Full Lifeform Names**:
+  - Expanded `lifeformRocker_` to 234px ($3 \times 78\text{px}$) with full canonical names: `{"SYNTHETIC", "CYBORG", "ORGANIC"}` in 11.5pt Bold.
+- **Dual Release Deployment & Verification**:
+  - All 56 DSP verification suites in `dsp_tests` passed 100%.
+  - Headless spatial radar gate passed with zero bounding-box collisions on both plugins (Pillars A & C).
+  - Built Release VST3s for Hastur v1.0.5 and Formless Spawn v1.0.0 and deployed locally to `C:\Program Files\Common Files\VST3\`.
+  - Tagged `hastur-v1.0.5` and `formless_spawn-v1.0.0`, created release packages, and pushed to GitHub.
+
 ### Session 2026-11-03: Hastur v1.0.4 & Formless Spawn IP Scrub + Crucible Workbench Retirement
 - **Hastur v1.0.4 Release**: Completely filed serial numbers off trademarks and proprietary brand names across the codebase:
   - Renamed AlphaJunoFilter -> DualSvfFilter (DualSvfFilter.h).
@@ -809,4 +826,12 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
 - **Key Decisions & Deliverables:**
   - Recent Commits: 0266be6 fix(formless): calibrate Cyborg Sub-Bass Defense and Organic LPG metallic air defense, d73c803 fix(dsp, hastur): extract FormlessSpawnParams for Clang/GCC CI compatibility and synchronize Cutoff LFO/Burble telemetry arcs
   - Branch: `0.4.0-dev` (0266be6)
+  - Active Plan Target: `FACTORY_FLOOR` · Status: `UNKNOWN`
+
+### Session: 2026-11-03 09:46 (manual_run)
+- **Chat Role:** Strategic Planning (New Klang City)
+- **Primary Objectives:** Comprehensive IP & trademark scrub across Formless Spawn and Hastur, Crucible Workbench retirement, patch bump to hastur-v1.0.4, Release VST3 build and deployment, GitHub release tag and multi-platform CI push
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 6a2a460 feat(release): cut hastur-v1.0.4 & comprehensive IP scrub across Hastur and Formless Spawn, 0266be6 fix(formless): calibrate Cyborg Sub-Bass Defense and Organic LPG metallic air defense
+  - Branch: `0.4.0-dev` (6a2a460)
   - Active Plan Target: `FACTORY_FLOOR` · Status: `UNKNOWN`

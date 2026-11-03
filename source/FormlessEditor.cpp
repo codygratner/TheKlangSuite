@@ -1,4 +1,5 @@
 #include "FormlessEditor.h"
+#include "formless_spawn/FormlessControlInfo.h"
 #include "formless_spawn/formless_spawnParameterIds.h"
 
 FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpawnAudioProcessor& p)
@@ -39,17 +40,7 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
         HeaderInspector::Readout r;
         r.name = "ROLE: " + juce::String(tkdsp::FormlessSpawnVoice::kRoleNames[roleIdx]);
         r.value = "SEL";
-        static const char* kRoleDescs[8] = {
-            "Bass Drum / Sub thump, acoustic punch and analog kicks",
-            "Snare Drum / Snappy wire, tonal shell and acoustic crack",
-            "Tom / Resonant cylindrical shell and dynamic pitch dive toms",
-            "Handclap / Multi-burst acoustic and electronic claps",
-            "Hi-Hat / Inharmonic metallic cluster and sizzle hats",
-            "Cymbal / Crash, ride, bell and atmospheric metal washes",
-            "Percussion / Rimshot, cowbell, clave, conga, anvil & metallic scrap",
-            "Special FX / Experimental FM warp, wavefold, laser dives and chaos"
-        };
-        r.blurb = kRoleDescs[roleIdx];
+        r.blurb = juce::String(FormlessInfo::kRoleDescriptions[roleIdx].data(), FormlessInfo::kRoleDescriptions[roleIdx].size());
         r.accent = juce::Colour(0xFFFF9D00);
         r.isDefault = false;
         headerInspector_.setReadout(r);
@@ -212,34 +203,25 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor_.getAPVTS(), paramId, item.slider);
 
-    // Live Streaming Telemetry to HeaderInspector
-    auto sendTelemetry = [this, name, unit, blurb, col](double val) {
-        HeaderInspector::Readout r;
-        r.name = name;
+    // Concise metric value formatter for In-Dial Kilohearts badge (<= 8 chars)
+    item.slider.textFromValueFunction = [this, name, unit](double val) -> juce::String {
         if (name == "RES" || name == "GAIN") {
             const int fType = filterTypeBar_.getState();
             if (fType == 3) {
-                r.name = "GAIN";
                 const float gainDb = tkdsp::formless::evalPeakingGainDb(static_cast<float>(val));
-                r.value = (gainDb > 0.0f ? "+" : "") + juce::String(gainDb, 1) + " dB";
-            } else {
-                r.name = "RES";
-                const float q = tkdsp::formless::evalCytomicQ(static_cast<float>(val));
-                r.value = "Q " + juce::String(q, 2);
+                return (gainDb > 0.0f ? "+" : "") + juce::String(gainDb, 1) + " dB";
             }
-        } else if (name == "VOLUME") {
+            const float q = tkdsp::formless::evalCytomicQ(static_cast<float>(val));
+            return "Q " + juce::String(q, 2);
+        }
+        if (name == "VOLUME") {
             const float u = static_cast<float>(val);
-            if (u <= 0.0001f) {
-                r.value = "-inf dB";
-            } else {
-                float db = std::round(tkdsp::formless::evalMasterVolumeDb(u) * 10.0f) * 0.1f;
-                if (std::abs(db) < 0.05f) db = 0.0f;
-                r.value = (db > 0.0f ? "+" : "") + juce::String(db, 1) + " dB";
-                if (db > 0.0f) {
-                    r.value += limiterButton_.getToggleState() ? " (INTO LIMITER)" : " (UNLIMITED)";
-                }
-            }
-        } else if (name == "AMP-DEC") {
+            if (u <= 0.0001f) return "-inf dB";
+            float db = std::round(tkdsp::formless::evalMasterVolumeDb(u) * 10.0f) * 0.1f;
+            if (std::abs(db) < 0.05f) db = 0.0f;
+            return (db > 0.0f ? "+" : "") + juce::String(db, 1) + " dB";
+        }
+        if (name == "AMP-DEC") {
             const float u = static_cast<float>(val);
             const int curRole = std::clamp(roleGrid_.getState(), 0, tkdsp::FormlessSpawnVoice::kTotalRoles - 1);
             const int curModel = std::clamp(modelGrid_.getModel(), 0, tkdsp::FormlessSpawnVoice::kModelsPerRole - 1);
@@ -252,69 +234,63 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
             const float tMult = tkdsp::formless::evalMacroMultiplier(macroT);
             const float lEngine = tkdsp::formless::evalEngineLengthSec(baseSec, bodyMult, macroMult, tMult);
             const float sec = tkdsp::formless::evalDynamicAmpDecaySec(u, lEngine);
-            if (sec >= 1.0f) {
-                r.value = juce::String(sec, 2) + " s";
-            } else {
-                r.value = juce::String(juce::roundToInt(sec * 1000.0f)) + " ms";
-            }
-            if (u >= 0.995f) {
-                r.value += " (FULL TAIL)";
-            } else if (u <= 0.005f) {
-                r.value += " (5ms SNAP)";
-            }
-        } else if (name == "FE-AMT") {
-            const float pct = static_cast<float>(val) * 100.0f;
-            if (std::abs(pct) < 0.5f) {
-                r.value = "0% (OFF)";
-            } else if (pct > 0.0f) {
-                r.value = "+" + juce::String(juce::roundToInt(pct)) + "% (UP)";
-            } else {
-                r.value = juce::String(juce::roundToInt(pct)) + "% (DOWN)";
-            }
-        } else if (name == "FE-DEC") {
-            if (val >= 1.0) {
-                r.value = juce::String(val, 2) + " s";
-            } else {
-                r.value = juce::String(juce::roundToInt(val * 1000.0)) + " ms";
-            }
-        } else if (name == "DRIVE") {
-            const float db = tkdsp::formless::evalDriveDb(static_cast<float>(val));
-            r.value = "+" + juce::String(db, 1) + " dB";
-            if (val <= 0.001) r.value = "0.0 dB (CLEAN)";
-            else if (std::abs(val - 0.5) < 0.03) r.value += " (WARM TANH)";
-            else if (val > 0.95) r.value += " (SQUARE)";
-        } else if (name == "SQUASH") {
-            if (std::abs(val) < 0.005) {
-                r.value = "0% (BYPASS)";
-            } else if (val < 0.0) {
-                r.value = juce::String(juce::roundToInt(val * 100.0)) + "% (SNAPPY)";
-            } else {
-                r.value = "+" + juce::String(juce::roundToInt(val * 100.0)) + "% (THICK)";
-            }
-        } else if (name == "WIDER") {
-            r.value = juce::String(juce::roundToInt(val * 100.0)) + " %";
-            if (val <= 0.001) r.value += " (OFF)";
-            else if (std::abs(val - 1.0) < 0.05) r.value += " (NATURAL)";
-            else if (val > 1.05) r.value += " (HYPER)";
-        } else if (unit == "Hz") {
-            if (val >= 1000.0)
-                r.value = juce::String(val * 0.001, 2) + " kHz";
-            else
-                r.value = juce::String(juce::roundToInt(val)) + " Hz";
-        } else if (unit == "ms") {
-            r.value = juce::String(val, 1) + " ms";
-        } else if (unit == "st") {
-            r.value = (val > 0.0 ? "+" : "") + juce::String(val, 1) + " st";
-        } else if (unit == "dB") {
-            r.value = juce::String(val, 1) + " dB";
-        } else if (unit == "%") {
-            r.value = juce::String(juce::roundToInt(val * 100.0)) + " %";
-        } else if (unit == "bit") {
-            r.value = juce::String(val, 1) + " bit";
-        } else {
-            r.value = juce::String(val, 2);
+            if (sec >= 1.0f) return juce::String(sec, 2) + " s";
+            return juce::String(juce::roundToInt(sec * 1000.0f)) + " ms";
         }
-        r.blurb = blurb;
+        if (name == "FE-AMT") {
+            const float pct = static_cast<float>(val) * 100.0f;
+            if (std::abs(pct) < 0.5f) return "0%";
+            if (pct > 0.0f) return "+" + juce::String(juce::roundToInt(pct)) + "%";
+            return juce::String(juce::roundToInt(pct)) + "%";
+        }
+        if (name == "FE-DEC") {
+            if (val >= 1.0) return juce::String(val, 2) + " s";
+            return juce::String(juce::roundToInt(val * 1000.0)) + " ms";
+        }
+        if (name == "DRIVE") {
+            const float db = tkdsp::formless::evalDriveDb(static_cast<float>(val));
+            if (val <= 0.001f) return "0.0 dB";
+            return "+" + juce::String(db, 1) + " dB";
+        }
+        if (name == "SQUASH") {
+            if (std::abs(val) < 0.005) return "0%";
+            if (val < 0.0) return juce::String(juce::roundToInt(val * 100.0)) + "%";
+            return "+" + juce::String(juce::roundToInt(val * 100.0)) + "%";
+        }
+        if (name == "WIDER") {
+            return juce::String(juce::roundToInt(val * 100.0)) + "%";
+        }
+        if (unit == "Hz") {
+            if (val >= 1000.0) return juce::String(val * 0.001, 1) + " kHz";
+            return juce::String(juce::roundToInt(val)) + " Hz";
+        }
+        if (unit == "ms") return juce::String(val, 1) + " ms";
+        if (unit == "st") return (val > 0.0 ? "+" : "") + juce::String(val, 1) + " st";
+        if (unit == "dB") return juce::String(val, 1) + " dB";
+        if (unit == "%") return juce::String(juce::roundToInt(val * 100.0)) + "%";
+        return juce::String(val, 2);
+    };
+
+    // Live Streaming Telemetry to HeaderInspector
+    auto sendTelemetry = [this, &item, blurb, col](double val) {
+        HeaderInspector::Readout r;
+        r.name = item.label.getText();
+        r.value = item.slider.textFromValueFunction ? item.slider.textFromValueFunction(val) : juce::String(val, 2);
+
+        // Dynamically serve Card 2 blurbs & names per active role
+        const int curRole = std::clamp(roleGrid_.getState(), 0, tkdsp::FormlessSpawnVoice::kTotalRoles - 1);
+        if (&item == &paramAKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][0]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 0); }
+        else if (&item == &paramBKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][1]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 1); }
+        else if (&item == &paramCKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][2]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 2); }
+        else if (&item == &paramDKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][3]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 3); }
+        else if (&item == &paramEKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][4]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 4); }
+        else if (&item == &paramFKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][5]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 5); }
+        else if (&item == &paramGKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][6]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 6); }
+        else if (&item == &paramHKnob_) { r.name = tkdsp::FormlessSpawnVoice::kRoleParamNames[curRole][7]; r.blurb = FormlessInfo::getRoleParamBlurb(curRole, 7); }
+        else {
+            r.blurb = blurb;
+        }
+
         r.accent = col;
         r.isDefault = false;
         headerInspector_.setReadout(r);
@@ -409,8 +385,8 @@ void FormlessSpawnAudioProcessorEditor::paint(juce::Graphics& g) {
 void FormlessSpawnAudioProcessorEditor::resized() {
     // Header: right edge lands on 880 (matches card right edge)
     presetStub_.setBounds(174, 8, 145, 28);
-    headerInspector_.setBounds(326, 8, 354, 28);
-    lifeformRocker_.setBounds(686, 8, 194, 28);
+    headerInspector_.setBounds(326, 8, 314, 28);
+    lifeformRocker_.setBounds(646, 8, 234, 28);
 
     // Card 0
     roleGrid_.setBounds(28, 46, 236, 48);
@@ -487,6 +463,13 @@ void FormlessSpawnAudioProcessorEditor::resized() {
 }
 
 void FormlessSpawnAudioProcessorEditor::timerCallback() {
+    if (activeBadgeSlider_ != nullptr) {
+        if (juce::Time::getMillisecondCounter() >= activeBadgeExpiry_) {
+            activeBadgeSlider_->getProperties().remove("badgeExpiry");
+            activeBadgeSlider_->repaint();
+            activeBadgeSlider_ = nullptr;
+        }
+    }
     auto updateProp = [](juce::Slider& s, const juce::Identifier& id, float val) {
         if (!s.getProperties().contains(id) || std::abs(static_cast<float>(s.getProperties()[id]) - val) > 0.001f) {
             s.getProperties().set(id, val);
@@ -726,4 +709,57 @@ void FormlessSpawnAudioProcessorEditor::updateFilterTypeUI(int filterIdx) {
         resonanceKnob_.slider.setDoubleClickReturnValue(true, 0.0);
     }
     resonanceKnob_.slider.repaint();
+}
+
+void FormlessSpawnAudioProcessorEditor::mouseEnter(const juce::MouseEvent& e) {
+    if (auto* s = dynamic_cast<juce::Slider*>(e.eventComponent)) {
+        if (s->onValueChange) s->onValueChange();
+    }
+}
+
+void FormlessSpawnAudioProcessorEditor::mouseExit(const juce::MouseEvent& e) {
+    juce::ignoreUnused(e);
+    if (!juce::ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
+        headerInspector_.setReadoutDefault();
+    }
+}
+
+void FormlessSpawnAudioProcessorEditor::mouseDown(const juce::MouseEvent& e) {
+    if (auto* s = dynamic_cast<juce::Slider*>(e.eventComponent)) {
+        activeBadgeSlider_ = s;
+        activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+        s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+        s->repaint();
+    }
+}
+
+void FormlessSpawnAudioProcessorEditor::mouseDrag(const juce::MouseEvent& e) {
+    if (auto* s = dynamic_cast<juce::Slider*>(e.eventComponent)) {
+        activeBadgeSlider_ = s;
+        activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+        s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+        s->repaint();
+    }
+}
+
+void FormlessSpawnAudioProcessorEditor::mouseUp(const juce::MouseEvent& e) {
+    if (auto* s = dynamic_cast<juce::Slider*>(e.eventComponent)) {
+        activeBadgeSlider_ = s;
+        activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+        s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+        s->repaint();
+    }
+    if (e.eventComponent != nullptr && !e.eventComponent->isMouseOver()) {
+        headerInspector_.setReadoutDefault();
+    }
+}
+
+void FormlessSpawnAudioProcessorEditor::mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel) {
+    juce::ignoreUnused(wheel);
+    if (auto* s = dynamic_cast<juce::Slider*>(e.eventComponent)) {
+        activeBadgeSlider_ = s;
+        activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+        s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+        s->repaint();
+    }
 }

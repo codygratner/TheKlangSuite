@@ -3,6 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "FormlessProcessor.h"
+#include "formless_spawn/FormlessControlInfo.h"
 #include <vector>
 #include <array>
 #include <memory>
@@ -87,30 +88,18 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        // Col 1: Parameter / System Name (x: 10, w: 105, 12.5pt bold)
-        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 105.0f, bounds.getHeight());
+        // Col 1: Parameter / System Name (x: 10, w: 100, 12.5pt bold)
+        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 100.0f, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
-        // Col 2: Formatted Value (x: 118, w: 72, 12.5pt bold)
-        auto valRect = juce::Rectangle<float>(bounds.getX() + 118.0f, bounds.getY(), 72.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
-        g.setColour(juce::Colour(0xFFF0F6FC));
-        g.drawText(readout_.value, valRect, juce::Justification::centredLeft, true);
-
-        // Col 3: Separator (x: 192, w: 12)
-        auto sepRect = juce::Rectangle<float>(bounds.getX() + 192.0f, bounds.getY(), 12.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(12.5f)));
-        g.setColour(juce::Colour(0xFF8B949E));
-        g.drawText(juce::CharPointer_UTF8("\xe2\x80\x94"), sepRect, juce::Justification::centred);
-
-        // Col 4: Explanation blurb (x: 206, w: rest)
-        float blurbW = std::max(50.0f, bounds.getWidth() - 214.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 206.0f, bounds.getY(), blurbW, bounds.getHeight());
+        // Col 2: Explanation blurb across the full remaining area (x: 116, w: bounds.getWidth() - 122.0f, 2 lines)
+        float blurbW = std::max(50.0f, bounds.getWidth() - 122.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 116.0f, bounds.getY(), blurbW, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.0f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
-        g.drawText(readout_.blurb, blurbRect, juce::Justification::centredLeft, true);
+        g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
     }
 
 private:
@@ -147,7 +136,7 @@ public:
         g.setColour(colours_[activeIndex_]);
         g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
         for (int i = 0; i < 3; ++i) {
             bool isActive = (i == activeIndex_);
             auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
@@ -815,6 +804,48 @@ public:
                 }
             }
         }
+
+        // =====================================================================
+        // KILOHEARTS IN-DIAL VALUE BADGE (Ephemerally Rendered On Interaction)
+        // =====================================================================
+        bool isInteracting = slider.isMouseButtonDown();
+        if (!isInteracting && slider.getProperties().contains("badgeExpiry")) {
+            auto expiry = static_cast<juce::int64>(static_cast<double>(slider.getProperties()["badgeExpiry"]));
+            if (juce::Time::getMillisecondCounter() < expiry) {
+                isInteracting = true;
+            }
+        }
+        if (isInteracting) {
+            juce::String text = slider.textFromValueFunction
+                ? slider.textFromValueFunction(slider.getValue())
+                : slider.getTextFromValue(slider.getValue());
+            drawKiloheartsValueBadge(g, bounds, text, fillCol);
+        }
+    }
+
+    static void drawKiloheartsValueBadge(juce::Graphics& g, const juce::Rectangle<float>& bounds,
+                                         const juce::String& text, juce::Colour accentColour) {
+        if (text.isEmpty()) return;
+        const auto font = juce::Font(juce::FontOptions(10.5f).withStyle("Bold"));
+        const float textW = juce::GlyphArrangement::getStringWidth(font, text);
+        const float badgeW = std::clamp(textW + 10.0f, 26.0f, bounds.getWidth() - 6.0f);
+        const float badgeH = 14.0f;
+        const float badgeX = bounds.getCentreX() - badgeW * 0.5f;
+        const float badgeY = bounds.getBottom() - badgeH - 1.0f;
+        const auto badgeRect = juce::Rectangle<float>(badgeX, badgeY, badgeW, badgeH);
+
+        // Obsidian Badge Background
+        g.setColour(juce::Colour(0xFA090D12));
+        g.fillRoundedRectangle(badgeRect, 3.5f);
+
+        // Subtle Accent-tinted Border
+        g.setColour(accentColour.withAlpha(0.65f));
+        g.drawRoundedRectangle(badgeRect, 3.5f, 1.0f);
+
+        // Crisp White Text
+        g.setFont(font);
+        g.setColour(juce::Colour(0xFFF0F6FC));
+        g.drawFittedText(text, badgeRect.toNearestInt(), juce::Justification::centred, 1);
     }
 };
 
@@ -917,6 +948,13 @@ public:
     void resized() override;
     void timerCallback() override;
 
+    void mouseEnter(const juce::MouseEvent& e) override;
+    void mouseExit(const juce::MouseEvent& e) override;
+    void mouseDown(const juce::MouseEvent& e) override;
+    void mouseDrag(const juce::MouseEvent& e) override;
+    void mouseUp(const juce::MouseEvent& e) override;
+    void mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel) override;
+
 private:
     struct KnobItem {
         juce::Slider slider;
@@ -931,10 +969,13 @@ private:
     FormlessSpawnAudioProcessor& processor_;
     FormlessLookAndFeel lnf_;
 
+    juce::Component::SafePointer<juce::Slider> activeBadgeSlider_;
+    juce::int64 activeBadgeExpiry_{0};
+
     // Header Row 1
     PresetStubComponent presetStub_;
     HeaderInspector     headerInspector_;
-    FormlessRocker3     lifeformRocker_{{"SYN", "CYB", "ORG"}};
+    FormlessRocker3     lifeformRocker_{{"SYNTHETIC", "CYBORG", "ORGANIC"}};
 
     // Card 0: Voice Navigator & Model Matrix
     FormlessRoleGrid2x4  roleGrid_;

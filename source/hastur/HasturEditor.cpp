@@ -245,6 +245,31 @@ void HasturLookAndFeel::setAccentColour(juce::Colour c) {
     setColour(juce::Slider::rotarySliderFillColourId, c);
 }
 
+void HasturLookAndFeel::drawKiloheartsValueBadge(juce::Graphics& g, const juce::Rectangle<float>& bounds,
+                                                 const juce::String& text, juce::Colour accentColour) {
+    if (text.isEmpty()) return;
+    const auto font = juce::Font(juce::FontOptions(10.5f).withStyle("Bold"));
+    const float textW = juce::GlyphArrangement::getStringWidth(font, text);
+    const float badgeW = std::clamp(textW + 10.0f, 26.0f, bounds.getWidth() - 6.0f);
+    const float badgeH = 14.0f;
+    const float badgeX = bounds.getCentreX() - badgeW * 0.5f;
+    const float badgeY = bounds.getBottom() - badgeH - 1.0f;
+    const auto badgeRect = juce::Rectangle<float>(badgeX, badgeY, badgeW, badgeH);
+
+    // Obsidian Badge Background
+    g.setColour(juce::Colour(0xFA090D12));
+    g.fillRoundedRectangle(badgeRect, 3.5f);
+
+    // Subtle Accent-tinted Border
+    g.setColour(accentColour.withAlpha(0.65f));
+    g.drawRoundedRectangle(badgeRect, 3.5f, 1.0f);
+
+    // Crisp White Text
+    g.setFont(font);
+    g.setColour(juce::Colour(0xFFF0F6FC));
+    g.drawFittedText(text, badgeRect.toNearestInt(), juce::Justification::centred, 1);
+}
+
 void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
                                          float sliderPosProportional, float rotaryStartAngle,
                                          float rotaryEndAngle, juce::Slider& slider) {
@@ -483,6 +508,23 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
                 g.strokePath(arc, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
             }
         }
+    }
+
+    // =========================================================================
+    // KILOHEARTS IN-DIAL VALUE BADGE (Ephemerally Rendered On Interaction)
+    // =========================================================================
+    bool isInteracting = slider.isMouseButtonDown();
+    if (!isInteracting && slider.getProperties().contains("badgeExpiry")) {
+        auto expiry = static_cast<juce::int64>(static_cast<double>(slider.getProperties()["badgeExpiry"]));
+        if (juce::Time::getMillisecondCounter() < expiry) {
+            isInteracting = true;
+        }
+    }
+    if (isInteracting) {
+        juce::String text = slider.textFromValueFunction
+            ? slider.textFromValueFunction(slider.getValue())
+            : slider.getTextFromValue(slider.getValue());
+        drawKiloheartsValueBadge(g, bounds, text, fillCol);
     }
 }
 
@@ -2084,6 +2126,13 @@ void HasturAudioProcessorEditor::resized() {
 }
 
 void HasturAudioProcessorEditor::timerCallback() {
+    if (activeBadgeSlider_ != nullptr) {
+        if (juce::Time::getMillisecondCounter() >= activeBadgeExpiry_) {
+            activeBadgeSlider_->getProperties().remove("badgeExpiry");
+            activeBadgeSlider_->repaint();
+            activeBadgeSlider_ = nullptr;
+        }
+    }
     if (lockedComponent_ != nullptr) {
         if (!juce::ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
             lockedComponent_ = nullptr;
@@ -2395,21 +2444,54 @@ void HasturAudioProcessorEditor::mouseMove(const juce::MouseEvent& e) {
 void HasturAudioProcessorEditor::mouseDown(const juce::MouseEvent& e) {
     if (auto* c = resolveInspectorComponent(e.eventComponent)) {
         lockedComponent_ = c;
+        if (auto* s = dynamic_cast<juce::Slider*>(c)) {
+            activeBadgeSlider_ = s;
+            activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+            s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+            s->repaint();
+        }
         updateInspectorForComponent(c, e.getPosition());
     }
 }
 
 void HasturAudioProcessorEditor::mouseDrag(const juce::MouseEvent& e) {
     if (lockedComponent_ != nullptr) {
+        if (auto* s = dynamic_cast<juce::Slider*>(lockedComponent_.getComponent())) {
+            activeBadgeSlider_ = s;
+            activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+            s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+            s->repaint();
+        }
         updateInspectorForComponent(lockedComponent_.getComponent(), e.getPosition());
     }
 }
 
 void HasturAudioProcessorEditor::mouseUp(const juce::MouseEvent& e) {
+    if (lockedComponent_ != nullptr) {
+        if (auto* s = dynamic_cast<juce::Slider*>(lockedComponent_.getComponent())) {
+            activeBadgeSlider_ = s;
+            activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+            s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+            s->repaint();
+        }
+    }
     lockedComponent_ = nullptr;
     auto eventInContainer = e.getEventRelativeTo(&contentContainer);
     if (auto* c = resolveInspectorComponent(contentContainer.getComponentAt(eventInContainer.getPosition()))) {
         updateInspectorForComponent(c, eventInContainer.getPosition());
+    }
+}
+
+void HasturAudioProcessorEditor::mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel) {
+    juce::ignoreUnused(wheel);
+    if (auto* c = resolveInspectorComponent(e.eventComponent)) {
+        if (auto* s = dynamic_cast<juce::Slider*>(c)) {
+            activeBadgeSlider_ = s;
+            activeBadgeExpiry_ = juce::Time::getMillisecondCounter() + 350;
+            s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
+            s->repaint();
+        }
+        updateInspectorForComponent(c, e.getPosition());
     }
 }
 
