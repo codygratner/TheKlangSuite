@@ -1,6 +1,6 @@
 plugin: formless_spawn
 name: Formless Spawn Sovereign Drum Voice
-version: 2.5.0
+version: "2.6.0"
 manufacturer: The Cult of Klang
 
 parameters:
@@ -104,7 +104,7 @@ parameters:
     type: float
     effect: dynamics
     range: [-1.0, 1.0]
-    default: -0.5
+    default: 0.0
 
   # ==============================================================================
   # CARD 2: ROLE SYNTHESIS LAB (8 parameters - Top-Right)
@@ -284,9 +284,20 @@ parameters:
     type: float
     effect: output
     range: [0.0, 1.0]
-    default: 0.85
+    default: 0.5
+    unit: dB
 
-  # Right Pod: VCF & Universal Hardware Mojo Strip (9 controls)
+  - id: amp_decay
+    name: Master Amp Decay
+    short: AMP-DEC
+    category: output
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 1.0
+    unit: s
+
+  # Right Pod: VCF & Universal Hardware Mojo Strip (11 controls)
   - id: cutoff
     name: Filter Cutoff
     short: CUTOFF
@@ -294,9 +305,9 @@ parameters:
     type: float
     effect: filter
     range: [20.0, 20000.0]
-    skew_mid: 1000.0
+    skew_center: 1000.0
     unit: Hz
-    default: 2000.0
+    default: 1000.0
 
   - id: resonance
     name: Filter Resonance
@@ -307,12 +318,33 @@ parameters:
     range: [0.0, 1.0]
     default: 0.3
 
+  - id: filter_env_amt
+    name: Filter Env Amount
+    short: FE-AMT
+    category: filter
+    type: float
+    effect: filter
+    range: [-1.0, 1.0]
+    default: 0.0
+    unit: "%"
+
+  - id: filter_decay
+    name: Filter Env Decay
+    short: FE-DEC
+    category: filter
+    type: float
+    effect: filter
+    range: [0.005, 5.0]
+    skew_center: 0.150
+    default: 0.150
+    unit: s
+
   - id: filter_type
     name: Filter Type
     short: TYPE
     category: filter
     type: choice
-    choices: [LP, HP, BP, BR]
+    choices: [LP, HP, BP, PK]
     default: 0
 
   - id: pre_drive
@@ -322,7 +354,7 @@ parameters:
     type: float
     effect: saturation
     range: [0.0, 1.0]
-    default: 0.15
+    default: 0.0
 
   - id: crush
     name: Mojo Sample Crush
@@ -330,8 +362,8 @@ parameters:
     category: mojo
     type: float
     effect: timbre
-    range: [1000.0, 48000.0]
-    skew_mid: 8000.0
+    range: [500.0, 48000.0]
+    skew_center: 4000.0
     unit: Hz
     default: 48000.0
 
@@ -341,23 +373,34 @@ parameters:
     category: mojo
     type: float
     effect: timbre
-    range: [4.0, 16.0]
+    range: [2.0, 16.0]
+    step: 1.0
     unit: bits
     default: 16.0
 
-  - id: tape_glue
-    name: Mojo Tape Glue
-    short: TAPE
+  - id: squash
+    name: Bipolar Squash
+    short: SQUASH
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [-1.0, 1.0]
+    default: 0.0
+    unit: "%"
+
+  - id: wider
+    name: Mojo Wider
+    short: WIDER
     category: mojo
     type: float
-    effect: saturation
-    range: [0.0, 1.0]
+    effect: stereo
+    range: [0.0, 2.0]
     default: 0.0
+    unit: "%"
 
-  - id: mojo_profile
-    name: Mojo Profile
-    short: PROFILE
-    category: mojo
-    type: choice
-    choices: [Clean, MD-12, SP-1200, Iron Tape]
-    default: 0
+  - id: master_limiter
+    name: Master Limiter
+    short: LIMIT
+    category: output
+    type: bool
+    default: false

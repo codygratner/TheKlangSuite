@@ -646,30 +646,80 @@ public:
                           float sliderPosProportional, float rotaryStartAngle,
                           float rotaryEndAngle, juce::Slider& slider) override {
         auto bounds = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y),
-                                             static_cast<float>(width), static_cast<float>(height)).reduced(2.0f);
+                                             static_cast<float>(width), static_cast<float>(height)).reduced(3.0f);
         auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) * 0.5f;
         auto centre = bounds.getCentre();
         auto angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
         const float sweep = rotaryEndAngle - rotaryStartAngle;
 
         const bool compact = radius < 26.0f; // Small-knob mode for 2x4 grid (44px knobs)
-        const float trackRadius = radius - (compact ? 3.5f : 4.0f);
-        const float trackStroke = compact ? 3.0f : 4.0f;
+        const bool hasMod = slider.getProperties().contains("modLo");
+        const bool hasRand = slider.getProperties().contains("randLo");
+        const bool dualRadar = hasMod && hasRand;
 
-        // Background track ring
+        // Concentric Dual-Radar Radial Offsets
+        float hrYellow, hrOrange, trackRadius, dialRadius;
+        float yellowGlow, yellowCore, yellowPipR;
+        float orangeGlow, orangeCore, orangePipR;
+        float trackStroke;
+
+        if (compact) {
+            if (dualRadar) {
+                hrYellow    = radius - 1.0f;
+                yellowGlow  = 2.5f; yellowCore = 1.4f; yellowPipR = 1.8f;
+                hrOrange    = radius - 3.2f;
+                orangeGlow  = 2.2f; orangeCore = 1.4f; orangePipR = 1.6f;
+                trackRadius = radius - 5.5f;
+                trackStroke = 2.5f;
+                dialRadius  = radius - 7.5f;
+            } else {
+                hrYellow    = radius - 1.0f;
+                yellowGlow  = 3.0f; yellowCore = 1.6f; yellowPipR = 2.0f;
+                hrOrange    = hrYellow;
+                orangeGlow  = yellowGlow; orangeCore = yellowCore; orangePipR = yellowPipR;
+                trackRadius = radius - 3.5f;
+                trackStroke = 3.0f;
+                dialRadius  = radius - 7.0f;
+            }
+        } else {
+            if (dualRadar) {
+                hrYellow    = radius - 1.2f;
+                yellowGlow  = 4.0f; yellowCore = 2.0f; yellowPipR = 2.2f;
+                hrOrange    = radius - 4.2f;
+                orangeGlow  = 3.5f; orangeCore = 1.8f; orangePipR = 2.0f;
+                trackRadius = radius - 7.2f;
+                trackStroke = 3.5f;
+                dialRadius  = radius - 9.8f;
+            } else {
+                hrYellow    = radius - 1.5f;
+                yellowGlow  = 4.5f; yellowCore = 2.0f; yellowPipR = 2.5f;
+                hrOrange    = hrYellow;
+                orangeGlow  = yellowGlow; orangeCore = yellowCore; orangePipR = yellowPipR;
+                trackRadius = radius - 4.0f;
+                trackStroke = 4.0f;
+                dialRadius  = radius - 8.0f;
+            }
+        }
+
+        // 1. Background track ring
         g.setColour(juce::Colour(0xFF21262D));
         juce::Path trackPath;
         trackPath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
         g.strokePath(trackPath, juce::PathStrokeType(trackStroke, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
-        // Active modulation arc with Bipolar Mid-Point Glow
+        // 2. Active modulation arc with Bipolar Mid-Point Glow
         auto fillCol = slider.findColour(juce::Slider::rotarySliderFillColourId);
         g.setColour(fillCol);
         juce::Path activePath;
-        const bool isBipolar = (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0);
+        const bool propBipolar = slider.getProperties().contains("isBipolar") && static_cast<bool>(slider.getProperties()["isBipolar"]);
+        const bool rangeBipolar = (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0);
+        const bool isBipolar = rangeBipolar || propBipolar;
 
         if (isBipolar) {
-            const float zeroNorm = static_cast<float>(-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
+            float zeroNorm = 0.5f;
+            if (rangeBipolar) {
+                zeroNorm = static_cast<float>(-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
+            }
             const float midAngle = rotaryStartAngle + zeroNorm * sweep;
             if (std::abs(angle - midAngle) > 0.005f) {
                 if (angle > midAngle) {
@@ -686,8 +736,7 @@ public:
             }
         }
 
-        // Dial body
-        auto dialRadius = radius - (compact ? 7.0f : 8.0f);
+        // 3. Dial body
         g.setColour(juce::Colour(0xFF161B22));
         g.fillEllipse(centre.x - dialRadius, centre.y - dialRadius, dialRadius * 2.0f, dialRadius * 2.0f);
         g.setColour(juce::Colour(0xFF30363D));
@@ -707,70 +756,62 @@ public:
         g.fillEllipse(centre.x - pipD * 0.5f, centre.y - pipD * 0.5f, pipD, pipD);
 
         // =====================================================================
-        // VISUAL MODULATION RADAR TELEMETRY (Source-Color Arc Halos & Pips)
+        // VISUAL MODULATION RADAR TELEMETRY (Concentric Source-Color Arc Halos & Pips)
         // =====================================================================
-        // 1. Macro Vector Modulation Halos (Movie Poster Orange 0xFFFF7B25)
-        if (slider.getProperties().contains("modLo")) {
+        // Inner Ring: Macro Vector Modulation Halos (Movie Poster Orange 0xFFFF7B25)
+        if (hasMod) {
             const float lo = static_cast<float>(slider.getProperties()["modLo"]);
             const float hi = static_cast<float>(slider.getProperties()["modHi"]);
             if (hi - lo > 0.002f) {
-                const float hr = radius - (compact ? 0.5f : 1.5f);
-                const float glow = compact ? 3.0f : 4.5f;
-                const float core = compact ? 1.6f : 2.0f;
                 const auto orangeCol = juce::Colour(0xFFFF7B25); // Movie Poster Orange
 
                 juce::Path arc;
-                arc.addCentredArc(centre.x, centre.y, hr, hr, 0.0f,
+                arc.addCentredArc(centre.x, centre.y, hrOrange, hrOrange, 0.0f,
                                   rotaryStartAngle + lo * sweep, rotaryStartAngle + hi * sweep, true);
                 g.setColour(orangeCol.withAlpha(0.28f));
-                g.strokePath(arc, juce::PathStrokeType(glow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.strokePath(arc, juce::PathStrokeType(orangeGlow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
                 g.setColour(orangeCol.withAlpha(0.95f));
-                g.strokePath(arc, juce::PathStrokeType(core, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.strokePath(arc, juce::PathStrokeType(orangeCore, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
                 if (slider.getProperties().contains("modPip")) {
                     const float pipNorm = static_cast<float>(slider.getProperties()["modPip"]);
                     const float pipAngle = rotaryStartAngle + pipNorm * sweep;
-                    const float px = centre.x + hr * std::sin(pipAngle);
-                    const float py = centre.y - hr * std::cos(pipAngle);
-                    const float pr = compact ? 2.0f : 2.5f;
+                    const float px = centre.x + hrOrange * std::sin(pipAngle);
+                    const float py = centre.y - hrOrange * std::cos(pipAngle);
 
                     g.setColour(juce::Colours::white);
-                    g.fillEllipse(px - pr, py - pr, 2.0f * pr, 2.0f * pr);
+                    g.fillEllipse(px - orangePipR, py - orangePipR, 2.0f * orangePipR, 2.0f * orangePipR);
                     g.setColour(orangeCol);
-                    g.drawEllipse(px - pr - 1.0f, py - pr - 1.0f, 2.0f * pr + 2.0f, 2.0f * pr + 2.0f, 1.0f);
+                    g.drawEllipse(px - orangePipR - 1.0f, py - orangePipR - 1.0f, 2.0f * orangePipR + 2.0f, 2.0f * orangePipR + 2.0f, 1.0f);
                 }
             }
         }
 
-        // 2. Stepped Random Humanization Halos (Caustic Hastur Yellow 0xFFF2E10F)
-        if (slider.getProperties().contains("randLo")) {
+        // Outer Ring: Stepped Random & Velocity Dynamic Halos (Caustic Hastur Yellow 0xFFF2E10F)
+        if (hasRand) {
             const float lo = static_cast<float>(slider.getProperties()["randLo"]);
             const float hi = static_cast<float>(slider.getProperties()["randHi"]);
             if (hi - lo > 0.002f) {
-                const float hr = radius - (compact ? 0.5f : 1.5f);
-                const float glow = compact ? 3.0f : 4.5f;
-                const float core = compact ? 1.6f : 2.0f;
                 const auto yellowCol = juce::Colour(0xFFF2E10F); // Caustic Hastur Yellow
 
                 juce::Path arc;
-                arc.addCentredArc(centre.x, centre.y, hr, hr, 0.0f,
+                arc.addCentredArc(centre.x, centre.y, hrYellow, hrYellow, 0.0f,
                                   rotaryStartAngle + lo * sweep, rotaryStartAngle + hi * sweep, true);
                 g.setColour(yellowCol.withAlpha(0.25f));
-                g.strokePath(arc, juce::PathStrokeType(glow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.strokePath(arc, juce::PathStrokeType(yellowGlow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
                 g.setColour(yellowCol.withAlpha(0.95f));
-                g.strokePath(arc, juce::PathStrokeType(core, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.strokePath(arc, juce::PathStrokeType(yellowCore, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
                 if (slider.getProperties().contains("randPip")) {
                     const float pipNorm = static_cast<float>(slider.getProperties()["randPip"]);
                     const float pipAngle = rotaryStartAngle + pipNorm * sweep;
-                    const float px = centre.x + hr * std::sin(pipAngle);
-                    const float py = centre.y - hr * std::cos(pipAngle);
-                    const float pr = compact ? 2.0f : 2.5f;
+                    const float px = centre.x + hrYellow * std::sin(pipAngle);
+                    const float py = centre.y - hrYellow * std::cos(pipAngle);
 
                     g.setColour(juce::Colours::white);
-                    g.fillEllipse(px - pr, py - pr, 2.0f * pr, 2.0f * pr);
+                    g.fillEllipse(px - yellowPipR, py - yellowPipR, 2.0f * yellowPipR, 2.0f * yellowPipR);
                     g.setColour(yellowCol);
-                    g.drawEllipse(px - pr - 1.0f, py - pr - 1.0f, 2.0f * pr + 2.0f, 2.0f * pr + 2.0f, 1.0f);
+                    g.drawEllipse(px - yellowPipR - 1.0f, py - yellowPipR - 1.0f, 2.0f * yellowPipR + 2.0f, 2.0f * yellowPipR + 2.0f, 1.0f);
                 }
             }
         }
@@ -844,21 +885,27 @@ private:
     KnobItem randDecayKnob_;
 
     void updateRoleParamLabels(int roleIdx);
+    void updateFilterTypeUI(int filterIdx);
 
     // Card 3 Pod 2: The Performance Altar (EXACTLY TWO CONTROLS)
     KnobItem          macroDecayKnob_;
     TactileTriggerPad trigButton_;
 
-    // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (6 knobs + 2 2x2 grids + master knob)
+    // Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output (10 knobs + 1 2x2 grid + limiter toggle + volume)
     KnobItem            cutoffKnob_;
     KnobItem            resonanceKnob_;
+    KnobItem            filterEnvAmtKnob_;
+    KnobItem            filterDecayKnob_;
     KnobItem            preDriveKnob_;
     KnobItem            crushKnob_;
     KnobItem            bitsKnob_;
-    KnobItem            tapeGlueKnob_;
+    KnobItem            squashKnob_;
+    KnobItem            widerKnob_;
+    juce::TextButton    limiterButton_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> limiterAttachment_;
     KnobItem            volumeKnob_;
-    FormlessGrid2x2     filterTypeBar_{{"LP", "HP", "BP", "BR"}};
-    FormlessGrid2x2     mojoProfileBar_{{"CLEAN", "MD-12", "SP-12", "IRON"}};
+    KnobItem            ampDecayKnob_;
+    FormlessGrid2x2     filterTypeBar_{{"LP", "HP", "BP", "PK"}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessorEditor)
 };

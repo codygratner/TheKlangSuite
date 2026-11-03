@@ -37,15 +37,19 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
     randDecayParam_  = apvts_.getRawParameterValue(rand_decay);
     macroDecayParam_ = apvts_.getRawParameterValue(macro_decay);
     volumeParam_     = apvts_.getRawParameterValue(volume);
+    ampDecayParam_   = apvts_.getRawParameterValue(amp_decay);
 
-    cutoffParam_     = apvts_.getRawParameterValue(cutoff);
-    resonanceParam_  = apvts_.getRawParameterValue(resonance);
-    filterTypeParam_ = apvts_.getRawParameterValue(filter_type);
+    cutoffParam_       = apvts_.getRawParameterValue(cutoff);
+    resonanceParam_    = apvts_.getRawParameterValue(resonance);
+    filterEnvAmtParam_ = apvts_.getRawParameterValue(filter_env_amt);
+    filterDecayParam_  = apvts_.getRawParameterValue(filter_decay);
+    filterTypeParam_   = apvts_.getRawParameterValue(filter_type);
     preDriveParam_   = apvts_.getRawParameterValue(pre_drive);
     crushParam_      = apvts_.getRawParameterValue(crush);
     bitsParam_       = apvts_.getRawParameterValue(bits);
-    tapeGlueParam_   = apvts_.getRawParameterValue(tape_glue);
-    mojoProfileParam_= apvts_.getRawParameterValue(mojo_profile);
+    squashParam_     = apvts_.getRawParameterValue(squash);
+    widerParam_      = apvts_.getRawParameterValue(wider);
+    masterLimiterParam_ = apvts_.getRawParameterValue(master_limiter);
 
     roleParam_       = apvts_.getRawParameterValue(role);
     modelParam_      = apvts_.getRawParameterValue(model);
@@ -96,19 +100,37 @@ void FormlessSpawnAudioProcessor::loadVoiceParams(tkdsp::FormlessSpawnVoice::Par
     if (randDecayParam_)  p.randDecay = randDecayParam_->load(std::memory_order_relaxed);
     if (macroDecayParam_) p.macroDecay = macroDecayParam_->load(std::memory_order_relaxed);
     if (volumeParam_)     p.volume = volumeParam_->load(std::memory_order_relaxed);
+    if (ampDecayParam_)   p.ampDecay = ampDecayParam_->load(std::memory_order_relaxed);
 
-    if (cutoffParam_)     p.cutoff = cutoffParam_->load(std::memory_order_relaxed);
-    if (resonanceParam_)  p.resonance = resonanceParam_->load(std::memory_order_relaxed);
-    if (filterTypeParam_) p.filterType = static_cast<int>(filterTypeParam_->load(std::memory_order_relaxed));
+    if (cutoffParam_)       p.cutoff = cutoffParam_->load(std::memory_order_relaxed);
+    if (resonanceParam_)    p.resonance = resonanceParam_->load(std::memory_order_relaxed);
+    if (filterEnvAmtParam_) p.filterEnvAmt = filterEnvAmtParam_->load(std::memory_order_relaxed);
+    if (filterDecayParam_)  p.filterDecay = filterDecayParam_->load(std::memory_order_relaxed);
+    if (filterTypeParam_)   p.filterType = static_cast<int>(filterTypeParam_->load(std::memory_order_relaxed));
     if (preDriveParam_)   p.preDrive = preDriveParam_->load(std::memory_order_relaxed);
     if (crushParam_)      p.crush = crushParam_->load(std::memory_order_relaxed);
     if (bitsParam_)       p.bits = bitsParam_->load(std::memory_order_relaxed);
-    if (tapeGlueParam_)   p.tapeGlue = tapeGlueParam_->load(std::memory_order_relaxed);
-    if (mojoProfileParam_)p.mojoProfile = static_cast<int>(mojoProfileParam_->load(std::memory_order_relaxed));
+    if (squashParam_)     p.squash = squashParam_->load(std::memory_order_relaxed);
+    if (widerParam_)      p.wider = widerParam_->load(std::memory_order_relaxed);
+    if (masterLimiterParam_) p.masterLimiter = masterLimiterParam_->load(std::memory_order_relaxed) > 0.5f;
 
     if (roleParam_)       p.role = static_cast<int>(roleParam_->load(std::memory_order_relaxed));
     if (modelParam_)      p.model = static_cast<int>(modelParam_->load(std::memory_order_relaxed));
     if (lifeModeParam_)   p.lifeMode = static_cast<int>(lifeModeParam_->load(std::memory_order_relaxed));
+}
+
+void FormlessSpawnAudioProcessor::publishTelemetry(float velocity, int noteNumber) noexcept {
+    const auto& draws = voice_.getLatchedDraws();
+    for (int i = 0; i < 8; ++i) {
+        latchedDraw_[i].store(draws[i], std::memory_order_relaxed);
+    }
+    const int curIdx = activeTelemetryIdx_.load(std::memory_order_relaxed);
+    const int nextIdx = (curIdx + 1) % 3;
+    auto& buf = telemetryBuffers_[static_cast<size_t>(nextIdx)];
+    buf.randVal = draws;
+    buf.lastVelocity = velocity;
+    buf.noteNumber = noteNumber;
+    activeTelemetryIdx_.store(nextIdx, std::memory_order_release);
 }
 
 void FormlessSpawnAudioProcessor::triggerVoice(float velocity, float noteHz) noexcept {
@@ -117,8 +139,7 @@ void FormlessSpawnAudioProcessor::triggerVoice(float velocity, float noteHz) noe
     voice_.setRole(p.role);
     voice_.setModel(p.model);
     voice_.trigger(velocity, noteHz, p);
-    const auto& draws = voice_.getLatchedDraws();
-    for (int i = 0; i < 8; ++i) latchedDraw_[i].store(draws[i], std::memory_order_relaxed);
+    publishTelemetry(velocity, 60);
 }
 
 void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
@@ -135,8 +156,7 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     const float manualVel = manualTriggerVel_.exchange(0.0f, std::memory_order_acquire);
     if (manualVel > 0.001f) {
         voice_.trigger(manualVel, -1.0f, p);
-        const auto& draws = voice_.getLatchedDraws();
-        for (int i = 0; i < 8; ++i) latchedDraw_[i].store(draws[i], std::memory_order_relaxed);
+        publishTelemetry(manualVel, 60);
     }
 
     // 3. Process MIDI Note Events
@@ -147,8 +167,7 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             const float vel = msg.getFloatVelocity();
             const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(note));
             voice_.trigger(vel, noteHz, p);
-            const auto& draws = voice_.getLatchedDraws();
-            for (int i = 0; i < 8; ++i) latchedDraw_[i].store(draws[i], std::memory_order_relaxed);
+            publishTelemetry(vel, note);
         }
     }
 

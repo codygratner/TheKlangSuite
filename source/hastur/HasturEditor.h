@@ -1245,12 +1245,10 @@ public:
             lfoPhase_ += hz * dt;
             lfoPhase_ -= std::floor(lfoPhase_);
 
-            // Parity with HasturVoice.h:404-413 (Smooth Triangle Boundary Folding)
+            // Parity with HasturVoice.h:561 (Bounded Headroom Shift)
             const float lfoVal = std::sin(static_cast<float>(lfoPhase_) * 6.28318530717958647692f);
-            float rawM = morph + lfoVal * (lfoAmt * 0.5f);
-            if (rawM < 0.0f) rawM = -rawM;
-            if (rawM > 1.0f) rawM = 2.0f - rawM;
-            const float effMorph = std::clamp(rawM, 0.0f, 1.0f);
+            const float effMorph = CrackedChimes::DSP::HasturVoice::boundedShift(
+                std::clamp(morph, 0.0f, 1.0f), 0.0f, 1.0f, lfoAmt, lfoVal);
 
             family_   = family;
             topo_     = topo;

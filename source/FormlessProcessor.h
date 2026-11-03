@@ -41,6 +41,17 @@ public:
         manualTriggerVel_.store(velocity, std::memory_order_release);
     }
 
+    struct TelemetrySnapshot {
+        std::array<float, 8> randVal{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+        float lastVelocity{0.9f};
+        int noteNumber{60};
+    };
+
+    TelemetrySnapshot getTelemetrySnapshot() const noexcept {
+        const int idx = activeTelemetryIdx_.load(std::memory_order_acquire);
+        return telemetryBuffers_[static_cast<size_t>(idx)];
+    }
+
     float getLatchedDraw(int i) const noexcept {
         if (i >= 0 && i < 8) return latchedDraw_[i].load(std::memory_order_relaxed);
         return 0.0f;
@@ -49,6 +60,10 @@ public:
 private:
     void triggerVoice(float velocity, float noteHz) noexcept;
     void loadVoiceParams(tkdsp::FormlessSpawnVoice::Params& p) const noexcept;
+    void publishTelemetry(float velocity, int noteNumber = 60) noexcept;
+
+    std::array<TelemetrySnapshot, 3> telemetryBuffers_{};
+    std::atomic<int> activeTelemetryIdx_{0};
 
     tkdsp::FormlessSpawnVoice voice_;
     juce::UndoManager undoManager_;
@@ -86,15 +101,19 @@ private:
     std::atomic<float>* randDecayParam_{nullptr};
     std::atomic<float>* macroDecayParam_{nullptr};
     std::atomic<float>* volumeParam_{nullptr};
+    std::atomic<float>* ampDecayParam_{nullptr};
 
     std::atomic<float>* cutoffParam_{nullptr};
     std::atomic<float>* resonanceParam_{nullptr};
+    std::atomic<float>* filterEnvAmtParam_{nullptr};
+    std::atomic<float>* filterDecayParam_{nullptr};
     std::atomic<float>* filterTypeParam_{nullptr};
     std::atomic<float>* preDriveParam_{nullptr};
     std::atomic<float>* crushParam_{nullptr};
     std::atomic<float>* bitsParam_{nullptr};
-    std::atomic<float>* tapeGlueParam_{nullptr};
-    std::atomic<float>* mojoProfileParam_{nullptr};
+    std::atomic<float>* squashParam_{nullptr};
+    std::atomic<float>* widerParam_{nullptr};
+    std::atomic<float>* masterLimiterParam_{nullptr};
 
     std::atomic<float>* roleParam_{nullptr};
     std::atomic<float>* modelParam_{nullptr};
