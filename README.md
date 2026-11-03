@@ -1,16 +1,16 @@
-# Hastur HS-01
+# Hastur
 
 > **Dual-IR3R05 Sub-Bass Synthesizer**  
 > Formats: **VST3** · **AU** (macOS) · **Standalone** (macOS, Linux, Windows)  
 > Architecture: C++20 / JUCE 9.0.3 · 64-bit float audio path
 
-![Hastur HS-01 Faceplate](screenshots/Hastur_GUI.png)
+![Hastur Faceplate](screenshots/Hastur_GUI.png)
 
 ---
 
 ## 1. Instrument Architecture
 
-Hastur HS-01 is a bass synthesizer modeled around Roland DCO pulse-clocking and dual cascaded IR3R05 24 dB/oct state-variable low-pass filters. The audio path maintains continuous DC normalization, 2x monolithic oversampling on non-linear stages, and zero audio-thread memory allocation.
+Hastur is a bass synthesizer modeled around Roland DCO pulse-clocking and dual cascaded IR3R05 24 dB/oct state-variable low-pass filters. The audio path maintains continuous DC normalization, 2x monolithic oversampling on non-linear stages, and zero audio-thread memory allocation.
 
 ```
 [ DCO Core ] ───────┐

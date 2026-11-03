@@ -64,7 +64,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          name: Hastur HS-01 Release ${{ steps.tag.outputs.tag }}
+          name: Hastur Release ${{ steps.tag.outputs.tag }}
           files: |
             Hastur-*-macOS-Installer.pkg
             Hastur-*-macOS.dmg
@@ -149,7 +149,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          name: Hastur HS-01 Release ${{ steps.tag.outputs.tag }}
+          name: Hastur Release ${{ steps.tag.outputs.tag }}
           files: Hastur-*-Linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -201,7 +201,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          name: Hastur HS-01 Release ${{ steps.tag.outputs.tag }}
+          name: Hastur Release ${{ steps.tag.outputs.tag }}
           files: Hastur-*-Windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

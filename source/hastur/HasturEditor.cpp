@@ -854,7 +854,7 @@ void WaveformGridModal::paint(juce::Graphics& g) {
 }
 
 // ==============================================================================
-// Master Hastur HS-01 Audio Processor Editor Implementation
+// Master Hastur Audio Processor Editor Implementation
 // ==============================================================================
 
 HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)

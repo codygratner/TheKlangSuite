@@ -3183,10 +3183,10 @@ int main() {
     }
 
     // =========================================================================
-    // SUITE 47: Hastur HS-01 57-Parameter Metadata Dictionary & SSoT Telemetry
+    // SUITE 47: Hastur 70-Parameter Metadata Dictionary & SSoT Telemetry
     // =========================================================================
     {
-        std::cout << "--- Suite 47: Hastur HS-01 70-Parameter Metadata Dictionary & SSoT Telemetry ---" << std::endl;
+        std::cout << "--- Suite 47: Hastur 70-Parameter Metadata Dictionary & SSoT Telemetry ---" << std::endl;
 
         const char* allParamIds[70] = {
             hasturParameters::Ids::osc1_mult,
@@ -3273,11 +3273,11 @@ int main() {
         assert(HasturInfo::getDynamicShapeBlurb(2) == "infinifold");
         assert(HasturInfo::getDynamicShapeBlurb(3) == "slew rate");
 
-        std::cout << "PASS: Suite 47: Hastur HS-01 70-Parameter Metadata Dictionary & SSoT Telemetry verified 100%!\n" << std::endl;
+        std::cout << "PASS: Suite 47: Hastur 70-Parameter Metadata Dictionary & SSoT Telemetry verified 100%!\n" << std::endl;
     }
 
     {
-        std::cout << "--- Suite 48: Hastur HS-01 Stepped Random Modulation Math & Global Trigger Modes ---" << std::endl;
+        std::cout << "--- Suite 48: Hastur Stepped Random Modulation Math & Global Trigger Modes ---" << std::endl;
 
         auto stepRandomNorm = [](float kNorm, float amount, float r) noexcept -> float {
             return std::clamp(kNorm + amount * (r - kNorm), 0.0f, 1.0f);
@@ -3438,7 +3438,7 @@ int main() {
         // NoteOn with ALL_NEW_NOTES draws new step
         voice.noteOn(62, 0.8f, 0.005f, CrackedChimes::DSP::HasturVoice::LfoTriggerMode::ALL_NEW_NOTES);
 
-        std::cout << "PASS: Suite 48: Hastur HS-01 Stepped Random Modulation Math & Global Trigger Modes verified 100%!\n" << std::endl;
+        std::cout << "PASS: Suite 48: Hastur Stepped Random Modulation Math & Global Trigger Modes verified 100%!\n" << std::endl;
     }
 
 
@@ -3530,7 +3530,7 @@ int main() {
     }
 
     // =========================================================================
-    // SUITE 50: Hastur HS-01 Lifeform Oversampling, VCA Voicing & Monolithic 2x Core
+    // SUITE 50: Hastur Lifeform Oversampling, VCA Voicing & Monolithic 2x Core
     // SSoT: Monolithic 2x Voice Core, 12th-Order HIIR Decimator, 3-Tier VCA Voicing
     // =========================================================================
     {
@@ -3666,11 +3666,11 @@ int main() {
             }
         }
 
-        std::cout << "PASS: Suite 50: Hastur HS-01 Lifeform Oversampling, VCA Voicing & Monolithic 2x Core verified 100%!\n" << std::endl;
+        std::cout << "PASS: Suite 50: Hastur Lifeform Oversampling, VCA Voicing & Monolithic 2x Core verified 100%!\n" << std::endl;
     }
 
     // =========================================================================
-    // SUITE 51: Hastur HS-01 Tactile Feel, 8-Octave Acid Sweep & Tracker Auto-Legato
+    // SUITE 51: Hastur Tactile Feel, 8-Octave Acid Sweep & Tracker Auto-Legato
     // SSoT: Bipolar S-Curve Burble, Progressive 96-st Env Sweep, Snappy Cyborg LPG, Renoise Grace Legato
     // =========================================================================
     {
@@ -3773,11 +3773,11 @@ int main() {
             assert(voice.getStepRand(0) == rand0Before);
         }
 
-        std::cout << "PASS: Suite 51: Hastur HS-01 Tactile Feel, 8-Octave Acid Sweep & Tracker Auto-Legato verified 100%!\n" << std::endl;
+        std::cout << "PASS: Suite 51: Hastur Tactile Feel, 8-Octave Acid Sweep & Tracker Auto-Legato verified 100%!\n" << std::endl;
     }
 
     // =========================================================================
-    // SUITE 52: Hastur HS-01 Elevated Lifeform Anti-Aliasing Gauntlet & Benchmark
+    // SUITE 52: Hastur Elevated Lifeform Anti-Aliasing Gauntlet & Benchmark
     // SSoT: Coherent FFT Spur Suppression (C6, C7, C8), Monolithic 2x Core, ADAA1
     // =========================================================================
     {
@@ -4085,7 +4085,7 @@ int main() {
             assert(nsPerSample < 2000.0);
         }
 
-        std::cout << "PASS: Suite 52: Hastur HS-01 Elevated Lifeform Anti-Aliasing Gauntlet verified 100%!\n" << std::endl;
+        std::cout << "PASS: Suite 52: Hastur Elevated Lifeform Anti-Aliasing Gauntlet verified 100%!\n" << std::endl;
     }
 
 

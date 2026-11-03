@@ -6,7 +6,7 @@ Across all synthesizers, drum machines, audio effects, and DSP processors create
 
 > *"Clean virtual analog for **Synthetic**, sloshy tube-back warmth with LPGs all over for **Organic**, and built out of nuclear reactor waste for **Cyborg**."*
 
-This triad is the unmistakable fingerprint of Klang instruments. While individual plugins may implement the triad as a 3-way toggle (like Hastur HS-01's *Lifeform*), a continuous tri-polar morph axis, or distinct selectable voice engines, every instrument must embody these three sonic personalities.
+This triad is the unmistakable fingerprint of Klang instruments. While individual plugins may implement the triad as a 3-way toggle (like Hastur's *Lifeform*), a continuous tri-polar morph axis, or distinct selectable voice engines, every instrument must embody these three sonic personalities.
 
 ---
 
@@ -110,3 +110,4 @@ When applying the Triad across different product pillars, translate the characte
 2. **Never Slop the Synthetic**: Synthetic mode must never introduce unrequested pitch drift, DC offset, or harmonic dirt. It is the benchmark of pure engineering precision.
 3. **Never Fake the Organic**: Organic mode must use true physical/optical modeling principles (dual-exponential lag curves, frequency-dependent damping, even-order tube curvature), not just a generic high-shelf rolloff.
 4. **Calibrate the Nuclear Waste**: Cyborg mode is aggressive, but it is **musical**. Edge tearing and wavefolding must be band-limited to prevent unpitched white noise or Nyquist foldover explosions. It should sound like an industrial machine operating at the brink of meltdown, not broken code.
+5. **Hastur Sovereign Naming Invariant**: The canonical product name of the instrument is strictly **Hastur**. No model-number suffixes (`HS-01`, `Model …`) may appear in UI, documentation, release names, build scripts, or code generators. Historical logs and archives are exempt.

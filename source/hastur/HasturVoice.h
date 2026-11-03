@@ -22,7 +22,7 @@ namespace FastMath = TbdAudio::FastMath;
 
 
 /**
- * @brief Cracked Chimes Hastur Monosynth Voice Engine (Model HS-01 Workhorse Edition).
+ * @brief Cracked Chimes Hastur Monosynth Voice Engine (Workhorse Edition).
  * 
  * SOTA Single-Folio Acid & Bass Synthesizer:
  * - Dual Alpha Juno DCO Cores (Osc 1 Core & Osc 2 Sync/Offset) with 18 PolyBLEP shapes.

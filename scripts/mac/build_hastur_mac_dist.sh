@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# Hastur HS-01 - macOS Distribution Packager
+# Hastur - macOS Distribution Packager
 # Generates .pkg Installer, stylized .dmg, and portable .zip archive
 # ==============================================================================
 set -e

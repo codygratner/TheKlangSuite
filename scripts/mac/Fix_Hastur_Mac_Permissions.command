@@ -1,12 +1,12 @@
 #!/bin/bash
 # ==============================================================================
-# Hastur HS-01 - Gatekeeper Permission & Quarantine Stripper
+# Hastur - Gatekeeper Permission & Quarantine Stripper
 # ==============================================================================
 
 clear
 echo ""
 echo "========================================================================"
-echo "    Hastur HS-01 (The Bass Synth in Yellow) - Permission Stripper"
+echo "    Hastur (The Bass Synth in Yellow) - Permission Stripper"
 echo "========================================================================"
 echo ""
 echo "This script removes macOS quarantine attributes from installed plugins"

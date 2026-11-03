@@ -3,14 +3,14 @@
 /**
  * ==============================================================================
  * CRACKED CHIMES // ARCHIVE REPOSITORY
- * Subsystem: HASTUR HS-01 — Osc 3, Doepfer A-196 PLL, Quadrature LFO & Mod C Archive
+ * Subsystem: HASTUR — Osc 3, Doepfer A-196 PLL, Quadrature LFO & Mod C Archive
  * Date Archived: 2026-10-28
  * Planned Destination: Phonomicon / The Klang Chimaera Flagship Modular Synthesizer
  * ==============================================================================
  *
  * This archive preserves the complete production-tested DSP, parameter layout,
  * and modulation routing for the complex experimental modules originally designed
- * for Hastur HS-01, preserved prior to the Workhorse Refactoring (Phase 1):
+ * for Hastur, preserved prior to the Workhorse Refactoring (Phase 1):
  *
  * 1. Osc 3 Tri-State Pitch Source Engine (MIDI, PLL, Quadrature LFO)
  * 2. Doepfer A-196 Phase Locked Loop (PLL) with 8x Multisampling

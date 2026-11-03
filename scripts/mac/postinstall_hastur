@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# Hastur HS-01 - macOS Installer Postinstall Script
+# Hastur - macOS Installer Postinstall Script
 # Strips Gatekeeper quarantine flags and refreshes the CoreAudio AU cache.
 # ==============================================================================
 
