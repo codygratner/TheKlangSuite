@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-11-02 04:01:35",
-  "briefing_title": "\ud83e\udd4b Master Plan: Hastur HS-01 Multi-Rate Centaur Anti-Aliasing Architecture (Pass 5 Crucible Lock)",
+  "updated_at": "2026-11-03 04:00:40",
+  "briefing_title": "PLAN: Hastur Tri-Phasic Bipolar Width & Bounded Headroom Modulation Overhaul",
   "briefing_text": "Scheduled 4 AM Black Box Memory Flush and State Integrity Audit",
   "status_badge": "ACTIVE \u26a1",
   "pending_decisions_count": 0,
-  "last_flight": "\ud83e\udd4b Master Plan: Hastur HS-01 Multi-Rate Centaur Anti-Aliasing Architecture (Pass 5 Crucible Lock)",
+  "last_flight": "PLAN: Hastur Tri-Phasic Bipolar Width & Bounded Headroom Modulation Overhaul",
   "git_branch": "0.4.0-dev",
-  "target_pipeline": "HASTUR"
+  "target_pipeline": "FACTORY_FLOOR"
 }

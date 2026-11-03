@@ -1,12 +1,12 @@
 # Active Workspace Context (0-Turn Cold Boot)
 > *Generated mechanically by `tools/state_manager.py` at zero token cost.*
 
-- **Branch / Tree:** `0.4.0-dev` (6dad273) · `Dirty (116 files)`
-- **Active Plan:** 🥋 Master Plan: Hastur HS-01 Multi-Rate Centaur Anti-Aliasing Architecture (Pass 5 Crucible Lock)
-- **Target Pipeline:** `HASTUR` · **Status:** `UNKNOWN` (0/10)
-- **Active Phase:** Phase 1 Ground Sub-Oscillator in `PolyBLEP.h` Sub 1..6 & Phase Reset [GATE 1]
+- **Branch / Tree:** `0.4.0-dev` (06898ea) · `Dirty (131 files)`
+- **Active Plan:** PLAN: Hastur Tri-Phasic Bipolar Width & Bounded Headroom Modulation Overhaul
+- **Target Pipeline:** `FACTORY_FLOOR` · **Status:** `UNKNOWN` (0/22)
+- **Active Phase:** Phase 1 Contract & Parameter Codegen
 - **Factory Semaphore:** Dispatch: `COMPLETED` · Receipt: `COMPLETED`
 - **Tooling Semaphore:** Dispatch: `COMPLETED` · Receipt: `COMPLETED`
 - **Peer Intent Locks:** `None`
-- **Recent Commit:** `6dad273 chore(ui): purge vestigial lfoTrigCombo declaration in HasturEditor`
+- **Recent Commit:** `06898ea fix(hastur): resolve 46 autoplan audit defects across DSP, kinematics and UI (v1.0.3)`
 - **Process Runtime:** Base Antigravity (`Antigravity.exe` — companion app, not full IDE)
