@@ -82,16 +82,16 @@ juce_add_binary_data(TkfAssets
 
 # 3. Configure the plugin target
 juce_add_plugin(TheKlangFarmer
-    COMPANY_NAME "The Cult of Klang"
+    COMPANY_NAME "Cracked Chimes"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     
     # 4-character codes (required by VST/AU specs; must have at least 1 uppercase)
-    PLUGIN_MANUFACTURER_CODE Tcok
+    PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Tkf1
-    BUNDLE_ID com.thecultofklang.theklangfarmer
+    BUNDLE_ID com.crackedchimes.theklangfarmer
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "The Klang Farmer"
@@ -167,15 +167,15 @@ target_link_libraries(TheKlangFarmer PRIVATE
 
 # --- 6. The Klang Planter Plugin Target ---
 juce_add_plugin(TheKlangPlanter
-    COMPANY_NAME "The Cult of Klang"
+    COMPANY_NAME "Cracked Chimes"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     
-    PLUGIN_MANUFACTURER_CODE Tcok
+    PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Tkp1
-    BUNDLE_ID com.thecultofklang.theklangplanter
+    BUNDLE_ID com.crackedchimes.theklangplanter
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "The Klang Planter"
@@ -233,15 +233,15 @@ if (UNIX AND NOT APPLE)
 endif()
 # --- 6b. The Shard Plugin Target (Sovereign Pantheon) ---
 juce_add_plugin(TheShard
-    COMPANY_NAME "The Cult of Klang"
+    COMPANY_NAME "Cracked Chimes"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     
-    PLUGIN_MANUFACTURER_CODE Tcok
+    PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Tsh1
-    BUNDLE_ID com.thecultofklang.theshard
+    BUNDLE_ID com.crackedchimes.theshard
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "The Shard"

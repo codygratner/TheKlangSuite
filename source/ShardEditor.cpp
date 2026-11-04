@@ -147,7 +147,7 @@ void ShardContentComponent::paint(juce::Graphics& g) {
 
     g.setFont(juce::Font(juce::FontOptions(8.5f, juce::Font::plain)));
     g.setColour(juce::Colour(0xff7dd3fc));
-    g.drawText("THE CULT OF KLANG", 33, 19, 120, 14, juce::Justification::centredLeft);
+    g.drawText("CRACKED CHIMES", 33, 19, 120, 14, juce::Justification::centredLeft);
 
     // Canon Polarity Badges
     auto drawBadge = [&g](int x, int y, int w, int h, const juce::String& text, juce::Colour col) {
