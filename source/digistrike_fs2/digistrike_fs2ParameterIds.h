@@ -24,9 +24,29 @@ namespace Ids {
     constexpr auto start_offset = "start_offset";
     constexpr auto traverse_rate = "traverse_rate";
     constexpr auto pitch_dive = "pitch_dive";
-    constexpr auto dac_compand = "dac_compand";
+    constexpr auto noise_mix = "noise_mix";
     constexpr auto sample_length = "sample_length";
     constexpr auto table_morph = "table_morph";
+    constexpr auto lin_crown = "lin_crown";
+    constexpr auto lin_apex = "lin_apex";
+    constexpr auto lin_empyr = "lin_empyr";
+    constexpr auto lin_falcon = "lin_falcon";
+    constexpr auto lin_kwrk = "lin_kwrk";
+    constexpr auto lin_compact = "lin_compact";
+    constexpr auto lin_tokyo = "lin_tokyo";
+    constexpr auto lin_gothn = "lin_gothn";
+    constexpr auto lin_circuits = "lin_circuits";
+    constexpr auto lin_phase = "lin_phase";
+    constexpr auto lin_studio = "lin_studio";
+    constexpr auto lin_keio = "lin_keio";
+    constexpr auto lin_nippon = "lin_nippon";
+    constexpr auto lin_adios = "lin_adios";
+    constexpr auto lin_fairlight = "lin_fairlight";
+    constexpr auto lin_synclavier = "lin_synclavier";
+    constexpr auto lin_ensoniq = "lin_ensoniq";
+    constexpr auto lin_simmons = "lin_simmons";
+    constexpr auto lin_jomox = "lin_jomox";
+    constexpr auto lin_curios = "lin_curios";
     constexpr auto rand_x = "rand_x";
     constexpr auto rand_y = "rand_y";
     constexpr auto rand_z = "rand_z";
@@ -39,6 +59,7 @@ namespace Ids {
     constexpr auto volume = "volume";
     constexpr auto sustain_level = "sustain_level";
     constexpr auto amp_decay = "amp_decay";
+    constexpr auto glide_time = "glide_time";
     constexpr auto cutoff = "cutoff";
     constexpr auto resonance = "resonance";
     constexpr auto filter_env_amt = "filter_env_amt";
@@ -70,9 +91,29 @@ namespace Names {
     constexpr auto start_offset = "Sample Start Offset";
     constexpr auto traverse_rate = "Wavetable Frame Traverse Rate";
     constexpr auto pitch_dive = "Transient Pitch Dive Depth";
-    constexpr auto dac_compand = "Vintage DAC Companding";
+    constexpr auto noise_mix = "Enveloped Noise Mix";
     constexpr auto sample_length = "Playback Window / Scan Length";
     constexpr auto table_morph = "3D Wave Morph / Tilt";
+    constexpr auto lin_crown = "Lineage Crown (Linn)";
+    constexpr auto lin_apex = "Lineage Apex (Oberheim)";
+    constexpr auto lin_empyr = "Lineage Empyrean (E-mu/SP)";
+    constexpr auto lin_falcon = "Lineage Falcon (Akai MPC)";
+    constexpr auto lin_kwrk = "Lineage K-Works (Kawai)";
+    constexpr auto lin_compact = "Lineage Compact (Boss)";
+    constexpr auto lin_tokyo = "Lineage Tokyo (Roland PCM)";
+    constexpr auto lin_gothn = "Lineage Gothenburg (Elektron/SID)";
+    constexpr auto lin_circuits = "Lineage Circuits (Sequential)";
+    constexpr auto lin_phase = "Lineage Phase (Casio)";
+    constexpr auto lin_studio = "Lineage Studio (Alesis)";
+    constexpr auto lin_keio = "Lineage Keio (Korg)";
+    constexpr auto lin_nippon = "Lineage Nippon (Yamaha AWM)";
+    constexpr auto lin_adios = "Lineage Adios (Venom)";
+    constexpr auto lin_fairlight = "Lineage Fairlight (CMI)";
+    constexpr auto lin_synclavier = "Lineage Synclavier (NED)";
+    constexpr auto lin_ensoniq = "Lineage Ensoniq (EPS)";
+    constexpr auto lin_simmons = "Lineage Simmons (SDS)";
+    constexpr auto lin_jomox = "Lineage Jomox (XBase)";
+    constexpr auto lin_curios = "Lineage Curios (EPROM)";
     constexpr auto rand_x = "Rand Macro X";
     constexpr auto rand_y = "Rand Macro Y";
     constexpr auto rand_z = "Rand Macro Z";
@@ -85,6 +126,7 @@ namespace Names {
     constexpr auto volume = "Master Volume";
     constexpr auto sustain_level = "Gated Sustain Level";
     constexpr auto amp_decay = "Master Amp Decay / Release";
+    constexpr auto glide_time = "Portamento Glide Time";
     constexpr auto cutoff = "Filter Cutoff";
     constexpr auto resonance = "Filter Resonance";
     constexpr auto filter_env_amt = "Filter Env Amount";
@@ -99,6 +141,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 43;
+    constexpr int count = 64;
 } // namespace Total
 } // namespace digistrike_fs2Parameters

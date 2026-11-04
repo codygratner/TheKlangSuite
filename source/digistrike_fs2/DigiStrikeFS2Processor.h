@@ -47,13 +47,42 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     tkdsp::DigiStrikeFS2Voice& getVoice() { return voice_; }
 
-    void triggerManual(float velocity = 0.95f) noexcept {
+    struct TelemetrySnapshot {
+        std::array<float, 8> randVal{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+        float lastVelocity{0.9f};
+        int noteNumber{60};
+    };
+
+    TelemetrySnapshot getTelemetrySnapshot() const noexcept {
+        const int idx = activeTelemetryIdx_.load(std::memory_order_acquire);
+        return telemetryBuffers_[static_cast<size_t>(idx)];
+    }
+
+    void triggerManual(int note = -1, float velocity = -1.0f) noexcept {
+        manualTriggerNote_.store(note, std::memory_order_release);
         manualTriggerVel_.store(velocity, std::memory_order_release);
     }
 
-private:
+    void triggerVoiceRelease(int note = -1) noexcept {
+        manualReleaseNote_.store(note >= 0 ? note : -2, std::memory_order_release);
+    }
+
+    int getLastMidiNote() const noexcept {
+        return lastMidiNote_.load(std::memory_order_relaxed);
+    }
+
+    float getLastMidiVelocity() const noexcept {
+        return lastMidiVelocity_.load(std::memory_order_relaxed);
+    }
+
     void triggerVoice(int noteNumber, float velocity, float noteHz) noexcept;
+
+private:
     void loadVoiceParams(tkdsp::DigiStrikeFS2Params& p) const noexcept;
+    void publishTelemetry(float velocity, int noteNumber = 60) noexcept;
+
+    std::array<TelemetrySnapshot, 3> telemetryBuffers_{};
+    std::atomic<int> activeTelemetryIdx_{0};
 
     tkdsp::DigiStrikeFS2Voice voice_;
     juce::UndoManager undoManager_;
@@ -79,9 +108,11 @@ private:
     std::atomic<float>* startOffsetParam_{nullptr};
     std::atomic<float>* traverseRateParam_{nullptr};
     std::atomic<float>* pitchDiveParam_{nullptr};
-    std::atomic<float>* dacCompandParam_{nullptr};
+    std::atomic<float>* noiseMixParam_{nullptr};
     std::atomic<float>* sampleLengthParam_{nullptr};
     std::atomic<float>* tableMorphParam_{nullptr};
+
+    std::array<std::atomic<float>*, 20> linParams_{};
 
     std::atomic<float>* randXParam_{nullptr};
     std::atomic<float>* randYParam_{nullptr};
@@ -96,6 +127,7 @@ private:
     std::atomic<float>* volumeParam_{nullptr};
     std::atomic<float>* sustainLevelParam_{nullptr};
     std::atomic<float>* ampDecayParam_{nullptr};
+    std::atomic<float>* glideTimeParam_{nullptr};
 
     std::atomic<float>* cutoffParam_{nullptr};
     std::atomic<float>* resonanceParam_{nullptr};
@@ -109,7 +141,11 @@ private:
     std::atomic<float>* widerParam_{nullptr};
     std::atomic<float>* masterLimiterParam_{nullptr};
 
+    std::atomic<int> lastMidiNote_{60};
+    std::atomic<float> lastMidiVelocity_{100.0f / 127.0f};
+    std::atomic<int> manualTriggerNote_{-1};
     std::atomic<float> manualTriggerVel_{0.0f};
+    std::atomic<int> manualReleaseNote_{-1};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DigiStrikeFS2AudioProcessor)
 };

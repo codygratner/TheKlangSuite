@@ -28,9 +28,19 @@ DigiStrikeFS2AudioProcessor::DigiStrikeFS2AudioProcessor()
     startOffsetParam_   = apvts_.getRawParameterValue(start_offset);
     traverseRateParam_  = apvts_.getRawParameterValue(traverse_rate);
     pitchDiveParam_     = apvts_.getRawParameterValue(pitch_dive);
-    dacCompandParam_    = apvts_.getRawParameterValue(dac_compand);
+    noiseMixParam_      = apvts_.getRawParameterValue(noise_mix);
     sampleLengthParam_  = apvts_.getRawParameterValue(sample_length);
     tableMorphParam_    = apvts_.getRawParameterValue(table_morph);
+
+    const char* linIds[20] = {
+        lin_crown, lin_apex, lin_empyr, lin_falcon, lin_kwrk,
+        lin_compact, lin_tokyo, lin_gothn, lin_circuits, lin_phase,
+        lin_studio, lin_keio, lin_nippon, lin_adios, lin_fairlight,
+        lin_synclavier, lin_ensoniq, lin_simmons, lin_jomox, lin_curios
+    };
+    for (size_t i = 0; i < 20; ++i) {
+        linParams_[i] = apvts_.getRawParameterValue(linIds[i]);
+    }
 
     randXParam_         = apvts_.getRawParameterValue(rand_x);
     randYParam_         = apvts_.getRawParameterValue(rand_y);
@@ -45,6 +55,7 @@ DigiStrikeFS2AudioProcessor::DigiStrikeFS2AudioProcessor()
     volumeParam_        = apvts_.getRawParameterValue(volume);
     sustainLevelParam_  = apvts_.getRawParameterValue(sustain_level);
     ampDecayParam_      = apvts_.getRawParameterValue(amp_decay);
+    glideTimeParam_     = apvts_.getRawParameterValue(glide_time);
 
     cutoffParam_        = apvts_.getRawParameterValue(cutoff);
     resonanceParam_     = apvts_.getRawParameterValue(resonance);
@@ -103,9 +114,17 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
     p.startOffset   = load(startOffsetParam_, 0.0f);
     p.traverseRate  = load(traverseRateParam_, 1.0f);
     p.pitchDive     = load(pitchDiveParam_, 0.0f);
-    p.dacCompand    = load(dacCompandParam_, 50.0f);
+    p.noiseMix      = load(noiseMixParam_, 0.0f);
     p.sampleLength  = load(sampleLengthParam_, 100.0f);
     p.tableMorph    = load(tableMorphParam_, 0.0f);
+
+    uint32_t mask = 0;
+    for (size_t i = 0; i < 20; ++i) {
+        if (load(linParams_[i], i == 0 ? 1.0f : 0.0f) > 0.5f) {
+            mask |= (1u << i);
+        }
+    }
+    p.lineageMask   = mask;
 
     p.randX         = load(randXParam_, 0.0f);
     p.randY         = load(randYParam_, 0.0f);
@@ -120,6 +139,7 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
     p.volume        = load(volumeParam_, 0.5f);
     p.sustainLevel  = load(sustainLevelParam_, 0.0f);
     p.ampDecay      = load(ampDecayParam_, 0.500f);
+    p.glideTime     = load(glideTimeParam_, 0.050f);
 
     p.cutoff        = load(cutoffParam_, 1000.0f);
     p.resonance     = load(resonanceParam_, 0.30f);
@@ -134,8 +154,20 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
     p.masterLimiter = (load(masterLimiterParam_, 0.0f) > 0.5f);
 }
 
+void DigiStrikeFS2AudioProcessor::publishTelemetry(float velocity, int noteNumber) noexcept {
+    const auto& draws = voice_.getLatchedDraws();
+    const int curIdx = activeTelemetryIdx_.load(std::memory_order_relaxed);
+    const int nextIdx = (curIdx + 1) % 3;
+    auto& buf = telemetryBuffers_[static_cast<size_t>(nextIdx)];
+    buf.randVal = draws;
+    buf.lastVelocity = velocity;
+    buf.noteNumber = noteNumber;
+    activeTelemetryIdx_.store(nextIdx, std::memory_order_release);
+}
+
 void DigiStrikeFS2AudioProcessor::triggerVoice(int noteNumber, float velocity, float noteHz) noexcept {
     voice_.triggerNote(noteNumber, velocity, noteHz);
+    publishTelemetry(velocity, noteNumber);
 }
 
 void DigiStrikeFS2AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
@@ -148,24 +180,44 @@ void DigiStrikeFS2AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     loadVoiceParams(p);
     voice_.setParams(p);
 
-    // Process manual UI strike pad trigger
+    // Process manual UI strike pad trigger & release
     const float manVel = manualTriggerVel_.exchange(0.0f, std::memory_order_acq_rel);
-    if (manVel > 0.001f) {
-        triggerVoice(60, manVel, 130.81f);
+    const int manNote = manualTriggerNote_.exchange(-1, std::memory_order_acq_rel);
+    if (manVel > 0.001f || manNote >= 0) {
+        const int n = (manNote >= 0) ? manNote : lastMidiNote_.load(std::memory_order_relaxed);
+        const float v = (manVel > 0.001f) ? manVel : lastMidiVelocity_.load(std::memory_order_relaxed);
+        const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(n));
+        triggerVoice(n, v, noteHz);
+    }
+
+    const int relNote = manualReleaseNote_.exchange(-1, std::memory_order_acq_rel);
+    if (relNote >= 0) {
+        voice_.releaseNote(relNote);
+    } else if (relNote == -2) {
+        voice_.releaseNote(lastMidiNote_.load(std::memory_order_relaxed));
     }
 
     // Process MIDI messages
     for (const auto metadata : midiMessages) {
         const auto msg = metadata.getMessage();
-        if (msg.isNoteOn()) {
+        if (msg.isNoteOff() || (msg.isNoteOn() && msg.getVelocity() == 0)) {
+            voice_.releaseNote(msg.getNoteNumber());
+        } else if (msg.isNoteOn()) {
             const int noteNumber = msg.getNoteNumber();
             const float velocity = msg.getFloatVelocity();
+            lastMidiNote_.store(noteNumber, std::memory_order_relaxed);
+            lastMidiVelocity_.store(velocity, std::memory_order_relaxed);
             const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(noteNumber));
             triggerVoice(noteNumber, velocity, noteHz);
-        } else if (msg.isNoteOff()) {
-            voice_.releaseNote(msg.getNoteNumber());
         } else if (msg.isAllNotesOff() || msg.isAllSoundOff()) {
             voice_.reset();
+        } else if (msg.isController()) {
+            const int cc = msg.getControllerNumber();
+            if (cc == 64) {
+                voice_.setSustainPedal(msg.getControllerValue() >= 64);
+            } else if (cc == 120 || cc == 123) {
+                voice_.reset();
+            }
         }
     }
 

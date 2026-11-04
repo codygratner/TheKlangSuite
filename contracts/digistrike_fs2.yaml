@@ -20,7 +20,7 @@ parameters:
     short: LINEAGE
     category: header
     type: choice
-    choices: [ALL, CROWN, APEX, EMPYR, FALCON, K-WRK, TOKYO, GOTHN, NIPPON, CURIOS]
+    choices: [CROWN, APEX, EMPYR, FALCON, K-WRK, COMPACT, TOKYO, GOTHN, CIRCUITS, PHASE, STUDIO, KEIO, NIPPON, ADIOS, FAIRL, SYNCL, ENSON, SIMM, JOMOX, CURIOS]
     default: 0
 
   - id: voice_mode
@@ -173,14 +173,14 @@ parameters:
     default: 0.0
     unit: "%"
 
-  - id: dac_compand
-    name: Vintage DAC Companding
-    short: COMPAND
+  - id: noise_mix
+    name: Enveloped Noise Mix
+    short: NOISE
     category: synthesis
     type: float
     effect: timbre
     range: [0.0, 100.0]
-    default: 50.0
+    default: 0.0
     unit: "%"
 
   - id: sample_length
@@ -202,6 +202,149 @@ parameters:
     range: [0.0, 100.0]
     default: 0.0
     unit: "%"
+
+  # ==============================================================================
+  # SOVEREIGN LINEAGE MATRIX (20 Hardware Families)
+  # ==============================================================================
+  - id: lin_crown
+    name: Lineage Crown (Linn)
+    short: LIN-CRWN
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_apex
+    name: Lineage Apex (Oberheim)
+    short: LIN-APEX
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_empyr
+    name: Lineage Empyrean (E-mu/SP)
+    short: LIN-EMPY
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_falcon
+    name: Lineage Falcon (Akai MPC)
+    short: LIN-FALC
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_kwrk
+    name: Lineage K-Works (Kawai)
+    short: LIN-KWRK
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_compact
+    name: Lineage Compact (Boss)
+    short: LIN-CMPCT
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_tokyo
+    name: Lineage Tokyo (Roland PCM)
+    short: LIN-TOKY
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_gothn
+    name: Lineage Gothenburg (Elektron/SID)
+    short: LIN-GOTH
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_circuits
+    name: Lineage Circuits (Sequential)
+    short: LIN-CIRC
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_phase
+    name: Lineage Phase (Casio)
+    short: LIN-PHAS
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_studio
+    name: Lineage Studio (Alesis)
+    short: LIN-STUD
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_keio
+    name: Lineage Keio (Korg)
+    short: LIN-KEIO
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_nippon
+    name: Lineage Nippon (Yamaha AWM)
+    short: LIN-NIPP
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_adios
+    name: Lineage Adios (Venom)
+    short: LIN-ADIOS
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_fairlight
+    name: Lineage Fairlight (CMI)
+    short: LIN-FAIR
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_synclavier
+    name: Lineage Synclavier (NED)
+    short: LIN-SYNC
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_ensoniq
+    name: Lineage Ensoniq (EPS)
+    short: LIN-ENSN
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_simmons
+    name: Lineage Simmons (SDS)
+    short: LIN-SIMM
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_jomox
+    name: Lineage Jomox (XBase)
+    short: LIN-JOMX
+    category: lineage
+    type: bool
+    default: false
+
+  - id: lin_curios
+    name: Lineage Curios (EPROM)
+    short: LIN-CURI
+    category: lineage
+    type: bool
+    default: false
 
   # ==============================================================================
   # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (22 parameters - Bottom)
@@ -326,6 +469,17 @@ parameters:
     range: [0.005, 5.0]
     skew_center: 0.250
     default: 0.500
+    unit: s
+
+  - id: glide_time
+    name: Portamento Glide Time
+    short: GLIDE
+    category: output
+    type: float
+    effect: pitch
+    range: [0.001, 2.0]
+    skew_center: 0.050
+    default: 0.050
     unit: s
 
   # Right Pod: VCF & Universal Hardware Mojo Strip (11 controls on Master Bus)

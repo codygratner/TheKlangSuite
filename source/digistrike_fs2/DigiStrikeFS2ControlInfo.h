@@ -33,17 +33,28 @@ inline constexpr std::string_view kCategoryDescriptions[8] = {
     "Stabs & Bass: 12-bit orchestral hits, rave stabs, slap bass, and digital synth growl"
 };
 
-inline constexpr std::string_view kLineageDescriptions[10] = {
+inline constexpr std::string_view kLineageDescriptions[21] = {
     "All Lineages: complete 2,069-voice library from all 20 sovereign manufacturers",
     "Crown Audio: vintage LM-1, LinnDrum, and 9000 companded studio voices",
     "Apex Electronics: 8-bit companded DMX and DX punch with discrete EPROM grit",
     "Empyrean Systems: 12-bit SP-1200 drop-sample slew and Drumulator crunch",
     "Red Falcon: 16-bit 44.1kHz MPC60, XR-10, and XE8 tight studio punch",
     "K-Works: 12-bit K-Beat and K-Electro 50 filtered hits and iconic slap basses",
+    "Compact Line: 12-bit DR-110, DR-220, and DR-550 punchy street grooveboxes",
     "Tokyo Beat: linear matrix rhythm voices from Matrix-70, Hybrid-90, and HumanRhythm-8",
     "Gothenburg Lab: Swedish algorithmic digital percussion and 12-bit E12 crunch",
+    "Circuits Core: Sequential Drumtraks, TOM, and Studio 440 vintage EPROM slam",
+    "Phase Tone: Casio RZ-1, SK-1, and FZ-1 lo-fi sampling and PCM crunch",
+    "Studio Line: Alesis HR-16, HR-16B, and SR-16 iconic 90s studio drum machines",
+    "Keio Systems: Korg DDD-1, DDD-5, and S3 dynamic velocity multi-card PCM",
     "Nippon Sound: 12-bit waveform memory from RX5, RX11, and dynamic RY30 filters",
-    "Curio Fleet: Sydney Sound Page-IIx/III, Synclavier, Simmons, and Berlin kicks"
+    "Adios Engine: SAM3308B multi-timbral PCM percussion and dark synth growls",
+    "Fairlight Series: CMI Series IIx/III iconic 8-bit page-R orchestral hits and snares",
+    "Synclavier Tech: NED Synclavier II high-precision direct-to-disk digital PCM",
+    "Ensoniq Matrix: ASR-10 and EPS-16+ gritty variable-rate drop-sample drums",
+    "Simmons Hex: SDS-V, SDS-7, and SDS-9 analog noise click and hexagonal bite",
+    "Jomox Analog: XBase 09 and AirBase 99 punchy German hybrid kick and hats",
+    "Curio Fleet: Bizarre custom EPROMs, modified romplers, and circuit-bent classics"
 };
 
 inline constexpr std::string_view kVoiceModeDescriptions[3] = {
@@ -87,7 +98,7 @@ inline constexpr Control kCard2Controls[8] = {
     { "traverse_rate", "TIME",    "bidirectional frame traverse rate from reverse swell to varispeed forward" },
     // Row 2 (K05..K08)
     { "pitch_dive",    "PUNCH",   "quadratic transient pitch dive depth for authentic 80s drum knock" },
-    { "dac_compand",   "COMPAND", "piecewise vintage DAC companding from Am6070 u-law to Empyrean 12-bit ZOH" },
+    { "noise_mix",     "NOISE",   "enveloped 1-pole 800Hz highpass noise mix (35% amp env + 65% pitch attack)" },
     { "sample_length", "LENGTH",  "playback window and scan span from single-cycle frame to full sample" },
     { "table_morph",   "MORPH",   "3D wavetable timbre slice position with smoothed inter-frame morphing" }
 };
@@ -113,10 +124,11 @@ inline constexpr Control kAltarControls[1] = {
     { "macro_decay", "MACRO",   "master multiplicative scaling factor across all dynamic envelopes" }
 };
 
-inline constexpr Control kMasterControls[3] = {
+inline constexpr Control kMasterControls[4] = {
     { "volume",        "VOLUME",  "master logarithmic output level with authentic analog headroom trim" },
     { "sustain_level", "SUSTAIN", "gated sustain level with equal-power ping-pong micro-grain looping" },
-    { "amp_decay",     "AMP-DEC", "master amplitude decay duration and gated note release decay time" }
+    { "amp_decay",     "AMP-DEC", "master amplitude decay duration and gated note release decay time" },
+    { "glide_time",    "GLIDE",   "exponential portamento glide duration for authentic legato synth basslines" }
 };
 
 // ==============================================================================
@@ -135,5 +147,15 @@ inline constexpr Control kMojoControls[11] = {
     { "wider",          "WIDER",   "Haas inter-aural time difference and comb stereo widening stage" },
     { "master_limiter", "LIMIT",   "true-peak master output safety limiter preventing digital overs" }
 };
+
+[[nodiscard]] inline const Control* find(std::string_view paramId) noexcept {
+    for (const auto& c : kMacroControls)  if (c.paramId == paramId) return &c;
+    for (const auto& c : kCard2Controls)  if (c.paramId == paramId) return &c;
+    for (const auto& c : kRandomControls) if (c.paramId == paramId) return &c;
+    for (const auto& c : kAltarControls)  if (c.paramId == paramId) return &c;
+    for (const auto& c : kMasterControls) if (c.paramId == paramId) return &c;
+    for (const auto& c : kMojoControls)   if (c.paramId == paramId) return &c;
+    return nullptr;
+}
 
 } // namespace DigiStrikeFS2Info
