@@ -61,6 +61,7 @@ public:
     void triggerManual(int note = -1, float velocity = -1.0f) noexcept {
         manualTriggerNote_.store(note, std::memory_order_release);
         manualTriggerVel_.store(velocity, std::memory_order_release);
+        manualTriggerPending_.store(true, std::memory_order_release);
     }
 
     void triggerVoiceRelease(int note = -1) noexcept {
@@ -112,6 +113,7 @@ private:
     std::atomic<float>* sampleLengthParam_{nullptr};
     std::atomic<float>* tableMorphParam_{nullptr};
     std::atomic<float>* loopModeParam_{nullptr};
+    std::atomic<float>* reverseParam_{nullptr};
 
     std::array<std::atomic<float>*, 20> linParams_{};
 
@@ -146,6 +148,7 @@ private:
     std::atomic<float> lastMidiVelocity_{100.0f / 127.0f};
     std::atomic<int> manualTriggerNote_{-1};
     std::atomic<float> manualTriggerVel_{0.0f};
+    std::atomic<bool> manualTriggerPending_{false};
     std::atomic<int> manualReleaseNote_{-1};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DigiStrikeFS2AudioProcessor)

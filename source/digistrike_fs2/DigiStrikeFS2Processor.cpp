@@ -179,9 +179,9 @@ void DigiStrikeFS2AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     voice_.setParams(p);
 
     // Process manual UI strike pad trigger & release
-    const float manVel = manualTriggerVel_.exchange(0.0f, std::memory_order_acq_rel);
-    const int manNote = manualTriggerNote_.exchange(-1, std::memory_order_acq_rel);
-    if (manVel > 0.001f || manNote >= 0) {
+    if (manualTriggerPending_.exchange(false, std::memory_order_acq_rel)) {
+        const float manVel = manualTriggerVel_.exchange(-1.0f, std::memory_order_acq_rel);
+        const int manNote = manualTriggerNote_.exchange(-1, std::memory_order_acq_rel);
         const int n = (manNote >= 0) ? manNote : lastMidiNote_.load(std::memory_order_relaxed);
         const float v = (manVel > 0.001f) ? manVel : lastMidiVelocity_.load(std::memory_order_relaxed);
         const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(n));

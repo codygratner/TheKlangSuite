@@ -607,7 +607,7 @@ private:
             }
             float pitchModSemitones = v.pitchDiveSemitones * (v.pitchEnv * v.pitchEnv);
             float punchRatio = FastMath::fastPow2(pitchModSemitones * (1.0f / 12.0f));
-            float r = std::clamp(v.currentHz / std::max(10.0f, v.rootHz), 0.125f, 8.0f) * punchRatio;
+            float r = std::clamp(v.currentHz / std::max(10.0f, v.rootHz), 0.0078125f, 128.0f) * punchRatio;
 
             // 3. Traversal Speed & Direction (100% Decoupled from Pitch!)
             const float T = params_.traverseRate;
@@ -630,7 +630,7 @@ private:
                 case 0: // ONCE (True One-Shot Clean Release)
                 default:
                     pos = v.u;
-                    if (d > 0.0 ? (v.u >= b + static_cast<double>(r * grainLengthSec_)) : (v.u <= a - static_cast<double>(r * grainLengthSec_))) {
+                    if (d > 0.0 ? (v.u >= b) : (v.u <= a)) {
                         v.isFadingOut = true;
                     }
                     break;
@@ -669,11 +669,11 @@ private:
                 // Latch anchors at wraps
                 if (phi0 < dPhi) {
                     v.gAnchor[0] = pos;
-                    v.gDir[0] = (mode == 2) ? ((wrapFn(x, 2.0 * S) < S) ? 1.0f : -1.0f) : static_cast<float>(d);
+                    v.gDir[0] = (mode == 3) ? ((wrapFn(x, 2.0 * S) < S) ? 1.0f : -1.0f) : static_cast<float>(d);
                 }
                 if (phi1 < dPhi) {
                     v.gAnchor[1] = pos;
-                    v.gDir[1] = (mode == 2) ? ((wrapFn(x, 2.0 * S) < S) ? 1.0f : -1.0f) : static_cast<float>(d);
+                    v.gDir[1] = (mode == 3) ? ((wrapFn(x, 2.0 * S) < S) ? 1.0f : -1.0f) : static_cast<float>(d);
                 }
 
                 // 15ms Pure-Impact Transient Gate:
@@ -698,9 +698,13 @@ private:
                         double rawP = v.gAnchor[g] + static_cast<double>(v.gDir[g]) * static_cast<double>(r) * (phi * static_cast<double>(grainLengthSec_));
                         // Hardening: clamp grain read within loop window [a, b]
                         double clampedP = rawP;
-                        if (mode == 0 || mode == 1) clampedP = a + wrapFn(rawP - a, S);
-                        else if (mode == 2) clampedP = a + S - std::abs(wrapFn(rawP - a, 2.0 * S) - S);
-                        else clampedP = std::clamp(rawP, a, b);
+                        if (mode == 2) {
+                            clampedP = a + wrapFn(rawP - a, S); // LOOP (Forward Looped)
+                        } else if (mode == 3) {
+                            clampedP = a + S - std::abs(wrapFn(rawP - a, 2.0 * S) - S); // PING (Ping-Pong)
+                        } else {
+                            clampedP = std::clamp(rawP, a, b); // ONCE (0) or HOLD (1) - Zero Attack Wrap
+                        }
 
                         if (metaA == nullptr) return 0.0f;
                         double pA = clampedP * static_cast<double>(metaA->sampleRate);
