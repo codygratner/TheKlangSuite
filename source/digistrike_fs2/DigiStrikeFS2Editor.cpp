@@ -764,12 +764,12 @@ void DigiStrikeFS2AudioProcessorEditor::resized() {
         {&velAggrKnob_, &velTimbKnob_, &panKnob_,    &decayCurveKnob_}
     };
 
-    // Card 1 Knobs: Scrunched 2x4 grid (48px knobs)
+    // Card 1 Knobs: Symmetrical 2x4 grid (52px knobs, cleared below header pill)
     for (int r = 0; r < 2; ++r) {
-        const int labelY = (r == 0) ? 52 : 124;
+        const int labelY = (r == 0) ? 76 : 148;
         const int sliderY = labelY + 16;
         for (int c = 0; c < 4; ++c) {
-            place(*c1[r][c], colCentre(kCard1X, c, kCellPitch), labelY, kCellPitch, 48, sliderY);
+            place(*c1[r][c], colCentre(kCard1X, c, kCellPitch), labelY, kCellPitch, 52, sliderY);
         }
     }
 

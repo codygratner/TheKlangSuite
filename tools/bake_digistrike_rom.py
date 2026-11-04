@@ -89,13 +89,23 @@ def read_vitaltable(filepath: str) -> np.ndarray | None:
             header = f.read(16)
             if len(header) < 16 or header[:4] != b'VTBL':
                 return None
+            ver, num_frames, frame_size = struct.unpack('<III', header[4:16])
             raw = f.read()
-            samples = np.frombuffer(raw, dtype=np.int16)
-            num_frames = len(samples) // TABLE_SIZE
-            if num_frames == 0:
-                return None
+            expected_f32_bytes = num_frames * frame_size * 4
+            expected_i16_bytes = num_frames * frame_size * 2
+            if len(raw) == expected_f32_bytes:
+                samples = np.frombuffer(raw, dtype=np.float32)
+            elif len(raw) == expected_i16_bytes:
+                samples = np.frombuffer(raw, dtype=np.int16).astype(np.float32) * (1.0 / 32768.0)
+            else:
+                nf = len(raw) // (TABLE_SIZE * 4)
+                if nf > 0:
+                    samples = np.frombuffer(raw[:nf * TABLE_SIZE * 4], dtype=np.float32)
+                    num_frames = nf
+                else:
+                    return None
             frames = samples[:num_frames * TABLE_SIZE].reshape(num_frames, TABLE_SIZE)
-            return frames.astype(np.float32) * (1.0 / 32768.0)
+            return np.clip(frames.astype(np.float32), -1.0, 1.0)
     except Exception as e:
         print(f"Error reading {filepath}: {e}", file=sys.stderr)
         return None

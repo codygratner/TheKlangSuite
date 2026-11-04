@@ -98,15 +98,15 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        // Col 1: Parameter Name (x: 10, w: 90, 12pt bold)
-        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 90.0f, bounds.getHeight());
+        // Col 1: Parameter Name (x: 10, w: 115, 12pt bold - zero truncation)
+        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 115.0f, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
         // Col 2: Explanation blurb across remaining area (2 lines)
-        float blurbW = std::max(40.0f, bounds.getWidth() - 106.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 102.0f, bounds.getY(), blurbW, bounds.getHeight());
+        float blurbW = std::max(40.0f, bounds.getWidth() - 132.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 128.0f, bounds.getY(), blurbW, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(11.0f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
         g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
