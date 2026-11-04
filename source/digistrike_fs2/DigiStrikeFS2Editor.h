@@ -293,6 +293,11 @@ public:
 
     uint32_t getMask() const noexcept { return mask_; }
 
+    int getSelected() const noexcept {
+        const uint32_t m = (mask_ & 0xFFFFFu) != 0 ? (mask_ & 0xFFFFFu) : (1u << 14);
+        return std::countr_zero(m);
+    }
+
     void setAccentColour(juce::Colour c) {
         if (accentColour_ != c) {
             accentColour_ = c;
@@ -302,7 +307,7 @@ public:
 
     void updateMorphDNA(uint32_t mask, int category, float morphNorm) {
         morphNorm = std::clamp(morphNorm, 0.0f, 1.0f);
-        category = std::clamp(category, 0, 7);
+        category = std::clamp(category, 0, 9);
 
         int lin0 = -1;
         int lin1 = -1;
@@ -310,12 +315,12 @@ public:
         float w1 = 0.0f;
 
         if (mask != 0) {
-            std::array<DigiStrikeFS2Catalog::WaveCoord, 64> activeWaves{};
+            std::array<DigiStrikeFS2Catalog::WaveCoord, 80> activeWaves{};
             int activeCount = 0;
             for (int i = 0; i < 80; ++i) {
                 const auto coord = DigiStrikeFS2Catalog::kMusicalOrder[static_cast<size_t>(category)][static_cast<size_t>(i)];
                 if ((mask & (1u << coord.lineage)) != 0) {
-                    if (activeCount < 64) {
+                    if (activeCount < 80) {
                         activeWaves[static_cast<size_t>(activeCount++)] = coord;
                     }
                 }
@@ -360,31 +365,14 @@ public:
         const int totalButtons = static_cast<int>(labels_.size());
         if (totalButtons <= 0) return;
 
-        const bool isSecret = (mask_ == 0);
+        
 
-        if (isSecret) {
-            // Secret Mode: Glowing Neon Magenta Chasm
-            g.setColour(juce::Colour(0xFF190A1A));
-            g.fillRoundedRectangle(bounds, 4.0f);
-
-            // Pulsing Neon Magenta Border (0xFFFF007F)
-            g.setColour(juce::Colour(0xFFFF007F));
-            g.drawRoundedRectangle(bounds, 4.0f, 1.5f);
-
-            // Secret Core Glow Text
-            g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
-            g.setColour(juce::Colour(0xFFFF55B2));
-            g.drawText(juce::CharPointer_UTF8("\xe2\x98\x85  SECRET CORE ENGAGED: PURE SINE -> HYPER-SAW  [CLICK ANY BUTTON TO EXIT]  \xe2\x98\x85"),
-                       bounds, juce::Justification::centred);
-            return;
-        }
-
-        // Count active lineages to determine 64-wave budget limit (max 16 lineages)
+        // Count active lineages (all 20 lineages allowed simultaneously)
         int activeLineageCount = 0;
         for (int i = 0; i < totalButtons; ++i) {
             if ((mask_ & (1u << i)) != 0) ++activeLineageCount;
         }
-        const bool isBudgetFull = (activeLineageCount >= 16);
+        const bool isBudgetFull = false;
 
         // Render 2x10 Grid (80x22px buttons, 4px gaps)
         const int cols = 10;
@@ -496,31 +484,26 @@ public:
         }
 
         if (e.getNumberOfClicks() >= 2) {
-            // Double-Click: Reset to default K-Works (Kawai)
-            mask_ = 0x00000010;
+            // Double-Click: Reset to default Fairlight
+            mask_ = (1u << 14);
         } else if (e.mods.isPopupMenu() || e.mods.isAltDown()) {
-            // Solo clicked lineage (or reset to K-Works if already soloed)
+            // Solo clicked lineage (or reset to Fairlight if already soloed)
             uint32_t soloMask = (1u << clickedIdx);
             if (mask_ == soloMask) {
-                mask_ = 0x00000010; // Back to K-Works
+                mask_ = (1u << 14); // Back to Fairlight
             } else {
                 mask_ = soloMask;
             }
         } else {
-            // Standard click toggle
-            if (mask_ == 0) {
-                mask_ = (1u << clickedIdx);
-            } else {
-                bool wasOn = (mask_ & (1u << clickedIdx)) != 0;
-                if (wasOn) {
+            // Standard click toggle: minimum-1 lineage invariant
+            bool wasOn = (mask_ & (1u << clickedIdx)) != 0;
+            if (wasOn) {
+                if (activeLineageCount > 1) {
                     mask_ &= ~(1u << clickedIdx);
-                } else {
-                    if (activeLineageCount < 16) {
-                        mask_ |= (1u << clickedIdx);
-                    } else {
-                        if (onBudgetLimit) onBudgetLimit("64/64 WAVES LATCHED (DESELECT TO SWAP)");
-                        return;
-                    }
+                }
+            } else {
+                if (activeLineageCount < 20) {
+                    mask_ |= (1u << clickedIdx);
                 }
             }
         }
@@ -725,6 +708,94 @@ private:
 // ==============================================================================
 // DigiStrikeGrid2x2: 2x2 Filter Type Selector (LP, HP, BP, PK)
 // ==============================================================================
+// ==============================================================================
+// VoiceSelectorCapsule: Discrete Voice Stepper & Search Capsule
+// ==============================================================================
+class VoiceSelectorCapsule : public juce::Component {
+public:
+    VoiceSelectorCapsule() = default;
+
+    void setText(const juce::String& text) {
+        if (displayText_ != text) {
+            displayText_ = text;
+            repaint();
+        }
+    }
+
+    std::function<void()> onStepPrev;
+    std::function<void()> onStepNext;
+    std::function<void()> onClickCenter;
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        if (bounds.isEmpty()) return;
+
+        g.setColour(juce::Colour(0xFF141820));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        auto leftArrow = juce::Rectangle<float>(bounds.getX(), bounds.getY(), 22.0f, bounds.getHeight());
+        auto rightArrow = juce::Rectangle<float>(bounds.getRight() - 22.0f, bounds.getY(), 22.0f, bounds.getHeight());
+
+        g.setColour(juce::Colour(0xFF222834));
+        g.fillRoundedRectangle(leftArrow.reduced(1.0f), 3.0f);
+        g.fillRoundedRectangle(rightArrow.reduced(1.0f), 3.0f);
+
+        g.setColour(juce::Colour(0xFF8B949E));
+        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.drawText("<", leftArrow, juce::Justification::centred);
+        g.drawText(">", rightArrow, juce::Justification::centred);
+
+        auto textRect = bounds.withTrimmedLeft(24.0f).withTrimmedRight(24.0f);
+        g.setColour(juce::Colour(0xFF00E5FF));
+        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.drawText(displayText_, textRect, juce::Justification::centred);
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        if (e.position.x < 24.0f) {
+            if (onStepPrev) onStepPrev();
+        } else if (e.position.x > getWidth() - 24.0f) {
+            if (onStepNext) onStepNext();
+        } else {
+            if (onClickCenter) onClickCenter();
+        }
+    }
+
+    void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel) override {
+        if (wheel.deltaY > 0.0f) {
+            if (onStepNext) onStepNext();
+        } else if (wheel.deltaY < 0.0f) {
+            if (onStepPrev) onStepPrev();
+        }
+    }
+
+private:
+    juce::String displayText_{"FAIRL_ORCH5 (1/15) - Fairlight"};
+};
+
+class DigiStrikeRevButton : public juce::Button {
+public:
+    DigiStrikeRevButton() : juce::Button("REV") {
+        setClickingTogglesState(true);
+    }
+    void paintButton(juce::Graphics& g, bool, bool) override {
+        auto bounds = getLocalBounds().toFloat();
+        const bool on = getToggleState();
+        const auto bgCol = on ? juce::Colour(0xFF38BDF8) : juce::Colour(0xFF161B22);
+        g.setColour(bgCol);
+        g.fillRoundedRectangle(bounds, 3.0f);
+        const auto borderCol = on ? juce::Colour(0xFF7DD3FC) : juce::Colour(0xFF30363D);
+        g.setColour(borderCol);
+        g.drawRoundedRectangle(bounds.reduced(0.5f), 3.0f, 1.0f);
+
+        g.setColour(on ? juce::Colour(0xFF0D1117) : juce::Colour(0xFFF0F6FC));
+        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.drawText("REV", bounds, juce::Justification::centred);
+    }
+};
+
 class DigiStrikeGrid2x2 : public juce::Component {
 public:
     DigiStrikeGrid2x2(const std::array<juce::String, 4>& labels) : labels_(labels) {}
@@ -735,7 +806,7 @@ public:
     }
 
     void setState(int idx) {
-        idx = std::clamp(idx, 0, 3);
+        idx = std::clamp(idx, -1, 3);
         if (activeIndex_ != idx) {
             activeIndex_ = idx;
             repaint();
@@ -762,7 +833,7 @@ public:
         g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
         g.drawVerticalLine(static_cast<int>(std::round(bounds.getX() + colW)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
         for (int i = 0; i < 4; ++i) {
             int row = i / 2;
             int col = i % 2;
@@ -777,7 +848,7 @@ public:
                 g.setColour(juce::Colour(0xFFF0F6FC));
             }
 
-            g.drawText(labels_[static_cast<size_t>(i)], cellRect, juce::Justification::centred);
+            g.drawFittedText(labels_[static_cast<size_t>(i)], cellRect.toNearestInt(), juce::Justification::centred, 1, 0.75f);
         }
     }
 
@@ -787,8 +858,13 @@ public:
         int col = std::clamp(static_cast<int>(e.position.x / colW), 0, 1);
         int row = std::clamp(static_cast<int>(e.position.y / rowH), 0, 1);
         int idx = row * 2 + col;
-        setState(idx);
-        if (onSelect) onSelect(idx);
+        if (activeIndex_ == idx) {
+            setState(-1);
+            if (onSelect) onSelect(-1);
+        } else {
+            setState(idx);
+            if (onSelect) onSelect(idx);
+        }
     }
 
 private:
@@ -1007,11 +1083,14 @@ private:
     KnobItem noiseKnob_;
     KnobItem lengthKnob_;
     KnobItem morphKnob_;
-    DigiStrikeGrid2x2 loopModeBar_{{"FWD", "REV", "PPG", "OFF"}};
+    DigiStrikeGrid2x2 loopModeBar_{{"ONCE", "HOLD", "LOOP", "PING"}};
     juce::Label loopLabel_;
+    DigiStrikeRevButton revButton_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> revAttachment_;
+    VoiceSelectorCapsule voiceSelectorCapsule_;
 
     // Bottom Tactile Matrix (Lower Bay)
-    DigiStrikeSegmentedBar categoryGrid_{{"KICK", "SNAR", "TOMS", "CLAP", "HATS", "CYMB", "PERC", "STAB"}};
+    DigiStrikeSegmentedBar categoryGrid_{{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST"}};
     DigiStrikeMultiSelectBar lineageGrid_{{
         "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Compact", "Tokyo", "Gothenburg", "Circuits", "Phase",
         "Studio", "Keio", "Nippon", "Adios", "Fairlight", "Synclavier", "Ensoniq", "Simmons", "Jomox", "Curios"

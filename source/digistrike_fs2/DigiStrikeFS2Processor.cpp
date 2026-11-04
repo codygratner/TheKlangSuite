@@ -32,6 +32,7 @@ DigiStrikeFS2AudioProcessor::DigiStrikeFS2AudioProcessor()
     sampleLengthParam_  = apvts_.getRawParameterValue(sample_length);
     tableMorphParam_    = apvts_.getRawParameterValue(table_morph);
     loopModeParam_      = apvts_.getRawParameterValue(loop_mode);
+    reverseParam_       = apvts_.getRawParameterValue(reverse);
 
     for (size_t i = 0; i < 20; ++i) {
         linParams_[i] = apvts_.getRawParameterValue(DigiStrikeFS2Info::kLineageParamIds[i]);
@@ -90,10 +91,10 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
         return ptr != nullptr ? ptr->load(std::memory_order_relaxed) : defVal;
     };
 
-    p.category      = static_cast<int>(load(categoryParam_, 0.0f));
-    p.lineage       = static_cast<int>(load(lineageParam_, 0.0f));
-    p.voiceMode     = static_cast<int>(load(voiceModeParam_, 0.0f));
-    p.lifeMode      = static_cast<int>(load(lifeModeParam_, 2.0f));
+    p.category      = static_cast<int>(load(categoryParam_, 9.0f));
+    p.lineage       = static_cast<int>(load(lineageParam_, 14.0f));
+    p.voiceMode     = static_cast<int>(load(voiceModeParam_, 2.0f));
+    p.lifeMode      = static_cast<int>(load(lifeModeParam_, 1.0f));
 
     p.macroX        = load(macroXParam_, 0.5f);
     p.macroY        = load(macroYParam_, 0.5f);
@@ -112,15 +113,16 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
     p.noiseMix      = load(noiseMixParam_, 0.0f);
     p.sampleLength  = load(sampleLengthParam_, 100.0f);
     p.tableMorph    = load(tableMorphParam_, 0.0f);
-    p.loopMode      = static_cast<int>(load(loopModeParam_, 3.0f));
+    p.loopMode      = static_cast<int>(load(loopModeParam_, 0.0f));
+    p.reverse       = (load(reverseParam_, 0.0f) > 0.5f);
 
     uint32_t mask = 0;
     for (size_t i = 0; i < 20; ++i) {
-        if (load(linParams_[i], i == 0 ? 1.0f : 0.0f) > 0.5f) {
+        if (load(linParams_[i], i == 14 ? 1.0f : 0.0f) > 0.5f) {
             mask |= (1u << i);
         }
     }
-    p.lineageMask   = mask;
+    p.lineageMask   = DigiStrikeFS2Fleet::sanitizeMask(mask);
 
     p.randX         = load(randXParam_, 0.0f);
     p.randY         = load(randYParam_, 0.0f);
@@ -134,10 +136,10 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
     p.macroDecay    = load(macroDecayParam_, 0.5f);
     p.volume        = load(volumeParam_, 0.5f);
     p.sustainLevel  = load(sustainLevelParam_, 0.0f);
-    p.ampDecay      = load(ampDecayParam_, 0.500f);
+    p.ampDecay      = load(ampDecayParam_, 1.000f);
     p.glideTime     = load(glideTimeParam_, 0.050f);
 
-    p.cutoff        = load(cutoffParam_, 1000.0f);
+    p.cutoff        = load(cutoffParam_, 20000.0f);
     p.resonance     = load(resonanceParam_, 0.30f);
     p.filterEnvAmt  = load(filterEnvAmtParam_, 0.0f);
     p.filterDecay   = load(filterDecayParam_, 0.150f);

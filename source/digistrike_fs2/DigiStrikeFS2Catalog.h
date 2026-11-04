@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DigiStrikeFS2Fleet.h"
 #include <string_view>
 #include <array>
 #include <cstdint>
@@ -16,100 +17,241 @@ namespace DigiStrikeFS2Catalog {
 struct VoiceDescriptor {
     uint16_t voiceId;
     std::string_view name;
-    uint8_t category;     // 0=KICK, 1=SNAR, 2=TOMS, 3=CLAP, 4=HATS, 5=CYMB, 6=PERC, 7=STAB
-    uint8_t lineage;      // 1=CROWN, 2=APEX, 3=EMPYR, 4=FALCON, 5=K-WRK, 6=TOKYO, 7=GOTHN, 8=NIPPON, 9=CURIOS
+    uint8_t category;     // 0=BD, 1=SN, 2=TM, 3=CP, 4=HH, 5=CY, 6=LN, 7=MC, 8=FX, 9=ST
+    uint8_t lineage;      // 0=CROWN .. 19=CURIOS
     float defaultPitchHz;
     float rootKey;        // MIDI note number (e.g. 36 for C1, 60 for C4)
     bool isLoopable;
 };
 
-// 8x8 Curated Sovereign Hero Matrix (64 Primary Production Voices)
-inline constexpr std::array<VoiceDescriptor, 64> kHeroVoiceMap = {{
-    // --- KICKS (Cat 0) ---
-    {  0, "Crown Punch Kick",     0, 1,  55.0f, 36.0f, false },
-    {  1, "Apex Discrete Kick",    0, 2,  58.0f, 36.0f, false },
-    {  2, "Empyrean 12-Bit Kick",  0, 3,  52.0f, 36.0f, false },
-    {  3, "Falcon Studio Kick",    0, 4,  60.0f, 36.0f, false },
-    {  4, "K-Beat Tight Kick",     0, 5,  62.0f, 36.0f, false },
-    {  5, "Tokyo Matrix Kick",     0, 6,  54.0f, 36.0f, false },
-    {  6, "Gothenburg Click Kick", 0, 7,  65.0f, 36.0f, false },
-    {  7, "Nippon Wave Kick",      0, 8,  50.0f, 36.0f, false },
+// 10x20 Curated Sovereign Hero Matrix (200 Production Voice Slots)
+inline constexpr std::array<VoiceDescriptor, 200> kHeroVoiceMap = {{
 
-    // --- SNARES (Cat 1) ---
-    {  8, "Crown Studio Snare",    1, 1, 180.0f, 38.0f, false },
-    {  9, "Apex Gated Snare",      1, 2, 195.0f, 38.0f, false },
-    { 10, "Empyrean Gritty Snare", 1, 3, 175.0f, 38.0f, false },
-    { 11, "Falcon 16-Bit Snare",   1, 4, 210.0f, 38.0f, false },
-    { 12, "K-Beat Heavy Snare",    1, 5, 185.0f, 38.0f, false },
-    { 13, "Tokyo Hybrid Snare",    1, 6, 205.0f, 38.0f, false },
-    { 14, "Gothenburg E-Snare",    1, 7, 220.0f, 38.0f, false },
-    { 15, "Nippon Reverse Snare",  1, 8, 190.0f, 38.0f, false },
+    // --- KICKS (Cat 0: BD) ---
+    {   0, "Crown Punch Kick", 0, 0,   55.0f, 36.0f, false },
+    {   1, "Apex Discrete Kick", 0, 1,   55.0f, 36.0f, false },
+    {   2, "Empyrean 12-Bit Kick", 0, 2,   55.0f, 36.0f, false },
+    {   3, "Falcon Studio Kick", 0, 3,   55.0f, 36.0f, false },
+    {   4, "K-Beat Tight Kick", 0, 4,   55.0f, 36.0f, false },
+    {   5, "Compact Kick", 0, 5,   55.0f, 36.0f, false },
+    {   6, "Tokyo Matrix Kick", 0, 6,   55.0f, 36.0f, false },
+    {   7, "Gothenburg Click Kick", 0, 7,   55.0f, 36.0f, false },
+    {   8, "Circuits Kick", 0, 8,   55.0f, 36.0f, false },
+    {   9, "Phase Kick", 0, 9,   55.0f, 36.0f, false },
+    {  10, "Studio Kick", 0, 10,   55.0f, 36.0f, false },
+    {  11, "Keio Kick", 0, 11,   55.0f, 36.0f, false },
+    {  12, "Nippon Wave Kick", 0, 12,   55.0f, 36.0f, false },
+    {  13, "Adios Kick", 0, 13,   55.0f, 36.0f, false },
+    {  14, "Fairlight Kick", 0, 14,   55.0f, 36.0f, false },
+    {  15, "Synclavier Kick", 0, 15,   55.0f, 36.0f, false },
+    {  16, "Ensoniq Kick", 0, 16,   55.0f, 36.0f, false },
+    {  17, "Simmons Kick", 0, 17,   55.0f, 36.0f, false },
+    {  18, "Jomox Kick", 0, 18,   55.0f, 36.0f, false },
+    {  19, "Curios Kick", 0, 19,   55.0f, 36.0f, false },
 
-    // --- TOMS (Cat 2) ---
-    { 16, "Crown Low Tom",         2, 1,  90.0f, 41.0f, false },
-    { 17, "Apex EPROM Tom",        2, 2, 110.0f, 43.0f, false },
-    { 18, "Empyrean Ring Tom",     2, 3, 130.0f, 45.0f, false },
-    { 19, "Falcon Studio Tom",     2, 4, 150.0f, 47.0f, false },
-    { 20, "K-Beat High Tom",       2, 5, 175.0f, 48.0f, false },
-    { 21, "Tokyo Matrix Tom",      2, 6, 120.0f, 43.0f, false },
-    { 22, "Gothenburg Hex Tom",    2, 7, 105.0f, 41.0f, false },
-    { 23, "Nippon Dynamic Tom",    2, 8, 140.0f, 45.0f, false },
+    // --- SNARES (Cat 1: SN) ---
+    {  20, "Crown Snare", 1, 0,  180.0f, 38.0f, false },
+    {  21, "Apex Snare", 1, 1,  180.0f, 38.0f, false },
+    {  22, "Empyrean Snare", 1, 2,  180.0f, 38.0f, false },
+    {  23, "Falcon Snare", 1, 3,  180.0f, 38.0f, false },
+    {  24, "K-Works Snare", 1, 4,  180.0f, 38.0f, false },
+    {  25, "Compact Snare", 1, 5,  180.0f, 38.0f, false },
+    {  26, "Tokyo 808/909 Snare", 1, 6,  180.0f, 38.0f, false },
+    {  27, "Gothenburg Snare", 1, 7,  180.0f, 38.0f, false },
+    {  28, "Circuits Snare", 1, 8,  180.0f, 38.0f, false },
+    {  29, "Phase Snare", 1, 9,  180.0f, 38.0f, false },
+    {  30, "Studio Snare", 1, 10,  180.0f, 38.0f, false },
+    {  31, "Keio Snare", 1, 11,  180.0f, 38.0f, false },
+    {  32, "Nippon Snare", 1, 12,  180.0f, 38.0f, false },
+    {  33, "Adios Snare", 1, 13,  180.0f, 38.0f, false },
+    {  34, "Fairlight Snare", 1, 14,  180.0f, 38.0f, false },
+    {  35, "Synclavier Snare", 1, 15,  180.0f, 38.0f, false },
+    {  36, "Ensoniq Snare", 1, 16,  180.0f, 38.0f, false },
+    {  37, "Simmons Snare", 1, 17,  180.0f, 38.0f, false },
+    {  38, "Jomox Snare", 1, 18,  180.0f, 38.0f, false },
+    {  39, "Curios Snare", 1, 19,  180.0f, 38.0f, false },
 
-    // --- CLAPS (Cat 3) ---
-    { 24, "Crown Ambience Clap",   3, 1, 800.0f, 39.0f, false },
-    { 25, "Apex Digital Clap",     3, 2, 850.0f, 39.0f, false },
-    { 26, "Empyrean Flam Clap",    3, 3, 780.0f, 39.0f, false },
-    { 27, "Falcon Tight Clap",     3, 4, 920.0f, 39.0f, false },
-    { 28, "K-Beat Slap Clap",      3, 5, 870.0f, 39.0f, false },
-    { 29, "Tokyo Claptrap Burst",  3, 6, 950.0f, 39.0f, false },
-    { 30, "Gothenburg Slic Clap",  3, 7, 830.0f, 39.0f, false },
-    { 31, "Nippon Multi Clap",     3, 8, 890.0f, 39.0f, false },
+    // --- TOMS (Cat 2: TM) ---
+    {  40, "Crown Tom", 2, 0,  110.0f, 45.0f, false },
+    {  41, "Apex Tom", 2, 1,  110.0f, 45.0f, false },
+    {  42, "Empyrean Tom", 2, 2,  110.0f, 45.0f, false },
+    {  43, "Falcon Tom", 2, 3,  110.0f, 45.0f, false },
+    {  44, "K-Works Tom", 2, 4,  110.0f, 45.0f, false },
+    {  45, "Compact Tom", 2, 5,  110.0f, 45.0f, false },
+    {  46, "Tokyo Tom", 2, 6,  110.0f, 45.0f, false },
+    {  47, "Gothenburg Tom", 2, 7,  110.0f, 45.0f, false },
+    {  48, "Circuits Tom", 2, 8,  110.0f, 45.0f, false },
+    {  49, "Phase Tom", 2, 9,  110.0f, 45.0f, false },
+    {  50, "Studio Tom", 2, 10,  110.0f, 45.0f, false },
+    {  51, "Keio Tom", 2, 11,  110.0f, 45.0f, false },
+    {  52, "Nippon Tom", 2, 12,  110.0f, 45.0f, false },
+    {  53, "Adios Tom", 2, 13,  110.0f, 45.0f, false },
+    {  54, "Fairlight Tom", 2, 14,  110.0f, 45.0f, false },
+    {  55, "Synclavier Tom", 2, 15,  110.0f, 45.0f, false },
+    {  56, "Ensoniq Tom", 2, 16,  110.0f, 45.0f, false },
+    {  57, "Simmons Tom", 2, 17,  110.0f, 45.0f, false },
+    {  58, "Jomox Tom", 2, 18,  110.0f, 45.0f, false },
+    {  59, "Curios Tom", 2, 19,  110.0f, 45.0f, false },
 
-    // --- HI-HATS (Cat 4) ---
-    { 32, "Crown Closed Hat",      4, 1, 3500.0f, 42.0f, false },
-    { 33, "Apex Discrete Hat",     4, 2, 4200.0f, 42.0f, false },
-    { 34, "Empyrean Sizzle Hat",   4, 3, 3800.0f, 42.0f, false },
-    { 35, "Falcon Open Hat",       4, 4, 3200.0f, 46.0f, false },
-    { 36, "K-Beat Pedal Hat",      4, 5, 4000.0f, 44.0f, false },
-    { 37, "Tokyo Matrix Hat",      4, 6, 4500.0f, 42.0f, false },
-    { 38, "Gothenburg Metal Hat",  4, 7, 5000.0f, 46.0f, false },
-    { 39, "Nippon Variable Hat",   4, 8, 3600.0f, 42.0f, false },
+    // --- CLAPS (Cat 3: CP) ---
+    {  60, "Crown Clap", 3, 0,  250.0f, 39.0f, false },
+    {  61, "Apex Clap", 3, 1,  250.0f, 39.0f, false },
+    {  62, "Empyrean Clap", 3, 2,  250.0f, 39.0f, false },
+    {  63, "Falcon Clap", 3, 3,  250.0f, 39.0f, false },
+    {  64, "K-Works Clap", 3, 4,  250.0f, 39.0f, false },
+    {  65, "Compact Clap", 3, 5,  250.0f, 39.0f, false },
+    {  66, "Tokyo 808/909 Clap", 3, 6,  250.0f, 39.0f, false },
+    {  67, "Gothenburg Clap", 3, 7,  250.0f, 39.0f, false },
+    {  68, "Circuits Clap", 3, 8,  250.0f, 39.0f, false },
+    {  69, "Phase Clap", 3, 9,  250.0f, 39.0f, false },
+    {  70, "Studio Clap", 3, 10,  250.0f, 39.0f, false },
+    {  71, "Keio Clap", 3, 11,  250.0f, 39.0f, false },
+    {  72, "Nippon Clap", 3, 12,  250.0f, 39.0f, false },
+    {  73, "Adios Clap", 3, 13,  250.0f, 39.0f, false },
+    {  74, "Fairlight Clap", 3, 14,  250.0f, 39.0f, false },
+    {  75, "Synclavier Clap", 3, 15,  250.0f, 39.0f, false },
+    {  76, "Ensoniq Clap", 3, 16,  250.0f, 39.0f, false },
+    {  77, "Simmons Clap", 3, 17,  250.0f, 39.0f, false },
+    {  78, "Jomox Clap", 3, 18,  250.0f, 39.0f, false },
+    {  79, "Curios ClapTrap", 3, 19,  250.0f, 39.0f, false },
 
-    // --- CYMBALS (Cat 5) ---
-    { 40, "Crown Studio Crash",    5, 1, 2800.0f, 49.0f, false },
-    { 41, "Apex 8-Bit Ride",       5, 2, 3100.0f, 51.0f, false },
-    { 42, "Empyrean Bell Strike",  5, 3, 2400.0f, 53.0f, false },
-    { 43, "Falcon Heavy Crash",    5, 4, 2600.0f, 49.0f, false },
-    { 44, "K-Beat Cup Ride",       5, 5, 3300.0f, 51.0f, false },
-    { 45, "Tokyo Splash Cymbal",   5, 6, 3600.0f, 55.0f, false },
-    { 46, "Gothenburg Dark Wash",  5, 7, 2200.0f, 49.0f, false },
-    { 47, "Nippon Alloy Ride",     5, 8, 2900.0f, 51.0f, false },
+    // --- HIHATS (Cat 4: HH) ---
+    {  80, "Crown Hat", 4, 0, 4000.0f, 42.0f, false },
+    {  81, "Apex Hat", 4, 1, 4000.0f, 42.0f, false },
+    {  82, "Empyrean Hat", 4, 2, 4000.0f, 42.0f, false },
+    {  83, "Falcon Hat", 4, 3, 4000.0f, 42.0f, false },
+    {  84, "K-Works Hat", 4, 4, 4000.0f, 42.0f, false },
+    {  85, "Compact Hat", 4, 5, 4000.0f, 42.0f, false },
+    {  86, "Tokyo Hat", 4, 6, 4000.0f, 42.0f, false },
+    {  87, "Gothenburg Hat", 4, 7, 4000.0f, 42.0f, false },
+    {  88, "Circuits Hat", 4, 8, 4000.0f, 42.0f, false },
+    {  89, "Phase Hat", 4, 9, 4000.0f, 42.0f, false },
+    {  90, "Studio Hat", 4, 10, 4000.0f, 42.0f, false },
+    {  91, "Keio Hat", 4, 11, 4000.0f, 42.0f, false },
+    {  92, "Nippon Hat", 4, 12, 4000.0f, 42.0f, false },
+    {  93, "Adios Hat", 4, 13, 4000.0f, 42.0f, false },
+    {  94, "Fairlight Hat", 4, 14, 4000.0f, 42.0f, false },
+    {  95, "Synclavier Hat", 4, 15, 4000.0f, 42.0f, false },
+    {  96, "Ensoniq Hat", 4, 16, 4000.0f, 42.0f, false },
+    {  97, "Simmons Hat", 4, 17, 4000.0f, 42.0f, false },
+    {  98, "Jomox Hat", 4, 18, 4000.0f, 42.0f, false },
+    {  99, "Curios Hat", 4, 19, 4000.0f, 42.0f, false },
 
-    // --- PERCUSSION (Cat 6) ---
-    { 48, "Crown Studio Cowbell",  6, 1, 650.0f, 56.0f, false },
-    { 49, "Apex Woodblock Ping",   6, 2, 920.0f, 76.0f, false },
-    { 50, "Empyrean High Bongo",   6, 3, 340.0f, 60.0f, false },
-    { 51, "Falcon Rimshot Click",  6, 4, 1100.0f, 37.0f, false },
-    { 52, "K-Beat Latin Conga",    6, 5, 260.0f, 62.0f, false },
-    { 53, "Tokyo Shaker Slice",    6, 6, 2800.0f, 70.0f, false },
-    { 54, "Gothenburg Metal Ping", 6, 7, 1450.0f, 65.0f, false },
-    { 55, "Nippon Tambourine",     6, 8, 3800.0f, 54.0f, false },
+    // --- CYMBALS (Cat 5: CY) ---
+    { 100, "Crown Crash", 5, 0, 3000.0f, 49.0f, false },
+    { 101, "Apex Ride", 5, 1, 3000.0f, 51.0f, false },
+    { 102, "Empyrean Cymb", 5, 2, 2800.0f, 49.0f, false },
+    { 103, "Falcon Crash", 5, 3, 3000.0f, 49.0f, false },
+    { 104, "K-Works Cymb", 5, 4, 2800.0f, 49.0f, false },
+    { 105, "Compact Cymb", 5, 5, 2800.0f, 49.0f, false },
+    { 106, "Tokyo Crash", 5, 6, 3000.0f, 49.0f, false },
+    { 107, "Gothenburg Ride", 5, 7, 3000.0f, 51.0f, false },
+    { 108, "Circuits Cymb", 5, 8, 2800.0f, 49.0f, false },
+    { 109, "Phase Cymb", 5, 9, 2800.0f, 49.0f, false },
+    { 110, "Studio Crash", 5, 10, 3000.0f, 49.0f, false },
+    { 111, "Keio Ride", 5, 11, 3000.0f, 51.0f, false },
+    { 112, "Nippon Cymb", 5, 12, 2800.0f, 49.0f, false },
+    { 113, "Adios Cymb", 5, 13, 2800.0f, 49.0f, false },
+    { 114, "Fairlight Cymb", 5, 14, 2800.0f, 49.0f, false },
+    { 115, "Synclavier Cymb", 5, 15, 2800.0f, 49.0f, false },
+    { 116, "Ensoniq Cymb", 5, 16, 2800.0f, 49.0f, false },
+    { 117, "Simmons Cymb", 5, 17, 2800.0f, 49.0f, false },
+    { 118, "Jomox Cymb", 5, 18, 2800.0f, 49.0f, false },
+    { 119, "Curios Cymb", 5, 19, 2800.0f, 49.0f, false },
 
-    // --- STABS & BASS (Cat 7) ---
-    { 56, "Crown Slap Bass E1",    7, 1,  41.2f, 28.0f, true  },
-    { 57, "Apex Digital Growl",    7, 2,  55.0f, 33.0f, true  },
-    { 58, "Empyrean Rave Stab C3", 7, 3, 130.8f, 48.0f, true  },
-    { 59, "Falcon Orch Hit C4",    7, 4, 261.6f, 60.0f, true  },
-    { 60, "K-Works Orch Stab C3",  7, 5, 130.8f, 48.0f, true  },
-    { 61, "Tokyo Techno Chord F3", 7, 6, 174.6f, 53.0f, true  },
-    { 62, "Gothenburg Reso Bass",  7, 7,  65.4f, 36.0f, true  },
-    { 63, "Nippon FM Slap Bass",   7, 8,  49.0f, 31.0f, true  }
+    // --- LATIN & HAND PERC (Cat 6: LN) ---
+    { 120, "Crown Latin Perc", 6, 0,  800.0f, 60.0f, false },
+    { 121, "Apex Latin Perc", 6, 1,  800.0f, 60.0f, false },
+    { 122, "Empyrean Latin Perc", 6, 2,  800.0f, 60.0f, false },
+    { 123, "Falcon Latin Perc", 6, 3,  800.0f, 60.0f, false },
+    { 124, "K-Works Conga", 6, 4,  800.0f, 60.0f, false },
+    { 125, "Compact Bongo", 6, 5,  800.0f, 60.0f, false },
+    { 126, "Tokyo Timbale", 6, 6,  800.0f, 60.0f, false },
+    { 127, "Gothenburg Shaker", 6, 7,  800.0f, 60.0f, false },
+    { 128, "Circuits Tambourine", 6, 8,  800.0f, 60.0f, false },
+    { 129, "Phase Latin Perc", 6, 9,  800.0f, 60.0f, false },
+    { 130, "Studio Cabasa", 6, 10,  800.0f, 60.0f, false },
+    { 131, "Keio Maraca", 6, 11,  800.0f, 60.0f, false },
+    { 132, "Nippon Latin Perc", 6, 12,  800.0f, 60.0f, false },
+    { 133, "Adios Guiro", 6, 13,  800.0f, 60.0f, false },
+    { 134, "Fairlight Cabasa", 6, 14,  800.0f, 60.0f, false },
+    { 135, "Synclavier Latin", 6, 15,  800.0f, 60.0f, false },
+    { 136, "Ensoniq Perc", 6, 16,  800.0f, 60.0f, false },
+    { 137, "Simmons Latin", 6, 17,  800.0f, 60.0f, false },
+    { 138, "Jomox Latin", 6, 18,  800.0f, 60.0f, false },
+    { 139, "Curios Latin", 6, 19,  800.0f, 60.0f, false },
+
+    // --- METALLIC & BELLS (Cat 7: MC) ---
+    { 140, "Crown Cowbell", 7, 0,  600.0f, 60.0f, false },
+    { 141, "Apex Cowbell", 7, 1,  600.0f, 60.0f, false },
+    { 142, "Empyrean Triangle", 7, 2,  600.0f, 60.0f, false },
+    { 143, "Falcon Anvil", 7, 3,  600.0f, 60.0f, false },
+    { 144, "K-Works Agogo", 7, 4,  600.0f, 60.0f, false },
+    { 145, "Compact Metal Ping", 7, 5,  600.0f, 60.0f, false },
+    { 146, "Tokyo 808 Cowbell", 7, 6,  600.0f, 60.0f, false },
+    { 147, "Gothenburg Metal", 7, 7,  600.0f, 60.0f, false },
+    { 148, "Circuits Bell", 7, 8,  600.0f, 60.0f, false },
+    { 149, "Phase Sarna Bell", 7, 9,  600.0f, 60.0f, false },
+    { 150, "Studio Triangle", 7, 10,  600.0f, 60.0f, false },
+    { 151, "Keio Agogo", 7, 11,  600.0f, 60.0f, false },
+    { 152, "Nippon Cowbell", 7, 12,  600.0f, 60.0f, false },
+    { 153, "Adios Metal Chime", 7, 13,  600.0f, 60.0f, false },
+    { 154, "Fairlight Cowbell", 7, 14,  600.0f, 60.0f, false },
+    { 155, "Synclavier Gong", 7, 15,  600.0f, 60.0f, false },
+    { 156, "Ensoniq Metal", 7, 16,  600.0f, 60.0f, false },
+    { 157, "Simmons Metal", 7, 17,  600.0f, 60.0f, false },
+    { 158, "Jomox Metal", 7, 18,  600.0f, 60.0f, false },
+    { 159, "Curios Anvil", 7, 19,  600.0f, 60.0f, false },
+
+    // --- EFFECTS & SWEEPS (Cat 8: FX) ---
+    { 160, "Crown Wallbang FX", 8, 0,  400.0f, 60.0f, false },
+    { 161, "Apex Zap FX", 8, 1,  400.0f, 60.0f, false },
+    { 162, "Empyrean Scratch FX", 8, 2,  400.0f, 60.0f, false },
+    { 163, "Falcon Squeak Zap", 8, 3,  400.0f, 60.0f, false },
+    { 164, "K-Works Slap Bass", 8, 4,  400.0f, 36.0f, false },
+    { 165, "Compact Glitch", 8, 5,  400.0f, 60.0f, false },
+    { 166, "Tokyo Hi-Q Zap", 8, 6,  400.0f, 60.0f, false },
+    { 167, "Gothenburg Digipro BBox", 8, 7,  400.0f, 60.0f, false },
+    { 168, "Circuits Noise Zap", 8, 8,  400.0f, 60.0f, false },
+    { 169, "Phase SK Dog Bark", 8, 9,  400.0f, 60.0f, false },
+    { 170, "Studio HR16B Torque Wrench", 8, 10,  400.0f, 60.0f, false },
+    { 171, "Keio Reso Drop", 8, 11,  400.0f, 60.0f, false },
+    { 172, "Nippon Talk Scratch", 8, 12,  400.0f, 60.0f, false },
+    { 173, "Adios LFO Noise", 8, 13,  400.0f, 60.0f, false },
+    { 174, "Fairlight Drumbo FX", 8, 14,  400.0f, 60.0f, false },
+    { 175, "Synclavier FM Zap", 8, 15,  400.0f, 60.0f, false },
+    { 176, "Ensoniq Industrial Pop", 8, 16,  400.0f, 60.0f, false },
+    { 177, "Simmons SDS7 Pitch Dive", 8, 17,  400.0f, 60.0f, false },
+    { 178, "Jomox Sub Drop", 8, 18,  400.0f, 60.0f, false },
+    { 179, "Curios Synare 3 UFO Sweep", 8, 19,  400.0f, 60.0f, false },
+
+    // --- STABS & HITS (Cat 9: ST) ---
+    { 180, "Crown Stab", 9, 0,  261.6f, 60.0f, false },
+    { 181, "Apex Stab", 9, 1,  261.6f, 60.0f, false },
+    { 182, "Empyrean Stab", 9, 2,  261.6f, 60.0f, false },
+    { 183, "Falcon Stab", 9, 3,  261.6f, 60.0f, false },
+    { 184, "K-Works Orch Stab C3", 9, 4,  261.6f, 60.0f, false },
+    { 185, "Compact Stab", 9, 5,  261.6f, 60.0f, false },
+    { 186, "Tokyo Techno Chord F3", 9, 6,  261.6f, 60.0f, false },
+    { 187, "Gothenburg Stab", 9, 7,  261.6f, 60.0f, false },
+    { 188, "Circuits Stab", 9, 8,  261.6f, 60.0f, false },
+    { 189, "Phase Stab", 9, 9,  261.6f, 60.0f, false },
+    { 190, "Studio Stab", 9, 10,  261.6f, 60.0f, false },
+    { 191, "Keio Stab", 9, 11,  261.6f, 60.0f, false },
+    { 192, "Nippon Stab", 9, 12,  261.6f, 60.0f, false },
+    { 193, "Adios Stab", 9, 13,  261.6f, 60.0f, false },
+    { 194, "Fairlight Orch5 Stab C4", 9, 14,  261.6f, 60.0f, false },
+    { 195, "Synclavier Stab", 9, 15,  261.6f, 60.0f, false },
+    { 196, "Ensoniq Stab", 9, 16,  261.6f, 60.0f, false },
+    { 197, "Simmons Stab", 9, 17,  261.6f, 60.0f, false },
+    { 198, "Jomox Stab", 9, 18,  261.6f, 60.0f, false },
+    { 199, "Curios Stab", 9, 19,  261.6f, 60.0f, false },
 }};
 
 inline const VoiceDescriptor& getHeroVoice(int category, int lineageIndex) noexcept {
-    int cat = (category >= 0 && category < 8) ? category : 0;
-    int lin = (lineageIndex >= 0 && lineageIndex < 8) ? lineageIndex : 0;
-    return kHeroVoiceMap[static_cast<size_t>(cat * 8 + lin)];
+    int cat = (category >= 0 && category < 10) ? category : 0;
+    int lin = (lineageIndex >= 0 && lineageIndex < 20) ? lineageIndex : 0;
+    return kHeroVoiceMap[static_cast<size_t>(cat * 20 + lin)];
 }
 
 struct WaveCoord {
@@ -117,24 +259,28 @@ struct WaveCoord {
     uint8_t morphStep; // 0=0%, 1=33%, 2=67%, 3=100%
 };
 
-// 8 Categories x 80 Waves (20 Lineages x 4 Morph Steps)
-inline constexpr std::array<std::array<WaveCoord, 80>, 8> kMusicalOrder = {{
-    // 0: KICK
+// 10 Categories x 80 Waves (20 Lineages x 4 Morph Steps)
+inline constexpr std::array<std::array<WaveCoord, 80>, 10> kMusicalOrder = {{
+    // 0: BD
     {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
-    // 1: SNARE
+    // 1: SN
     {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
-    // 2: TOMS
+    // 2: TM
     {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
-    // 3: CLAP
+    // 3: CP
     {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
-    // 4: HATS
+    // 4: HH
     {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
-    // 5: CYMB
+    // 5: CY
     {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
-    // 6: PERC
+    // 6: LN
     {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
-    // 7: STAB
-    {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }}
+    // 7: MC
+    {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
+    // 8: FX
+    {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
+    // 9: ST
+    {{ {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0},{13,0},{14,0},{15,0},{16,0},{17,0},{18,0},{19,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{12,1},{13,1},{14,1},{15,1},{16,1},{17,1},{18,1},{19,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{12,2},{13,2},{14,2},{15,2},{16,2},{17,2},{18,2},{19,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{12,3},{13,3},{14,3},{15,3},{16,3},{17,3},{18,3},{19,3} }},
 }};
 
 } // namespace DigiStrikeFS2Catalog

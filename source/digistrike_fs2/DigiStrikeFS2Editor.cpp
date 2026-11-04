@@ -61,16 +61,137 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     setupKnob(lengthKnob_,     sample_length, "LENGTH",  "%",  "sample playback window / scan span",         blueCol);
     setupKnob(morphKnob_,      table_morph,   "MORPH",   "%",  "3D wavetable slice tilt and morph",          blueCol);
 
-    // Loop Mode 2x2 Switch (FWD, REV, PPG, OFF)
+    // Loop Mode 2x2 Switch (ONCE, HOLD, LOOP, PING)
     loopModeBar_.setAccentColour(blueCol);
     loopModeBar_.onSelect = [this, &apvts](int idx) {
-        if (auto* param = apvts.getParameter(loop_mode))
-            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
+        int choice = (idx == -1) ? 0 : idx;
+        loopModeBar_.setState(choice);
+        if (auto* param = apvts.getParameter(loop_mode)) {
+            param->beginChangeGesture();
+            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(choice)));
+            param->endChangeGesture();
+        }
     };
-    if (auto* param = apvts.getRawParameterValue(loop_mode))
-        loopModeBar_.setState(static_cast<int>(param->load()));
+    if (auto* param = apvts.getRawParameterValue(loop_mode)) {
+        int val = static_cast<int>(std::lround(param->load()));
+        loopModeBar_.setState(std::clamp(val, 0, 3));
+    }
     addAndMakeVisible(loopModeBar_);
     registerInspector(&loopModeBar_, loop_mode, blueCol);
+
+    // REV Latching Button
+    revAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, reverse, revButton_);
+    addAndMakeVisible(revButton_);
+    registerInspector(&revButton_, reverse, blueCol);
+
+    // Voice Selector Capsule Setup
+    voiceSelectorCapsule_.onStepPrev = [this, &apvts]() {
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        int cat = categoryGrid_.getState();
+        uint32_t mask = lineageGrid_.getMask();
+        int N = DigiStrikeFS2Fleet::getActiveFleetCount(rom, cat, mask);
+        if (N <= 1) return;
+
+        if (auto* p = apvts.getRawParameterValue(table_morph)) {
+            float norm = std::clamp(p->load() * 0.01f, 0.0f, 1.0f);
+            int curG = DigiStrikeFS2Fleet::indexForMorph(norm, N);
+            int newG = (curG > 0) ? (curG - 1) : (N - 1);
+            float newMorph = DigiStrikeFS2Fleet::morphForIndex(newG, N) * 100.0f;
+            if (auto* param = apvts.getParameter(table_morph)) {
+                param->beginChangeGesture();
+                param->setValueNotifyingHost(param->convertTo0to1(newMorph));
+                param->endChangeGesture();
+            }
+        }
+    };
+
+    voiceSelectorCapsule_.onStepNext = [this, &apvts]() {
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        int cat = categoryGrid_.getState();
+        uint32_t mask = lineageGrid_.getMask();
+        int N = DigiStrikeFS2Fleet::getActiveFleetCount(rom, cat, mask);
+        if (N <= 1) return;
+
+        if (auto* p = apvts.getRawParameterValue(table_morph)) {
+            float norm = std::clamp(p->load() * 0.01f, 0.0f, 1.0f);
+            int curG = DigiStrikeFS2Fleet::indexForMorph(norm, N);
+            int newG = (curG + 1 < N) ? (curG + 1) : 0;
+            float newMorph = DigiStrikeFS2Fleet::morphForIndex(newG, N) * 100.0f;
+            if (auto* param = apvts.getParameter(table_morph)) {
+                param->beginChangeGesture();
+                param->setValueNotifyingHost(param->convertTo0to1(newMorph));
+                param->endChangeGesture();
+            }
+        }
+    };
+
+    voiceSelectorCapsule_.onClickCenter = [this, &apvts]() {
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        int cat = categoryGrid_.getState();
+        uint32_t mask = lineageGrid_.getMask();
+        int N = DigiStrikeFS2Fleet::getActiveFleetCount(rom, cat, mask);
+        if (N <= 0) return;
+
+        float norm = 0.0f;
+        if (auto* p = apvts.getRawParameterValue(table_morph)) norm = std::clamp(p->load() * 0.01f, 0.0f, 1.0f);
+        int curG = DigiStrikeFS2Fleet::indexForMorph(norm, N);
+
+        int activeLinCount = 0;
+        for (int i = 0; i < 20; ++i) if ((mask & (1u << i)) != 0) ++activeLinCount;
+
+        auto* menu = new juce::PopupMenu();
+        if (activeLinCount <= 1) {
+            // Flat list for single active lineage
+            for (int g = 0; g < N; ++g) {
+                DigiStrikeFS2Fleet::VoiceRef ref;
+                if (DigiStrikeFS2Fleet::resolveFleetIndex(rom, cat, mask, g, ref)) {
+                    const char* vName = rom.getVoiceName(ref.romIndex);
+                    juce::String numStr = juce::String(ref.localIndex + 1);
+                    if (numStr.length() < 2) numStr = " " + numStr;
+                    menu->addItem(g + 1, numStr + ": " + juce::String::fromUTF8(vName), true, (g == curG));
+                }
+            }
+        } else {
+            // Hierarchical submenus per active lineage
+            int gAccum = 0;
+            for (int lin = 0; lin < 20; ++lin) {
+                if ((mask & (1u << lin)) != 0) {
+                    auto pr = rom.getPoolRange(cat * 20 + lin);
+                    const int count = static_cast<int>(pr.voiceCount);
+                    if (count > 0) {
+                        juce::PopupMenu sub;
+                        for (int i = 0; i < count; ++i) {
+                            const int g = gAccum + i;
+                            const char* vName = rom.getVoiceName(pr.firstVoiceIndex + static_cast<uint32_t>(i));
+                            juce::String numStr = juce::String(i + 1);
+                            if (numStr.length() < 2) numStr = " " + numStr;
+                            sub.addItem(g + 1, numStr + ": " + juce::String::fromUTF8(vName), true, (g == curG));
+                        }
+                        const juce::String linName = juce::String(DigiStrikeFS2Fleet::kLineageNames[static_cast<size_t>(lin)]);
+                        const bool hasActive = (curG >= gAccum && curG < gAccum + count);
+                        menu->addSubMenu(linName + " (" + juce::String(count) + ")", sub, true, nullptr, hasActive);
+                        gAccum += count;
+                    }
+                }
+            }
+        }
+
+        menu->showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&voiceSelectorCapsule_).withMaximumNumColumns(1),
+            [this, N, &apvts, menu](int result) {
+                if (result > 0 && N > 0) {
+                    int pickedG = result - 1;
+                    float newMorph = DigiStrikeFS2Fleet::morphForIndex(pickedG, N) * 100.0f;
+                    if (auto* param = apvts.getParameter(table_morph)) {
+                        param->beginChangeGesture();
+                        param->setValueNotifyingHost(param->convertTo0to1(newMorph));
+                        param->endChangeGesture();
+                    }
+                }
+                delete menu;
+            });
+    };
+    addAndMakeVisible(voiceSelectorCapsule_);
+    registerInspector(&voiceSelectorCapsule_, table_morph, blueCol);
 
     loopLabel_.setText("LOOP", juce::dontSendNotification);
     loopLabel_.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
@@ -97,7 +218,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
         }
 
         if (auto* param = apvts.getParameter(lineage)) {
-            int firstLin = 4; // Default K-Works
+            int firstLin = 14; // Default Fairlight
             for (int i = 0; i < 20; ++i) {
                 if ((newMask & (1u << i)) != 0) { firstLin = i; break; }
             }
@@ -124,8 +245,8 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     for (size_t i = 0; i < 20; ++i) {
         if (auto* paramVal = apvts.getRawParameterValue(DigiStrikeFS2Info::kLineageParamIds[i])) {
             if (paramVal->load() > 0.5f) initMask |= (1u << i);
-        } else if (i == 4) {
-            initMask |= (1u << 4); // Default K-Works (Kawai)
+        } else if (i == 14) {
+            initMask |= (1u << 14); // Default Fairlight (CMI)
         }
     }
     lineageGrid_.setMask(initMask);
@@ -282,42 +403,35 @@ void DigiStrikeFS2AudioProcessorEditor::updateInspectorForComponent(juce::Compon
             else
                 r.value = juce::String(binding.slider->getValue(), 2);
         } else if (binding.paramId == "category") {
-            const int cat = std::clamp(categoryGrid_.getState(), 0, 7);
-            const juce::StringArray catNames{"KICK", "SNAR", "TOMS", "CLAP", "HATS", "CYMB", "PERC", "STAB"};
+            const int cat = std::clamp(categoryGrid_.getState(), 0, 9);
+            const juce::StringArray catNames{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST"};
             r.value = catNames[cat];
             r.blurb = juce::String(DigiStrikeFS2Info::kCategoryDescriptions[cat].data(), DigiStrikeFS2Info::kCategoryDescriptions[cat].size());
         } else if (binding.paramId == "lineage") {
             const uint32_t mask = lineageGrid_.getMask();
-            if (mask == 0) {
-                r.name = "SECRET CORE";
-                r.value = "SINE -> SAW";
-                r.blurb = "all lineages muted - pure mathematical continuous oscillator core active [Slot 160]";
-                r.accent = juce::Colour(0xFFFF007F);
-            } else {
-                int hovered = lineageGrid_.getHoveredIndex();
-                int lin = (hovered >= 0) ? hovered : 0;
-                if (hovered < 0) {
-                    for (int i = 0; i < 20; ++i) {
-                        if ((mask & (1u << i)) != 0) { lin = i; break; }
-                    }
-                }
-                const juce::StringArray linNames{
-                    "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Compact", "Tokyo", "Gothenburg", "Circuits", "Phase",
-                    "Studio", "Keio", "Nippon", "Adios", "Fairlight", "Synclavier", "Ensoniq", "Simmons", "Jomox", "Curios"
-                };
-                bool isActive = (mask & (1u << lin)) != 0;
-                int activeCount = 0;
+            int hovered = lineageGrid_.getHoveredIndex();
+            int lin = (hovered >= 0) ? hovered : 0;
+            if (hovered < 0) {
                 for (int i = 0; i < 20; ++i) {
-                    if ((mask & (1u << i)) != 0) ++activeCount;
+                    if ((mask & (1u << i)) != 0) { lin = i; break; }
                 }
-                r.name = "LINEAGE: " + linNames[lin];
-                r.value = isActive ? (juce::String(activeCount * 4) + "/64 WAVES") : "MUTED";
-                if (lin + 1 < static_cast<int>(std::size(DigiStrikeFS2Info::kLineageDescriptions))) {
-                    r.blurb = juce::String(DigiStrikeFS2Info::kLineageDescriptions[lin + 1].data(), DigiStrikeFS2Info::kLineageDescriptions[lin + 1].size())
-                             + " (Click: toggle, R-Click/Alt: solo, 2x-Click: Linn reset)";
-                } else {
-                    r.blurb = "PCM hardware lineage drum profile (Click: toggle, R-Click/Alt: solo)";
-                }
+            }
+            const juce::StringArray linNames{
+                "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Compact", "Tokyo", "Gothenburg", "Circuits", "Phase",
+                "Studio", "Keio", "Nippon", "Adios", "Fairlight", "Synclavier", "Ensoniq", "Simmons", "Jomox", "Curios"
+            };
+            bool isActive = (mask & (1u << lin)) != 0;
+            int activeCount = 0;
+            for (int i = 0; i < 20; ++i) {
+                if ((mask & (1u << i)) != 0) ++activeCount;
+            }
+            r.name = "LINEAGE: " + linNames[lin];
+            r.value = isActive ? (juce::String(activeCount * 4) + "/80 WAVES (" + juce::String(activeCount) + " LIN)") : "MUTED";
+            if (lin + 1 < static_cast<int>(std::size(DigiStrikeFS2Info::kLineageDescriptions))) {
+                r.blurb = juce::String(DigiStrikeFS2Info::kLineageDescriptions[lin + 1].data(), DigiStrikeFS2Info::kLineageDescriptions[lin + 1].size())
+                         + " (Click: toggle, R-Click/Alt: solo, 2x-Click: Fairlight reset)";
+            } else {
+                r.blurb = "PCM hardware lineage drum profile (Click: toggle, R-Click/Alt: solo)";
             }
         } else if (binding.paramId == "voice_mode") {
             const int mode = std::clamp(voiceModeRocker_.getState(), 0, 2);
@@ -329,9 +443,13 @@ void DigiStrikeFS2AudioProcessorEditor::updateInspectorForComponent(juce::Compon
             r.blurb = juce::String(DigiStrikeFS2Info::kLifeformDescriptions[life].data(), DigiStrikeFS2Info::kLifeformDescriptions[life].size());
         } else if (binding.paramId == "loop_mode") {
             const int mode = std::clamp(loopModeBar_.getState(), 0, 3);
-            const juce::StringArray loopNames{"FWD (FORWARD)", "REV (REVERSE LOOP)", "PPG (PING-PONG)", "OFF (ONE-SHOT)"};
+            const juce::StringArray loopNames{"ONCE (ONE-SHOT)", "HOLD (SUSTAIN FREEZE)", "LOOP (FORWARD LOOP)", "PING (PING-PONG)"};
             r.value = loopNames[mode];
-            r.blurb = "wavetable frame traversal loop mode: continuous forward, reverse loop, ping-pong, or one-shot";
+            r.blurb = "wavetable frame traversal boundary behavior: one-shot release, sustain freeze, continuous loop, or ping-pong";
+        } else if (binding.paramId == "reverse") {
+            const bool on = revButton_.getToggleState();
+            r.value = on ? "REVERSE (B -> A)" : "FORWARD (A -> B)";
+            r.blurb = "playback traversal direction: forward from start offset or reverse sweeping toward transient crack";
         }
     }
 
@@ -520,7 +638,33 @@ void DigiStrikeFS2AudioProcessorEditor::timerCallback() {
         lifeformRocker_.setState(static_cast<int>(p->load()));
     }
     if (auto* p = apvts.getRawParameterValue("loop_mode")) {
-        loopModeBar_.setState(static_cast<int>(p->load()));
+        int val = static_cast<int>(std::lround(p->load()));
+        loopModeBar_.setState(std::clamp(val, 0, 3));
+    }
+
+    // Update Voice Selector Capsule
+    {
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        int curCat = categoryGrid_.getState();
+        uint32_t mask = lineageGrid_.getMask();
+        float morphNorm = 0.0f;
+        if (auto* p = apvts.getRawParameterValue("table_morph"))
+            morphNorm = std::clamp(p->load() * 0.01f, 0.0f, 1.0f);
+
+        const int N = DigiStrikeFS2Fleet::getActiveFleetCount(rom, curCat, mask);
+        DigiStrikeFS2Fleet::VoiceRef ref;
+        if (N > 0 && DigiStrikeFS2Fleet::resolveFleetIndex(rom, curCat, mask, DigiStrikeFS2Fleet::indexForMorph(morphNorm, N), ref)) {
+            const char* vName = rom.getVoiceName(ref.romIndex);
+            int activeLins = 0;
+            for (int i = 0; i < 20; ++i) if ((mask & (1u << i)) != 0) ++activeLins;
+            if (activeLins > 1) {
+                voiceSelectorCapsule_.setText(juce::String::fromUTF8(vName) + " (" + juce::String(ref.globalIndex + 1) + "/" + juce::String(ref.totalVoices) + ") \xc2\xb7 " + juce::String(DigiStrikeFS2Fleet::kLineageNames[ref.lineage]));
+            } else {
+                voiceSelectorCapsule_.setText(juce::String::fromUTF8(vName) + " (" + juce::String(ref.localIndex + 1) + "/" + juce::String(ref.localCount) + ")");
+            }
+        } else {
+            voiceSelectorCapsule_.setText("No Voices in Pool");
+        }
     }
 
     auto updateProp = [](juce::Slider& s, const juce::Identifier& id, float val) {
@@ -785,15 +929,12 @@ void DigiStrikeFS2AudioProcessorEditor::paint(juce::Graphics& g) {
         g.drawRoundedRectangle(linBadge, 3.0f, 0.8f);
 
         g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
-        if (linMask == 0) {
-            g.setColour(juce::Colour(0xFFFF007F));
-            g.drawText("0 LIN \xc2\xb7 0/64 [SECRET]", linBadge, juce::Justification::centred);
-        } else if (activeLinCount >= 16) {
+        if (activeLinCount >= 20) {
             g.setColour(juce::Colour(0xFFFFAA00));
-            g.drawText("16 LIN \xc2\xb7 64/64 FULL", linBadge, juce::Justification::centred);
+            g.drawText("20 LIN \xc2\xb7 80/80 FULL", linBadge, juce::Justification::centred);
         } else {
             g.setColour(juce::Colour(0xFF00E5FF));
-            g.drawText(juce::String(activeLinCount) + " LIN \xc2\xb7 " + juce::String(activeWaves) + "/64 WAVES", linBadge, juce::Justification::centred);
+            g.drawText(juce::String(activeLinCount) + " LIN \xc2\xb7 " + juce::String(activeLinCount * 4) + "/80 WAVES", linBadge, juce::Justification::centred);
         }
     }
 
@@ -851,7 +992,10 @@ void DigiStrikeFS2AudioProcessorEditor::resized() {
     }
 
     // Card 2 Header: Category Role 1x8 button strip
-    categoryGrid_.setBounds(468, 48, 400, 22);
+    categoryGrid_.setBounds(468, 46, 400, 20);
+
+    // Voice Selector Capsule
+    voiceSelectorCapsule_.setBounds(468, 68, 318, 18);
 
     // Card 2 Knobs: 4 columns with 76px pitch centered at cx in {496, 572, 648, 724}
     KnobItem* c2[2][4] = {
@@ -860,16 +1004,17 @@ void DigiStrikeFS2AudioProcessorEditor::resized() {
     };
 
     for (int r = 0; r < 2; ++r) {
-        const int labelY = (r == 0) ? 76 : 148;
-        const int sliderY = labelY + 16;
+        const int labelY = (r == 0) ? 88 : 158;
+        const int sliderY = (r == 0) ? 104 : 172;
         for (int c = 0; c < 4; ++c) {
             place(*c2[r][c], 496 + c * 76, labelY, 76, 52, sliderY);
         }
     }
 
-    // Card 2 Right Bay: LOOP 2x2 Switch
-    loopLabel_.setBounds(794, 94, 52, 16);
-    loopModeBar_.setBounds(794, 114, 52, 52);
+    // Card 2 Right Bay: LOOP 2x2 Switch & REV Button
+    loopLabel_.setBounds(782, 90, 76, 14);
+    loopModeBar_.setBounds(782, 108, 76, 52);
+    revButton_.setBounds(782, 166, 76, 22);
 
     // Dedicated Full-Width Pod: Sovereign Lineage 2x10 Button Matrix
     lineageGrid_.setBounds(32, 246, 836, 48);

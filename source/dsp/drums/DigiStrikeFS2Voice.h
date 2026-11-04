@@ -25,9 +25,9 @@ namespace FastMath = TbdAudio::FastMath;
 
 struct DigiStrikeFS2Params {
     // Header Controls (4)
-    int category{7};         // 0=KICK, 1=SNAR, 2=TOMS, 3=CLAP, 4=HATS, 5=CYMB, 6=PERC, 7=STAB (Default: STAB)
-    int lineage{4};          // 0=CROWN .. 19=CURIOS (Default: 4=K-WRK Kawai)
-    uint32_t lineageMask{0x00000010}; // 20-bit multi-select mask (bit 4=K-WRK Kawai default)
+    int category{9};         // 0=BD, 1=SN, 2=TM, 3=CP, 4=HH, 5=CY, 6=LN, 7=MC, 8=FX, 9=ST (Default: ST)
+    int lineage{14};         // 0=CROWN .. 19=CURIOS (Default: 14=Fairlight)
+    uint32_t lineageMask{1u << 14}; // 20-bit multi-select mask (bit 14=Fairlight default)
     int voiceMode{2};        // 0=MONO, 1=GLIDE, 2=POLY (Default: POLY)
     int lifeMode{1};         // 0=Synthetic, 1=Cyborg, 2=Organic (Default: Cyborg)
 
@@ -45,12 +45,13 @@ struct DigiStrikeFS2Params {
     float pitchDecay{15.0f}; // 2.0 .. 250.0 ms (P.DEC, skew 30ms)
     float clickBleed{0.0f};  // 0.0 .. 100.0 % (CLICK)
     float startOffset{0.0f}; // 0.0 .. 500.0 ms (START, skew 20ms)
-    float traverseRate{1.0f};// -4.0 .. +4.0 x (TIME, 1.0 neutral, negative reverse)
+    float traverseRate{1.0f};// 0.25 .. 4.0 x (TIME, 1.0 nominal, higher = longer duration)
     float pitchDive{0.0f};   // 0.0 .. 100.0 % (PUNCH, 0..36 semitones)
     float noiseMix{0.0f};    // 0.0 .. 100.0 % (NOISE, Enveloped Noise Mix)
     float sampleLength{100.0f}; // 0.0 .. 100.0 % (LENGTH, 0% = single-cycle freeze)
     float tableMorph{0.0f};  // 0.0 .. 100.0 % (MORPH, 3D Spectral Slice)
-    int   loopMode{3};        // 0=FWD, 1=REV, 2=PPG, 3=OFF (Default: OFF)
+    int   loopMode{0};        // 0=ONCE, 1=HOLD, 2=LOOP, 3=PING
+    bool  reverse{false};     // false=forward, true=reverse
 
     // Card 3 Pod 1: Stepped Random Humanization (8)
     float randX{0.0f};       // 0.0 .. 100.0 %
@@ -98,6 +99,11 @@ public:
         sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
         invSampleRate_ = 1.0f / sampleRate_;
 
+        grainLengthSec_ = 0.030f;
+        grainLengthSamples_ = static_cast<double>(grainLengthSec_ * sampleRate_);
+        invGrainLengthSamples_ = 1.0 / std::max(1.0, grainLengthSamples_);
+        kEdgeCoef_ = 1.0f - std::exp(-invSampleRate_ / 0.005f);
+
         freqShifter_.prepare(sampleRate_);
         widerStage_.prepare(sampleRate_);
         drumLimiter_.prepare(sampleRate_);
@@ -111,16 +117,22 @@ public:
         for (auto& v : voices_) {
             v.active = false;
             v.oscPhase = 0.0;
-            v.framePos = 0.0;
-            v.frameInc = 0.0;
+            v.playheadSec = 0.0;
+            v.tStartSec = 0.0;
+            v.tEndSec = 0.0;
+            v.tTotalSec = 0.0;
             v.ampEnv = 0.0f;
             v.pitchEnv = 0.0f;
             v.chokeEnv = 1.0f;
             v.chokeActive = false;
-            v.loopMode = 3;
+            v.loopMode = 4;
             v.inReversePhase = false;
             v.ppgDirection = 1;
             v.prevTraverseRate = 1.0f;
+            v.sp12ClockPhase = 0.0;
+            v.zohSampledVal = 0.0f;
+            v.isFadingOut = false;
+            v.fadeOutEnv = 1.0f;
         }
         activeVoiceCount_ = 0;
         masterFilterState_.fill(0.0f);
@@ -138,6 +150,9 @@ public:
         widerStage_.reset();
         drumLimiter_.reset();
     }
+
+    [[nodiscard]] int getActiveVoiceCount() const noexcept { return activeVoiceCount_; }
+    [[nodiscard]] double getVoiceU(size_t slot = 0) const noexcept { return (slot < voices_.size()) ? voices_[slot].u : 0.0; }
 
     void triggerNote(int noteNumber, float velocity, float noteHz) noexcept {
         velocity = std::clamp(velocity, 0.01f, 1.0f);
@@ -323,9 +338,8 @@ private:
         bool released{false};
         bool pendingPedalRelease{false};
         bool chokeActive{false};
-        bool isSecretMode{false};
         uint8_t activeCount{0};
-        std::array<DigiStrikeFS2Catalog::WaveCoord, 64> activeWaves{};
+        std::array<DigiStrikeFS2Catalog::WaveCoord, 80> activeWaves{};
         float currentMorph{0.0f};
 
         bool isSustaining{false};
@@ -333,22 +347,37 @@ private:
         float noiseRawPrev{0.0f};
 
         int noteNumber{60};
-        int category{0};
-        int slotIdx{0}; // category * 8 + lineage (0..63)
+        int category{7};
+        int slotIdx{154};
         float morph{0.0f}; // 0.0 .. 1.0
         float velocity{0.9f};
-        float targetHz{130.81f};
-        float currentHz{130.81f};
+        float targetHz{261.63f};
+        float currentHz{261.63f};
+        float staticPitchRatio{1.0f};
 
-        // Intra-frame oscillator phase accumulator [0.0 .. 2047.999]
+        // Intra-frame oscillator phase accumulator (for single-cycle freeze mode)
         double oscPhase{0.0};
 
-        // Temporal wavetable frame traversal playhead [0.0 .. 3.0]
-        double framePos{0.0};
-        double frameInc{0.0};
-        float startFrame{0.0f};
-        float endFrame{3.0f};
+        // Dual-domain PCM & 2-Grain OLA Traversal State
+        uint32_t voiceA{0};
+        uint32_t voiceB{0};
+        float morphFrac{0.0f};
+        double playheadSec{0.0};
+        double tStartSec{0.0};
+        double tEndSec{0.0};
+        double tTotalSec{0.0};
         bool isReverse{false};
+
+        double u{0.0};                     // Traversal position in source seconds
+        double grainPhase{0.0};            // phi0 in [0.0, 1.0)
+        double gAnchor[2]{0.0, 0.0};       // Latched anchors for Grain 0 & 1
+        float  gDir[2]{1.0f, 1.0f};        // Latched direction (+1 / -1)
+        float  tStartSm{0.0f};             // Dynamically smoothed start boundary (5ms 1-pole)
+        float  tEndSm{0.0f};               // Dynamically smoothed end boundary (5ms 1-pole)
+        double dEffSec{0.5};               // Effective voice duration
+        float  rootHz{261.63f};            // Root note frequency in Hz
+        int    transientRemaining{0};      // 15ms Pure-Impact Transient Gate samples
+        int    sampleCountTrigger{0};      // Initial transient gate counter
 
         float ampEnv{1.0f};
         float ampDecayRate{0.001f};
@@ -361,9 +390,16 @@ private:
         float chokeEnv{1.0f};
         float chokeRate{0.05f};
 
-        float zohSlewState{0.0f};
+        // Vintage Lifeform state
+        double sp12ClockPhase{0.0};
+        float zohSampledVal{0.0f};
 
-        int loopMode{3};
+        // Anti-click fadeout
+        bool isFadingOut{false};
+        float fadeOutEnv{1.0f};
+        float fadeOutRate{0.005f};
+
+        int loopMode{4};
         bool inReversePhase{false};
         int ppgDirection{1};
         float prevTraverseRate{1.0f};
@@ -409,42 +445,35 @@ private:
         v.released = false;
         v.chokeActive = false;
         v.chokeEnv = 1.0f;
+        v.isFadingOut = false;
+        v.fadeOutEnv = 1.0f;
+        v.fadeOutRate = 1.0f / (0.002f * sampleRate_); // 2ms fadeout
         v.noteNumber = noteNumber;
         v.category = params_.category;
         v.velocity = velocity;
         v.targetHz = noteHz;
         v.currentHz = (params_.voiceMode == 1 && activeVoiceCount_ > 0) ? v.currentHz : noteHz;
 
-        // Map Category (0..7) and Lineage (0..19) to slotIdx (0..159)
-        const int cat = std::clamp(params_.category, 0, 7);
-        const int lin = std::clamp(params_.lineage, 0, 19);
-        v.slotIdx = cat * 20 + lin;
+        const auto& rom = DigiStrikeFS2ROM::getInstance();
+        const int cat = std::clamp(params_.category, 0, 9);
+        const uint32_t mask = DigiStrikeFS2Fleet::sanitizeMask(params_.lineageMask);
+
         v.morph = std::clamp(params_.tableMorph * 0.01f, 0.0f, 1.0f);
         v.currentMorph = v.morph;
         v.isSustaining = false;
         v.noiseHpState = 0.0f;
         v.noiseRawPrev = 0.0f;
 
-        // Multi-Lineage Active Wave Gathering & Secret Mode Detection:
-        const uint32_t mask = params_.lineageMask;
-        v.activeCount = 0;
-        if (mask == 0) {
-            v.isSecretMode = true;
-        } else {
-            v.isSecretMode = false;
-            for (size_t i = 0; i < DigiStrikeFS2Catalog::kMusicalOrder[static_cast<size_t>(cat)].size(); ++i) {
-                const auto coord = DigiStrikeFS2Catalog::kMusicalOrder[static_cast<size_t>(cat)][i];
-                if ((mask & (1u << coord.lineage)) != 0 && v.activeCount < 64) {
-                    v.activeWaves[v.activeCount++] = coord;
-                }
-            }
-        }
+        const auto fleetPair = DigiStrikeFS2Fleet::resolveVoicePair(rom, cat, mask, v.morph);
+        v.voiceA = fleetPair.voiceA;
+        v.voiceB = fleetPair.voiceB;
+        v.morphFrac = fleetPair.morphFrac;
+        v.slotIdx = cat * 20 + std::clamp(params_.lineage, 0, 19);
 
+        // Stepped Random per-trigger offsets
         for (int i = 0; i < 8; ++i) {
             latchedDraw_[static_cast<size_t>(i)] = nextFloat();
         }
-
-        // Stepped Random per-trigger offsets
         float rX = (latchedDraw_[0] - 0.5f) * 2.0f * (params_.randX * 0.01f);
         float rY = (latchedDraw_[1] - 0.5f) * 2.0f * (params_.randY * 0.01f);
         float rZ = (latchedDraw_[2] - 0.5f) * 2.0f * (params_.randZ * 0.01f);
@@ -461,49 +490,63 @@ private:
         ampDecaySeconds = std::clamp(ampDecaySeconds * (1.0f + rDecay * 0.35f), 0.005f, 5.0f);
         v.ampDecayRate = 1.0f / (ampDecaySeconds * sampleRate_);
         v.ampReleaseRate = 1.0f / (0.050f * sampleRate_);
-
         v.isGated = (params_.sustainLevel > 2.0f);
 
-        // Temporal Traversal Setup:
-        // START: 0..500 ms -> maps to frame 0.0 .. 2.5
-        float startNorm = std::clamp(params_.startOffset / 500.0f, 0.0f, 1.0f);
-        v.startFrame = startNorm * 2.5f;
+        // Durations & Native Sample Rates from Voice Meta
+        const auto* metaA = rom.getVoice(v.voiceA);
+        const auto* metaB = rom.getVoice(v.voiceB);
+        double durA = (metaA != nullptr && metaA->sampleRate > 0) ? (static_cast<double>(metaA->sampleCount) / static_cast<double>(metaA->sampleRate)) : 0.5;
+        double durB = (metaB != nullptr && metaB->sampleRate > 0) ? (static_cast<double>(metaB->sampleCount) / static_cast<double>(metaB->sampleRate)) : 0.5;
+        double dEff = (1.0 - static_cast<double>(v.morphFrac)) * durA + static_cast<double>(v.morphFrac) * durB;
+        double dMax = std::max(durA, durB);
 
-        // LENGTH: 0% = single-cycle freeze (length <= 2%), 100% = full 3.0 span
+        // Temporal Traversal Setup & 2-Grain OLA Initialization
+        v.dEffSec = dEff;
+        double startSec = std::min(static_cast<double>(params_.startOffset) * 0.001, dEff * 0.95);
+        v.tStartSec = startSec;
+        v.tStartSm = static_cast<float>(startSec);
+
         float lenNorm = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
         if (lenNorm <= 0.02f) {
-            v.endFrame = v.startFrame; // single-cycle frame freeze!
+            v.tEndSec = v.tStartSec; // single-cycle freeze mode
+            v.tEndSm = static_cast<float>(v.tStartSec);
         } else {
-            v.endFrame = std::clamp(v.startFrame + lenNorm * (3.0f - v.startFrame), v.startFrame + 0.1f, 3.0f);
+            v.tEndSec = std::min(dEff, v.tStartSec + static_cast<double>(lenNorm) * (dEff - v.tStartSec));
+            if (v.tEndSec <= v.tStartSec + 0.005) v.tEndSec = v.tStartSec + 0.005;
+            v.tEndSm = static_cast<float>(v.tEndSec);
         }
 
-        // TIME: Inverted Duration Space [-8.0x .. +8.0x]
-        // 8x takes 8x as long; values close to zero take less than a second;
-        // at zero: 0 ms instant traversal, sits at destination frame immediately!
         const float T = params_.traverseRate;
         const float absT = std::abs(T);
-        v.isReverse = (T < -0.01f);
+        v.isReverse = params_.reverse;
+        v.tTotalSec = dMax * std::max(0.02f, absT);
 
-        if (absT <= 0.02f) {
-            // 0.0x: Instantaneous Traversal (0 ms)
-            v.framePos = v.isReverse ? v.startFrame : v.endFrame;
-            v.frameInc = 0.0;
+        // Traversal Anchor & Grain Initialization
+        v.u = v.isReverse ? v.tEndSec : v.tStartSec;
+        v.grainPhase = 0.0;
+        v.gAnchor[0] = v.u;
+        v.gDir[0] = v.isReverse ? -1.0f : 1.0f;
+        // Grain 1 initialized at virtual pre-history u - 0.5L for bit-accurate null invariant
+        v.gAnchor[1] = v.u - 0.5 * static_cast<double>(grainLengthSec_);
+        v.gDir[1] = v.gDir[0];
+
+        // 15ms Pure-Impact Transient Gate (Bypassed on reverse so OLA sweeps smoothly backward to terminal crack)
+        if (v.isReverse) {
+            v.transientRemaining = 0;
+            v.sampleCountTrigger = 0;
         } else {
-            const float macroTMod = std::pow(2.0f, 2.0f * (effMacroT - 0.5f));
-            const double scanSeconds = std::max(0.001, static_cast<double>(ampDecaySeconds * absT * macroTMod));
-            const double span = std::max(0.05, static_cast<double>(v.endFrame - v.startFrame));
-            const double frameRate = span / (scanSeconds * sampleRate_);
-
-            if (v.isReverse) {
-                v.framePos = v.endFrame;
-                v.frameInc = -frameRate;
-            } else {
-                v.framePos = v.startFrame;
-                v.frameInc = frameRate;
-            }
+            v.transientRemaining = static_cast<int>(0.015f * sampleRate_);
+            v.sampleCountTrigger = v.transientRemaining;
         }
 
+        v.playheadSec = v.u;
         v.oscPhase = 0.0;
+
+        // Tuning & Frequency Tracking
+        uint8_t rootMidi = (metaA != nullptr) ? metaA->rootMidi : 36;
+        v.rootHz = 440.0f * FastMath::fastPow2((static_cast<float>(rootMidi) - 69.0f) * (1.0f / 12.0f));
+        float semitones = static_cast<float>(noteNumber - rootMidi);
+        v.staticPitchRatio = FastMath::fastPow2(std::clamp(semitones, -24.0f, 24.0f) * (1.0f / 12.0f));
 
         // Pitch Envelope: P.DEC & PUNCH
         float pDecayMs = params_.pitchDecay;
@@ -512,7 +555,8 @@ private:
         v.pitchDiveSemitones = (params_.pitchDive * 0.01f) * 36.0f * (0.5f + effMacroY);
 
         v.ampEnv = 1.0f;
-        v.zohSlewState = 0.0f;
+        v.sp12ClockPhase = 0.0;
+        v.zohSampledVal = 0.0f;
 
         v.ampDecaySeconds = ampDecaySeconds;
         v.effMacroT = effMacroT;
@@ -533,208 +577,183 @@ private:
         panL = std::cos((effectivePan + 1.0f) * 0.25f * 3.14159265f);
         panR = std::sin((effectivePan + 1.0f) * 0.25f * 3.14159265f);
 
-        // Exponential portamento glide coefficient
         const float glideCoeff = (params_.glideTime > 0.0005f)
             ? (1.0f - std::exp(-invSampleRate_ / std::max(0.001f, params_.glideTime)))
             : 1.0f;
 
         const float morphInc = (targetMorph - v.currentMorph) * invNumSamples;
         const auto& rom = DigiStrikeFS2ROM::getInstance();
+        const auto* metaA = rom.getVoice(v.voiceA);
+        const auto* metaB = rom.getVoice(v.voiceB);
 
         for (int i = 0; i < numSamples; ++i) {
-            v.currentMorph += morphInc;
+            v.currentMorph += morphInc;            // 1. Dynamic Boundary Smoothing (Live Held-Note Tracking)
+            const double dEff = v.dEffSec;
+            const float aT = std::min(params_.startOffset * 0.001f, static_cast<float>(dEff * 0.95));
+            const float ln = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
+            const float bT = std::max(aT + 0.005f, aT + ln * static_cast<float>(dEff - aT));
 
-            // 1. Pitch Gliding
+            v.tStartSm += kEdgeCoef_ * (aT - v.tStartSm);
+            v.tEndSm   += kEdgeCoef_ * (bT - v.tEndSm);
+            const double a = v.tStartSm;
+            const double b = v.tEndSm;
+            const double S = std::max(0.005, b - a);
+
+            // 2. Pitch Gliding & Pitch Ratio (100% Decoupled from Traversal!)
             if (params_.voiceMode == 1) {
                 v.currentHz += (v.targetHz - v.currentHz) * glideCoeff;
             } else {
                 v.currentHz = v.targetHz;
             }
-
-            // 2. Pitch Envelope & Intra-Frame Oscillator Accumulator
-            // (100% DECOUPLED FROM TIME TRAVERSAL!)
             float pitchModSemitones = v.pitchDiveSemitones * (v.pitchEnv * v.pitchEnv);
-            float pitchRatio = FastMath::fastPow2(pitchModSemitones * (1.0f / 12.0f));
-            float freqHz = v.currentHz * pitchRatio;
+            float punchRatio = FastMath::fastPow2(pitchModSemitones * (1.0f / 12.0f));
+            float r = std::clamp(v.currentHz / std::max(10.0f, v.rootHz), 0.125f, 8.0f) * punchRatio;
 
-            // Pitch phase advances at true audio rate: Delta theta = 2048 * (f / fs)
-            double oscInc = (static_cast<double>(freqHz) * 2048.0) * invSampleRate_;
-            v.oscPhase += oscInc;
-            if (v.oscPhase >= 2048.0) {
-                v.oscPhase = std::fmod(v.oscPhase, 2048.0);
-            }
-
-            // 3. Temporal Wavetable Frame Traversal Playhead
-            const float liveStartNorm = std::clamp(params_.startOffset / 500.0f, 0.0f, 1.0f);
-            v.startFrame = liveStartNorm * 2.5f;
-
-            const float liveLenNorm = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
-            v.endFrame = (liveLenNorm <= 0.02f)
-                ? v.startFrame
-                : std::clamp(v.startFrame + liveLenNorm * (3.0f - v.startFrame), v.startFrame + 0.05f, 3.0f);
-            const double loopSpan = std::max(0.02, static_cast<double>(v.endFrame - v.startFrame));
-
+            // 3. Traversal Speed & Direction (100% Decoupled from Pitch!)
             const float T = params_.traverseRate;
-            const float absT = std::abs(T);
-            const bool isTimeReversed = (T < -0.01f);
+            const float absT = std::max(0.02f, std::abs(T));
+            const float macroTMod = std::pow(2.0f, 2.0f * (v.effMacroT - 0.5f));
+            // Unipolar duration scaling: 1.0x = nominal, 2.0x = takes twice as long (half speed)
+            const double s = 1.0 / static_cast<double>(std::max(0.02f, absT * macroTMod));
+            const int mode = params_.loopMode;
 
-            // Detect live sign flip of TIME parameter:
-            if ((T < -0.01f && v.prevTraverseRate >= -0.01f) || (T > 0.01f && v.prevTraverseRate <= 0.01f)) {
-                if (v.loopMode == 2) {
-                    v.ppgDirection = -v.ppgDirection;
-                } else if (v.loopMode == 1) {
-                    v.inReversePhase = !v.inReversePhase;
-                }
-            }
-            v.prevTraverseRate = T;
-            v.loopMode = params_.loopMode;
+            double d = params_.reverse ? -1.0 : 1.0;
+            v.u += d * s * invSampleRate_;
 
-            double stepInc = 0.0;
-            if (absT > 0.02f && params_.sampleLength > 2.0f) {
-                const float macroTMod = std::pow(2.0f, 2.0f * (v.effMacroT - 0.5f));
-                const double scanSeconds = std::max(0.001, static_cast<double>(v.ampDecaySeconds * absT * macroTMod));
-                stepInc = loopSpan / (scanSeconds * sampleRate_);
-            }
-
-            if (params_.sampleLength <= 2.0f) {
-                v.framePos = v.startFrame;
-            } else if (absT <= 0.02f) {
-                v.framePos = isTimeReversed ? v.startFrame : v.endFrame;
-            } else {
-                switch (v.loopMode) {
-                    case 0: // FWD (Forward Looped)
-                        if (!isTimeReversed) {
-                            v.framePos += stepInc;
-                            if (v.framePos >= v.endFrame) {
-                                v.framePos = v.startFrame + std::fmod(v.framePos - v.startFrame, loopSpan);
-                            }
-                        } else {
-                            v.framePos -= stepInc;
-                            if (v.framePos <= v.startFrame) {
-                                v.framePos = v.endFrame - std::fmod(v.endFrame - v.framePos, loopSpan);
-                            }
-                        }
-                        break;
-
-                    case 1: // REV (Reverse Looped: play initial direction to end, reverse and loop in reverse)
-                        if (!isTimeReversed) {
-                            if (!v.inReversePhase) {
-                                v.framePos += stepInc;
-                                if (v.framePos >= v.endFrame) {
-                                    v.inReversePhase = true;
-                                    v.framePos = v.endFrame - (v.framePos - v.endFrame);
-                                }
-                            } else {
-                                v.framePos -= stepInc;
-                                if (v.framePos <= v.startFrame) {
-                                    v.framePos = v.endFrame - std::fmod(v.startFrame - v.framePos, loopSpan);
-                                }
-                            }
-                        } else {
-                            if (!v.inReversePhase) {
-                                v.framePos -= stepInc;
-                                if (v.framePos <= v.startFrame) {
-                                    v.inReversePhase = true;
-                                    v.framePos = v.startFrame + (v.startFrame - v.framePos);
-                                }
-                            } else {
-                                v.framePos += stepInc;
-                                if (v.framePos >= v.endFrame) {
-                                    v.framePos = v.startFrame + std::fmod(v.framePos - v.endFrame, loopSpan);
-                                }
-                            }
-                        }
-                        break;
-
-                    case 2: // PPG (Ping-Pong)
-                        {
-                            const double effectiveInc = stepInc * (isTimeReversed ? -v.ppgDirection : v.ppgDirection);
-                            v.framePos += effectiveInc;
-                            if (v.framePos >= v.endFrame) {
-                                v.framePos = v.endFrame - (v.framePos - v.endFrame);
-                                v.ppgDirection = -1;
-                            } else if (v.framePos <= v.startFrame) {
-                                v.framePos = v.startFrame + (v.startFrame - v.framePos);
-                                v.ppgDirection = 1;
-                            }
-                            v.framePos = std::clamp(v.framePos, static_cast<double>(v.startFrame), static_cast<double>(v.endFrame));
-                        }
-                        break;
-
-                    case 3: // OFF (One-shot, stuck at final frame)
-                    default:
-                        if (!isTimeReversed) {
-                            v.framePos += stepInc;
-                            if (v.framePos >= v.endFrame) {
-                                v.framePos = v.endFrame;
-                                v.isSustaining = true;
-                            }
-                        } else {
-                            v.framePos -= stepInc;
-                            if (v.framePos <= v.startFrame) {
-                                v.framePos = v.startFrame;
-                                v.isSustaining = true;
-                            }
-                        }
-                        break;
-                }
+            // 4. Stateless Loop Evaluation for Traversal Coordinate pos(u)
+            auto wrapFn = [](double val, double span) noexcept {
+                return val - span * std::floor(val / span);
+            };
+            const double x = v.u - a;
+            double pos = a;
+            switch (mode) {
+                case 0: // ONCE (True One-Shot Clean Release)
+                default:
+                    pos = v.u;
+                    if (d > 0.0 ? (v.u >= b + static_cast<double>(r * grainLengthSec_)) : (v.u <= a - static_cast<double>(r * grainLengthSec_))) {
+                        v.isFadingOut = true;
+                    }
+                    break;
+                case 1: // HOLD (Last Frame Freeze / Sustain)
+                    pos = std::clamp(v.u, a, b);
+                    v.isSustaining = true;
+                    break;
+                case 2: // LOOP (Forward Looped)
+                    pos = a + wrapFn(x, S);
+                    break;
+                case 3: // PING (Ping-Pong Looped)
+                    pos = a + S - std::abs(wrapFn(x, 2.0 * S) - S);
+                    break;
             }
 
-            // 4. Sample ROM Evaluation (Continuous 3D Interpolation)
+            // 5. Audio Generation: Single-Cycle Freeze vs 15ms Transient Gate vs 2-Grain OLA
             float sampleVal = 0.0f;
-            if (v.isSecretMode) {
-                // Secret Core: Slot 160 (Sine -> Tube Warmth -> 16-Saw -> 32-Lanczos Hyper-Saw)
-                sampleVal = rom.readSample(DigiStrikeFS2ROM::kSecretCoreSlot, v.currentMorph, static_cast<float>(v.framePos), v.oscPhase);
-            } else if (v.activeCount == 1) {
-                const auto c = v.activeWaves[0];
-                const int slot = v.category * 20 + c.lineage;
-                const float m = static_cast<float>(c.morphStep) * (1.0f / 3.0f);
-                sampleVal = rom.readSample(slot, m, static_cast<float>(v.framePos), v.oscPhase);
-            } else if (v.activeCount > 1) {
-                const float span = static_cast<float>(v.activeCount - 1);
-                const float pos = std::clamp(v.currentMorph * span, 0.0f, span);
-                const int i0 = static_cast<int>(pos);
-                const int i1 = std::min(i0 + 1, static_cast<int>(v.activeCount - 1));
-                const float frac = pos - static_cast<float>(i0);
-                // C^1 Hermite Smoothstep Crossfade (Zero boundary velocity, anti-click SOTA!)
-                const float smoothFrac = frac * frac * (3.0f - 2.0f * frac);
+            if (params_.sampleLength <= 2.0f) {
+                // Single-cycle freeze mode: audio oscillator
+                double oscInc = static_cast<double>(v.currentHz * punchRatio) * invSampleRate_;
+                v.oscPhase += oscInc;
+                if (v.oscPhase >= 1.0) v.oscPhase = std::fmod(v.oscPhase, 1.0);
 
-                const auto c0 = v.activeWaves[static_cast<size_t>(i0)];
-                const auto c1 = v.activeWaves[static_cast<size_t>(i1)];
-                const int slot0 = v.category * 20 + c0.lineage;
-                const int slot1 = v.category * 20 + c1.lineage;
-                const float m0 = static_cast<float>(c0.morphStep) * (1.0f / 3.0f);
-                const float m1 = static_cast<float>(c1.morphStep) * (1.0f / 3.0f);
-
-                const float s0 = rom.readSample(slot0, m0, static_cast<float>(v.framePos), v.oscPhase);
-                const float s1 = rom.readSample(slot1, m1, static_cast<float>(v.framePos), v.oscPhase);
-                sampleVal = s0 + smoothFrac * (s1 - s0);
+                uint32_t cycleA = (metaA != nullptr) ? std::min(2048u, metaA->sampleCount) : 2048u;
+                double pA = v.oscPhase * static_cast<double>(cycleA);
+                sampleVal = (metaA != nullptr) ? rom.sampleHermite(v.voiceA, pA) : 0.0f;
             } else {
-                sampleVal = rom.readSample(v.slotIdx, v.currentMorph, static_cast<float>(v.framePos), v.oscPhase);
+                // Advance grain phase
+                double dPhi = invGrainLengthSamples_;
+                v.grainPhase += dPhi;
+                if (v.grainPhase >= 1.0) v.grainPhase -= 1.0;
+
+                const double phi0 = v.grainPhase;
+                const double phi1 = std::fmod(v.grainPhase + 0.5, 1.0);
+
+                // Latch anchors at wraps
+                if (phi0 < dPhi) {
+                    v.gAnchor[0] = pos;
+                    v.gDir[0] = (mode == 2) ? ((wrapFn(x, 2.0 * S) < S) ? 1.0f : -1.0f) : static_cast<float>(d);
+                }
+                if (phi1 < dPhi) {
+                    v.gAnchor[1] = pos;
+                    v.gDir[1] = (mode == 2) ? ((wrapFn(x, 2.0 * S) < S) ? 1.0f : -1.0f) : static_cast<float>(d);
+                }
+
+                // 15ms Pure-Impact Transient Gate:
+                if (v.transientRemaining > 0) {
+                    const int elapsed = v.sampleCountTrigger - v.transientRemaining;
+                    v.transientRemaining--;
+                    // Pure 1:1 playback at attack: zero comb filtering, 100% transient punch
+                    double pTrans = a + static_cast<double>(r) * (static_cast<double>(elapsed) * invSampleRate_);
+                    double pA = (metaA != nullptr) ? (pTrans * static_cast<double>(metaA->sampleRate)) : 0.0;
+                    sampleVal = (metaA != nullptr) ? rom.sampleHermite(v.voiceA, pA) : 0.0f;
+                    if (metaB != nullptr && v.morphFrac > 0.001f) {
+                        double pB = pTrans * static_cast<double>(metaB->sampleRate);
+                        float sB = rom.sampleHermite(v.voiceB, pB);
+                        sampleVal = (1.0f - v.morphFrac) * sampleVal + v.morphFrac * sB;
+                    }
+                } else {
+                    // Steady-state 2-Grain Hann Overlap-Add
+                    float w0 = 0.5f * (1.0f - std::cos(static_cast<float>(phi0 * 6.283185307179586)));
+                    float w1 = 1.0f - w0;
+
+                    auto evalGrain = [&](int g, double phi) noexcept -> float {
+                        double rawP = v.gAnchor[g] + static_cast<double>(v.gDir[g]) * static_cast<double>(r) * (phi * static_cast<double>(grainLengthSec_));
+                        // Hardening: clamp grain read within loop window [a, b]
+                        double clampedP = rawP;
+                        if (mode == 0 || mode == 1) clampedP = a + wrapFn(rawP - a, S);
+                        else if (mode == 2) clampedP = a + S - std::abs(wrapFn(rawP - a, 2.0 * S) - S);
+                        else clampedP = std::clamp(rawP, a, b);
+
+                        if (metaA == nullptr) return 0.0f;
+                        double pA = clampedP * static_cast<double>(metaA->sampleRate);
+                        float sA = rom.sampleHermite(v.voiceA, pA);
+                        if (metaB == nullptr || v.morphFrac <= 0.001f) return sA;
+                        double pB = clampedP * static_cast<double>(metaB->sampleRate);
+                        float sB = rom.sampleHermite(v.voiceB, pB);
+                        return (1.0f - v.morphFrac) * sA + v.morphFrac * sB;
+                    };
+
+                    sampleVal = w0 * evalGrain(0, phi0) + w1 * evalGrain(1, phi1);
+                }
             }
 
-            // 5. Lifeform Character Mojo
-            if (params_.lifeMode == 0) {
-                // Synthetic: Clean 32-bit linear interpolation
-            } else if (params_.lifeMode == 1) {
-                // Cyborg: Am6070 u-law 8-bit companding curve
-                float sgn = (sampleVal < 0.0f) ? -1.0f : 1.0f;
-                float mag = std::abs(sampleVal);
-                float comp = std::log(1.0f + 255.0f * mag) * (1.0f / 5.5451774f); // ln(256)
-                sampleVal = sgn * comp;
-            } else {
-                // Organic: 12-bit ZOH slew / drop-sample warmth
-                v.zohSlewState += (sampleVal - v.zohSlewState) * 0.55f;
-                sampleVal = v.zohSlewState;
+            // 6. Lifeform Character Mojo
+            switch (params_.lifeMode) {
+                case 0: // Synthetic: Clean bypass (Null test <= -90 dBFS)
+                    break;
+                case 1: { // Cyborg: Authentic AMD Am6070 8-Bit Companding DAC
+                    constexpr float kMu = 255.0f;
+                    constexpr float kInvLnMu = 1.0f / 5.5451774f; // 1 / ln(256)
+                    const float sgn = (sampleVal < 0.0f) ? -1.0f : 1.0f;
+                    const float mag = std::min(1.0f, std::abs(sampleVal));
+                    const float compressed = std::log1p(kMu * mag) * kInvLnMu;
+                    const float quantized = std::round(compressed * 127.0f) * (1.0f / 127.0f);
+                    const float expanded = (std::exp(quantized * 5.5451774f) - 1.0f) * (1.0f / kMu);
+                    sampleVal = sgn * expanded;
+                    break;
+                }
+                case 2: { // Organic: E-mu SP-1200 12-Bit Quantization + 26.04 kHz ZOH
+                    constexpr float kScale = 2048.0f;
+                    constexpr float kInvScale = 1.0f / 2048.0f;
+                    sampleVal = std::clamp(std::round(sampleVal * kScale), -kScale, kScale - 1.0f) * kInvScale;
+
+                    v.sp12ClockPhase += 26040.0 * invSampleRate_;
+                    if (v.sp12ClockPhase >= 1.0) {
+                        v.sp12ClockPhase -= 1.0;
+                        v.zohSampledVal = sampleVal;
+                    }
+                    sampleVal = v.zohSampledVal;
+                    break;
+                }
             }
 
-            // 6. Transient Impact Click Bleed
-            if (v.pitchEnv > 0.8f && params_.clickBleed > 0.0f) {
-                float click = (nextFloat() - 0.5f) * (params_.clickBleed * 0.01f);
+            // 7. Transient Impact Click Bleed & Upper Punch Dive Bleed
+            float excessPunch = std::max(0.0f, pitchModSemitones - 7.0f);
+            if (v.pitchEnv > 0.8f && (params_.clickBleed > 0.0f || excessPunch > 0.0f)) {
+                float clickScale = (params_.clickBleed * 0.01f) + (excessPunch * (1.0f / 29.0f) * 0.25f);
+                float click = (nextFloat() - 0.5f) * clickScale;
                 sampleVal += click;
             }
 
-            // 6.5. Enveloped Noise Mix (K06)
+            // 8. Enveloped Noise Mix
             if (params_.noiseMix > 0.001f) {
                 float rawNoise = 2.0f * (nextFloat() - 0.5f);
                 float hpNoise = rawNoise - v.noiseRawPrev + 0.85f * v.noiseHpState;
@@ -746,14 +765,23 @@ private:
                 sampleVal += hpNoise * envNoise * (params_.noiseMix * 0.01f);
             }
 
-            // 7. Amplitude Gain Scaling
+            // 9. Amplitude Gain Scaling & Anti-Click Fadeout
+            if (v.isFadingOut) {
+                v.fadeOutEnv -= v.fadeOutRate;
+                if (v.fadeOutEnv <= 0.0f) {
+                    v.active = false;
+                    break;
+                }
+                sampleVal *= v.fadeOutEnv;
+            }
+
             float gain = v.ampEnv * v.chokeEnv * v.velocity;
             float outSample = sampleVal * gain;
 
             accL[i] += outSample * panL;
             accR[i] += outSample * panR;
 
-            // 8. Envelope Updates
+            // 10. Envelope Updates
             if (v.pitchEnv > 0.0f) {
                 v.pitchEnv -= v.pitchEnvRate;
                 if (v.pitchEnv < 0.0f) v.pitchEnv = 0.0f;
@@ -896,6 +924,10 @@ private:
 
     float sampleRate_{48000.0f};
     float invSampleRate_{1.0f / 48000.0f};
+    float grainLengthSec_{0.030f};
+    double grainLengthSamples_{1440.0};
+    double invGrainLengthSamples_{1.0 / 1440.0};
+    float kEdgeCoef_{0.004f};
     DigiStrikeFS2Params params_{};
 
     std::array<VoiceSlot, kMaxVoices> voices_{};
