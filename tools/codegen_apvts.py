@@ -158,6 +158,24 @@ def generate_layout_header(contract: dict) -> str:
         "            }",
         "        );",
         "    };",
+        "",
+        "    // Symmetric Quadratic Time Range Lambda (-4..0..+4x duration with 1x at 75% dial throw / 3 o'clock)",
+        "    auto symmetricQuadraticTimeRange = []() {",
+        "        return juce::NormalisableRange<float>(",
+        "            -4.0f, 4.0f,",
+        "            [](float, float, float norm) {",
+        "                float n = (norm - 0.5f) * 2.0f;",
+        "                float sign = (n < 0.0f) ? -1.0f : 1.0f;",
+        "                return sign * 4.0f * (n * n);",
+        "            },",
+        "            [](float, float, float val) {",
+        "                float sign = (val < 0.0f) ? -1.0f : 1.0f;",
+        "                float mag = std::abs(val);",
+        "                float n = sign * 0.5f * std::sqrt(std::clamp(mag, 0.0f, 4.0f));",
+        "                return 0.5f + 0.5f * n;",
+        "            }",
+        "        );",
+        "    };",
         ""
     ]
 
@@ -196,6 +214,9 @@ def generate_layout_header(contract: dict) -> str:
             if p.get("custom_range") == "sCurveOctaveRange":
                 lines.append(f"    layout.add(std::make_unique<juce::AudioParameterFloat>(")
                 lines.append(f"        juce::ParameterID{{{ns}::Ids::{pid}, 1}}, {ns}::Names::{pid}, sCurveOctaveRange(), {float(pdef):.4f}f));")
+            elif p.get("custom_range") == "symmetricQuadraticTimeRange":
+                lines.append(f"    layout.add(std::make_unique<juce::AudioParameterFloat>(")
+                lines.append(f"        juce::ParameterID{{{ns}::Ids::{pid}, 1}}, {ns}::Names::{pid}, symmetricQuadraticTimeRange(), {float(pdef):.4f}f));")
             elif "skew_center" in p or "skew_mid" in p:
                 rng = p.get("range", [0.0, 1.0])
                 sk = p.get("skew_center", p.get("skew_mid"))

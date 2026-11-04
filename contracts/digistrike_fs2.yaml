@@ -160,6 +160,7 @@ parameters:
     type: float
     effect: dynamics
     range: [-4.0, 4.0]
+    custom_range: symmetricQuadraticTimeRange
     default: 1.0
     unit: x
 

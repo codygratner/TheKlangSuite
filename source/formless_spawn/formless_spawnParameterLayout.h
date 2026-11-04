@@ -54,6 +54,24 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         );
     };
 
+    // Symmetric Quadratic Time Range Lambda (-4..0..+4x duration with 1x at 75% dial throw / 3 o'clock)
+    auto symmetricQuadraticTimeRange = []() {
+        return juce::NormalisableRange<float>(
+            -4.0f, 4.0f,
+            [](float, float, float norm) {
+                float n = (norm - 0.5f) * 2.0f;
+                float sign = (n < 0.0f) ? -1.0f : 1.0f;
+                return sign * 4.0f * (n * n);
+            },
+            [](float, float, float val) {
+                float sign = (val < 0.0f) ? -1.0f : 1.0f;
+                float mag = std::abs(val);
+                float n = sign * 0.5f * std::sqrt(std::clamp(mag, 0.0f, 4.0f));
+                return 0.5f + 0.5f * n;
+            }
+        );
+    };
+
     // role [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{formless_spawnParameters::Ids::role, 1}, formless_spawnParameters::Names::role,

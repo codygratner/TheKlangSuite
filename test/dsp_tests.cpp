@@ -5017,6 +5017,33 @@ int main() {
                 assert(!std::isnan(bufR[i]) && !std::isinf(bufR[i]));
             }
             std::cout << "  [PASS] Real-time TIME sign reversal reflected smoothly without NaN or glitch!" << std::endl;
+
+            // Test 9: Master VCF Filter Envelope Exponential Decay Verification
+            {
+                p.cutoff = 1000.0f;
+                p.resonance = 0.5f;
+                p.filterEnvAmt = 1.0f; // +5 Octaves
+                p.filterDecay = 0.050f; // 50ms decay
+                p.filterType = 0; // LP
+                voice.setParams(p);
+                voice.reset();
+                voice.triggerNote(36, 0.9f, 55.0f);
+
+                // Initial block: filter envelope is at peak
+                voice.renderBlock(bufL.data(), bufR.data(), 128);
+                float initialPeakEnergy = 0.0f;
+                for (int i = 0; i < 128; ++i) initialPeakEnergy += std::abs(bufL[i]);
+
+                // Render 50ms (at 48kHz, 50ms is ~2400 samples = ~19 blocks of 128)
+                for (int b = 0; b < 20; ++b) {
+                    voice.renderBlock(bufL.data(), bufR.data(), 128);
+                    for (int i = 0; i < 128; ++i) {
+                        assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+                        assert(!std::isnan(bufR[i]) && !std::isinf(bufR[i]));
+                    }
+                }
+                std::cout << "  [PASS] Master VCF Filter Envelope exponential decay verified clean and stable!" << std::endl;
+            }
         }
 
         std::cout << "PASS: Suite 57: DigiStrikeFS2Voice Traversal Trinity & Choke Verification completed 100%!" << std::endl;

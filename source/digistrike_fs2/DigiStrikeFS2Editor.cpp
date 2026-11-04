@@ -54,7 +54,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     setupKnob(pitchDecayKnob_, pitch_decay,   "P.DEC",   "ms", "pitch envelope decay duration (2ms..250ms)", blueCol);
     setupKnob(clickKnob_,      click_bleed,   "CLICK",   "%",  "transient crack & noise bleed level",        blueCol);
     setupKnob(startKnob_,      start_offset,  "START",   "ms", "initial sample playback offset (0..500ms)",   blueCol);
-    setupKnob(timeKnob_,       traverse_rate, "TIME",    "x",  "duration scaling & reverse traversal (-4x..+4x, +1x=normal, 0x=instant)", blueCol, true);
+    setupKnob(timeKnob_,       traverse_rate, "TIME",    "x",  "duration scaling & reverse traversal (-4x..+4x, +/-1x=normal, 0x=freeze)", blueCol, true);
     timeKnob_.slider.setDoubleClickReturnValue(true, 1.0);
     setupKnob(punchKnob_,      pitch_dive,    "PUNCH",   "%",  "pitch dive depth (0%..100% => 0..36 semitones)", blueCol);
     setupKnob(noiseKnob_,      noise_mix,     "NOISE",   "%",  "enveloped 1-pole highpass noise mix (35% amp + 65% pitch attack)", blueCol);
@@ -696,6 +696,28 @@ void DigiStrikeFS2AudioProcessorEditor::timerCallback() {
     updateModProp(morphKnob_.slider, tkdsp::formless::computeMacroHalo(normMorph, mZ, 0.75f));
     updateRandProp(morphKnob_.slider, tkdsp::formless::trickleDownArbitrate(normMorph, haloZ.lo, haloZ.hi, haloZ.pip, 0.75f,
                                                                             haloTimb.lo, haloTimb.hi, haloTimb.pip, 0.70f, tele.lastVelocity));
+
+    // 3. Card 3: Cutoff Filter Envelope Arc Halo (Electric Cyan Inner Arc)
+    auto& cutSlider = cutoffKnob_.slider;
+    const float feAmt = static_cast<float>(filterEnvAmtKnob_.slider.getValue());
+    const double curCutoffHz = cutSlider.getValue();
+    const float normBase = static_cast<float>(cutSlider.valueToProportionOfLength(curCutoffHz));
+
+    tkdsp::formless::HaloRange cutHalo;
+    if (std::abs(feAmt) > 0.005f) {
+        // Dynamic Filter Envelope throw (+/-5.0 Octaves at full velocity 1.0)
+        const float peakOctaves = std::clamp(feAmt * 5.0f, -6.0f, 6.0f);
+        const double peakCutoffHz = std::clamp(curCutoffHz * std::pow(2.0, static_cast<double>(peakOctaves)), 20.0, 20000.0);
+        const float normPeak = static_cast<float>(cutSlider.valueToProportionOfLength(peakCutoffHz));
+
+        cutHalo.lo = std::min(normBase, normPeak);
+        cutHalo.hi = std::max(normBase, normPeak);
+        cutHalo.pip = normPeak;
+        cutHalo.active = (cutHalo.hi - cutHalo.lo > 0.002f);
+    } else {
+        cutHalo.active = false;
+    }
+    updateModProp(cutSlider, cutHalo);
 }
 
 void DigiStrikeFS2AudioProcessorEditor::paint(juce::Graphics& g) {

@@ -54,6 +54,24 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         );
     };
 
+    // Symmetric Quadratic Time Range Lambda (-4..0..+4x duration with 1x at 75% dial throw / 3 o'clock)
+    auto symmetricQuadraticTimeRange = []() {
+        return juce::NormalisableRange<float>(
+            -4.0f, 4.0f,
+            [](float, float, float norm) {
+                float n = (norm - 0.5f) * 2.0f;
+                float sign = (n < 0.0f) ? -1.0f : 1.0f;
+                return sign * 4.0f * (n * n);
+            },
+            [](float, float, float val) {
+                float sign = (val < 0.0f) ? -1.0f : 1.0f;
+                float mag = std::abs(val);
+                float n = sign * 0.5f * std::sqrt(std::clamp(mag, 0.0f, 4.0f));
+                return 0.5f + 0.5f * n;
+            }
+        );
+    };
+
     // category [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::category, 1}, digistrike_fs2Parameters::Names::category,
@@ -128,7 +146,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // traverse_rate [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::traverse_rate, 1}, digistrike_fs2Parameters::Names::traverse_rate, -4.0000f, 4.0000f, 1.0000f));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::traverse_rate, 1}, digistrike_fs2Parameters::Names::traverse_rate, symmetricQuadraticTimeRange(), 1.0000f));
 
     // pitch_dive [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

@@ -124,8 +124,7 @@ public:
         }
         activeVoiceCount_ = 0;
         masterFilterState_.fill(0.0f);
-        filterEnvState_ = 0.0f;
-        filterEnvTarget_ = 0.0f;
+        masterFilterEnv_ = 0.0f;
         glideHz_ = 130.81f;
 
         noteStackSize_ = 0;
@@ -524,8 +523,7 @@ private:
     }
 
     void triggerMasterFilterEnv(float velocity) noexcept {
-        filterEnvTarget_ = velocity * std::abs(params_.filterEnvAmt);
-        filterEnvSlew_ = 0.0f;
+        masterFilterEnv_ = velocity;
     }
 
     void renderVoice(VoiceSlot& v, float* accL, float* accR, int numSamples, float targetMorph, float invNumSamples) noexcept {
@@ -795,94 +793,104 @@ private:
         float masterGain = params_.volume * (1.0f + params_.macroY * 0.25f);
         if (params_.volume <= 0.0001f) masterGain = 0.0f;
 
-        float feDecayRate = 1.0f / (params_.filterDecay * sampleRate_);
-        filterEnvState_ += (filterEnvTarget_ - filterEnvState_) * feDecayRate;
-        float feMod = (filterEnvState_ * params_.filterEnvAmt) * 4.0f;
-
-        float cutoffHz = params_.cutoff * std::pow(2.0f, feMod + (params_.macroX - 0.5f) * 2.0f);
-        cutoffHz = std::clamp(cutoffHz, 20.0f, 20000.0f);
+        const float effFilterDecaySec = std::clamp(params_.filterDecay, 0.005f, 5.0f);
+        const float feDecayCoeff = FastMath::fastExp(-invSampleRate_ / effFilterDecaySec);
 
         // Empyrean-SSM Q-Compensated Saturated ZDF Filter
-        float res = std::clamp(params_.resonance, 0.0f, 0.98f);
-        float damping = 2.0f * (1.0f - res);
-        float gBassComp = 1.0f + 0.55f * res;
+        const float res = std::clamp(params_.resonance, 0.0f, 0.98f);
+        const float damping = 2.0f * (1.0f - res);
+        const float gBassComp = 1.0f + 0.55f * res;
 
-        float w0 = 2.0f * 3.14159265f * cutoffHz * invSampleRate_;
-        float g = std::tan(w0 * 0.5f);
-        float denom = 1.0f / (1.0f + damping * g + g * g);
+        constexpr int kSub = 16;
+        for (int i0 = 0; i0 < numSamples; i0 += kSub) {
+            const int n = std::min(kSub, numSamples - i0);
 
-        for (int i = 0; i < numSamples; ++i) {
-            float inL = outL[i];
-            float inR = outR[i];
+            // Dynamic Filter Envelope Modulation (+/-5.0 Octaves)
+            const float envOctaves = std::clamp(params_.filterEnvAmt * 5.0f * masterFilterEnv_, -6.0f, 6.0f);
+            float cutoffHz = params_.cutoff * FastMath::fastPow2(envOctaves + (params_.macroX - 0.5f) * 2.0f);
+            cutoffHz = std::clamp(cutoffHz, 20.0f, 20000.0f);
 
-            if (params_.preDrive > 0.01f) {
-                float driveGain = 1.0f + params_.preDrive * 4.0f;
-                inL = std::tanh(inL * driveGain);
-                inR = std::tanh(inR * driveGain);
+            const float w0 = 2.0f * 3.14159265f * cutoffHz * invSampleRate_;
+            const float g = std::tan(w0 * 0.5f);
+            const float denom = 1.0f / (1.0f + damping * g + g * g);
+
+            for (int i = i0; i < i0 + n; ++i) {
+                float inL = outL[i];
+                float inR = outR[i];
+
+                if (params_.preDrive > 0.01f) {
+                    float driveGain = 1.0f + params_.preDrive * 4.0f;
+                    inL = std::tanh(inL * driveGain);
+                    inR = std::tanh(inR * driveGain);
+                }
+
+                // Left Channel
+                float s1L = masterFilterState_[0];
+                float s2L = masterFilterState_[1];
+                if (res > 0.05f) {
+                    s1L = std::tanh(s1L * 1.5f) * (1.0f / 1.5f);
+                }
+                float hpL = (inL - (damping + g) * s1L - s2L) * denom;
+                float bpL = g * hpL + s1L;
+                if (res > 0.05f) {
+                    bpL = std::tanh(bpL * 1.5f) * (1.0f / 1.5f);
+                }
+                float lpL = g * bpL + s2L;
+                masterFilterState_[0] = g * hpL + bpL;
+                masterFilterState_[1] = g * bpL + lpL;
+
+                // Right Channel
+                float s1R = masterFilterState_[2];
+                float s2R = masterFilterState_[3];
+                if (res > 0.05f) {
+                    s1R = std::tanh(s1R * 1.5f) * (1.0f / 1.5f);
+                }
+                float hpR = (inR - (damping + g) * s1R - s2R) * denom;
+                float bpR = g * hpR + s1R;
+                if (res > 0.05f) {
+                    bpR = std::tanh(bpR * 1.5f) * (1.0f / 1.5f);
+                }
+                float lpR = g * bpR + s2R;
+                masterFilterState_[2] = g * hpR + bpR;
+                masterFilterState_[3] = g * bpR + lpR;
+
+                // 4-Mode Output Matrix (LP, HP, BP, PK)
+                float filtL = lpL * gBassComp;
+                float filtR = lpR * gBassComp;
+                if (params_.filterType == 1) {
+                    filtL = hpL;
+                    filtR = hpR;
+                } else if (params_.filterType == 2) {
+                    filtL = bpL * (1.0f + res);
+                    filtR = bpR * (1.0f + res);
+                } else if (params_.filterType == 3) {
+                    filtL = (lpL - 2.0f * bpL + hpL) * 0.707f;
+                    filtR = (lpR - 2.0f * bpR + hpR) * 0.707f;
+                }
+
+                filtL *= masterGain;
+                filtR *= masterGain;
+
+                if (std::abs(params_.shift) > 0.5f) {
+                    filtL = freqShifter_.process(filtL, params_.shift);
+                    filtR = freqShifter_.process(filtR, params_.shift);
+                }
+
+                if (params_.wider > 0.01f) {
+                    widerStage_.process(filtL, filtR, params_.wider, params_.category);
+                }
+
+                if (params_.masterLimiter) {
+                    drumLimiter_.process(filtL, filtR, true);
+                }
+
+                outL[i] = filtL;
+                outR[i] = filtR;
             }
 
-            // Left Channel
-            float s1L = masterFilterState_[0];
-            float s2L = masterFilterState_[1];
-            if (res > 0.05f) {
-                s1L = std::tanh(s1L * 1.5f) * (1.0f / 1.5f);
-            }
-            float hpL = (inL - (damping + g) * s1L - s2L) * denom;
-            float bpL = g * hpL + s1L;
-            if (res > 0.05f) {
-                bpL = std::tanh(bpL * 1.5f) * (1.0f / 1.5f);
-            }
-            float lpL = g * bpL + s2L;
-            masterFilterState_[0] = g * hpL + bpL;
-            masterFilterState_[1] = g * bpL + lpL;
-
-            // Right Channel
-            float s1R = masterFilterState_[2];
-            float s2R = masterFilterState_[3];
-            if (res > 0.05f) {
-                s1R = std::tanh(s1R * 1.5f) * (1.0f / 1.5f);
-            }
-            float hpR = (inR - (damping + g) * s1R - s2R) * denom;
-            float bpR = g * hpR + s1R;
-            if (res > 0.05f) {
-                bpR = std::tanh(bpR * 1.5f) * (1.0f / 1.5f);
-            }
-            float lpR = g * bpR + s2R;
-            masterFilterState_[2] = g * hpR + bpR;
-            masterFilterState_[3] = g * bpR + lpR;
-
-            // 4-Mode Output Matrix (LP, HP, BP, PK)
-            float filtL = lpL * gBassComp;
-            float filtR = lpR * gBassComp;
-            if (params_.filterType == 1) {
-                filtL = hpL;
-                filtR = hpR;
-            } else if (params_.filterType == 2) {
-                filtL = bpL * (1.0f + res);
-                filtR = bpR * (1.0f + res);
-            } else if (params_.filterType == 3) {
-                filtL = (lpL - 2.0f * bpL + hpL) * 0.707f;
-                filtR = (lpR - 2.0f * bpR + hpR) * 0.707f;
-            }
-
-            filtL *= masterGain;
-            filtR *= masterGain;
-
-            if (std::abs(params_.shift) > 0.5f) {
-                filtL = freqShifter_.process(filtL, params_.shift);
-                filtR = freqShifter_.process(filtR, params_.shift);
-            }
-
-            if (params_.wider > 0.01f) {
-                widerStage_.process(filtL, filtR, params_.wider, params_.category);
-            }
-
-            if (params_.masterLimiter) {
-                drumLimiter_.process(filtL, filtR, true);
-            }
-
-            outL[i] = filtL;
-            outR[i] = filtR;
+            // Sub-block envelope decay advance
+            masterFilterEnv_ *= std::pow(feDecayCoeff, static_cast<float>(n));
+            if (masterFilterEnv_ < 1e-7f) masterFilterEnv_ = 0.0f;
         }
     }
 
@@ -906,9 +914,7 @@ private:
     bool sustainPedal_{false};
 
     std::array<float, 4> masterFilterState_{{0.0f, 0.0f, 0.0f, 0.0f}};
-    float filterEnvState_{0.0f};
-    float filterEnvTarget_{0.0f};
-    float filterEnvSlew_{0.0f};
+    float masterFilterEnv_{0.0f};
 
     uint32_t rngState_{0xDEADBEEFu};
     FreqShifter freqShifter_{};
