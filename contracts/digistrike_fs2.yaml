@@ -29,7 +29,7 @@ parameters:
     category: header
     type: choice
     choices: [MONO, GLIDE, POLY]
-    default: 0
+    default: 2
 
   - id: life_mode
     name: Lifeform Character
@@ -37,7 +37,7 @@ parameters:
     category: header
     type: choice
     choices: [Synthetic, Cyborg, Organic]
-    default: 2
+    default: 1
 
   # ==============================================================================
   # CARD 1: MASTER MACRO & DYNAMICS LAB (8 parameters - Top-Left)
@@ -468,7 +468,7 @@ parameters:
     effect: dynamics
     range: [0.005, 5.0]
     skew_center: 0.250
-    default: 0.500
+    default: 1.000
     unit: s
 
   - id: glide_time
@@ -492,7 +492,7 @@ parameters:
     range: [20.0, 20000.0]
     skew_center: 1000.0
     unit: Hz
-    default: 1000.0
+    default: 20000.0
 
   - id: resonance
     name: Filter Resonance

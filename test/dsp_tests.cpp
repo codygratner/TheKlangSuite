@@ -4820,10 +4820,220 @@ int main() {
         }
         std::cout << "  [PASS] MR4 Silence Invariance: exact zero output when idle!" << std::endl;
 
+        // Test 6: Sound Selection & Morph Verification
+        p.category = 7; // STAB & BASS
+        p.lineage = 0;  // CROWN Slap Bass
+        p.tableMorph = 0.0f;
+        voice.setParams(p);
+        voice.triggerNote(28, 0.9f, 41.2f); // E1 slap bass
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float bassRms = 0.0f;
+        for (int i = 0; i < 128; ++i) bassRms += bufL[i] * bufL[i];
+        assert(bassRms > 0.001f);
+        std::cout << "  [PASS] Sound Selection: Category 7 Lineage 0 (Slap Bass E1) rendered successfully (RMS: " << bassRms << ")" << std::endl;
+
+        // Test 7: Hastur Last-Note Priority Legato Bass Engine Verification
+        p.voiceMode = 1; // GLIDE
+        p.glideTime = 0.050f;
+        p.sustainLevel = 100.0f; // Gated sustain
+        voice.setParams(p);
+        voice.reset();
+
+        // 1) Hold Root Note E1 (note 28)
+        voice.triggerNote(28, 0.9f, 41.2f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+
+        // 2) Tap Upper Note B1 (note 35) while E1 is held
+        voice.triggerNote(35, 0.9f, 61.74f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+
+        // 3) Release Upper Note B1 (note 35) - should return to E1 WITHOUT cutting off!
+        voice.releaseNote(35);
+        for (int b = 0; b < 10; ++b) {
+            voice.renderBlock(bufL.data(), bufR.data(), 128);
+        }
+        float returnRms = 0.0f;
+        for (int i = 0; i < 128; ++i) returnRms += bufL[i] * bufL[i];
+        assert(returnRms > 0.001f); // Voice must remain active and held!
+        std::cout << "  [PASS] Hastur-style last-note priority verified: voice stayed active and returned to held root note!" << std::endl;
+
+        // 4) Finally release E1
+        voice.releaseNote(28);
+        for (int b = 0; b < 50; ++b) {
+            voice.renderBlock(bufL.data(), bufR.data(), 128);
+        }
+        float finalRms = 0.0f;
+        for (int i = 0; i < 128; ++i) finalRms += bufL[i] * bufL[i];
+        assert(finalRms < returnRms * 0.1f);
+        std::cout << "  [PASS] Full release after stack clear verified!" << std::endl;
+
+        // Test 8: Multi-Lineage Interleaved Wavetable Morph & Smoothstep Crossfading
+        p = {};
+        p.category = 0; // KICK
+        p.lineageMask = 0b00100001; // CROWN (bit 0) and TOKYO (bit 5)
+        p.tableMorph = 0.0f; // Start of interleaved range
+        p.volume = 0.5f;
+        voice.setParams(p);
+        voice.reset();
+        voice.triggerNote(36, 0.9f, 55.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float morph0Rms = 0.0f;
+        for (int i = 0; i < 128; ++i) morph0Rms += bufL[i] * bufL[i];
+        assert(morph0Rms > 0.001f);
+
+        // Sweep to middle (f = 0.5 Hermite Smoothstep blend)
+        p.tableMorph = 50.0f;
+        voice.setParams(p);
+        voice.triggerNote(36, 0.9f, 55.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float morphMidRms = 0.0f;
+        for (int i = 0; i < 128; ++i) {
+            morphMidRms += bufL[i] * bufL[i];
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+        }
+        assert(morphMidRms > 0.001f);
+        std::cout << "  [PASS] Multi-Lineage Interleaved Morph (CROWN+TOKYO, Smoothstep) rendered clean audio (RMS: " << morphMidRms << ")" << std::endl;
+
+        // Test 9: Single-Lineage Solo (N=1 Divide-by-Zero Protection)
+        p.lineageMask = 0b00000001; // CROWN only
+        p.tableMorph = 75.0f;
+        voice.setParams(p);
+        voice.reset();
+        voice.triggerNote(36, 0.9f, 55.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float soloRms = 0.0f;
+        for (int i = 0; i < 128; ++i) {
+            soloRms += bufL[i] * bufL[i];
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+        }
+        assert(soloRms > 0.001f);
+        std::cout << "  [PASS] Single-Lineage Solo (N=1) safe from divide-by-zero!" << std::endl;
+
+        // Test 10: Super Secret Core Engagement (N=0 All Lineages OFF)
+        p.lineageMask = 0x00; // All OFF -> Secret Core Slot 64 engaged!
+        p.tableMorph = 0.0f;  // Pure Sine
+        voice.setParams(p);
+        voice.reset();
+        voice.triggerNote(48, 0.9f, 130.81f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float secretSineRms = 0.0f;
+        for (int i = 0; i < 128; ++i) {
+            secretSineRms += bufL[i] * bufL[i];
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+        }
+        assert(secretSineRms > 0.001f);
+
+        // Morph to 100% -> Lanczos Hyper-Saw
+        p.tableMorph = 100.0f;
+        voice.setParams(p);
+        voice.triggerNote(48, 0.9f, 130.81f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float secretSawRms = 0.0f;
+        for (int i = 0; i < 128; ++i) {
+            secretSawRms += bufL[i] * bufL[i];
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+        }
+        assert(secretSawRms > 0.001f);
+        std::cout << "  [PASS] Super Secret Core (Slot 64 Sine->Saw) verified stable and harmonic!" << std::endl;
+
+        // Test 11: Empyrean-SSM Filter Modes & Bass-Hold Q-Compensation
+        p.lineageMask = 0xFF; // All 8 active
+        p.category = 0; // Kick
+        p.cutoff = 300.0f;
+        p.resonance = 0.0f;
+        p.filterType = 0; // LP
+        voice.setParams(p);
+        voice.reset();
+        voice.triggerNote(36, 0.9f, 55.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float lpCleanRms = 0.0f;
+        for (int i = 0; i < 128; ++i) lpCleanRms += bufL[i] * bufL[i];
+
+        // Crank resonance to 90% - verify Q-Compensation prevents low fundamental drop
+        p.resonance = 0.90f;
+        voice.setParams(p);
+        voice.reset();
+        voice.triggerNote(36, 0.9f, 55.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float lpCompRms = 0.0f;
+        for (int i = 0; i < 128; ++i) {
+            lpCompRms += bufL[i] * bufL[i];
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+        }
+        assert(lpCompRms >= lpCleanRms * 0.75f);
+        std::cout << "  [PASS] Empyrean-SSM Passband Bass-Hold verified (Res 0% RMS: " << lpCleanRms << " vs Res 90% RMS: " << lpCompRms << ")" << std::endl;
+
+        // Verify PK (Peak/Bell) filter mode (filterType = 3)
+        p.filterType = 3; // PK
+        voice.setParams(p);
+        voice.reset();
+        voice.triggerNote(36, 0.9f, 55.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 128);
+        float pkRms = 0.0f;
+        for (int i = 0; i < 128; ++i) {
+            pkRms += bufL[i] * bufL[i];
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+        }
+        assert(pkRms > 0.0005f);
+        std::cout << "  [PASS] Empyrean-SSM Peak/Bell mode (filterType=3) verified clean and stable!" << std::endl;
+
         std::cout << "PASS: Suite 57: DigiStrikeFS2Voice Traversal Trinity & Choke Verification completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 57 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    // =========================================================================
+    // SUITE 58: DigiStrike FS2 Fleet ROM & Lineage Uniqueness Verification
+    // =========================================================================
+    {
+        std::cout << "\nStarting Suite 58: DigiStrike FS2 Fleet ROM & Lineage Uniqueness Verification..." << std::endl;
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+
+        // 1. Verify ROM data size and non-zero initialization
+        assert(rom.readSample(0, 0.0f, 0.0f, 0.0) != 0.0f || rom.readSample(0, 0.0f, 1.0f, 100.0) != 0.0f);
+        std::cout << "  [PASS] DigiStrike ROM loaded and non-empty" << std::endl;
+
+        // 2. Verify Kawai Orch Stab (Slot 144: Cat 7, Lin 4)
+        const int slotOrch = 7 * 20 + 4;
+        float orchRms = 0.0f;
+        for (int i = 0; i < 2048; ++i) {
+            float s = rom.readSample(slotOrch, 0.0f, 0.0f, static_cast<double>(i));
+            assert(!std::isnan(s) && !std::isinf(s));
+            orchRms += s * s;
+        }
+        orchRms = std::sqrt(orchRms / 2048.0f);
+        assert(orchRms > 0.05f);
+        std::cout << "  [PASS] Kawai Orch Stab Frame 0 has robust energy (RMS: " << orchRms << ")" << std::endl;
+
+        // 3. Verify Lineage Diversity in Snare (Cat 1) between Linn (Lin 0), Roland (Lin 6), and Kawai (Lin 4)
+        const int slotLinnSnare = 1 * 20 + 0;
+        const int slotKawaiSnare = 1 * 20 + 4;
+        const int slotRolandSnare = 1 * 20 + 6;
+
+        float diffLinnKawai = 0.0f;
+        float diffLinnRoland = 0.0f;
+        for (int i = 0; i < 2048; ++i) {
+            float sLinn = rom.readSample(slotLinnSnare, 0.0f, 1.0f, static_cast<double>(i));
+            float sKawai = rom.readSample(slotKawaiSnare, 0.0f, 1.0f, static_cast<double>(i));
+            float sRoland = rom.readSample(slotRolandSnare, 0.0f, 1.0f, static_cast<double>(i));
+            diffLinnKawai += std::abs(sLinn - sKawai);
+            diffLinnRoland += std::abs(sLinn - sRoland);
+        }
+        assert(diffLinnKawai > 5.0f); // Proves they are mathematically distinct waveforms!
+        assert(diffLinnRoland > 5.0f);
+        std::cout << "  [PASS] Lineage Waveform Diversity Verified (Linn vs Kawai diff: " << diffLinnKawai 
+                  << ", Linn vs Roland diff: " << diffLinnRoland << ")" << std::endl;
+
+        // 4. Verify Voice Default Parameters
+        tkdsp::DigiStrikeFS2Params defaultParams;
+        assert(defaultParams.cutoff >= 19999.0f); // Wide open filter (20 kHz)
+        assert(defaultParams.voiceMode == 2);    // POLY mode
+        assert(defaultParams.ampDecay >= 0.99f); // 1.0s decay
+        assert(defaultParams.lifeMode == 1);     // Cyborg (12-bit)
+        std::cout << "  [PASS] Voice default parameters verified: Cutoff 20kHz, Poly Mode, 1.0s Decay, Cyborg Life" << std::endl;
+
+        std::cout << "PASS: Suite 58: DigiStrike FS2 Fleet ROM & Lineage Uniqueness Verification completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 58 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

@@ -718,6 +718,14 @@ add_custom_command(TARGET Hastur_VST3 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/Hastur_artefacts/$<CONFIG>/VST3/Hastur.vst3" "${ARTIFACT_DIR}/VST3/Hastur.vst3"
 )
 
+# DigiStrike FS2
+add_custom_command(TARGET DigiStrikeFS2_VST3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/DigiStrikeFS2_artefacts/$<CONFIG>/VST3/DigiStrike FS2.vst3" "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/digistrike_fs2_rom.bin" "${CMAKE_CURRENT_BINARY_DIR}/DigiStrikeFS2_artefacts/$<CONFIG>/VST3/DigiStrike FS2.vst3/Contents/Resources/"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/digistrike_fs2_rom.bin" "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3/Contents/Resources/"
+)
+
 # The Klang Editor
 add_custom_command(TARGET TheKlangEditor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/Editor"

@@ -67,12 +67,12 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // voice_mode [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::voice_mode, 1}, digistrike_fs2Parameters::Names::voice_mode,
-        juce::StringArray{"MONO", "GLIDE", "POLY"}, 0));
+        juce::StringArray{"MONO", "GLIDE", "POLY"}, 2));
 
     // life_mode [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::life_mode, 1}, digistrike_fs2Parameters::Names::life_mode,
-        juce::StringArray{"Synthetic", "Cyborg", "Organic"}, 2));
+        juce::StringArray{"Synthetic", "Cyborg", "Organic"}, 1));
 
     // macro_x [macro]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -275,7 +275,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         juce::NormalisableRange<float> nr{0.0050f, 5.0000f};
         nr.setSkewForCentre(0.2500f);
         layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{digistrike_fs2Parameters::Ids::amp_decay, 1}, digistrike_fs2Parameters::Names::amp_decay, nr, 0.5000f));
+            juce::ParameterID{digistrike_fs2Parameters::Ids::amp_decay, 1}, digistrike_fs2Parameters::Names::amp_decay, nr, 1.0000f));
     }
 
     // glide_time [output]
@@ -291,7 +291,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         juce::NormalisableRange<float> nr{20.0000f, 20000.0000f};
         nr.setSkewForCentre(1000.0000f);
         layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{digistrike_fs2Parameters::Ids::cutoff, 1}, digistrike_fs2Parameters::Names::cutoff, nr, 1000.0000f));
+            juce::ParameterID{digistrike_fs2Parameters::Ids::cutoff, 1}, digistrike_fs2Parameters::Names::cutoff, nr, 20000.0000f));
     }
 
     // resonance [filter]

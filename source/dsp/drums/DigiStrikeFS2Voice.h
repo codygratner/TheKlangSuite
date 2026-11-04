@@ -28,8 +28,8 @@ struct DigiStrikeFS2Params {
     int category{7};         // 0=KICK, 1=SNAR, 2=TOMS, 3=CLAP, 4=HATS, 5=CYMB, 6=PERC, 7=STAB (Default: STAB)
     int lineage{4};          // 0=CROWN .. 19=CURIOS (Default: 4=K-WRK Kawai)
     uint32_t lineageMask{0x00000010}; // 20-bit multi-select mask (bit 4=K-WRK Kawai default)
-    int voiceMode{0};        // 0=MONO, 1=GLIDE, 2=POLY
-    int lifeMode{2};         // 0=Synthetic, 1=Cyborg, 2=Organic
+    int voiceMode{2};        // 0=MONO, 1=GLIDE, 2=POLY (Default: POLY)
+    int lifeMode{1};         // 0=Synthetic, 1=Cyborg, 2=Organic (Default: Cyborg)
 
     // Card 1: Master Macro & Dynamics Lab (8)
     float macroX{0.5f};      // 0.0 .. 1.0 (Spectral Macro)
@@ -65,10 +65,10 @@ struct DigiStrikeFS2Params {
     float macroDecay{0.5f};  // 0.0 .. 1.0 (Master Hero Knob)
     float volume{0.5f};      // 0.0 .. 1.0 (-inf .. 0dB .. +12dB)
     float sustainLevel{0.0f};// 0.0 .. 100.0 % (<=2% One-Shot, >2% Gated ADSR)
-    float ampDecay{0.500f};  // 0.005 .. 5.0 s (skew 0.250s)
+    float ampDecay{1.000f};  // 0.005 .. 5.0 s (skew 0.250s)
     float glideTime{0.050f}; // 0.001 .. 2.0 s (skew 0.050s, Portamento Glide)
 
-    float cutoff{1000.0f};   // 20.0 .. 20000.0 Hz
+    float cutoff{20000.0f};  // 20.0 .. 20000.0 Hz
     float resonance{0.30f};  // 0.0 .. 1.0
     float filterEnvAmt{0.0f};// -1.0 .. +1.0
     float filterDecay{0.150f};// 0.005 .. 5.0 s

@@ -5,6 +5,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <vector>
 
@@ -90,7 +91,59 @@ private:
         return v0 + uS * (v1 - v0);
     }
 
+    bool loadBinaryAsset() noexcept {
+        const size_t expectedSamples = kNumSlots * kNumMorphSteps * kNumFrames * kTableSize;
+        const size_t expectedBytes = expectedSamples * sizeof(int16_t);
+
+        const char* candidatePaths[] = {
+            "digistrike_fs2_rom.bin",
+            "../Resources/digistrike_fs2_rom.bin",
+            "Contents/Resources/digistrike_fs2_rom.bin",
+            "../Contents/Resources/digistrike_fs2_rom.bin",
+            "../../Contents/Resources/digistrike_fs2_rom.bin",
+            "C:/Program Files/Common Files/VST3/DigiStrike FS2.vst3/Contents/Resources/digistrike_fs2_rom.bin",
+            "C:/Dev/TheKlangSuite/assets/digistrike_fs2_rom.bin"
+        };
+
+        for (const char* path : candidatePaths) {
+            FILE* fp = nullptr;
+#if defined(_WIN32)
+            fopen_s(&fp, path, "rb");
+#else
+            fp = fopen(path, "rb");
+#endif
+            if (fp != nullptr) {
+                fseek(fp, 0, SEEK_END);
+                long sz = ftell(fp);
+                fseek(fp, 0, SEEK_SET);
+
+                if (static_cast<size_t>(sz) == expectedBytes) {
+                    std::vector<int16_t> buf(expectedSamples);
+                    size_t readCount = fread(buf.data(), sizeof(int16_t), expectedSamples, fp);
+                    fclose(fp);
+                    if (readCount == expectedSamples) {
+                        const float invScale = 1.0f / 32768.0f;
+                        for (size_t i = 0; i < expectedSamples; ++i) {
+                            data_[i] = static_cast<float>(buf[i]) * invScale;
+                        }
+                        return true;
+                    }
+                } else {
+                    fclose(fp);
+                }
+            }
+        }
+        return false;
+    }
+
     void bakeROM() noexcept {
+        if (loadBinaryAsset()) {
+            return;
+        }
+        bakeProceduralFallback();
+    }
+
+    void bakeProceduralFallback() noexcept {
         const double twoPi = 6.28318530717958647692;
 
         for (size_t cat = 0; cat < kNumCategories; ++cat) {
@@ -253,17 +306,18 @@ private:
                                             + h4 * (0.15 * attackWeight)
                                             + slapSnap * attackWeight;
                                     } else if (lin == 4) { // K-WORKS: Kawai R-50e / XD-5 Orchestra Hit / Stab
-                                        // Iconic 12-Bit multi-timbral tutti chord stack (Root + 5th + Octave + 10th + 4th harmonic)
-                                        const double fifth = std::sin(ph * 1.5);
-                                        const double oct = std::sin(ph * 2.0);
-                                        const double tenth = (morphFactor < 0.5) ? std::sin(ph * 2.4) : std::sin(ph * 2.5); // Minor/Major 10th
-                                        const double oct2 = std::sin(ph * 4.0);
-                                        const double brassSaw = (std::sin(ph) + 0.5 * std::sin(2.0 * ph) + 0.25 * std::sin(3.0 * ph)) * 0.4;
-                                        
-                                        // Dynamic orchestral punch and attack burst
-                                        const double orchHit = (fund * 0.40 + fifth * 0.30 + oct * 0.25 + tenth * 0.20 + oct2 * 0.15 + brassSaw);
-                                        const double orchTransient = slapSnap * 1.25 * attackWeight;
-                                        val = orchHit * (0.65 + 0.35 * punchWeight) + orchTransient;
+                                        // Iconic 12-Bit multi-timbral tutti chord stack (Root C3 + minor 3rd + 5th + 8ve + brass formant)
+                                        double sawChord = 0.0;
+                                        for (int h = 1; h <= 12; ++h) {
+                                            const double invH = 1.0 / static_cast<double>(h);
+                                            sawChord += std::sin(static_cast<double>(h) * ph) * invH;
+                                            sawChord += 0.75 * std::sin(static_cast<double>(h) * ph * 1.20) * invH; // Minor 3rd
+                                            sawChord += 0.85 * std::sin(static_cast<double>(h) * ph * 1.498) * invH; // 5th
+                                            sawChord += 0.60 * std::sin(static_cast<double>(h) * ph * 2.0) * invH; // Octave
+                                        }
+                                        const double brassFlare = (std::sin(ph * 3.5) * 0.4 + std::sin(ph * 5.2) * 0.3) * (0.6 + 0.4 * punchWeight);
+                                        const double orchTransient = slapSnap * 1.5 * attackWeight;
+                                        val = (sawChord * 0.40 + brassFlare * 0.30) * (0.7 + 0.3 * punchWeight) + orchTransient;
                                     } else if (lin == 1) { // APEX: 8-Bit PWM Growl
                                         const double pwmDuty = 0.5 + 0.3 * std::sin(morphFactor * 3.14);
                                         const double pulse = (ph / twoPi < pwmDuty) ? 0.7 : -0.7;
