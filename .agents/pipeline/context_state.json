@@ -1,30 +1,30 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "06898ea",
+    "commit": "2a3297c",
     "is_clean": false,
-    "dirty_count": 131,
+    "dirty_count": 74,
     "staged": 1,
-    "modified": 58,
-    "untracked": 72,
+    "modified": 7,
+    "untracked": 67,
     "recent_commits": [
-      "06898ea fix(hastur): resolve 46 autoplan audit defects across DSP, kinematics and UI (v1.0.3)",
-      "933cc04 feat(formless): v2.5.0 tiered pitch, 6-domain chromatics, headroom vector macros & dynamic arc halos",
-      "7e713e5 feat(formless): v2.4.0 64-model pure synthesis drum engine, 1-to-1 macro mirror & 900x560 compact layout"
+      "2a3297c fix(digistrike): repair float32 ROM baking precision, clear Card 1 header pill collision, expand OLED readout",
+      "989860c feat(digistrike): bake 160-slot authentic hardware VitalTable ROM, fix Kawai Orch Stab & open filter cutoff",
+      "f34d1a9 chore(branding): canonize Cracked Chimes vendor across full plugin fleet, purge The Cult of Klang"
     ]
   },
   "plan": {
     "has_plan": true,
     "is_idle": false,
-    "title": "PLAN: Hastur Tri-Phasic Bipolar Width & Bounded Headroom Modulation Overhaul",
-    "target": "FACTORY_FLOOR",
+    "title": "Implementation Plan: DigiStrike FS2 Stuck Notes Elimination (Role & Lineage Switching)",
+    "target": "DIGISTRIKE_FS",
     "status": "UNKNOWN",
-    "progress": "0/22",
-    "active_phase": "Phase 1 Contract & Parameter Codegen"
+    "progress": "0/13",
+    "active_phase": "Phase 1 Contract & Parameter Audit (`40ms` Gate)"
   },
   "communique": {
     "factory_dispatch": "COMPLETED",
-    "factory_receipt": "COMPLETED",
+    "factory_receipt": "COMPLETE",
     "tooling_dispatch": "COMPLETED",
     "tooling_receipt": "COMPLETED"
   },
