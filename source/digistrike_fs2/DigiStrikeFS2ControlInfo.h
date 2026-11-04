@@ -97,7 +97,7 @@ inline constexpr Control kMacroControls[8] = {
 // Col 3: START (K03) / LENGTH (K07)  - Wavetable / Sample Window Pod
 // Col 4: TIME (K04)  / MORPH (K08)   - Traversal Motion & Spectral Slice Pod
 // ==============================================================================
-inline constexpr Control kCard2Controls[8] = {
+inline constexpr Control kCard2Controls[9] = {
     // Row 1 (K01..K04)
     { "pitch_decay",   "P.DEC",   "pitch dive decay duration from snappy beater click to laser tom sweep" },
     { "click_bleed",   "CLICK",   "beater impact transient click accent and analog hardware white noise bleed" },
@@ -107,7 +107,9 @@ inline constexpr Control kCard2Controls[8] = {
     { "pitch_dive",    "PUNCH",   "quadratic transient pitch dive depth for authentic 80s drum knock" },
     { "noise_mix",     "NOISE",   "enveloped 1-pole 800Hz highpass noise mix (35% amp env + 65% pitch attack)" },
     { "sample_length", "LENGTH",  "playback window and scan span from single-cycle frame to full sample" },
-    { "table_morph",   "MORPH",   "3D wavetable timbre slice position with smoothed inter-frame morphing" }
+    { "table_morph",   "MORPH",   "3D wavetable timbre slice position with smoothed inter-frame morphing" },
+    // 2x2 Switch
+    { "loop_mode",     "LOOP",    "wavetable traversal loop mode: FWD (forward), REV (reverse loop), PPG (ping-pong), or OFF (one-shot)" }
 };
 
 // ==============================================================================

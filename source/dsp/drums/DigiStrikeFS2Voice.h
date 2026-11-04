@@ -50,6 +50,7 @@ struct DigiStrikeFS2Params {
     float noiseMix{0.0f};    // 0.0 .. 100.0 % (NOISE, Enveloped Noise Mix)
     float sampleLength{100.0f}; // 0.0 .. 100.0 % (LENGTH, 0% = single-cycle freeze)
     float tableMorph{0.0f};  // 0.0 .. 100.0 % (MORPH, 3D Spectral Slice)
+    int   loopMode{3};        // 0=FWD, 1=REV, 2=PPG, 3=OFF (Default: OFF)
 
     // Card 3 Pod 1: Stepped Random Humanization (8)
     float randX{0.0f};       // 0.0 .. 100.0 %
@@ -116,6 +117,10 @@ public:
             v.pitchEnv = 0.0f;
             v.chokeEnv = 1.0f;
             v.chokeActive = false;
+            v.loopMode = 3;
+            v.inReversePhase = false;
+            v.ppgDirection = 1;
+            v.prevTraverseRate = 1.0f;
         }
         activeVoiceCount_ = 0;
         masterFilterState_.fill(0.0f);
@@ -358,6 +363,13 @@ private:
         float chokeRate{0.05f};
 
         float zohSlewState{0.0f};
+
+        int loopMode{3};
+        bool inReversePhase{false};
+        int ppgDirection{1};
+        float prevTraverseRate{1.0f};
+        float ampDecaySeconds{1.0f};
+        float effMacroT{0.5f};
     };
 
     inline float nextFloat() noexcept {
@@ -502,6 +514,13 @@ private:
 
         v.ampEnv = 1.0f;
         v.zohSlewState = 0.0f;
+
+        v.ampDecaySeconds = ampDecaySeconds;
+        v.effMacroT = effMacroT;
+        v.loopMode = params_.loopMode;
+        v.inReversePhase = false;
+        v.ppgDirection = 1;
+        v.prevTraverseRate = params_.traverseRate;
     }
 
     void triggerMasterFilterEnv(float velocity) noexcept {
@@ -548,53 +567,118 @@ private:
             }
 
             // 3. Temporal Wavetable Frame Traversal Playhead
-            if (v.isSustaining) {
-                // Dynamically track live sampleLength with 1-pole lowpass slew
-                float liveLenNorm = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
-                float liveEnd = (liveLenNorm <= 0.02f)
-                    ? v.startFrame
-                    : std::clamp(v.startFrame + liveLenNorm * (3.0f - v.startFrame), v.startFrame + 0.1f, 3.0f);
-                v.endFrame = liveEnd;
-                if (!v.isReverse) {
-                    v.framePos += (static_cast<double>(liveEnd) - v.framePos) * 0.01;
-                    v.framePos = std::clamp(v.framePos, static_cast<double>(v.startFrame), 3.0);
+            const float liveStartNorm = std::clamp(params_.startOffset / 500.0f, 0.0f, 1.0f);
+            v.startFrame = liveStartNorm * 2.5f;
+
+            const float liveLenNorm = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
+            v.endFrame = (liveLenNorm <= 0.02f)
+                ? v.startFrame
+                : std::clamp(v.startFrame + liveLenNorm * (3.0f - v.startFrame), v.startFrame + 0.05f, 3.0f);
+            const double loopSpan = std::max(0.02, static_cast<double>(v.endFrame - v.startFrame));
+
+            const float T = params_.traverseRate;
+            const float absT = std::abs(T);
+            const bool isTimeReversed = (T < -0.01f);
+
+            // Detect live sign flip of TIME parameter:
+            if ((T < -0.01f && v.prevTraverseRate >= -0.01f) || (T > 0.01f && v.prevTraverseRate <= 0.01f)) {
+                if (v.loopMode == 2) {
+                    v.ppgDirection = -v.ppgDirection;
+                } else if (v.loopMode == 1) {
+                    v.inReversePhase = !v.inReversePhase;
                 }
-            } else if (params_.sampleLength > 2.0f) {
-                v.framePos += v.frameInc;
-            } else {
-                v.framePos = v.startFrame; // Single-cycle freeze: pure synth oscillator!
+            }
+            v.prevTraverseRate = T;
+            v.loopMode = params_.loopMode;
+
+            double stepInc = 0.0;
+            if (absT > 0.02f && params_.sampleLength > 2.0f) {
+                const float macroTMod = std::pow(2.0f, 2.0f * (v.effMacroT - 0.5f));
+                const double scanSeconds = std::max(0.001, static_cast<double>(v.ampDecaySeconds * absT * macroTMod));
+                stepInc = loopSpan / (scanSeconds * sampleRate_);
             }
 
-            // Frame bounds check & freeze during sustain (zero machine-gun looping!)
-            if (v.isReverse) {
-                if (v.framePos <= v.startFrame) {
-                    if (v.isGated && (!v.released || v.ampEnv > 0.0005f)) {
-                        v.framePos = v.startFrame; // Freeze at startFrame in reverse
-                        v.frameInc = 0.0;
-                        v.isSustaining = true;
-                    } else {
-                        v.framePos = v.startFrame;
-                        v.frameInc = 0.0;
-                        if (!v.isGated) {
-                            v.active = false;
-                            break;
-                        }
-                    }
-                }
+            if (params_.sampleLength <= 2.0f) {
+                v.framePos = v.startFrame;
+            } else if (absT <= 0.02f) {
+                v.framePos = isTimeReversed ? v.startFrame : v.endFrame;
             } else {
-                if (v.framePos >= v.endFrame) {
-                    if (v.isGated && (!v.released || v.ampEnv > 0.0005f)) {
-                        v.framePos = v.endFrame; // Freeze at endFrame: ZERO machine-gun looping!
-                        v.frameInc = 0.0;
-                        v.isSustaining = true;
-                    } else {
-                        v.framePos = v.endFrame;
-                        v.frameInc = 0.0;
-                        if (!v.isGated) {
-                            v.active = false;
-                            break;
+                switch (v.loopMode) {
+                    case 0: // FWD (Forward Looped)
+                        if (!isTimeReversed) {
+                            v.framePos += stepInc;
+                            if (v.framePos >= v.endFrame) {
+                                v.framePos = v.startFrame + std::fmod(v.framePos - v.startFrame, loopSpan);
+                            }
+                        } else {
+                            v.framePos -= stepInc;
+                            if (v.framePos <= v.startFrame) {
+                                v.framePos = v.endFrame - std::fmod(v.endFrame - v.framePos, loopSpan);
+                            }
                         }
-                    }
+                        break;
+
+                    case 1: // REV (Reverse Looped: play initial direction to end, reverse and loop in reverse)
+                        if (!isTimeReversed) {
+                            if (!v.inReversePhase) {
+                                v.framePos += stepInc;
+                                if (v.framePos >= v.endFrame) {
+                                    v.inReversePhase = true;
+                                    v.framePos = v.endFrame - (v.framePos - v.endFrame);
+                                }
+                            } else {
+                                v.framePos -= stepInc;
+                                if (v.framePos <= v.startFrame) {
+                                    v.framePos = v.endFrame - std::fmod(v.startFrame - v.framePos, loopSpan);
+                                }
+                            }
+                        } else {
+                            if (!v.inReversePhase) {
+                                v.framePos -= stepInc;
+                                if (v.framePos <= v.startFrame) {
+                                    v.inReversePhase = true;
+                                    v.framePos = v.startFrame + (v.startFrame - v.framePos);
+                                }
+                            } else {
+                                v.framePos += stepInc;
+                                if (v.framePos >= v.endFrame) {
+                                    v.framePos = v.startFrame + std::fmod(v.framePos - v.endFrame, loopSpan);
+                                }
+                            }
+                        }
+                        break;
+
+                    case 2: // PPG (Ping-Pong)
+                        {
+                            const double effectiveInc = stepInc * (isTimeReversed ? -v.ppgDirection : v.ppgDirection);
+                            v.framePos += effectiveInc;
+                            if (v.framePos >= v.endFrame) {
+                                v.framePos = v.endFrame - (v.framePos - v.endFrame);
+                                v.ppgDirection = -1;
+                            } else if (v.framePos <= v.startFrame) {
+                                v.framePos = v.startFrame + (v.startFrame - v.framePos);
+                                v.ppgDirection = 1;
+                            }
+                            v.framePos = std::clamp(v.framePos, static_cast<double>(v.startFrame), static_cast<double>(v.endFrame));
+                        }
+                        break;
+
+                    case 3: // OFF (One-shot, stuck at final frame)
+                    default:
+                        if (!isTimeReversed) {
+                            v.framePos += stepInc;
+                            if (v.framePos >= v.endFrame) {
+                                v.framePos = v.endFrame;
+                                v.isSustaining = true;
+                            }
+                        } else {
+                            v.framePos -= stepInc;
+                            if (v.framePos <= v.startFrame) {
+                                v.framePos = v.startFrame;
+                                v.isSustaining = true;
+                            }
+                        }
+                        break;
                 }
             }
 

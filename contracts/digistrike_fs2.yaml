@@ -203,6 +203,14 @@ parameters:
     default: 0.0
     unit: "%"
 
+  - id: loop_mode
+    name: Wavetable Traversal Loop Mode
+    short: LOOP
+    category: synthesis
+    type: choice
+    choices: [FWD, REV, PPG, OFF]
+    default: 3
+
   # ==============================================================================
   # SOVEREIGN LINEAGE MATRIX (20 Hardware Families)
   # ==============================================================================

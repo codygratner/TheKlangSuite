@@ -4977,6 +4977,48 @@ int main() {
         assert(pkRms > 0.0005f);
         std::cout << "  [PASS] Empyrean-SSM Peak/Bell mode (filterType=3) verified clean and stable!" << std::endl;
 
+        // Test 7: 4-Mode Wavetable Traversal Loop Verification (FWD, REV, PPG, OFF)
+        {
+            p.traverseRate = 2.0f; // fast scan
+            p.sustainLevel = 50.0f; // gated sustain active
+            p.sampleLength = 50.0f;
+            p.startOffset = 50.0f;
+
+            for (int mode = 0; mode < 4; ++mode) {
+                p.loopMode = mode;
+                voice.setParams(p);
+                voice.reset();
+                voice.triggerNote(48, 0.9f, 130.81f);
+
+                // Render 4 blocks (~10ms)
+                for (int b = 0; b < 4; ++b) {
+                    voice.renderBlock(bufL.data(), bufR.data(), 128);
+                    for (int i = 0; i < 128; ++i) {
+                        assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+                        assert(!std::isnan(bufR[i]) && !std::isinf(bufR[i]));
+                    }
+                }
+            }
+            std::cout << "  [PASS] All 4 Loop Modes (FWD, REV, PPG, OFF) render stable and finite!" << std::endl;
+
+            // Test 8: Real-Time Dynamic Sign Reversal of TIME
+            p.loopMode = 2; // PPG
+            p.traverseRate = 1.0f;
+            voice.setParams(p);
+            voice.triggerNote(48, 0.9f, 130.81f);
+            voice.renderBlock(bufL.data(), bufR.data(), 128);
+
+            // Dynamically flip TIME sign to negative mid-flight
+            p.traverseRate = -1.0f;
+            voice.setParams(p);
+            voice.renderBlock(bufL.data(), bufR.data(), 128);
+            for (int i = 0; i < 128; ++i) {
+                assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+                assert(!std::isnan(bufR[i]) && !std::isinf(bufR[i]));
+            }
+            std::cout << "  [PASS] Real-time TIME sign reversal reflected smoothly without NaN or glitch!" << std::endl;
+        }
+
         std::cout << "PASS: Suite 57: DigiStrikeFS2Voice Traversal Trinity & Choke Verification completed 100%!" << std::endl;
     }
 

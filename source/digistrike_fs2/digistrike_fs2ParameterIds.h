@@ -27,6 +27,7 @@ namespace Ids {
     constexpr auto noise_mix = "noise_mix";
     constexpr auto sample_length = "sample_length";
     constexpr auto table_morph = "table_morph";
+    constexpr auto loop_mode = "loop_mode";
     constexpr auto lin_crown = "lin_crown";
     constexpr auto lin_apex = "lin_apex";
     constexpr auto lin_empyr = "lin_empyr";
@@ -94,6 +95,7 @@ namespace Names {
     constexpr auto noise_mix = "Enveloped Noise Mix";
     constexpr auto sample_length = "Playback Window / Scan Length";
     constexpr auto table_morph = "3D Wave Morph / Tilt";
+    constexpr auto loop_mode = "Wavetable Traversal Loop Mode";
     constexpr auto lin_crown = "Lineage Crown (Linn)";
     constexpr auto lin_apex = "Lineage Apex (Oberheim)";
     constexpr auto lin_empyr = "Lineage Empyrean (E-mu/SP)";
@@ -141,6 +143,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 64;
+    constexpr int count = 65;
 } // namespace Total
 } // namespace digistrike_fs2Parameters

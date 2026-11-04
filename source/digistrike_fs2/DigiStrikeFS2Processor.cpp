@@ -31,6 +31,7 @@ DigiStrikeFS2AudioProcessor::DigiStrikeFS2AudioProcessor()
     noiseMixParam_      = apvts_.getRawParameterValue(noise_mix);
     sampleLengthParam_  = apvts_.getRawParameterValue(sample_length);
     tableMorphParam_    = apvts_.getRawParameterValue(table_morph);
+    loopModeParam_      = apvts_.getRawParameterValue(loop_mode);
 
     for (size_t i = 0; i < 20; ++i) {
         linParams_[i] = apvts_.getRawParameterValue(DigiStrikeFS2Info::kLineageParamIds[i]);
@@ -111,6 +112,7 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
     p.noiseMix      = load(noiseMixParam_, 0.0f);
     p.sampleLength  = load(sampleLengthParam_, 100.0f);
     p.tableMorph    = load(tableMorphParam_, 0.0f);
+    p.loopMode      = static_cast<int>(load(loopModeParam_, 3.0f));
 
     uint32_t mask = 0;
     for (size_t i = 0; i < 20; ++i) {

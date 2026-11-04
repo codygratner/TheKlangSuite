@@ -111,6 +111,7 @@ private:
     std::atomic<float>* noiseMixParam_{nullptr};
     std::atomic<float>* sampleLengthParam_{nullptr};
     std::atomic<float>* tableMorphParam_{nullptr};
+    std::atomic<float>* loopModeParam_{nullptr};
 
     std::array<std::atomic<float>*, 20> linParams_{};
 

@@ -61,6 +61,23 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     setupKnob(lengthKnob_,     sample_length, "LENGTH",  "%",  "sample playback window / scan span",         blueCol);
     setupKnob(morphKnob_,      table_morph,   "MORPH",   "%",  "3D wavetable slice tilt and morph",          blueCol);
 
+    // Loop Mode 2x2 Switch (FWD, REV, PPG, OFF)
+    loopModeBar_.setAccentColour(blueCol);
+    loopModeBar_.onSelect = [this, &apvts](int idx) {
+        if (auto* param = apvts.getParameter(loop_mode))
+            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
+    };
+    if (auto* param = apvts.getRawParameterValue(loop_mode))
+        loopModeBar_.setState(static_cast<int>(param->load()));
+    addAndMakeVisible(loopModeBar_);
+    registerInspector(&loopModeBar_, loop_mode, blueCol);
+
+    loopLabel_.setText("LOOP", juce::dontSendNotification);
+    loopLabel_.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+    loopLabel_.setColour(juce::Label::textColourId, juce::Colour(0xFF8B949E));
+    loopLabel_.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(loopLabel_);
+
     // Lower Tactile Button Matrix: Category & Lineage
     categoryGrid_.setAccentColour(blueCol);
     categoryGrid_.onSelect = [this, &apvts](int idx) {
@@ -87,10 +104,12 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
             param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(firstLin)));
         }
         updateInspectorForComponent(&lineageGrid_);
+        repaint();
     };
     lineageGrid_.onHover = [this](int hoveredIdx) {
         juce::ignoreUnused(hoveredIdx);
         updateInspectorForComponent(&lineageGrid_);
+        repaint();
     };
     lineageGrid_.onBudgetLimit = [this](const juce::String& msg) {
         DigiStrikeHeaderInspector::Readout r;
@@ -308,6 +327,11 @@ void DigiStrikeFS2AudioProcessorEditor::updateInspectorForComponent(juce::Compon
             const int life = std::clamp(lifeformRocker_.getState(), 0, 2);
             r.value = (life == 0 ? "SYNTHETIC" : (life == 1 ? "CYBORG" : "ORGANIC"));
             r.blurb = juce::String(DigiStrikeFS2Info::kLifeformDescriptions[life].data(), DigiStrikeFS2Info::kLifeformDescriptions[life].size());
+        } else if (binding.paramId == "loop_mode") {
+            const int mode = std::clamp(loopModeBar_.getState(), 0, 3);
+            const juce::StringArray loopNames{"FWD (FORWARD)", "REV (REVERSE LOOP)", "PPG (PING-PONG)", "OFF (ONE-SHOT)"};
+            r.value = loopNames[mode];
+            r.blurb = "wavetable frame traversal loop mode: continuous forward, reverse loop, ping-pong, or one-shot";
         }
     }
 
@@ -494,6 +518,9 @@ void DigiStrikeFS2AudioProcessorEditor::timerCallback() {
     }
     if (auto* p = apvts.getRawParameterValue("life_mode")) {
         lifeformRocker_.setState(static_cast<int>(p->load()));
+    }
+    if (auto* p = apvts.getRawParameterValue("loop_mode")) {
+        loopModeBar_.setState(static_cast<int>(p->load()));
     }
 
     auto updateProp = [](juce::Slider& s, const juce::Identifier& id, float val) {
@@ -720,6 +747,34 @@ void DigiStrikeFS2AudioProcessorEditor::paint(juce::Graphics& g) {
     const juce::Rectangle<int> kPodLineage{20, 226, 860, 76};
     drawPod(kPodLineage, 270, "SOVEREIGN LINEAGE MATRIX (20 FAMILIES)", juce::Colour(0xFF00E5FF));
 
+    // Sovereign Lineage Status Badge (Option B: N LIN · X / 64 WAVES)
+    {
+        const uint32_t linMask = lineageGrid_.getMask();
+        int activeLinCount = 0;
+        for (int i = 0; i < 20; ++i) {
+            if ((linMask & (1u << i)) != 0) ++activeLinCount;
+        }
+        const int activeWaves = std::min(64, activeLinCount * 4);
+
+        auto linBadge = juce::Rectangle<float>(716.0f, 231.0f, 154.0f, 15.0f);
+        g.setColour(juce::Colour(0xFF181C26));
+        g.fillRoundedRectangle(linBadge, 3.0f);
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawRoundedRectangle(linBadge, 3.0f, 0.8f);
+
+        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        if (linMask == 0) {
+            g.setColour(juce::Colour(0xFFFF007F));
+            g.drawText("0 LIN \xc2\xb7 0/64 [SECRET]", linBadge, juce::Justification::centred);
+        } else if (activeLinCount >= 16) {
+            g.setColour(juce::Colour(0xFFFFAA00));
+            g.drawText("16 LIN \xc2\xb7 64/64 FULL", linBadge, juce::Justification::centred);
+        } else {
+            g.setColour(juce::Colour(0xFF00E5FF));
+            g.drawText(juce::String(activeLinCount) + " LIN \xc2\xb7 " + juce::String(activeWaves) + "/64 WAVES", linBadge, juce::Justification::centred);
+        }
+    }
+
     // Card 3 + Pods
     const juce::Rectangle<int> kCard3{20, 312, 860, 232};
     const juce::Rectangle<int> kPod1{28, 320, 296, 216};
@@ -776,7 +831,7 @@ void DigiStrikeFS2AudioProcessorEditor::resized() {
     // Card 2 Header: Category Role 1x8 button strip
     categoryGrid_.setBounds(468, 48, 400, 22);
 
-    // Card 2 Knobs: Enlarged 2x4 grid (52px knobs)
+    // Card 2 Knobs: 4 columns with 76px pitch centered at cx in {496, 572, 648, 724}
     KnobItem* c2[2][4] = {
         {&pitchDecayKnob_, &clickKnob_, &startKnob_,  &timeKnob_},
         {&punchKnob_,      &noiseKnob_, &lengthKnob_, &morphKnob_}
@@ -786,9 +841,13 @@ void DigiStrikeFS2AudioProcessorEditor::resized() {
         const int labelY = (r == 0) ? 76 : 148;
         const int sliderY = labelY + 16;
         for (int c = 0; c < 4; ++c) {
-            place(*c2[r][c], colCentre(kCard2X, c, kCellPitch), labelY, kCellPitch, 52, sliderY);
+            place(*c2[r][c], 496 + c * 76, labelY, 76, 52, sliderY);
         }
     }
+
+    // Card 2 Right Bay: LOOP 2x2 Switch
+    loopLabel_.setBounds(794, 94, 52, 16);
+    loopModeBar_.setBounds(794, 114, 52, 52);
 
     // Dedicated Full-Width Pod: Sovereign Lineage 2x10 Button Matrix
     lineageGrid_.setBounds(32, 246, 836, 48);

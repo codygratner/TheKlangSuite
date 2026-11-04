@@ -259,6 +259,29 @@ private:
 // ==============================================================================
 class DigiStrikeMultiSelectBar : public juce::Component {
 public:
+    static constexpr std::array<juce::uint32, 20> kHeritageColours = {
+        0xFFFFB300, // 0: CROWN (Linn: Warm Amber LED / Walnut)
+        0xFF0088FF, // 1: APEX (Oberheim: Electric Blue Pinstripes)
+        0xFF00D2FF, // 2: EMPYR (E-mu SP: Steel Cyan / Industrial Grey)
+        0xFFE60000, // 3: FALCON (Akai MPC: Crimson Pad / Cream)
+        0xFF00D1A0, // 4: K-WRK (Kawai: 80s Synth Teal)
+        0xFFFF6B00, // 5: CMPCT (Boss: Dr. Rhythm Tangerine Orange)
+        0xFFFF8C00, // 6: TOKYO (Roland: TR-808 Acid Orange)
+        0xFFFF3B30, // 7: GOTHN (Elektron: Machinedrum Crimson Red)
+        0xFFD32F2F, // 8: CIRCU (Sequential: Prophet Dark Cherry)
+        0xFF2979FF, // 9: PHASE (Casio: Electric Cobalt Blue)
+        0xFF00E5FF, // 10: STUDI (Yamaha: DX/TX Aqua Teal)
+        0xFF00B0FF, // 11: KEIO (Korg: Sky Cyan)
+        0xFFFFD700, // 12: NIPPO (Sony: Broadcast Titanium Gold)
+        0xFF9D4EDD, // 13: ADIOS (Alesis: HR-16 Deep Violet)
+        0xFF39FF14, // 14: FAIRL (Fairlight: CMI Phosphor Green)
+        0xFFFF1744, // 15: SYNCL (Synclavier: Ruby Red LED)
+        0xFFFF7043, // 16: ENSON (Ensoniq: Vacuum Tube Orange)
+        0xFF0288D1, // 17: SIMM (Simmons: SDS Hex Blue)
+        0xFFFF5722, // 18: JOMOX (Jomox: XBase Industrial Tangerine)
+        0xFFFF007F  // 19: CURIO (Curios: Bio-Hazard Neon Pink)
+    };
+
     DigiStrikeMultiSelectBar(const std::vector<juce::String>& labels) : labels_(labels) {}
 
     void setMask(uint32_t mask) {
@@ -381,11 +404,17 @@ public:
 
             const bool isOn = (mask_ & (1u << i)) != 0;
             const bool isGreyedOut = !isOn && isBudgetFull;
+            const auto heritageCol = juce::Colour(kHeritageColours[static_cast<size_t>(i % 20)]);
 
             if (isOn) {
                 // Active button pill
                 g.setColour(accentColour_);
                 g.fillRoundedRectangle(btnRect, 3.0f);
+
+                // Authentic Heritage Pinstripe across top (full brilliance)
+                auto stripe = btnRect.reduced(1.0f, 0.0f).removeFromTop(2.5f);
+                g.setColour(heritageCol);
+                g.fillRoundedRectangle(stripe, 1.25f);
 
                 // Morph DNA Halo highlight
                 if (i == morphLin0_ || i == morphLin1_) {
@@ -400,7 +429,7 @@ public:
 
                 g.setFont(juce::Font(juce::FontOptions(9.5f).withStyle("Bold")));
                 g.setColour(juce::Colour(0xFF0D1117));
-                g.drawText(labels_[static_cast<size_t>(i)], btnRect, juce::Justification::centred);
+                g.drawText(labels_[static_cast<size_t>(i)], btnRect.withTrimmedTop(1.5f), juce::Justification::centred);
             } else if (isGreyedOut) {
                 // Greyed out / Budget locked button
                 g.setColour(juce::Colour(0xFF0F1218));
@@ -408,19 +437,28 @@ public:
                 g.setColour(juce::Colour(0xFF1F2633));
                 g.drawRoundedRectangle(btnRect.reduced(0.5f), 3.0f, 0.8f);
 
+                // Heritage Pinstripe dimmed to 20% alpha
+                auto stripe = btnRect.reduced(2.0f, 0.0f).removeFromTop(2.0f);
+                g.setColour(heritageCol.withAlpha(0.20f));
+                g.fillRoundedRectangle(stripe, 1.0f);
+
                 g.setFont(juce::Font(juce::FontOptions(9.5f)));
                 g.setColour(juce::Colour(0xFF484F58));
-                g.drawText(labels_[static_cast<size_t>(i)], btnRect, juce::Justification::centred);
+                g.drawText(labels_[static_cast<size_t>(i)], btnRect.withTrimmedTop(1.0f), juce::Justification::centred);
             } else {
-                // Normal inactive button
+                // Normal inactive button: Dark obsidian body with 70% heritage pinstripe
                 g.setColour(juce::Colour(0xFF161B22));
                 g.fillRoundedRectangle(btnRect, 3.0f);
                 g.setColour(juce::Colour(0xFF30363D));
                 g.drawRoundedRectangle(btnRect.reduced(0.5f), 3.0f, 0.8f);
 
+                auto stripe = btnRect.reduced(2.0f, 0.0f).removeFromTop(2.5f);
+                g.setColour(heritageCol.withAlpha(0.70f));
+                g.fillRoundedRectangle(stripe, 1.25f);
+
                 g.setFont(juce::Font(juce::FontOptions(9.5f).withStyle("Bold")));
                 g.setColour(juce::Colour(0xFF8B949E));
-                g.drawText(labels_[static_cast<size_t>(i)], btnRect, juce::Justification::centred);
+                g.drawText(labels_[static_cast<size_t>(i)], btnRect.withTrimmedTop(1.5f), juce::Justification::centred);
             }
         }
     }
@@ -969,6 +1007,8 @@ private:
     KnobItem noiseKnob_;
     KnobItem lengthKnob_;
     KnobItem morphKnob_;
+    DigiStrikeGrid2x2 loopModeBar_{{"FWD", "REV", "PPG", "OFF"}};
+    juce::Label loopLabel_;
 
     // Bottom Tactile Matrix (Lower Bay)
     DigiStrikeSegmentedBar categoryGrid_{{"KICK", "SNAR", "TOMS", "CLAP", "HATS", "CYMB", "PERC", "STAB"}};

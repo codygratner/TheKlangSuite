@@ -146,6 +146,11 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::table_morph, 1}, digistrike_fs2Parameters::Names::table_morph, 0.0000f, 100.0000f, 0.0000f));
 
+    // loop_mode [synthesis]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{digistrike_fs2Parameters::Ids::loop_mode, 1}, digistrike_fs2Parameters::Names::loop_mode,
+        juce::StringArray{"FWD", "REV", "PPG", "False"}, 3));
+
     // lin_crown [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::lin_crown, 1}, digistrike_fs2Parameters::Names::lin_crown, false));
