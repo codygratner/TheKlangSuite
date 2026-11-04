@@ -100,7 +100,7 @@ inline constexpr std::array<VoiceDescriptor, 64> kHeroVoiceMap = {{
     { 57, "Apex Digital Growl",    7, 2,  55.0f, 33.0f, true  },
     { 58, "Empyrean Rave Stab C3", 7, 3, 130.8f, 48.0f, true  },
     { 59, "Falcon Orch Hit C4",    7, 4, 261.6f, 60.0f, true  },
-    { 60, "K-Works Slap Funk A1",  7, 5,  55.0f, 33.0f, true  },
+    { 60, "K-Works Orch Stab C3",  7, 5, 130.8f, 48.0f, true  },
     { 61, "Tokyo Techno Chord F3", 7, 6, 174.6f, 53.0f, true  },
     { 62, "Gothenburg Reso Bass",  7, 7,  65.4f, 36.0f, true  },
     { 63, "Nippon FM Slap Bass",   7, 8,  49.0f, 31.0f, true  }

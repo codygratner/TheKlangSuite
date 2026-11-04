@@ -57,12 +57,12 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // category [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::category, 1}, digistrike_fs2Parameters::Names::category,
-        juce::StringArray{"KICK", "SNAR", "TOMS", "CLAP", "HATS", "CYMB", "PERC", "STAB"}, 0));
+        juce::StringArray{"KICK", "SNAR", "TOMS", "CLAP", "HATS", "CYMB", "PERC", "STAB"}, 7));
 
     // lineage [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::lineage, 1}, digistrike_fs2Parameters::Names::lineage,
-        juce::StringArray{"CROWN", "APEX", "EMPYR", "FALCON", "K-WRK", "COMPACT", "TOKYO", "GOTHN", "CIRCUITS", "PHASE", "STUDIO", "KEIO", "NIPPON", "ADIOS", "FAIRL", "SYNCL", "ENSON", "SIMM", "JOMOX", "CURIOS"}, 0));
+        juce::StringArray{"CROWN", "APEX", "EMPYR", "FALCON", "K-WRK", "COMPACT", "TOKYO", "GOTHN", "CIRCUITS", "PHASE", "STUDIO", "KEIO", "NIPPON", "ADIOS", "FAIRL", "SYNCL", "ENSON", "SIMM", "JOMOX", "CURIOS"}, 4));
 
     // voice_mode [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -148,7 +148,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // lin_crown [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_crown, 1}, digistrike_fs2Parameters::Names::lin_crown, true));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_crown, 1}, digistrike_fs2Parameters::Names::lin_crown, false));
 
     // lin_apex [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
@@ -164,7 +164,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // lin_kwrk [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_kwrk, 1}, digistrike_fs2Parameters::Names::lin_kwrk, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_kwrk, 1}, digistrike_fs2Parameters::Names::lin_kwrk, true));
 
     // lin_compact [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(

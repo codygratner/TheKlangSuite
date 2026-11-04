@@ -72,22 +72,15 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     addAndMakeVisible(categoryGrid_);
     registerInspector(&categoryGrid_, category, blueCol);
 
-    const char* linIds[20] = {
-        lin_crown, lin_apex, lin_empyr, lin_falcon, lin_kwrk,
-        lin_compact, lin_tokyo, lin_gothn, lin_circuits, lin_phase,
-        lin_studio, lin_keio, lin_nippon, lin_adios, lin_fairlight,
-        lin_synclavier, lin_ensoniq, lin_simmons, lin_jomox, lin_curios
-    };
-
     lineageGrid_.setAccentColour(blueCol);
-    lineageGrid_.onMaskChange = [this, &apvts, linIds](uint32_t newMask) {
-        for (int i = 0; i < 20; ++i) {
-            if (auto* param = apvts.getParameter(linIds[i]))
+    lineageGrid_.onMaskChange = [this, &apvts](uint32_t newMask) {
+        for (size_t i = 0; i < 20; ++i) {
+            if (auto* param = apvts.getParameter(DigiStrikeFS2Info::kLineageParamIds[i]))
                 param->setValueNotifyingHost(((newMask & (1u << i)) != 0) ? 1.0f : 0.0f);
         }
 
         if (auto* param = apvts.getParameter(lineage)) {
-            int firstLin = 0;
+            int firstLin = 4; // Default K-Works
             for (int i = 0; i < 20; ++i) {
                 if ((newMask & (1u << i)) != 0) { firstLin = i; break; }
             }
@@ -109,11 +102,11 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     };
 
     uint32_t initMask = 0;
-    for (int i = 0; i < 20; ++i) {
-        if (auto* paramVal = apvts.getRawParameterValue(linIds[i])) {
+    for (size_t i = 0; i < 20; ++i) {
+        if (auto* paramVal = apvts.getRawParameterValue(DigiStrikeFS2Info::kLineageParamIds[i])) {
             if (paramVal->load() > 0.5f) initMask |= (1u << i);
-        } else if (i == 0) {
-            initMask |= 1u;
+        } else if (i == 4) {
+            initMask |= (1u << 4); // Default K-Works (Kawai)
         }
     }
     lineageGrid_.setMask(initMask);
@@ -479,20 +472,12 @@ void DigiStrikeFS2AudioProcessorEditor::timerCallback() {
     if (auto* p = apvts.getRawParameterValue("category")) {
         categoryGrid_.setState(static_cast<int>(p->load()));
     }
-    uint8_t curMask = 0;
-    auto checkBool = [&](const char* id, int bit) {
-        if (auto* p = apvts.getRawParameterValue(id)) {
-            if (p->load() > 0.5f) curMask |= (1 << bit);
+    uint32_t curMask = 0;
+    for (size_t i = 0; i < 20; ++i) {
+        if (auto* p = apvts.getRawParameterValue(DigiStrikeFS2Info::kLineageParamIds[i])) {
+            if (p->load(std::memory_order_relaxed) > 0.5f) curMask |= (1u << i);
         }
-    };
-    checkBool(lin_crown,  0);
-    checkBool(lin_apex,   1);
-    checkBool(lin_empyr,  2);
-    checkBool(lin_falcon, 3);
-    checkBool(lin_kwrk,   4);
-    checkBool(lin_tokyo,  5);
-    checkBool(lin_gothn,  6);
-    checkBool(lin_nippon, 7);
+    }
     lineageGrid_.setMask(curMask);
 
     int catIdx = 0;

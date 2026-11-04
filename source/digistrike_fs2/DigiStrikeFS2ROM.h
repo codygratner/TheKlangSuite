@@ -246,12 +246,24 @@ private:
                                     // Slap transient snap on Frame 0
                                     const double slapSnap = (1.0 - tNorm) * (std::sin(ph * 8.0) * 0.4 + noise * 0.3);
 
-                                    if (lin == 0 || lin == 4) { // CROWN / K-WORKS: Slap Bass
+                                    if (lin == 0) { // CROWN: Marcus Miller Slap Bass
                                         val = fund * (0.75 + 0.25 * sustainWeight)
                                             + h2 * (0.35 + 0.15 * punchWeight)
                                             + h3 * (0.25 * punchWeight)
                                             + h4 * (0.15 * attackWeight)
                                             + slapSnap * attackWeight;
+                                    } else if (lin == 4) { // K-WORKS: Kawai R-50e / XD-5 Orchestra Hit / Stab
+                                        // Iconic 12-Bit multi-timbral tutti chord stack (Root + 5th + Octave + 10th + 4th harmonic)
+                                        const double fifth = std::sin(ph * 1.5);
+                                        const double oct = std::sin(ph * 2.0);
+                                        const double tenth = (morphFactor < 0.5) ? std::sin(ph * 2.4) : std::sin(ph * 2.5); // Minor/Major 10th
+                                        const double oct2 = std::sin(ph * 4.0);
+                                        const double brassSaw = (std::sin(ph) + 0.5 * std::sin(2.0 * ph) + 0.25 * std::sin(3.0 * ph)) * 0.4;
+                                        
+                                        // Dynamic orchestral punch and attack burst
+                                        const double orchHit = (fund * 0.40 + fifth * 0.30 + oct * 0.25 + tenth * 0.20 + oct2 * 0.15 + brassSaw);
+                                        const double orchTransient = slapSnap * 1.25 * attackWeight;
+                                        val = orchHit * (0.65 + 0.35 * punchWeight) + orchTransient;
                                     } else if (lin == 1) { // APEX: 8-Bit PWM Growl
                                         const double pwmDuty = 0.5 + 0.3 * std::sin(morphFactor * 3.14);
                                         const double pulse = (ph / twoPi < pwmDuty) ? 0.7 : -0.7;

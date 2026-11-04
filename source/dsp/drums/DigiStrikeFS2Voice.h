@@ -25,9 +25,9 @@ namespace FastMath = TbdAudio::FastMath;
 
 struct DigiStrikeFS2Params {
     // Header Controls (4)
-    int category{0};         // 0=KICK, 1=SNAR, 2=TOMS, 3=CLAP, 4=HATS, 5=CYMB, 6=PERC, 7=STAB
-    int lineage{0};          // 0=CROWN .. 19=CURIOS
-    uint32_t lineageMask{0x00000001}; // 20-bit multi-select mask (bit 0=CROWN .. bit 19=CURIOS)
+    int category{7};         // 0=KICK, 1=SNAR, 2=TOMS, 3=CLAP, 4=HATS, 5=CYMB, 6=PERC, 7=STAB (Default: STAB)
+    int lineage{4};          // 0=CROWN .. 19=CURIOS (Default: 4=K-WRK Kawai)
+    uint32_t lineageMask{0x00000010}; // 20-bit multi-select mask (bit 4=K-WRK Kawai default)
     int voiceMode{0};        // 0=MONO, 1=GLIDE, 2=POLY
     int lifeMode{2};         // 0=Synthetic, 1=Cyborg, 2=Organic
 

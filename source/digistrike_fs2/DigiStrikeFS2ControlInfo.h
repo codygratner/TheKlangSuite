@@ -57,6 +57,13 @@ inline constexpr std::string_view kLineageDescriptions[21] = {
     "Curio Fleet: Bizarre custom EPROMs, modified romplers, and circuit-bent classics"
 };
 
+inline constexpr std::array<const char*, 20> kLineageParamIds = {
+    "lin_crown", "lin_apex", "lin_empyr", "lin_falcon", "lin_kwrk",
+    "lin_compact", "lin_tokyo", "lin_gothn", "lin_circuits", "lin_phase",
+    "lin_studio", "lin_keio", "lin_nippon", "lin_adios", "lin_fairlight",
+    "lin_synclavier", "lin_ensoniq", "lin_simmons", "lin_jomox", "lin_curios"
+};
+
 inline constexpr std::string_view kVoiceModeDescriptions[3] = {
     "Mono Retrig: classic drum choke with 2ms anti-pop crossfade on re-trigger",
     "Mono Glide: legato bass mode with log-pitch exponential portamento glide",

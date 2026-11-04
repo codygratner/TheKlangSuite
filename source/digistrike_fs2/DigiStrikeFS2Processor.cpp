@@ -32,14 +32,8 @@ DigiStrikeFS2AudioProcessor::DigiStrikeFS2AudioProcessor()
     sampleLengthParam_  = apvts_.getRawParameterValue(sample_length);
     tableMorphParam_    = apvts_.getRawParameterValue(table_morph);
 
-    const char* linIds[20] = {
-        lin_crown, lin_apex, lin_empyr, lin_falcon, lin_kwrk,
-        lin_compact, lin_tokyo, lin_gothn, lin_circuits, lin_phase,
-        lin_studio, lin_keio, lin_nippon, lin_adios, lin_fairlight,
-        lin_synclavier, lin_ensoniq, lin_simmons, lin_jomox, lin_curios
-    };
     for (size_t i = 0; i < 20; ++i) {
-        linParams_[i] = apvts_.getRawParameterValue(linIds[i]);
+        linParams_[i] = apvts_.getRawParameterValue(DigiStrikeFS2Info::kLineageParamIds[i]);
     }
 
     randXParam_         = apvts_.getRawParameterValue(rand_x);

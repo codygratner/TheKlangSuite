@@ -437,9 +437,19 @@ public:
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
-        int col = std::clamp(static_cast<int>((e.position.x - bounds.getX()) / (btnW + gapX)), 0, cols - 1);
-        int row = std::clamp(static_cast<int>((e.position.y - bounds.getY()) / (btnH + gapY)), 0, rows - 1);
-        int clickedIdx = row * cols + col;
+        int clickedIdx = -1;
+        for (int i = 0; i < totalButtons; ++i) {
+            const int r = i / cols;
+            const int c = i % cols;
+            const auto btnRect = juce::Rectangle<float>(
+                bounds.getX() + static_cast<float>(c) * (btnW + gapX),
+                bounds.getY() + static_cast<float>(r) * (btnH + gapY),
+                btnW, btnH);
+            if (btnRect.contains(e.position)) {
+                clickedIdx = i;
+                break;
+            }
+        }
         if (clickedIdx < 0 || clickedIdx >= totalButtons) return;
 
         int activeLineageCount = 0;
@@ -448,13 +458,13 @@ public:
         }
 
         if (e.getNumberOfClicks() >= 2) {
-            // Double-Click: Reset to default Crown (Linn)
-            mask_ = 0x00000001;
+            // Double-Click: Reset to default K-Works (Kawai)
+            mask_ = 0x00000010;
         } else if (e.mods.isPopupMenu() || e.mods.isAltDown()) {
-            // Solo clicked lineage (or reset to Crown if already soloed)
+            // Solo clicked lineage (or reset to K-Works if already soloed)
             uint32_t soloMask = (1u << clickedIdx);
             if (mask_ == soloMask) {
-                mask_ = 0x00000001; // Back to Crown
+                mask_ = 0x00000010; // Back to K-Works
             } else {
                 mask_ = soloMask;
             }
@@ -492,11 +502,21 @@ public:
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
-        int col = std::clamp(static_cast<int>((e.position.x - bounds.getX()) / (btnW + gapX)), 0, cols - 1);
-        int row = std::clamp(static_cast<int>((e.position.y - bounds.getY()) / (btnH + gapY)), 0, rows - 1);
-        int idx = row * cols + col;
-        if (idx != hoveredIdx_) {
-            hoveredIdx_ = idx;
+        int foundIdx = -1;
+        for (int i = 0; i < totalButtons; ++i) {
+            const int r = i / cols;
+            const int c = i % cols;
+            const auto btnRect = juce::Rectangle<float>(
+                bounds.getX() + static_cast<float>(c) * (btnW + gapX),
+                bounds.getY() + static_cast<float>(r) * (btnH + gapY),
+                btnW, btnH);
+            if (btnRect.contains(e.position)) {
+                foundIdx = i;
+                break;
+            }
+        }
+        if (foundIdx != hoveredIdx_) {
+            hoveredIdx_ = foundIdx;
             if (onHover) onHover(hoveredIdx_);
         }
     }
@@ -510,7 +530,7 @@ public:
 
 private:
     std::vector<juce::String> labels_;
-    uint32_t mask_{0x00000001};
+    uint32_t mask_{0x00000010};
     juce::Colour accentColour_{0xFF00C8FF};
 
     int morphLin0_{-1};
