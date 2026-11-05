@@ -152,11 +152,15 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     voice_.setRole(p.role);
     voice_.setModel(p.model);
 
-    // 2. Check Lock-Free Manual Trigger Mailbox (Resolving B1)
-    const float manualVel = manualTriggerVel_.exchange(0.0f, std::memory_order_acquire);
-    if (manualVel > 0.001f) {
-        voice_.trigger(manualVel, -1.0f, p);
-        publishTelemetry(manualVel, 60);
+    // 2. Check Lock-Free Manual Trigger Mailbox
+    if (manualTriggerPending_.exchange(false, std::memory_order_acq_rel)) {
+        const float manVel = manualTriggerVel_.exchange(-1.0f, std::memory_order_acq_rel);
+        const int manNote = manualTriggerNote_.exchange(-1, std::memory_order_acq_rel);
+        const int n = (manNote >= 0) ? manNote : lastMidiNote_.load(std::memory_order_relaxed);
+        const float v = (manVel > 0.001f) ? manVel : lastMidiVelocity_.load(std::memory_order_relaxed);
+        const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(n));
+        voice_.trigger(v, noteHz, p);
+        publishTelemetry(v, n);
     }
 
     // 3. Process MIDI Note Events
@@ -166,6 +170,8 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             const int note = msg.getNoteNumber();
             const float vel = msg.getFloatVelocity();
             const float noteHz = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(note));
+            lastMidiNote_.store(note, std::memory_order_relaxed);
+            lastMidiVelocity_.store(vel, std::memory_order_relaxed);
             voice_.trigger(vel, noteHz, p);
             publishTelemetry(vel, note);
         }

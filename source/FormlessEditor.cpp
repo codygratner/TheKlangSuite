@@ -128,7 +128,10 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     macroDecayKnob_.slider.setDoubleClickReturnValue(true, 0.5);
 
     trigButton_.onTrigger = [this]() {
-        processor_.triggerManual(0.95f);
+        processor_.triggerManual(-1, -1.0f);
+    };
+    trigButton_.onRightTrigger = [this]() {
+        processor_.triggerManual(60, 0.95f);
     };
     addAndMakeVisible(trigButton_);
 
@@ -263,7 +266,25 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
             return "+" + juce::String(juce::roundToInt(val * 100.0)) + "%";
         }
         if (name == "WIDER") {
-            return juce::String(juce::roundToInt(val * 100.0)) + "%";
+            if (std::abs(val) < 0.01) return "OFF";
+            const int pct = static_cast<int>(std::round(std::abs(val) * 100.0));
+            return (val > 0.0) ? ("+" + juce::String(pct) + "%") : ("-" + juce::String(pct) + "%");
+        }
+        if (name == "PAN") {
+            const int p = juce::roundToInt(val * 100.0);
+            if (p == 0) return "C";
+            if (p < 0) return juce::String(-p) + "% L";
+            return juce::String(p) + "% R";
+        }
+        if (name == "DECAY-CRV") {
+            if (std::abs(val) < 0.01) return "LIN 0.00";
+            if (val < 0.0) return "EXP " + juce::String(val, 2);
+            return "LOG +" + juce::String(val, 2);
+        }
+        if (name.startsWith("MACRO") || name.startsWith("VEL-")) {
+            const float normVal = static_cast<float>(val);
+            const float bipPercent = (normVal - 0.5f) * 200.0f;
+            return (bipPercent > 0.0f ? "+" : "") + juce::String(juce::roundToInt(bipPercent)) + "%";
         }
         if (unit == "Hz") {
             if (val >= 1000.0) return juce::String(val * 0.001, 1) + " kHz";
@@ -687,6 +708,28 @@ void FormlessSpawnAudioProcessorEditor::timerCallback() {
     } else {
         clearProp(ampDecayKnob_.slider);
     }
+
+    // 3. Card 3: Cutoff Filter Envelope Arc Halo (Electric Cyan Inner Arc)
+    auto& cutSlider = cutoffKnob_.slider;
+    const float feAmt = static_cast<float>(filterEnvAmtKnob_.slider.getValue());
+    const double curCutoffHz = cutSlider.getValue();
+    const float normBase = static_cast<float>(cutSlider.valueToProportionOfLength(curCutoffHz));
+
+    tkdsp::formless::HaloRange cutHalo;
+    if (std::abs(feAmt) > 0.005f) {
+        // Dynamic Filter Envelope throw (+/-5.0 Octaves at full velocity 1.0)
+        const float peakOctaves = std::clamp(feAmt * 5.0f, -6.0f, 6.0f);
+        const double peakCutoffHz = std::clamp(curCutoffHz * std::pow(2.0, static_cast<double>(peakOctaves)), 20.0, 20000.0);
+        const float normPeak = static_cast<float>(cutSlider.valueToProportionOfLength(peakCutoffHz));
+
+        cutHalo.lo = std::min(normBase, normPeak);
+        cutHalo.hi = std::max(normBase, normPeak);
+        cutHalo.pip = normPeak;
+        cutHalo.active = (cutHalo.hi - cutHalo.lo > 0.002f);
+    } else {
+        cutHalo.active = false;
+    }
+    updateModProp(cutSlider, cutHalo);
 }
 
 void FormlessSpawnAudioProcessorEditor::updateRoleParamLabels(int roleIdx) {

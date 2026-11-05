@@ -37,8 +37,10 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     tkdsp::FormlessSpawnVoice& getVoice() { return voice_; }
 
-    void triggerManual(float velocity = 0.95f) noexcept {
+    void triggerManual(int noteNumber = -1, float velocity = -1.0f) noexcept {
+        manualTriggerNote_.store(noteNumber, std::memory_order_release);
         manualTriggerVel_.store(velocity, std::memory_order_release);
+        manualTriggerPending_.store(true, std::memory_order_release);
     }
 
     struct TelemetrySnapshot {
@@ -92,7 +94,11 @@ private:
     std::atomic<float>* paramGParam_{nullptr};
     std::atomic<float>* paramHParam_{nullptr};
 
-    std::atomic<float> manualTriggerVel_{0.0f};
+    std::atomic<int> lastMidiNote_{60};
+    std::atomic<float> lastMidiVelocity_{0.95f};
+    std::atomic<int> manualTriggerNote_{-1};
+    std::atomic<float> manualTriggerVel_{-1.0f};
+    std::atomic<bool> manualTriggerPending_{false};
     std::array<std::atomic<float>, 8> latchedDraw_{};
 
     std::atomic<float>* randXParam_{nullptr};

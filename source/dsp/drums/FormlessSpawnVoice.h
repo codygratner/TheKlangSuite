@@ -296,6 +296,7 @@ public:
         crushedSample_ = 0.0f;
 
         rngState_ = 0xDEADBEEF;
+        panPhase_ = 0.0f;
         blockCounter_ = 0;
         macroSmoothed_ = 0.5f;
 
@@ -347,6 +348,12 @@ public:
 
         for (int i = 0; i < 8; ++i) {
             latchedDraw_[i] = nextTrig01();
+        }
+
+        // Golden-ratio quasi-Monte Carlo stratification for random pan (prevents stereo clumping)
+        panPhase_ = std::fmod(panPhase_ + 0.6180339887f, 1.0f);
+        if (d[6] > 0.0001f) {
+            latchedDraw_[6] = panPhase_;
         }
 
         // 3. Ping-Pong Voice Allocation (1.5ms Linear Slew De-Click)
@@ -476,6 +483,8 @@ private:
         float wireBloomEnv{0.0f};
         std::array<float, 8> randVal{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
         std::array<float, 8> randAmt{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+        float panL{0.7071f};
+        float panR{0.7071f};
         float thumpPhase{0.0f};
         float thumpEnv{0.0f};
         uint32_t exciterRng{0xCAFEBABE};
@@ -533,6 +542,12 @@ private:
 
         // Dynamic Velocity Routing (aggrDrive)
         slot.aggrDrive = std::clamp(1.0f + (velForce - 0.5f) * effAggr * 1.2f, 0.25f, 2.2f);
+
+        // Equal-Power Sinusoidal Pan Law (L^2 + R^2 == 1.0) with Stepped Randomization
+        const float effPan = std::clamp(p.pan + (slot.randVal[6] - 0.5f) * 2.0f * slot.randAmt[6], -1.0f, 1.0f);
+        const float initAngle = (effPan + 1.0f) * 0.25f * 3.14159265358979323846f;
+        slot.panL = std::cos(initAngle);
+        slot.panR = std::sin(initAngle);
 
         // Role-Masked Pitch Sweep & Transient Snap (Knob C isolation)
         switch (slot.role) {
@@ -1585,9 +1600,14 @@ private:
 
         const float masterOut = FastMath::fastTanh(filtered * 0.95f);
 
-        const float effPan = CrackedChimes::DSP::stepRandomRange(p.pan, -1.0f, 1.0f, active.randAmt[6], active.randVal[6]);
-        const float gainL = (effPan <= 0.0f) ? 1.0f : (1.0f - effPan);
-        const float gainR = (effPan >= 0.0f) ? 1.0f : (1.0f + effPan);
+        // Equal-Power Sinusoidal Panning with Smooth De-Click Crossfade Interpolation
+        float gainL = active.panL;
+        float gainR = active.panR;
+        if (fadeRemaining_ > 0) {
+            const float fadeFrac = static_cast<float>(fadeRemaining_) / static_cast<float>(fadeTotal_);
+            gainL = (1.0f - fadeFrac) * active.panL + fadeFrac * fading.panL;
+            gainR = (1.0f - fadeFrac) * active.panR + fadeFrac * fading.panR;
+        }
 
         float stL = masterOut * gainL;
         float stR = masterOut * gainR;
@@ -1696,6 +1716,7 @@ private:
 
     uint32_t rngState_{0xDEADBEEF};
     uint32_t trigRng_{0x853C49E6};
+    float panPhase_{0.0f};
     std::array<float, 8> latchedDraw_{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 
     int blockCounter_{0};

@@ -73,7 +73,7 @@ public:
         Readout d;
         d.name = "FORMLESS SPAWN";
         d.value = "READY";
-        d.blurb = "sovereign 112-model percussion synthesizer";
+        d.blurb = "sovereign 64-model percussion synthesizer (8 roles x 8 models)";
         d.accent = juce::Colour(0xFFFFAA00);
         d.isDefault = true;
         setReadout(d);
@@ -515,15 +515,16 @@ public:
     TactileTriggerPad() = default;
 
     std::function<void()> onTrigger;
+    std::function<void()> onRightTrigger;
 
     void paint(juce::Graphics& g) override {
         auto bounds = getLocalBounds().toFloat();
         if (isDown_) {
-            g.setColour(juce::Colour(0xFFFFAA00)); // Gold flash on strike
+            g.setColour(isRightClick_ ? juce::Colour(0xFF00E676) : juce::Colour(0xFFFFAA00));
             g.fillRoundedRectangle(bounds, 5.0f);
             g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
             g.setColour(juce::Colour(0xFF0D1117));
-            g.drawText("TRIG", bounds, juce::Justification::centred);
+            g.drawText(isRightClick_ ? "C3" : "TRIG", bounds, juce::Justification::centred);
         } else {
             g.setColour(juce::Colour(0xFF21262D));
             g.fillRoundedRectangle(bounds, 5.0f);
@@ -535,19 +536,34 @@ public:
         }
     }
 
-    void mouseDown(const juce::MouseEvent&) override {
+    void mouseDown(const juce::MouseEvent& e) override {
         isDown_ = true;
+        isRightClick_ = e.mods.isRightButtonDown();
         repaint();
-        if (onTrigger) onTrigger();
+        if (isRightClick_) {
+            if (onRightTrigger) onRightTrigger();
+        } else {
+            if (onTrigger) onTrigger();
+        }
     }
 
     void mouseUp(const juce::MouseEvent&) override {
         isDown_ = false;
+        isRightClick_ = false;
         repaint();
+    }
+
+    void mouseExit(const juce::MouseEvent&) override {
+        if (isDown_) {
+            isDown_ = false;
+            isRightClick_ = false;
+            repaint();
+        }
     }
 
 private:
     bool isDown_{false};
+    bool isRightClick_{false};
 };
 
 // ==============================================================================
