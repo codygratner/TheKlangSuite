@@ -6060,7 +6060,78 @@ int main() {
         std::cout << "PASS: Suite 68: Formless Spawn Equal-Power Panning & Golden-Ratio Dispersion completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 68 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+
+    // =========================================================================
+    // SUITE 69: DigiStrike FS2 Polyphonic Ping-Pong Loop Decoupling & Lifeform Scaling
+    // =========================================================================
+    {
+        std::cout << "\nStarting Suite 69: DigiStrike FS2 Poly Loop Decoupling & Lifeform Verification..." << std::endl;
+        tkdsp::DigiStrikeFS2Voice voice;
+        voice.prepare(48000.0f);
+
+        // Test 1: Poly Chord (C-4 + C-5) Golden-Ratio Loop Span Stratification
+        tkdsp::DigiStrikeFS2Params p;
+        p.voiceMode = 2; // POLY (8-voice)
+        p.category = 9;  // ST (Stabs / Fairlight)
+        p.lineage = 14;  // FAIRLIGHT
+        p.loopMode = 3;  // PING (Ping-Pong)
+        p.traverseRate = 2.0f;
+        p.sampleLength = 88.0f;
+        p.startOffset = 0.0f;
+        p.randX = 25.0f; // R-X on Length & Start
+        p.randT = 50.0f; // R-T on Time
+        p.lifeMode = 1;  // Cyborg
+
+        voice.setParams(p);
+        voice.triggerNote(60, 0.90f, 261.63f); // C4 -> Slot 0
+        voice.triggerNote(72, 0.90f, 523.25f); // C5 -> Slot 1
+
+        assert(voice.getActiveVoiceCount() == 2);
+
+        const float spanMult0 = voice.getVoiceLoopSpanMult(0);
+        const float spanMult1 = voice.getVoiceLoopSpanMult(1);
+        std::cout << "  [PASS] Voice 0 SpanMult=" << spanMult0 << ", Voice 1 SpanMult=" << spanMult1 << std::endl;
+        assert(std::abs(spanMult0 - spanMult1) > 0.10f); // Unlinked loop spans!
+
+        // Test 2: Layer 3 Lifeform Traversal Scaling (Cyborg vs Synthetic)
+        const float travScaleC4 = voice.getVoiceTravPitchScale(0);
+        const float travScaleC5 = voice.getVoiceTravPitchScale(1);
+        std::cout << "  [PASS] Cyborg Traversal Scale: C4=" << travScaleC4 << ", C5=" << travScaleC5 << std::endl;
+        assert(std::abs(travScaleC4 - 1.0f) < 0.05f);
+        assert(travScaleC5 > 1.10f); // C5 higher pitch traverses faster in Cyborg mode
+
+        // Synthetic mode: strictly 1.0f (pure time-stretch decoupled)
+        voice.reset();
+        p.lifeMode = 0; // Synthetic
+        voice.setParams(p);
+        voice.triggerNote(60, 0.90f, 261.63f);
+        voice.triggerNote(72, 0.90f, 523.25f);
+        assert(std::abs(voice.getVoiceTravPitchScale(0) - 1.0f) < 1e-4f);
+        assert(std::abs(voice.getVoiceTravPitchScale(1) - 1.0f) < 1e-4f);
+        std::cout << "  [PASS] Synthetic mode strictly preserves 1.0 pitch-decoupled traversal scale" << std::endl;
+
+        // Test 3: MONO / GLIDE Mode preserves deterministic loop span (mult = 1.0)
+        voice.reset();
+        p.voiceMode = 0; // MONO
+        voice.setParams(p);
+        voice.triggerNote(60, 0.90f, 261.63f);
+        assert(std::abs(voice.getVoiceLoopSpanMult(0) - 1.0f) < 1e-4f);
+        std::cout << "  [PASS] Mono mode preserves deterministic 1.0 loop span multiplier" << std::endl;
+
+        // Test 4: Ping-Pong Audio Buffer Render Stability
+        std::vector<float> bufL(512, 0.0f), bufR(512, 0.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 512);
+        for (int i = 0; i < 512; ++i) {
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+            assert(!std::isnan(bufR[i]) && !std::isinf(bufR[i]));
+        }
+        std::cout << "  [PASS] Ping-Pong traversal audio block rendered cleanly without NaN or Inf" << std::endl;
+
+        std::cout << "PASS: Suite 69: DigiStrike FS2 Poly Loop Decoupling completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 69 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
+
 

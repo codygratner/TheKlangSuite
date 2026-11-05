@@ -125,6 +125,12 @@ public:
     [[nodiscard]] float getVoicePanR(size_t slot) const noexcept {
         return (slot < voices_.size()) ? voices_[slot].panR : 0.7071f;
     }
+    [[nodiscard]] float getVoiceLoopSpanMult(size_t slot) const noexcept {
+        return (slot < voices_.size()) ? voices_[slot].loopSpanMult : 1.0f;
+    }
+    [[nodiscard]] float getVoiceTravPitchScale(size_t slot) const noexcept {
+        return (slot < voices_.size()) ? voices_[slot].travPitchScale : 1.0f;
+    }
 
     void reset() noexcept {
         for (auto& v : voices_) {
@@ -148,6 +154,9 @@ public:
             v.lpgState = 0.0f;
             v.isFadingOut = false;
             v.fadeOutEnv = 1.0f;
+            v.loopSpanMult = 1.0f;
+            v.randLen = 0.0f;
+            v.travPitchScale = 1.0f;
         }
         activeVoiceCount_ = 0;
         masterFilterState_.fill(0.0f);
@@ -169,6 +178,7 @@ public:
         crushedSampleL_ = 0.0f;
         crushedSampleR_ = 0.0f;
         panPhase_ = 0.0f;
+        loopPhase_ = 0.0f;
     }
 
     [[nodiscard]] int getActiveVoiceCount() const noexcept { return activeVoiceCount_; }
@@ -441,6 +451,9 @@ private:
         float panR{0.7071f};
         float targetPanL{0.7071f};
         float targetPanR{0.7071f};
+        float loopSpanMult{1.0f};
+        float randLen{0.0f};
+        float travPitchScale{1.0f};
     };
 
     inline float nextFloat() noexcept {
@@ -506,7 +519,18 @@ private:
                 // Golden-ratio quasi-Monte Carlo stratification for Poly chords (prevents stereo clumping)
                 panPhase_ = std::fmod(panPhase_ + 0.6180339887f, 1.0f);
                 v.randVal[6] = panPhase_;
+
+                // Layer 1: Golden-ratio loop span stratification for Poly chords (prevents ping-pong lockstep)
+                loopPhase_ = std::fmod(loopPhase_ + 0.6180339887f, 1.0f);
+                const float loopSpread = (loopPhase_ - 0.5f) * 2.0f; // [-1.0, 1.0]
+                const float jitterDepth = 0.15f + 0.15f * (params_.randT * 0.01f);
+                v.loopSpanMult = 1.0f + jitterDepth * loopSpread;
+            } else {
+                v.loopSpanMult = 1.0f;
             }
+            // Layer 2: Dedicated independent random draw for LENGTH (breaks headroom cancellation with START)
+            v.randLen = (nextFloat() - 0.5f) * 2.0f;
+
             for (size_t i = 0; i < 8; ++i) {
                 v.randBip[i] = (v.randVal[i] - 0.5f) * 2.0f;
             }
@@ -578,7 +602,10 @@ private:
         v.tStartSm = static_cast<float>(startSec);
 
         const float normLen = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
-        const float effLenNorm = tkdsp::formless::headroomLerp(normLen, effX, 0.75f);
+        const float effLenNormBase = tkdsp::formless::headroomLerp(normLen, effX, 0.75f);
+        // Layer 2: Break headroom cancellation with independent LENGTH S&H throw proportional to randX
+        const float lenRandThrow = v.randLen * (params_.randX * 0.01f) * 0.35f;
+        const float effLenNorm = std::clamp(effLenNormBase + lenRandThrow, 0.02f, 1.0f);
         if (effLenNorm <= 0.02f) {
             v.tEndSec = v.tStartSec; // single-cycle freeze mode
             v.tEndSm = static_cast<float>(v.tStartSec);
@@ -617,6 +644,23 @@ private:
         v.rootHz = 440.0f * FastMath::fastPow2((static_cast<float>(rootMidi) - 69.0f) * (1.0f / 12.0f));
         float semitones = static_cast<float>(noteNumber - rootMidi);
         v.staticPitchRatio = FastMath::fastPow2(std::clamp(semitones, -24.0f, 24.0f) * (1.0f / 12.0f));
+
+        // Layer 3: Vintage Lifeform Key-Tracked Traversal Scaling
+        // In Cyborg (1) and Organic (2) modes, traversal playback clock subtly scales with pitch
+        // Synthetic (0): strictly 1.0 (pure pitch-decoupled time-stretch)
+        // Cyborg (1): vintage sampler clock (kappa = 0.20)
+        // Organic (2): sloshy tube-back sampler clock (kappa = 0.35)
+        float kappa = 0.0f;
+        if (params_.lifeMode == 1) {
+            kappa = 0.20f;
+        } else if (params_.lifeMode == 2) {
+            kappa = 0.35f;
+        }
+        if (kappa > 0.001f && v.rootHz > 10.0f && v.targetHz > 10.0f) {
+            v.travPitchScale = std::clamp(std::pow(v.targetHz / v.rootHz, kappa), 0.25f, 4.0f);
+        } else {
+            v.travPitchScale = 1.0f;
+        }
 
         // 5. Col 1: Pitch Envelope P.DEC (Headroom Lerp via effT) & TIME
         const float normPDec = std::clamp((params_.pitchDecay - 2.0f) / (250.0f - 2.0f), 0.0f, 1.0f);
@@ -676,14 +720,17 @@ private:
             const float aT = std::min(static_cast<float>(effStartNorm * 500.0f * 0.001f), static_cast<float>(dEff * 0.95));
 
             const float normLen = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
-            const float effLenNorm = tkdsp::formless::headroomLerp(normLen, v.effMacroX, 0.75f);
+            const float effLenNormBase = tkdsp::formless::headroomLerp(normLen, v.effMacroX, 0.75f);
+            const float lenRandThrow = v.randLen * (params_.randX * 0.01f) * 0.35f;
+            const float effLenNorm = std::clamp(effLenNormBase + lenRandThrow, 0.02f, 1.0f);
             const float bT = (effLenNorm <= 0.02f) ? aT : std::max(aT + 0.005f, aT + effLenNorm * static_cast<float>(dEff - aT));
 
             v.tStartSm += kEdgeCoef_ * (aT - v.tStartSm);
             v.tEndSm   += kEdgeCoef_ * (bT - v.tEndSm);
             const double a = v.tStartSm;
             const double b = v.tEndSm;
-            const double S = std::max(0.005, b - a);
+            const double baseS = std::max(0.005, b - a);
+            const double S = std::clamp(baseS * static_cast<double>(v.loopSpanMult), 0.005, std::max(0.005, dEff - a));
 
             // 2. Pitch Gliding & Pitch Ratio (100% Decoupled from Traversal!)
             if (params_.voiceMode == 1) {
@@ -695,12 +742,12 @@ private:
             float punchRatio = FastMath::fastPow2(pitchModSemitones * (1.0f / 12.0f));
             float r = std::clamp(v.currentHz / std::max(10.0f, v.rootHz), 0.0078125f, 128.0f) * punchRatio;
 
-            // 3. Traversal Speed & Direction (100% Decoupled from Pitch!)
+            // 3. Traversal Speed & Direction (with Layer 3 Lifeform Key-Tracking!)
             const float T = params_.traverseRate;
             const float absT = std::max(0.02f, std::abs(T));
             const float macroTMod = std::pow(2.0f, 2.0f * (v.effMacroT - 0.5f));
             // Unipolar duration scaling: 1.0x = nominal, 2.0x = takes twice as long (half speed)
-            const double s = 1.0 / static_cast<double>(std::max(0.02f, absT * macroTMod));
+            const double s = (1.0 / static_cast<double>(std::max(0.02f, absT * macroTMod))) * static_cast<double>(v.travPitchScale);
             const int mode = params_.loopMode;
 
             double d = params_.reverse ? -1.0 : 1.0;
@@ -1060,6 +1107,7 @@ private:
 
     uint32_t rngState_{0xDEADBEEFu};
     float panPhase_{0.0f};
+    float loopPhase_{0.0f};
     FreqShifter freqShifter_{};
     WiderStage widerStage_{};
     DrumLimiter drumLimiter_{};
