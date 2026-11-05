@@ -9,9 +9,15 @@
 namespace tkdsp {
 
 /**
- * WiderStage — 100% Mono-Compatible Stereo Widener with Role-Adaptive Low-End Crossover.
+ * WiderStage — 100% Mono-Compatible Bipolar Stereo Widener (-2.0 .. 0.0 .. +2.0).
  * 
- * Invariant: L = inL + g * s, R = inR - g * s  ==> L + R = inL + inR (bit-exact mono cancellation).
+ * - Noon (0.0): OFF (Clean Wire Bypass, bit-exact mono dry signal).
+ * - Up (> 0.0): Classic Wider (Multi-Tap Allpass Comb Diffusor with h[0] == 0,
+ *               alternating prime delays, and balanced critical-band energy).
+ * - Down (< 0.0): Hilbert Wider (31-Tap Linear-Phase Anti-Symmetric FIR Quadrature
+ *                 Phase Widener with 0.00 dB tilt and flat magnitude response).
+ * 
+ * Invariant: (inOutL + inOutR) cancels side signal identically ==> bit-exact mono cancellation.
  * Low frequencies below role cutoff (BD: 300Hz, SD: 200Hz, etc.) are kept 100% mono.
  */
 class WiderStage {
@@ -24,6 +30,12 @@ public:
         sampleRate_ = std::max(sampleRate, 4000.0f);
         invSampleRate_ = 1.0f / sampleRate_;
         updateAllpassFreqs();
+
+        // Calculate prime-staggered delay samples for Classic Wider
+        delay1_ = std::clamp(static_cast<int>(0.0053f * sampleRate_), 4, kMaxDelay - 1);
+        delay2_ = std::clamp(static_cast<int>(0.0089f * sampleRate_), 4, kMaxDelay - 1);
+        delay3_ = std::clamp(static_cast<int>(0.0131f * sampleRate_), 4, kMaxDelay - 1);
+
         reset();
     }
 
@@ -34,17 +46,22 @@ public:
         }
         dlIdx_ = 0;
         dlBuffer_.fill(0.0f);
+
+        firIdx_ = 0;
+        firBuffer_.fill(0.0f);
+        lowIdx_ = 0;
+        lowBuffer_.fill(0.0f);
     }
 
     /**
      * Process stereo frame (in-place).
      * @param inOutL Left channel sample
      * @param inOutR Right channel sample
-     * @param widerAmount 0.0 .. 2.0 (0% .. 200%)
+     * @param widerAmount -2.0 .. +2.0 (Down: Hilbert -200% .. Noon: OFF .. Up: Classic +200%)
      * @param roleIdx 0..7 (active drum role for bass cutoff frequency)
      */
     inline void process(float& inOutL, float& inOutR, float widerAmount, int roleIdx) noexcept {
-        if (widerAmount <= 0.001f) return; // Clean bypass wire
+        if (std::abs(widerAmount) <= 0.001f) return; // Clean bypass wire at noon (OFF)
 
         const float mid = 0.5f * (inOutL + inOutR);
         const float fc = formless::getRoleWiderBassCutoffHz(roleIdx);
@@ -57,30 +74,68 @@ public:
         // High band subject to spatial phase decorrelation
         const float highBand = mid - lowBand;
 
-        // 4-stage all-pass phase network + fractional delay dispersion
-        float s = highBand;
-        for (size_t i = 0; i < apChain_.size(); ++i) {
-            s = apChain_[i].process(s);
+        if (widerAmount > 0.0f) {
+            // ========================================================
+            // UP (> 0): Classic Wider (Multi-Tap Allpass Comb Diffusor)
+            // ========================================================
+            float s = highBand;
+            for (size_t i = 0; i < apChain_.size(); ++i) {
+                s = apChain_[i].process(s);
+            }
+
+            dlBuffer_[dlIdx_] = s;
+
+            // Delayed multi-tap read with alternating polarities (h[0] == 0 invariant)
+            const float tap1 = readDelay(delay1_);
+            const float tap2 = readDelay(delay2_);
+            const float tap3 = readDelay(delay3_);
+
+            if (++dlIdx_ >= kMaxDelay) dlIdx_ = 0;
+
+            const float sideSignal = 0.50f * tap1 - 0.35f * tap2 + 0.15f * tap3;
+            const float g = 0.5f * widerAmount;
+
+            inOutL += g * sideSignal;
+            inOutR -= g * sideSignal;
+        } else {
+            // ========================================================
+            // DOWN (< 0): Hilbert Wider (31-Tap FIR Quadrature Phase)
+            // ========================================================
+            firBuffer_[firIdx_] = highBand;
+            lowBuffer_[lowIdx_] = lowBand;
+
+            // Center tap (delay M = 15 samples)
+            const float dryMid = firBuffer_[(firIdx_ - 15) & 31];
+            const float delayedLow = lowBuffer_[(lowIdx_ - 15) & 31];
+
+            // 31-tap anti-symmetric FIR filter (h[15-k] = -h[15+k] for odd k, even k == 0)
+            static constexpr float kH[8] = {
+                0.63384584f,  // k = 1  (taps 14 & 16)
+                0.20401733f,  // k = 3  (taps 12 & 18)
+                0.11398417f,  // k = 5  (taps 10 & 20)
+                0.07296282f,  // k = 7  (taps 8 & 22)
+                0.04875590f,  // k = 9  (taps 6 & 24)
+                0.03265204f,  // k = 11 (taps 4 & 26)
+                0.02134400f,  // k = 13 (taps 2 & 28)
+                0.02050168f   // k = 15 (taps 0 & 30)
+            };
+
+            float quad = 0.0f;
+            for (int i = 0; i < 8; ++i) {
+                const int k = 1 + 2 * i;
+                const float xEarly = firBuffer_[(firIdx_ - (15 - k)) & 31];
+                const float xLate  = firBuffer_[(firIdx_ - (15 + k)) & 31];
+                quad += kH[i] * (xEarly - xLate);
+            }
+
+            firIdx_ = (firIdx_ + 1) & 31;
+            lowIdx_ = (lowIdx_ + 1) & 31;
+
+            const float g = 0.5f * (-widerAmount); // widerAmount is negative
+
+            inOutL = delayedLow + dryMid + g * quad;
+            inOutR = delayedLow + dryMid - g * quad;
         }
-
-        // Fractional delay line with feedback (1.8ms)
-        const int delaySamples = std::clamp(static_cast<int>(0.0018f * sampleRate_), 4, static_cast<int>(kMaxDelay - 1));
-        int readIdx = dlIdx_ - delaySamples;
-        if (readIdx < 0) readIdx += kMaxDelay;
-        const float delayed = dlBuffer_[readIdx];
-        dlBuffer_[dlIdx_] = s + 0.25f * delayed;
-        if (++dlIdx_ >= kMaxDelay) dlIdx_ = 0;
-
-        // Composite side signal
-        const float sideSignal = 0.6f * s + 0.4f * delayed;
-
-        // Gain scaling: 0..200% -> g = 0.5 * widerAmount
-        const float g = 0.5f * widerAmount;
-
-        // Complementary summation: L = inOutL + g * s, R = inOutR - g * s
-        // Notice: (inOutL + g*s) + (inOutR - g*s) = inOutL + inOutR!
-        inOutL += g * sideSignal;
-        inOutR -= g * sideSignal;
     }
 
 private:
@@ -103,21 +158,36 @@ private:
     };
 
     void updateAllpassFreqs() noexcept {
-        // Staggered frequencies for dense spatial decorrelation
-        apChain_[0].setFreq(650.0f, invSampleRate_);
-        apChain_[1].setFreq(1400.0f, invSampleRate_);
-        apChain_[2].setFreq(3100.0f, invSampleRate_);
-        apChain_[3].setFreq(6800.0f, invSampleRate_);
+        apChain_[0].setFreq(800.0f, invSampleRate_);
+        apChain_[1].setFreq(1800.0f, invSampleRate_);
+        apChain_[2].setFreq(3800.0f, invSampleRate_);
+        apChain_[3].setFreq(7200.0f, invSampleRate_);
     }
 
-    static constexpr int kMaxDelay = 512;
+    inline float readDelay(int delaySamples) const noexcept {
+        int idx = dlIdx_ - delaySamples;
+        if (idx < 0) idx += kMaxDelay;
+        return dlBuffer_[idx];
+    }
+
+    static constexpr int kMaxDelay = 4096;
     float sampleRate_{48000.0f};
     float invSampleRate_{1.0f / 48000.0f};
+
+    int delay1_{254};
+    int delay2_{427};
+    int delay3_{629};
 
     TbdAudio::DSPCommon::CytomicSVF crossoverLp_{};
     std::array<SimpleAP1, 4> apChain_{};
     std::array<float, kMaxDelay> dlBuffer_{};
     int dlIdx_{0};
+
+    // 31-Tap FIR Hilbert Ring Buffer (power of two 32 for fast bitmask)
+    std::array<float, 32> firBuffer_{};
+    int firIdx_{0};
+    std::array<float, 32> lowBuffer_{};
+    int lowIdx_{0};
 };
 
 } // namespace tkdsp

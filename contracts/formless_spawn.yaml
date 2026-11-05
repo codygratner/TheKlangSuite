@@ -393,7 +393,7 @@ parameters:
     category: mojo
     type: float
     effect: stereo
-    range: [0.0, 2.0]
+    range: [-2.0, 2.0]
     default: 0.0
     unit: "%"
 

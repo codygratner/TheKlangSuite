@@ -246,7 +246,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // wider [mojo]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{formless_spawnParameters::Ids::wider, 1}, formless_spawnParameters::Names::wider, 0.0000f, 2.0000f, 0.0000f));
+        juce::ParameterID{formless_spawnParameters::Ids::wider, 1}, formless_spawnParameters::Names::wider, -2.0000f, 2.0000f, 0.0000f));
 
     // master_limiter [output]
     layout.add(std::make_unique<juce::AudioParameterBool>(

@@ -1014,7 +1014,7 @@ private:
                     squashStage_.process(filtL, filtR, params_.squash);
                 }
 
-                if (params_.wider > 0.01f) {
+                if (std::abs(params_.wider) > 0.005f) {
                     widerStage_.process(filtL, filtR, params_.wider, params_.category);
                 }
 

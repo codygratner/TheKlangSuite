@@ -5791,7 +5791,127 @@ int main() {
         std::cout << "PASS: Suite 66: DigiStrike FS2 Polyphonic Stepped Random Decoupling completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 66 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+
+    // Suite 67: WiderStage Bipolar (-200% .. 0 .. +200%) Energy Balance & Mono Cancellation
+    {
+        std::cout << "\nStarting Suite 67: WiderStage Bipolar (-200% .. 0 .. +200%) Energy Balance & Mono Cancellation..." << std::endl;
+
+        tkdsp::WiderStage wider;
+        wider.prepare(48000.0f);
+
+        // 1. Noon Bypass Invariant (0.0): Bit-exact bypass wire
+        {
+            wider.reset();
+            float sL = 0.75f, sR = -0.42f;
+            wider.process(sL, sR, 0.0f, 0);
+            assert(sL == 0.75f && sR == -0.42f);
+            std::cout << "  [PASS] Noon bypass (0.0) is bit-exact wire" << std::endl;
+        }
+
+        // 2. Classic Wider (Up: +1.0 and +2.0): Energy Balance & Mono Sum
+        {
+            wider.reset();
+            std::vector<float> noise(48000);
+            for (size_t i = 0; i < noise.size(); ++i) {
+                noise[i] = -1.0f + 2.0f * (static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+            }
+
+            for (float w : {1.0f, 2.0f}) {
+                wider.reset();
+                double sumSqL = 0.0, sumSqR = 0.0;
+                float maxMonoDiff = 0.0f;
+
+                for (size_t i = 0; i < noise.size(); ++i) {
+                    float l = noise[i], r = noise[i];
+                    wider.process(l, r, w, 0); // role 0
+                    if (i >= 2000) { // steady state
+                        sumSqL += l * l;
+                        sumSqR += r * r;
+                        float mono = 0.5f * (l + r);
+                        maxMonoDiff = std::max(maxMonoDiff, std::abs(mono - noise[i]));
+                    }
+                }
+
+                double rmsL = std::sqrt(sumSqL / 46000.0);
+                double rmsR = std::sqrt(sumSqR / 46000.0);
+                double deltaDb = std::abs(20.0 * std::log10(rmsR / rmsL));
+
+                assert(deltaDb < 0.15); // Must not tilt right (<0.15 dB delta)
+                assert(maxMonoDiff < 1e-4f); // Mono sum exact cancellation
+                std::cout << "  [PASS] Classic Wider (+" << (int)(w * 100.0f) << "%): L/R Delta = "
+                          << deltaDb << " dB (<0.15 dB), Mono Diff = " << maxMonoDiff << std::endl;
+            }
+        }
+
+        // 3. Hilbert Wider (Down: -1.0 and -2.0): 90-Deg Quadrature & Delay-Matched Mono Sum
+        {
+            std::vector<float> noise(48000);
+            for (size_t i = 0; i < noise.size(); ++i) {
+                noise[i] = -1.0f + 2.0f * (static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+            }
+
+            for (float w : {-1.0f, -2.0f}) {
+                wider.reset();
+                double sumSqL = 0.0, sumSqR = 0.0;
+                float maxMonoDiff = 0.0f;
+
+                for (size_t i = 0; i < noise.size(); ++i) {
+                    float l = noise[i], r = noise[i];
+                    wider.process(l, r, w, 0); // role 0
+                    if (i >= 2000) { // steady state
+                        sumSqL += l * l;
+                        sumSqR += r * r;
+                        float mono = 0.5f * (l + r);
+                        float ref = noise[i - 15]; // 15 sample group delay of 31-tap FIR
+                        maxMonoDiff = std::max(maxMonoDiff, std::abs(mono - ref));
+                    }
+                }
+
+                double rmsL = std::sqrt(sumSqL / 46000.0);
+                double rmsR = std::sqrt(sumSqR / 46000.0);
+                double deltaDb = std::abs(20.0 * std::log10(rmsR / rmsL));
+
+                assert(deltaDb < 0.50); // Balanced quadrature energy
+                assert(maxMonoDiff < 1e-4f); // Mono sum exact cancellation
+                std::cout << "  [PASS] Hilbert Wider (" << (int)(w * 100.0f) << "%): L/R Delta = "
+                          << deltaDb << " dB (<0.50 dB), Mono Diff = " << maxMonoDiff << std::endl;
+            }
+        }
+
+        // 4. Voice Engine Integration Check (DigiStrike FS2 and Formless Spawn)
+        {
+            tkdsp::DigiStrikeFS2Voice dsVoice;
+            dsVoice.prepare(48000.0f);
+            dsVoice.reset();
+            tkdsp::DigiStrikeFS2Params pDS;
+            pDS.wider = -1.5f; // Hilbert wide
+            dsVoice.setParams(pDS);
+            dsVoice.triggerNote(60, 0.9f, 261.63f);
+            std::vector<float> bufL(128, 0.0f), bufR(128, 0.0f);
+            dsVoice.renderBlock(bufL.data(), bufR.data(), 128);
+            for (int i = 0; i < 128; ++i) {
+                assert(std::isfinite(bufL[i]) && std::isfinite(bufR[i]));
+            }
+            std::cout << "  [PASS] DigiStrike FS2 Voice Hilbert integration finite & stable" << std::endl;
+
+            tkdsp::FormlessSpawnVoice fsVoice;
+            fsVoice.prepare(48000.0f);
+            fsVoice.reset();
+            tkdsp::FormlessSpawnVoice::Params pFS;
+            pFS.wider = -1.5f; // Hilbert wide
+            fsVoice.trigger(0.9f, -1.0f, pFS);
+            float fsL = 0.0f, fsR = 0.0f;
+            for (int s = 0; s < 128; ++s) {
+                fsVoice.processBlockStereo(&fsL, &fsR, 1, pFS);
+                assert(std::isfinite(fsL) && std::isfinite(fsR));
+            }
+            std::cout << "  [PASS] Formless Spawn Voice Hilbert integration finite & stable" << std::endl;
+        }
+
+        std::cout << "PASS: Suite 67: WiderStage Bipolar (-200% .. 0 .. +200%) Energy Balance completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 67 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

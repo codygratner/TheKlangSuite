@@ -161,7 +161,12 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     setupKnob(crushKnob_,        crush,           "CRUSH",     "Hz", "mojo sample rate decimation frequency",      purpleCol);
     setupKnob(shiftKnob_,        shift,           "SHIFT",     "Hz", "bode frequency shifter (+/-1000Hz)",         purpleCol, true);
     setupKnob(squashKnob_,       squash,          "SQUASH",    "%",  "bipolar dynamics: thin/snappy vs thick/huge",purpleCol, true);
-    setupKnob(widerKnob_,        wider,           "WIDER",     "%",  "mono-compatible stereo spatial widener",     purpleCol);
+    setupKnob(widerKnob_,        wider,           "WIDER",     "%",  "bipolar widener: up=classic comb, down=hilbert phase",     purpleCol, true);
+    widerKnob_.slider.textFromValueFunction = [](double val) -> juce::String {
+        if (std::abs(val) < 0.01) return "OFF";
+        const int pct = static_cast<int>(std::round(std::abs(val) * 100.0));
+        return (val > 0.0) ? ("+" + juce::String(pct) + "%") : ("-" + juce::String(pct) + "%");
+    };
 
     // Row 3: Master Output VCA & Distressor Limiter (Blistering Red 0xFFFF3B30)
     const auto redCol = juce::Colour(0xFFFF3B30);
