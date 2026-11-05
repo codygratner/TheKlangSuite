@@ -1,4 +1,4 @@
-STATUS: COMPLETED (2026-10-12T11:57:30-05:00)
+Status: COMPLETED
 TASK_SLUG: factory-rebuild-and-local-deploy
 
 # Dispatch from the Ivory Tower (New Klang City)

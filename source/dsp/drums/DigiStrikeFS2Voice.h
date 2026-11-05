@@ -113,6 +113,7 @@ public:
         lpgAttCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.003f); // 3ms strike attack
         lpgRelCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.060f); // 60ms sluggish droop
         slewCoeff5ms_ = std::exp(-invSampleRate_ / 0.005f);       // 5ms one-pole parameter smoother
+        dcBlockerR_ = 1.0f - 2.0f * 3.14159265f * 6.0f * invSampleRate_; // 6Hz 1-pole bus DC blocker
 
         // Noise crack band: 1.8kHz / Q 0.9 ZDF SVF bandpass (-3dB at ~1.06k..3.06k), RMS-matched to legacy HP throw
         {
@@ -169,8 +170,24 @@ public:
             v.modalBank.x.fill(0.0f);
             v.modalBank.y.fill(0.0f);
             v.modalBank.eps.fill(0.0f);
+            v.modalBank.epsTarget.fill(0.0f);
+            v.modalBank.dEps.fill(0.0f);
             v.modalBank.d.fill(0.0f);
             v.modalBank.amp.fill(0.0f);
+            v.modalBank.modeRatios.fill(1.0f);
+            v.modalBank.panCos.fill(0.7071f);
+            v.modalBank.panSin.fill(0.7071f);
+            v.modalBank.cLx.fill(0.0f);
+            v.modalBank.cLy.fill(0.0f);
+            v.modalBank.cRx.fill(0.0f);
+            v.modalBank.cRy.fill(0.0f);
+            v.modalBank.strikeDurationSamples = 0;
+            v.modalBank.strikeSampleIdx = 0;
+            v.modalBank.vactrolStrikeState = 0.0f;
+            v.modalBank.prevExciterSample = 0.0f;
+            v.modalBank.cyborgChargeSign = 1.0f;
+            v.modalBank.strikeSum = 0.0f;
+            v.voiceSampleCounter = 0;
             v.effKlangMorph = 0.0f;
             v.wPcmSm = 1.0f;
             v.wModalSm = 0.0f;
@@ -201,6 +218,11 @@ public:
         crushPhase_ = 0.0f;
         crushedSampleL_ = 0.0f;
         crushedSampleR_ = 0.0f;
+        dcBlockerXPrevL_ = 0.0f;
+        dcBlockerYPrevL_ = 0.0f;
+        dcBlockerXPrevR_ = 0.0f;
+        dcBlockerYPrevR_ = 0.0f;
+        cyborgDitherEnv_ = 0.0f;
         panPhase_ = 0.0f;
         loopPhase_ = 0.0f;
     }
@@ -401,12 +423,33 @@ private:
 
         // Gordon-Smith Modal Resonator Bank (16 modes, SoA 32-byte aligned)
         alignas(32) struct ModalBank16 {
-            std::array<float, 16> x{};     // Real states
-            std::array<float, 16> y{};     // Imag states
-            std::array<float, 16> eps{};   // Gordon-Smith tuning coefficients: 2*sin(pi*f/fs)
-            std::array<float, 16> d{};     // Damping multipliers: exp(-1/(tau * fs))
-            std::array<float, 16> amp{};   // Mode amplitudes with anti-aliasing culling
+            std::array<float, 16> x{};        // Real states
+            std::array<float, 16> y{};        // Imag states
+            std::array<float, 16> eps{};      // Current Gordon-Smith tuning coefficients
+            std::array<float, 16> epsTarget{};// Sub-block target tuning coefficients
+            std::array<float, 16> dEps{};     // Per-sample linear tuning delta
+            std::array<float, 16> d{};        // Damping multipliers: exp(-1/(tau * fs))
+            std::array<float, 16> amp{};      // Mode amplitudes
+            std::array<float, 16> modeRatios{};// Nominally assigned ratio for this voice
+            std::array<float, 16> panCos{};   // cos(theta_m)
+            std::array<float, 16> panSin{};   // sin(theta_m)
+
+            // Sub-block folded stereo tap weights (Gram-Schmidt orthonormalized)
+            std::array<float, 16> cLx{};
+            std::array<float, 16> cLy{};
+            std::array<float, 16> cRx{};
+            std::array<float, 16> cRy{};
+
+            // Commuted strike burst exciter state
+            int strikeDurationSamples{0};
+            int strikeSampleIdx{0};
+            float vactrolStrikeState{0.0f};
+            float prevExciterSample{0.0f};
+            float cyborgChargeSign{1.0f};
+            float strikeSum{0.0f};
         } modalBank;
+
+        uint32_t voiceSampleCounter{0};
 
         float effKlangMorph{0.0f};         // Effective -1.0 .. +1.0
         float wPcmSm{1.0f};                // 5ms slewed PCM weight
@@ -711,25 +754,46 @@ private:
         const float notePitchScale = isPitched ? FastMath::fastPow2((static_cast<float>(noteNumber) - 60.0f) * (1.0f / 12.0f)) : 1.0f;
         v.modalF0 = baseF0 * notePitchScale;
 
-        // Nominal acoustic drum/plate ratios (Bessel membrane roots & plate stiffness)
-        static constexpr float kNominalRatios[16] = {
+        // Multi-Geometry Category Mode Ratios
+        // 1. Bessel circular membrane roots for BD (0), SN (1), TM (2)
+        static constexpr float kBesselRatios[16] = {
             1.000f, 1.593f, 2.135f, 2.295f, 2.653f, 2.917f, 3.156f, 3.501f,
             3.765f, 4.060f, 4.382f, 4.710f, 5.105f, 5.492f, 5.920f, 6.380f
         };
+        // 2. Euler-Bernoulli Free Beam ratios for LN (6), MC (7), ST (9), BS (10)
+        static constexpr float kBeamRatios[16] = {
+            1.000f, 2.756f, 5.404f, 8.933f, 13.344f, 18.637f, 24.812f, 31.868f,
+            39.807f, 48.627f, 58.330f, 68.914f, 80.380f, 92.728f, 105.958f, 120.070f
+        };
+        // 3. Corrugated Metallic Shell ratios for CP (3), HH (4), CY (5), FX (8)
+        static constexpr float kMetallicRatios[16] = {
+            1.000f, 1.342f, 1.781f, 2.115f, 2.563f, 2.894f, 3.241f, 3.789f,
+            4.120f, 4.685f, 5.210f, 5.890f, 6.430f, 7.120f, 7.890f, 8.650f
+        };
+
+        const float* geomRatios = kBesselRatios;
+        if (cat == 3 || cat == 4 || cat == 5 || cat == 8) {
+            geomRatios = kMetallicRatios;
+        } else if (cat == 6 || cat == 7 || cat == 9 || cat == 10) {
+            geomRatios = kBeamRatios;
+        }
 
         const float K = v.effKlangMorph;
         const float absK = std::abs(K);
 
-        // Lifeform mode damping exponent alpha (Synthetic: 0.75, Cyborg: 0.45, Organic: 1.10)
-        static constexpr float kAlphaTable[3] = { 0.75f, 0.45f, 1.10f };
+        // Lifeform mode damping exponent alpha (Synthetic: 0.75, Cyborg: 0.45, Organic: 1.15)
+        static constexpr float kAlphaTable[3] = { 0.75f, 0.45f, 1.15f };
         const float alpha = kAlphaTable[std::clamp(params_.lifeMode, 0, 2)];
-        const float tau0 = std::clamp(ampDecaySeconds * 0.40f, 0.020f, 2.0f);
+        const float tau0 = std::clamp(ampDecaySeconds * 0.40f, 0.020f, 3.50f);
 
-        const float cullCutoff = 0.48f * sampleRate_;
-        const float cullTaperStart = 0.40f * sampleRate_;
+        // Prime table for Cyborg inharmonic dispersion
+        static constexpr float kPrimes[16] = {
+            2.0f, 3.0f, 5.0f, 7.0f, 11.0f, 13.0f, 17.0f, 19.0f,
+            23.0f, 29.0f, 31.0f, 37.0f, 41.0f, 43.0f, 47.0f, 53.0f
+        };
 
         for (size_t m = 0; m < 16; ++m) {
-            float r0 = kNominalRatios[m];
+            float r0 = geomRatios[m];
             float rK = r0;
             if (K < -0.0001f) {
                 // Harmonic Series Snap (Left)
@@ -741,35 +805,92 @@ private:
                 rK = (r0 * std::sqrt(1.0f + beta * r0 * r0)) / std::sqrt(1.0f + beta);
             }
 
-            float fMode = v.modalF0 * rK;
+            // Lifeform Triad ratio adaptations
+            if (params_.lifeMode == 2) {
+                // Organic: Helmholtz air cavity split on Mode 1
+                if (m == 1) rK *= 0.94f;
+                else if (m == 2) rK *= 1.06f;
+            } else if (params_.lifeMode == 1 && m >= 3) {
+                // Cyborg: Prime-root inharmonic dispersion
+                rK *= std::sqrt(kPrimes[m] / (2.0f * static_cast<float>(m + 1)));
+            }
 
-            // Dynamic Nyquist Mode Culling with smooth Hann taper
+            v.modalBank.modeRatios[m] = rK;
+
+            // Pre-sine frequency clamping (CRITICAL: prevents 2*pi Nyquist wraparound!)
+            const float fMode = v.modalF0 * rK;
+            const float fClamped = std::clamp(fMode, 10.0f, 0.4495f * sampleRate_);
+            const float normFreq = fClamped * invSampleRate_;
+
+            // Mode amplitude with Hann Nyquist taper
+            constexpr float cullCutoff = 0.48f;
+            constexpr float cullTaperStart = 0.40f;
             float modeGain = 1.0f / (1.0f + 0.35f * static_cast<float>(m));
-            if (fMode >= cullCutoff) {
+            if (normFreq >= cullCutoff) {
                 modeGain = 0.0f;
-            } else if (fMode > cullTaperStart) {
-                float norm = (fMode - cullTaperStart) / (cullCutoff - cullTaperStart);
+            } else if (normFreq > cullTaperStart) {
+                float norm = (normFreq - cullTaperStart) / (cullCutoff - cullTaperStart);
                 modeGain *= 0.5f * (1.0f + std::cos(3.14159265f * norm));
             }
             v.modalBank.amp[m] = modeGain;
 
             // Gordon-Smith tuning coefficient: epsilon = 2 * sin(pi * f / fs)
-            float normFreq = std::clamp(fMode * invSampleRate_, 0.0001f, 0.499f);
-            v.modalBank.eps[m] = 2.0f * std::sin(3.141592653589793f * normFreq);
+            const float omega = 3.141592653589793f * normFreq;
+            const float sinOmega = omega * (1.0f - 0.16605f * omega * omega + 0.00761f * omega * omega * omega * omega);
+            const float eps0 = std::min(2.0f * sinOmega, 1.975f);
+            v.modalBank.eps[m] = eps0;
+            v.modalBank.epsTarget[m] = eps0;
+            v.modalBank.dEps[m] = 0.0f;
 
             // Frequency-dependent damping: tau_k = tau0 * (f0 / fk)^alpha
-            float freqRatio = std::max(1.0f, fMode / std::max(10.0f, v.modalF0));
+            float freqRatio = std::max(1.0f, fClamped / std::max(10.0f, v.modalF0));
             float tauK = tau0 * FastMath::fastPow2(-alpha * FastMath::fastLog2(freqRatio));
             v.modalBank.d[m] = std::exp(-invSampleRate_ / tauK);
 
-            // Impulse excitation on new hit
-            v.modalBank.x[m] = (m == 0) ? (velocity * 0.8f) : (velocity * 0.4f * (1.0f / std::sqrt(static_cast<float>(m + 1))));
+            // Spatial Multipole Panning theta_m
+            float theta = 0.785398163f; // pi / 4
+            if (params_.lifeMode == 0) {
+                // Synthetic: tight clinical fan (+-18 deg)
+                theta += (m % 2 == 0 ? 1.0f : -1.0f) * 0.15f * (static_cast<float>(m) / 15.0f);
+            } else if (params_.lifeMode == 2) {
+                // Organic: binaural room bloom (+-45 deg)
+                theta += std::sin(static_cast<float>(m) * 3.14159265f * 0.25f) * 0.38f;
+            } else {
+                // Cyborg: extreme phase tear (+-75 deg)
+                theta = (m % 2 == 1) ? 0.08f : 1.49f;
+            }
+            v.modalBank.panCos[m] = std::cos(theta);
+            v.modalBank.panSin[m] = std::sin(theta);
+
+            // Pre-folded tap weights for initial state
+            const float rad = std::max(0.001f, 1.0f - 0.25f * eps0 * eps0);
+            const float invRad = modeGain / std::sqrt(rad);
+            const float ct = v.modalBank.panCos[m];
+            const float st = v.modalBank.panSin[m];
+
+            v.modalBank.cLx[m] = -st * modeGain - ct * (0.5f * eps0 * invRad);
+            v.modalBank.cLy[m] =  ct * invRad;
+            v.modalBank.cRx[m] =  ct * modeGain - st * (0.5f * eps0 * invRad);
+            v.modalBank.cRy[m] =  st * invRad;
+
+            // Clear state variables (impulse excitation replaced by commuted continuous injection)
+            v.modalBank.x[m] = 0.0f;
             v.modalBank.y[m] = 0.0f;
         }
 
         // Initialize crossfade weights
         v.wPcmSm = std::cos(0.5f * 3.14159265f * absK);
         v.wModalSm = std::sin(0.5f * 3.14159265f * absK);
+
+        // Commuted Strike Exciter Setup
+        const float strikeDurationSec = 0.006f + 0.009f * (v.effClickBleed);
+        v.modalBank.strikeDurationSamples = static_cast<int>(strikeDurationSec * sampleRate_);
+        v.modalBank.strikeSampleIdx = 0;
+        v.modalBank.vactrolStrikeState = 0.0f;
+        v.modalBank.prevExciterSample = 0.0f;
+        v.modalBank.cyborgChargeSign = (nextFloat() > 0.5f) ? 1.0f : -1.0f;
+        v.modalBank.strikeSum = 0.0f;
+        v.voiceSampleCounter = 0;
 
         // 5. Col 1: Pitch Envelope P.DEC (Headroom Lerp via effT & Master Macro Decay scaling)
         const float normPDec = std::clamp((params_.pitchDecay - 2.0f) / (250.0f - 2.0f), 0.0f, 1.0f);
@@ -1014,22 +1135,123 @@ private:
 
             // 8. The Gordon-Smith Modal Strike Engine (KLANG Spectral Morph)
             const float absK = std::abs(v.effKlangMorph);
+            float sampleValL = sampleVal;
+            float sampleValR = sampleVal;
             if (absK > 0.0001f) {
-                float modalOut = 0.0f;
-                // Gordon-Smith coupled-form resonator step across 16 modes
+                // Sub-block pitch dive & target tuning update (every 16 samples)
+                if ((v.voiceSampleCounter & 15) == 0) {
+                    float pDiveSt = 0.0f;
+                    switch (params_.lifeMode) {
+                        case 0: // Synthetic: Pure Exponential Dive
+                            pDiveSt = v.pitchDiveSemitones * v.pitchEnv;
+                            break;
+                        case 1: { // Cyborg: 16-Step Staircase CV Dive
+                            float qEnv = std::floor(v.pitchEnv * 16.0f) * (1.0f / 16.0f);
+                            pDiveSt = v.pitchDiveSemitones * qEnv;
+                            break;
+                        }
+                        case 2: { // Organic: Viscoelastic Membrane Tension Sag
+                            const float tauSec = std::max(0.005f, params_.pitchDecay * 0.001f);
+                            const float sag = 1.15f * v.pitchEnv - 0.15f * FastMath::fastExp(-static_cast<float>(v.voiceSampleCounter) * invSampleRate_ / (3.5f * tauSec));
+                            pDiveSt = v.pitchDiveSemitones * sag;
+                            break;
+                        }
+                    }
+                    const float pitchMult = FastMath::fastPow2(pDiveSt * (1.0f / 12.0f));
+
+                    for (size_t m = 0; m < 16; ++m) {
+                        const float fTarget = v.modalF0 * v.modalBank.modeRatios[m] * pitchMult;
+                        const float fClamped = std::clamp(fTarget, 10.0f, 0.4495f * sampleRate_);
+                        const float normFreq = fClamped * invSampleRate_;
+                        const float omega = 3.141592653589793f * normFreq;
+                        const float sinOmega = omega * (1.0f - 0.16605f * omega * omega + 0.00761f * omega * omega * omega * omega);
+                        const float newEpsTarget = std::min(2.0f * sinOmega, 1.975f);
+
+                        v.modalBank.epsTarget[m] = newEpsTarget;
+                        v.modalBank.dEps[m] = (newEpsTarget - v.modalBank.eps[m]) * (1.0f / 16.0f);
+
+                        // Dynamic C1 smoothstep culling gain
+                        constexpr float kEpsA = 1.857f;
+                        constexpr float kEpsB = 1.975f;
+                        const float t = std::clamp((kEpsB - newEpsTarget) / (kEpsB - kEpsA), 0.0f, 1.0f);
+                        const float cullG = (fTarget >= 0.45f * sampleRate_) ? 0.0f : (t * t * (3.0f - 2.0f * t));
+
+                        // Sub-block folded stereo tap weights (Gram-Schmidt orthonormalized)
+                        const float epsMid = 0.5f * (v.modalBank.eps[m] + newEpsTarget);
+                        const float rad = std::max(0.001f, 1.0f - 0.25f * epsMid * epsMid);
+                        const float invRad = cullG * v.modalBank.amp[m] / std::sqrt(rad);
+                        const float ct = v.modalBank.panCos[m];
+                        const float st = v.modalBank.panSin[m];
+
+                        v.modalBank.cLx[m] = -st * cullG * v.modalBank.amp[m] - ct * (0.5f * epsMid * invRad);
+                        v.modalBank.cLy[m] =  ct * invRad;
+                        v.modalBank.cRx[m] =  ct * cullG * v.modalBank.amp[m] - st * (0.5f * epsMid * invRad);
+                        v.modalBank.cRy[m] =  st * invRad;
+                    }
+                }
+
+                // Commuted Strike Excitation Injection F(n)
+                float condExciter = 0.0f;
+                if (v.modalBank.strikeSampleIdx < v.modalBank.strikeDurationSamples) {
+                    float rawExciter = 0.65f * sampleVal;
+                    switch (params_.lifeMode) {
+                        case 0: { // Synthetic: differentiator click
+                            condExciter = rawExciter - 0.92f * v.modalBank.prevExciterSample;
+                            v.modalBank.prevExciterSample = rawExciter;
+                            break;
+                        }
+                        case 1: { // Cyborg: 8-bit DAC ladder + 20us rail pulse
+                            float qExciter = std::round(rawExciter * 64.0f) * (1.0f / 64.0f);
+                            condExciter = (v.modalBank.strikeSampleIdx < 3) ? (qExciter + v.modalBank.cyborgChargeSign * 1.25f) : qExciter;
+                            break;
+                        }
+                        case 2: { // Organic: 2.5ms vactrol optocoupler slew
+                            v.modalBank.vactrolStrikeState += lpgAttCoeff_ * (rawExciter - v.modalBank.vactrolStrikeState);
+                            condExciter = v.modalBank.vactrolStrikeState;
+                            break;
+                        }
+                    }
+                    const int pristineSamples = static_cast<int>(0.002f * sampleRate_);
+                    if (v.modalBank.strikeSampleIdx < pristineSamples) {
+                        v.modalBank.strikeSum += condExciter;
+                    } else {
+                        const int tailRemaining = std::max(1, v.modalBank.strikeDurationSamples - pristineSamples);
+                        condExciter -= (v.modalBank.strikeSum / static_cast<float>(tailRemaining));
+                    }
+                    ++v.modalBank.strikeSampleIdx;
+                }
+
+                // 16-Mode Gordon-Smith Coupled-Form Resonator Step (Post-Rotation Symplectic Form)
+                float modalOutL = 0.0f;
+                float modalOutR = 0.0f;
+                const float injectGain = condExciter * 0.50f * v.velocity;
+
+                static constexpr float kModeInjectWeights[16] = {
+                    0.891f, 0.572f, 0.400f, 0.446f, 0.357f, 0.165f, 0.301f, 0.316f,
+                    0.147f, 0.248f, 0.242f, 0.103f, 0.198f, 0.187f, 0.069f, 0.158f
+                };
+
                 for (size_t m = 0; m < 16; ++m) {
-                    const float d = v.modalBank.d[m];
-                    const float eps = v.modalBank.eps[m];
-                    const float x = v.modalBank.x[m];
-                    const float y = v.modalBank.y[m];
+                    v.modalBank.eps[m] += v.modalBank.dEps[m];
+                    const float epsVal = v.modalBank.eps[m];
+                    const float dVal = v.modalBank.d[m];
 
-                    const float xNew = d * (x - eps * y);
-                    const float yNew = d * (y + eps * xNew);
+                    // Symplectic rotation (det = 1)
+                    const float x1 = v.modalBank.x[m] - epsVal * v.modalBank.y[m];
+                    const float y1 = v.modalBank.y[m] + epsVal * x1;
 
+                    // Post-rotation dissipation and injection
+                    const float Fx = kModeInjectWeights[m] * injectGain;
+                    const float xNew = dVal * x1 + Fx;
+                    const float yNew = dVal * y1;
+
+                    // Denormal protection
                     v.modalBank.x[m] = (std::abs(xNew) < 1e-15f) ? 0.0f : xNew;
                     v.modalBank.y[m] = (std::abs(yNew) < 1e-15f) ? 0.0f : yNew;
 
-                    modalOut += yNew * v.modalBank.amp[m];
+                    // Sub-block folded stereo accumulation (2 FMAs per channel)
+                    modalOutL += v.modalBank.cLx[m] * v.modalBank.x[m] + v.modalBank.cLy[m] * v.modalBank.y[m];
+                    modalOutR += v.modalBank.cRx[m] * v.modalBank.x[m] + v.modalBank.cRy[m] * v.modalBank.y[m];
                 }
 
                 // Lifeform modal waveshaping & saturation
@@ -1037,14 +1259,19 @@ private:
                     case 0: // Synthetic: Clean Linear
                         break;
                     case 1: { // Cyborg: 8-Bit DAC Quantization + Diode Foldback
-                        modalOut = std::clamp(std::round(modalOut * 64.0f), -64.0f, 63.0f) * (1.0f / 64.0f);
-                        if (modalOut > 0.70f) modalOut = 0.70f - (modalOut - 0.70f) * 0.5f;
-                        else if (modalOut < -0.70f) modalOut = -0.70f - (modalOut + 0.70f) * 0.5f;
+                        modalOutL = std::clamp(std::round(modalOutL * 64.0f), -64.0f, 63.0f) * (1.0f / 64.0f);
+                        modalOutR = std::clamp(std::round(modalOutR * 64.0f), -64.0f, 63.0f) * (1.0f / 64.0f);
+                        if (modalOutL > 0.70f) modalOutL = 0.70f - (modalOutL - 0.70f) * 0.5f;
+                        else if (modalOutL < -0.70f) modalOutL = -0.70f - (modalOutL + 0.70f) * 0.5f;
+                        if (modalOutR > 0.70f) modalOutR = 0.70f - (modalOutR - 0.70f) * 0.5f;
+                        else if (modalOutR < -0.70f) modalOutR = -0.70f - (modalOutR + 0.70f) * 0.5f;
                         break;
                     }
                     case 2: { // Organic: Cathode-Follower Tube Saturation
-                        const float mx = modalOut * 1.25f;
-                        modalOut = (mx + 0.28f * mx * mx) / (1.0f + 0.28f * std::abs(mx));
+                        const float mxL = modalOutL * 1.25f;
+                        const float mxR = modalOutR * 1.25f;
+                        modalOutL = (mxL + 0.28f * mxL * mxL) / (1.0f + 0.28f * std::abs(mxL));
+                        modalOutR = (mxR + 0.28f * mxR * mxR) / (1.0f + 0.28f * std::abs(mxR));
                         break;
                     }
                 }
@@ -1056,9 +1283,11 @@ private:
                 v.wPcmSm += slewRate * (wPcmTarget - v.wPcmSm);
                 v.wModalSm += slewRate * (wModalTarget - v.wModalSm);
 
-                // Blend raw PCM body with modal resonance
-                sampleVal = v.wPcmSm * sampleVal + v.wModalSm * modalOut;
+                // Blend raw PCM body with modal resonance in stereo
+                sampleValL = v.wPcmSm * sampleVal + v.wModalSm * modalOutL;
+                sampleValR = v.wPcmSm * sampleVal + v.wModalSm * modalOutR;
             }
+            ++v.voiceSampleCounter;
 
             // 9. Amplitude Gain Scaling & Anti-Click Fadeout
             if (v.isFadingOut) {
@@ -1067,7 +1296,8 @@ private:
                     v.active = false;
                     break;
                 }
-                sampleVal *= v.fadeOutEnv;
+                sampleValL *= v.fadeOutEnv;
+                sampleValR *= v.fadeOutEnv;
             }
 
             // Decay Curvature Shaping on Amplitude
@@ -1076,10 +1306,9 @@ private:
                 shapedAmp = FastMath::fastPow2(FastMath::fastLog2(std::max(v.ampEnv, 1e-6f)) * v.decayCurveExp);
             }
             float gain = shapedAmp * v.chokeEnv * v.effVelocityGain;
-            float outSample = sampleVal * gain;
 
-            accL[i] += outSample * panL;
-            accR[i] += outSample * panR;
+            accL[i] += sampleValL * gain * panL;
+            accR[i] += sampleValR * gain * panR;
 
             // 10. Envelope Updates
             if (v.pitchEnv > 0.0f) {
@@ -1231,6 +1460,34 @@ private:
                     drumLimiter_.process(filtL, filtR, true);
                 }
 
+                // 6Hz 1-pole master bus DC blocker (stops sub-audio strike thump)
+                const float inDcBlockedL = filtL - dcBlockerXPrevL_ + dcBlockerR_ * dcBlockerYPrevL_;
+                dcBlockerXPrevL_ = filtL;
+                dcBlockerYPrevL_ = inDcBlockedL;
+                filtL = inDcBlockedL;
+
+                const float inDcBlockedR = filtR - dcBlockerXPrevR_ + dcBlockerR_ * dcBlockerYPrevR_;
+                dcBlockerXPrevR_ = filtR;
+                dcBlockerYPrevR_ = inDcBlockedR;
+                filtR = inDcBlockedR;
+
+                if (std::abs(dcBlockerYPrevL_) < 1e-15f) dcBlockerYPrevL_ = 0.0f;
+                if (std::abs(dcBlockerYPrevR_) < 1e-15f) dcBlockerYPrevR_ = 0.0f;
+
+                // Activity-gated Cyborg -38dB master bus dither
+                if (params_.lifeMode == 1) {
+                    if (activeVoiceCount_ > 0) {
+                        cyborgDitherEnv_ = 1.0f;
+                    } else {
+                        cyborgDitherEnv_ *= 0.999f;
+                    }
+                    if (cyborgDitherEnv_ > 0.0001f) {
+                        const float dither = (nextFloat() - 0.5f) * 0.0125f * cyborgDitherEnv_;
+                        filtL += dither;
+                        filtR += dither;
+                    }
+                }
+
                 outL[i] = filtL;
                 outR[i] = filtR;
             }
@@ -1284,6 +1541,12 @@ private:
     float lpgAttCoeff_{0.0f};
     float lpgRelCoeff_{0.0f};
     float slewCoeff5ms_{0.9958f};
+    float dcBlockerXPrevL_{0.0f};
+    float dcBlockerYPrevL_{0.0f};
+    float dcBlockerXPrevR_{0.0f};
+    float dcBlockerYPrevR_{0.0f};
+    float dcBlockerR_{0.9992f};
+    float cyborgDitherEnv_{0.0f};
     std::array<float, 8> latchedDraw_{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 };
 
