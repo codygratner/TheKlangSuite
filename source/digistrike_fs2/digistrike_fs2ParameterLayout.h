@@ -331,7 +331,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // filter_env_amt [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::filter_env_amt, 1}, digistrike_fs2Parameters::Names::filter_env_amt, -1.0000f, 1.0000f, 0.0000f));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::filter_env_amt, 1}, digistrike_fs2Parameters::Names::filter_env_amt, 0.0000f, 1.0000f, 0.0000f));
 
     // filter_decay [filter]
     {

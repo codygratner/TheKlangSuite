@@ -73,7 +73,7 @@ struct DigiStrikeFS2Params {
 
     float cutoff{20000.0f};  // 20.0 .. 20000.0 Hz
     float resonance{0.30f};  // 0.0 .. 1.0
-    float filterEnvAmt{0.0f};// -1.0 .. +1.0
+    float filterEnvAmt{0.0f};// 0.0 .. 1.0 (unipolar 0 .. +10 Octaves)
     float filterDecay{0.150f};// 0.005 .. 5.0 s
     int   filterType{0};     // 0=LP, 1=HP, 2=BP, 3=PK
     float preDrive{0.0f};    // 0.0 .. 1.0
@@ -980,8 +980,8 @@ private:
         for (int i0 = 0; i0 < numSamples; i0 += kSub) {
             const int n = std::min(kSub, numSamples - i0);
 
-            // Dynamic Filter Envelope Modulation (+/-5.0 Octaves) with Macro X & Rand X
-            const float envOctaves = std::clamp(params_.filterEnvAmt * 5.0f * masterFilterEnv_, -6.0f, 6.0f);
+            // Dynamic Filter Envelope Modulation (0 .. +10.0 Octaves) with Macro X & Rand X
+            const float envOctaves = std::clamp(params_.filterEnvAmt * 10.0f * masterFilterEnv_, 0.0f, 10.5f);
             const float effCutoffMacroX = std::clamp(params_.macroX + (latchedDraw_[0] - 0.5f) * 2.0f * (params_.randX * 0.01f), 0.0f, 1.0f);
             float cutoffHz = params_.cutoff * FastMath::fastPow2(envOctaves + (effCutoffMacroX - 0.5f) * 2.0f);
             cutoffHz = std::clamp(cutoffHz, 20.0f, 20000.0f);

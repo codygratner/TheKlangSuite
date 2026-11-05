@@ -59,7 +59,7 @@ struct FormlessSpawnParams {
     float ampDecay{1.0f};        // 0.0 .. 1.0 (Uniform Role Logarithmic Decay)
     float cutoff{1000.0f};       // 20.0 .. 20000.0 Hz
     float resonance{0.30f};      // 0.0 .. 1.0 (Q in LP/HP/BP, +/-dB in PK)
-    float filterEnvAmt{0.0f};    // -1.0 .. +1.0 (+/-5 Octaves)
+    float filterEnvAmt{0.0f};    // 0.0 .. 1.0 (unipolar 0 .. +10 Octaves)
     float filterDecay{0.150f};   // 0.005 .. 5.0 s
     int   filterType{0};         // 0=LP, 1=HP, 2=BP, 3=PK
     float preDrive{0.0f};        // 0.0 .. 1.0 (Tanh Drive: 0=clean, 0.5=+6dB, 1.0=+36dB)
@@ -630,8 +630,8 @@ private:
         const float effFilterDecaySec = std::clamp(p.filterDecay, 0.005f, 5.0f);
         masterFilterDecayCoeff_ = FastMath::fastExp(-invSampleRate_ / effFilterDecaySec);
 
-        // Dynamic Filter Envelope Modulation (+/-5 Octaves)
-        const float envOctaves = std::clamp(p.filterEnvAmt * 5.0f * masterFilterEnv_, -6.0f, 6.0f);
+        // Dynamic Filter Envelope Modulation (0 .. +10.0 Octaves)
+        const float envOctaves = std::clamp(p.filterEnvAmt * 10.0f * masterFilterEnv_, 0.0f, 10.5f);
         float dynCutoffHz = p.cutoff * FastMath::fastPow2(envOctaves);
 
         if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {

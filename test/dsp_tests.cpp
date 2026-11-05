@@ -5022,7 +5022,7 @@ int main() {
             {
                 p.cutoff = 1000.0f;
                 p.resonance = 0.5f;
-                p.filterEnvAmt = 1.0f; // +5 Octaves
+                p.filterEnvAmt = 1.0f; // unipolar 0..+10 Octaves
                 p.filterDecay = 0.050f; // 50ms decay
                 p.filterType = 0; // LP
                 voice.setParams(p);

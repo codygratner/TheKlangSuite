@@ -149,7 +149,7 @@ inline constexpr Control kMasterControls[4] = {
 inline constexpr Control kMojoControls[11] = {
     { "cutoff",         "CUTOFF",  "Curtis CEM3320 24dB/oct Zero-Delay Feedback resonant reconstruction VCF" },
     { "resonance",      "RES",     "CEM3320 filter resonance peak and acoustic drumhead cavity ring" },
-    { "filter_env_amt", "FE-AMT",  "bipolar filter envelope modulation depth across +/-5 octaves" },
+    { "filter_env_amt", "FE-AMT",  "unipolar filter envelope modulation depth across 0..+10 octaves" },
     { "filter_decay",   "FE-DEC",  "exponential decay duration of the dedicated filter envelope" },
     { "filter_type",    "TYPE",    "4-pole filter topology selection: Lowpass, Highpass, Bandpass, or Peak" },
     { "pre_drive",      "DRIVE",   "non-linear hyperbolic tangent pre-filter saturator and overdrive warmth" },

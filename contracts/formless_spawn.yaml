@@ -324,7 +324,7 @@ parameters:
     category: filter
     type: float
     effect: filter
-    range: [-1.0, 1.0]
+    range: [0.0, 1.0]
     default: 0.0
     unit: "%"
 

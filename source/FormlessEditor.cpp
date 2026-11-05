@@ -142,7 +142,7 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     const auto acidGreenCol = juce::Colour(0xFF00E676);
     setupKnob(cutoffKnob_,       cutoff,          "CUTOFF",    "Hz", "filter cutoff frequency",                    acidGreenCol);
     setupKnob(resonanceKnob_,    resonance,       "RES",       "%",  "filter resonance / self-oscillation",        acidGreenCol);
-    setupKnob(filterEnvAmtKnob_, filter_env_amt,  "FE-AMT",    "%",  "filter envelope sweep amount (-100%..+100%)",acidGreenCol, true);
+    setupKnob(filterEnvAmtKnob_, filter_env_amt,  "FE-AMT",    "%",  "filter envelope sweep amount (0%..100%, +10 octaves)", acidGreenCol, false);
     setupKnob(filterDecayKnob_,  filter_decay,    "FE-DEC",    "ms", "filter envelope decay time (5ms..5.0s)",      acidGreenCol);
 
     filterTypeBar_.setAccentColour(acidGreenCol);
@@ -716,14 +716,14 @@ void FormlessSpawnAudioProcessorEditor::timerCallback() {
     const float normBase = static_cast<float>(cutSlider.valueToProportionOfLength(curCutoffHz));
 
     tkdsp::formless::HaloRange cutHalo;
-    if (std::abs(feAmt) > 0.005f) {
-        // Dynamic Filter Envelope throw (+/-5.0 Octaves at full velocity 1.0)
-        const float peakOctaves = std::clamp(feAmt * 5.0f, -6.0f, 6.0f);
+    if (feAmt > 0.005f) {
+        // Dynamic Filter Envelope throw (0..+10.0 Octaves at full velocity 1.0)
+        const float peakOctaves = std::clamp(feAmt * 10.0f, 0.0f, 10.5f);
         const double peakCutoffHz = std::clamp(curCutoffHz * std::pow(2.0, static_cast<double>(peakOctaves)), 20.0, 20000.0);
         const float normPeak = static_cast<float>(cutSlider.valueToProportionOfLength(peakCutoffHz));
 
-        cutHalo.lo = std::min(normBase, normPeak);
-        cutHalo.hi = std::max(normBase, normPeak);
+        cutHalo.lo = normBase;
+        cutHalo.hi = normPeak;
         cutHalo.pip = normPeak;
         cutHalo.active = (cutHalo.hi - cutHalo.lo > 0.002f);
     } else {

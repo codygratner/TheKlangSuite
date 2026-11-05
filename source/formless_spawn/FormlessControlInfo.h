@@ -159,7 +159,7 @@ inline constexpr Control kMasterControls[] = {
     { "macro_decay", "MACRO DECAY", "master exponential envelope decay scaling" },
     { "cutoff",      "CUTOFF",      "filter cutoff frequency" },
     { "resonance",   "RES",         "filter resonance / self-oscillation" },
-    { "filter_env_amt", "FE-AMT",   "filter envelope sweep amount (-100%..+100%)" },
+    { "filter_env_amt", "FE-AMT",   "unipolar filter envelope modulation depth across 0..+10 octaves" },
     { "filter_decay", "FE-DEC",     "filter envelope decay time (5ms..5.0s)" },
     { "pre_drive",   "DRIVE",       "pre-filter analog saturation and drive" },
     { "crush",       "CRUSH",       "mojo sample rate decimation frequency" },
