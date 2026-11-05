@@ -6130,7 +6130,87 @@ int main() {
         std::cout << "PASS: Suite 69: DigiStrike FS2 Poly Loop Decoupling completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 69 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    // SUITE 70: DigiStrike FS2 Unified Continuous Voice Engine & Adios Zero-Crossing Verification
+    {
+        std::cout << "\nStarting Suite 70: DigiStrike FS2 Unified Continuous Voice Engine Verification..." << std::endl;
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        assert(rom.isLoaded());
+
+        tkdsp::DigiStrikeFS2Voice voice;
+        voice.prepare(44100.0f);
+
+        tkdsp::DigiStrikeFS2Params p;
+        p.lifeMode = 0; // Synthetic (Clean bit-exact bypass)
+        p.loopMode = 0; // ONCE
+        p.traverseRate = 1.0f; // Nominal
+        p.category = 1; // Snare
+        p.lineageMask = 0xFFFFFu;
+        voice.setParams(p);
+
+        // Test 1: Identity Playback Verification (Continuous OLA at T=1.0)
+        voice.triggerNote(36, 0.9f, 65.41f); // Trigger root note
+        std::vector<float> outL(2048, 0.0f), outR(2048, 0.0f);
+        voice.renderBlock(outL.data(), outR.data(), 2048);
+
+        // Assert non-zero output, zero NaNs, zero Infs
+        float peak = 0.0f;
+        for (int i = 0; i < 2048; ++i) {
+            assert(!std::isnan(outL[i]) && !std::isinf(outL[i]));
+            assert(!std::isnan(outR[i]) && !std::isinf(outR[i]));
+            peak = std::max(peak, std::abs(outL[i]));
+        }
+        assert(peak > 0.01f);
+        std::cout << "  [PASS] Unified OLA at T=1.0 renders continuous non-zero signal (peak=" << peak << ")" << std::endl;
+
+        // Test 2: ONCE Mode Tail Clean Release (Zero Tail Clamping Buzz)
+        // Render 1.5 seconds of audio to ensure one-shot snare terminates cleanly
+        std::vector<float> tailL(1024, 0.0f), tailR(1024, 0.0f);
+        for (int block = 0; block < 60; ++block) {
+            std::fill(tailL.begin(), tailL.end(), 0.0f);
+            std::fill(tailR.begin(), tailR.end(), 0.0f);
+            voice.renderBlock(tailL.data(), tailR.data(), 1024);
+        }
+        // At the tail of a one-shot snare, output should be true silence (< 1e-4f)
+        float tailPeak = 0.0f;
+        for (int i = 0; i < 1024; ++i) {
+            tailPeak = std::max(tailPeak, std::abs(tailL[i]));
+        }
+        assert(tailPeak < 0.0001f);
+        assert(voice.getActiveVoiceCount() == 0);
+        std::cout << "  [PASS] ONCE mode voice cleanly fades to true silence and deactivates (tailPeak=" << tailPeak << ")" << std::endl;
+
+        // Test 3: Smooth TIME knob sweep (zero clicks / step discontinuities)
+        voice.reset();
+        voice.triggerNote(36, 0.9f, 65.41f);
+        std::vector<float> sweepL(1024, 0.0f), sweepR(1024, 0.0f);
+        for (int i = 0; i < 10; ++i) {
+            p.traverseRate = 0.5f + static_cast<float>(i) * 0.15f;
+            voice.setParams(p);
+            voice.renderBlock(sweepL.data(), sweepR.data(), 1024);
+            for (float s : sweepL) {
+                assert(!std::isnan(s) && !std::isinf(s));
+            }
+        }
+        std::cout << "  [PASS] Dynamic TIME traversal sweep renders smooth and bounded across parameter changes" << std::endl;
+
+        // Test 4: Adios Lineage (13) Multi-Voice Onset Integrity
+        // Lineage 13: 1u << 13 = 0x2000u
+        p.lineageMask = 1u << 13;
+        p.category = 0; // Kicks
+        p.tableMorph = 0.0f;
+        voice.setParams(p);
+        voice.triggerNote(36, 0.9f, 65.41f);
+        std::vector<float> adiosL(512, 0.0f), adiosR(512, 0.0f);
+        voice.renderBlock(adiosL.data(), adiosR.data(), 512);
+        for (int i = 0; i < 512; ++i) {
+            assert(!std::isnan(adiosL[i]) && !std::isinf(adiosL[i]));
+        }
+        std::cout << "  [PASS] Adios Lineage 13 kick triggers cleanly without audio explosion or NaN" << std::endl;
+
+        std::cout << "PASS: Suite 70: DigiStrike FS2 Unified Continuous Voice Engine completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 70 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

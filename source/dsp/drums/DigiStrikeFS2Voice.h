@@ -157,6 +157,7 @@ public:
             v.loopSpanMult = 1.0f;
             v.randLen = 0.0f;
             v.travPitchScale = 1.0f;
+            v.tSm = 1.0f;
         }
         activeVoiceCount_ = 0;
         masterFilterState_.fill(0.0f);
@@ -454,6 +455,7 @@ private:
         float loopSpanMult{1.0f};
         float randLen{0.0f};
         float travPitchScale{1.0f};
+        float tSm{1.0f};
     };
 
     inline float nextFloat() noexcept {
@@ -620,21 +622,18 @@ private:
         v.isReverse = params_.reverse;
         v.tTotalSec = dMax * std::max(0.02f, absT);
 
-        // Traversal Anchor & Grain Initialization
+        // Traversal Anchor & Grain Initialization (Red Team Ratified Unified OLA)
+        const float targetTInit = (std::max(0.02f, absT) * FastMath::fastPow2(2.0f * (effT - 0.5f))) / std::max(0.02f, v.travPitchScale);
+        v.tSm = targetTInit;
         v.u = v.isReverse ? v.tEndSec : v.tStartSec;
-        v.grainPhase = 0.0;
-        v.gAnchor[0] = v.u;
-        v.gDir[0] = v.isReverse ? -1.0f : 1.0f;
-        v.gAnchor[1] = v.u - 0.5 * static_cast<double>(grainLengthSec_);
-        v.gDir[1] = v.gDir[0];
-
-        if (v.isReverse) {
-            v.transientRemaining = 0;
-            v.sampleCountTrigger = 0;
-        } else {
-            v.transientRemaining = static_cast<int>(0.015f * sampleRate_);
-            v.sampleCountTrigger = v.transientRemaining;
-        }
+        v.grainPhase = 0.5;
+        double initDir = v.isReverse ? -1.0 : 1.0;
+        v.gDir[0] = static_cast<float>(initDir);
+        v.gDir[1] = static_cast<float>(initDir);
+        v.gAnchor[0] = v.u - initDir * 0.5 * static_cast<double>(grainLengthSec_) * static_cast<double>(v.staticPitchRatio);
+        v.gAnchor[1] = v.u;
+        v.transientRemaining = 0;
+        v.sampleCountTrigger = 0;
 
         v.playheadSec = v.u;
         v.oscPhase = 0.0;
@@ -742,12 +741,17 @@ private:
             float punchRatio = FastMath::fastPow2(pitchModSemitones * (1.0f / 12.0f));
             float r = std::clamp(v.currentHz / std::max(10.0f, v.rootHz), 0.0078125f, 128.0f) * punchRatio;
 
-            // 3. Traversal Speed & Direction (with Layer 3 Lifeform Key-Tracking!)
+            // 3. Traversal Speed & Direction (with Layer 3 Lifeform Key-Tracking & Unified Rate Invariant!)
             const float T = params_.traverseRate;
             const float absT = std::max(0.02f, std::abs(T));
             const float macroTMod = std::pow(2.0f, 2.0f * (v.effMacroT - 0.5f));
-            // Unipolar duration scaling: 1.0x = nominal, 2.0x = takes twice as long (half speed)
-            const double s = (1.0 / static_cast<double>(std::max(0.02f, absT * macroTMod))) * static_cast<double>(v.travPitchScale);
+            const float targetT = (absT * macroTMod) / std::max(0.02f, v.travPitchScale);
+            v.tSm += kEdgeCoef_ * (targetT - v.tSm);
+
+            // Unified Rate Invariant: s = r / tSm
+            // When tSm == 1.0 (nominal), s == r. Grain-to-grain phase slip Δφ = (s - r) * hop == 0.
+            // Partition of unity (w0 + w1 ≡ 1) makes OLA mathematically identical to 1:1 resampled PCM.
+            const double s = static_cast<double>(r) / static_cast<double>(std::max(0.02f, v.tSm));
             const int mode = params_.loopMode;
 
             double d = params_.reverse ? -1.0 : 1.0;
@@ -779,7 +783,7 @@ private:
                     break;
             }
 
-            // 5. Audio Generation: Single-Cycle Freeze vs 15ms Transient Gate vs 2-Grain OLA
+            // 5. Audio Generation: Single-Cycle Freeze vs 2-Grain Unified OLA
             float sampleVal = 0.0f;
             if (params_.sampleLength <= 2.0f) {
                 // Single-cycle freeze mode: audio oscillator
@@ -809,47 +813,48 @@ private:
                     v.gDir[1] = (mode == 3) ? ((wrapFn(x, 2.0 * S) < S) ? 1.0f : -1.0f) : static_cast<float>(d);
                 }
 
-                // 15ms Pure-Impact Transient Gate:
-                if (v.transientRemaining > 0) {
-                    const int elapsed = v.sampleCountTrigger - v.transientRemaining;
-                    v.transientRemaining--;
-                    // Pure 1:1 playback at attack: zero comb filtering, 100% transient punch
-                    double pTrans = a + static_cast<double>(r) * (static_cast<double>(elapsed) * invSampleRate_);
-                    double pA = (metaA != nullptr) ? (pTrans * static_cast<double>(metaA->sampleRate)) : 0.0;
-                    sampleVal = (metaA != nullptr) ? rom.sampleHermite(v.voiceA, pA) : 0.0f;
-                    if (metaB != nullptr && v.morphFrac > 0.001f) {
-                        double pB = pTrans * static_cast<double>(metaB->sampleRate);
-                        float sB = rom.sampleHermite(v.voiceB, pB);
-                        sampleVal = (1.0f - v.morphFrac) * sampleVal + v.morphFrac * sB;
-                    }
-                } else {
-                    // Steady-state 2-Grain Hann Overlap-Add
-                    float w0 = 0.5f * (1.0f - std::cos(static_cast<float>(phi0 * 6.283185307179586)));
-                    float w1 = 1.0f - w0;
+                // Partition-of-unity Hann Overlap-Add (w0 + w1 ≡ 1.0)
+                float w0 = 0.5f * (1.0f - std::cos(static_cast<float>(phi0 * 6.283185307179586)));
+                float w1 = 1.0f - w0;
 
-                    auto evalGrain = [&](int g, double phi) noexcept -> float {
-                        double rawP = v.gAnchor[g] + static_cast<double>(v.gDir[g]) * static_cast<double>(r) * (phi * static_cast<double>(grainLengthSec_));
-                        // Hardening: clamp grain read within loop window [a, b]
-                        double clampedP = rawP;
-                        if (mode == 2) {
-                            clampedP = a + wrapFn(rawP - a, S); // LOOP (Forward Looped)
-                        } else if (mode == 3) {
-                            clampedP = a + S - std::abs(wrapFn(rawP - a, 2.0 * S) - S); // PING (Ping-Pong)
-                        } else {
-                            clampedP = std::clamp(rawP, a, b); // ONCE (0) or HOLD (1) - Zero Attack Wrap
+                // Red Team Invariant: Source-Domain Tail Fade (Anti-Buzz & Anti-Click)
+                const double F = 0.002 * static_cast<double>(r); // 2ms fade window in source seconds
+
+                auto evalGrain = [&](int g, double phi) noexcept -> float {
+                    double rawP = v.gAnchor[g] + static_cast<double>(v.gDir[g]) * static_cast<double>(r) * (phi * static_cast<double>(grainLengthSec_));
+                    float grainFade = 1.0f;
+                    double clampedP = rawP;
+
+                    if (mode == 2) {
+                        clampedP = a + wrapFn(rawP - a, S); // LOOP (Forward Looped)
+                    } else if (mode == 3) {
+                        clampedP = a + S - std::abs(wrapFn(rawP - a, 2.0 * S) - S); // PING (Ping-Pong)
+                    } else {
+                        // ONCE (0) or HOLD (1)
+                        if (rawP >= b) {
+                            return 0.0f; // Beyond end, fully faded out
+                        } else if (rawP > b - F && F > 1e-6) {
+                            float normFade = static_cast<float>((rawP - (b - F)) / F);
+                            grainFade = 0.5f * (1.0f + std::cos(normFade * 3.141592653589793f));
                         }
+                        if (rawP <= a) {
+                            if (d < 0.0) return 0.0f;
+                            clampedP = a;
+                        } else {
+                            clampedP = rawP;
+                        }
+                    }
 
-                        if (metaA == nullptr) return 0.0f;
-                        double pA = clampedP * static_cast<double>(metaA->sampleRate);
-                        float sA = rom.sampleHermite(v.voiceA, pA);
-                        if (metaB == nullptr || v.morphFrac <= 0.001f) return sA;
-                        double pB = clampedP * static_cast<double>(metaB->sampleRate);
-                        float sB = rom.sampleHermite(v.voiceB, pB);
-                        return (1.0f - v.morphFrac) * sA + v.morphFrac * sB;
-                    };
+                    if (metaA == nullptr) return 0.0f;
+                    double pA = clampedP * static_cast<double>(metaA->sampleRate);
+                    float sA = rom.sampleHermite(v.voiceA, pA) * grainFade;
+                    if (metaB == nullptr || v.morphFrac <= 0.001f) return sA;
+                    double pB = clampedP * static_cast<double>(metaB->sampleRate);
+                    float sB = rom.sampleHermite(v.voiceB, pB) * grainFade;
+                    return (1.0f - v.morphFrac) * sA + v.morphFrac * sB;
+                };
 
-                    sampleVal = w0 * evalGrain(0, phi0) + w1 * evalGrain(1, phi1);
-                }
+                sampleVal = w0 * evalGrain(0, phi0) + w1 * evalGrain(1, phi1);
             }
 
             // 6. Lifeform Character Mojo (The Triad Sonic Canon)

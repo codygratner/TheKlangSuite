@@ -458,10 +458,28 @@ def main():
                         audio = resample_cubic(audio, r)
                     v['root_midi'] = int(m_round_c)
 
+        # Sanitization: Ensure clean zero-crossing onset without destroying punch
+        if len(audio) > 64 and abs(audio[0]) > (64.0 / 32768.0):
+            # 1. Search forward up to 64 samples for first zero-crossing
+            found_zc = None
+            for z in range(min(64, len(audio) - 1)):
+                if (audio[z] <= 0.0 and audio[z+1] >= 0.0) or (audio[z] >= 0.0 and audio[z+1] <= 0.0):
+                    found_zc = z if abs(audio[z]) < abs(audio[z+1]) else z + 1
+                    break
+            if found_zc is not None and found_zc > 0:
+                audio = audio[found_zc:]
+
+            # 2. If start amplitude or slope still exceeds bounds, apply 32-sample half-cosine micro-fade
+            if len(audio) > 32:
+                fade_in = 0.5 * (1.0 - np.cos(np.linspace(0.0, np.pi, 32, dtype=np.float32)))
+                audio[:32] *= fade_in
+
         # Apply 32-sample cosine tail fade to prevent clicks
         if len(audio) > 32:
             fade = 0.5 * (1.0 + np.cos(np.linspace(0, np.pi, 32, dtype=np.float32)))
             audio[-32:] *= fade
+        if len(audio) > 0:
+            audio[-1] = 0.0
 
         # Convert to 16-bit signed PCM
         pcm_int16 = np.clip(audio * 32767.0, -32768.0, 32767.0).astype(np.int16)
