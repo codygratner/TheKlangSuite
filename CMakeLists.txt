@@ -9,7 +9,7 @@ if (APPLE)
 endif()
 
 # 1. Project definition
-project(TheKlangSuite VERSION 0.4.0 LANGUAGES C CXX)
+project(TheKlangSuite VERSION 0.5.0 LANGUAGES C CXX)
 
 # Feature branch build tag (e.g., "-tooltips"). Stripped upon merge back to master.
 set(TKF_FEATURE_TAG "" CACHE STRING "Prerelease feature tag for development builds")
@@ -306,7 +306,7 @@ juce_add_plugin(FormlessSpawn
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Tfsp
     BUNDLE_ID com.crackedchimes.formlessspawn
-    VERSION "1.0.0"
+    VERSION "1.0.1"
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "Formless Spawn"
@@ -357,7 +357,7 @@ juce_add_plugin(Hastur
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Hst1
     BUNDLE_ID com.crackedchimes.hastur
-    VERSION "1.0.5"
+    VERSION "1.0.6"
     
     FORMATS ${TKF_FORMATS}
     PRODUCT_NAME "Hastur"

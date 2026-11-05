@@ -1,12 +1,35 @@
 # The Klang Suite: Developer History & Institutional Memory
 
 ## ?? Milestone Anchor Directory
+- [**v0.5.0 (The Fleet Expansion & Triad Engine)**](#session-2026-11-05-the-klang-suite-v050-release-hastur-v106-formless-spawn-v101-digistrike-fs2-v100-debut) — Hastur v1.0.6, Formless Spawn v1.0.1, DigiStrike FS2 v1.0.0. (73/73 DSP Test Suites Passing 100%)
 - [**v0.4.0 (Interface & Experience)**](#session-2026-10-08-0829-9241988e-1227-466e-a0a5-446d61a69d77) — Neo-Slate UX, Grill Lab, Modulation Matrix. (375/375 GUI Tests, 100% DSP)
 - [**v0.3.3 (The Hardening Gauntlet)**](#session-2026-10-07-2045-8fe6b97b-f027-4cc9-8cc2-d5f67ccfb0c9) — CI Lockdown, Monitor Saver, Chaos Fuzzing. (305/305 GUI Tests, 100% DSP)
 - [**v0.3.2 (Agent Infrastructure)**](#session-2026-10-07-1444-8fe6b97b-f027-4cc9-8cc2-d5f67ccfb0c9) — TKS_LOG, Unified Tree, Strings Schema. (294/294 GUI Tests, 100% DSP)
 - [**v0.3.1 (Editor Quality & Data Schema)**](#session-2026-10-07-0554-9241988e-1227-466e-a0a5-446d61a69d77) — Schema Separation, Tree UX, Callouts. (257/257 GUI Tests, 100% DSP)
 - [**v0.3.0 (Architecture)**](#session-2026-10-06-1304-8fe6b97b-f027-4cc9-8cc2-d5f67ccfb0c9) — Headless GUI Tests, .pkg Installer. (160 Parity Matches)
 
+
+### Session 2026-11-05: The Klang Suite v0.5.0 Release (Hastur v1.0.6, Formless Spawn v1.0.1, DigiStrike FS2 v1.0.0 Debut)
+- **DigiStrike FS2 Sovereign Vintage PCM Workstation (v1.0.0 Debut)**:
+  - Official v1.0.0 debut release of the 16-voice vintage PCM workstation.
+  - Authentic 160-slot VitalTable ROM with 20 sovereign hardware lineages (Roland, E-mu, Yamaha, Korg, Ensoniq, Kawai, Casio, Akai, Sequential, Kurzweil, Oberheim, PPG, Fairlight, Synclavier, Cheetah, Linn, Simmons, Buchla, Waldorf, Moog).
+  - Triad Sonic Canon: Synthetic, Cyborg (16-step CV pitch quantization, 8-bit DAC transient, -38 dB dither), and Organic (viscoelastic tension sag, vactrol attack).
+  - Gordon-Smith modal strike engine with pre-sine frequency clamping [10 Hz, 0.4495 fs] and symplectic recurrence (det=1).
+  - 16-sample sub-block tap folding, 2x2 loop switch, continuous bidirectional traversal, master macro decay fan-out.
+- **Hastur Metamorphic Bass Synthesizer (v1.0.6)**:
+  - Universal vector stretching and cross-instance persistent sizing.
+  - Unipolar filter envelope depth with 10-octave range.
+  - Cracked Chimes fleet branding unification.
+- **Formless Spawn Sovereign Drum Voice (v1.0.1)**:
+  - Ported equal-power panning, de-click crossfade continuity, golden-ratio dispersion, cutoff envelope halo, and smart altar pad.
+  - Master velocity sensitivity control.
+  - Unipolar filter envelope depth with 10-octave range.
+- **Triad Release Deployment & Verification**:
+  - All 73 DSP verification suites in `dsp_tests` passed 100%.
+  - Built Release VST3s and Standalone executables for Hastur v1.0.6, Formless Spawn v1.0.1, and DigiStrike FS2 v1.0.0.
+  - Deployed locally to `C:\Program Files\Common Files\VST3\` and `current_build\`.
+  - Tagged `v0.5.0`, `hastur-v1.0.6`, `formless_spawn-v1.0.1`, and `digistrike_fs2-v1.0.0`.
+  - Packaged distribution archives with SHA-256 verification and published to GitHub.
 
 ### Session 2026-11-03: Kilohearts Knob Value Popups & Gear Manual Inspector Overhaul (Hastur v1.0.5 & Formless Spawn v1.0.0 Debut)
 - **Kilohearts In-Dial Value Badges**:
