@@ -116,6 +116,7 @@ private:
     std::atomic<float>* macroDecayParam_{nullptr};
     std::atomic<float>* volumeParam_{nullptr};
     std::atomic<float>* ampDecayParam_{nullptr};
+    std::atomic<float>* ampVelocityParam_{nullptr};
 
     std::atomic<float>* cutoffParam_{nullptr};
     std::atomic<float>* resonanceParam_{nullptr};

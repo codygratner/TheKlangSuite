@@ -317,6 +317,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
             juce::ParameterID{digistrike_fs2Parameters::Ids::glide_time, 1}, digistrike_fs2Parameters::Names::glide_time, nr, 0.0500f));
     }
 
+    // amp_velocity [output]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{digistrike_fs2Parameters::Ids::amp_velocity, 1}, digistrike_fs2Parameters::Names::amp_velocity, 0.0000f, 100.0000f, 50.0000f));
+
     // cutoff [filter]
     {
         juce::NormalisableRange<float> nr{20.0000f, 20000.0000f};

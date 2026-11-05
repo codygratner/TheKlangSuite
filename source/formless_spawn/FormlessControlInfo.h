@@ -167,11 +167,12 @@ inline constexpr Control kMasterControls[] = {
     { "squash",      "SQUASH",      "bipolar dynamics: thin/snappy vs thick/huge" },
     { "wider",       "WIDER",       "mono-compatible stereo spatial widener" },
     { "volume",      "VOLUME",      "output level into the limiter (-inf..0..+12dB)" },
-    { "amp_decay",   "AMP-DEC",     "master dynamic amp decay [5ms .. engine length]" }
+    { "amp_decay",   "AMP-DEC",     "master dynamic amp decay [5ms .. engine length]" },
+    { "amp_velocity","VEL",         "master velocity dynamic response: 0%=flat punch, 50%=linear, 100%=exponential" }
 };
 
-static_assert(sizeof(kMasterControls) / sizeof(kMasterControls[0]) == 28,
-              "kMasterControls must contain exactly 28 controls!");
+static_assert(sizeof(kMasterControls) / sizeof(kMasterControls[0]) == 29,
+              "kMasterControls must contain exactly 29 controls!");
 
 inline juce::String getRoleParamBlurb(int roleIdx, int knobIdx) {
     if (roleIdx >= 0 && roleIdx < 8 && knobIdx >= 0 && knobIdx < 8) {

@@ -37,6 +37,7 @@ namespace Ids {
     constexpr auto macro_decay = "macro_decay";
     constexpr auto volume = "volume";
     constexpr auto amp_decay = "amp_decay";
+    constexpr auto amp_velocity = "amp_velocity";
     constexpr auto cutoff = "cutoff";
     constexpr auto resonance = "resonance";
     constexpr auto filter_env_amt = "filter_env_amt";
@@ -81,6 +82,7 @@ namespace Names {
     constexpr auto macro_decay = "Macro Decay";
     constexpr auto volume = "Master Volume";
     constexpr auto amp_decay = "Master Amp Decay";
+    constexpr auto amp_velocity = "Master Velocity";
     constexpr auto cutoff = "Filter Cutoff";
     constexpr auto resonance = "Filter Resonance";
     constexpr auto filter_env_amt = "Filter Env Amount";
@@ -95,6 +97,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 41;
+    constexpr int count = 42;
 } // namespace Total
 } // namespace formless_spawnParameters

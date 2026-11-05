@@ -57,6 +57,7 @@ struct FormlessSpawnParams {
     float macroDecay{0.5f};      // 0.0 .. 1.0 (Master Macro)
     float volume{0.5f};          // 0.0 .. 1.0 (0=-inf, 0.5=0dB, 1=+12dB)
     float ampDecay{1.0f};        // 0.0 .. 1.0 (Uniform Role Logarithmic Decay)
+    float ampVelocity{50.0f};    // 0.0 .. 100.0 % (0%=Flat, 50%=Linear, 100%=Exponential)
     float cutoff{1000.0f};       // 20.0 .. 20000.0 Hz
     float resonance{0.30f};      // 0.0 .. 1.0 (Q in LP/HP/BP, +/-dB in PK)
     float filterEnvAmt{0.0f};    // 0.0 .. 1.0 (unipolar 0 .. +10 Octaves)
@@ -368,6 +369,7 @@ public:
         newSlot.role = activeRole_;
         newSlot.model = activeModel_;
         newSlot.velocity = velocity;
+        newSlot.effVelocityGain = CrackedChimes::DSP::calculateVelocityGain(velocity, p.ampVelocity * 0.01f);
         newSlot.ampEnv = 1.0f;
         newSlot.pitchEnv = 1.0f;
         newSlot.clickEnv = 1.0f;
@@ -477,6 +479,7 @@ private:
         float burstCount{0.0f};
         float baseHz{55.0f};
         float velocity{1.0f};
+        float effVelocityGain{1.0f};
         float latchedDecayScale{1.0f};
         float invDScale{1.0f};
         int   holdSamples{0};
@@ -1418,7 +1421,7 @@ private:
         }
 
         // Envelope VCA applied to the rich, characterful audio:
-        return saturatedAudio * shapedAmp * slot.velocity;
+        return saturatedAudio * shapedAmp * slot.effVelocityGain;
     }
 
     // =========================================================================

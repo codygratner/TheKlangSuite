@@ -51,4 +51,22 @@ inline constexpr StepRandHalo computeStepRandHalo(float kNorm, float amount, flo
     return h;
 }
 
+/**
+ * Master Drum Velocity Gain Transfer Function.
+ * kNorm in [0.0, 1.0] (0%=Flat 1.0, 50%=Linear v, 100%=Exponential v^2.5).
+ */
+inline float calculateVelocityGain(float velocity, float kNorm) noexcept {
+    velocity = std::clamp(velocity, 0.0f, 1.0f);
+    kNorm = std::clamp(kNorm, 0.0f, 1.0f);
+    if (kNorm <= 0.5f) {
+        const float t = kNorm * 2.0f;
+        return 1.0f - t * (1.0f - velocity);
+    } else {
+        const float u = (kNorm - 0.5f) * 2.0f;
+        constexpr float kMaxGamma = 2.5f;
+        const float gamma = 1.0f + u * (kMaxGamma - 1.0f);
+        return std::pow(velocity, gamma);
+    }
+}
+
 } // namespace CrackedChimes::DSP

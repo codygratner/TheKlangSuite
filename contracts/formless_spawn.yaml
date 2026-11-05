@@ -297,6 +297,16 @@ parameters:
     default: 1.0
     unit: s
 
+  - id: amp_velocity
+    name: Master Velocity
+    short: VEL
+    category: output
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 50.0
+
   # Right Pod: VCF & Universal Hardware Mojo Strip (11 controls)
   - id: cutoff
     name: Filter Cutoff

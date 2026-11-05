@@ -205,6 +205,9 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     setupKnob(ampDecayKnob_,     amp_decay,       "AMP-DEC",   "s",  "master dynamic amp decay [5ms .. engine length]", redCol);
     ampDecayKnob_.slider.setDoubleClickReturnValue(true, 1.0);
 
+    setupKnob(velocityKnob_,     amp_velocity,    "VEL",       "%",  "master velocity response: 0%=flat, 50%=linear, 100%=exponential", redCol);
+    velocityKnob_.slider.setDoubleClickReturnValue(true, 0.0);
+
     layoutControls();
 }
 
@@ -512,10 +515,11 @@ void FormlessSpawnAudioProcessorEditor::layoutControls() {
         place(squashKnob_,       x0 + pitch / 2 + pitch * 3, labelY1, pitch, 48, sliderY1);
         place(widerKnob_,        x0 + pitch / 2 + pitch * 4, labelY1, pitch, 48, sliderY1);
 
-        // Master Column: Limiter button, Volume knob, Amp Decay knob (x=804..872)
-        limiterButton_.setBounds(814, py + 26, 48, 20);
-        place(volumeKnob_,   838, labelY0 + 16, 52, 48, sliderY0 + 16);
-        place(ampDecayKnob_, 838, labelY1, 52, 48, sliderY1);
+        // Master Column: Limiter button, Volume knob, Amp Decay knob, Velocity knob (x=804..872)
+        limiterButton_.setBounds(814, py + 8, 48, 20);
+        place(volumeKnob_,   838, py + 32, 52, 40, py + 46);
+        place(ampDecayKnob_, 838, py + 90, 52, 40, py + 104);
+        place(velocityKnob_, 838, py + 148, 52, 40, py + 162);
     }
 }
 

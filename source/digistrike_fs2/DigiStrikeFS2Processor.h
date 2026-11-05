@@ -135,6 +135,7 @@ private:
     std::atomic<float>* sustainLevelParam_{nullptr};
     std::atomic<float>* ampDecayParam_{nullptr};
     std::atomic<float>* glideTimeParam_{nullptr};
+    std::atomic<float>* ampVelocityParam_{nullptr};
 
     std::atomic<float>* cutoffParam_{nullptr};
     std::atomic<float>* resonanceParam_{nullptr};

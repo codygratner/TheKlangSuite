@@ -1248,6 +1248,7 @@ private:
     KnobItem volumeKnob_;
     KnobItem ampDecayKnob_;
     KnobItem glideTimeKnob_;
+    KnobItem velocityKnob_;
     DigiStrikeRocker3 voiceModeRocker_{{"MONO", "GLIDE", "POLY"}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DigiStrikeFS2AudioProcessorEditor)

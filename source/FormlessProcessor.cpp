@@ -38,6 +38,7 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
     macroDecayParam_ = apvts_.getRawParameterValue(macro_decay);
     volumeParam_     = apvts_.getRawParameterValue(volume);
     ampDecayParam_   = apvts_.getRawParameterValue(amp_decay);
+    ampVelocityParam_ = apvts_.getRawParameterValue(amp_velocity);
 
     cutoffParam_       = apvts_.getRawParameterValue(cutoff);
     resonanceParam_    = apvts_.getRawParameterValue(resonance);
@@ -101,6 +102,7 @@ void FormlessSpawnAudioProcessor::loadVoiceParams(tkdsp::FormlessSpawnVoice::Par
     if (macroDecayParam_) p.macroDecay = macroDecayParam_->load(std::memory_order_relaxed);
     if (volumeParam_)     p.volume = volumeParam_->load(std::memory_order_relaxed);
     if (ampDecayParam_)   p.ampDecay = ampDecayParam_->load(std::memory_order_relaxed);
+    if (ampVelocityParam_) p.ampVelocity = ampVelocityParam_->load(std::memory_order_relaxed);
 
     if (cutoffParam_)       p.cutoff = cutoffParam_->load(std::memory_order_relaxed);
     if (resonanceParam_)    p.resonance = resonanceParam_->load(std::memory_order_relaxed);

@@ -195,6 +195,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{formless_spawnParameters::Ids::amp_decay, 1}, formless_spawnParameters::Names::amp_decay, 0.0000f, 1.0000f, 1.0000f));
 
+    // amp_velocity [output]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{formless_spawnParameters::Ids::amp_velocity, 1}, formless_spawnParameters::Names::amp_velocity, 0.0000f, 100.0000f, 50.0000f));
+
     // cutoff [filter]
     {
         juce::NormalisableRange<float> nr{20.0000f, 20000.0000f};

@@ -365,6 +365,9 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     setupKnob(glideTimeKnob_, glide_time, "GLIDE", "s", "portamento glide duration for authentic legato synth basslines", redCol);
     glideTimeKnob_.slider.setDoubleClickReturnValue(true, 0.050);
 
+    setupKnob(velocityKnob_, amp_velocity, "VEL", "%", "master velocity response: 0%=flat, 50%=linear, 100%=exponential", redCol);
+    velocityKnob_.slider.setDoubleClickReturnValue(true, 0.0);
+
     voiceModeRocker_.setColours({juce::Colour(0xFFFFAA00), juce::Colour(0xFF00C8FF), juce::Colour(0xFF6BBF59)});
     voiceModeRocker_.onSelect = [&apvts](int idx) {
         if (auto* param = apvts.getParameter(voice_mode))
@@ -1137,6 +1140,7 @@ void DigiStrikeFS2AudioProcessorEditor::layoutControls() {
         // Master Level Column (Col BX)
         limiterButton_.setBounds(colBX - 26, 356, 52, 22);
         place(volumeKnob_,    colBX, 398, 48, 46, 412);
+        place(velocityKnob_,  colBX, 454, 48, 40, 468);
 
         // Voice Mode Selector (Directly below amp knobs in Pod 3)
         voiceModeRocker_.setBounds(738, 510, 116, 22);

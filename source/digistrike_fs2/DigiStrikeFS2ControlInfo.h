@@ -136,11 +136,12 @@ inline constexpr Control kAltarControls[1] = {
     { "macro_decay", "MACRO",   "master multiplicative scaling factor across all dynamic envelopes" }
 };
 
-inline constexpr Control kMasterControls[4] = {
+inline constexpr Control kMasterControls[5] = {
     { "volume",        "VOLUME",  "master logarithmic output level with authentic analog headroom trim" },
     { "sustain_level", "SUSTAIN", "gated sustain level with equal-power ping-pong micro-grain looping" },
     { "amp_decay",     "AMP-DEC", "master amplitude decay duration and gated note release decay time" },
-    { "glide_time",    "GLIDE",   "exponential portamento glide duration for authentic legato synth basslines" }
+    { "glide_time",    "GLIDE",   "exponential portamento glide duration for authentic legato synth basslines" },
+    { "amp_velocity",  "VEL",     "master velocity dynamic response: 0%=flat punch, 50%=linear, 100%=exponential" }
 };
 
 // ==============================================================================

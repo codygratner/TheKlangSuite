@@ -52,6 +52,7 @@ DigiStrikeFS2AudioProcessor::DigiStrikeFS2AudioProcessor()
     sustainLevelParam_  = apvts_.getRawParameterValue(sustain_level);
     ampDecayParam_      = apvts_.getRawParameterValue(amp_decay);
     glideTimeParam_     = apvts_.getRawParameterValue(glide_time);
+    ampVelocityParam_   = apvts_.getRawParameterValue(amp_velocity);
 
     cutoffParam_        = apvts_.getRawParameterValue(cutoff);
     resonanceParam_     = apvts_.getRawParameterValue(resonance);
@@ -138,6 +139,7 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
     p.sustainLevel  = load(sustainLevelParam_, 0.0f);
     p.ampDecay      = load(ampDecayParam_, 1.000f);
     p.glideTime     = load(glideTimeParam_, 0.050f);
+    p.ampVelocity   = load(ampVelocityParam_, 50.0f);
 
     p.cutoff        = load(cutoffParam_, 20000.0f);
     p.resonance     = load(resonanceParam_, 0.30f);

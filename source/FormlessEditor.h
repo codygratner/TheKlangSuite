@@ -1079,6 +1079,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> limiterAttachment_;
     KnobItem            volumeKnob_;
     KnobItem            ampDecayKnob_;
+    KnobItem            velocityKnob_;
     FormlessGrid2x2     filterTypeBar_{{"LP", "HP", "BP", "PK"}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessorEditor)

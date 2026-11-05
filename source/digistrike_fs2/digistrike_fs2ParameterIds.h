@@ -62,6 +62,7 @@ namespace Ids {
     constexpr auto sustain_level = "sustain_level";
     constexpr auto amp_decay = "amp_decay";
     constexpr auto glide_time = "glide_time";
+    constexpr auto amp_velocity = "amp_velocity";
     constexpr auto cutoff = "cutoff";
     constexpr auto resonance = "resonance";
     constexpr auto filter_env_amt = "filter_env_amt";
@@ -131,6 +132,7 @@ namespace Names {
     constexpr auto sustain_level = "Gated Sustain Level";
     constexpr auto amp_decay = "Master Amp Decay / Release";
     constexpr auto glide_time = "Portamento Glide Time";
+    constexpr auto amp_velocity = "Master Velocity";
     constexpr auto cutoff = "Filter Cutoff";
     constexpr auto resonance = "Filter Resonance";
     constexpr auto filter_env_amt = "Filter Env Amount";
@@ -145,6 +147,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 66;
+    constexpr int count = 67;
 } // namespace Total
 } // namespace digistrike_fs2Parameters

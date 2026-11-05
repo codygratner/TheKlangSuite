@@ -70,6 +70,7 @@ struct DigiStrikeFS2Params {
     float sustainLevel{0.0f};// 0.0 .. 100.0 % (<=2% One-Shot, >2% Gated ADSR)
     float ampDecay{1.000f};  // 0.005 .. 5.0 s (skew 0.250s)
     float glideTime{0.050f}; // 0.001 .. 2.0 s (skew 0.050s, Portamento Glide)
+    float ampVelocity{50.0f};// 0.0 .. 100.0 % (0%=Flat, 50%=Linear, 100%=Exponential)
 
     float cutoff{20000.0f};  // 20.0 .. 20000.0 Hz
     float resonance{0.30f};  // 0.0 .. 1.0
@@ -231,6 +232,7 @@ public:
                 voices_[0].targetHz = noteHz;
                 voices_[0].noteNumber = noteNumber;
                 voices_[0].velocity = velocity;
+                voices_[0].effVelocityGain = CrackedChimes::DSP::calculateVelocityGain(velocity, params_.ampVelocity * 0.01f);
             } else {
                 // Fresh note attack
                 for (auto& v : voices_) {
@@ -382,6 +384,7 @@ private:
         int slotIdx{154};
         float morph{0.0f}; // 0.0 .. 1.0
         float velocity{0.9f};
+        float effVelocityGain{1.0f};
         float targetHz{261.63f};
         float currentHz{261.63f};
         float staticPitchRatio{1.0f};
@@ -502,6 +505,7 @@ private:
         v.noteNumber = noteNumber;
         v.category = params_.category;
         v.velocity = velocity;
+        v.effVelocityGain = CrackedChimes::DSP::calculateVelocityGain(velocity, params_.ampVelocity * 0.01f);
         v.targetHz = noteHz;
         v.currentHz = (params_.voiceMode == 1 && activeVoiceCount_ > 0) ? v.currentHz : noteHz;
         v.cyborgChargeSpike = 1.0f;
@@ -921,7 +925,7 @@ private:
             if (v.decayCurveActive && v.ampEnv > 0.0001f) {
                 shapedAmp = FastMath::fastPow2(FastMath::fastLog2(std::max(v.ampEnv, 1e-6f)) * v.decayCurveExp);
             }
-            float gain = shapedAmp * v.chokeEnv * v.velocity;
+            float gain = shapedAmp * v.chokeEnv * v.effVelocityGain;
             float outSample = sampleVal * gain;
 
             accL[i] += outSample * panL;
