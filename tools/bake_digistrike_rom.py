@@ -458,6 +458,38 @@ def main():
                         audio = resample_cubic(audio, r)
                     v['root_midi'] = int(m_round_c)
 
+        # Option D: Sovereign 2-Tier Windowed Loudness Calibration per Role
+        OPTION_D_TARGETS = {
+            0:  (150, -13.0, -0.5, 9.0),  # BD (Kick)
+            1:  (200, -15.0, -0.5, 9.0),  # SN (Snare)
+            2:  (200, -15.0, -0.5, 9.0),  # TM (Tom)
+            3:  (200, -15.0, -0.5, 9.0),  # CP (Clap)
+            4:  (250, -18.0, -1.0, 7.0),  # HH (Hi-Hat)
+            5:  (250, -18.0, -1.0, 7.0),  # CY (Cymbal)
+            6:  (150, -18.0, -1.0, 7.0),  # LN (Lineage Perc)
+            7:  (150, -18.0, -1.0, 7.0),  # MC (Micro Perc)
+            8:  (200, -16.0, -0.5, 8.0),  # FX
+            9:  (300, -12.0, -0.5, 6.0),  # ST (Stabs)
+            10: (300, -12.0, -0.5, 6.0),  # BS (Bass)
+        }
+        w_ms, target_db, peak_ceil_db, max_boost_db = OPTION_D_TARGETS.get(v['category'], (200, -15.0, -0.5, 8.0))
+        w_samples = min(len(audio), int(sr * (w_ms / 1000.0)))
+        if w_samples >= 16:
+            win = audio[:w_samples].astype(np.float64)
+            win_rms = np.sqrt(np.mean(win ** 2))
+            if win_rms > 1e-6:
+                current_rms_db = 20.0 * math.log10(win_rms)
+                gain_db = target_db - current_rms_db
+                # Guard 1: Max Boost Cap
+                gain_db = min(gain_db, max_boost_db)
+                candidate_gain = 10.0 ** (gain_db / 20.0)
+                current_peak = np.max(np.abs(audio.astype(np.float64)))
+                peak_ceiling = 10.0 ** (peak_ceil_db / 20.0)
+                # Guard 2: Peak Ceiling Priority
+                if current_peak * candidate_gain > peak_ceiling:
+                    candidate_gain = peak_ceiling / max(1e-6, current_peak)
+                audio = np.clip(audio * candidate_gain, -1.0, 1.0).astype(np.float32)
+
         # Sanitization: Ensure clean zero-crossing onset without destroying punch
         if len(audio) > 64 and abs(audio[0]) > (64.0 / 32768.0):
             # 1. Search forward up to 64 samples for first zero-crossing
