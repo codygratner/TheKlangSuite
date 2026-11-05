@@ -113,6 +113,18 @@ public:
         lpgAttCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.003f); // 3ms strike attack
         lpgRelCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.060f); // 60ms sluggish droop
 
+        // Noise crack band: 1.8kHz / Q 0.9 ZDF SVF bandpass (-3dB at ~1.06k..3.06k), RMS-matched to legacy HP throw
+        {
+            const float fc = std::min(1800.0f, 0.45f * sampleRate_);
+            const float k = 1.0f / 0.9f;
+            const float g = std::tan(3.14159265f * fc * invSampleRate_);
+            noiseA1_ = 1.0f / (1.0f + g * (g + k));
+            noiseA2_ = g * noiseA1_;
+            noiseA3_ = g * noiseA2_;
+            const float enbwHz = 1.57079633f * fc * k; // (pi/2) * fc / Q
+            noiseGain_ = k * std::sqrt(1.0811f * 0.5f * sampleRate_ / enbwHz); // 1.0811 = legacy HP noise power gain
+        }
+
         reset();
     }
 
@@ -153,6 +165,8 @@ public:
             v.zohSampledVal = 0.0f;
             v.cyborgChargeSpike = 0.0f;
             v.lpgState = 0.0f;
+            v.noiseHpState = 0.0f;
+            v.noiseRawPrev = 0.0f;
             v.isFadingOut = false;
             v.fadeOutEnv = 1.0f;
             v.loopSpanMult = 1.0f;
@@ -901,13 +915,18 @@ private:
             // 8. Enveloped Noise Mix (Dynamic Arbitrated Throw)
             if (v.effNoiseMix > 0.001f) {
                 float rawNoise = 2.0f * (nextFloat() - 0.5f);
-                float hpNoise = rawNoise - v.noiseRawPrev + 0.85f * v.noiseHpState;
-                v.noiseRawPrev = rawNoise;
-                v.noiseHpState = hpNoise;
+                // ZDF SVF bandpass (trapezoidal): 1k..3k crack band, leaves PCM top-end grit unmasked
+                const float nv3 = rawNoise - v.noiseRawPrev;
+                const float nv1 = noiseA1_ * v.noiseHpState + noiseA2_ * nv3;
+                const float nv2 = v.noiseRawPrev + noiseA2_ * v.noiseHpState + noiseA3_ * nv3;
+                v.noiseHpState = 2.0f * nv1 - v.noiseHpState;
+                v.noiseRawPrev = 2.0f * nv2 - v.noiseRawPrev;
                 if (std::abs(v.noiseHpState) < 1e-15f) v.noiseHpState = 0.0f;
+                if (std::abs(v.noiseRawPrev) < 1e-15f) v.noiseRawPrev = 0.0f;
 
+                const float bpNoise = nv1 * noiseGain_;
                 float envNoise = v.ampEnv * (0.35f + 0.65f * v.pitchEnv);
-                sampleVal += hpNoise * envNoise * v.effNoiseMix;
+                sampleVal += bpNoise * envNoise * v.effNoiseMix;
             }
 
             // 9. Amplitude Gain Scaling & Anti-Click Fadeout
@@ -1097,6 +1116,10 @@ private:
     double grainLengthSamples_{1440.0};
     double invGrainLengthSamples_{1.0 / 1440.0};
     float kEdgeCoef_{0.004f};
+    float noiseA1_{0.872967f};
+    float noiseA2_{0.103323f};
+    float noiseA3_{0.012229f};
+    float noiseGain_{3.193f};
     DigiStrikeFS2Params params_{};
 
     std::array<VoiceSlot, kMaxVoices> voices_{};

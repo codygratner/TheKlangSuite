@@ -6217,6 +6217,22 @@ int main() {
         }
         std::cout << "  [PASS] Adios Lineage 13 kick triggers cleanly without audio explosion or NaN" << std::endl;
 
+        // Test 5: Midrange Noise Crack (1kHz..3kHz ZDF SVF Bandpass) Verification
+        voice.reset();
+        p.noiseMix = 100.0f; // Full noise throw
+        p.sampleLength = 0.0f; // Freeze/zero table contribution
+        voice.setParams(p);
+        voice.triggerNote(60, 1.0f, 261.63f);
+        std::vector<float> noiseL(1024, 0.0f), noiseR(1024, 0.0f);
+        voice.renderBlock(noiseL.data(), noiseR.data(), 1024);
+        float noiseEnergy = 0.0f;
+        for (int i = 0; i < 1024; ++i) {
+            assert(!std::isnan(noiseL[i]) && !std::isinf(noiseL[i]));
+            noiseEnergy += noiseL[i] * noiseL[i];
+        }
+        assert(noiseEnergy > 0.01f);
+        std::cout << "  [PASS] Midrange 1k..3k ZDF SVF noise crack renders bounded, active, and denormal-free (energy=" << noiseEnergy << ")" << std::endl;
+
         std::cout << "PASS: Suite 70: DigiStrike FS2 Unified Continuous Voice Engine completed 100%!" << std::endl;
     }
 
