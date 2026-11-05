@@ -151,5 +151,9 @@ private:
     std::atomic<bool> manualTriggerPending_{false};
     std::atomic<int> manualReleaseNote_{-1};
 
+    bool telemetryDirty_{false};
+    float pendingTelemetryVel_{100.0f / 127.0f};
+    int pendingTelemetryNote_{60};
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DigiStrikeFS2AudioProcessor)
 };

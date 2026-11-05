@@ -36,12 +36,12 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     // 6-Domain Chromatic Standard: Movie Poster Orange (0xFFFF7B25)
     // =========================================================================
     const auto orangeCol = juce::Colour(0xFFFF7B25);
-    setupKnob(macroXKnob_,     macro_x,     "X: SPECTRAL", "%", "macro spectral spread, sweep excursion and harmonics", orangeCol);
-    setupKnob(macroYKnob_,     macro_y,     "Y: PUNCH",    "%", "macro transient attack spike and punch snap",         orangeCol);
-    setupKnob(macroZKnob_,     macro_z,     "Z: TIMBRE",   "%", "macro harmonic waveshaping, fold & overtone",         orangeCol);
-    setupKnob(macroTKnob_,     macro_t,     "T: TIME",     "%", "macro pitch envelope and body decay time",            orangeCol);
-    setupKnob(velAggrKnob_,    vel_aggr,    "VEL->AGGR",   "%", "velocity to synthesis aggression & overdrive",       orangeCol);
-    setupKnob(velTimbKnob_,    vel_timb,    "VEL->TIMB",   "%", "velocity to synthesis brightness & overtones",       orangeCol);
+    setupKnob(macroXKnob_,     macro_x,     "X: SPECTRAL", "%", "macro spectral spread, sweep excursion and harmonics", orangeCol, true);
+    setupKnob(macroYKnob_,     macro_y,     "Y: PUNCH",    "%", "macro transient attack spike and punch snap",         orangeCol, true);
+    setupKnob(macroZKnob_,     macro_z,     "Z: TIMBRE",   "%", "macro harmonic waveshaping, fold & overtone",         orangeCol, true);
+    setupKnob(macroTKnob_,     macro_t,     "T: TIME",     "%", "macro pitch envelope and body decay time",            orangeCol, true);
+    setupKnob(velAggrKnob_,    vel_aggr,    "VEL->AGGR",   "%", "velocity to synthesis aggression & overdrive",       orangeCol, true);
+    setupKnob(velTimbKnob_,    vel_timb,    "VEL->TIMB",   "%", "velocity to synthesis brightness & overtones",       orangeCol, true);
     setupKnob(panKnob_,        pan,         "PAN",         "%", "stereo panorama positioning",                        orangeCol, true);
     setupKnob(decayCurveKnob_, decay_curve, "DECAY CRV",   "",  "envelope discharge curve (exp to log)",              orangeCol, true);
 
@@ -245,11 +245,11 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     for (size_t i = 0; i < 20; ++i) {
         if (auto* paramVal = apvts.getRawParameterValue(DigiStrikeFS2Info::kLineageParamIds[i])) {
             if (paramVal->load() > 0.5f) initMask |= (1u << i);
-        } else if (i == 14) {
-            initMask |= (1u << 14); // Default Fairlight (CMI)
+        } else {
+            initMask |= (1u << i); // Default all lineages enabled
         }
     }
-    lineageGrid_.setMask(initMask);
+    lineageGrid_.setMask(initMask != 0 ? initMask : 0xFFFFFu);
 
     addAndMakeVisible(lineageGrid_);
     registerInspector(&lineageGrid_, lineage, blueCol);
@@ -403,8 +403,8 @@ void DigiStrikeFS2AudioProcessorEditor::updateInspectorForComponent(juce::Compon
             else
                 r.value = juce::String(binding.slider->getValue(), 2);
         } else if (binding.paramId == "category") {
-            const int cat = std::clamp(categoryGrid_.getState(), 0, 9);
-            const juce::StringArray catNames{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST"};
+            const int cat = std::clamp(categoryGrid_.getState(), 0, 10);
+            const juce::StringArray catNames{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST", "BS"};
             r.value = catNames[cat];
             r.blurb = juce::String(DigiStrikeFS2Info::kCategoryDescriptions[cat].data(), DigiStrikeFS2Info::kCategoryDescriptions[cat].size());
         } else if (binding.paramId == "lineage") {
@@ -541,7 +541,9 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     item.slider.setColour(juce::Slider::rotarySliderFillColourId, col);
     if (isBipolar) {
-        item.slider.setDoubleClickReturnValue(true, 0.0);
+        item.slider.getProperties().set("centerAtNoon", true);
+        const double dblVal = (paramId == pan || paramId == decay_curve || paramId == filter_env_amt || paramId == shift || paramId == squash) ? 0.0 : 0.5;
+        item.slider.setDoubleClickReturnValue(true, dblVal);
     }
     addAndMakeVisible(item.slider);
 
@@ -557,6 +559,23 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
         processor_.getAPVTS(), paramId, item.slider);
 
     item.slider.textFromValueFunction = [name, unit](double val) -> juce::String {
+        if (name.startsWith("X:") || name.startsWith("Y:") || name.startsWith("Z:") || name.startsWith("T:")
+            || name.startsWith("VEL->")) {
+            const float normVal = static_cast<float>(val);
+            const float bipPercent = (normVal - 0.5f) * 200.0f;
+            return (bipPercent > 0.0f ? "+" : "") + juce::String(juce::roundToInt(bipPercent)) + "%";
+        }
+        if (name == "PAN") {
+            const int p = juce::roundToInt(val * 100.0);
+            if (p == 0) return "C";
+            if (p < 0) return juce::String(-p) + "% L";
+            return juce::String(p) + "% R";
+        }
+        if (name == "DECAY CRV") {
+            if (val <= -0.05) return "EXP " + juce::String(val, 2);
+            if (val >= 0.05) return "LOG +" + juce::String(val, 2);
+            return "LIN 0.00";
+        }
         if (name == "VOLUME") {
             const float u = static_cast<float>(val);
             if (u <= 0.0001f) return "-inf dB";

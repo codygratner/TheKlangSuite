@@ -22,15 +22,18 @@ struct Control {
 // ==============================================================================
 // 1. Header Selectors & Lifeform Descriptions
 // ==============================================================================
-inline constexpr std::string_view kCategoryDescriptions[8] = {
-    "Bass Drum: vintage punch, 555 pitch clock dive, and deep sub resonance",
-    "Snare Drum: acoustic shell body, gated digital rattle, and snappy wire crack",
-    "Tom: electronic drumhead tension, Simmons hexagonal bite, and pitch sweep",
-    "Handclap: multi-sample flam cluster, 8-bit digital snap, and claptrap burst",
-    "Hi-Hat: sizzling metallic clusters, variable clock sizzle, and choked decays",
-    "Cymbal: shimmering bronze alloy wash, bell strikes, and long ambient decays",
-    "Percussion: Latin cowbells, congas, rimshots, woodblocks, and metallic pings",
-    "Stabs & Bass: 12-bit orchestral hits, rave stabs, slap bass, and digital synth growl"
+inline constexpr std::string_view kCategoryDescriptions[11] = {
+    "Bass Drum (BD): vintage punch, 555 pitch clock dive, and deep sub resonance",
+    "Snare Drum (SN): acoustic shell body, gated digital rattle, and snappy wire crack",
+    "Tom (TM): electronic drumhead tension, Simmons hexagonal bite, and pitch sweep",
+    "Handclap (CP): multi-sample flam cluster, 8-bit digital snap, and claptrap burst",
+    "Hi-Hat (HH): sizzling metallic clusters, variable clock sizzle, and choked decays",
+    "Cymbal (CY): shimmering bronze alloy wash, bell strikes, and long ambient decays",
+    "Latin & Hand Perc (LN): congas, bongos, timbales, shakers, tambourines, and claves",
+    "Metallic & Bells (MC): cowbells, triangles, anvils, gongs, bells, and chimes",
+    "Effects & Sweeps (FX): Synare 3 sweeps, Simmons lasers, HR-16B industrial foley, novelties",
+    "Stabs & Hits (ST): Fairlight CMI Series IIx ORCH5 Stravinsky hits, vox chords, and horn stabs",
+    "Bass Synth & Slap (BS): vintage acoustic, slap, finger, and CZ synth basses tuned to true C"
 };
 
 inline constexpr std::string_view kLineageDescriptions[21] = {

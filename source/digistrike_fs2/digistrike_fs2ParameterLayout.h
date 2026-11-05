@@ -75,12 +75,12 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // category [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::category, 1}, digistrike_fs2Parameters::Names::category,
-        juce::StringArray{"KICK", "SNAR", "TOMS", "CLAP", "HATS", "CYMB", "PERC", "STAB"}, 7));
+        juce::StringArray{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST", "BS"}, 1));
 
     // lineage [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::lineage, 1}, digistrike_fs2Parameters::Names::lineage,
-        juce::StringArray{"CROWN", "APEX", "EMPYR", "FALCON", "K-WRK", "COMPACT", "TOKYO", "GOTHN", "CIRCUITS", "PHASE", "STUDIO", "KEIO", "NIPPON", "ADIOS", "FAIRL", "SYNCL", "ENSON", "SIMM", "JOMOX", "CURIOS"}, 4));
+        juce::StringArray{"CROWN", "APEX", "EMPYR", "FALCON", "K-WRK", "COMPACT", "TOKYO", "GOTHN", "CIRCUITS", "PHASE", "STUDIO", "KEIO", "NIPPON", "ADIOS", "FAIRL", "SYNCL", "ENSON", "SIMM", "JOMOX", "CURIOS"}, 14));
 
     // voice_mode [header]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -145,8 +145,12 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     }
 
     // traverse_rate [synthesis]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::traverse_rate, 1}, digistrike_fs2Parameters::Names::traverse_rate, symmetricQuadraticTimeRange(), 1.0000f));
+    {
+        juce::NormalisableRange<float> nr{0.2500f, 4.0000f};
+        nr.setSkewForCentre(1.0000f);
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{digistrike_fs2Parameters::Ids::traverse_rate, 1}, digistrike_fs2Parameters::Names::traverse_rate, nr, 1.0000f));
+    }
 
     // pitch_dive [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -162,28 +166,32 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // table_morph [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::table_morph, 1}, digistrike_fs2Parameters::Names::table_morph, 0.0000f, 100.0000f, 0.0000f));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::table_morph, 1}, digistrike_fs2Parameters::Names::table_morph, 0.0000f, 100.0000f, 8.7432f));
 
     // loop_mode [synthesis]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::loop_mode, 1}, digistrike_fs2Parameters::Names::loop_mode,
-        juce::StringArray{"FWD", "REV", "PPG", "False"}, 3));
+        juce::StringArray{"ONCE", "HOLD", "LOOP", "PING"}, 0));
+
+    // reverse [synthesis]
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{digistrike_fs2Parameters::Ids::reverse, 1}, digistrike_fs2Parameters::Names::reverse, false));
 
     // lin_crown [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_crown, 1}, digistrike_fs2Parameters::Names::lin_crown, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_crown, 1}, digistrike_fs2Parameters::Names::lin_crown, true));
 
     // lin_apex [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_apex, 1}, digistrike_fs2Parameters::Names::lin_apex, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_apex, 1}, digistrike_fs2Parameters::Names::lin_apex, true));
 
     // lin_empyr [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_empyr, 1}, digistrike_fs2Parameters::Names::lin_empyr, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_empyr, 1}, digistrike_fs2Parameters::Names::lin_empyr, true));
 
     // lin_falcon [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_falcon, 1}, digistrike_fs2Parameters::Names::lin_falcon, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_falcon, 1}, digistrike_fs2Parameters::Names::lin_falcon, true));
 
     // lin_kwrk [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
@@ -191,63 +199,63 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // lin_compact [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_compact, 1}, digistrike_fs2Parameters::Names::lin_compact, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_compact, 1}, digistrike_fs2Parameters::Names::lin_compact, true));
 
     // lin_tokyo [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_tokyo, 1}, digistrike_fs2Parameters::Names::lin_tokyo, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_tokyo, 1}, digistrike_fs2Parameters::Names::lin_tokyo, true));
 
     // lin_gothn [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_gothn, 1}, digistrike_fs2Parameters::Names::lin_gothn, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_gothn, 1}, digistrike_fs2Parameters::Names::lin_gothn, true));
 
     // lin_circuits [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_circuits, 1}, digistrike_fs2Parameters::Names::lin_circuits, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_circuits, 1}, digistrike_fs2Parameters::Names::lin_circuits, true));
 
     // lin_phase [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_phase, 1}, digistrike_fs2Parameters::Names::lin_phase, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_phase, 1}, digistrike_fs2Parameters::Names::lin_phase, true));
 
     // lin_studio [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_studio, 1}, digistrike_fs2Parameters::Names::lin_studio, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_studio, 1}, digistrike_fs2Parameters::Names::lin_studio, true));
 
     // lin_keio [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_keio, 1}, digistrike_fs2Parameters::Names::lin_keio, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_keio, 1}, digistrike_fs2Parameters::Names::lin_keio, true));
 
     // lin_nippon [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_nippon, 1}, digistrike_fs2Parameters::Names::lin_nippon, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_nippon, 1}, digistrike_fs2Parameters::Names::lin_nippon, true));
 
     // lin_adios [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_adios, 1}, digistrike_fs2Parameters::Names::lin_adios, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_adios, 1}, digistrike_fs2Parameters::Names::lin_adios, true));
 
     // lin_fairlight [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_fairlight, 1}, digistrike_fs2Parameters::Names::lin_fairlight, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_fairlight, 1}, digistrike_fs2Parameters::Names::lin_fairlight, true));
 
     // lin_synclavier [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_synclavier, 1}, digistrike_fs2Parameters::Names::lin_synclavier, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_synclavier, 1}, digistrike_fs2Parameters::Names::lin_synclavier, true));
 
     // lin_ensoniq [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_ensoniq, 1}, digistrike_fs2Parameters::Names::lin_ensoniq, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_ensoniq, 1}, digistrike_fs2Parameters::Names::lin_ensoniq, true));
 
     // lin_simmons [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_simmons, 1}, digistrike_fs2Parameters::Names::lin_simmons, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_simmons, 1}, digistrike_fs2Parameters::Names::lin_simmons, true));
 
     // lin_jomox [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_jomox, 1}, digistrike_fs2Parameters::Names::lin_jomox, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_jomox, 1}, digistrike_fs2Parameters::Names::lin_jomox, true));
 
     // lin_curios [lineage]
     layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_curios, 1}, digistrike_fs2Parameters::Names::lin_curios, false));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::lin_curios, 1}, digistrike_fs2Parameters::Names::lin_curios, true));
 
     // rand_x [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

@@ -294,7 +294,7 @@ public:
     uint32_t getMask() const noexcept { return mask_; }
 
     int getSelected() const noexcept {
-        const uint32_t m = (mask_ & 0xFFFFFu) != 0 ? (mask_ & 0xFFFFFu) : (1u << 14);
+        const uint32_t m = (mask_ & 0xFFFFFu) != 0 ? (mask_ & 0xFFFFFu) : 0xFFFFFu;
         return std::countr_zero(m);
     }
 
@@ -485,12 +485,12 @@ public:
 
         if (e.getNumberOfClicks() >= 2) {
             // Double-Click: Reset to default Fairlight
-            mask_ = (1u << 14);
+            mask_ = 0xFFFFFu;
         } else if (e.mods.isPopupMenu() || e.mods.isAltDown()) {
             // Solo clicked lineage (or reset to Fairlight if already soloed)
             uint32_t soloMask = (1u << clickedIdx);
             if (mask_ == soloMask) {
-                mask_ = (1u << 14); // Back to Fairlight
+                mask_ = 0xFFFFFu; // Back to Fairlight
             } else {
                 mask_ = soloMask;
             }
@@ -938,9 +938,31 @@ public:
         // Active Value Arc
         juce::Colour baseColour = slider.findColour(juce::Slider::rotarySliderFillColourId);
         juce::Path valArc;
-        valArc.addCentredArc(centre.x, centre.y, radius - 3.0f, radius - 3.0f, 0.0f, rotaryStartAngle, angle, true);
-        g.setColour(baseColour);
-        g.strokePath(valArc, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        const bool centerAtNoon = slider.getProperties().contains("centerAtNoon")
+            ? static_cast<bool>(slider.getProperties()["centerAtNoon"])
+            : (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0);
+
+        if (centerAtNoon) {
+            const float zeroNorm = (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0)
+                ? static_cast<float>(-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()))
+                : 0.5f;
+            const float midAngle = rotaryStartAngle + zeroNorm * sweep;
+            if (std::abs(angle - midAngle) > 0.005f) {
+                if (angle > midAngle) {
+                    valArc.addCentredArc(centre.x, centre.y, radius - 3.0f, radius - 3.0f, 0.0f, midAngle, angle, true);
+                } else {
+                    valArc.addCentredArc(centre.x, centre.y, radius - 3.0f, radius - 3.0f, 0.0f, angle, midAngle, true);
+                }
+                g.setColour(baseColour);
+                g.strokePath(valArc, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            }
+        } else {
+            if (sliderPosProportional > 0.001f) {
+                valArc.addCentredArc(centre.x, centre.y, radius - 3.0f, radius - 3.0f, 0.0f, rotaryStartAngle, angle, true);
+                g.setColour(baseColour);
+                g.strokePath(valArc, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            }
+        }
 
         // Knob Dial Faceplate
         const float knobRadius = radius - 8.0f;
@@ -1090,7 +1112,7 @@ private:
     VoiceSelectorCapsule voiceSelectorCapsule_;
 
     // Bottom Tactile Matrix (Lower Bay)
-    DigiStrikeSegmentedBar categoryGrid_{{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST"}};
+    DigiStrikeSegmentedBar categoryGrid_{{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST", "BS"}};
     DigiStrikeMultiSelectBar lineageGrid_{{
         "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Compact", "Tokyo", "Gothenburg", "Circuits", "Phase",
         "Studio", "Keio", "Nippon", "Adios", "Fairlight", "Synclavier", "Ensoniq", "Simmons", "Jomox", "Curios"

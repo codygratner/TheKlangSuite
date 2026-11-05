@@ -212,13 +212,16 @@ inline constexpr float evalPeakingGainDb(float p) noexcept {
 inline constexpr float getRoleWiderBassCutoffHz(int roleIdx) noexcept {
     switch (roleIdx) {
         case 0: return 300.0f; // BD: sub & punch 100% mono
-        case 1: return 200.0f; // SD: body mono, snares wide
+        case 1: return 200.0f; // SN: body mono, snares wide
         case 2: return 220.0f; // TM: deep body mono
         case 3: return 250.0f; // CP: transient mono, clap spread wide
         case 4: return 500.0f; // HH: sizzle & metallic shimmer wide
         case 5: return 400.0f; // CY: panoramic crash/ride wash
-        case 6: return 260.0f; // PC: clean 3D percussion
-        case 7: return 160.0f; // FX: immersive low-end spatial FX
+        case 6: return 260.0f; // LN: clean 3D Latin percussion
+        case 7: return 450.0f; // MC: metallic shimmer & high resonance wide
+        case 8: return 180.0f; // FX: immersive low-end spatial FX & sweeps
+        case 9: return 160.0f; // ST: massive orchestral stabs & stereo choir
+        case 10: return 280.0f; // BS: solid sub-bass mono below 280Hz
         default: return 250.0f;
     }
 }

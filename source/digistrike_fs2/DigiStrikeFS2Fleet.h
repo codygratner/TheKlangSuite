@@ -24,7 +24,7 @@ inline constexpr std::array<const char*, 20> kLineageNames = {{
 
 inline uint32_t sanitizeMask(uint32_t mask) noexcept {
     mask &= 0xFFFFFu;
-    return (mask != 0) ? mask : (1u << 14); // Default to Fairlight (bit 14) matching FAIRL_ORCH5
+    return (mask != 0) ? mask : 0xFFFFFu; // Default to all 20 lineages selected
 }
 
 struct VoiceRef {
@@ -46,7 +46,7 @@ struct ResolvedVoicePair {
 
 // Computes total active voices across lineages enabled in mask for category cat
 inline int getActiveFleetCount(const tkdsp::DigiStrikeFS2ROM& rom, int cat, uint32_t mask) noexcept {
-    cat = std::clamp(cat, 0, 9);
+    cat = std::clamp(cat, 0, 10);
     mask = sanitizeMask(mask);
     int total = 0;
     for (int lin = 0; lin < 20; ++lin) {
@@ -60,7 +60,7 @@ inline int getActiveFleetCount(const tkdsp::DigiStrikeFS2ROM& rom, int cat, uint
 
 // Resolves a global fleet index g in [0, totalVoices - 1] to VoiceRef
 inline bool resolveFleetIndex(const tkdsp::DigiStrikeFS2ROM& rom, int cat, uint32_t mask, int g, VoiceRef& out) noexcept {
-    cat = std::clamp(cat, 0, 9);
+    cat = std::clamp(cat, 0, 10);
     mask = sanitizeMask(mask);
     int total = 0;
 
@@ -97,7 +97,7 @@ inline bool resolveFleetIndex(const tkdsp::DigiStrikeFS2ROM& rom, int cat, uint3
 
 // Resolves normalized morph01 in [0.0, 1.0] to VoiceA, VoiceB, and morphFrac (O(20), stack-only, real-time safe)
 inline ResolvedVoicePair resolveVoicePair(const tkdsp::DigiStrikeFS2ROM& rom, int cat, uint32_t mask, float morph01) noexcept {
-    cat = std::clamp(cat, 0, 9);
+    cat = std::clamp(cat, 0, 10);
     mask = sanitizeMask(mask);
     morph01 = std::clamp(morph01, 0.0f, 1.0f);
 

@@ -4,6 +4,7 @@
 #include "FormlessModMath.h"
 #include "../dynamics/WiderStage.h"
 #include "../dynamics/DrumLimiter.h"
+#include "../dynamics/SquashStage.h"
 #include "../mojo/FreqShifter.h"
 #include "../../digistrike_fs2/DigiStrikeFS2Catalog.h"
 #include "../../digistrike_fs2/DigiStrikeFS2ROM.h"
@@ -25,9 +26,9 @@ namespace FastMath = TbdAudio::FastMath;
 
 struct DigiStrikeFS2Params {
     // Header Controls (4)
-    int category{9};         // 0=BD, 1=SN, 2=TM, 3=CP, 4=HH, 5=CY, 6=LN, 7=MC, 8=FX, 9=ST (Default: ST)
-    int lineage{14};         // 0=CROWN .. 19=CURIOS (Default: 14=Fairlight)
-    uint32_t lineageMask{1u << 14}; // 20-bit multi-select mask (bit 14=Fairlight default)
+    int category{1};         // 0=BD, 1=SN, 2=TM, 3=CP, 4=HH, 5=CY, 6=LN, 7=MC, 8=FX, 9=ST, 10=BS (Default: SN)
+    int lineage{0};          // 0=CROWN .. 19=CURIOS
+    uint32_t lineageMask{0xFFFFFu}; // 20-bit multi-select mask (all 20 lineages default)
     int voiceMode{2};        // 0=MONO, 1=GLIDE, 2=POLY (Default: POLY)
     int lifeMode{1};         // 0=Synthetic, 1=Cyborg, 2=Organic (Default: Cyborg)
 
@@ -49,7 +50,7 @@ struct DigiStrikeFS2Params {
     float pitchDive{0.0f};   // 0.0 .. 100.0 % (PUNCH, 0..36 semitones)
     float noiseMix{0.0f};    // 0.0 .. 100.0 % (NOISE, Enveloped Noise Mix)
     float sampleLength{100.0f}; // 0.0 .. 100.0 % (LENGTH, 0% = single-cycle freeze)
-    float tableMorph{0.0f};  // 0.0 .. 100.0 % (MORPH, 3D Spectral Slice)
+    float tableMorph{8.74317f}; // 0.0 .. 100.0 % (MORPH, 3D Spectral Slice, Default: Snare 49/550)
     int   loopMode{0};        // 0=ONCE, 1=HOLD, 2=LOOP, 3=PING
     bool  reverse{false};     // false=forward, true=reverse
 
@@ -107,11 +108,23 @@ public:
         freqShifter_.prepare(sampleRate_);
         widerStage_.prepare(sampleRate_);
         drumLimiter_.prepare(sampleRate_);
+        squashStage_.prepare(sampleRate_);
+        lpgAttCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.003f); // 3ms strike attack
+        lpgRelCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.060f); // 60ms sluggish droop
 
         reset();
     }
 
     [[nodiscard]] const std::array<float, 8>& getLatchedDraws() const noexcept { return latchedDraw_; }
+    [[nodiscard]] const std::array<float, 8>& getVoiceRandVal(size_t slot) const noexcept {
+        return (slot < voices_.size()) ? voices_[slot].randVal : latchedDraw_;
+    }
+    [[nodiscard]] float getVoicePanL(size_t slot) const noexcept {
+        return (slot < voices_.size()) ? voices_[slot].panL : 0.7071f;
+    }
+    [[nodiscard]] float getVoicePanR(size_t slot) const noexcept {
+        return (slot < voices_.size()) ? voices_[slot].panR : 0.7071f;
+    }
 
     void reset() noexcept {
         for (auto& v : voices_) {
@@ -131,6 +144,8 @@ public:
             v.prevTraverseRate = 1.0f;
             v.sp12ClockPhase = 0.0;
             v.zohSampledVal = 0.0f;
+            v.cyborgChargeSpike = 0.0f;
+            v.lpgState = 0.0f;
             v.isFadingOut = false;
             v.fadeOutEnv = 1.0f;
         }
@@ -149,6 +164,11 @@ public:
         freqShifter_.reset();
         widerStage_.reset();
         drumLimiter_.reset();
+        squashStage_.reset();
+        crushPhase_ = 0.0f;
+        crushedSampleL_ = 0.0f;
+        crushedSampleR_ = 0.0f;
+        panPhase_ = 0.0f;
     }
 
     [[nodiscard]] int getActiveVoiceCount() const noexcept { return activeVoiceCount_; }
@@ -393,6 +413,8 @@ private:
         // Vintage Lifeform state
         double sp12ClockPhase{0.0};
         float zohSampledVal{0.0f};
+        float cyborgChargeSpike{0.0f};
+        float lpgState{0.0f};
 
         // Anti-click fadeout
         bool isFadingOut{false};
@@ -405,6 +427,20 @@ private:
         float prevTraverseRate{1.0f};
         float ampDecaySeconds{1.0f};
         float effMacroT{0.5f};
+        float effMacroX{0.5f};
+        float effMacroZ{0.5f};
+        float effTimb{0.5f};
+        float effClickBleed{0.0f};
+        float effNoiseMix{0.0f};
+        bool  decayCurveActive{false};
+        float decayCurveExp{1.0f};
+
+        std::array<float, 8> randVal{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+        std::array<float, 8> randBip{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+        float panL{0.7071f};
+        float panR{0.7071f};
+        float targetPanL{0.7071f};
+        float targetPanR{0.7071f};
     };
 
     inline float nextFloat() noexcept {
@@ -453,16 +489,61 @@ private:
         v.velocity = velocity;
         v.targetHz = noteHz;
         v.currentHz = (params_.voiceMode == 1 && activeVoiceCount_ > 0) ? v.currentHz : noteHz;
+        v.cyborgChargeSpike = 1.0f;
+        v.lpgState = 0.0f;
 
         const auto& rom = DigiStrikeFS2ROM::getInstance();
-        const int cat = std::clamp(params_.category, 0, 9);
+        const int cat = std::clamp(params_.category, 0, 10);
         const uint32_t mask = DigiStrikeFS2Fleet::sanitizeMask(params_.lineageMask);
 
-        v.morph = std::clamp(params_.tableMorph * 0.01f, 0.0f, 1.0f);
-        v.currentMorph = v.morph;
+        // 1. Stepped Random per-trigger offsets
+        const bool isLegatoGlide = (params_.voiceMode == 1 && activeVoiceCount_ > 0 && v.active && !v.released);
+        if (!isLegatoGlide) {
+            for (int i = 0; i < 8; ++i) {
+                v.randVal[static_cast<size_t>(i)] = nextFloat();
+            }
+            if (params_.voiceMode == 2) {
+                // Golden-ratio quasi-Monte Carlo stratification for Poly chords (prevents stereo clumping)
+                panPhase_ = std::fmod(panPhase_ + 0.6180339887f, 1.0f);
+                v.randVal[6] = panPhase_;
+            }
+            for (size_t i = 0; i < 8; ++i) {
+                v.randBip[i] = (v.randVal[i] - 0.5f) * 2.0f;
+            }
+            latchedDraw_ = v.randVal;
+        }
+
+        const float effX    = CrackedChimes::DSP::stepRandomNorm(params_.macroX, params_.randX * 0.01f, v.randVal[0]);
+        const float effY    = CrackedChimes::DSP::stepRandomNorm(params_.macroY, params_.randY * 0.01f, v.randVal[1]);
+        const float effZ    = CrackedChimes::DSP::stepRandomNorm(params_.macroZ, params_.randZ * 0.01f, v.randVal[2]);
+        const float effT    = CrackedChimes::DSP::stepRandomNorm(params_.macroT, params_.randT * 0.01f, v.randVal[3]);
+        const float effAggr = CrackedChimes::DSP::stepRandomNorm(params_.velAggr, params_.randAggr * 0.01f, v.randVal[4]);
+        const float effTimb = CrackedChimes::DSP::stepRandomNorm(params_.velTimb, params_.randTimb * 0.01f, v.randVal[5]);
+        const float rDecay  = v.randBip[7] * (params_.randDecay * 0.01f);
+
+        v.effMacroX = effX;
+        v.effMacroT = effT;
+        v.effMacroZ = effZ;
+        v.effTimb = effTimb;
+
+        const float initPan = std::clamp(params_.pan + v.randBip[6] * (params_.randPan * 0.01f), -1.0f, 1.0f);
+        const float initAngle = (initPan + 1.0f) * 0.25f * 3.14159265f;
+        v.panL = std::cos(initAngle);
+        v.panR = std::sin(initAngle);
+        v.targetPanL = v.panL;
+        v.targetPanR = v.panR;
+
+        // 2. Col 4: Wavetable Morph & Noise (Macro Z + Vel Timbre/Aggr)
+        const float normMorph = std::clamp(params_.tableMorph * 0.01f, 0.0f, 1.0f);
+        const float effMorph = tkdsp::formless::sequentialArbitrate(normMorph, effZ, 0.75f, effTimb, 0.70f, velocity);
+        v.morph = effMorph;
+        v.currentMorph = effMorph;
         v.isSustaining = false;
         v.noiseHpState = 0.0f;
         v.noiseRawPrev = 0.0f;
+
+        const float normNoise = std::clamp(params_.noiseMix * 0.01f, 0.0f, 1.0f);
+        v.effNoiseMix = tkdsp::formless::sequentialArbitrate(normNoise, effZ, 0.70f, effAggr, 0.70f, velocity);
 
         const auto fleetPair = DigiStrikeFS2Fleet::resolveVoicePair(rom, cat, mask, v.morph);
         v.voiceA = fleetPair.voiceA;
@@ -470,27 +551,15 @@ private:
         v.morphFrac = fleetPair.morphFrac;
         v.slotIdx = cat * 20 + std::clamp(params_.lineage, 0, 19);
 
-        // Stepped Random per-trigger offsets
-        for (int i = 0; i < 8; ++i) {
-            latchedDraw_[static_cast<size_t>(i)] = nextFloat();
-        }
-        float rX = (latchedDraw_[0] - 0.5f) * 2.0f * (params_.randX * 0.01f);
-        float rY = (latchedDraw_[1] - 0.5f) * 2.0f * (params_.randY * 0.01f);
-        float rZ = (latchedDraw_[2] - 0.5f) * 2.0f * (params_.randZ * 0.01f);
-        float rT = (latchedDraw_[3] - 0.5f) * 2.0f * (params_.randT * 0.01f);
-        float rDecay = (latchedDraw_[7] - 0.5f) * 2.0f * (params_.randDecay * 0.01f);
-
-        float effMacroX = std::clamp(params_.macroX + rX, 0.0f, 1.0f);
-        float effMacroY = std::clamp(params_.macroY + rY, 0.0f, 1.0f);
-        float effMacroZ = std::clamp(params_.macroZ + rZ, 0.0f, 1.0f);
-        float effMacroT = std::clamp(params_.macroT + rT, 0.0f, 1.0f);
-
-        // Effective one-shot duration derivation
+        // 3. Amplitude Envelope Decay & Curvature
         float ampDecaySeconds = params_.ampDecay * (0.6f + 0.8f * params_.macroDecay);
         ampDecaySeconds = std::clamp(ampDecaySeconds * (1.0f + rDecay * 0.35f), 0.005f, 5.0f);
         v.ampDecayRate = 1.0f / (ampDecaySeconds * sampleRate_);
         v.ampReleaseRate = 1.0f / (0.050f * sampleRate_);
         v.isGated = (params_.sustainLevel > 2.0f);
+
+        v.decayCurveActive = (std::abs(params_.decayCurve) > 0.01f);
+        v.decayCurveExp = v.decayCurveActive ? FastMath::fastPow2(-params_.decayCurve * 1.5f) : 1.0f;
 
         // Durations & Native Sample Rates from Voice Meta
         const auto* metaA = rom.getVoice(v.voiceA);
@@ -500,18 +569,21 @@ private:
         double dEff = (1.0 - static_cast<double>(v.morphFrac)) * durA + static_cast<double>(v.morphFrac) * durB;
         double dMax = std::max(durA, durB);
 
-        // Temporal Traversal Setup & 2-Grain OLA Initialization
+        // 4. Col 3: START & LENGTH (Headroom-Proportional via effX)
         v.dEffSec = dEff;
-        double startSec = std::min(static_cast<double>(params_.startOffset) * 0.001, dEff * 0.95);
+        const float normStart = std::clamp(params_.startOffset / 500.0f, 0.0f, 1.0f);
+        const float effStartNorm = tkdsp::formless::headroomLerp(normStart, effX, 0.85f);
+        double startSec = std::min(static_cast<double>(effStartNorm * 500.0f) * 0.001, dEff * 0.95);
         v.tStartSec = startSec;
         v.tStartSm = static_cast<float>(startSec);
 
-        float lenNorm = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
-        if (lenNorm <= 0.02f) {
+        const float normLen = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
+        const float effLenNorm = tkdsp::formless::headroomLerp(normLen, effX, 0.75f);
+        if (effLenNorm <= 0.02f) {
             v.tEndSec = v.tStartSec; // single-cycle freeze mode
             v.tEndSm = static_cast<float>(v.tStartSec);
         } else {
-            v.tEndSec = std::min(dEff, v.tStartSec + static_cast<double>(lenNorm) * (dEff - v.tStartSec));
+            v.tEndSec = std::min(dEff, v.tStartSec + static_cast<double>(effLenNorm) * (dEff - v.tStartSec));
             if (v.tEndSec <= v.tStartSec + 0.005) v.tEndSec = v.tStartSec + 0.005;
             v.tEndSm = static_cast<float>(v.tEndSec);
         }
@@ -526,11 +598,9 @@ private:
         v.grainPhase = 0.0;
         v.gAnchor[0] = v.u;
         v.gDir[0] = v.isReverse ? -1.0f : 1.0f;
-        // Grain 1 initialized at virtual pre-history u - 0.5L for bit-accurate null invariant
         v.gAnchor[1] = v.u - 0.5 * static_cast<double>(grainLengthSec_);
         v.gDir[1] = v.gDir[0];
 
-        // 15ms Pure-Impact Transient Gate (Bypassed on reverse so OLA sweeps smoothly backward to terminal crack)
         if (v.isReverse) {
             v.transientRemaining = 0;
             v.sampleCountTrigger = 0;
@@ -548,18 +618,27 @@ private:
         float semitones = static_cast<float>(noteNumber - rootMidi);
         v.staticPitchRatio = FastMath::fastPow2(std::clamp(semitones, -24.0f, 24.0f) * (1.0f / 12.0f));
 
-        // Pitch Envelope: P.DEC & PUNCH
-        float pDecayMs = params_.pitchDecay;
+        // 5. Col 1: Pitch Envelope P.DEC (Headroom Lerp via effT) & TIME
+        const float normPDec = std::clamp((params_.pitchDecay - 2.0f) / (250.0f - 2.0f), 0.0f, 1.0f);
+        const float effPDecNorm = tkdsp::formless::headroomLerp(normPDec, effT, 0.70f);
+        const float pDecayMs = 2.0f + effPDecNorm * (250.0f - 2.0f);
         v.pitchEnvRate = 1.0f / (pDecayMs * 0.001f * sampleRate_);
         v.pitchEnv = 1.0f;
-        v.pitchDiveSemitones = (params_.pitchDive * 0.01f) * 36.0f * (0.5f + effMacroY);
+
+        // 6. Col 2: PUNCH & CLICK (Sequential Arbitrate via effY)
+        const float normDive = std::clamp(params_.pitchDive * 0.01f, 0.0f, 1.0f);
+        const float effDive = tkdsp::formless::sequentialArbitrate(normDive, effY, 0.80f, effAggr, 0.75f, velocity);
+        v.pitchDiveSemitones = effDive * 36.0f;
+
+        const float normClick = std::clamp(params_.clickBleed * 0.01f, 0.0f, 1.0f);
+        v.effClickBleed = tkdsp::formless::sequentialArbitrate(normClick, effY, 0.75f, effTimb, 0.65f, velocity);
 
         v.ampEnv = 1.0f;
         v.sp12ClockPhase = 0.0;
         v.zohSampledVal = 0.0f;
 
         v.ampDecaySeconds = ampDecaySeconds;
-        v.effMacroT = effMacroT;
+        v.effMacroT = effT;
         v.loopMode = params_.loopMode;
         v.inReversePhase = false;
         v.ppgDirection = 1;
@@ -567,15 +646,18 @@ private:
     }
 
     void triggerMasterFilterEnv(float velocity) noexcept {
-        masterFilterEnv_ = velocity;
+        masterFilterEnv_ = std::max(masterFilterEnv_, velocity);
     }
 
     void renderVoice(VoiceSlot& v, float* accL, float* accR, int numSamples, float targetMorph, float invNumSamples) noexcept {
-        float panL = 0.7071f;
-        float panR = 0.7071f;
-        float effectivePan = std::clamp(params_.pan + (latchedDraw_[6] - 0.5f) * 2.0f * (params_.randPan * 0.01f), -1.0f, 1.0f);
-        panL = std::cos((effectivePan + 1.0f) * 0.25f * 3.14159265f);
-        panR = std::sin((effectivePan + 1.0f) * 0.25f * 3.14159265f);
+        const float effectivePan = std::clamp(params_.pan + v.randBip[6] * (params_.randPan * 0.01f), -1.0f, 1.0f);
+        const float panAngle = (effectivePan + 1.0f) * 0.25f * 3.14159265f;
+        v.targetPanL = std::cos(panAngle);
+        v.targetPanR = std::sin(panAngle);
+        v.panL += (v.targetPanL - v.panL) * 0.2f;
+        v.panR += (v.targetPanR - v.panR) * 0.2f;
+        const float panL = v.panL;
+        const float panR = v.panR;
 
         const float glideCoeff = (params_.glideTime > 0.0005f)
             ? (1.0f - std::exp(-invSampleRate_ / std::max(0.001f, params_.glideTime)))
@@ -589,9 +671,13 @@ private:
         for (int i = 0; i < numSamples; ++i) {
             v.currentMorph += morphInc;            // 1. Dynamic Boundary Smoothing (Live Held-Note Tracking)
             const double dEff = v.dEffSec;
-            const float aT = std::min(params_.startOffset * 0.001f, static_cast<float>(dEff * 0.95));
-            const float ln = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
-            const float bT = std::max(aT + 0.005f, aT + ln * static_cast<float>(dEff - aT));
+            const float normStart = std::clamp(params_.startOffset / 500.0f, 0.0f, 1.0f);
+            const float effStartNorm = tkdsp::formless::headroomLerp(normStart, v.effMacroX, 0.85f);
+            const float aT = std::min(static_cast<float>(effStartNorm * 500.0f * 0.001f), static_cast<float>(dEff * 0.95));
+
+            const float normLen = std::clamp(params_.sampleLength * 0.01f, 0.0f, 1.0f);
+            const float effLenNorm = tkdsp::formless::headroomLerp(normLen, v.effMacroX, 0.75f);
+            const float bT = (effLenNorm <= 0.02f) ? aT : std::max(aT + 0.005f, aT + effLenNorm * static_cast<float>(dEff - aT));
 
             v.tStartSm += kEdgeCoef_ * (aT - v.tStartSm);
             v.tEndSm   += kEdgeCoef_ * (bT - v.tEndSm);
@@ -719,46 +805,43 @@ private:
                 }
             }
 
-            // 6. Lifeform Character Mojo
+            // 6. Lifeform Character Mojo (The Triad Sonic Canon)
             switch (params_.lifeMode) {
-                case 0: // Synthetic: Clean bypass (Null test <= -90 dBFS)
+                case 0: // Synthetic: Clean Virtual Analog Bypass (Null test <= -90 dBFS)
                     break;
-                case 1: { // Cyborg: Authentic AMD Am6070 8-Bit Companding DAC
-                    constexpr float kMu = 255.0f;
-                    constexpr float kInvLnMu = 1.0f / 5.5451774f; // 1 / ln(256)
-                    const float sgn = (sampleVal < 0.0f) ? -1.0f : 1.0f;
-                    const float mag = std::min(1.0f, std::abs(sampleVal));
-                    const float compressed = std::log1p(kMu * mag) * kInvLnMu;
-                    const float quantized = std::round(compressed * 127.0f) * (1.0f / 127.0f);
-                    const float expanded = (std::exp(quantized * 5.5451774f) - 1.0f) * (1.0f / kMu);
-                    sampleVal = sgn * expanded;
+                case 1: { // Cyborg: Nuclear Reactor Waste (8-bit linear DAC + diode foldback + charge spike)
+                    if (v.cyborgChargeSpike > 0.001f) {
+                        sampleVal += v.cyborgChargeSpike * (nextFloat() - 0.5f) * 0.15f;
+                        v.cyborgChargeSpike *= 0.96f;
+                    }
+                    sampleVal = std::clamp(std::round(sampleVal * 128.0f), -128.0f, 127.0f) * (1.0f / 128.0f);
+                    if (sampleVal > 0.85f) {
+                        sampleVal = 0.85f - (sampleVal - 0.85f) * 0.5f;
+                    } else if (sampleVal < -0.85f) {
+                        sampleVal = -0.85f - (sampleVal + 0.85f) * 0.5f;
+                    }
                     break;
                 }
-                case 2: { // Organic: E-mu SP-1200 12-Bit Quantization + 26.04 kHz ZOH
-                    constexpr float kScale = 2048.0f;
-                    constexpr float kInvScale = 1.0f / 2048.0f;
-                    sampleVal = std::clamp(std::round(sampleVal * kScale), -kScale, kScale - 1.0f) * kInvScale;
-
-                    v.sp12ClockPhase += 26040.0 * invSampleRate_;
-                    if (v.sp12ClockPhase >= 1.0) {
-                        v.sp12ClockPhase -= 1.0;
-                        v.zohSampledVal = sampleVal;
-                    }
-                    sampleVal = v.zohSampledVal;
+                case 2: { // Organic: Sloshy Tube-Back Warmth with VTL5C3 LPG droop
+                    const float x = sampleVal * 1.35f;
+                    sampleVal = (x + 0.28f * x * x) / (1.0f + 0.28f * std::abs(x));
+                    const float lpgCoeff = (std::abs(sampleVal) > std::abs(v.lpgState)) ? lpgAttCoeff_ : lpgRelCoeff_;
+                    v.lpgState += lpgCoeff * (sampleVal - v.lpgState);
+                    sampleVal = v.lpgState;
                     break;
                 }
             }
 
             // 7. Transient Impact Click Bleed & Upper Punch Dive Bleed
             float excessPunch = std::max(0.0f, pitchModSemitones - 7.0f);
-            if (v.pitchEnv > 0.8f && (params_.clickBleed > 0.0f || excessPunch > 0.0f)) {
-                float clickScale = (params_.clickBleed * 0.01f) + (excessPunch * (1.0f / 29.0f) * 0.25f);
+            if (v.pitchEnv > 0.8f && (v.effClickBleed > 0.001f || excessPunch > 0.0f)) {
+                float clickScale = v.effClickBleed + (excessPunch * (1.0f / 29.0f) * 0.25f);
                 float click = (nextFloat() - 0.5f) * clickScale;
                 sampleVal += click;
             }
 
-            // 8. Enveloped Noise Mix
-            if (params_.noiseMix > 0.001f) {
+            // 8. Enveloped Noise Mix (Dynamic Arbitrated Throw)
+            if (v.effNoiseMix > 0.001f) {
                 float rawNoise = 2.0f * (nextFloat() - 0.5f);
                 float hpNoise = rawNoise - v.noiseRawPrev + 0.85f * v.noiseHpState;
                 v.noiseRawPrev = rawNoise;
@@ -766,7 +849,7 @@ private:
                 if (std::abs(v.noiseHpState) < 1e-15f) v.noiseHpState = 0.0f;
 
                 float envNoise = v.ampEnv * (0.35f + 0.65f * v.pitchEnv);
-                sampleVal += hpNoise * envNoise * (params_.noiseMix * 0.01f);
+                sampleVal += hpNoise * envNoise * v.effNoiseMix;
             }
 
             // 9. Amplitude Gain Scaling & Anti-Click Fadeout
@@ -779,7 +862,12 @@ private:
                 sampleVal *= v.fadeOutEnv;
             }
 
-            float gain = v.ampEnv * v.chokeEnv * v.velocity;
+            // Decay Curvature Shaping on Amplitude
+            float shapedAmp = v.ampEnv;
+            if (v.decayCurveActive && v.ampEnv > 0.0001f) {
+                shapedAmp = FastMath::fastPow2(FastMath::fastLog2(std::max(v.ampEnv, 1e-6f)) * v.decayCurveExp);
+            }
+            float gain = shapedAmp * v.chokeEnv * v.velocity;
             float outSample = sampleVal * gain;
 
             accL[i] += outSample * panL;
@@ -837,9 +925,10 @@ private:
         for (int i0 = 0; i0 < numSamples; i0 += kSub) {
             const int n = std::min(kSub, numSamples - i0);
 
-            // Dynamic Filter Envelope Modulation (+/-5.0 Octaves)
+            // Dynamic Filter Envelope Modulation (+/-5.0 Octaves) with Macro X & Rand X
             const float envOctaves = std::clamp(params_.filterEnvAmt * 5.0f * masterFilterEnv_, -6.0f, 6.0f);
-            float cutoffHz = params_.cutoff * FastMath::fastPow2(envOctaves + (params_.macroX - 0.5f) * 2.0f);
+            const float effCutoffMacroX = std::clamp(params_.macroX + (latchedDraw_[0] - 0.5f) * 2.0f * (params_.randX * 0.01f), 0.0f, 1.0f);
+            float cutoffHz = params_.cutoff * FastMath::fastPow2(envOctaves + (effCutoffMacroX - 0.5f) * 2.0f);
             cutoffHz = std::clamp(cutoffHz, 20.0f, 20000.0f);
 
             const float w0 = 2.0f * 3.14159265f * cutoffHz * invSampleRate_;
@@ -903,9 +992,26 @@ private:
                 filtL *= masterGain;
                 filtR *= masterGain;
 
+                // Crush: Machinedrum S&H Clock Decimation
+                if (params_.crush < 47500.0f) {
+                    crushPhase_ += params_.crush * invSampleRate_;
+                    if (crushPhase_ >= 1.0f) {
+                        crushPhase_ -= std::floor(crushPhase_);
+                        crushedSampleL_ = filtL;
+                        crushedSampleR_ = filtR;
+                    }
+                    filtL = crushedSampleL_;
+                    filtR = crushedSampleR_;
+                }
+
                 if (std::abs(params_.shift) > 0.5f) {
                     filtL = freqShifter_.process(filtL, params_.shift);
                     filtR = freqShifter_.process(filtR, params_.shift);
+                }
+
+                // Squash: Bipolar Dynamics Manifold (-1 snappy expansion .. 0 bypass .. +1 distressor nuke)
+                if (std::abs(params_.squash) > 0.005f) {
+                    squashStage_.process(filtL, filtR, params_.squash);
                 }
 
                 if (params_.wider > 0.01f) {
@@ -953,9 +1059,16 @@ private:
     float masterFilterEnv_{0.0f};
 
     uint32_t rngState_{0xDEADBEEFu};
+    float panPhase_{0.0f};
     FreqShifter freqShifter_{};
     WiderStage widerStage_{};
     DrumLimiter drumLimiter_{};
+    SquashStage squashStage_{};
+    float crushPhase_{0.0f};
+    float crushedSampleL_{0.0f};
+    float crushedSampleR_{0.0f};
+    float lpgAttCoeff_{0.0f};
+    float lpgRelCoeff_{0.0f};
     std::array<float, 8> latchedDraw_{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 };
 

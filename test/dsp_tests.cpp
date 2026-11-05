@@ -5091,17 +5091,21 @@ int main() {
         std::cout << "  [PASS] Lineage Waveform Diversity Verified (Linn vs Kawai diff: " << diffLinnKawai 
                   << ", Linn vs Roland diff: " << diffLinnRoland << ")" << std::endl;
 
-        // 4. Verify Voice Default Parameters
+        // 4. Verify Voice Default Parameters (Snares Default, 20-Lineage Fleet, Snare 49/550)
         tkdsp::DigiStrikeFS2Params defaultParams;
-        assert(defaultParams.category == 7);    // STAB
-        assert(defaultParams.lineage == 14);    // Fairlight
-        assert(defaultParams.lineageMask == (1u << 14)); // Fairlight mask
-        assert(defaultParams.loopMode == 4);    // NONE (One-shot default)
+        assert(defaultParams.category == 1);    // SN (Snares)
+        assert(defaultParams.lineageMask == 0xFFFFFu); // All 20 lineages active
+        assert(defaultParams.loopMode == 0);    // ONCE mode
         assert(defaultParams.cutoff >= 19999.0f); // Wide open filter (20 kHz)
         assert(defaultParams.voiceMode == 2);    // POLY mode
         assert(defaultParams.ampDecay >= 0.99f); // 1.0s decay
         assert(defaultParams.lifeMode == 1);     // Cyborg
-        std::cout << "  [PASS] Voice default parameters verified: Cutoff 20kHz, Poly Mode, 1.0s Decay, Cyborg Life, STAB/Fairlight" << std::endl;
+        assert(std::abs(defaultParams.tableMorph - 8.74317f) < 0.01f); // Snare 49/550
+        const int snareFleetCount = DigiStrikeFS2Fleet::getActiveFleetCount(rom, defaultParams.category, defaultParams.lineageMask);
+        assert(snareFleetCount == 550);
+        const int defaultVoiceIdx = DigiStrikeFS2Fleet::indexForMorph(defaultParams.tableMorph * 0.01f, snareFleetCount);
+        assert(defaultVoiceIdx == 48); // 49th voice (0-based 48)
+        std::cout << "  [PASS] Voice default parameters verified: Snares (Cat 1), 20-Lineage Fleet (550 voices), Default Voice 49/550" << std::endl;
 
         std::cout << "PASS: Suite 58: DigiStrike FS2 Fleet ROM & Lineage Uniqueness Verification completed 100%!" << std::endl;
     }
@@ -5494,7 +5498,300 @@ int main() {
         std::cout << "PASS: Suite 63: DigiStrike FS2 Voice Name UTF-8 Encoding & Capsule String Integrity completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 63 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    // =========================================================================
+    // SUITE 64: DigiStrike FS2 Macro Z Timbre Fan-Out & Exponential Decay Curve
+    // =========================================================================
+    {
+        std::cout << "\nStarting Suite 64: DigiStrike FS2 Macro Z Timbre Fan-Out & Exponential Decay Curve..." << std::endl;
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        assert(rom.isLoaded());
+
+        // 1. Verify Macro Z Fan-Out on Table Morphing
+        tkdsp::DigiStrikeFS2Voice voiceA, voiceB;
+        voiceA.prepare(44100.0f);
+        voiceB.prepare(44100.0f);
+
+        tkdsp::DigiStrikeFS2Params pA, pB;
+        pA.category = 1; // SN
+        pA.lineageMask = 0xFFFFFu;
+        pA.macroZ = 0.0f; // min timbre throw
+        pB = pA;
+        pB.macroZ = 1.0f; // max timbre throw
+
+        voiceA.setParams(pA);
+        voiceB.setParams(pB);
+
+        voiceA.triggerNote(60, 0.9f, 261.63f);
+        voiceB.triggerNote(60, 0.9f, 261.63f);
+
+        std::vector<float> bufAL(512, 0.0f), bufAR(512, 0.0f);
+        std::vector<float> bufBL(512, 0.0f), bufBR(512, 0.0f);
+
+        voiceA.renderBlock(bufAL.data(), bufAR.data(), 512);
+        voiceB.renderBlock(bufBL.data(), bufBR.data(), 512);
+
+        float diffZ = 0.0f;
+        for (size_t i = 0; i < 512; ++i) {
+            diffZ += std::abs(bufAL[i] - bufBL[i]);
+        }
+        assert(diffZ > 0.001f);
+        std::cout << "  [PASS] Macro Z Timbre fan-out verified (audio diff: " << diffZ << " > 0.001)" << std::endl;
+
+        // 2. Verify Decay Curve Exponential Shaping
+        tkdsp::DigiStrikeFS2Voice vLin, vExp;
+        vLin.prepare(44100.0f);
+        vExp.prepare(44100.0f);
+
+        tkdsp::DigiStrikeFS2Params pLin, pExp;
+        pLin.decayCurve = 0.0f;  // Linear
+        pExp.decayCurve = -1.0f; // Snappy Exponential
+        pLin.ampDecay = 0.200f;  // 200ms decay
+        pExp.ampDecay = 0.200f;
+
+        vLin.setParams(pLin);
+        vExp.setParams(pExp);
+
+        vLin.triggerNote(60, 0.9f, 261.63f);
+        vExp.triggerNote(60, 0.9f, 261.63f);
+
+        std::vector<float> bLinL(256), bLinR(256), bExpL(256), bExpR(256);
+        float rmsLinMid = 0.0f;
+        float rmsExpMid = 0.0f;
+        for (int blk = 0; blk < 15; ++blk) {
+            std::fill(bLinL.begin(), bLinL.end(), 0.0f);
+            std::fill(bExpL.begin(), bExpL.end(), 0.0f);
+            vLin.renderBlock(bLinL.data(), bLinR.data(), 256);
+            vExp.renderBlock(bExpL.data(), bExpR.data(), 256);
+            if (blk == 12) {
+                for (size_t i = 0; i < 256; ++i) {
+                    rmsLinMid += bLinL[i] * bLinL[i];
+                    rmsExpMid += bExpL[i] * bExpL[i];
+                }
+            }
+        }
+        assert(rmsExpMid < rmsLinMid);
+        std::cout << "  [PASS] Decay Curve verified (Exponential RMS: " << rmsExpMid << " < Linear RMS: " << rmsLinMid << ")" << std::endl;
+
+        std::cout << "PASS: Suite 64: DigiStrike FS2 Macro Z Timbre Fan-Out & Exponential Decay Curve completed 100%!" << std::endl;
+    }
+
+    // =========================================================================
+    // SUITE 65: DigiStrike FS2 BS Role, Crush/Squash Mojo & Canonical Triad
+    // =========================================================================
+    {
+        std::cout << "\nStarting Suite 65: DigiStrike FS2 BS Role, Crush/Squash Mojo & Canonical Triad..." << std::endl;
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        assert(rom.isLoaded());
+
+        // 1. Verify Category 10 (BS - Bass Synth & Slap) & Fleet Resolution
+        assert(tkdsp::DigiStrikeFS2ROM::kNumCategories == 11);
+        int bsCount = DigiStrikeFS2Fleet::getActiveFleetCount(rom, 10, 0xFFFFFu);
+        std::cout << "  BS active fleet count: " << bsCount << std::endl;
+        assert(bsCount == 16);
+
+        DigiStrikeFS2Fleet::VoiceRef ref{};
+        bool ok = DigiStrikeFS2Fleet::resolveFleetIndex(rom, 10, 0xFFFFFu, 0, ref);
+        assert(ok);
+        const auto* meta = rom.getVoice(ref.romIndex);
+        assert(meta != nullptr);
+        std::cout << "  [PASS] Category 10 (BS) populated with 16 voices. First voice: " << rom.getVoiceName(ref.romIndex) << std::endl;
+
+        // 2. Verify Crush Clock Decimation
+        tkdsp::DigiStrikeFS2Voice vClean, vCrush;
+        vClean.prepare(48000.0f);
+        vCrush.prepare(48000.0f);
+
+        tkdsp::DigiStrikeFS2Params pClean, pCrush;
+        pClean.category = 10; // BS
+        pClean.crush = 48000.0f; // bypass
+        pCrush = pClean;
+        pCrush.crush = 4000.0f;  // heavy decimation (12x downsampling)
+
+        vClean.setParams(pClean);
+        vCrush.setParams(pCrush);
+
+        vClean.triggerNote(36, 0.9f, 65.41f);
+        vCrush.triggerNote(36, 0.9f, 65.41f);
+
+        std::vector<float> bufCleanL(512, 0.0f), bufCleanR(512, 0.0f);
+        std::vector<float> bufCrushL(512, 0.0f), bufCrushR(512, 0.0f);
+
+        vClean.renderBlock(bufCleanL.data(), bufCleanR.data(), 512);
+        vCrush.renderBlock(bufCrushL.data(), bufCrushR.data(), 512);
+
+        int plateaus = 0;
+        for (size_t i = 1; i < 512; ++i) {
+            if (std::abs(bufCrushL[i] - bufCrushL[i - 1]) < 1e-9f && std::abs(bufCrushL[i]) > 0.001f) {
+                plateaus++;
+            }
+        }
+        assert(plateaus > 50);
+        std::cout << "  [PASS] Crush decimation verified (" << plateaus << " sample-and-hold plateaus)" << std::endl;
+
+        // 3. Verify Squash Bipolar Dynamics Manifold
+        tkdsp::DigiStrikeFS2Voice vSquash;
+        vSquash.prepare(48000.0f);
+        tkdsp::DigiStrikeFS2Params pSquash = pClean;
+        pSquash.squash = 0.85f; // Distressor Nuke + Parallel Slam
+        vSquash.setParams(pSquash);
+        vSquash.triggerNote(36, 0.9f, 65.41f);
+
+        std::vector<float> bufSquashL(512, 0.0f), bufSquashR(512, 0.0f);
+        vSquash.renderBlock(bufSquashL.data(), bufSquashR.data(), 512);
+
+        float diffSquash = 0.0f;
+        for (size_t i = 0; i < 512; ++i) {
+            diffSquash += std::abs(bufCleanL[i] - bufSquashL[i]);
+        }
+        assert(diffSquash > 0.01f);
+        std::cout << "  [PASS] Squash dynamics manifold verified (diff: " << diffSquash << " > 0.01)" << std::endl;
+
+        // 4. Verify Canonical Triad (Synthetic vs Cyborg vs Organic)
+        tkdsp::DigiStrikeFS2Voice vSyn, vCyb, vOrg;
+        vSyn.prepare(48000.0f);
+        vCyb.prepare(48000.0f);
+        vOrg.prepare(48000.0f);
+
+        tkdsp::DigiStrikeFS2Params pSyn, pCyb, pOrg;
+        pSyn.category = 10;
+        pSyn.lifeMode = 0; // Synthetic
+        pCyb = pSyn;
+        pCyb.lifeMode = 1; // Cyborg (8-bit DAC + diode foldback + charge spike)
+        pOrg = pSyn;
+        pOrg.lifeMode = 2; // Organic (12AX7 tube saturation + LPG)
+
+        vSyn.setParams(pSyn);
+        vCyb.setParams(pCyb);
+        vOrg.setParams(pOrg);
+
+        vSyn.triggerNote(36, 0.9f, 65.41f);
+        vCyb.triggerNote(36, 0.9f, 65.41f);
+        vOrg.triggerNote(36, 0.9f, 65.41f);
+
+        std::vector<float> bSynL(512, 0.0f), bSynR(512, 0.0f);
+        std::vector<float> bCybL(512, 0.0f), bCybR(512, 0.0f);
+        std::vector<float> bOrgL(512, 0.0f), bOrgR(512, 0.0f);
+
+        vSyn.renderBlock(bSynL.data(), bSynR.data(), 512);
+        vCyb.renderBlock(bCybL.data(), bCybR.data(), 512);
+        vOrg.renderBlock(bOrgL.data(), bOrgR.data(), 512);
+
+        float diffSynCyb = 0.0f, diffSynOrg = 0.0f, diffCybOrg = 0.0f;
+        for (size_t i = 0; i < 512; ++i) {
+            diffSynCyb += std::abs(bSynL[i] - bCybL[i]);
+            diffSynOrg += std::abs(bSynL[i] - bOrgL[i]);
+            diffCybOrg += std::abs(bCybL[i] - bOrgL[i]);
+        }
+        assert(diffSynCyb > 0.01f);
+        assert(diffSynOrg > 0.01f);
+        assert(diffCybOrg > 0.01f);
+        std::cout << "  [PASS] Canonical Triad verified (Syn/Cyb diff: " << diffSynCyb
+                  << ", Syn/Org diff: " << diffSynOrg
+                  << ", Cyb/Org diff: " << diffCybOrg << ")" << std::endl;
+
+        std::cout << "PASS: Suite 65: DigiStrike FS2 BS Role, Crush/Squash Mojo & Canonical Triad completed 100%!" << std::endl;
+    }
+
+    // =========================================================================
+    // SUITE 66: DigiStrike FS2 Polyphonic Stepped Random Decoupling & Stereo Fanning
+    // =========================================================================
+    {
+        std::cout << "\nStarting Suite 66: DigiStrike FS2 Polyphonic Stepped Random Decoupling Verification..." << std::endl;
+        tkdsp::DigiStrikeFS2Voice voice;
+        voice.prepare(48000.0f);
+
+        tkdsp::DigiStrikeFS2Params p;
+        p.voiceMode = 2; // POLY (8-voice)
+        p.category = 10; // BS (Bass Synth & Slap)
+        p.lineage = 0;
+        p.randPan = 100.0f; // 100% stereo pan spread
+        p.randX = 50.0f;
+        p.randZ = 50.0f;
+        p.randT = 50.0f;
+        p.randDecay = 50.0f;
+        p.volume = 0.5f;
+        p.sustainLevel = 50.0f; // Gated sustain
+        voice.setParams(p);
+
+        // Test 1: Poly Chord Simultaneous Trigger (C3, E3, G3 at sample 0)
+        voice.triggerNote(48, 0.90f, 130.81f); // C3 -> Voice 0
+        voice.triggerNote(52, 0.85f, 164.81f); // E3 -> Voice 1
+        voice.triggerNote(55, 0.88f, 196.00f); // G3 -> Voice 2
+
+        assert(voice.getActiveVoiceCount() == 3);
+
+        const auto& r0 = voice.getVoiceRandVal(0);
+        const auto& r1 = voice.getVoiceRandVal(1);
+        const auto& r2 = voice.getVoiceRandVal(2);
+
+        // Verify independent, uncorrelated random vectors across simultaneous voices
+        assert(r0[0] != r1[0] && r1[0] != r2[0] && r0[0] != r2[0]);
+        assert(r0[6] != r1[6] && r1[6] != r2[6] && r0[6] != r2[6]); // Golden-ratio Pan fanning
+
+        const float p0_L = voice.getVoicePanL(0);
+        const float p1_L = voice.getVoicePanL(1);
+        const float p2_L = voice.getVoicePanL(2);
+        assert(std::abs(p0_L - p1_L) > 0.01f);
+        assert(std::abs(p1_L - p2_L) > 0.01f);
+        assert(std::abs(p0_L - p2_L) > 0.01f);
+
+        std::cout << "  [PASS] Poly Chord distinct random vectors & stereo fanning verified: "
+                  << "V0 PanL=" << p0_L << ", V1 PanL=" << p1_L << ", V2 PanL=" << p2_L << std::endl;
+
+        // Render block and verify clean stereo audio
+        std::vector<float> bufL(512, 0.0f), bufR(512, 0.0f);
+        voice.renderBlock(bufL.data(), bufR.data(), 512);
+
+        float rmsL = 0.0f, rmsR = 0.0f;
+        for (size_t i = 0; i < 512; ++i) {
+            assert(!std::isnan(bufL[i]) && !std::isinf(bufL[i]));
+            assert(!std::isnan(bufR[i]) && !std::isinf(bufR[i]));
+            rmsL += bufL[i] * bufL[i];
+            rmsR += bufR[i] * bufR[i];
+        }
+        rmsL = std::sqrt(rmsL / 512.0f);
+        rmsR = std::sqrt(rmsR / 512.0f);
+        assert(rmsL > 0.001f);
+        assert(rmsR > 0.001f);
+        assert(std::abs(rmsL - rmsR) > 0.0001f); // True stereo asymmetry from fanned pan
+        std::cout << "  [PASS] Stereo audio rendered cleanly (RMS L=" << rmsL << ", R=" << rmsR << ")" << std::endl;
+
+        // Test 2: Mode 1 (Glide) Legato Retrigger Protection
+        voice.reset();
+        p.voiceMode = 1; // GLIDE
+        voice.setParams(p);
+
+        voice.triggerNote(36, 0.9f, 65.41f);
+        const auto rInit = voice.getVoiceRandVal(0);
+
+        voice.renderBlock(bufL.data(), bufR.data(), 256);
+
+        // Legato glide to note 48 (held note attack)
+        voice.triggerNote(48, 0.9f, 130.81f);
+        const auto rLegato = voice.getVoiceRandVal(0);
+
+        // Random vector MUST remain identical during legato slide!
+        for (size_t k = 0; k < 8; ++k) {
+            assert(rInit[k] == rLegato[k]);
+        }
+        std::cout << "  [PASS] Glide mode legato slide preserved random vector without glitch" << std::endl;
+
+        // Release note and wait > 20ms to exit tracker auto-legato window
+        voice.releaseNote(48);
+        for (int b = 0; b < 10; ++b) {
+            voice.renderBlock(bufL.data(), bufR.data(), 256); // 2560 samples = ~53ms
+        }
+
+        // Fresh attack must generate new random vector
+        voice.triggerNote(60, 0.9f, 261.63f);
+        const auto rFresh = voice.getVoiceRandVal(0);
+        assert(rInit[0] != rFresh[0] || rInit[6] != rFresh[6]);
+        std::cout << "  [PASS] Fresh attack generated new random draws" << std::endl;
+
+        std::cout << "PASS: Suite 66: DigiStrike FS2 Polyphonic Stepped Random Decoupling completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 66 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

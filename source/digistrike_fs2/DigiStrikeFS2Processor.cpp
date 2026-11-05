@@ -118,7 +118,7 @@ void DigiStrikeFS2AudioProcessor::loadVoiceParams(tkdsp::DigiStrikeFS2Params& p)
 
     uint32_t mask = 0;
     for (size_t i = 0; i < 20; ++i) {
-        if (load(linParams_[i], i == 14 ? 1.0f : 0.0f) > 0.5f) {
+        if (load(linParams_[i], 1.0f) > 0.5f) {
             mask |= (1u << i);
         }
     }
@@ -165,7 +165,9 @@ void DigiStrikeFS2AudioProcessor::publishTelemetry(float velocity, int noteNumbe
 
 void DigiStrikeFS2AudioProcessor::triggerVoice(int noteNumber, float velocity, float noteHz) noexcept {
     voice_.triggerNote(noteNumber, velocity, noteHz);
-    publishTelemetry(velocity, noteNumber);
+    telemetryDirty_ = true;
+    pendingTelemetryVel_ = velocity;
+    pendingTelemetryNote_ = noteNumber;
 }
 
 void DigiStrikeFS2AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
@@ -217,6 +219,11 @@ void DigiStrikeFS2AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
                 voice_.reset();
             }
         }
+    }
+
+    if (telemetryDirty_) {
+        publishTelemetry(pendingTelemetryVel_, pendingTelemetryNote_);
+        telemetryDirty_ = false;
     }
 
     float* leftChannel = buffer.getWritePointer(0);

@@ -12,8 +12,8 @@ parameters:
     short: CATEGORY
     category: header
     type: choice
-    choices: [KICK, SNAR, TOMS, CLAP, HATS, CYMB, PERC, STAB]
-    default: 7
+    choices: [BD, SN, TM, CP, HH, CY, LN, MC, FX, ST, BS]
+    default: 1
 
   - id: lineage
     name: Sovereign Hardware Lineage
@@ -21,7 +21,7 @@ parameters:
     category: header
     type: choice
     choices: [CROWN, APEX, EMPYR, FALCON, K-WRK, COMPACT, TOKYO, GOTHN, CIRCUITS, PHASE, STUDIO, KEIO, NIPPON, ADIOS, FAIRL, SYNCL, ENSON, SIMM, JOMOX, CURIOS]
-    default: 4
+    default: 14
 
   - id: voice_mode
     name: Voice Playback Mode
@@ -159,8 +159,8 @@ parameters:
     category: synthesis
     type: float
     effect: dynamics
-    range: [-4.0, 4.0]
-    custom_range: symmetricQuadraticTimeRange
+    range: [0.25, 4.0]
+    skew_center: 1.0
     default: 1.0
     unit: x
 
@@ -201,7 +201,7 @@ parameters:
     type: float
     effect: timbre
     range: [0.0, 100.0]
-    default: 0.0
+    default: 8.74317
     unit: "%"
 
   - id: loop_mode
@@ -209,8 +209,15 @@ parameters:
     short: LOOP
     category: synthesis
     type: choice
-    choices: [FWD, REV, PPG, OFF]
-    default: 3
+    choices: [ONCE, HOLD, LOOP, PING]
+    default: 0
+
+  - id: reverse
+    name: Reverse Traversal
+    short: REV
+    category: synthesis
+    type: bool
+    default: false
 
   # ==============================================================================
   # SOVEREIGN LINEAGE MATRIX (20 Hardware Families)
@@ -220,28 +227,28 @@ parameters:
     short: LIN-CRWN
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_apex
     name: Lineage Apex (Oberheim)
     short: LIN-APEX
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_empyr
     name: Lineage Empyrean (E-mu/SP)
     short: LIN-EMPY
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_falcon
     name: Lineage Falcon (Akai MPC)
     short: LIN-FALC
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_kwrk
     name: Lineage K-Works (Kawai)
@@ -255,105 +262,105 @@ parameters:
     short: LIN-CMPCT
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_tokyo
     name: Lineage Tokyo (Roland PCM)
     short: LIN-TOKY
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_gothn
     name: Lineage Gothenburg (Elektron/SID)
     short: LIN-GOTH
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_circuits
     name: Lineage Circuits (Sequential)
     short: LIN-CIRC
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_phase
     name: Lineage Phase (Casio)
     short: LIN-PHAS
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_studio
     name: Lineage Studio (Alesis)
     short: LIN-STUD
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_keio
     name: Lineage Keio (Korg)
     short: LIN-KEIO
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_nippon
     name: Lineage Nippon (Yamaha AWM)
     short: LIN-NIPP
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_adios
     name: Lineage Adios (Venom)
     short: LIN-ADIOS
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_fairlight
     name: Lineage Fairlight (CMI)
     short: LIN-FAIR
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_synclavier
     name: Lineage Synclavier (NED)
     short: LIN-SYNC
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_ensoniq
     name: Lineage Ensoniq (EPS)
     short: LIN-ENSN
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_simmons
     name: Lineage Simmons (SDS)
     short: LIN-SIMM
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_jomox
     name: Lineage Jomox (XBase)
     short: LIN-JOMX
     category: lineage
     type: bool
-    default: false
+    default: true
 
   - id: lin_curios
     name: Lineage Curios (EPROM)
     short: LIN-CURI
     category: lineage
     type: bool
-    default: false
+    default: true
 
   # ==============================================================================
   # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (22 parameters - Bottom)
