@@ -1196,7 +1196,7 @@ private:
     KnobItem startKnob_;
     KnobItem timeKnob_;
     KnobItem punchKnob_;
-    KnobItem noiseKnob_;
+    KnobItem klangKnob_;
     KnobItem lengthKnob_;
     KnobItem morphKnob_;
     DigiStrikeGrid2x2 loopModeBar_{{"ONCE", "HOLD", "LOOP", "PING"}};

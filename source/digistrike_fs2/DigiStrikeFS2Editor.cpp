@@ -78,7 +78,8 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     setupKnob(timeKnob_,       traverse_rate, "TIME",    "x",  "duration scaling & reverse traversal (-4x..+4x, +/-1x=normal, 0x=freeze)", blueCol, true);
     timeKnob_.slider.setDoubleClickReturnValue(true, 1.0);
     setupKnob(punchKnob_,      pitch_dive,    "PUNCH",   "%",  "pitch dive depth (0%..100% => 0..36 semitones)", blueCol);
-    setupKnob(noiseKnob_,      noise_mix,     "NOISE",   "%",  "enveloped 1-pole highpass noise mix (35% amp + 65% pitch attack)", blueCol);
+    setupKnob(klangKnob_,      klang_morph,   "KLANG",   "%",  "Klang Spectral Morph: Left=Harmonic C Resonator, Noon=Native Vintage PCM, Right=Stiff-Plate Clang", blueCol, true);
+    klangKnob_.slider.setDoubleClickReturnValue(true, 0.0);
     setupKnob(lengthKnob_,     sample_length, "LENGTH",  "%",  "sample playback window / scan span",         blueCol);
     setupKnob(morphKnob_,      table_morph,   "MORPH",   "%",  "3D wavetable slice tilt and morph",          blueCol);
 
@@ -875,9 +876,9 @@ void DigiStrikeFS2AudioProcessorEditor::timerCallback() {
     updateRandProp(clickKnob_.slider, tkdsp::formless::trickleDownArbitrate(normClick, haloY.lo, haloY.hi, haloY.pip, 0.75f,
                                                                            haloTimb.lo, haloTimb.hi, haloTimb.pip, 0.65f, tele.lastVelocity));
 
-    const float normNoise = static_cast<float>(noiseKnob_.slider.valueToProportionOfLength(noiseKnob_.slider.getValue()));
-    updateModProp(noiseKnob_.slider, tkdsp::formless::computeMacroHalo(normNoise, mZ, 0.70f));
-    updateRandProp(noiseKnob_.slider, tkdsp::formless::trickleDownArbitrate(normNoise, haloZ.lo, haloZ.hi, haloZ.pip, 0.70f,
+    const float normKlang = static_cast<float>(klangKnob_.slider.valueToProportionOfLength(klangKnob_.slider.getValue()));
+    updateModProp(klangKnob_.slider, tkdsp::formless::computeMacroHalo(normKlang, mZ, 0.70f));
+    updateRandProp(klangKnob_.slider, tkdsp::formless::trickleDownArbitrate(normKlang, haloZ.lo, haloZ.hi, haloZ.pip, 0.70f,
                                                                             haloAggr.lo, haloAggr.hi, haloAggr.pip, 0.70f, tele.lastVelocity));
 
     const float normStart = static_cast<float>(startKnob_.slider.valueToProportionOfLength(startKnob_.slider.getValue()));
@@ -1060,7 +1061,7 @@ void DigiStrikeFS2AudioProcessorEditor::layoutControls() {
     // Card 2 Knobs: 4 columns with 76px pitch centered at cx in {496, 572, 648, 724}
     KnobItem* c2[2][4] = {
         {&pitchDecayKnob_, &clickKnob_, &startKnob_,  &timeKnob_},
-        {&punchKnob_,      &noiseKnob_, &lengthKnob_, &morphKnob_}
+        {&punchKnob_,      &klangKnob_, &lengthKnob_, &morphKnob_}
     };
 
     for (int r = 0; r < 2; ++r) {

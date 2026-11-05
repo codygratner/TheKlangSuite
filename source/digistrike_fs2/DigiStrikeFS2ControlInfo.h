@@ -108,7 +108,7 @@ inline constexpr Control kCard2Controls[9] = {
     { "traverse_rate", "TIME",    "bidirectional frame traverse rate from reverse swell to varispeed forward" },
     // Row 2 (K05..K08)
     { "pitch_dive",    "PUNCH",   "quadratic transient pitch dive depth for authentic 80s drum knock" },
-    { "noise_mix",     "NOISE",   "enveloped 1-pole 800Hz highpass noise mix (35% amp env + 65% pitch attack)" },
+    { "klang_morph",   "KLANG",   "Klang spectral morph: Left=Harmonic C series, Noon=Native vintage PCM, Right=Stiff-plate inharmonic clang" },
     { "sample_length", "LENGTH",  "playback window and scan span from single-cycle frame to full sample" },
     { "table_morph",   "MORPH",   "3D wavetable timbre slice position with smoothed inter-frame morphing" },
     // 2x2 Switch

@@ -113,7 +113,7 @@ private:
     std::atomic<float>* startOffsetParam_{nullptr};
     std::atomic<float>* traverseRateParam_{nullptr};
     std::atomic<float>* pitchDiveParam_{nullptr};
-    std::atomic<float>* noiseMixParam_{nullptr};
+    std::atomic<float>* klangMorphParam_{nullptr};
     std::atomic<float>* sampleLengthParam_{nullptr};
     std::atomic<float>* tableMorphParam_{nullptr};
     std::atomic<float>* loopModeParam_{nullptr};

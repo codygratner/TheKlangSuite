@@ -174,13 +174,13 @@ parameters:
     default: 0.0
     unit: "%"
 
-  - id: noise_mix
-    name: Enveloped Noise Mix
-    short: NOISE
+  - id: klang_morph
+    name: Klang Spectral Morph
+    short: KLANG
     category: synthesis
     type: float
     effect: timbre
-    range: [0.0, 100.0]
+    range: [-100.0, 100.0]
     default: 0.0
     unit: "%"
 

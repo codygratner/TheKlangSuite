@@ -48,7 +48,7 @@ struct DigiStrikeFS2Params {
     float startOffset{0.0f}; // 0.0 .. 500.0 ms (START, skew 20ms)
     float traverseRate{1.0f};// 0.25 .. 4.0 x (TIME, 1.0 nominal, higher = longer duration)
     float pitchDive{0.0f};   // 0.0 .. 100.0 % (PUNCH, 0..36 semitones)
-    float noiseMix{0.0f};    // 0.0 .. 100.0 % (NOISE, Enveloped Noise Mix)
+    float klangMorph{0.0f};  // -100.0 .. +100.0 % (KLANG, Spectral Morph)
     float sampleLength{100.0f}; // 0.0 .. 100.0 % (LENGTH, 0% = single-cycle freeze)
     float tableMorph{8.74317f}; // 0.0 .. 100.0 % (MORPH, 3D Spectral Slice, Default: Snare 49/550)
     int   loopMode{0};        // 0=ONCE, 1=HOLD, 2=LOOP, 3=PING
@@ -112,6 +112,7 @@ public:
         squashStage_.prepare(sampleRate_);
         lpgAttCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.003f); // 3ms strike attack
         lpgRelCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.060f); // 60ms sluggish droop
+        slewCoeff5ms_ = std::exp(-invSampleRate_ / 0.005f);       // 5ms one-pole parameter smoother
 
         // Noise crack band: 1.8kHz / Q 0.9 ZDF SVF bandpass (-3dB at ~1.06k..3.06k), RMS-matched to legacy HP throw
         {
@@ -165,8 +166,15 @@ public:
             v.zohSampledVal = 0.0f;
             v.cyborgChargeSpike = 0.0f;
             v.lpgState = 0.0f;
-            v.noiseHpState = 0.0f;
-            v.noiseRawPrev = 0.0f;
+            v.modalBank.x.fill(0.0f);
+            v.modalBank.y.fill(0.0f);
+            v.modalBank.eps.fill(0.0f);
+            v.modalBank.d.fill(0.0f);
+            v.modalBank.amp.fill(0.0f);
+            v.effKlangMorph = 0.0f;
+            v.wPcmSm = 1.0f;
+            v.wModalSm = 0.0f;
+            v.modalF0 = 65.41f;
             v.isFadingOut = false;
             v.fadeOutEnv = 1.0f;
             v.loopSpanMult = 1.0f;
@@ -390,8 +398,20 @@ private:
         float currentMorph{0.0f};
 
         bool isSustaining{false};
-        float noiseHpState{0.0f};
-        float noiseRawPrev{0.0f};
+
+        // Gordon-Smith Modal Resonator Bank (16 modes, SoA 32-byte aligned)
+        alignas(32) struct ModalBank16 {
+            std::array<float, 16> x{};     // Real states
+            std::array<float, 16> y{};     // Imag states
+            std::array<float, 16> eps{};   // Gordon-Smith tuning coefficients: 2*sin(pi*f/fs)
+            std::array<float, 16> d{};     // Damping multipliers: exp(-1/(tau * fs))
+            std::array<float, 16> amp{};   // Mode amplitudes with anti-aliasing culling
+        } modalBank;
+
+        float effKlangMorph{0.0f};         // Effective -1.0 .. +1.0
+        float wPcmSm{1.0f};                // 5ms slewed PCM weight
+        float wModalSm{0.0f};              // 5ms slewed Modal weight
+        float modalF0{65.41f};             // Calibrated fundamental frequency
 
         int noteNumber{60};
         int category{7};
@@ -459,7 +479,6 @@ private:
         float effMacroZ{0.5f};
         float effTimb{0.5f};
         float effClickBleed{0.0f};
-        float effNoiseMix{0.0f};
         bool  decayCurveActive{false};
         float decayCurveExp{1.0f};
 
@@ -577,17 +596,17 @@ private:
         v.targetPanL = v.panL;
         v.targetPanR = v.panR;
 
-        // 2. Col 4: Wavetable Morph & Noise (Macro Z + Vel Timbre/Aggr)
+        // 2. Col 4: Wavetable Morph & KLANG (Macro Z + Vel Timbre/Aggr)
         const float normMorph = std::clamp(params_.tableMorph * 0.01f, 0.0f, 1.0f);
         const float effMorph = tkdsp::formless::sequentialArbitrate(normMorph, effZ, 0.75f, effTimb, 0.70f, velocity);
         v.morph = effMorph;
         v.currentMorph = effMorph;
         v.isSustaining = false;
-        v.noiseHpState = 0.0f;
-        v.noiseRawPrev = 0.0f;
 
-        const float normNoise = std::clamp(params_.noiseMix * 0.01f, 0.0f, 1.0f);
-        v.effNoiseMix = tkdsp::formless::sequentialArbitrate(normNoise, effZ, 0.70f, effAggr, 0.70f, velocity);
+        const float normKlang = std::clamp(params_.klangMorph * 0.01f, -1.0f, 1.0f);
+        const float mZOffset = (effZ - 0.5f) * 2.0f * 0.70f;
+        const float vOffset = (effTimb - 0.5f) * 2.0f * std::clamp(velocity, 0.0f, 1.0f) * 0.65f;
+        v.effKlangMorph = std::clamp(normKlang + mZOffset + vOffset, -1.0f, 1.0f);
 
         const auto fleetPair = DigiStrikeFS2Fleet::resolveVoicePair(rom, cat, mask, v.morph);
         v.voiceA = fleetPair.voiceA;
@@ -670,6 +689,87 @@ private:
         // Vintage character is delivered authentically via AMD Am6070 non-linear companding,
         // SP-1200 12-bit linear DAC + 26.04 kHz ZOH clocking, and vactrol LPG slew.
         v.travPitchScale = 1.0f;
+
+        // 4b. Modal Strike Engine Setup (Gordon-Smith Coupled-Form Bank & C3 Tuning)
+        float baseF0 = 65.41f; // Default BD C1
+        bool isPitched = true;
+        switch (cat) {
+            case 0: baseF0 = 65.41f; break;  // BD: C1
+            case 1: baseF0 = 261.63f; break; // SN: C3 shell resonance
+            case 2: baseF0 = 130.81f; break; // TM: C2
+            case 3: isPitched = false; baseF0 = 400.0f; break; // CP
+            case 4: isPitched = false; baseF0 = 1200.0f; break; // HH
+            case 5: isPitched = false; baseF0 = 800.0f; break; // CY
+            case 6: baseF0 = 261.63f; break; // LN
+            case 7: baseF0 = 523.25f; break; // MC: C4
+            case 8: isPitched = false; baseF0 = 300.0f; break; // FX
+            case 9: baseF0 = 261.63f; break; // ST: C3
+            case 10: baseF0 = 65.41f; break; // BS: C1
+            default: baseF0 = 130.81f; break;
+        }
+
+        const float notePitchScale = isPitched ? FastMath::fastPow2((static_cast<float>(noteNumber) - 60.0f) * (1.0f / 12.0f)) : 1.0f;
+        v.modalF0 = baseF0 * notePitchScale;
+
+        // Nominal acoustic drum/plate ratios (Bessel membrane roots & plate stiffness)
+        static constexpr float kNominalRatios[16] = {
+            1.000f, 1.593f, 2.135f, 2.295f, 2.653f, 2.917f, 3.156f, 3.501f,
+            3.765f, 4.060f, 4.382f, 4.710f, 5.105f, 5.492f, 5.920f, 6.380f
+        };
+
+        const float K = v.effKlangMorph;
+        const float absK = std::abs(K);
+
+        // Lifeform mode damping exponent alpha (Synthetic: 0.75, Cyborg: 0.45, Organic: 1.10)
+        static constexpr float kAlphaTable[3] = { 0.75f, 0.45f, 1.10f };
+        const float alpha = kAlphaTable[std::clamp(params_.lifeMode, 0, 2)];
+        const float tau0 = std::clamp(ampDecaySeconds * 0.40f, 0.020f, 2.0f);
+
+        const float cullCutoff = 0.48f * sampleRate_;
+        const float cullTaperStart = 0.40f * sampleRate_;
+
+        for (size_t m = 0; m < 16; ++m) {
+            float r0 = kNominalRatios[m];
+            float rK = r0;
+            if (K < -0.0001f) {
+                // Harmonic Series Snap (Left)
+                const float targetHarm = std::max(1.0f, std::round(r0));
+                rK = (1.0f - absK) * r0 + absK * targetHarm;
+            } else if (K > 0.0001f) {
+                // Stiff-Plate Clang (Right) with Fundamental Normalization Law
+                const float beta = 0.20f * FastMath::fastPow2(1.5f * FastMath::fastLog2(absK + 1e-6f));
+                rK = (r0 * std::sqrt(1.0f + beta * r0 * r0)) / std::sqrt(1.0f + beta);
+            }
+
+            float fMode = v.modalF0 * rK;
+
+            // Dynamic Nyquist Mode Culling with smooth Hann taper
+            float modeGain = 1.0f / (1.0f + 0.35f * static_cast<float>(m));
+            if (fMode >= cullCutoff) {
+                modeGain = 0.0f;
+            } else if (fMode > cullTaperStart) {
+                float norm = (fMode - cullTaperStart) / (cullCutoff - cullTaperStart);
+                modeGain *= 0.5f * (1.0f + std::cos(3.14159265f * norm));
+            }
+            v.modalBank.amp[m] = modeGain;
+
+            // Gordon-Smith tuning coefficient: epsilon = 2 * sin(pi * f / fs)
+            float normFreq = std::clamp(fMode * invSampleRate_, 0.0001f, 0.499f);
+            v.modalBank.eps[m] = 2.0f * std::sin(3.141592653589793f * normFreq);
+
+            // Frequency-dependent damping: tau_k = tau0 * (f0 / fk)^alpha
+            float freqRatio = std::max(1.0f, fMode / std::max(10.0f, v.modalF0));
+            float tauK = tau0 * FastMath::fastPow2(-alpha * FastMath::fastLog2(freqRatio));
+            v.modalBank.d[m] = std::exp(-invSampleRate_ / tauK);
+
+            // Impulse excitation on new hit
+            v.modalBank.x[m] = (m == 0) ? (velocity * 0.8f) : (velocity * 0.4f * (1.0f / std::sqrt(static_cast<float>(m + 1))));
+            v.modalBank.y[m] = 0.0f;
+        }
+
+        // Initialize crossfade weights
+        v.wPcmSm = std::cos(0.5f * 3.14159265f * absK);
+        v.wModalSm = std::sin(0.5f * 3.14159265f * absK);
 
         // 5. Col 1: Pitch Envelope P.DEC (Headroom Lerp via effT & Master Macro Decay scaling)
         const float normPDec = std::clamp((params_.pitchDecay - 2.0f) / (250.0f - 2.0f), 0.0f, 1.0f);
@@ -912,21 +1012,52 @@ private:
                 sampleVal += click;
             }
 
-            // 8. Enveloped Noise Mix (Dynamic Arbitrated Throw)
-            if (v.effNoiseMix > 0.001f) {
-                float rawNoise = 2.0f * (nextFloat() - 0.5f);
-                // ZDF SVF bandpass (trapezoidal): 1k..3k crack band, leaves PCM top-end grit unmasked
-                const float nv3 = rawNoise - v.noiseRawPrev;
-                const float nv1 = noiseA1_ * v.noiseHpState + noiseA2_ * nv3;
-                const float nv2 = v.noiseRawPrev + noiseA2_ * v.noiseHpState + noiseA3_ * nv3;
-                v.noiseHpState = 2.0f * nv1 - v.noiseHpState;
-                v.noiseRawPrev = 2.0f * nv2 - v.noiseRawPrev;
-                if (std::abs(v.noiseHpState) < 1e-15f) v.noiseHpState = 0.0f;
-                if (std::abs(v.noiseRawPrev) < 1e-15f) v.noiseRawPrev = 0.0f;
+            // 8. The Gordon-Smith Modal Strike Engine (KLANG Spectral Morph)
+            const float absK = std::abs(v.effKlangMorph);
+            if (absK > 0.0001f) {
+                float modalOut = 0.0f;
+                // Gordon-Smith coupled-form resonator step across 16 modes
+                for (size_t m = 0; m < 16; ++m) {
+                    const float d = v.modalBank.d[m];
+                    const float eps = v.modalBank.eps[m];
+                    const float x = v.modalBank.x[m];
+                    const float y = v.modalBank.y[m];
 
-                const float bpNoise = nv1 * noiseGain_;
-                float envNoise = v.ampEnv * (0.35f + 0.65f * v.pitchEnv);
-                sampleVal += bpNoise * envNoise * v.effNoiseMix;
+                    const float xNew = d * (x - eps * y);
+                    const float yNew = d * (y + eps * xNew);
+
+                    v.modalBank.x[m] = (std::abs(xNew) < 1e-15f) ? 0.0f : xNew;
+                    v.modalBank.y[m] = (std::abs(yNew) < 1e-15f) ? 0.0f : yNew;
+
+                    modalOut += yNew * v.modalBank.amp[m];
+                }
+
+                // Lifeform modal waveshaping & saturation
+                switch (params_.lifeMode) {
+                    case 0: // Synthetic: Clean Linear
+                        break;
+                    case 1: { // Cyborg: 8-Bit DAC Quantization + Diode Foldback
+                        modalOut = std::clamp(std::round(modalOut * 64.0f), -64.0f, 63.0f) * (1.0f / 64.0f);
+                        if (modalOut > 0.70f) modalOut = 0.70f - (modalOut - 0.70f) * 0.5f;
+                        else if (modalOut < -0.70f) modalOut = -0.70f - (modalOut + 0.70f) * 0.5f;
+                        break;
+                    }
+                    case 2: { // Organic: Cathode-Follower Tube Saturation
+                        const float mx = modalOut * 1.25f;
+                        modalOut = (mx + 0.28f * mx * mx) / (1.0f + 0.28f * std::abs(mx));
+                        break;
+                    }
+                }
+
+                // 5ms one-pole linear parameter slewing for crossfade weights
+                const float wPcmTarget = std::cos(0.5f * 3.14159265f * absK);
+                const float wModalTarget = std::sin(0.5f * 3.14159265f * absK);
+                const float slewRate = 1.0f - slewCoeff5ms_;
+                v.wPcmSm += slewRate * (wPcmTarget - v.wPcmSm);
+                v.wModalSm += slewRate * (wModalTarget - v.wModalSm);
+
+                // Blend raw PCM body with modal resonance
+                sampleVal = v.wPcmSm * sampleVal + v.wModalSm * modalOut;
             }
 
             // 9. Amplitude Gain Scaling & Anti-Click Fadeout
@@ -1152,6 +1283,7 @@ private:
     float crushedSampleR_{0.0f};
     float lpgAttCoeff_{0.0f};
     float lpgRelCoeff_{0.0f};
+    float slewCoeff5ms_{0.9958f};
     std::array<float, 8> latchedDraw_{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 };
 

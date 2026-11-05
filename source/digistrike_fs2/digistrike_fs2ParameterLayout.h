@@ -156,9 +156,9 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{digistrike_fs2Parameters::Ids::pitch_dive, 1}, digistrike_fs2Parameters::Names::pitch_dive, 0.0000f, 100.0000f, 0.0000f));
 
-    // noise_mix [synthesis]
+    // klang_morph [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{digistrike_fs2Parameters::Ids::noise_mix, 1}, digistrike_fs2Parameters::Names::noise_mix, 0.0000f, 100.0000f, 0.0000f));
+        juce::ParameterID{digistrike_fs2Parameters::Ids::klang_morph, 1}, digistrike_fs2Parameters::Names::klang_morph, -100.0000f, 100.0000f, 0.0000f));
 
     // sample_length [synthesis]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

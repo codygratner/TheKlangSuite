@@ -24,7 +24,7 @@ namespace Ids {
     constexpr auto start_offset = "start_offset";
     constexpr auto traverse_rate = "traverse_rate";
     constexpr auto pitch_dive = "pitch_dive";
-    constexpr auto noise_mix = "noise_mix";
+    constexpr auto klang_morph = "klang_morph";
     constexpr auto sample_length = "sample_length";
     constexpr auto table_morph = "table_morph";
     constexpr auto loop_mode = "loop_mode";
@@ -94,7 +94,7 @@ namespace Names {
     constexpr auto start_offset = "Sample Start Offset";
     constexpr auto traverse_rate = "Wavetable Frame Traverse Rate";
     constexpr auto pitch_dive = "Transient Pitch Dive Depth";
-    constexpr auto noise_mix = "Enveloped Noise Mix";
+    constexpr auto klang_morph = "Klang Spectral Morph";
     constexpr auto sample_length = "Playback Window / Scan Length";
     constexpr auto table_morph = "3D Wave Morph / Tilt";
     constexpr auto loop_mode = "Wavetable Traversal Loop Mode";
