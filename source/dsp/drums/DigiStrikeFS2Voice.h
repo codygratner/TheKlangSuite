@@ -577,11 +577,14 @@ private:
         v.morphFrac = fleetPair.morphFrac;
         v.slotIdx = cat * 20 + std::clamp(params_.lineage, 0, 19);
 
-        // 3. Amplitude Envelope Decay & Curvature
-        float ampDecaySeconds = params_.ampDecay * (0.6f + 0.8f * params_.macroDecay);
-        ampDecaySeconds = std::clamp(ampDecaySeconds * (1.0f + rDecay * 0.35f), 0.005f, 5.0f);
+        // 3. Amplitude Envelope Decay & Curvature (Master Macro Decay & R-DECAY Fan-Out)
+        const float effDecay = CrackedChimes::DSP::stepRandomNorm(params_.macroDecay, params_.randDecay * 0.01f, v.randVal[7]);
+        const float macroDecayMult = tkdsp::formless::evalMacroMultiplier(effDecay);
+
+        float ampDecaySeconds = std::clamp(params_.ampDecay * macroDecayMult, 0.005f, 5.0f);
+        v.ampDecaySeconds = ampDecaySeconds;
         v.ampDecayRate = 1.0f / (ampDecaySeconds * sampleRate_);
-        v.ampReleaseRate = 1.0f / (0.050f * sampleRate_);
+        v.ampReleaseRate = 1.0f / (std::clamp(0.050f * macroDecayMult, 0.002f, 2.0f) * sampleRate_);
         v.isGated = (params_.sustainLevel > 2.0f);
 
         v.decayCurveActive = (std::abs(params_.decayCurve) > 0.01f);
@@ -622,8 +625,8 @@ private:
         v.isReverse = params_.reverse;
         v.tTotalSec = dMax * std::max(0.02f, absT);
 
-        // Traversal Anchor & Grain Initialization (Red Team Ratified Unified OLA)
-        const float targetTInit = (std::max(0.02f, absT) * FastMath::fastPow2(2.0f * (effT - 0.5f))) / std::max(0.02f, v.travPitchScale);
+        // Traversal Anchor & Grain Initialization (100% Decoupled from MIDI Pitch!)
+        const float targetTInit = std::max(0.02f, absT) * FastMath::fastPow2(2.0f * (effT - 0.5f));
         v.tSm = targetTInit;
         v.u = v.isReverse ? v.tEndSec : v.tStartSec;
         v.grainPhase = 0.5;
@@ -644,27 +647,17 @@ private:
         float semitones = static_cast<float>(noteNumber - rootMidi);
         v.staticPitchRatio = FastMath::fastPow2(std::clamp(semitones, -24.0f, 24.0f) * (1.0f / 12.0f));
 
-        // Layer 3: Vintage Lifeform Key-Tracked Traversal Scaling
-        // In Cyborg (1) and Organic (2) modes, traversal playback clock subtly scales with pitch
-        // Synthetic (0): strictly 1.0 (pure pitch-decoupled time-stretch)
-        // Cyborg (1): vintage sampler clock (kappa = 0.20)
-        // Organic (2): sloshy tube-back sampler clock (kappa = 0.35)
-        float kappa = 0.0f;
-        if (params_.lifeMode == 1) {
-            kappa = 0.20f;
-        } else if (params_.lifeMode == 2) {
-            kappa = 0.35f;
-        }
-        if (kappa > 0.001f && v.rootHz > 10.0f && v.targetHz > 10.0f) {
-            v.travPitchScale = std::clamp(std::pow(v.targetHz / v.rootHz, kappa), 0.25f, 4.0f);
-        } else {
-            v.travPitchScale = 1.0f;
-        }
+        // Layer 3: Lifeform Invariant (Strict 1.0f Pitch-Decoupled Traversal)
+        // Across Synthetic, Cyborg, and Organic, traversal clock is 100% decoupled from MIDI pitch.
+        // Vintage character is delivered authentically via AMD Am6070 non-linear companding,
+        // SP-1200 12-bit linear DAC + 26.04 kHz ZOH clocking, and vactrol LPG slew.
+        v.travPitchScale = 1.0f;
 
-        // 5. Col 1: Pitch Envelope P.DEC (Headroom Lerp via effT) & TIME
+        // 5. Col 1: Pitch Envelope P.DEC (Headroom Lerp via effT & Master Macro Decay scaling)
         const float normPDec = std::clamp((params_.pitchDecay - 2.0f) / (250.0f - 2.0f), 0.0f, 1.0f);
         const float effPDecNorm = tkdsp::formless::headroomLerp(normPDec, effT, 0.70f);
-        const float pDecayMs = 2.0f + effPDecNorm * (250.0f - 2.0f);
+        const float basePDecMs = 2.0f + effPDecNorm * (250.0f - 2.0f);
+        const float pDecayMs = std::clamp(basePDecMs * std::sqrt(macroDecayMult), 1.0f, 500.0f);
         v.pitchEnvRate = 1.0f / (pDecayMs * 0.001f * sampleRate_);
         v.pitchEnv = 1.0f;
 
@@ -711,6 +704,12 @@ private:
         const auto* metaA = rom.getVoice(v.voiceA);
         const auto* metaB = rom.getVoice(v.voiceB);
 
+        // Dynamic held-note amplitude decay tracking (Master Macro Decay live sweep)
+        const float liveMacroMult = tkdsp::formless::evalMacroMultiplier(params_.macroDecay);
+        const float targetDecaySec = std::clamp(params_.ampDecay * liveMacroMult, 0.005f, 5.0f);
+        const float targetAmpRate = 1.0f / (targetDecaySec * sampleRate_);
+        v.ampDecayRate += 0.05f * (targetAmpRate - v.ampDecayRate);
+
         for (int i = 0; i < numSamples; ++i) {
             v.currentMorph += morphInc;            // 1. Dynamic Boundary Smoothing (Live Held-Note Tracking)
             const double dEff = v.dEffSec;
@@ -741,17 +740,20 @@ private:
             float punchRatio = FastMath::fastPow2(pitchModSemitones * (1.0f / 12.0f));
             float r = std::clamp(v.currentHz / std::max(10.0f, v.rootHz), 0.0078125f, 128.0f) * punchRatio;
 
-            // 3. Traversal Speed & Direction (with Layer 3 Lifeform Key-Tracking & Unified Rate Invariant!)
+            // 3. Traversal Speed & Direction (100% Decoupled from Audio Pitch Ratio!)
             const float T = params_.traverseRate;
             const float absT = std::max(0.02f, std::abs(T));
             const float macroTMod = std::pow(2.0f, 2.0f * (v.effMacroT - 0.5f));
-            const float targetT = (absT * macroTMod) / std::max(0.02f, v.travPitchScale);
+            const float targetT = absT * macroTMod;
             v.tSm += kEdgeCoef_ * (targetT - v.tSm);
 
-            // Unified Rate Invariant: s = r / tSm
-            // When tSm == 1.0 (nominal), s == r. Grain-to-grain phase slip Δφ = (s - r) * hop == 0.
-            // Partition of unity (w0 + w1 ≡ 1) makes OLA mathematically identical to 1:1 resampled PCM.
-            const double s = static_cast<double>(r) / static_cast<double>(std::max(0.02f, v.tSm));
+            // Decoupled Traversal Rate Invariant:
+            // Traversal speed s is governed SOLELY by TIME (T) and MACRO-T.
+            // Unipolar duration scaling: 1.0x = nominal sample speed (1s source = 1s wall-clock).
+            // 2.0x = takes twice as long (half traversal speed: s = 0.5).
+            // 0.5x = takes half as long (double traversal speed: s = 2.0).
+            // ZERO dependency on audio pitch ratio r or MIDI note!
+            const double s = 1.0 / static_cast<double>(std::max(0.02f, v.tSm));
             const int mode = params_.loopMode;
 
             double d = params_.reverse ? -1.0 : 1.0;
@@ -965,7 +967,8 @@ private:
         float masterGain = params_.volume * (1.0f + params_.macroY * 0.25f);
         if (params_.volume <= 0.0001f) masterGain = 0.0f;
 
-        const float effFilterDecaySec = std::clamp(params_.filterDecay, 0.005f, 5.0f);
+        const float macroDecayMultBus = tkdsp::formless::evalMacroMultiplier(params_.macroDecay);
+        const float effFilterDecaySec = std::clamp(params_.filterDecay * macroDecayMultBus, 0.005f, 5.0f);
         const float feDecayCoeff = FastMath::fastExp(-invSampleRate_ / effFilterDecaySec);
 
         // Empyrean-SSM Q-Compensated Saturated ZDF Filter

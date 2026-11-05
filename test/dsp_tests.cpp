@@ -6093,12 +6093,12 @@ int main() {
         std::cout << "  [PASS] Voice 0 SpanMult=" << spanMult0 << ", Voice 1 SpanMult=" << spanMult1 << std::endl;
         assert(std::abs(spanMult0 - spanMult1) > 0.10f); // Unlinked loop spans!
 
-        // Test 2: Layer 3 Lifeform Traversal Scaling (Cyborg vs Synthetic)
+        // Test 2: Universal Lifeform Traversal Decoupling (Cyborg, Synthetic, Organic)
         const float travScaleC4 = voice.getVoiceTravPitchScale(0);
         const float travScaleC5 = voice.getVoiceTravPitchScale(1);
         std::cout << "  [PASS] Cyborg Traversal Scale: C4=" << travScaleC4 << ", C5=" << travScaleC5 << std::endl;
-        assert(std::abs(travScaleC4 - 1.0f) < 0.05f);
-        assert(travScaleC5 > 1.10f); // C5 higher pitch traverses faster in Cyborg mode
+        assert(std::abs(travScaleC4 - 1.0f) < 1e-4f);
+        assert(std::abs(travScaleC5 - 1.0f) < 1e-4f); // Decoupled: pitch does not scale traversal clock!
 
         // Synthetic mode: strictly 1.0f (pure time-stretch decoupled)
         voice.reset();
@@ -6109,6 +6109,16 @@ int main() {
         assert(std::abs(voice.getVoiceTravPitchScale(0) - 1.0f) < 1e-4f);
         assert(std::abs(voice.getVoiceTravPitchScale(1) - 1.0f) < 1e-4f);
         std::cout << "  [PASS] Synthetic mode strictly preserves 1.0 pitch-decoupled traversal scale" << std::endl;
+
+        // Organic mode: strictly 1.0f (pure time-stretch decoupled)
+        voice.reset();
+        p.lifeMode = 2; // Organic
+        voice.setParams(p);
+        voice.triggerNote(60, 0.90f, 261.63f);
+        voice.triggerNote(72, 0.90f, 523.25f);
+        assert(std::abs(voice.getVoiceTravPitchScale(0) - 1.0f) < 1e-4f);
+        assert(std::abs(voice.getVoiceTravPitchScale(1) - 1.0f) < 1e-4f);
+        std::cout << "  [PASS] Organic mode strictly preserves 1.0 pitch-decoupled traversal scale" << std::endl;
 
         // Test 3: MONO / GLIDE Mode preserves deterministic loop span (mult = 1.0)
         voice.reset();
@@ -6210,7 +6220,81 @@ int main() {
         std::cout << "PASS: Suite 70: DigiStrike FS2 Unified Continuous Voice Engine completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 70 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    // SUITE 71: DigiStrike FS2 Master Macro Decay Fan-Out & Universal Pitch Decoupling
+    {
+        std::cout << "\nStarting Suite 71: DigiStrike FS2 Master Macro Decay & Pitch Decoupling..." << std::endl;
+        const auto& rom = tkdsp::DigiStrikeFS2ROM::getInstance();
+        assert(rom.isLoaded());
+
+        tkdsp::DigiStrikeFS2Voice voiceTight, voiceOpen;
+        voiceTight.prepare(44100.0f);
+        voiceOpen.prepare(44100.0f);
+
+        // 1. Verify Macro Decay Fan-Out (Choke at 0.0 vs Long Tail at 1.0)
+        tkdsp::DigiStrikeFS2Params pTight, pOpen;
+        pTight.category = 1; // Snare
+        pTight.macroDecay = 0.0f; // Minimum decay (tight choke)
+        pTight.ampDecay = 0.5f;
+        pTight.loopMode = 0; // ONCE
+
+        pOpen = pTight;
+        pOpen.macroDecay = 1.0f; // Maximum decay (open bloom)
+
+        voiceTight.setParams(pTight);
+        voiceOpen.setParams(pOpen);
+
+        voiceTight.triggerNote(60, 0.9f, 261.63f);
+        voiceOpen.triggerNote(60, 0.9f, 261.63f);
+
+        std::vector<float> bTightL(512, 0.0f), bTightR(512, 0.0f);
+        std::vector<float> bOpenL(512, 0.0f), bOpenR(512, 0.0f);
+
+        float rmsTight = 0.0f, rmsOpen = 0.0f;
+        for (int blk = 0; blk < 12; ++blk) {
+            std::fill(bTightL.begin(), bTightL.end(), 0.0f);
+            std::fill(bTightR.begin(), bTightR.end(), 0.0f);
+            std::fill(bOpenL.begin(), bOpenL.end(), 0.0f);
+            std::fill(bOpenR.begin(), bOpenR.end(), 0.0f);
+            voiceTight.renderBlock(bTightL.data(), bTightR.data(), 512);
+            voiceOpen.renderBlock(bOpenL.data(), bOpenR.data(), 512);
+            if (blk >= 6) { // After ~70ms
+                for (int i = 0; i < 512; ++i) {
+                    rmsTight += bTightL[i] * bTightL[i];
+                    rmsOpen  += bOpenL[i] * bOpenL[i];
+                }
+            }
+        }
+        std::cout << "  [PASS] Macro Decay Choke Energy: Tight=" << rmsTight << " < Open=" << rmsOpen << std::endl;
+        assert(rmsTight < rmsOpen);
+
+        // 2. Verify Pitch Decoupling Across Octaves in Default Cyborg Mode (Note 36 vs Note 72)
+        tkdsp::DigiStrikeFS2Voice voiceCyborg;
+        voiceCyborg.prepare(44100.0f);
+        tkdsp::DigiStrikeFS2Params pCyborg;
+        pCyborg.lifeMode = 1; // Cyborg (default)
+        pCyborg.category = 9; // Stab
+        pCyborg.traverseRate = 1.0f;
+        voiceCyborg.setParams(pCyborg);
+
+        voiceCyborg.triggerNote(36, 1.0f, 65.41f);
+        std::vector<float> cBufL(1000, 0.0f), cBufR(1000, 0.0f);
+        voiceCyborg.renderBlock(cBufL.data(), cBufR.data(), 1000);
+        const double uCyborgNote36 = voiceCyborg.getVoiceU(0);
+
+        voiceCyborg.prepare(44100.0f);
+        voiceCyborg.setParams(pCyborg);
+        voiceCyborg.triggerNote(72, 1.0f, 523.25f);
+        voiceCyborg.renderBlock(cBufL.data(), cBufR.data(), 1000);
+        const double uCyborgNote72 = voiceCyborg.getVoiceU(0);
+
+        std::cout << "  [PASS] Cyborg Mode Traversal Decoupling: Note 36 u=" << uCyborgNote36
+                  << ", Note 72 u=" << uCyborgNote72 << std::endl;
+        assert(std::abs(uCyborgNote36 - uCyborgNote72) < 1e-9);
+
+        std::cout << "PASS: Suite 71: DigiStrike FS2 Master Macro Decay & Pitch Decoupling completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 71 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 
