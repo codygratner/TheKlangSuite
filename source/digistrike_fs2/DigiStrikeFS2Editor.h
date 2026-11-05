@@ -4,6 +4,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "DigiStrikeFS2Processor.h"
 #include "DigiStrikeFS2ControlInfo.h"
+#include "ui/EditorScaleManager.h"
 #include "../dsp/common/SteppedRandom.h"
 #include "../dsp/drums/FormlessModMath.h"
 #include <vector>
@@ -1100,11 +1101,20 @@ public:
     static constexpr int kBaseWidth = 900;
     static constexpr int kBaseHeight = 564;
 
+    class ContentCanvas : public juce::Component {
+    public:
+        std::function<void(juce::Graphics&)> onPaint;
+        void paint(juce::Graphics& g) override {
+            if (onPaint) onPaint(g);
+        }
+    };
+
     explicit DigiStrikeFS2AudioProcessorEditor(DigiStrikeFS2AudioProcessor&);
     ~DigiStrikeFS2AudioProcessorEditor() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
+    void visibilityChanged() override;
     void timerCallback() override;
 
     void mouseEnter(const juce::MouseEvent& e) override;
@@ -1141,6 +1151,23 @@ private:
 
     DigiStrikeFS2AudioProcessor& processor_;
     DigiStrikeLookAndFeel lnf_;
+
+    ContentCanvas contentContainer;
+    juce::ComponentBoundsConstrainer constrainer;
+    rlyeh::ui::EditorScaleManager::Writer scaleWriter_;
+    float prefScale_{1.0f};
+    float effScale_{1.0f};
+    juce::Point<int> expectedSize_{kBaseWidth, kBaseHeight};
+    bool refitPending_{false};
+    bool inRefit_{false};
+    std::vector<juce::Slider*> rotarySliders_;
+
+    void applyEffectiveScale(float s);
+    void commitUserScale(float s);
+    void requestRefit();
+    float fitScale();
+    void layoutControls();
+    void paintCanvas(juce::Graphics& g);
 
     std::unordered_map<juce::Component*, InspectorBinding> inspectorBindings_;
     juce::Component::SafePointer<juce::Component> lockedComponent_;

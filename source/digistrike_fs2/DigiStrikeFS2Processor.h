@@ -47,6 +47,10 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     tkdsp::DigiStrikeFS2Voice& getVoice() { return voice_; }
 
+    std::atomic<float> storedEditorScale_{0.0f};
+    void setStoredEditorScale(float s) noexcept { storedEditorScale_.store(s, std::memory_order_relaxed); }
+    [[nodiscard]] float getStoredEditorScale() const noexcept { return storedEditorScale_.load(std::memory_order_relaxed); }
+
     struct TelemetrySnapshot {
         std::array<float, 8> randVal{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
         float lastVelocity{0.9f};

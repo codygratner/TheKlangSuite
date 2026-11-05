@@ -7,17 +7,39 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
 {
     using namespace formless_spawnParameters::Ids;
 
-    setSize(900, 560);
+    // 1. Mount content container
+    addAndMakeVisible(contentContainer);
+    contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
+    contentContainer.setInterceptsMouseClicks(false, true);
+    contentContainer.onPaint = [this](juce::Graphics& g) { paintCanvas(g); };
+    contentContainer.addMouseListener(this, true);
+
     setLookAndFeel(&lnf_);
     startTimerHz(30);
+
+    // 2. Configure constrainer & resizer
+    constrainer.setFixedAspectRatio(double(kBaseWidth) / double(kBaseHeight));
+    constrainer.setSizeLimits(juce::roundToInt(kBaseWidth  * rlyeh::ui::EditorScaleManager::kMinScale),
+                              juce::roundToInt(kBaseHeight * rlyeh::ui::EditorScaleManager::kMinScale),
+                              juce::roundToInt(kBaseWidth  * rlyeh::ui::EditorScaleManager::kMaxScale),
+                              juce::roundToInt(kBaseHeight * rlyeh::ui::EditorScaleManager::kMaxScale));
+    setConstrainer(&constrainer);
+    setResizable(true, true);
+
+    // 3. Resolve preferred scale (Session XML > Global JSON > Default)
+    const float sessionScale = processor_.getStoredEditorScale();
+    prefScale_ = rlyeh::ui::EditorScaleManager::getPreferredScale("formless_spawn", sessionScale);
+    effScale_ = prefScale_;
+    expectedSize_ = { juce::roundToInt(kBaseWidth * effScale_), juce::roundToInt(kBaseHeight * effScale_) };
+    setSize(expectedSize_.x, expectedSize_.y);
 
     auto& apvts = processor_.getAPVTS();
 
     // =========================================================================
     // 1. Setup Header Row 1
     // =========================================================================
-    addAndMakeVisible(presetStub_);
-    addAndMakeVisible(headerInspector_);
+    contentContainer.addAndMakeVisible(presetStub_);
+    contentContainer.addAndMakeVisible(headerInspector_);
 
     lifeformRocker_.onSelect = [&apvts](int idx) {
         if (auto* param = apvts.getParameter(life_mode))
@@ -25,7 +47,7 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     };
     if (auto* param = apvts.getRawParameterValue(life_mode))
         lifeformRocker_.setState(static_cast<int>(param->load()));
-    addAndMakeVisible(lifeformRocker_);
+    contentContainer.addAndMakeVisible(lifeformRocker_);
 
     // =========================================================================
     // 2. Setup Card 0: Voice Navigator & Model Matrix
@@ -72,8 +94,8 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
         const int m = apvts.getRawParameterValue(model) ? static_cast<int>(apvts.getRawParameterValue(model)->load()) : 0;
         modelGrid_.setRoleAndModel(r, m);
     }
-    addAndMakeVisible(roleGrid_);
-    addAndMakeVisible(modelGrid_);
+    contentContainer.addAndMakeVisible(roleGrid_);
+    contentContainer.addAndMakeVisible(modelGrid_);
 
     // =========================================================================
     // 3. Setup Card 1 Knobs: Master Macro & Dynamics Lab (Top-Left, 8)
@@ -133,7 +155,7 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     trigButton_.onRightTrigger = [this]() {
         processor_.triggerManual(60, 0.95f);
     };
-    addAndMakeVisible(trigButton_);
+    contentContainer.addAndMakeVisible(trigButton_);
 
     // =========================================================================
     // 7. Setup Card 3 Pod 3: VCF, Universal Mojo Strip & Master Output
@@ -156,7 +178,7 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
         filterTypeBar_.setState(curType);
         updateFilterTypeUI(curType);
     }
-    addAndMakeVisible(filterTypeBar_);
+    contentContainer.addAndMakeVisible(filterTypeBar_);
 
     // Row 2: Universal Mojo Strip (Sorcerous Purple 0xFFBC8CFF)
     const auto purpleCol = juce::Colour(0xFFBC8CFF);
@@ -175,17 +197,21 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     const auto redCol = juce::Colour(0xFFFF3B30);
     limiterAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         apvts, master_limiter, limiterButton_);
-    addAndMakeVisible(limiterButton_);
+    contentContainer.addAndMakeVisible(limiterButton_);
 
     setupKnob(volumeKnob_,       volume,          "VOLUME",    "dB", "output level into the limiter (-inf..0..+12dB)", redCol);
     volumeKnob_.slider.setDoubleClickReturnValue(true, 0.5);
 
     setupKnob(ampDecayKnob_,     amp_decay,       "AMP-DEC",   "s",  "master dynamic amp decay [5ms .. engine length]", redCol);
     ampDecayKnob_.slider.setDoubleClickReturnValue(true, 1.0);
+
+    layoutControls();
 }
 
 FormlessSpawnAudioProcessorEditor::~FormlessSpawnAudioProcessorEditor() {
+    setConstrainer(nullptr);
     stopTimer();
+    contentContainer.removeMouseListener(this);
     setLookAndFeel(nullptr);
 }
 
@@ -198,7 +224,8 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     if (isBipolar) {
         item.slider.setDoubleClickReturnValue(true, 0.0);
     }
-    addAndMakeVisible(item.slider);
+    contentContainer.addAndMakeVisible(item.slider);
+    rotarySliders_.push_back(&item.slider);
 
     item.label.setText(name, juce::dontSendNotification);
     item.label.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
@@ -206,7 +233,7 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.label.setJustificationType(juce::Justification::centred);
     item.label.setBorderSize(juce::BorderSize<int>(0));
     item.label.setInterceptsMouseClicks(false, false);
-    addAndMakeVisible(item.label);
+    contentContainer.addAndMakeVisible(item.label);
 
     item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor_.getAPVTS(), paramId, item.slider);
@@ -347,6 +374,10 @@ inline int colCentre(int cardX, int c) { return cardX + kCellInset + kCellPitch 
 
 void FormlessSpawnAudioProcessorEditor::paint(juce::Graphics& g) {
     g.fillAll(juce::Colour(0xFF0D1117));
+}
+
+void FormlessSpawnAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
+    g.fillAll(juce::Colour(0xFF0D1117));
 
     g.setFont(juce::Font(juce::FontOptions(15.0f).withStyle("Bold")));
     g.setColour(juce::Colour(0xFFFFAA00));
@@ -408,7 +439,7 @@ void FormlessSpawnAudioProcessorEditor::paint(juce::Graphics& g) {
     g.drawVerticalLine(kPod3Divider, (float)p3y + 26.0f, (float)kPod3.getBottom() - 8.0f);
 }
 
-void FormlessSpawnAudioProcessorEditor::resized() {
+void FormlessSpawnAudioProcessorEditor::layoutControls() {
     // Header: right edge lands on 880 (matches card right edge)
     presetStub_.setBounds(174, 8, 145, 28);
     headerInspector_.setBounds(326, 8, 314, 28);
@@ -810,4 +841,75 @@ void FormlessSpawnAudioProcessorEditor::mouseWheelMove(const juce::MouseEvent& e
         s->getProperties().set("badgeExpiry", static_cast<double>(activeBadgeExpiry_));
         s->repaint();
     }
+}
+
+
+void FormlessSpawnAudioProcessorEditor::visibilityChanged() {
+    if (isShowing()) requestRefit();
+}
+
+void FormlessSpawnAudioProcessorEditor::resized() {
+    const int w = getWidth();
+    const int h = getHeight();
+    if (w <= 0 || h <= 0) return;
+
+    const float s = juce::jmin(static_cast<float>(w) / static_cast<float>(kBaseWidth),
+                               static_cast<float>(h) / static_cast<float>(kBaseHeight));
+    const int ox = (w - juce::roundToInt(kBaseWidth  * s)) / 2;
+    const int oy = (h - juce::roundToInt(kBaseHeight * s)) / 2;
+
+    contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
+    contentContainer.setTransform(juce::AffineTransform::scale(s).translated(static_cast<float>(ox), static_cast<float>(oy)));
+
+    if (std::abs(s - effScale_) > 1.0e-4f) {
+        effScale_ = s;
+        const int sens = juce::roundToInt(250.0f / s);
+        for (auto* sl : rotarySliders_) {
+            if (sl != nullptr) sl->setMouseDragSensitivity(sens);
+        }
+    }
+
+    if (getPeer() != nullptr && juce::Point<int>{ w, h } != expectedSize_) {
+        commitUserScale(s);
+    }
+}
+
+void FormlessSpawnAudioProcessorEditor::applyEffectiveScale(float s) {
+    s = juce::jlimit(rlyeh::ui::EditorScaleManager::kMinScale, rlyeh::ui::EditorScaleManager::kMaxScale, s);
+    expectedSize_ = { juce::roundToInt(kBaseWidth * s), juce::roundToInt(kBaseHeight * s) };
+    setSize(expectedSize_.x, expectedSize_.y);
+}
+
+void FormlessSpawnAudioProcessorEditor::commitUserScale(float s) {
+    prefScale_ = std::round(juce::jlimit(rlyeh::ui::EditorScaleManager::kMinScale,
+                                         rlyeh::ui::EditorScaleManager::kMaxScale, s) * 100.0f) / 100.0f;
+    expectedSize_ = { getWidth(), getHeight() };
+    scaleWriter_.note("formless_spawn", prefScale_);
+    processor_.setStoredEditorScale(prefScale_);
+}
+
+float FormlessSpawnAudioProcessorEditor::fitScale() {
+    return rlyeh::ui::EditorScaleManager::getDisplayFitScale(*this, kBaseWidth, kBaseHeight);
+}
+
+void FormlessSpawnAudioProcessorEditor::requestRefit() {
+    if (refitPending_) return;
+    refitPending_ = true;
+    juce::Component::SafePointer<FormlessSpawnAudioProcessorEditor> safe(this);
+    juce::MessageManager::callAsync([safe] {
+        if (safe == nullptr) return;
+        safe->refitPending_ = false;
+
+        if (juce::ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
+            juce::Timer::callAfterDelay(150, [safe] { if (safe) safe->requestRefit(); });
+            return;
+        }
+
+        if (safe->inRefit_ || !safe->isShowing()) return;
+        const juce::ScopedValueSetter<bool> guard(safe->inRefit_, true);
+        const float target = juce::jmin(safe->prefScale_, safe->fitScale());
+        if (std::abs(target - safe->effScale_) > 0.01f) {
+            safe->applyEffectiveScale(target);
+        }
+    });
 }

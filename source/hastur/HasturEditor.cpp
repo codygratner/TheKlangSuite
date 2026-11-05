@@ -908,25 +908,26 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
     // 1. Hardwire 4:3 Aspect Ratio Lock for Renoise & Host DAW
     constrainer.setFixedAspectRatio(4.0 / 3.0);
-    constrainer.setSizeLimits(kMinWidth, kMinHeight, kMaxWidth, kMaxHeight);
+    constrainer.setSizeLimits(juce::roundToInt(kBaseWidth  * rlyeh::ui::EditorScaleManager::kMinScale),
+                              juce::roundToInt(kBaseHeight * rlyeh::ui::EditorScaleManager::kMinScale),
+                              juce::roundToInt(kBaseWidth  * rlyeh::ui::EditorScaleManager::kMaxScale),
+                              juce::roundToInt(kBaseHeight * rlyeh::ui::EditorScaleManager::kMaxScale));
     setConstrainer(&constrainer);
 
     // 2. Arm Resizable Gripper (constrainer handles resize limits)
     setResizable(true, true);
 
-    // 3. Set Canonical 4:3 Canvas Dimensions, clamped to primary display work area
-    if (auto* d = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()) {
-        const auto ua = d->userArea.reduced(40);
-        const float s = juce::jlimit(0.5f, 1.0f, juce::jmin(ua.getWidth() / float(kBaseWidth),
-                                                            ua.getHeight() / float(kBaseHeight)));
-        setSize(juce::roundToInt(kBaseWidth * s), juce::roundToInt(kBaseHeight * s));
-    } else {
-        setSize(kBaseWidth, kBaseHeight);
-    }
+    // 3. Resolve preferred scale (Session XML > Global JSON > Default)
+    const float sessionScale = processor_.getStoredEditorScale();
+    prefScale_ = rlyeh::ui::EditorScaleManager::getPreferredScale("hastur", sessionScale);
+    effScale_ = prefScale_;
+    expectedSize_ = { juce::roundToInt(kBaseWidth * effScale_), juce::roundToInt(kBaseHeight * effScale_) };
+    setSize(expectedSize_.x, expectedSize_.y);
 
     // 4. Mount Content Container
     addAndMakeVisible(contentContainer);
     contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
+    contentContainer.setInterceptsMouseClicks(false, true);
     contentContainer.onPaint = [this](juce::Graphics& g) {
         paintCanvas(g);
     };
@@ -1589,6 +1590,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 }
 
 HasturAudioProcessorEditor::~HasturAudioProcessorEditor() {
+    setConstrainer(nullptr);
     stopTimer();
     contentContainer.removeMouseListener(this);
     setLookAndFeel(nullptr);
@@ -2113,16 +2115,74 @@ void HasturAudioProcessorEditor::layoutControls() {
     trigModeButtons.setBounds(955, 822, 175, 22);
 }
 
+void HasturAudioProcessorEditor::visibilityChanged() {
+    if (isShowing()) requestRefit();
+}
+
 void HasturAudioProcessorEditor::resized() {
-    float scaleX = static_cast<float>(getWidth()) / static_cast<float>(kBaseWidth);
-    float scaleY = static_cast<float>(getHeight()) / static_cast<float>(kBaseHeight);
-    float uniformScale = juce::jmin(scaleX, scaleY);
-    int offsetX = (getWidth() - static_cast<int>(kBaseWidth * uniformScale)) / 2;
-    int offsetY = (getHeight() - static_cast<int>(kBaseHeight * uniformScale)) / 2;
+    const int w = getWidth();
+    const int h = getHeight();
+    if (w <= 0 || h <= 0) return;
+
+    const float s = juce::jmin(static_cast<float>(w) / static_cast<float>(kBaseWidth),
+                               static_cast<float>(h) / static_cast<float>(kBaseHeight));
+    const int ox = (w - juce::roundToInt(kBaseWidth  * s)) / 2;
+    const int oy = (h - juce::roundToInt(kBaseHeight * s)) / 2;
 
     contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
-    contentContainer.setTransform(juce::AffineTransform::scale(uniformScale));
-    contentContainer.setTopLeftPosition(offsetX, offsetY);
+    contentContainer.setTransform(juce::AffineTransform::scale(s).translated(static_cast<float>(ox), static_cast<float>(oy)));
+
+    if (std::abs(s - effScale_) > 1.0e-4f) {
+        effScale_ = s;
+        const int sens = juce::roundToInt(250.0f / s);
+        for (auto* sl : rotarySliders_) {
+            if (sl != nullptr) sl->setMouseDragSensitivity(sens);
+        }
+    }
+
+    if (getPeer() != nullptr && juce::Point<int>{ w, h } != expectedSize_) {
+        commitUserScale(s);
+    }
+}
+
+void HasturAudioProcessorEditor::applyEffectiveScale(float s) {
+    s = juce::jlimit(rlyeh::ui::EditorScaleManager::kMinScale, rlyeh::ui::EditorScaleManager::kMaxScale, s);
+    expectedSize_ = { juce::roundToInt(kBaseWidth * s), juce::roundToInt(kBaseHeight * s) };
+    setSize(expectedSize_.x, expectedSize_.y);
+}
+
+void HasturAudioProcessorEditor::commitUserScale(float s) {
+    prefScale_ = std::round(juce::jlimit(rlyeh::ui::EditorScaleManager::kMinScale,
+                                         rlyeh::ui::EditorScaleManager::kMaxScale, s) * 100.0f) / 100.0f;
+    expectedSize_ = { getWidth(), getHeight() };
+    scaleWriter_.note("hastur", prefScale_);
+    processor_.setStoredEditorScale(prefScale_);
+}
+
+float HasturAudioProcessorEditor::fitScale() {
+    return rlyeh::ui::EditorScaleManager::getDisplayFitScale(*this, kBaseWidth, kBaseHeight);
+}
+
+void HasturAudioProcessorEditor::requestRefit() {
+    if (refitPending_) return;
+    refitPending_ = true;
+    juce::Component::SafePointer<HasturAudioProcessorEditor> safe(this);
+    juce::MessageManager::callAsync([safe] {
+        if (safe == nullptr) return;
+        safe->refitPending_ = false;
+
+        if (juce::ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
+            juce::Timer::callAfterDelay(150, [safe] { if (safe) safe->requestRefit(); });
+            return;
+        }
+
+        if (safe->inRefit_ || !safe->isShowing()) return;
+        const juce::ScopedValueSetter<bool> guard(safe->inRefit_, true);
+        const float target = juce::jmin(safe->prefScale_, safe->fitScale());
+        if (std::abs(target - safe->effScale_) > 0.01f) {
+            safe->applyEffectiveScale(target);
+        }
+    });
 }
 
 void HasturAudioProcessorEditor::timerCallback() {
@@ -2254,6 +2314,7 @@ void HasturAudioProcessorEditor::setupRotaryKnob(SliderItem& item, const juce::S
     item.slider.setColour(juce::Slider::rotarySliderFillColourId, col);
     item.slider.setColour(juce::Slider::thumbColourId, col);
     contentContainer.addAndMakeVisible(item.slider);
+    rotarySliders_.push_back(&item.slider);
 
     if (auto* param = processor_.getAPVTS().getParameter(paramId)) {
         item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(

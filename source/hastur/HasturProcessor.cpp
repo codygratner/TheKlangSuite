@@ -334,12 +334,24 @@ void HasturAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto state = apvts_.copyState();
     state.setProperty("ui_lfo_rate_mode", uiLfoRateMode_.load(std::memory_order_relaxed), nullptr);
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    const float s = storedEditorScale_.load(std::memory_order_relaxed);
+    if (s > 0.0f) {
+        xml->setAttribute("editorScale", static_cast<double>(s));
+    }
     copyXmlToBinary(*xml, destData);
 }
 
 void HasturAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState != nullptr && xmlState->hasTagName(apvts_.state.getType())) {
+    if (xmlState != nullptr) {
+        if (xmlState->hasAttribute("editorScale")) {
+            const float s = static_cast<float>(xmlState->getDoubleAttribute("editorScale", 0.0));
+            if (s > 0.0f) {
+                storedEditorScale_.store(s, std::memory_order_relaxed);
+            }
+            xmlState->removeAttribute("editorScale");
+        }
+        if (xmlState->hasTagName(apvts_.state.getType())) {
         auto tree = juce::ValueTree::fromXml(*xmlState);
         if (tree.hasProperty("ui_lfo_rate_mode")) {
             uiLfoRateMode_.store(static_cast<int>(tree.getProperty("ui_lfo_rate_mode", 0)), std::memory_order_relaxed);
@@ -370,6 +382,7 @@ void HasturAudioProcessor::setStateInformation(const void* data, int sizeInBytes
             }
         }
         apvts_.replaceState(tree);
+    }
     }
 }
 

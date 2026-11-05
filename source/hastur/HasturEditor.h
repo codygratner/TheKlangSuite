@@ -4,6 +4,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "HasturProcessor.h"
 #include "WaveformPreviewEngine.h"
+#include "ui/EditorScaleManager.h"
 #include "HasturControlInfo.h"
 #include <unordered_map>
 #include <array>
@@ -1505,6 +1506,7 @@ public:
 
     void paint(juce::Graphics&) override;
     void resized() override;
+    void visibilityChanged() override;
 
     juce::Colour getAccentColour() const noexcept;
     void updateColours();
@@ -1536,6 +1538,19 @@ private:
     juce::int64 activeBadgeExpiry_{0};
     juce::ComponentBoundsConstrainer constrainer;
     ContentCanvas contentContainer;
+
+    rlyeh::ui::EditorScaleManager::Writer scaleWriter_;
+    float prefScale_{1.0f};
+    float effScale_{1.0f};
+    juce::Point<int> expectedSize_{kBaseWidth, kBaseHeight};
+    bool refitPending_{false};
+    bool inRefit_{false};
+    std::vector<juce::Slider*> rotarySliders_;
+
+    void applyEffectiveScale(float s);
+    void commitUserScale(float s);
+    void requestRefit();
+    float fitScale();
 
     // Master Header & Backend Toggle
     juce::Label headerLabel;

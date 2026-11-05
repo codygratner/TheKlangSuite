@@ -49,6 +49,10 @@ public:
     void setUiLfoRateMode(int mode) noexcept { uiLfoRateMode_.store(mode, std::memory_order_relaxed); }
     [[nodiscard]] int getUiLfoRateMode() const noexcept { return uiLfoRateMode_.load(std::memory_order_relaxed); }
 
+    std::atomic<float> storedEditorScale_{0.0f};
+    void setStoredEditorScale(float s) noexcept { storedEditorScale_.store(s, std::memory_order_relaxed); }
+    [[nodiscard]] float getStoredEditorScale() const noexcept { return storedEditorScale_.load(std::memory_order_relaxed); }
+
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

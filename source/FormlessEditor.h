@@ -4,6 +4,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "FormlessProcessor.h"
 #include "formless_spawn/FormlessControlInfo.h"
+#include "ui/EditorScaleManager.h"
 #include <vector>
 #include <array>
 #include <memory>
@@ -957,11 +958,23 @@ private:
 class FormlessSpawnAudioProcessorEditor : public juce::AudioProcessorEditor,
                                           public juce::Timer {
 public:
+    static constexpr int kBaseWidth = 900;
+    static constexpr int kBaseHeight = 560;
+
+    class ContentCanvas : public juce::Component {
+    public:
+        std::function<void(juce::Graphics&)> onPaint;
+        void paint(juce::Graphics& g) override {
+            if (onPaint) onPaint(g);
+        }
+    };
+
     explicit FormlessSpawnAudioProcessorEditor(FormlessSpawnAudioProcessor&);
     ~FormlessSpawnAudioProcessorEditor() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
+    void visibilityChanged() override;
     void timerCallback() override;
 
     void mouseEnter(const juce::MouseEvent& e) override;
@@ -984,6 +997,23 @@ private:
 
     FormlessSpawnAudioProcessor& processor_;
     FormlessLookAndFeel lnf_;
+
+    ContentCanvas contentContainer;
+    juce::ComponentBoundsConstrainer constrainer;
+    rlyeh::ui::EditorScaleManager::Writer scaleWriter_;
+    float prefScale_{1.0f};
+    float effScale_{1.0f};
+    juce::Point<int> expectedSize_{kBaseWidth, kBaseHeight};
+    bool refitPending_{false};
+    bool inRefit_{false};
+    std::vector<juce::Slider*> rotarySliders_;
+
+    void applyEffectiveScale(float s);
+    void commitUserScale(float s);
+    void requestRefit();
+    float fitScale();
+    void layoutControls();
+    void paintCanvas(juce::Graphics& g);
 
     juce::Component::SafePointer<juce::Slider> activeBadgeSlider_;
     juce::int64 activeBadgeExpiry_{0};

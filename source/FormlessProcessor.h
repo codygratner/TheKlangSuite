@@ -37,6 +37,10 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     tkdsp::FormlessSpawnVoice& getVoice() { return voice_; }
 
+    std::atomic<float> storedEditorScale_{0.0f};
+    void setStoredEditorScale(float s) noexcept { storedEditorScale_.store(s, std::memory_order_relaxed); }
+    [[nodiscard]] float getStoredEditorScale() const noexcept { return storedEditorScale_.load(std::memory_order_relaxed); }
+
     void triggerManual(int noteNumber = -1, float velocity = -1.0f) noexcept {
         manualTriggerNote_.store(noteNumber, std::memory_order_release);
         manualTriggerVel_.store(velocity, std::memory_order_release);

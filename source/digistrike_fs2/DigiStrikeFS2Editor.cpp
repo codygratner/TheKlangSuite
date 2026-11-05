@@ -7,10 +7,31 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     : AudioProcessorEditor(&p), processor_(p)
 {
 
-    setSize(kBaseWidth, kBaseHeight);
+    // 1. Mount content container
+    addAndMakeVisible(contentContainer);
+    contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
+    contentContainer.setInterceptsMouseClicks(false, true);
+    contentContainer.onPaint = [this](juce::Graphics& g) { paintCanvas(g); };
+    contentContainer.addMouseListener(this, true);
+
     setLookAndFeel(&lnf_);
-    addMouseListener(this, true);
     startTimerHz(30);
+
+    // 2. Configure constrainer & resizer
+    constrainer.setFixedAspectRatio(double(kBaseWidth) / double(kBaseHeight));
+    constrainer.setSizeLimits(juce::roundToInt(kBaseWidth  * rlyeh::ui::EditorScaleManager::kMinScale),
+                              juce::roundToInt(kBaseHeight * rlyeh::ui::EditorScaleManager::kMinScale),
+                              juce::roundToInt(kBaseWidth  * rlyeh::ui::EditorScaleManager::kMaxScale),
+                              juce::roundToInt(kBaseHeight * rlyeh::ui::EditorScaleManager::kMaxScale));
+    setConstrainer(&constrainer);
+    setResizable(true, true);
+
+    // 3. Resolve preferred scale (Session XML > Global JSON > Default)
+    const float sessionScale = processor_.getStoredEditorScale();
+    prefScale_ = rlyeh::ui::EditorScaleManager::getPreferredScale("digistrike_fs2", sessionScale);
+    effScale_ = prefScale_;
+    expectedSize_ = { juce::roundToInt(kBaseWidth * effScale_), juce::roundToInt(kBaseHeight * effScale_) };
+    setSize(expectedSize_.x, expectedSize_.y);
 
     auto& apvts = processor_.getAPVTS();
 
@@ -18,9 +39,9 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     // 1. Header Row
     // =========================================================================
     presetStub_.setAccentColour(juce::Colour(0xFFFFAA00));
-    addAndMakeVisible(presetStub_);
+    contentContainer.addAndMakeVisible(presetStub_);
 
-    addAndMakeVisible(headerInspector_);
+    contentContainer.addAndMakeVisible(headerInspector_);
 
     lifeformRocker_.onSelect = [&apvts](int idx) {
         if (auto* param = apvts.getParameter(life_mode))
@@ -28,7 +49,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     };
     if (auto* param = apvts.getRawParameterValue(life_mode))
         lifeformRocker_.setState(static_cast<int>(param->load()));
-    addAndMakeVisible(lifeformRocker_);
+    contentContainer.addAndMakeVisible(lifeformRocker_);
     registerInspector(&lifeformRocker_, life_mode, juce::Colour(0xFF6BBF59));
 
     // =========================================================================
@@ -76,12 +97,12 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
         int val = static_cast<int>(std::lround(param->load()));
         loopModeBar_.setState(std::clamp(val, 0, 3));
     }
-    addAndMakeVisible(loopModeBar_);
+    contentContainer.addAndMakeVisible(loopModeBar_);
     registerInspector(&loopModeBar_, loop_mode, blueCol);
 
     // REV Latching Button
     revAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, reverse, revButton_);
-    addAndMakeVisible(revButton_);
+    contentContainer.addAndMakeVisible(revButton_);
     registerInspector(&revButton_, reverse, blueCol);
 
     // Voice Selector Capsule Setup
@@ -190,14 +211,14 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
                 delete menu;
             });
     };
-    addAndMakeVisible(voiceSelectorCapsule_);
+    contentContainer.addAndMakeVisible(voiceSelectorCapsule_);
     registerInspector(&voiceSelectorCapsule_, table_morph, blueCol);
 
     loopLabel_.setText("LOOP", juce::dontSendNotification);
     loopLabel_.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
     loopLabel_.setColour(juce::Label::textColourId, juce::Colour(0xFF8B949E));
     loopLabel_.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(loopLabel_);
+    contentContainer.addAndMakeVisible(loopLabel_);
 
     // Lower Tactile Button Matrix: Category & Lineage
     categoryGrid_.setAccentColour(blueCol);
@@ -207,7 +228,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     };
     if (auto* param = apvts.getRawParameterValue(category))
         categoryGrid_.setState(static_cast<int>(param->load()));
-    addAndMakeVisible(categoryGrid_);
+    contentContainer.addAndMakeVisible(categoryGrid_);
     registerInspector(&categoryGrid_, category, blueCol);
 
     lineageGrid_.setAccentColour(blueCol);
@@ -251,7 +272,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     }
     lineageGrid_.setMask(initMask != 0 ? initMask : 0xFFFFFu);
 
-    addAndMakeVisible(lineageGrid_);
+    contentContainer.addAndMakeVisible(lineageGrid_);
     registerInspector(&lineageGrid_, lineage, blueCol);
 
     // =========================================================================
@@ -286,7 +307,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     trigButton_.onRightRelease = [this]() {
         processor_.triggerVoiceRelease(60);
     };
-    addAndMakeVisible(trigButton_);
+    contentContainer.addAndMakeVisible(trigButton_);
     registerInspector(&trigButton_, "", juce::Colour(0xFFFFAA00), nullptr,
                       "MANUAL STRIKE PAD", "Left-Click: replay last incoming MIDI note/vel. Right-Click: reference C3.");
 
@@ -311,7 +332,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
         filterTypeBar_.setState(curType);
         updateFilterTypeUI(curType);
     }
-    addAndMakeVisible(filterTypeBar_);
+    contentContainer.addAndMakeVisible(filterTypeBar_);
     registerInspector(&filterTypeBar_, filter_type, acidGreenCol);
 
     // Row 1: Universal Hardware Mojo Strip (Sorcerous Purple 0xFFBC8CFF)
@@ -332,7 +353,7 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     setupKnob(sustainKnob_, sustain_level, "SUSTAIN", "%",  "gated hold level (0%=one-shot, >2%=synth)", redCol);
     limiterAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         apvts, master_limiter, limiterButton_);
-    addAndMakeVisible(limiterButton_);
+    contentContainer.addAndMakeVisible(limiterButton_);
     registerInspector(&limiterButton_, master_limiter, redCol);
 
     setupKnob(volumeKnob_,   volume,    "VOLUME",  "dB", "master output level into safety limiter", redCol);
@@ -351,8 +372,9 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     };
     if (auto* param = apvts.getRawParameterValue(voice_mode))
         voiceModeRocker_.setState(static_cast<int>(param->load()));
-    addAndMakeVisible(voiceModeRocker_);
+    contentContainer.addAndMakeVisible(voiceModeRocker_);
     registerInspector(&voiceModeRocker_, voice_mode, juce::Colour(0xFF00C8FF));
+    layoutControls();
 }
 
 void DigiStrikeFS2AudioProcessorEditor::updateFilterTypeUI(int filterIdx) {
@@ -360,8 +382,10 @@ void DigiStrikeFS2AudioProcessorEditor::updateFilterTypeUI(int filterIdx) {
 }
 
 DigiStrikeFS2AudioProcessorEditor::~DigiStrikeFS2AudioProcessorEditor() {
-    removeMouseListener(this);
+    setConstrainer(nullptr);
     stopTimer();
+    contentContainer.removeMouseListener(this);
+    removeMouseListener(this);
     setLookAndFeel(nullptr);
 }
 
@@ -374,7 +398,7 @@ void DigiStrikeFS2AudioProcessorEditor::registerInspector(juce::Component* comp,
 }
 
 juce::Component* DigiStrikeFS2AudioProcessorEditor::resolveInspectorComponent(juce::Component* comp) {
-    while (comp != nullptr && comp != this) {
+    while (comp != nullptr && comp != &contentContainer && comp != this) {
         if (inspectorBindings_.find(comp) != inspectorBindings_.end())
             return comp;
         comp = comp->getParentComponent();
@@ -513,7 +537,8 @@ void DigiStrikeFS2AudioProcessorEditor::mouseUp(const juce::MouseEvent& e) {
         s->repaint();
     }
     lockedComponent_ = nullptr;
-    auto* c = resolveInspectorComponent(getComponentAt(e.getEventRelativeTo(this).getPosition()));
+    auto eventInContainer = e.getEventRelativeTo(&contentContainer);
+    auto* c = resolveInspectorComponent(contentContainer.getComponentAt(eventInContainer.getPosition()));
     if (c != nullptr) {
         updateInspectorForComponent(c);
     } else {
@@ -550,7 +575,8 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
         const double dblVal = (paramId == pan || paramId == decay_curve || paramId == shift || paramId == squash || paramId == wider) ? 0.0 : 0.5;
         item.slider.setDoubleClickReturnValue(true, dblVal);
     }
-    addAndMakeVisible(item.slider);
+    contentContainer.addAndMakeVisible(item.slider);
+    rotarySliders_.push_back(&item.slider);
 
     item.label.setText(name, juce::dontSendNotification);
     item.label.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
@@ -558,7 +584,7 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.label.setJustificationType(juce::Justification::centred);
     item.label.setBorderSize(juce::BorderSize<int>(0));
     item.label.setInterceptsMouseClicks(false, false);
-    addAndMakeVisible(item.label);
+    contentContainer.addAndMakeVisible(item.label);
 
     item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor_.getAPVTS(), paramId, item.slider);
@@ -893,6 +919,10 @@ void DigiStrikeFS2AudioProcessorEditor::timerCallback() {
 
 void DigiStrikeFS2AudioProcessorEditor::paint(juce::Graphics& g) {
     g.fillAll(juce::Colour(0xFF0D1117));
+}
+
+void DigiStrikeFS2AudioProcessorEditor::paintCanvas(juce::Graphics& g) {
+    g.fillAll(juce::Colour(0xFF0D1117));
 
     // Header Title
     g.setFont(juce::Font(juce::FontOptions(15.0f).withStyle("Bold")));
@@ -983,7 +1013,7 @@ void DigiStrikeFS2AudioProcessorEditor::paint(juce::Graphics& g) {
     g.drawVerticalLine(kPod3.getX() + 288, (float)p3y + 24.0f, (float)kPod3.getBottom() - 8.0f);
 }
 
-void DigiStrikeFS2AudioProcessorEditor::resized() {
+void DigiStrikeFS2AudioProcessorEditor::layoutControls() {
     // 1. Header Layout (Restored Preset Stub at 174)
     presetStub_.setBounds(174, 8, 145, 28);
     headerInspector_.setBounds(326, 8, 314, 28);
@@ -1111,4 +1141,75 @@ void DigiStrikeFS2AudioProcessorEditor::resized() {
         // Voice Mode Selector (Directly below amp knobs in Pod 3)
         voiceModeRocker_.setBounds(738, 510, 116, 22);
     }
+}
+
+
+void DigiStrikeFS2AudioProcessorEditor::visibilityChanged() {
+    if (isShowing()) requestRefit();
+}
+
+void DigiStrikeFS2AudioProcessorEditor::resized() {
+    const int w = getWidth();
+    const int h = getHeight();
+    if (w <= 0 || h <= 0) return;
+
+    const float s = juce::jmin(static_cast<float>(w) / static_cast<float>(kBaseWidth),
+                               static_cast<float>(h) / static_cast<float>(kBaseHeight));
+    const int ox = (w - juce::roundToInt(kBaseWidth  * s)) / 2;
+    const int oy = (h - juce::roundToInt(kBaseHeight * s)) / 2;
+
+    contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
+    contentContainer.setTransform(juce::AffineTransform::scale(s).translated(static_cast<float>(ox), static_cast<float>(oy)));
+
+    if (std::abs(s - effScale_) > 1.0e-4f) {
+        effScale_ = s;
+        const int sens = juce::roundToInt(250.0f / s);
+        for (auto* sl : rotarySliders_) {
+            if (sl != nullptr) sl->setMouseDragSensitivity(sens);
+        }
+    }
+
+    if (getPeer() != nullptr && juce::Point<int>{ w, h } != expectedSize_) {
+        commitUserScale(s);
+    }
+}
+
+void DigiStrikeFS2AudioProcessorEditor::applyEffectiveScale(float s) {
+    s = juce::jlimit(rlyeh::ui::EditorScaleManager::kMinScale, rlyeh::ui::EditorScaleManager::kMaxScale, s);
+    expectedSize_ = { juce::roundToInt(kBaseWidth * s), juce::roundToInt(kBaseHeight * s) };
+    setSize(expectedSize_.x, expectedSize_.y);
+}
+
+void DigiStrikeFS2AudioProcessorEditor::commitUserScale(float s) {
+    prefScale_ = std::round(juce::jlimit(rlyeh::ui::EditorScaleManager::kMinScale,
+                                         rlyeh::ui::EditorScaleManager::kMaxScale, s) * 100.0f) / 100.0f;
+    expectedSize_ = { getWidth(), getHeight() };
+    scaleWriter_.note("digistrike_fs2", prefScale_);
+    processor_.setStoredEditorScale(prefScale_);
+}
+
+float DigiStrikeFS2AudioProcessorEditor::fitScale() {
+    return rlyeh::ui::EditorScaleManager::getDisplayFitScale(*this, kBaseWidth, kBaseHeight);
+}
+
+void DigiStrikeFS2AudioProcessorEditor::requestRefit() {
+    if (refitPending_) return;
+    refitPending_ = true;
+    juce::Component::SafePointer<DigiStrikeFS2AudioProcessorEditor> safe(this);
+    juce::MessageManager::callAsync([safe] {
+        if (safe == nullptr) return;
+        safe->refitPending_ = false;
+
+        if (juce::ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
+            juce::Timer::callAfterDelay(150, [safe] { if (safe) safe->requestRefit(); });
+            return;
+        }
+
+        if (safe->inRefit_ || !safe->isShowing()) return;
+        const juce::ScopedValueSetter<bool> guard(safe->inRefit_, true);
+        const float target = juce::jmin(safe->prefScale_, safe->fitScale());
+        if (std::abs(target - safe->effScale_) > 0.01f) {
+            safe->applyEffectiveScale(target);
+        }
+    });
 }

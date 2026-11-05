@@ -243,13 +243,26 @@ bool DigiStrikeFS2AudioProcessor::hasEditor() const {
 void DigiStrikeFS2AudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto state = apvts_.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    const float s = storedEditorScale_.load(std::memory_order_relaxed);
+    if (s > 0.0f) {
+        xml->setAttribute("editorScale", static_cast<double>(s));
+    }
     copyXmlToBinary(*xml, destData);
 }
 
 void DigiStrikeFS2AudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState.get() != nullptr && xmlState->hasTagName(apvts_.state.getType())) {
-        apvts_.replaceState(juce::ValueTree::fromXml(*xmlState));
+    if (xmlState.get() != nullptr) {
+        if (xmlState->hasAttribute("editorScale")) {
+            const float s = static_cast<float>(xmlState->getDoubleAttribute("editorScale", 0.0));
+            if (s > 0.0f) {
+                storedEditorScale_.store(s, std::memory_order_relaxed);
+            }
+            xmlState->removeAttribute("editorScale");
+        }
+        if (xmlState->hasTagName(apvts_.state.getType())) {
+            apvts_.replaceState(juce::ValueTree::fromXml(*xmlState));
+        }
     }
 }
 
