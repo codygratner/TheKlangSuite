@@ -255,32 +255,119 @@ private:
 };
 
 // ==============================================================================
-// DigiStrikeMultiSelectBar: Sovereign Independent Lineage Multi-Select Strip (2x10 Grid)
+// DigiStrikeMultiSelectBar: Strictly Alphabetical 2x10 Grid with Hardware Livery
 // ==============================================================================
 class DigiStrikeMultiSelectBar : public juce::Component {
 public:
-    static constexpr std::array<juce::uint32, 20> kHeritageColours = {
-        0xFFFFB300, // 0: CROWN (Linn: Warm Amber LED / Walnut)
-        0xFF0088FF, // 1: APEX (Oberheim: Electric Blue Pinstripes)
-        0xFF00D2FF, // 2: EMPYR (E-mu SP: Steel Cyan / Industrial Grey)
-        0xFFE60000, // 3: FALCON (Akai MPC: Crimson Pad / Cream)
-        0xFF00D1A0, // 4: K-WRK (Kawai: 80s Synth Teal)
-        0xFFFF6B00, // 5: CMPCT (Boss: Dr. Rhythm Tangerine Orange)
-        0xFFFF8C00, // 6: TOKYO (Roland: TR-808 Acid Orange)
-        0xFFFF3B30, // 7: GOTHN (Elektron: Machinedrum Crimson Red)
-        0xFFD32F2F, // 8: CIRCU (Sequential: Prophet Dark Cherry)
-        0xFF2979FF, // 9: PHASE (Casio: Electric Cobalt Blue)
-        0xFF00E5FF, // 10: STUDI (Yamaha: DX/TX Aqua Teal)
-        0xFF00B0FF, // 11: KEIO (Korg: Sky Cyan)
-        0xFFFFD700, // 12: NIPPO (Sony: Broadcast Titanium Gold)
-        0xFF9D4EDD, // 13: ADIOS (Alesis: HR-16 Deep Violet)
-        0xFF39FF14, // 14: FAIRL (Fairlight: CMI Phosphor Green)
-        0xFFFF1744, // 15: SYNCL (Synclavier: Ruby Red LED)
-        0xFFFF7043, // 16: ENSON (Ensoniq: Vacuum Tube Orange)
-        0xFF0288D1, // 17: SIMM (Simmons: SDS Hex Blue)
-        0xFFFF5722, // 18: JOMOX (Jomox: XBase Industrial Tangerine)
-        0xFFFF007F  // 19: CURIO (Curios: Bio-Hazard Neon Pink)
+    // Static display mapping: Slot [0..19] -> Canonical Lineage ID [0..19]
+    // Row 1 (0..9):  Adios, Apex, Berlin, Circuits, Crown, Curios, Dartmouth, Empyrean, Falcon, Gothenburg
+    // Row 2 (10..19): Hamamatsu, Hexcess, Keio, K-Works, Malvern, Nippon, Osaka, Shibuya, Sydney, Tokyo
+    static constexpr std::array<int, 20> kSlotToLineage = {{
+        13, // Slot 0:  Adios       (Alesis HR-16 / SR-16)
+         1, // Slot 1:  Apex        (Oberheim DMX / DX)
+        18, // Slot 2:  Berlin      (Jomox XBase 09)
+         8, // Slot 3:  Circuits    (Sequential Drumtraks / Studio 440)
+         0, // Slot 4:  Crown       (Linn LinnDrum / LM-1)
+        19, // Slot 5:  Curios      (Circuit-Bent / Esoteric)
+        15, // Slot 6:  Dartmouth   (Synclavier II / Direct-to-Disk)
+         2, // Slot 7:  Empyrean    (E-mu SP-1200 / Drumulator)
+         3, // Slot 8:  Falcon      (Akai MPC60 / XR10)
+         7, // Slot 9:  Gothenburg  (Elektron Machinedrum / Digitakt)
+        10, // Slot 10: Hamamatsu   (Yamaha RX5 / TX16W)
+        17, // Slot 11: Hexcess     (Simmons SDS-V / SDS7)
+        11, // Slot 12: Keio        (Korg DDD-1 / Electribe)
+         4, // Slot 13: K-Works     (Kawai R-50 / XD-5)
+        16, // Slot 14: Malvern     (Ensoniq Mirage / ASR-10)
+        12, // Slot 15: Nippon      (Sony Broadcast PCM)
+         5, // Slot 16: Osaka       (Boss Dr. Rhythm DR-110 / DR-660)
+         9, // Slot 17: Shibuya     (Casio RZ-1 / CZ / SK-1)
+        14, // Slot 18: Sydney      (Fairlight CMI Series IIx)
+         6  // Slot 19: Tokyo       (Roland TR-808 / TR-909)
+    }};
+
+    static constexpr std::array<int, 20> kLineageToSlot = {{
+         4, // Lineage 0  (Crown)     -> Slot 4
+         1, // Lineage 1  (Apex)      -> Slot 1
+         7, // Lineage 2  (Empyrean)  -> Slot 7
+         8, // Lineage 3  (Falcon)    -> Slot 8
+        13, // Lineage 4  (K-Works)   -> Slot 13
+        16, // Lineage 5  (Osaka)     -> Slot 16
+        19, // Lineage 6  (Tokyo)     -> Slot 19
+         9, // Lineage 7  (Gothenburg)-> Slot 9
+         3, // Lineage 8  (Circuits)  -> Slot 3
+        17, // Lineage 9  (Shibuya)   -> Slot 17
+        10, // Lineage 10 (Hamamatsu) -> Slot 10
+        12, // Lineage 11 (Keio)      -> Slot 12
+        15, // Lineage 12 (Nippon)    -> Slot 15
+         0, // Lineage 13 (Adios)     -> Slot 0
+        18, // Lineage 14 (Sydney)    -> Slot 18
+         6, // Lineage 15 (Dartmouth) -> Slot 6
+        14, // Lineage 16 (Malvern)   -> Slot 14
+        11, // Lineage 17 (Hexcess)   -> Slot 11
+         2, // Lineage 18 (Berlin)    -> Slot 2
+         5  // Lineage 19 (Curios)    -> Slot 5
+    }};
+
+    static constexpr int lineageAt(int slot) noexcept {
+        return (slot >= 0 && slot < 20) ? kSlotToLineage[static_cast<size_t>(slot)] : 0;
+    }
+
+    static constexpr int slotOf(int lineage) noexcept {
+        return (lineage >= 0 && lineage < 20) ? kLineageToSlot[static_cast<size_t>(lineage)] : 0;
+    }
+
+    struct BrandTheme {
+        juce::uint32 bgActive;       // Rich hardware chassis when ON
+        juce::uint32 borderActive;   // High-luminance perimeter glow
+        juce::uint32 textActive;     // High-contrast text
+        juce::uint32 bgInactive;     // Deep obsidian with subtle 8% brand tint
+        juce::uint32 borderInactive; // Subtle tinted bezel
+        juce::uint32 textInactive;   // Legible muted text (>= 4.5:1 against bgInactive)
+        juce::uint32 pinstripe;      // Signature brand heritage color
     };
+
+    static constexpr std::array<BrandTheme, 20> kBrandThemes = {{
+        // 0: Crown (Linn: Warm Walnut / Amber LED)
+        { 0xFF5C3A16, 0xFFFFB300, 0xFFFFF6E6, 0xFF1C1713, 0xFF3D2E20, 0xFFC9B095, 0xFFFFB300 },
+        // 1: Apex (Oberheim: Royal Navy / Electric Blue)
+        { 0xFF0D3266, 0xFF0088FF, 0xFFFFFFFF, 0xFF121722, 0xFF1E3554, 0xFF8EB5E0, 0xFF0088FF },
+        // 2: Empyrean (E-mu: Battleship Slate / Cyan)
+        { 0xFF1F3D52, 0xFF00D2FF, 0xFF00F5FF, 0xFF131B22, 0xFF203B4D, 0xFF82B0C7, 0xFF00D2FF },
+        // 3: Falcon (Akai: MPC60 Vintage Cream Chassis / Bold Crimson Text)
+        { 0xFFEDE8DC, 0xFFE60000, 0xFFB80000, 0xFF201A18, 0xFF4A3532, 0xFFC7BFAF, 0xFFE60000 },
+        // 4: K-Works (Kawai: 80s Synth Dark Teal / Mint)
+        { 0xFF0C4238, 0xFF00FFC4, 0xFFE0FFF8, 0xFF121E1C, 0xFF1C423A, 0xFF85BDB0, 0xFF00D1A0 },
+        // 5: Osaka (Boss: Tangerine Orange / Dark Charcoal)
+        { 0xFFD65500, 0xFFFF8533, 0xFF0D1117, 0xFF201712, 0xFF4D2F1E, 0xFFC79E85, 0xFFFF6B00 },
+        // 6: Tokyo (Roland: TR-808 Acid Orange / Charcoal)
+        { 0xFF8C3E00, 0xFFFFA033, 0xFFFFFFFF, 0xFF201611, 0xFF4D2B1A, 0xFFC7A189, 0xFFFF8C00 },
+        // 7: Gothenburg (Elektron: Dark Anodized Graphite / Crimson LED)
+        { 0xFF3D1F24, 0xFFFF3B30, 0xFFF5F5F7, 0xFF1C1517, 0xFF3D2328, 0xFFA89CA0, 0xFFFF3B30 },
+        // 8: Circuits (Sequential: Dark Cherry Walnut / Prophet Red)
+        { 0xFF5E1720, 0xFFFF3B4B, 0xFFFFF2E6, 0xFF1F1315, 0xFF452026, 0xFFC49FA5, 0xFFD32F2F },
+        // 9: Shibuya (Casio: Deep Electric Cobalt / Sky)
+        { 0xFF14387D, 0xFF4D94FF, 0xFFFFFFFF, 0xFF131724, 0xFF203659, 0xFF8CAADB, 0xFF2979FF },
+        // 10: Hamamatsu (Yamaha: DX/TX Aqua Teal / Olive)
+        { 0xFF0D4045, 0xFF00F0FF, 0xFFE0FFFF, 0xFF121D1F, 0xFF1E3F45, 0xFF85B5BA, 0xFF00E5FF },
+        // 11: Keio (Korg: Deep Indigo / Sky Cyan)
+        { 0xFF0D3254, 0xFF33C2FF, 0xFFFFFFFF, 0xFF121A22, 0xFF1C3A52, 0xFF85B0D1, 0xFF00B0FF },
+        // 12: Nippon (Sony: Titanium Champagne Gold)
+        { 0xFF574614, 0xFFFFDF33, 0xFFFFFDF0, 0xFF1D1A12, 0xFF42391E, 0xFFC2B693, 0xFFFFD700 },
+        // 13: Adios (Alesis: HR-16 Deep Violet / Neon)
+        { 0xFF4A155E, 0xFFB866FF, 0xFFFFFFFF, 0xFF181220, 0xFF3A204D, 0xFFB099D1, 0xFF9D4EDD },
+        // 14: Sydney (Fairlight: P31 CRT Screen Green)
+        { 0xFF0A3314, 0xFF39FF14, 0xFF39FF14, 0xFF111C13, 0xFF1C3D22, 0xFF7FB888, 0xFF39FF14 },
+        // 15: Dartmouth (Synclavier: Military Dark Ruby / 7-Segment Red)
+        { 0xFF5C0F1A, 0xFFFF2E4C, 0xFFFFFFFF, 0xFF1F1214, 0xFF451921, 0xFFC29198, 0xFFFF1744 },
+        // 16: Malvern (Ensoniq: VFD Vacuum Tube Coral Orange)
+        { 0xFF7A3314, 0xFFFF8559, 0xFFFFFFFF, 0xFF201512, 0xFF4A2A1E, 0xFFC49F91, 0xFFFF7043 },
+        // 17: Hexcess (Simmons: SDS-V Hex Pad Blue)
+        { 0xFF03669C, 0xFF1EB4FF, 0xFFFFFFFF, 0xFF111922, 0xFF163E59, 0xFF82B3D6, 0xFF0288D1 },
+        // 18: Berlin (Jomox: Industrial Techno Tangerine)
+        { 0xFF8A290A, 0xFFFF6E3D, 0xFFFFFFFF, 0xFF201511, 0xFF4D281C, 0xFFC2998C, 0xFFFF5722 },
+        // 19: Curios (Circuit-Bent: Glitch Neon Hot Pink)
+        { 0xFFB8005C, 0xFFFF2E94, 0xFFFFFFFF, 0xFF20111A, 0xFF4D1B36, 0xFFC28CAE, 0xFFFF007F }
+    }};
 
     DigiStrikeMultiSelectBar(const std::vector<juce::String>& labels) : labels_(labels) {}
 
@@ -365,16 +452,7 @@ public:
         const int totalButtons = static_cast<int>(labels_.size());
         if (totalButtons <= 0) return;
 
-        
-
-        // Count active lineages (all 20 lineages allowed simultaneously)
-        int activeLineageCount = 0;
-        for (int i = 0; i < totalButtons; ++i) {
-            if ((mask_ & (1u << i)) != 0) ++activeLineageCount;
-        }
-        const bool isBudgetFull = false;
-
-        // Render 2x10 Grid (80x22px buttons, 4px gaps)
+        // Render strictly alphabetical 2x10 Grid (80x22px buttons, 4px gaps)
         const int cols = 10;
         const int rows = 2;
         const float gapX = 4.0f;
@@ -382,71 +460,60 @@ public:
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
-        for (int i = 0; i < totalButtons; ++i) {
-            const int r = i / cols;
-            const int c = i % cols;
+        for (int slot = 0; slot < totalButtons; ++slot) {
+            const int r = slot / cols;
+            const int c = slot % cols;
             const auto btnRect = juce::Rectangle<float>(
                 bounds.getX() + static_cast<float>(c) * (btnW + gapX),
                 bounds.getY() + static_cast<float>(r) * (btnH + gapY),
                 btnW, btnH);
 
-            const bool isOn = (mask_ & (1u << i)) != 0;
-            const bool isGreyedOut = !isOn && isBudgetFull;
-            const auto heritageCol = juce::Colour(kHeritageColours[static_cast<size_t>(i % 20)]);
+            const int lin = (slot < 20) ? kSlotToLineage[static_cast<size_t>(slot)] : slot;
+            const bool isOn = (mask_ & (1u << lin)) != 0;
+            const auto& theme = kBrandThemes[static_cast<size_t>(lin % 20)];
+            const auto heritageCol = juce::Colour(theme.pinstripe);
 
             if (isOn) {
-                // Active button pill
-                g.setColour(accentColour_);
+                // Active button: Authentic brand chassis
+                g.setColour(juce::Colour(theme.bgActive));
                 g.fillRoundedRectangle(btnRect, 3.0f);
 
+                // Perimeter brand glow border (1.2px)
+                g.setColour(juce::Colour(theme.borderActive));
+                g.drawRoundedRectangle(btnRect.reduced(0.5f), 3.0f, 1.2f);
+
                 // Authentic Heritage Pinstripe across top (full brilliance)
-                auto stripe = btnRect.reduced(1.0f, 0.0f).removeFromTop(2.5f);
+                auto stripe = btnRect.reduced(1.5f, 0.0f).removeFromTop(2.5f);
                 g.setColour(heritageCol);
                 g.fillRoundedRectangle(stripe, 1.25f);
 
-                // Morph DNA Halo highlight
-                if (i == morphLin0_ || i == morphLin1_) {
-                    float w = (i == morphLin0_) ? morphWeight0_ : morphWeight1_;
-                    auto haloBar = btnRect.reduced(2.0f, 1.0f).removeFromTop(3.0f);
+                // Morph DNA Halo highlight at bottom edge
+                if (lin == morphLin0_ || lin == morphLin1_) {
+                    float w = (lin == morphLin0_) ? morphWeight0_ : morphWeight1_;
+                    auto haloBar = btnRect.reduced(3.0f, 0.0f).removeFromBottom(2.5f);
                     g.setColour(juce::Colour(0xFF00FF88).withAlpha(0.6f + 0.4f * w));
-                    g.fillRoundedRectangle(haloBar, 1.5f);
-
-                    g.setColour(juce::Colour(0xFFFFFFFF).withAlpha(0.4f * w));
-                    g.drawRoundedRectangle(btnRect.reduced(0.5f), 3.0f, 1.0f);
+                    g.fillRoundedRectangle(haloBar, 1.25f);
                 }
 
+                auto textRect = btnRect.withTrimmedTop(3.0f).withTrimmedBottom(1.0f).reduced(2.0f, 0.0f);
                 g.setFont(juce::Font(juce::FontOptions(9.5f).withStyle("Bold")));
-                g.setColour(juce::Colour(0xFF0D1117));
-                g.drawText(labels_[static_cast<size_t>(i)], btnRect.withTrimmedTop(1.5f), juce::Justification::centred);
-            } else if (isGreyedOut) {
-                // Greyed out / Budget locked button
-                g.setColour(juce::Colour(0xFF0F1218));
-                g.fillRoundedRectangle(btnRect, 3.0f);
-                g.setColour(juce::Colour(0xFF1F2633));
-                g.drawRoundedRectangle(btnRect.reduced(0.5f), 3.0f, 0.8f);
-
-                // Heritage Pinstripe dimmed to 20% alpha
-                auto stripe = btnRect.reduced(2.0f, 0.0f).removeFromTop(2.0f);
-                g.setColour(heritageCol.withAlpha(0.20f));
-                g.fillRoundedRectangle(stripe, 1.0f);
-
-                g.setFont(juce::Font(juce::FontOptions(9.5f)));
-                g.setColour(juce::Colour(0xFF484F58));
-                g.drawText(labels_[static_cast<size_t>(i)], btnRect.withTrimmedTop(1.0f), juce::Justification::centred);
+                g.setColour(juce::Colour(theme.textActive));
+                g.drawFittedText(labels_[static_cast<size_t>(lin)], textRect.toNearestInt(), juce::Justification::centred, 1, 0.80f);
             } else {
-                // Normal inactive button: Dark obsidian body with 70% heritage pinstripe
-                g.setColour(juce::Colour(0xFF161B22));
+                // Normal inactive button: Dark obsidian body with 8% brand undertone
+                g.setColour(juce::Colour(theme.bgInactive));
                 g.fillRoundedRectangle(btnRect, 3.0f);
-                g.setColour(juce::Colour(0xFF30363D));
+                g.setColour(juce::Colour(theme.borderInactive));
                 g.drawRoundedRectangle(btnRect.reduced(0.5f), 3.0f, 0.8f);
 
                 auto stripe = btnRect.reduced(2.0f, 0.0f).removeFromTop(2.5f);
                 g.setColour(heritageCol.withAlpha(0.70f));
                 g.fillRoundedRectangle(stripe, 1.25f);
 
+                auto textRect = btnRect.withTrimmedTop(3.0f).withTrimmedBottom(1.0f).reduced(2.0f, 0.0f);
                 g.setFont(juce::Font(juce::FontOptions(9.5f).withStyle("Bold")));
-                g.setColour(juce::Colour(0xFF8B949E));
-                g.drawText(labels_[static_cast<size_t>(i)], btnRect.withTrimmedTop(1.5f), juce::Justification::centred);
+                g.setColour(juce::Colour(theme.textInactive));
+                g.drawFittedText(labels_[static_cast<size_t>(lin)], textRect.toNearestInt(), juce::Justification::centred, 1, 0.80f);
             }
         }
     }
@@ -463,20 +530,21 @@ public:
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
-        int clickedIdx = -1;
-        for (int i = 0; i < totalButtons; ++i) {
-            const int r = i / cols;
-            const int c = i % cols;
+        int clickedSlot = -1;
+        for (int slot = 0; slot < totalButtons; ++slot) {
+            const int r = slot / cols;
+            const int c = slot % cols;
             const auto btnRect = juce::Rectangle<float>(
                 bounds.getX() + static_cast<float>(c) * (btnW + gapX),
                 bounds.getY() + static_cast<float>(r) * (btnH + gapY),
                 btnW, btnH);
             if (btnRect.contains(e.position)) {
-                clickedIdx = i;
+                clickedSlot = slot;
                 break;
             }
         }
-        if (clickedIdx < 0 || clickedIdx >= totalButtons) return;
+        if (clickedSlot < 0 || clickedSlot >= totalButtons) return;
+        const int clickedLin = (clickedSlot < 20) ? kSlotToLineage[static_cast<size_t>(clickedSlot)] : clickedSlot;
 
         int activeLineageCount = 0;
         for (int i = 0; i < totalButtons; ++i) {
@@ -484,26 +552,26 @@ public:
         }
 
         if (e.getNumberOfClicks() >= 2) {
-            // Double-Click: Reset to default Fairlight
+            // Double-Click: Reset all lineages active
             mask_ = 0xFFFFFu;
         } else if (e.mods.isPopupMenu() || e.mods.isAltDown()) {
-            // Solo clicked lineage (or reset to Fairlight if already soloed)
-            uint32_t soloMask = (1u << clickedIdx);
+            // Solo clicked lineage (or reset to all if already soloed)
+            uint32_t soloMask = (1u << clickedLin);
             if (mask_ == soloMask) {
-                mask_ = 0xFFFFFu; // Back to Fairlight
+                mask_ = 0xFFFFFu;
             } else {
                 mask_ = soloMask;
             }
         } else {
             // Standard click toggle: minimum-1 lineage invariant
-            bool wasOn = (mask_ & (1u << clickedIdx)) != 0;
+            bool wasOn = (mask_ & (1u << clickedLin)) != 0;
             if (wasOn) {
                 if (activeLineageCount > 1) {
-                    mask_ &= ~(1u << clickedIdx);
+                    mask_ &= ~(1u << clickedLin);
                 }
             } else {
                 if (activeLineageCount < 20) {
-                    mask_ |= (1u << clickedIdx);
+                    mask_ |= (1u << clickedLin);
                 }
             }
         }
@@ -523,21 +591,21 @@ public:
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
-        int foundIdx = -1;
-        for (int i = 0; i < totalButtons; ++i) {
-            const int r = i / cols;
-            const int c = i % cols;
+        int foundLin = -1;
+        for (int slot = 0; slot < totalButtons; ++slot) {
+            const int r = slot / cols;
+            const int c = slot % cols;
             const auto btnRect = juce::Rectangle<float>(
                 bounds.getX() + static_cast<float>(c) * (btnW + gapX),
                 bounds.getY() + static_cast<float>(r) * (btnH + gapY),
                 btnW, btnH);
             if (btnRect.contains(e.position)) {
-                foundIdx = i;
+                foundLin = (slot < 20) ? kSlotToLineage[static_cast<size_t>(slot)] : slot;
                 break;
             }
         }
-        if (foundIdx != hoveredIdx_) {
-            hoveredIdx_ = foundIdx;
+        if (foundLin != hoveredIdx_) {
+            hoveredIdx_ = foundLin;
             if (onHover) onHover(hoveredIdx_);
         }
     }
@@ -560,7 +628,6 @@ private:
     float morphWeight1_{0.0f};
     int hoveredIdx_{-1};
 };
-
 // ==============================================================================
 // TactileTriggerPad: Center Altar Drum Trigger with Tactile Gold Flash
 // ==============================================================================
@@ -1114,8 +1181,8 @@ private:
     // Bottom Tactile Matrix (Lower Bay)
     DigiStrikeSegmentedBar categoryGrid_{{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST", "BS"}};
     DigiStrikeMultiSelectBar lineageGrid_{{
-        "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Compact", "Tokyo", "Gothenburg", "Circuits", "Phase",
-        "Studio", "Keio", "Nippon", "Adios", "Fairlight", "Synclavier", "Ensoniq", "Simmons", "Jomox", "Curios"
+        "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Osaka", "Tokyo", "Gothenburg", "Circuits", "Shibuya",
+        "Hamamatsu", "Keio", "Nippon", "Adios", "Sydney", "Dartmouth", "Malvern", "Hexcess", "Berlin", "Curios"
     }};
 
     // Card 3 Pod 1: Stepped Random (Bottom-Left, 8)

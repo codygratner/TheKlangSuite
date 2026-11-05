@@ -18,8 +18,8 @@
 namespace DigiStrikeFS2Fleet {
 
 inline constexpr std::array<const char*, 20> kLineageNames = {{
-    "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Compact", "Tokyo", "Gothenburg", "Circuits", "Phase",
-    "Studio", "Keio", "Nippon", "Adios", "Fairlight", "Synclavier", "Ensoniq", "Simmons", "Jomox", "Curios"
+    "Crown", "Apex", "Empyrean", "Falcon", "K-Works", "Osaka", "Tokyo", "Gothenburg", "Circuits", "Shibuya",
+    "Hamamatsu", "Keio", "Nippon", "Adios", "Sydney", "Dartmouth", "Malvern", "Hexcess", "Berlin", "Curios"
 }};
 
 inline uint32_t sanitizeMask(uint32_t mask) noexcept {
