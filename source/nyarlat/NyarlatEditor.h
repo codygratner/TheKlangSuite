@@ -196,7 +196,6 @@ public:
         namespace Ids = nyarlatParameters::Ids;
         float waveVal = 0.0f;
         int maskVal = 24;
-        int startVal = 0;
         float speedVal = 0.0f;
         int loopVal = 1;
         uint32_t bankVal = 0;
@@ -205,21 +204,18 @@ public:
             bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_bank));
             waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc1_wave);
             maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_mask));
-            startVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_start));
             speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc1_speed);
             loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_loop));
         } else if (oscIndex_ == 1) {
             bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_bank));
             waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc2_wave);
             maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_mask));
-            startVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_start));
             speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc2_speed);
             loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_loop));
         } else {
             bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_bank));
             waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc3_wave);
             maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_mask));
-            startVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_start));
             speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc3_speed);
             loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_loop));
         }
@@ -229,7 +225,7 @@ public:
 
         const uint32_t mask9 = static_cast<uint32_t>(juce::jlimit(0, 511, maskVal) * 16 + 15) & 0x1FFu;
         const bool maskIdentity = (mask9 == 0x1FFu);
-        uint32_t statorOff = static_cast<uint32_t>((startVal + 512) & 0x1FF);
+        uint32_t statorOff = 0;
 
         bool activeVoiceFound = false;
         auto tele = proc_.getVoiceTelemetry();
@@ -247,7 +243,7 @@ public:
             if (previewPhase_ >= 1.0f) previewPhase_ -= std::floor(previewPhase_);
             uint32_t p = static_cast<uint32_t>(previewPhase_ * 512.0f) & 0x1FFu;
             uint32_t sweep = (effLoop == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
-            statorOff = (sweep + static_cast<uint32_t>(startVal + 512)) & 0x1FFu;
+            statorOff = sweep & 0x1FFu;
         }
 
         auto S = [](float x) noexcept {

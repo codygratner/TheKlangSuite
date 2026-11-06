@@ -139,11 +139,6 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         *apvts_.getRawParameterValue(Ids::osc2_sync) > 0.5f,
         *apvts_.getRawParameterValue(Ids::osc3_sync) > 0.5f
     };
-    int oscStarts[3] = {
-        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc1_start)),
-        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc2_start)),
-        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc3_start))
-    };
     float oscSpeeds[3] = {
         *apvts_.getRawParameterValue(Ids::osc1_speed),
         *apvts_.getRawParameterValue(Ids::osc2_speed),
@@ -168,15 +163,15 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     float chaosPoly = *apvts_.getRawParameterValue(Ids::chaos_poly_spread);
 
     float randAttenuverters[15] = {
+        *apvts_.getRawParameterValue(Ids::rand_o1_wave),
         *apvts_.getRawParameterValue(Ids::rand_o1_mask),
         *apvts_.getRawParameterValue(Ids::rand_o1_speed),
-        *apvts_.getRawParameterValue(Ids::rand_o1_pitch),
+        *apvts_.getRawParameterValue(Ids::rand_o2_wave),
         *apvts_.getRawParameterValue(Ids::rand_o2_mask),
         *apvts_.getRawParameterValue(Ids::rand_o2_speed),
-        *apvts_.getRawParameterValue(Ids::rand_o2_pitch),
+        *apvts_.getRawParameterValue(Ids::rand_o3_wave),
         *apvts_.getRawParameterValue(Ids::rand_o3_mask),
         *apvts_.getRawParameterValue(Ids::rand_o3_speed),
-        *apvts_.getRawParameterValue(Ids::rand_o3_pitch),
         *apvts_.getRawParameterValue(Ids::rand_z_freq),
         *apvts_.getRawParameterValue(Ids::rand_z_morph),
         *apvts_.getRawParameterValue(Ids::rand_z_transform),
@@ -220,8 +215,8 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
         voices_[v].getAmpEnv().setADSR(ampA, ampD, ampS, ampR, sr, noteScale);
         voices_[v].getFilterEnv().setADSR(filtA, filtD, filtS, filtR, sr, noteScale);
-        voices_[v].updateWavetables(uBanks, oscWaves);
         voices_[v].advanceChaos(chaosRate, chaosDrift, numSamples / sr);
+        voices_[v].updateWavetables(uBanks, oscWaves, randAttenuverters);
     }
 
     buffer.clear();
@@ -237,7 +232,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
             voices_[v].processSample(
                 vL, vR,
                 oscBanks, oscWaves, oscMasks, oscDetunes, oscOctaves, oscOctLocks, oscSyncs,
-                oscStarts, oscSpeeds, oscLoops,
+                oscSpeeds, oscLoops,
                 osc1Lvl, osc2Lvl, osc3Lvl, noiseLvl, noiseTone, oscSpread, mixerSeethe,
                 chaosRate, chaosDrift, chaosPoly, randAttenuverters,
                 zModel, zFreq, zMorph, zTransform, fEnvDepth, fVel,

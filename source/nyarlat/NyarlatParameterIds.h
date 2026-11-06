@@ -10,7 +10,6 @@ namespace Ids {
     constexpr auto osc1_bank = "osc1_bank";
     constexpr auto osc1_wave = "osc1_wave";
     constexpr auto osc1_mask = "osc1_mask";
-    constexpr auto osc1_start = "osc1_start";
     constexpr auto osc1_speed = "osc1_speed";
     constexpr auto osc1_loop = "osc1_loop";
     constexpr auto osc1_octave = "osc1_octave";
@@ -19,7 +18,6 @@ namespace Ids {
     constexpr auto osc2_bank = "osc2_bank";
     constexpr auto osc2_wave = "osc2_wave";
     constexpr auto osc2_mask = "osc2_mask";
-    constexpr auto osc2_start = "osc2_start";
     constexpr auto osc2_speed = "osc2_speed";
     constexpr auto osc2_loop = "osc2_loop";
     constexpr auto osc2_octave = "osc2_octave";
@@ -29,7 +27,6 @@ namespace Ids {
     constexpr auto osc3_bank = "osc3_bank";
     constexpr auto osc3_wave = "osc3_wave";
     constexpr auto osc3_mask = "osc3_mask";
-    constexpr auto osc3_start = "osc3_start";
     constexpr auto osc3_speed = "osc3_speed";
     constexpr auto osc3_loop = "osc3_loop";
     constexpr auto osc3_octave = "osc3_octave";
@@ -46,15 +43,15 @@ namespace Ids {
     constexpr auto chaos_rate = "chaos_rate";
     constexpr auto chaos_drift = "chaos_drift";
     constexpr auto chaos_poly_spread = "chaos_poly_spread";
+    constexpr auto rand_o1_wave = "rand_o1_wave";
     constexpr auto rand_o1_mask = "rand_o1_mask";
     constexpr auto rand_o1_speed = "rand_o1_speed";
-    constexpr auto rand_o1_pitch = "rand_o1_pitch";
+    constexpr auto rand_o2_wave = "rand_o2_wave";
     constexpr auto rand_o2_mask = "rand_o2_mask";
     constexpr auto rand_o2_speed = "rand_o2_speed";
-    constexpr auto rand_o2_pitch = "rand_o2_pitch";
+    constexpr auto rand_o3_wave = "rand_o3_wave";
     constexpr auto rand_o3_mask = "rand_o3_mask";
     constexpr auto rand_o3_speed = "rand_o3_speed";
-    constexpr auto rand_o3_pitch = "rand_o3_pitch";
     constexpr auto rand_z_freq = "rand_z_freq";
     constexpr auto rand_z_morph = "rand_z_morph";
     constexpr auto rand_z_transform = "rand_z_transform";
@@ -103,7 +100,6 @@ namespace Names {
     constexpr auto osc1_bank = "Osc 1 Bank";
     constexpr auto osc1_wave = "Osc 1 Wave Morph";
     constexpr auto osc1_mask = "Osc 1 Mask";
-    constexpr auto osc1_start = "Osc 1 Mask Start";
     constexpr auto osc1_speed = "Osc 1 Mask Speed";
     constexpr auto osc1_loop = "Osc 1 Mask Loop";
     constexpr auto osc1_octave = "Osc 1 Octave";
@@ -112,7 +108,6 @@ namespace Names {
     constexpr auto osc2_bank = "Osc 2 Bank";
     constexpr auto osc2_wave = "Osc 2 Wave Morph";
     constexpr auto osc2_mask = "Osc 2 Mask";
-    constexpr auto osc2_start = "Osc 2 Mask Start";
     constexpr auto osc2_speed = "Osc 2 Mask Speed";
     constexpr auto osc2_loop = "Osc 2 Mask Loop";
     constexpr auto osc2_octave = "Osc 2 Octave";
@@ -122,7 +117,6 @@ namespace Names {
     constexpr auto osc3_bank = "Osc 3 Bank";
     constexpr auto osc3_wave = "Osc 3 Wave Morph";
     constexpr auto osc3_mask = "Osc 3 Mask";
-    constexpr auto osc3_start = "Osc 3 Mask Start";
     constexpr auto osc3_speed = "Osc 3 Mask Speed";
     constexpr auto osc3_loop = "Osc 3 Mask Loop";
     constexpr auto osc3_octave = "Osc 3 Octave";
@@ -139,15 +133,15 @@ namespace Names {
     constexpr auto chaos_rate = "Chaos Rate";
     constexpr auto chaos_drift = "Chaos Drift";
     constexpr auto chaos_poly_spread = "Poly Chaos Spread";
+    constexpr auto rand_o1_wave = "RDM O1 Wave";
     constexpr auto rand_o1_mask = "RDM O1 Mask";
     constexpr auto rand_o1_speed = "RDM O1 Speed";
-    constexpr auto rand_o1_pitch = "RDM O1 Pitch";
+    constexpr auto rand_o2_wave = "RDM O2 Wave";
     constexpr auto rand_o2_mask = "RDM O2 Mask";
     constexpr auto rand_o2_speed = "RDM O2 Speed";
-    constexpr auto rand_o2_pitch = "RDM O2 Pitch";
+    constexpr auto rand_o3_wave = "RDM O3 Wave";
     constexpr auto rand_o3_mask = "RDM O3 Mask";
     constexpr auto rand_o3_speed = "RDM O3 Speed";
-    constexpr auto rand_o3_pitch = "RDM O3 Pitch";
     constexpr auto rand_z_freq = "RDM Z-Freq";
     constexpr auto rand_z_morph = "RDM Z-Morph";
     constexpr auto rand_z_transform = "RDM Z-Transform";
@@ -193,6 +187,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 90;
+    constexpr int count = 87;
 } // namespace Total
 } // namespace nyarlatParameters

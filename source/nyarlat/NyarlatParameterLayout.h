@@ -85,13 +85,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID{nyarlatParameters::Ids::osc1_mask, 1}, nyarlatParameters::Names::osc1_mask, 0, 511, 31));
 
-    // osc1_start [dco]
-    layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_start, 1}, nyarlatParameters::Names::osc1_start, -255, 255, 0));
-
     // osc1_speed [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_speed, 1}, nyarlatParameters::Names::osc1_speed, 0.0000f, 50.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc1_speed, 1}, nyarlatParameters::Names::osc1_speed,
+        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
 
     // osc1_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -125,13 +122,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID{nyarlatParameters::Ids::osc2_mask, 1}, nyarlatParameters::Names::osc2_mask, 0, 511, 31));
 
-    // osc2_start [dco]
-    layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_start, 1}, nyarlatParameters::Names::osc2_start, -255, 255, 0));
-
     // osc2_speed [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_speed, 1}, nyarlatParameters::Names::osc2_speed, 0.0000f, 50.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc2_speed, 1}, nyarlatParameters::Names::osc2_speed,
+        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
 
     // osc2_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -170,13 +164,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID{nyarlatParameters::Ids::osc3_mask, 1}, nyarlatParameters::Names::osc3_mask, 0, 511, 31));
 
-    // osc3_start [dco]
-    layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_start, 1}, nyarlatParameters::Names::osc3_start, -255, 255, 0));
-
     // osc3_speed [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_speed, 1}, nyarlatParameters::Names::osc3_speed, 0.0000f, 50.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc3_speed, 1}, nyarlatParameters::Names::osc3_speed,
+        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
 
     // osc3_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -243,6 +234,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::chaos_poly_spread, 1}, nyarlatParameters::Names::chaos_poly_spread, 0.0000f, 1.0000f, 0.5000f));
 
+    // rand_o1_wave [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o1_wave, 1}, nyarlatParameters::Names::rand_o1_wave, 0.0000f, 1.0000f, 0.0000f));
+
     // rand_o1_mask [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::rand_o1_mask, 1}, nyarlatParameters::Names::rand_o1_mask, 0.0000f, 1.0000f, 0.0000f));
@@ -251,9 +246,9 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::rand_o1_speed, 1}, nyarlatParameters::Names::rand_o1_speed, 0.0000f, 1.0000f, 0.0000f));
 
-    // rand_o1_pitch [random]
+    // rand_o2_wave [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o1_pitch, 1}, nyarlatParameters::Names::rand_o1_pitch, 0.0000f, 1.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::rand_o2_wave, 1}, nyarlatParameters::Names::rand_o2_wave, 0.0000f, 1.0000f, 0.0000f));
 
     // rand_o2_mask [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -263,9 +258,9 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::rand_o2_speed, 1}, nyarlatParameters::Names::rand_o2_speed, 0.0000f, 1.0000f, 0.0000f));
 
-    // rand_o2_pitch [random]
+    // rand_o3_wave [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o2_pitch, 1}, nyarlatParameters::Names::rand_o2_pitch, 0.0000f, 1.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::rand_o3_wave, 1}, nyarlatParameters::Names::rand_o3_wave, 0.0000f, 1.0000f, 0.0000f));
 
     // rand_o3_mask [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -274,10 +269,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // rand_o3_speed [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::rand_o3_speed, 1}, nyarlatParameters::Names::rand_o3_speed, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o3_pitch [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o3_pitch, 1}, nyarlatParameters::Names::rand_o3_pitch, 0.0000f, 1.0000f, 0.0000f));
 
     // rand_z_freq [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

@@ -6609,13 +6609,13 @@ int main() {
             osc.prepare(44100.0);
 
             // With speed = 0 and loopMode = 0: stator offset stays at base
-            osc.processSample(440.0f, 24, 0, 0.0f, 0, false);
+            osc.processSample(440.0f, 24, 0.0f, 0, false);
             uint32_t off0 = osc.getStatorOffset();
 
             // Run 1000 samples with speed = 5.0f and loopMode = 0 (Off)
             // Stator accumulator MUST advance because speed > 0 auto-promotes to active sweep
             for (int i = 0; i < 1000; ++i) {
-                osc.processSample(440.0f, 24, 0, 5.0f, 0, false);
+                osc.processSample(440.0f, 24, 5.0f, 0, false);
             }
             uint32_t off1 = osc.getStatorOffset();
             assert(off1 != off0);
@@ -6627,10 +6627,10 @@ int main() {
             Nyarlat::BitmaskOscillator osc;
             osc.prepare(44100.0);
 
-            // Torture sweep across 10,000 samples at max speed 50 Hz in Saw and Ping-Pong
+            // Torture sweep across 10,000 samples at max speed 10 Hz in Saw and Ping-Pong
             for (int loop = 0; loop <= 2; ++loop) {
                 for (int i = 0; i < 5000; ++i) {
-                    float s = osc.processSample(220.0f, 24, 50, 50.0f, loop, false);
+                    float s = osc.processSample(220.0f, 24, 10.0f, loop, false);
                     assert(std::isfinite(s));
                     assert(osc.getStatorOffset() < 512u);
                 }
@@ -6650,13 +6650,13 @@ int main() {
             int syncCount = 0;
             for (int i = 0; i < 1000; ++i) {
                 uint32_t prevP = oscMaster.getPhase() & 0x00FFFFFFu;
-                oscMaster.processSample(441.0f, 24, 0, 0.0f, 0, false);
+                oscMaster.processSample(441.0f, 24, 0.0f, 0, false);
                 bool syncTrigger = ((oscMaster.getPhase() & 0x00FFFFFFu) < prevP);
                 if (syncTrigger) {
                     ++syncCount;
-                    oscSlave.processSample(882.0f, 24, 0, 0.0f, 0, false, true);
+                    oscSlave.processSample(882.0f, 24, 0.0f, 0, false, true);
                 } else {
-                    oscSlave.processSample(882.0f, 24, 0, 0.0f, 0, false, false);
+                    oscSlave.processSample(882.0f, 24, 0.0f, 0, false, false);
                 }
             }
             // In 1000 samples at 441 Hz, there should be 10 full waveform periods (sync triggers)
@@ -6669,38 +6669,37 @@ int main() {
             Nyarlat::BitmaskOscillator osc;
             osc.prepare(48000.0);
             for (int i = 0; i < 5000; ++i) {
-                float sp = (i % 2 == 0) ? 0.0f : 50.0f;
+                float sp = (i % 2 == 0) ? 0.0f : 10.0f;
                 int mask = (i * 7) % 512;
-                int start = (i * 13) % 511 - 255;
-                float out = osc.processSample(100.0f + (i % 500), mask, start, sp, (i % 3), (i % 2 == 0));
+                float out = osc.processSample(100.0f + (i % 500), mask, sp, (i % 3), (i % 2 == 0));
                 assert(std::isfinite(out));
                 assert(std::abs(out) <= 2.0f);
             }
             std::cout << "  [PASS] Modulation Torture: Stable under extreme speed/mask hopping" << std::endl;
         }
 
-        // Test 5: Mathematical Pitch Invariance (Fundamental Period Lock across Speed 0 vs Speed 50)
+        // Test 5: Mathematical Pitch Invariance (Fundamental Period Lock across Speed 0 vs Speed 10)
         {
             Nyarlat::BitmaskOscillator osc0;
-            Nyarlat::BitmaskOscillator osc50;
+            Nyarlat::BitmaskOscillator osc10;
             osc0.prepare(44100.0);
-            osc50.prepare(44100.0);
+            osc10.prepare(44100.0);
 
             // At 441 Hz, fundamental period is exactly 100 samples (1600 substeps)
             // Assert that the master phase wraps at the identical sample interval regardless of speed
-            int wraps0 = 0, wraps50 = 0;
+            int wraps0 = 0, wraps10 = 0;
             for (int i = 0; i < 2000; ++i) {
                 uint32_t prevP0 = osc0.getPhase() & 0x00FFFFFFu;
-                uint32_t prevP50 = osc50.getPhase() & 0x00FFFFFFu;
-                osc0.processSample(441.0f, 24, 0, 0.0f, 1, false);
-                osc50.processSample(441.0f, 24, 0, 50.0f, 1, false); // Maximum speed 50 Hz!
+                uint32_t prevP10 = osc10.getPhase() & 0x00FFFFFFu;
+                osc0.processSample(441.0f, 24, 0.0f, 1, false);
+                osc10.processSample(441.0f, 24, 10.0f, 1, false); // Maximum speed 10 Hz!
 
                 if ((osc0.getPhase() & 0x00FFFFFFu) < prevP0) ++wraps0;
-                if ((osc50.getPhase() & 0x00FFFFFFu) < prevP50) ++wraps50;
+                if ((osc10.getPhase() & 0x00FFFFFFu) < prevP10) ++wraps10;
             }
             std::cout << "  [PASS] Mathematical Pitch Invariance: wraps0 = " << wraps0
-                      << ", wraps50 = " << wraps50 << " (delta f == 0.000 Hz)" << std::endl;
-            assert(wraps0 == wraps50);
+                      << ", wraps10 = " << wraps10 << " (delta f == 0.000 Hz)" << std::endl;
+            assert(wraps0 == wraps10);
             assert(wraps0 >= 19 && wraps0 <= 21);
         }
 

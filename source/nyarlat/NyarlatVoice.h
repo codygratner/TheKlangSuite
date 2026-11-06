@@ -173,7 +173,7 @@ public:
                        const float* oscBankIdx, const float* oscWaveMorph,
                        const int* oscMask, const float* oscDetune, const int* oscOctave,
                        const bool* oscOctLock, const bool* oscSync,
-                       const int* oscStart, const float* oscSpeed, const int* oscLoop,
+                       const float* oscSpeed, const int* oscLoop,
                        float osc1Level, float osc2Level, float osc3Level,
                        float noiseLevel, float noiseTone, float oscSpread, float mixerSeethe,
                        // Chaos & Random Attenuverters
@@ -209,22 +209,20 @@ public:
             float totalBend = mpePitchBendSemitones_ + globalPitchBendSemitones;
             cachedBendMult_ = std::pow(2.0f, totalBend / 12.0f);
 
-            // Process 3 Oscillator Pitch Ratios
+            // Process 3 Oscillator Pitch Ratios (no random pitch wobble on pads)
             for (int i = 0; i < 3; ++i) {
                 float semis = (oscOctave[i] - 2) * 12.0f + oscDetune[i];
-                float randPitch = chaos_.getModulation(i * 3 + 2, randAttenuverters[i * 3 + 2]);
-                semis += randPitch * 12.0f;
                 cachedOctMult_[i] = std::pow(2.0f, semis / 12.0f);
             }
 
             // Modulate stator speed and mask aperture with chaos attenuverters
-            cachedEffSpeed_[0] = oscSpeed[0] + chaos_.getModulation(1, randAttenuverters[1]) * 25.0f;
-            cachedEffSpeed_[1] = oscSpeed[1] + chaos_.getModulation(4, randAttenuverters[4]) * 25.0f;
-            cachedEffSpeed_[2] = oscSpeed[2] + chaos_.getModulation(7, randAttenuverters[7]) * 25.0f;
-
-            cachedEffMask_[0] = juce::jlimit(0, 511, oscMask[0] + static_cast<int>(chaos_.getModulation(0, randAttenuverters[0]) * 255.0f));
-            cachedEffMask_[1] = juce::jlimit(0, 511, oscMask[1] + static_cast<int>(chaos_.getModulation(3, randAttenuverters[3]) * 255.0f));
-            cachedEffMask_[2] = juce::jlimit(0, 511, oscMask[2] + static_cast<int>(chaos_.getModulation(6, randAttenuverters[6]) * 255.0f));
+            // Attenuverter slot order per osc: 0 = Wave, 1 = Mask, 2 = Speed
+            for (int i = 0; i < 3; ++i) {
+                cachedEffMask_[i] = juce::jlimit(0, 511,
+                    oscMask[i] + static_cast<int>(chaos_.getModulation(i * 3 + 1, randAttenuverters[i * 3 + 1]) * 255.0f));
+                cachedEffSpeed_[i] = juce::jlimit(0.0f, 10.0f,
+                    oscSpeed[i] + chaos_.getModulation(i * 3 + 2, randAttenuverters[i * 3 + 2]) * 2.5f);
+            }
 
             // Z-Plane Filter Expression & Target Coefficients Update
             float effMorph = zMorph + mpeSlide_ + globalModWheel;
@@ -244,11 +242,11 @@ public:
 
         // 3. Process 3 Oscillators with Hard Sync & Q32 Stator Sweep
         const uint32_t prevP1 = oscs_[0].getPhase() & 0x00FFFFFFu;
-        float sig1 = oscs_[0].processSample(basePitch * cachedOctMult_[0], cachedEffMask_[0], oscStart[0], cachedEffSpeed_[0], oscLoop[0], oscOctLock[0]);
+        float sig1 = oscs_[0].processSample(basePitch * cachedOctMult_[0], cachedEffMask_[0], cachedEffSpeed_[0], oscLoop[0], oscOctLock[0]);
         bool syncTrigger = ((oscs_[0].getPhase() & 0x00FFFFFFu) < prevP1); // Master phase wrapped (24-bit period)
 
-        float sig2 = oscs_[1].processSample(basePitch * cachedOctMult_[1], cachedEffMask_[1], oscStart[1], cachedEffSpeed_[1], oscLoop[1], oscOctLock[1], oscSync[1] && syncTrigger);
-        float sig3 = oscs_[2].processSample(basePitch * cachedOctMult_[2], cachedEffMask_[2], oscStart[2], cachedEffSpeed_[2], oscLoop[2], oscOctLock[2], oscSync[2] && syncTrigger);
+        float sig2 = oscs_[1].processSample(basePitch * cachedOctMult_[1], cachedEffMask_[1], cachedEffSpeed_[1], oscLoop[1], oscOctLock[1], oscSync[1] && syncTrigger);
+        float sig3 = oscs_[2].processSample(basePitch * cachedOctMult_[2], cachedEffMask_[2], cachedEffSpeed_[2], oscLoop[2], oscOctLock[2], oscSync[2] && syncTrigger);
 
         // 4. Variable-rate Sample-and-Hold Noise
         int noiseHoldMax = 1 + static_cast<int>(noiseTone * 126.0f);
@@ -291,9 +289,11 @@ public:
         outR = mixR * totalGain;
     }
 
-    void updateWavetables(const uint32_t* bankIdx, const float* waveMorph) noexcept {
+    void updateWavetables(const uint32_t* bankIdx, const float* waveMorph, const float* randAttenuverters) noexcept {
         for (int i = 0; i < 3; ++i) {
-            oscs_[i].updateTable(bankIdx[i], waveMorph[i]);
+            float effWave = juce::jlimit(0.0f, 1.0f,
+                waveMorph[i] + chaos_.getModulation(i * 3 + 0, randAttenuverters[i * 3 + 0]));
+            oscs_[i].updateTable(bankIdx[i], effWave);
         }
     }
 

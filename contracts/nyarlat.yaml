@@ -43,20 +43,13 @@ parameters:
     range: [0, 511]
     default: 31
 
-  - id: osc1_start
-    name: Osc 1 Mask Start
-    category: dco
-    type: int
-    effect: timbre
-    range: [-255, 255]
-    default: 0
-
   - id: osc1_speed
     name: Osc 1 Mask Speed
     category: dco
     type: float
     effect: timbre
-    range: [0.0, 50.0]
+    range: [0.0, 10.0]
+    skew: 0.301
     default: 0.0
 
   - id: osc1_loop
@@ -126,20 +119,13 @@ parameters:
     range: [0, 511]
     default: 31
 
-  - id: osc2_start
-    name: Osc 2 Mask Start
-    category: dco
-    type: int
-    effect: timbre
-    range: [-255, 255]
-    default: 0
-
   - id: osc2_speed
     name: Osc 2 Mask Speed
     category: dco
     type: float
     effect: timbre
-    range: [0.0, 50.0]
+    range: [0.0, 10.0]
+    skew: 0.301
     default: 0.0
 
   - id: osc2_loop
@@ -217,20 +203,13 @@ parameters:
     range: [0, 511]
     default: 31
 
-  - id: osc3_start
-    name: Osc 3 Mask Start
-    category: dco
-    type: int
-    effect: timbre
-    range: [-255, 255]
-    default: 0
-
   - id: osc3_speed
     name: Osc 3 Mask Speed
     category: dco
     type: float
     effect: timbre
-    range: [0.0, 50.0]
+    range: [0.0, 10.0]
+    skew: 0.301
     default: 0.0
 
   - id: osc3_loop
@@ -362,6 +341,14 @@ parameters:
     default: 0.5
 
   # Attenuverter Pod 1: Osc 1
+  - id: rand_o1_wave
+    name: RDM O1 Wave
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
   - id: rand_o1_mask
     name: RDM O1 Mask
     category: random
@@ -378,15 +365,15 @@ parameters:
     range: [0.0, 1.0]
     default: 0.0
 
-  - id: rand_o1_pitch
-    name: RDM O1 Pitch
+  # Attenuverter Pod 2: Osc 2
+  - id: rand_o2_wave
+    name: RDM O2 Wave
     category: random
     type: float
-    effect: pitch
+    effect: timbre
     range: [0.0, 1.0]
     default: 0.0
 
-  # Attenuverter Pod 2: Osc 2
   - id: rand_o2_mask
     name: RDM O2 Mask
     category: random
@@ -403,15 +390,15 @@ parameters:
     range: [0.0, 1.0]
     default: 0.0
 
-  - id: rand_o2_pitch
-    name: RDM O2 Pitch
+  # Attenuverter Pod 3: Osc 3
+  - id: rand_o3_wave
+    name: RDM O3 Wave
     category: random
     type: float
-    effect: pitch
+    effect: timbre
     range: [0.0, 1.0]
     default: 0.0
 
-  # Attenuverter Pod 3: Osc 3
   - id: rand_o3_mask
     name: RDM O3 Mask
     category: random
@@ -425,14 +412,6 @@ parameters:
     category: random
     type: float
     effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_o3_pitch
-    name: RDM O3 Pitch
-    category: random
-    type: float
-    effect: pitch
     range: [0.0, 1.0]
     default: 0.0
 

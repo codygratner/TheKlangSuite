@@ -31,8 +31,12 @@ public:
         dcState_ = 0.0f;
         prevInput_ = 0.0f;
         syncFade_ = 0.0f;
-        // Pre-warm static pitch compensation table outside real-time audio thread
+        tableDirty_ = false;
+        lastBank_ = 0xFFFFFFFFu;
+        lastMorph_ = -1.0f;
+        // Pre-warm static pitch compensation table & AKWF ROM outside real-time audio thread
         juce::ignoreUnused(getSharedPitchTable()[0]);
+        juce::ignoreUnused(AkwfRom::getInstance());
     }
 
     void reset() noexcept {
@@ -44,19 +48,25 @@ public:
         dcState_ = 0.0f;
         prevInput_ = 0.0f;
         syncFade_ = 0.0f;
+        tableDirty_ = false;
+        lastBank_ = 0xFFFFFFFFu;
+        lastMorph_ = -1.0f;
     }
 
     // Updates the morphed AKWF cycle in the first 512 samples of the 8KB buffer
     void updateTable(uint32_t bankIdx, float waveMorph) noexcept {
+        if (bankIdx == lastBank_ && std::fabs(waveMorph - lastMorph_) < (1.0f / 4096.0f)) return;
+        lastBank_ = bankIdx;
+        lastMorph_ = waveMorph;
         AkwfRom::getInstance().interpolateWaveform(bankIdx, waveMorph, buffer8k_.data());
-        bakedKey_ = 0xFFFFFFFFu; // Invalidate cache so cycle_ re-bakes on next seam
+        tableDirty_ = true; // Click-free: re-bake deferred to next phase seam wrap
     }
 
     // Process a single audio sample (evaluates 16 sub-samples internally with Q32 Stator Sweep)
-    float processSample(float freqHz, int rawMask, int maskStart, float maskSpeed,
+    float processSample(float freqHz, int rawMask, float maskSpeed,
                         int loopMode, bool octLock, bool hardSyncTrigger = false) noexcept {
         const uint32_t mask9 = static_cast<uint32_t>(juce::jlimit(0, 511, rawMask) * 16 + 15) & 0x1FFu;
-        const float sp = (maskSpeed > 0.0f && std::isfinite(maskSpeed)) ? std::fmin(maskSpeed, 50.0f) : 0.0f;
+        const float sp = (maskSpeed > 0.0f && std::isfinite(maskSpeed)) ? std::fmin(maskSpeed, 10.0f) : 0.0f;
 
         // Advance stator accumulator once per output sample (lightweight, zero inner-loop cost)
         statorQ_ += static_cast<uint32_t>(sp * (4294967296.0 / sampleRate_));
@@ -69,8 +79,8 @@ public:
             bakedKey_ = 0xFFFFFFFFu;
         }
 
-        if (hardSyncTrigger || bakedKey_ == 0xFFFFFFFFu) {
-            latchSeam(mask9, rawMask, maskStart, loopMode, sp, octLock);
+        if (hardSyncTrigger || bakedKey_ == 0xFFFFFFFFu || tableDirty_) {
+            latchSeam(mask9, rawMask, loopMode, sp, octLock);
         }
 
         // Phase increment for 16x oversampling using seam-latched octave lock ratio
@@ -91,7 +101,7 @@ public:
         if (nPre < 16) {
             // Seam wrap landed inside this audio sample: re-latch parameters exactly at the boundary!
             ph &= 0x00FFFFFFu;
-            latchSeam(mask9, rawMask, maskStart, loopMode, sp, octLock);
+            latchSeam(mask9, rawMask, loopMode, sp, octLock);
             for (int k = nPre; k < 16; ++k) {
                 sum += c[(ph >> 15) & 0x1FFu];
                 ph += inc;
@@ -154,14 +164,18 @@ private:
         }
     }
 
-    void latchSeam(uint32_t mask9, int rawMask, int maskStart, int loop, float sp, bool octLock) noexcept {
+    void latchSeam(uint32_t mask9, int rawMask, int loop, float sp, bool octLock) noexcept {
+        if (tableDirty_) {
+            bakedKey_ = 0xFFFFFFFFu;
+            tableDirty_ = false;
+        }
         const int eff = (loop == 0 && sp > 0.0f) ? 1 : loop;
         uint32_t sweep = 0;
         if (eff != 0) {
             const uint32_t p = statorQ_ >> 23;
             sweep = (eff == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
         }
-        const uint32_t off = (sweep + static_cast<uint32_t>(maskStart + 512)) & 0x1FFu;
+        const uint32_t off = sweep & 0x1FFu;
         lastStatorOffset_ = off;
         latchedRatio_ = (octLock && rawMask >= 0 && rawMask < 512) ? getSharedPitchTable()[rawMask] : 1.0f;
         bakeCycle(mask9, off, eff);
@@ -197,6 +211,9 @@ private:
     alignas(32) std::array<float, kTableSize> cycle_{};
     uint32_t bakedKey_ = 0xFFFFFFFFu;
     float latchedRatio_ = 1.0f;
+    uint32_t lastBank_ = 0xFFFFFFFFu;
+    float lastMorph_ = -1.0f;
+    bool tableDirty_ = false;
 
     std::vector<float> buffer8k_;
 };

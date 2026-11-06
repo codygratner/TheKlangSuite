@@ -109,7 +109,6 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
     makeButton(Ids::osc1_oct_lock, "LOCK", Colours::kOsc);
     makeKnob(Ids::osc1_wave, "WAVE", Colours::kOsc);
     makeKnob(Ids::osc1_mask, "MASK", Colours::kOsc);
-    makeKnob(Ids::osc1_start, "START", Colours::kOsc);
     makeKnob(Ids::osc1_speed, "SPEED", Colours::kOsc);
     makeKnob(Ids::osc1_detune, "TUNE", Colours::kOsc);
     makeCombo(Ids::osc1_loop, "LOOP");
@@ -121,7 +120,6 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
     makeButton(Ids::osc2_sync, "SYNC", Colours::kOsc);
     makeKnob(Ids::osc2_wave, "WAVE", Colours::kOsc);
     makeKnob(Ids::osc2_mask, "MASK", Colours::kOsc);
-    makeKnob(Ids::osc2_start, "START", Colours::kOsc);
     makeKnob(Ids::osc2_speed, "SPEED", Colours::kOsc);
     makeKnob(Ids::osc2_detune, "TUNE", Colours::kOsc);
     makeCombo(Ids::osc2_loop, "LOOP");
@@ -133,7 +131,6 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
     makeButton(Ids::osc3_sync, "SYNC", Colours::kOsc);
     makeKnob(Ids::osc3_wave, "WAVE", Colours::kOsc);
     makeKnob(Ids::osc3_mask, "MASK", Colours::kOsc);
-    makeKnob(Ids::osc3_start, "START", Colours::kOsc);
     makeKnob(Ids::osc3_speed, "SPEED", Colours::kOsc);
     makeKnob(Ids::osc3_detune, "TUNE", Colours::kOsc);
     makeCombo(Ids::osc3_loop, "LOOP");
@@ -153,17 +150,17 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
     makeKnob(Ids::chaos_poly_spread, "POLY", Colours::kChaos);
 
     // 15 Attenuverters
+    makeKnob(Ids::rand_o1_wave, "O1 WAV", Colours::kChaos);
     makeKnob(Ids::rand_o1_mask, "O1 MSK", Colours::kChaos);
     makeKnob(Ids::rand_o1_speed, "O1 SPD", Colours::kChaos);
-    makeKnob(Ids::rand_o1_pitch, "O1 PCH", Colours::kChaos);
 
+    makeKnob(Ids::rand_o2_wave, "O2 WAV", Colours::kChaos);
     makeKnob(Ids::rand_o2_mask, "O2 MSK", Colours::kChaos);
     makeKnob(Ids::rand_o2_speed, "O2 SPD", Colours::kChaos);
-    makeKnob(Ids::rand_o2_pitch, "O2 PCH", Colours::kChaos);
 
+    makeKnob(Ids::rand_o3_wave, "O3 WAV", Colours::kChaos);
     makeKnob(Ids::rand_o3_mask, "O3 MSK", Colours::kChaos);
     makeKnob(Ids::rand_o3_speed, "O3 SPD", Colours::kChaos);
-    makeKnob(Ids::rand_o3_pitch, "O3 PCH", Colours::kChaos);
 
     makeKnob(Ids::rand_z_freq, "Z FREQ", Colours::kChaos);
     makeKnob(Ids::rand_z_morph, "Z MRPH", Colours::kChaos);
@@ -566,11 +563,10 @@ void NyarlatEditor::layoutControls() {
             oscWaveViews_[o]->setBounds(24, by + 26, 254, 58);
         }
 
-        // Morph Row 1 (4 Knobs, 48px, overhead labels at by + 88)
-        placeKnob(oPrefix + "wave",  26,  by + 88, 48);
-        placeKnob(oPrefix + "mask",  88,  by + 88, 48);
-        placeKnob(oPrefix + "start", 150, by + 88, 48);
-        placeKnob(oPrefix + "speed", 212, by + 88, 48);
+        // Morph Row 1 (3 Knobs, 52px, overhead labels at by + 88)
+        placeKnob(oPrefix + "wave",  24,  by + 88, 52);
+        placeKnob(oPrefix + "mask",  125, by + 88, 52);
+        placeKnob(oPrefix + "speed", 226, by + 88, 52);
 
         // Mod Row 2: Tune Knob + Loop Combo + Sync Button (Osc 2/3)
         placeKnob(oPrefix + "detune", 26, by + 154, 48);
@@ -611,19 +607,19 @@ void NyarlatEditor::layoutControls() {
     const std::array<int, 3> chaosColX = { 314, 400, 486 };
 
     // Row 0: Osc 1
-    placeKnob(Ids::rand_o1_mask,  chaosColX[0], 376, 46);
-    placeKnob(Ids::rand_o1_speed, chaosColX[1], 376, 46);
-    placeKnob(Ids::rand_o1_pitch, chaosColX[2], 376, 46);
+    placeKnob(Ids::rand_o1_wave,  chaosColX[0], 376, 46);
+    placeKnob(Ids::rand_o1_mask,  chaosColX[1], 376, 46);
+    placeKnob(Ids::rand_o1_speed, chaosColX[2], 376, 46);
 
     // Row 1: Osc 2
-    placeKnob(Ids::rand_o2_mask,  chaosColX[0], 452, 46);
-    placeKnob(Ids::rand_o2_speed, chaosColX[1], 452, 46);
-    placeKnob(Ids::rand_o2_pitch, chaosColX[2], 452, 46);
+    placeKnob(Ids::rand_o2_wave,  chaosColX[0], 452, 46);
+    placeKnob(Ids::rand_o2_mask,  chaosColX[1], 452, 46);
+    placeKnob(Ids::rand_o2_speed, chaosColX[2], 452, 46);
 
     // Row 2: Osc 3
-    placeKnob(Ids::rand_o3_mask,  chaosColX[0], 528, 46);
-    placeKnob(Ids::rand_o3_speed, chaosColX[1], 528, 46);
-    placeKnob(Ids::rand_o3_pitch, chaosColX[2], 528, 46);
+    placeKnob(Ids::rand_o3_wave,  chaosColX[0], 528, 46);
+    placeKnob(Ids::rand_o3_mask,  chaosColX[1], 528, 46);
+    placeKnob(Ids::rand_o3_speed, chaosColX[2], 528, 46);
 
     // Pod 2 (Filter/Space Mod): Rows 3, 4
     // Row 3: Z-Filter
