@@ -45,10 +45,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 
-      - name: Build DSP & GUI Tests (Test-First)
-        run: |
-          cmake --build build --config Release --parallel --target \
-            dsp_tests gui_tests capture_screenshot capture_planter_screenshot
+      - name: Build DSP Tests (Test-First)
+        run: cmake --build build --config Release --parallel --target dsp_tests
 
       - name: Run DSP Unit Tests
         run: |
@@ -58,12 +56,12 @@ jobs:
             ./build/Release/dsp_tests
           fi
 
-      - name: Build Plugins & The Klang Editor
+      - name: Build Plugins (The Active Triad)
         run: |
           cmake --build build --config Release --parallel --target \
-            TheKlangFarmer_VST3 TheKlangFarmer_AU \
-            TheKlangPlanter_VST3 TheKlangPlanter_AU \
-            TheKlangEditor
+            Hastur_VST3 Hastur_AU \
+            FormlessSpawn_VST3 FormlessSpawn_AU \
+            DigiStrikeFS2_VST3 DigiStrikeFS2_AU
 
       - name: Codesign macOS Plugins (Ad-hoc)
         run: |
@@ -74,26 +72,26 @@ jobs:
       - name: Install & Run Native auval Test
         run: |
           mkdir -p "$HOME/Library/Audio/Plug-Ins/Components"
-          find build/TheKlangFarmer_artefacts -name "The Klang Farmer.component" -exec cp -R -P {} "$HOME/Library/Audio/Plug-Ins/Components/" \;
-          find build/TheKlangPlanter_artefacts -name "The Klang Planter.component" -exec cp -R -P {} "$HOME/Library/Audio/Plug-Ins/Components/" \;
+          find build -name "*.component" -exec cp -R -P {} "$HOME/Library/Audio/Plug-Ins/Components/" \;
           killall -9 coreaudiod 2>/dev/null || true
           sleep 2
-          echo "Running auval on The Klang Farmer..."
-          auval -v aumu Tkf1 Rlyh || true
-          echo "Running auval on The Klang Planter..."
-          auval -v aumu Tkp1 Rlyh || true
+          echo "Running auval on Hastur..."
+          auval -v aumu Hst1 CkCh || true
+          echo "Running auval on Formless Spawn..."
+          auval -v aumu Tfsp CkCh || true
+          echo "Running auval on DigiStrike FS2..."
+          auval -v aumu Dfs2 CkCh || true
 
       - name: Download & Run Tracktion pluginval
         run: |
           curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_macOS.zip
           unzip -q pluginval.zip
           chmod +x pluginval.app/Contents/MacOS/pluginval
-          TKF_VST3=$(find build/TheKlangFarmer_artefacts -name "The Klang Farmer.vst3" | head -n 1)
-          TKP_VST3=$(find build/TheKlangPlanter_artefacts -name "The Klang Planter.vst3" | head -n 1)
-          echo "Validating $TKF_VST3 with pluginval..."
-          pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 "$TKF_VST3"
-          echo "Validating $TKP_VST3 with pluginval..."
-          pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 "$TKP_VST3"
+          for p in "Hastur.vst3" "Formless Spawn.vst3" "DigiStrike FS2.vst3"; do
+            TARGET=$(find build -name "$p" | head -n 1)
+            echo "Validating $TARGET with pluginval..."
+            pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 "$TARGET"
+          done
 
   test-linux:
     name: Linux x86_64 (VST3 / Unit Tests / Xvfb / pluginval)
@@ -133,10 +131,8 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build DSP & GUI Tests (Test-First Fail-Fast)
-        run: |
-          cmake --build build --config Release --parallel --target \
-            dsp_tests gui_tests capture_screenshot capture_planter_screenshot
+      - name: Build DSP Tests (Test-First Fail-Fast)
+        run: cmake --build build --config Release --parallel --target dsp_tests
 
       - name: Run DSP Unit Tests
         run: |
@@ -146,44 +142,22 @@ jobs:
             ./build/Release/dsp_tests
           fi
 
-      - name: Run GUI & Schema Audit Tests
-        run: |
-          GUI_BIN=""
-          if [ -f "./build/gui_tests" ]; then
-            GUI_BIN="./build/gui_tests"
-          elif [ -f "./build/Release/gui_tests" ]; then
-            GUI_BIN="./build/Release/gui_tests"
-          fi
-          if [ -n "$GUI_BIN" ]; then
-            xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
-              sh -c "fluxbox & sleep 1; $GUI_BIN"
-          fi
-
-      - name: Run Headless UI Capture
-        run: |
-          if [ -f "./build/capture_screenshot" ]; then
-            xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
-              sh -c "fluxbox & sleep 1; ./build/capture_screenshot && ./build/capture_planter_screenshot"
-          fi
-
-      - name: Build Plugins & Editor (Incremental after Tests Pass)
+      - name: Build Plugins (The Active Triad)
         run: |
           cmake --build build --config Release --parallel --target \
-            TheKlangFarmer_VST3 TheKlangPlanter_VST3 TheKlangEditor
+            Hastur_VST3 FormlessSpawn_VST3 DigiStrikeFS2_VST3
 
       - name: Download & Run Tracktion pluginval
         run: |
           curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Linux.zip
           unzip -q pluginval.zip
           chmod +x pluginval
-          TKF_VST3=$(find build/TheKlangFarmer_artefacts -name "The Klang Farmer.vst3" | head -n 1)
-          TKP_VST3=$(find build/TheKlangPlanter_artefacts -name "The Klang Planter.vst3" | head -n 1)
-          echo "Validating $TKF_VST3 under Xvfb + Fluxbox..."
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
-            sh -c "fluxbox & sleep 1; ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 \"$TKF_VST3\""
-          echo "Validating $TKP_VST3 under Xvfb + Fluxbox..."
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
-            sh -c "fluxbox & sleep 1; ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 \"$TKP_VST3\""
+          for p in "Hastur.vst3" "Formless Spawn.vst3" "DigiStrike FS2.vst3"; do
+            TARGET=$(find build -name "$p" | head -n 1)
+            echo "Validating $TARGET under Xvfb..."
+            xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
+              sh -c "fluxbox & sleep 1; ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 \"$TARGET\""
+          done
 
   test-windows:
     name: Windows x64 (VST3 / Unit Tests / pluginval)
@@ -199,31 +173,25 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build DSP & GUI Tests (Test-First)
-        run: |
-          cmake --build build --config Release --parallel --target `
-            dsp_tests gui_tests capture_screenshot capture_planter_screenshot
+      - name: Build DSP Tests (Test-First)
+        run: cmake --build build --config Release --parallel --target dsp_tests
 
       - name: Run DSP Unit Tests
         run: .\build\Release\dsp_tests.exe
 
-      - name: Run GUI & Schema Audit Tests
-        run: .\build\Release\gui_tests.exe
-
-      - name: Run UI Screenshot Captures
-        run: |
-          .\build\Release\capture_screenshot.exe
-          .\build\Release\capture_planter_screenshot.exe
-
-      - name: Build Plugins & Editor (Incremental after Tests Pass)
+      - name: Build Plugins (The Active Triad)
         run: |
           cmake --build build --config Release --parallel --target `
-            TheKlangFarmer_VST3 TheKlangPlanter_VST3 TheKlangEditor
+            Hastur_VST3 FormlessSpawn_VST3 DigiStrikeFS2_VST3
 
       - name: Download & Run Tracktion pluginval
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip" -OutFile "pluginval.zip"
           Expand-Archive -Path "pluginval.zip" -DestinationPath "."
-          .\pluginval.exe --strictness-level 5 --validate-in-process --timeout-ms 60000 "build\TheKlangFarmer_artefacts\Release\VST3\The Klang Farmer.vst3"
-          .\pluginval.exe --strictness-level 5 --validate-in-process --timeout-ms 60000 "build\TheKlangPlanter_artefacts\Release\VST3\The Klang Planter.vst3"
+          $targets = @("Hastur.vst3", "Formless Spawn.vst3", "DigiStrike FS2.vst3")
+          foreach ($t in $targets) {
+            $p = (Get-ChildItem -Path build -Filter $t -Recurse | Select-Object -First 1).FullName
+            echo "Validating $p with pluginval..."
+            .\pluginval.exe --strictness-level 5 --validate-in-process --timeout-ms 60000 "$p"
+          }

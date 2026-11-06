@@ -2,63 +2,182 @@
 
 #include <cmath>
 #include <array>
+#include <algorithm>
+#include <immintrin.h>
 #include <juce_core/juce_core.h>
 #include "../FastMath.h"
 
 namespace Nyarlat {
 
-// A single 2nd-order section using Transposed Direct Form II (TDF-II)
-// Superior numerical behavior for time-varying filters
-struct BiquadTDF2 {
-    float s1 = 0.0f;
-    float s2 = 0.0f;
+// Portable lane-0 extraction (MSVC / GCC / Clang compliant; zero member access)
+static inline float lane0(__m128 v) noexcept { return _mm_cvtss_f32(v); }
 
-    // Active smoothed coefficients
-    float b0 = 1.0f, b1 = 0.0f, b2 = 0.0f;
-    float a1 = 0.0f, a2 = 0.0f;
+// High-precision SIMD 2-Wide Stereo Transposed Direct Form II Biquad
+// Evaluates both Left and Right audio channels simultaneously in 3 vector FMA/SSE instructions.
+struct alignas(16) BiquadTDF2Stereo {
+    __m128 s1 = _mm_setzero_ps();
+    __m128 s2 = _mm_setzero_ps();
 
-    // Target coefficients for slew smoothing
-    float tb0 = 1.0f, tb1 = 0.0f, tb2 = 0.0f;
-    float ta1 = 0.0f, ta2 = 0.0f;
+    // Active smoothed coefficients [c, c, 0, 0]
+    __m128 b0 = _mm_set1_ps(1.0f);
+    __m128 b1 = _mm_setzero_ps();
+    __m128 b2 = _mm_setzero_ps();
+    __m128 a1 = _mm_setzero_ps();
+    __m128 a2 = _mm_setzero_ps();
+
+    // Target coefficients
+    __m128 tb0 = _mm_set1_ps(1.0f);
+    __m128 tb1 = _mm_setzero_ps();
+    __m128 tb2 = _mm_setzero_ps();
+    __m128 ta1 = _mm_setzero_ps();
+    __m128 ta2 = _mm_setzero_ps();
+
+    // Sub-block linear delta slopes
+    __m128 db0 = _mm_setzero_ps();
+    __m128 db1 = _mm_setzero_ps();
+    __m128 db2 = _mm_setzero_ps();
+    __m128 da1 = _mm_setzero_ps();
+    __m128 da2 = _mm_setzero_ps();
+    int rampSteps = 0;
 
     void reset() noexcept {
-        s1 = 0.0f;
-        s2 = 0.0f;
+        s1 = _mm_setzero_ps();
+        s2 = _mm_setzero_ps();
+        rampSteps = 0;
     }
 
-    bool setTarget(float inB0, float inB1, float inB2, float inA1, float inA2) noexcept {
-        const bool changed = (tb0 != inB0) || (tb1 != inB1) || (tb2 != inB2) || (ta1 != inA1) || (ta2 != inA2);
-        tb0 = inB0; tb1 = inB1; tb2 = inB2;
-        ta1 = inA1; ta2 = inA2;
+    bool setTargetWithRamp(float inB0, float inB1, float inB2, float inA1, float inA2, float invSteps) noexcept {
+        const bool changed = (lane0(tb0) != inB0) || (lane0(tb1) != inB1) ||
+                             (lane0(tb2) != inB2) || (lane0(ta1) != inA1) ||
+                             (lane0(ta2) != inA2);
+        tb0 = _mm_set1_ps(inB0);
+        tb1 = _mm_set1_ps(inB1);
+        tb2 = _mm_set1_ps(inB2);
+        ta1 = _mm_set1_ps(inA1);
+        ta2 = _mm_set1_ps(inA2);
+
+        if (changed) {
+            if (invSteps <= 0.0f) {
+                snap();
+                return true;
+            }
+            __m128 vInv = _mm_set1_ps(invSteps);
+            db0 = _mm_mul_ps(_mm_sub_ps(tb0, b0), vInv);
+            db1 = _mm_mul_ps(_mm_sub_ps(tb1, b1), vInv);
+            db2 = _mm_mul_ps(_mm_sub_ps(tb2, b2), vInv);
+            da1 = _mm_mul_ps(_mm_sub_ps(ta1, a1), vInv);
+            da2 = _mm_mul_ps(_mm_sub_ps(ta2, a2), vInv);
+            rampSteps = static_cast<int>(std::lround(1.0f / invSteps));
+        }
         return changed;
     }
 
     void snap() noexcept {
         b0 = tb0; b1 = tb1; b2 = tb2;
         a1 = ta1; a2 = ta2;
+        rampSteps = 0;
     }
 
-    void smooth(float lambda) noexcept {
-        b0 += lambda * (tb0 - b0);
-        b1 += lambda * (tb1 - b1);
-        b2 += lambda * (tb2 - b2);
-        a1 += lambda * (ta1 - a1);
-        a2 += lambda * (ta2 - a2);
+    inline void stepRamp() noexcept {
+        if (rampSteps > 0) {
+            b0 = _mm_add_ps(b0, db0);
+            b1 = _mm_add_ps(b1, db1);
+            b2 = _mm_add_ps(b2, db2);
+            a1 = _mm_add_ps(a1, da1);
+            a2 = _mm_add_ps(a2, da2);
+            if (--rampSteps == 0) {
+                b0 = tb0; b1 = tb1; b2 = tb2;
+                a1 = ta1; a2 = ta2;
+            }
+        }
     }
 
-    inline float process(float in) noexcept {
+    inline __m128 process(__m128 in) noexcept {
         // y[n] = b0 * x[n] + s1
-        float out = b0 * in + s1;
+        __m128 out = _mm_add_ps(_mm_mul_ps(b0, in), s1);
         // s1 = b1 * x[n] - a1 * y[n] + s2
-        s1 = b1 * in - a1 * out + s2;
+        s1 = _mm_add_ps(_mm_sub_ps(_mm_mul_ps(b1, in), _mm_mul_ps(a1, out)), s2);
         // s2 = b2 * x[n] - a2 * y[n]
+        s2 = _mm_sub_ps(_mm_mul_ps(b2, in), _mm_mul_ps(a2, out));
+        return out;
+    }
+};
+
+// Branchless Padé soft-knee inter-stage limiter: clamps to [-2.0, +2.0]
+static inline __m128 softLimit2Wide(__m128 v) noexcept {
+    const __m128 vMin = _mm_set1_ps(-2.0f);
+    const __m128 vMax = _mm_set1_ps(2.0f);
+    const __m128 vInv12 = _mm_set1_ps(1.0f / 12.0f);
+    __m128 c = _mm_max_ps(vMin, _mm_min_ps(vMax, v));
+    __m128 c2 = _mm_mul_ps(c, c);
+    __m128 c3 = _mm_mul_ps(c2, c);
+    return _mm_sub_ps(c, _mm_mul_ps(c3, vInv12));
+}
+
+// Exact rational quadratic peak power solver for H(z) = (b0 + b1 z^-1 + b2 z^-2)/(1 + a1 z^-1 + a2 z^-2)
+// Identifies all interior critical points in c = cos(omega) in (-1, 1) and asserts peak power across full spectrum.
+static inline double sectionPeakPower(double b1, double b2, double a1, double a2) noexcept {
+    const double n2 = 4.0 * b2;
+    const double n1 = 2.0 * b1 * (1.0 + b2);
+    const double n0 = (1.0 - b2) * (1.0 - b2) + b1 * b1;
+
+    const double d2 = 4.0 * a2;
+    const double d1 = 2.0 * a1 * (1.0 + a2);
+    const double d0 = (1.0 - a2) * (1.0 - a2) + a1 * a1;
+
+    auto R = [&](double c) noexcept {
+        const double num = n2 * c * c + n1 * c + n0;
+        const double den = std::max(d2 * c * c + d1 * c + d0, 1e-12);
+        return num / den;
+    };
+
+    double peak = std::max(R(1.0), R(-1.0));
+    const double qa = n2 * d1 - n1 * d2;
+    const double qb = n2 * d0 - n0 * d2;
+    const double qc = n1 * d0 - n0 * d1;
+
+    auto tryRoot = [&](double c) noexcept {
+        if (c > -1.0 && c < 1.0) peak = std::max(peak, R(c));
+    };
+
+    if (std::abs(qa) > 1e-12) {
+        const double disc = qb * qb - qa * qc;
+        if (disc >= 0.0) {
+            const double s = std::sqrt(disc);
+            tryRoot((-qb + s) / qa);
+            tryRoot((-qb - s) / qa);
+        }
+    } else if (std::abs(qb) > 1e-12) {
+        tryRoot(-qc / (2.0 * qb));
+    }
+    return peak;
+}
+
+// Legacy single-channel scalar biquad for compatibility
+struct BiquadTDF2 {
+    float s1 = 0.0f;
+    float s2 = 0.0f;
+    float b0 = 1.0f, b1 = 0.0f, b2 = 0.0f;
+    float a1 = 0.0f, a2 = 0.0f;
+    float tb0 = 1.0f, tb1 = 0.0f, tb2 = 0.0f;
+    float ta1 = 0.0f, ta2 = 0.0f;
+
+    void reset() noexcept { s1 = s2 = 0.0f; }
+    bool setTarget(float inB0, float inB1, float inB2, float inA1, float inA2) noexcept {
+        const bool changed = (tb0 != inB0) || (tb1 != inB1) || (tb2 != inB2) || (ta1 != inA1) || (ta2 != inA2);
+        tb0 = inB0; tb1 = inB1; tb2 = inB2; ta1 = inA1; ta2 = inA2;
+        return changed;
+    }
+    void snap() noexcept { b0 = tb0; b1 = tb1; b2 = tb2; a1 = ta1; a2 = ta2; }
+    inline float process(float in) noexcept {
+        float out = b0 * in + s1;
+        s1 = b1 * in - a1 * out + s2;
         s2 = b2 * in - a2 * out;
         return out;
     }
 };
 
 // Represents one corner in the 8-vertex 3D parameter cube
-// 7 pole-zero biquad sections in polar form (rho, theta)
 struct ZCubeCorner {
     struct Section {
         float pole_rho;   // 0.0 .. 0.995 (strictly < 1.0)
@@ -89,16 +208,14 @@ public:
     }
 
     void reset() noexcept {
-        for (auto& b : leftStages_) b.reset();
-        for (auto& b : rightStages_) b.reset();
-        settleSamples_ = 0;
+        for (auto& s : stages_) s.reset();
         lastModel_ = -1;
         lastX_ = -1.0f; lastY_ = -1.0f; lastZ_ = -1.0f;
     }
 
     // Evaluate 3D Trilinear interpolation across active model's 8 corners
     // X = Freq (0..1), Y = Morph (0..1), Z = Transform (0..1)
-    void updateCube(int modelIdx, float xNorm, float yNorm, float zNorm) noexcept {
+    void updateCube(int modelIdx, float xNorm, float yNorm, float zNorm, float invSteps = (1.0f / 64.0f)) noexcept {
         modelIdx = juce::jlimit(0, 19, modelIdx);
         if (modelIdx == lastModel_ && xNorm == lastX_ && yNorm == lastY_ && zNorm == lastZ_) return;
         lastModel_ = modelIdx; lastX_ = xNorm; lastY_ = yNorm; lastZ_ = zNorm;
@@ -109,8 +226,6 @@ public:
         float cz = juce::jlimit(0.0f, 1.0f, zNorm);
 
         // Trilinear corner weights
-        // Corner 0: (0,0,0), 1: (1,0,0), 2: (0,1,0), 3: (1,1,0)
-        // Corner 4: (0,0,1), 5: (1,0,1), 6: (0,1,1), 7: (1,1,1)
         float w0 = (1.0f - cx) * (1.0f - cy) * (1.0f - cz);
         float w1 = cx * (1.0f - cy) * (1.0f - cz);
         float w2 = (1.0f - cx) * cy * (1.0f - cz);
@@ -120,7 +235,6 @@ public:
         float w6 = (1.0f - cx) * cy * cz;
         float w7 = cx * cy * cz;
 
-        bool changed = false;
         for (int s = 0; s < kNumSections; ++s) {
             float pr = 0.0f, pt = 0.0f, zr = 0.0f, zt = 0.0f;
             const auto& c = model.corners;
@@ -145,79 +259,65 @@ public:
                  w4*c[4].sections[s].zero_theta + w5*c[5].sections[s].zero_theta +
                  w6*c[6].sections[s].zero_theta + w7*c[7].sections[s].zero_theta;
 
-            // Clamp radius strictly inside unit circle for guaranteed stability
-            pr = juce::jlimit(0.0f, 0.990f, pr);
-            zr = juce::jlimit(0.0f, 1.0f, zr);
+            // Safe pole radius clamping (strictly <= 0.970 for guaranteed 7-stage cascade stability)
+            pr = juce::jlimit(0.0f, 0.970f, pr);
+            zr = juce::jlimit(0.0f, 0.980f, zr);
 
             // Fast minimax cosine
             const float cp = TbdAudio::FastMath::fastCos(pt);
             const float czAngle = TbdAudio::FastMath::fastCos(zt);
 
-            // Convert polar to polynomial biquad coefficients
-            // a1 = -2 * rho * cos(theta), a2 = rho^2
-            // b0 = 1.0, b1 = -2 * z_rho * cos(z_theta), b2 = z_rho^2
+            // Polar to biquad polynomial coefficients
             float a1 = -2.0f * pr * cp;
             float a2 = pr * pr;
 
-            // |H(1)| = N/D (cancellation-free). Attenuate-only: a DC null (N->0) never divides.
-            // By exact trigonometric half-angle identity:
-            // 4 sin^2(t/2) == 2(1 - cos(t))
-            // D == (1 - pr)^2 + 4 pr sin^2(pt/2) == 1 + a2 + a1
-            // N == (1 - zr)^2 + 4 zr sin^2(zt/2) == 1 + zr^2 - 2 zr cos(zt)
-            const float D = std::max(1e-4f, 1.0f + a2 + a1);
-            const float N = 1.0f + zr * zr - 2.0f * zr * czAngle;
-            const float g = (N > D) ? (D / N) : 1.0f;
+            // Unnormalized numerator coefficients
+            float rawB1 = -2.0f * zr * czAngle;
+            float rawB2 = zr * zr;
+
+            // Exact rational quadratic peak power normalizer (guarantees max |H(w)| <= 0 dB at all frequencies)
+            const double peakPwr = sectionPeakPower(rawB1, rawB2, a1, a2);
+            const float g = static_cast<float>(0.95 / std::sqrt(std::max(1.0, peakPwr)));
 
             float b0 = g;
-            float b1 = -2.0f * zr * czAngle * g;
-            float b2 = zr * zr * g;
+            float b1 = rawB1 * g;
+            float b2 = rawB2 * g;
 
-            changed |= leftStages_[s].setTarget(b0, b1, b2, a1, a2);
-            rightStages_[s].setTarget(b0, b1, b2, a1, a2);
+            stages_[s].setTargetWithRamp(b0, b1, b2, a1, a2, invSteps);
         }
 
-        if (changed) settleSamples_ = kSettleSamples;
         activeModelNorm_ = model.modelNorm;
     }
 
     void sanitize() noexcept {
         for (int s = 0; s < kNumSections; ++s) {
-            auto& bl = leftStages_[s];
-            if (!std::isfinite(bl.s1 + bl.s2) || std::abs(bl.s1) > 1e4f || std::abs(bl.s2) > 1e4f) {
-                bl.reset();
-            }
-            auto& br = rightStages_[s];
-            if (!std::isfinite(br.s1 + br.s2) || std::abs(br.s1) > 1e4f || std::abs(br.s2) > 1e4f) {
-                br.reset();
+            auto& st = stages_[s];
+            alignas(16) float a[4], b[4];
+            _mm_store_ps(a, st.s1);
+            _mm_store_ps(b, st.s2);
+            if (!std::isfinite(a[0] + a[1] + b[0] + b[1]) ||
+                std::abs(a[0]) > 1e4f || std::abs(a[1]) > 1e4f ||
+                std::abs(b[0]) > 1e4f || std::abs(b[1]) > 1e4f) {
+                st.reset();
             }
         }
     }
 
-    void processStereo(float& left, float& right) noexcept {
-        constexpr float kLambda = 0.05f; // Fast 1-pole coefficient smoothing (~0.8ms)
-
-        float l = left;
-        float r = right;
-
-        if (settleSamples_ > 0) {
-            for (int s = 0; s < kNumSections; ++s) {
-                leftStages_[s].smooth(kLambda);
-                rightStages_[s].smooth(kLambda);
-            }
-            if (--settleSamples_ == 0) {
-                for (auto& b : leftStages_) b.snap();
-                for (auto& b : rightStages_) b.snap();
-            }
-        }
+    inline void processStereo(float& left, float& right) noexcept {
+        // Pack Left and Right into 2-wide SIMD vector: [left, right, 0, 0]
+        __m128 in = _mm_setr_ps(left, right, 0.0f, 0.0f);
 
         for (int s = 0; s < kNumSections; ++s) {
-            l = leftStages_[s].process(l);
-            r = rightStages_[s].process(r);
+            stages_[s].stepRamp();
+            in = stages_[s].process(in);
+            in = softLimit2Wide(in);
         }
 
-        // Apply dynamic model headroom normalization
-        left = l * activeModelNorm_;
-        right = r * activeModelNorm_;
+        alignas(16) float out[4];
+        _mm_store_ps(out, in);
+
+        left = out[0] * activeModelNorm_;
+        right = out[1] * activeModelNorm_;
     }
 
 private:
@@ -260,13 +360,10 @@ private:
     double sampleRate_ = 44100.0;
     float activeModelNorm_ = 0.35f;
 
-    static constexpr int kSettleSamples = 256; // Fast ~5ms settle before coefficient snap
-    int settleSamples_ = 0;
     int lastModel_ = -1;
     float lastX_ = -1.0f, lastY_ = -1.0f, lastZ_ = -1.0f;
 
-    std::array<BiquadTDF2, kNumSections> leftStages_;
-    std::array<BiquadTDF2, kNumSections> rightStages_;
+    std::array<BiquadTDF2Stereo, kNumSections> stages_;
 };
 
 } // namespace Nyarlat

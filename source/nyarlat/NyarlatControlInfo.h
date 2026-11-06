@@ -98,7 +98,7 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
         { Ids::rand_z_transform, "Z TRAN", "chaos modulation depth into Z transform", Colours::kChaos },
         { Ids::rand_seethe, "SEETHE", "chaos modulation depth into console warmth", Colours::kChaos },
         { Ids::rand_amp_decay, "AMP DEC", "chaos modulation depth into VCA decay", Colours::kChaos },
-        { Ids::rand_pan, "PAN", "chaos modulation depth into stereo panning", Colours::kChaos },
+        { Ids::rand_spread, "RDM SPREAD", "chaos modulation depth into bipolar stereo spread swimming", Colours::kChaos },
 
         // 14-POLE Z-FILTER
         { Ids::z_model, "MODEL", "14-pole Z-domain parameter cube geometry model", Colours::kFilter },

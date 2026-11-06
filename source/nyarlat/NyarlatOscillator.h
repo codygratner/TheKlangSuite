@@ -15,7 +15,7 @@ class BitmaskOscillator {
 public:
     static constexpr size_t kTableSize = 512;
     static constexpr size_t kZeroRunway = 8192; // 8KB buffer (512 wave + 7680 zeroes)
-    static constexpr int kOversample = 16;
+    static constexpr int kOversample = 4;
 
     BitmaskOscillator() {
         buffer8k_.assign(kZeroRunway, 0.0f);
@@ -23,8 +23,9 @@ public:
 
     void prepare(double sampleRate) noexcept {
         sampleRate_ = (sampleRate > 0.0) ? sampleRate : 44100.0;
-        incScale_ = 16777216.0 / (sampleRate_ * 16.0);
+        incScale_ = 16777216.0 / (sampleRate_ * 4.0);
         statorScale_ = 4294967296.0 / sampleRate_;
+        dcPole_ = static_cast<float>(std::exp(-6.28318530717958647692 * 10.0 / sampleRate_));
         phase_ = 0;
         statorQ_ = 0;
         bakedKey_ = 0xFFFFFFFFu;
@@ -65,7 +66,16 @@ public:
         tableDirty_ = true; // Click-free: re-bake deferred to next phase seam wrap
     }
 
-    // Process a single audio sample (evaluates 16 sub-samples internally with Q32 Stator Sweep)
+    // Fast copy from processor-level shared wavetable cache (bypasses redundant interpolation)
+    void copyTable(const float* source512, uint32_t bankIdx, float waveMorph) noexcept {
+        if (bankIdx == lastBank_ && std::fabs(waveMorph - lastMorph_) < (1.0f / 4096.0f)) return;
+        lastBank_ = bankIdx;
+        lastMorph_ = waveMorph;
+        std::memcpy(buffer8k_.data(), source512, kTableSize * sizeof(float));
+        tableDirty_ = true;
+    }
+
+    // Process a single audio sample (evaluates 4 sub-samples with 2-point linear interpolation & Q32 Stator Sweep)
     float processSample(float freqHz, int rawMask, float maskSpeed,
                         int loopMode, bool octLock, bool hardSyncTrigger = false) noexcept {
         const uint32_t mask9 = static_cast<uint32_t>(juce::jlimit(0, 511, rawMask) * 16 + 15) & 0x1FFu;
@@ -86,37 +96,42 @@ public:
             latchSeam(mask9, rawMask, loopMode, sp, octLock);
         }
 
-        // Phase increment for 16x oversampling using seam-latched octave lock ratio
+        // Phase increment for 4x oversampling using seam-latched octave lock ratio
         const double incPerSubstep = static_cast<double>(freqHz * latchedRatio_) * incScale_;
         const uint32_t inc = std::max<uint32_t>(1u, static_cast<uint32_t>(std::min(incPerSubstep, 16777215.0)));
 
-        // Ultra-lean integer-only 16x oversampling loop (split at seam for sample-accurate latching)
+        // Ultra-lean integer-only 4x oversampling loop with 2-point linear interpolation
         const float* c = cycle_.data();
         uint32_t ph = phase_ & 0x00FFFFFFu;
-        // Division-free fast path: all 16 sub-steps stay in-cycle unless ph + 16*inc reaches the seam
-        int nPre = 16;
-        if (static_cast<uint64_t>(ph) + 16ull * inc >= 0x01000000ull) {
-            nPre = static_cast<int>(std::min<uint32_t>(16u, (0x01000000u - ph + inc - 1u) / inc));
+        int nPre = 4;
+        if (static_cast<uint64_t>(ph) + 4ull * inc >= 0x01000000ull) {
+            nPre = static_cast<int>(std::min<uint32_t>(4u, (0x01000000u - ph + inc - 1u) / inc));
         }
 
-        float sum = 0.0f;
+        float subs[4];
         for (int k = 0; k < nPre; ++k) {
-            sum += c[ph >> 15];
+            const uint32_t idx0 = ph >> 15;
+            const uint32_t idx1 = (idx0 + 1) & 0x1FFu;
+            const float frac = static_cast<float>((ph >> 6) & 0x1FFu) * (1.0f / 512.0f);
+            subs[k] = c[idx0] + frac * (c[idx1] - c[idx0]);
             ph += inc;
         }
-        if (nPre < 16) {
+        if (nPre < 4) {
             // Seam wrap landed inside this audio sample: re-latch parameters exactly at the boundary!
             ph &= 0x00FFFFFFu;
             latchSeam(mask9, rawMask, loopMode, sp, octLock);
-            for (int k = nPre; k < 16; ++k) {
-                sum += c[(ph >> 15) & 0x1FFu];
+            for (int k = nPre; k < 4; ++k) {
+                const uint32_t idx0 = (ph >> 15) & 0x1FFu;
+                const uint32_t idx1 = (idx0 + 1) & 0x1FFu;
+                const float frac = static_cast<float>((ph >> 6) & 0x1FFu) * (1.0f / 512.0f);
+                subs[k] = c[idx0] + frac * (c[idx1] - c[idx0]);
                 ph += inc;
             }
         }
         phase_ = ph & 0x00FFFFFFu;
 
-        // Decimation scaling (1/16) and resonant gain are pre-folded into cycle_
-        float decimated = sum;
+        // Pillar 1: Binomial [1, 3, 3, 1] / 8 decimation kernel (-33.5 dB stopband rejection)
+        float decimated = 0.125f * (subs[0] + subs[3]) + 0.375f * (subs[1] + subs[2]);
 
         // Smooth hard-sync transition if active
         if (syncFade_ > 0.0f) {
@@ -125,9 +140,9 @@ public:
             if (syncFade_ < 0.0f) syncFade_ = 0.0f;
         }
 
-        // 6. High-Pass Leaky DC Blocker (R = 0.999)
+        // Pillar 4: High-Pass Sample-Rate Invariant Leaky DC Blocker (fc = 10.0 Hz)
         // y[n] = x[n] - x[n-1] + R * y[n-1]
-        float dcOut = decimated - prevInput_ + 0.999f * dcState_;
+        float dcOut = decimated - prevInput_ + dcPole_ * dcState_;
         prevInput_ = decimated;
         dcState_ = dcOut;
 
@@ -150,22 +165,57 @@ private:
             return x * x * (3.0f - 2.0f * x);
         };
         const float t = static_cast<float>(off) * (1.0f / 512.0f);
-        const float depth = (loop == 2) ? S(1.0f - std::fabs(2.0f * t - 1.0f))
-                                        : (t <= 0.9f ? t : t * (1.0f - S((t - 0.9f) * 10.0f)));
+        // loop: 0 = Saw Up, 1 = Triangle (Ping-Pong), 2 = Saw Down
+        const float depth = (loop == 1)
+            ? S(1.0f - std::fabs(2.0f * t - 1.0f))
+            : (loop == 0
+                ? (t <= 0.9f ? t : t * (1.0f - S((t - 0.9f) * 10.0f)))
+                : (t >= 0.1f ? (1.0f - t) : (1.0f - t) * (1.0f - S((0.1f - t) * 10.0f))));
         const float r = 1.0f + 5.0f * depth;
-        const float gain = (1.0f + 0.6f * depth) * (1.0f / 16.0f); // Pre-fold decimation scale
         const bool identity = (mask9 == 0x1FFu);
         const float* tbl = buffer8k_.data();
         const float* win = getWindowTable().data();
 
+        // Pass 1: Raw cycle synthesis and mean energy evaluation
+        float sumVal = 0.0f;
         for (uint32_t n = 0; n < kTableSize; ++n) {
-            const float pos = static_cast<float>(n) * r; // 512 * phi * r, unwrapped
+            const float pos = static_cast<float>(n) * r;
             const uint32_t k = static_cast<uint32_t>(pos);
             const uint32_t i = k & 0x1FFu;
             const uint32_t im = i & mask9;
             float s = tbl[im];
             if (identity) s += (pos - static_cast<float>(k)) * (tbl[(im + 1u) & 0x1FFu] - s);
-            cycle_[n] = gain * s * (1.0f - depth * win[n]);
+            float val = s * (1.0f - depth * win[n]);
+            cycle_[n] = val;
+            sumVal += val;
+        }
+
+        // Pass 2: AC-centered energy taper (Stage 1 Dynamics)
+        const float mean = sumVal * (1.0f / 512.0f);
+        float acEnergySum = 0.0f;
+        for (uint32_t n = 0; n < kTableSize; ++n) {
+            const float diff = cycle_[n] - mean;
+            acEnergySum += diff * diff;
+        }
+        const float meanAcEnergy = acEnergySum * (1.0f / 512.0f);
+        constexpr float kTargetNominalEnergy = 0.0625f; // -12 dBFS RMS nominal reference
+
+        float taperGain = 1.0f;
+        if (meanAcEnergy > kTargetNominalEnergy) {
+            taperGain = 1.0f / std::sqrt(1.0f + 8.0f * (meanAcEnergy - kTargetNominalEnergy));
+        }
+
+        // Pass 3: Apply Hermite boundary envelope (Pillar 2) & AC taper
+        for (uint32_t n = 0; n < kTableSize; ++n) {
+            float edge = 1.0f;
+            if (n < 4) {
+                float u = static_cast<float>(n) * 0.25f;
+                edge = u * u * (3.0f - 2.0f * u);
+            } else if (n > 507) {
+                float u = static_cast<float>(511 - n) * 0.25f;
+                edge = u * u * (3.0f - 2.0f * u);
+            }
+            cycle_[n] *= taperGain * edge;
         }
     }
 
@@ -174,16 +224,21 @@ private:
             bakedKey_ = 0xFFFFFFFFu;
             tableDirty_ = false;
         }
-        const int eff = (loop == 0 && sp > 0.0f) ? 1 : loop;
         uint32_t sweep = 0;
-        if (eff != 0) {
+        if (sp > 0.0f) {
             const uint32_t p = statorQ_ >> 23;
-            sweep = (eff == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
+            if (loop == 0) {
+                sweep = p;
+            } else if (loop == 1) {
+                sweep = (p < 256u ? p * 2u : (511u - p) * 2u);
+            } else {
+                sweep = 511u - p;
+            }
         }
         const uint32_t off = sweep & 0x1FFu;
         lastStatorOffset_ = off;
         latchedRatio_ = (octLock && rawMask >= 0 && rawMask < 512) ? getSharedPitchTable()[rawMask] : 1.0f;
-        bakeCycle(mask9, off, eff);
+        bakeCycle(mask9, off, loop);
     }
 
 private:
@@ -218,13 +273,14 @@ private:
     }
 
     double sampleRate_ = 44100.0;
-    double incScale_ = 16777216.0 / (44100.0 * 16.0);
+    double incScale_ = 16777216.0 / (44100.0 * 4.0);
     double statorScale_ = 4294967296.0 / 44100.0;
     uint32_t phase_ = 0;
     uint32_t statorQ_ = 0;
     uint32_t lastStatorOffset_ = 0;
     float dcState_ = 0.0f;
     float prevInput_ = 0.0f;
+    float dcPole_ = 0.998692f;
     float syncFade_ = 0.0f;
 
     alignas(32) std::array<float, kTableSize> cycle_{};

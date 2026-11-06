@@ -10,6 +10,83 @@
 
 namespace Nyarlat {
 
+// Stage 2: Slew-Smoothed Optical RMS Stem Leveller (-36 dBFS expansion floor)
+struct VoiceOptoLeveller {
+    float powerMs = 0.0f;
+    float currentGain = 1.0f;
+    float targetGain = 1.0f;
+    float slewCoeff = 0.001f;
+    float attCoeff = 0.005f;
+    float relCoeff = 0.0003f;
+
+    void prepare(double sampleRate) noexcept {
+        double sr = (sampleRate > 0.0) ? sampleRate : 44100.0;
+        attCoeff = static_cast<float>(1.0 - std::exp(-1.0 / (0.012 * sr)));
+        relCoeff = static_cast<float>(1.0 - std::exp(-1.0 / (0.180 * sr)));
+        slewCoeff = static_cast<float>(1.0 - std::exp(-1.0 / (0.025 * sr)));
+        reset();
+    }
+
+    void reset() noexcept {
+        powerMs = 0.0f;
+        currentGain = 1.0f;
+        targetGain = 1.0f;
+    }
+
+    void updateControlRate() noexcept {
+        const float rms = std::sqrt(powerMs + 1e-9f);
+        constexpr float kTargetRms = 0.20f;     // -14 dBFS
+        constexpr float kFloorRms  = 0.01585f;  // -36 dBFS
+        constexpr float kMinRms    = 0.007925f; // -42 dBFS
+
+        if (rms <= kMinRms) {
+            targetGain = 1.0f;
+        } else if (rms < kFloorRms) {
+            float u = (rms - kMinRms) / (kFloorRms - kMinRms);
+            float s = u * u * (3.0f - 2.0f * u);
+            float activeGain = std::sqrt(kTargetRms / kFloorRms);
+            targetGain = 1.0f + (activeGain - 1.0f) * s;
+        } else {
+            float idealGain = std::sqrt(kTargetRms / rms);
+            targetGain = juce::jlimit(0.501f, 1.412f, idealGain);
+        }
+    }
+
+    inline void processSample(float& l, float& r) noexcept {
+        const float p = 0.5f * (l * l + r * r);
+        const float coeff = (p > powerMs) ? attCoeff : relCoeff;
+        powerMs += coeff * (p - powerMs);
+        currentGain += slewCoeff * (targetGain - currentGain);
+        l *= currentGain;
+        r *= currentGain;
+    }
+};
+
+// Pillar 3: Vintage Hardware 18 kHz Analog Reconstruction Filter
+struct OnePoleReconstructionLP {
+    float yL = 0.0f;
+    float yR = 0.0f;
+    float a = 0.0950f;
+
+    void prepare(double sampleRate) noexcept {
+        double sr = (sampleRate > 0.0) ? sampleRate : 44100.0;
+        a = static_cast<float>(std::exp(-6.28318530717958647692 * 18000.0 / sr));
+        reset();
+    }
+
+    void reset() noexcept {
+        yL = 0.0f;
+        yR = 0.0f;
+    }
+
+    inline void process(float& l, float& r) noexcept {
+        yL = yL + (1.0f - a) * (l - yL);
+        yR = yR + (1.0f - a) * (r - yR);
+        l = yL;
+        r = yR;
+    }
+};
+
 class NyarlatVoice {
 public:
     enum class EnvStage { Idle, Attack, Decay, Sustain, Release };
@@ -103,6 +180,9 @@ public:
         sampleRate_ = sampleRate;
         for (auto& osc : oscs_) osc.prepare(sampleRate);
         filter_.prepare(sampleRate);
+        optoLeveller_.prepare(sampleRate);
+        reconstructionLp_.prepare(sampleRate);
+        panSlewCoeff_ = static_cast<float>(1.0 - std::exp(-1.0 / (0.015 * (sampleRate > 0.0 ? sampleRate : 44100.0))));
         mixerDcBlockerL_.prepare(sampleRate, 5.0);
         mixerDcBlockerR_.prepare(sampleRate, 5.0);
         postFilterDcBlockerL_.prepare(sampleRate, 5.0);
@@ -113,6 +193,12 @@ public:
     void reset() noexcept {
         for (auto& osc : oscs_) osc.reset();
         filter_.reset();
+        optoLeveller_.reset();
+        reconstructionLp_.reset();
+        curPan2L_ = 0.7071068f;
+        curPan2R_ = 0.7071068f;
+        targetPan2L_ = 0.7071068f;
+        targetPan2R_ = 0.7071068f;
         mixerDcBlockerL_.reset();
         mixerDcBlockerR_.reset();
         postFilterDcBlockerL_.reset();
@@ -212,9 +298,7 @@ public:
         if (!ampEnv_.isActive()) return;
 
         const float velScale = 1.0f - ampVelocity + (ampVelocity * velocity_ * velocity_);
-        const float panSpread = oscSpread * 0.5f;
         const int noiseHoldMax = 1 + static_cast<int>(noiseTone * 126.0f);
-        const float driveGain = 1.0f + mixerSeethe * 4.0f;
 
         for (int s = 0; s < numSamples; ++s) {
             // Adaptive polyphonic culling: drop quiet release tails under high voice density
@@ -266,7 +350,20 @@ public:
                 float xNorm = TbdAudio::FastMath::fastLog2(effFreq / 20.0f) * 0.10034333f;
 
                 filter_.updateCube(zModel, xNorm, effMorph, effTransform, 1.0f / 64.0f);
+
+                // Stage 2: Update Opto Leveller
+                optoLeveller_.updateControlRate();
+
+                // Bipolar Spread & Channel 14 Stepped Random Swim
+                const float chaosSpread = chaos_.getModulation(14, randAttenuverters[14]);
+                const float effSpread = juce::jlimit(-1.0f, 1.0f, oscSpread + chaosSpread);
+                targetPan2L_ = std::sqrt(0.5f * (1.0f - effSpread));
+                targetPan2R_ = std::sqrt(0.5f * (1.0f + effSpread));
             }
+
+            // Slew pan gains towards target (15ms slew)
+            curPan2L_ += (targetPan2L_ - curPan2L_) * panSlewCoeff_;
+            curPan2R_ += (targetPan2R_ - curPan2R_) * panSlewCoeff_;
 
             float basePitch = currentPitchHz_ * cachedBendMult_;
 
@@ -285,14 +382,23 @@ public:
                 noiseSample_ = static_cast<float>((noiseSeed_ >> 16) & 0x7FFF) / 16384.0f - 1.0f;
             }
 
-            // 5. Pre-Filter Stereo Stem Mixer with Osc Spread
-            float mixL = (sig1 * osc1Level * 0.707f + sig2 * osc2Level * (0.707f + panSpread) + sig3 * osc3Level * (0.707f - panSpread) + noiseSample_ * noiseLevel) * 0.333f;
-            float mixR = (sig1 * osc1Level * 0.707f + sig2 * osc2Level * (0.707f - panSpread) + sig3 * osc3Level * (0.707f + panSpread) + noiseSample_ * noiseLevel) * 0.333f;
+            // 5. Pre-Filter Stereo Stem Mixer with Constant-Power Bipolar Spread
+            // Osc 1 locked mono center (0.7071068f), Osc 2 & 3 mirror symmetrically
+            float mixL = (sig1 * osc1Level * 0.7071068f + sig2 * osc2Level * curPan2L_ + sig3 * osc3Level * curPan2R_ + noiseSample_ * noiseLevel) * 0.333f;
+            float mixR = (sig1 * osc1Level * 0.7071068f + sig2 * osc2Level * curPan2R_ + sig3 * osc3Level * curPan2L_ + noiseSample_ * noiseLevel) * 0.333f;
 
-            // 6. Per-Voice Console Seethe Drive
+            // --- STAGE 2: Slew-Smoothed Opto RMS Leveller (-36 dBFS floor) ---
+            optoLeveller_.processSample(mixL, mixR);
+
+            // --- PILLAR 3: 18 kHz Vintage Analog Reconstruction Filter ---
+            reconstructionLp_.process(mixL, mixR);
+
+            // --- STAGE 3: Console Seethe Drive & Hard Ceiling ---
             if (mixerSeethe > 0.001f) {
-                mixL = TbdAudio::FastMath::fastTanh(mixL * driveGain);
-                mixR = TbdAudio::FastMath::fastTanh(mixR * driveGain);
+                const float drive = 1.0f + mixerSeethe * 3.0f;
+                const float makeup = 1.0f / std::sqrt(1.0f + 0.6f * mixerSeethe);
+                mixL = TbdAudio::FastMath::fastTanh(mixL * drive) * makeup;
+                mixR = TbdAudio::FastMath::fastTanh(mixR * drive) * makeup;
             }
 
             // Pre-Filter DC Blocker
@@ -350,7 +456,7 @@ public:
                 waveMorph[i] + chaos_.getModulation(i * 3 + 0, randAttenuverters[i * 3 + 0]));
             effWave_[i] = effWave;
             if (sharedTables != nullptr && randAttenuverters[i * 3 + 0] == 0.0f) {
-                oscs_[i].copyTable((*sharedTables)[i].data(), bankIdx[i], waveMorph[i]);
+                oscs_[i].copyTable((*sharedTables)[i].data(), bankIdx[i], effWave);
             } else {
                 oscs_[i].updateTable(bankIdx[i], effWave);
             }
@@ -392,6 +498,13 @@ private:
 
     std::array<BitmaskOscillator, 3> oscs_;
     ZDomainFilter14 filter_;
+    VoiceOptoLeveller optoLeveller_;
+    OnePoleReconstructionLP reconstructionLp_;
+    float curPan2L_ = 0.7071068f;
+    float curPan2R_ = 0.7071068f;
+    float targetPan2L_ = 0.7071068f;
+    float targetPan2R_ = 0.7071068f;
+    float panSlewCoeff_ = 0.0015f;
     CrackedChimes::DSP::LeakyDCBlocker mixerDcBlockerL_;
     CrackedChimes::DSP::LeakyDCBlocker mixerDcBlockerR_;
     CrackedChimes::DSP::LeakyDCBlocker postFilterDcBlockerL_;

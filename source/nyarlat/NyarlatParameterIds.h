@@ -57,7 +57,7 @@ namespace Ids {
     constexpr auto rand_z_transform = "rand_z_transform";
     constexpr auto rand_seethe = "rand_seethe";
     constexpr auto rand_amp_decay = "rand_amp_decay";
-    constexpr auto rand_pan = "rand_pan";
+    constexpr auto rand_spread = "rand_spread";
     constexpr auto z_model = "z_model";
     constexpr auto z_freq = "z_freq";
     constexpr auto z_morph = "z_morph";
@@ -147,7 +147,7 @@ namespace Names {
     constexpr auto rand_z_transform = "RDM Z-Transform";
     constexpr auto rand_seethe = "RDM Seethe";
     constexpr auto rand_amp_decay = "RDM Amp Decay";
-    constexpr auto rand_pan = "RDM Pan";
+    constexpr auto rand_spread = "RDM Spread";
     constexpr auto z_model = "Z-Filter Model";
     constexpr auto z_freq = "Z-Frequency";
     constexpr auto z_morph = "Z-Morph";

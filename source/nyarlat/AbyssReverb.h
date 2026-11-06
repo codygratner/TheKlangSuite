@@ -57,8 +57,8 @@ public:
         writeDelay(0, idxA_, apL);
         writeDelay(1, idxB_, apR);
 
-        idxA_ = (idxA_ + 1) % lineLengths_[0];
-        idxB_ = (idxB_ + 1) % lineLengths_[1];
+        if (++idxA_ >= lineLengths_[0]) idxA_ = 0;
+        if (++idxB_ >= lineLengths_[1]) idxB_ = 0;
 
         float wetL = tapA;
         float wetR = tapB;
@@ -83,7 +83,8 @@ private:
         float v = in + coeff * delayed;
         float out = delayed - coeff * v;
         apLines_[apIdx][ptr] = v;
-        apPtrs_[apIdx] = (ptr + 1) % apLengths_[apIdx];
+        if (++ptr >= apLengths_[apIdx]) ptr = 0;
+        apPtrs_[apIdx] = ptr;
         return out;
     }
 

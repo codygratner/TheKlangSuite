@@ -93,7 +93,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // osc1_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc1_loop, 1}, nyarlatParameters::Names::osc1_loop,
-        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 1));
+        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
 
     // osc1_octave [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -130,7 +130,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // osc2_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc2_loop, 1}, nyarlatParameters::Names::osc2_loop,
-        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 1));
+        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
 
     // osc2_octave [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -172,7 +172,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // osc3_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc3_loop, 1}, nyarlatParameters::Names::osc3_loop,
-        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 1));
+        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
 
     // osc3_octave [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -215,7 +215,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc_spread [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc_spread, 1}, nyarlatParameters::Names::osc_spread, 0.0000f, 1.0000f, 0.5000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc_spread, 1}, nyarlatParameters::Names::osc_spread, -1.0000f, 1.0000f, 0.0000f));
 
     // mixer_seethe [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -290,9 +290,9 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::rand_amp_decay, 1}, nyarlatParameters::Names::rand_amp_decay, 0.0000f, 1.0000f, 0.0000f));
 
-    // rand_pan [random]
+    // rand_spread [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_pan, 1}, nyarlatParameters::Names::rand_pan, 0.0000f, 1.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::rand_spread, 1}, nyarlatParameters::Names::rand_spread, 0.0000f, 1.0000f, 0.0000f));
 
     // z_model [filter]
     layout.add(std::make_unique<juce::AudioParameterChoice>(

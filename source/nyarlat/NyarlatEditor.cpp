@@ -100,40 +100,65 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
         return buttons_.back().get();
     };
 
+    auto makeRadio = [this](const juce::String& paramId, juce::Colour col) {
+        auto item = std::make_unique<RadioItem>();
+        setupRadio(*item, paramId, col);
+        radios_.push_back(std::move(item));
+        return &radios_.back()->radio;
+    };
+
     namespace Ids = nyarlatParameters::Ids;
 
     // --- OSCILLATORS (Bay 1) ---
+    // Loop Tags (static obsidian badge caps)
+    for (int o = 0; o < 3; ++o) {
+        loopTags_[o].setText("LOOP", juce::dontSendNotification);
+        loopTags_[o].setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        loopTags_[o].setJustificationType(juce::Justification::centred);
+        loopTags_[o].setColour(juce::Label::backgroundColourId, juce::Colour(0xFF161B22));
+        loopTags_[o].setColour(juce::Label::textColourId, juce::Colour(0xFF8B949E));
+        loopTags_[o].setColour(juce::Label::outlineColourId, juce::Colour(0xFF30363D));
+        contentContainer.addAndMakeVisible(loopTags_[o]);
+    }
+
+    // Osc 1 Master Sync Cap (dimmed indicator)
+    osc1MasterButton_.setButtonText("MSTR");
+    osc1MasterButton_.setEnabled(false);
+    osc1MasterButton_.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF161B22));
+    osc1MasterButton_.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF6E7681));
+    contentContainer.addAndMakeVisible(osc1MasterButton_);
+
     // Osc 1
     makeCombo(Ids::osc1_bank, "O1 BANK");
-    makeCombo(Ids::osc1_octave, "O1 OCT");
+    makeRadio(Ids::osc1_octave, Colours::kOsc);
     makeButton(Ids::osc1_oct_lock, "LOCK", Colours::kOsc);
     makeKnob(Ids::osc1_wave, "WAVE", Colours::kOsc);
     makeKnob(Ids::osc1_mask, "MASK", Colours::kOsc);
     makeKnob(Ids::osc1_speed, "SPEED", Colours::kOsc);
     makeKnob(Ids::osc1_detune, "TUNE", Colours::kOsc);
-    makeCombo(Ids::osc1_loop, "LOOP");
+    makeRadio(Ids::osc1_loop, Colours::kOsc);
 
     // Osc 2
     makeCombo(Ids::osc2_bank, "O2 BANK");
-    makeCombo(Ids::osc2_octave, "O2 OCT");
+    makeRadio(Ids::osc2_octave, Colours::kOsc);
     makeButton(Ids::osc2_oct_lock, "LOCK", Colours::kOsc);
     makeButton(Ids::osc2_sync, "SYNC", Colours::kOsc);
     makeKnob(Ids::osc2_wave, "WAVE", Colours::kOsc);
     makeKnob(Ids::osc2_mask, "MASK", Colours::kOsc);
     makeKnob(Ids::osc2_speed, "SPEED", Colours::kOsc);
     makeKnob(Ids::osc2_detune, "TUNE", Colours::kOsc);
-    makeCombo(Ids::osc2_loop, "LOOP");
+    makeRadio(Ids::osc2_loop, Colours::kOsc);
 
     // Osc 3
     makeCombo(Ids::osc3_bank, "O3 BANK");
-    makeCombo(Ids::osc3_octave, "O3 OCT");
+    makeRadio(Ids::osc3_octave, Colours::kOsc);
     makeButton(Ids::osc3_oct_lock, "LOCK", Colours::kOsc);
     makeButton(Ids::osc3_sync, "SYNC", Colours::kOsc);
     makeKnob(Ids::osc3_wave, "WAVE", Colours::kOsc);
     makeKnob(Ids::osc3_mask, "MASK", Colours::kOsc);
     makeKnob(Ids::osc3_speed, "SPEED", Colours::kOsc);
     makeKnob(Ids::osc3_detune, "TUNE", Colours::kOsc);
-    makeCombo(Ids::osc3_loop, "LOOP");
+    makeRadio(Ids::osc3_loop, Colours::kOsc);
 
     // --- MIXER (Bay 2 Top) ---
     makeFader(Ids::osc1_level, "OSC 1", Colours::kMixer);
@@ -168,7 +193,7 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
     makeKnob(Ids::rand_seethe, "SEETHE", Colours::kChaos);
     makeKnob(Ids::rand_amp_decay, "AMP DEC", Colours::kChaos);
-    makeKnob(Ids::rand_pan, "PAN", Colours::kChaos);
+    makeKnob(Ids::rand_spread, "RDM SPRD", Colours::kChaos);
 
     // --- 14-POLE Z-FILTER (Bay 3) ---
     makeCombo(Ids::z_model, "MODEL");
@@ -265,6 +290,14 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
         paramId == nyarlatParameters::Ids::osc3_detune) {
         item.slider.textFromValueFunction = [](double val) {
             return (val > 0.0 ? "+" : "") + juce::String(val, 1) + " ct";
+        };
+        item.slider.setDoubleClickReturnValue(true, 0.0f);
+    }
+
+    if (paramId == nyarlatParameters::Ids::osc_spread) {
+        item.slider.textFromValueFunction = [](double val) {
+            if (std::abs(val) < 0.001) return juce::String("CENTER (MONO)");
+            return (val > 0.0 ? "R " : "L ") + juce::String(std::abs(val) * 100.0, 0) + "%";
         };
         item.slider.setDoubleClickReturnValue(true, 0.0f);
     }
@@ -366,6 +399,58 @@ void NyarlatEditor::setupButton(ButtonItem& item, const juce::String& paramId, c
     };
 }
 
+void NyarlatEditor::setupRadio(RadioItem& item, const juce::String& paramId, juce::Colour col) {
+    item.paramId = paramId;
+    auto* p = dynamic_cast<juce::AudioParameterChoice*>(processor_.getAPVTS().getParameter(paramId));
+    if (p == nullptr) return;
+
+    juce::StringArray displayLabels;
+    if (paramId.endsWith("_octave")) {
+        displayLabels = { "-2", "-1", "0", "+1", "+2" };
+    } else if (paramId.endsWith("_loop")) {
+        displayLabels = { "SAW UP", "TRIANGLE", "SAW DOWN" };
+    } else {
+        displayLabels = p->choices;
+    }
+
+    item.radio.configure(displayLabels, col);
+    contentContainer.addAndMakeVisible(item.radio);
+
+    item.attachment = std::make_unique<juce::ParameterAttachment>(*p,
+        [r = &item.radio](float v) {
+            r->setIndex(juce::roundToInt(v), juce::dontSendNotification);
+        });
+    item.attachment->sendInitialUpdate();
+
+    item.radio.onChange = [this, a = item.attachment.get(), r = &item.radio](int i) {
+        a->setValueAsCompleteGesture(static_cast<float>(i));
+        inspectComponent(r);
+    };
+
+    if (paramId.endsWith("_octave")) {
+        item.radio.valueText = [](int idx) {
+            static const char* kOctNames[] = { "-2 OCT (x1/4)", "-1 OCT (x1/2)", "0 OCT (x1)", "+1 OCT (x2)", "+2 OCT (x4)" };
+            return (idx >= 0 && idx < 5) ? juce::String(kOctNames[idx]) : "";
+        };
+    } else if (paramId.endsWith("_loop")) {
+        item.radio.valueText = [](int idx) {
+            static const char* kLoopNames[] = { "SAW UP (0->511)", "TRIANGLE (0->511->0)", "SAW DOWN (511->0)" };
+            return (idx >= 0 && idx < 3) ? juce::String(kLoopNames[idx]) : "";
+        };
+    }
+
+    if (auto* info = findNyarlatControlInfo(paramId)) {
+        controlMap_[&item.radio] = info;
+    }
+}
+
+SegmentedRadio* NyarlatEditor::findRadio(const juce::String& paramId) {
+    for (auto& r : radios_) {
+        if (r->paramId == paramId) return &r->radio;
+    }
+    return nullptr;
+}
+
 void NyarlatEditor::inspectComponent(juce::Component* comp) {
     if (comp == nullptr) return;
     auto it = controlMap_.find(comp);
@@ -385,6 +470,8 @@ void NyarlatEditor::inspectComponent(juce::Component* comp) {
             r.value = cb->getText();
         } else if (auto* tb = dynamic_cast<juce::TextButton*>(comp)) {
             r.value = tb->getToggleState() ? "ON" : "OFF";
+        } else if (auto* rad = dynamic_cast<SegmentedRadio*>(comp)) {
+            r.value = rad->getValueText();
         }
         headerInspector_.setReadout(r);
     }
@@ -560,35 +647,37 @@ void NyarlatEditor::layoutControls() {
         const int by = oscBaseY[o];
         const juce::String oPrefix = (o == 0) ? "osc1_" : (o == 1 ? "osc2_" : "osc3_");
 
-        // Header Row: Bank Combo + Octave Combo + Oct Lock Button
-        placeCombo(oPrefix + "bank", 24, by, 136, 22, 0, false);
-        placeCombo(oPrefix + "octave", 164, by, 68, 22, 0, false);
+        // Row 1: Bank Combo (full width 254px across card)
+        placeCombo(oPrefix + "bank", 24, by, 254, 22, 0, false);
+
+        // Row 2: Octave Radio (5 buttons: 158px) + Lock Toggle (42px) + Master/Sync Toggle (42px)
+        if (auto* r = findRadio(oPrefix + "octave")) {
+            r->setBounds(24, by + 26, 158, 22);
+        }
         if (auto* b = findButton(oPrefix + "oct_lock")) {
-            b->button.setBounds(236, by, 42, 22);
+            b->button.setBounds(190, by + 26, 42, 22);
         }
-
-        // Bitmask Waveform Preview
-        if (oscWaveViews_[o] != nullptr) {
-            oscWaveViews_[o]->setBounds(24, by + 26, 254, 58);
-        }
-
-        // Morph Row 1 (3 Knobs, 52px, overhead labels at by + 88)
-        placeKnob(oPrefix + "wave",  24,  by + 88, 52);
-        placeKnob(oPrefix + "mask",  125, by + 88, 52);
-        placeKnob(oPrefix + "speed", 226, by + 88, 52);
-
-        // Mod Row 2: Tune Knob + Loop Combo + Sync Button (Osc 2/3)
-        placeKnob(oPrefix + "detune", 26, by + 154, 48);
-
         if (o == 0) {
-            // Osc 1 Loop Combo (w=120)
-            placeCombo(oPrefix + "loop", 96, by + 168, 160, 24, 12, false);
-        } else {
-            // Osc 2/3 Loop Combo + Sync Button
-            placeCombo(oPrefix + "loop", 88, by + 168, 104, 24, 12, false);
-            if (auto* b = findButton(oPrefix + "sync")) {
-                b->button.setBounds(198, by + 168, 76, 24);
-            }
+            osc1MasterButton_.setBounds(236, by + 26, 42, 22);
+        } else if (auto* b = findButton(oPrefix + "sync")) {
+            b->button.setBounds(236, by + 26, 42, 22);
+        }
+
+        // Row 3: Bitmask Waveform Preview (254x50)
+        if (oscWaveViews_[o] != nullptr) {
+            oscWaveViews_[o]->setBounds(24, by + 52, 254, 50);
+        }
+
+        // Row 4: 4 Knobs (46px each: WAVE, MASK, SPEED, TUNE)
+        placeKnob(oPrefix + "wave",   24,  by + 110, 46);
+        placeKnob(oPrefix + "mask",   92,  by + 110, 46);
+        placeKnob(oPrefix + "speed",  160, by + 110, 46);
+        placeKnob(oPrefix + "detune", 228, by + 110, 46);
+
+        // Row 5: Loop Bar (40px static [LOOP] badge + 210px 3-button Radio: SAW UP, TRIANGLE, SAW DOWN)
+        loopTags_[o].setBounds(24, by + 180, 40, 24);
+        if (auto* r = findRadio(oPrefix + "loop")) {
+            r->setBounds(68, by + 180, 210, 24);
         }
     }
 
@@ -639,7 +728,7 @@ void NyarlatEditor::layoutControls() {
     // Row 4: Space & VCA
     placeKnob(Ids::rand_seethe,    chaosColX[0], 708, 46);
     placeKnob(Ids::rand_amp_decay, chaosColX[1], 708, 46);
-    placeKnob(Ids::rand_pan,       chaosColX[2], 708, 46);
+    placeKnob(Ids::rand_spread,    chaosColX[2], 708, 46);
 
     // ==============================================================================
     // Bay 3: 14-Pole Z-Filter (592, 44, 554, 410)

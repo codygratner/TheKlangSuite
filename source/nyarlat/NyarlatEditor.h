@@ -100,16 +100,93 @@ public:
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
-        // Col 2: Explanation blurb across the full remaining area
-        float blurbW = std::max(50.0f, bounds.getWidth() - 122.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 116.0f, bounds.getY(), blurbW, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(12.0f)));
+        // Col 2: Live Value Readout
+        auto valueRect = juce::Rectangle<float>(bounds.getX() + 116.0f, bounds.getY(), 96.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
+        g.setColour(juce::Colour(0xFFF0F6FC));
+        g.drawText(readout_.value, valueRect, juce::Justification::centredLeft, true);
+
+        // Col 3: Explanation blurb across the full remaining area
+        float blurbW = std::max(50.0f, bounds.getWidth() - 224.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 218.0f, bounds.getY(), blurbW, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(11.5f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
         g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
     }
 
 private:
     Readout readout_;
+};
+
+// ==============================================================================
+// SegmentedRadio: Generic N-segment radio control with ParameterAttachment
+// ==============================================================================
+class SegmentedRadio : public juce::Component {
+public:
+    void configure(const juce::StringArray& labels, juce::Colour accent, int seamPx = 2) {
+        labels_ = labels;
+        accent_ = accent;
+        seam_ = seamPx;
+        repaint();
+    }
+
+    void setIndex(int idx, juce::NotificationType n = juce::sendNotificationSync) {
+        idx = std::clamp(idx, 0, juce::jmax(0, labels_.size() - 1));
+        if (idx == active_) return;
+        active_ = idx;
+        repaint();
+        if (n != juce::dontSendNotification && onChange) onChange(active_);
+    }
+
+    int getIndex() const noexcept { return active_; }
+
+    juce::String getValueText() const {
+        return valueText ? valueText(active_) : (active_ >= 0 && active_ < labels_.size() ? labels_[active_] : "");
+    }
+
+    juce::Rectangle<int> segment(int i) const {
+        const int n = labels_.size();
+        if (n <= 0) return {};
+        const int usable = getWidth() - (n - 1) * seam_;
+        const int x0 = (i * usable) / n + i * seam_;
+        const int x1 = ((i + 1) * usable) / n + i * seam_;
+        return { x0, 0, x1 - x0, getHeight() };
+    }
+
+    void paint(juce::Graphics& g) override {
+        const auto font = juce::Font(juce::FontOptions(10.0f).withStyle("Bold"));
+        g.setFont(font);
+        for (int i = 0; i < labels_.size(); ++i) {
+            const auto seg = segment(i);
+            const bool on = (i == active_);
+            g.setColour(on ? accent_ : juce::Colour(0xFF161B22));
+            g.fillRoundedRectangle(seg.toFloat(), 3.0f);
+            g.setColour(juce::Colour(0xFF30363D));
+            g.drawRoundedRectangle(seg.toFloat().reduced(0.5f), 3.0f, 1.0f);
+            g.setColour(on ? juce::Colour(0xFF0D1117) : juce::Colour(0xFF8B949E));
+            g.drawFittedText(labels_[i], seg.reduced(3, 0), juce::Justification::centred, 1, 0.85f);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        if (labels_.isEmpty()) return;
+        const int n = labels_.size();
+        for (int i = 0; i < n; ++i) {
+            if (segment(i).contains(e.getPosition())) {
+                setIndex(i);
+                break;
+            }
+        }
+    }
+
+    std::function<void(int)> onChange;
+    std::function<juce::String(int)> valueText;
+
+private:
+    juce::StringArray labels_;
+    juce::Colour accent_{0xFF00C8F0};
+    int seam_{2};
+    int active_{0};
 };
 
 // ==============================================================================
@@ -387,6 +464,10 @@ public:
         setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(0xFF0D1117));
     }
 
+    juce::Font getTextButtonFont(juce::TextButton&, int) override {
+        return juce::Font(juce::FontOptions(10.0f).withStyle("Bold"));
+    }
+
     void setAccentColour(juce::Colour c) { accentColour_ = c; }
     juce::Colour getAccentColour() const noexcept { return accentColour_; }
 
@@ -651,6 +732,12 @@ private:
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> attachment;
     };
 
+    struct RadioItem {
+        SegmentedRadio radio;
+        juce::String paramId;
+        std::unique_ptr<juce::ParameterAttachment> attachment;
+    };
+
     class ContentCanvas : public juce::Component {
     public:
         std::function<void(juce::Graphics&)> onPaint;
@@ -663,6 +750,8 @@ private:
     void setupFader(SliderFader& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
     void setupCombo(ComboBoxItem& item, const juce::String& paramId, const juce::String& label);
     void setupButton(ButtonItem& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
+    void setupRadio(RadioItem& item, const juce::String& paramId, juce::Colour col);
+    SegmentedRadio* findRadio(const juce::String& paramId);
 
     void layoutControls();
     void applyDragSensitivity(float s);
@@ -696,6 +785,9 @@ private:
     std::vector<std::unique_ptr<SliderFader>> faders_;
     std::vector<std::unique_ptr<ComboBoxItem>> combos_;
     std::vector<std::unique_ptr<ButtonItem>> buttons_;
+    std::vector<std::unique_ptr<RadioItem>> radios_;
+    std::array<juce::Label, 3> loopTags_;
+    juce::TextButton osc1MasterButton_{"MSTR"};
 
     std::unordered_map<juce::Component*, const ControlInfo*> controlMap_;
 

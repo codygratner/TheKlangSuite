@@ -15,6 +15,8 @@ Checks Enforced:
 - C5: Strict case-sensitive include path matching across source/ and test/
 - C6: Target link libraries naming X11/X11::X11 forbidden (pure dynamic dlsym model)
 - C7: ScopedJuceInitialiser_GUI restricted to ScopedGuiContext encapsulation
+- C8: Zero non-portable MSVC SIMD vector members (.m128_f32)
+- C9: Active Fleet CI Alignment (Hastur, Formless, DigiStrike FS2)
 
 Usage:
     python tools/compat_check.py [--terse] [--json] [--strict] [--fix] [--root <path>]
@@ -301,6 +303,8 @@ def check_source_portability(repo_root: Path, auto_fix: bool = False) -> List[Di
     c3_bare_xlib_violations: List[str] = []
     c4_undef_macro_violations: List[str] = []
     c7_scoped_gui_violations: List[str] = []
+    c8_msvc_simd_violations: List[str] = []
+    msvc_simd_regex = re.compile(r'\.m128[di]?_(f32|f64|i8|i16|i32|i64|u8|u16|u32|u64)\b')
 
     dir_entries_cache: Dict[Path, Dict[str, str]] = {}
 
@@ -378,6 +382,10 @@ def check_source_portability(repo_root: Path, auto_fix: bool = False) -> List[Di
 
             # C7: ScopedJuceInitialiser_GUI must be accompanied by HeadlessX11::install() or ScopedGuiContext
             clean_line = strip_c_comments(line)
+            # C8: Detect MSVC-only union member access on vector types
+            if msvc_simd_regex.search(clean_line):
+                c8_msvc_simd_violations.append(f"{rel_path}:{i}: `{clean_line.strip()}` (non-portable MSVC .m128 member)")
+
             if "ScopedJuceInitialiser_GUI" in clean_line:
                 is_standalone_preview = rel_path.endswith("_main.cpp") or "preview" in rel_path.lower()
                 is_canonical_test_harness = (rel_path == "test/GuiTestHelpers.h")
@@ -497,6 +505,14 @@ def check_source_portability(repo_root: Path, auto_fix: bool = False) -> List[Di
         "name": "ScopedJuceInitialiser_GUI Encapsulation",
         "passed": len(c7_scoped_gui_violations) == 0,
         "message": "ScopedJuceInitialiser_GUI safely encapsulated in ScopedGuiContext" if not c7_scoped_gui_violations else f"{len(c7_scoped_gui_violations)} unshielded ScopedJuceInitialiser_GUI call(s): {'; '.join(c7_scoped_gui_violations[:3])}",
+    })
+
+    # 8. C8: Anti-MSVC SIMD Intrinsics audit
+    checks.append({
+        "category": "Platform Airlock (C8)",
+        "name": "Zero Non-Portable MSVC SIMD Vector Members",
+        "passed": len(c8_msvc_simd_violations) == 0,
+        "message": "No non-portable MSVC .m128 vector members detected" if not c8_msvc_simd_violations else f"{len(c8_msvc_simd_violations)} MSVC SIMD violation(s): {'; '.join(c8_msvc_simd_violations[:3])}",
     })
 
     return checks

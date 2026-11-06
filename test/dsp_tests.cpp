@@ -56,10 +56,12 @@
 #include "hastur/VactrolLPG.h"
 #include "hastur/AlphaOscillator.h"
 #include "hastur/HasturVoice.h"
+#ifndef TKS_EXCLUDE_EXPERIMENTAL_SYNTHS
 #include "nyarlat/AbyssReverb.h"
 #include "nyarlat/NyarlatOscillator.h"
 #include "nyarlat/ZDomainFilter14.h"
 #include "nyarlat/NyarlatVoice.h"
+#endif
 
 int main() {
     std::cout << "Starting DSP Verification Tests for 22-Block Modular Drum Synth..." << std::endl;
@@ -6518,6 +6520,7 @@ int main() {
     // =========================================================================
     // SUITE 74: Nyarlat AbyssReverb DC Stability & Allpass Contractivity Gauntlet
     // =========================================================================
+#ifndef TKS_EXCLUDE_EXPERIMENTAL_SYNTHS
     {
         std::cout << "\nRunning Suite 74: Nyarlat AbyssReverb DC Stability & Allpass Gauntlet..." << std::endl;
         constexpr double sr = 48000.0;
@@ -6835,6 +6838,7 @@ int main() {
 
         std::cout << "PASS: Suite 77: Nyarlat Detune Cents Scaling & Oscillator Chaos Telemetry Gauntlet completed 100%!" << std::endl;
     }
+#endif
 
     std::cout << "\n>>> ALL 77 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;

@@ -57,8 +57,8 @@ parameters:
     category: dco
     type: choice
     effect: timbre
-    choices: ['Off', 'Saw', 'Ping-Pong']
-    default: 'Saw'
+    choices: ['Saw Up', 'Triangle', 'Saw Down']
+    default: 'Saw Up'
 
   - id: osc1_octave
     name: Osc 1 Octave
@@ -133,8 +133,8 @@ parameters:
     category: dco
     type: choice
     effect: timbre
-    choices: ['Off', 'Saw', 'Ping-Pong']
-    default: 'Saw'
+    choices: ['Saw Up', 'Triangle', 'Saw Down']
+    default: 'Saw Up'
 
   - id: osc2_octave
     name: Osc 2 Octave
@@ -217,8 +217,8 @@ parameters:
     category: dco
     type: choice
     effect: timbre
-    choices: ['Off', 'Saw', 'Ping-Pong']
-    default: 'Saw'
+    choices: ['Saw Up', 'Triangle', 'Saw Down']
+    default: 'Saw Up'
 
   - id: osc3_octave
     name: Osc 3 Octave
@@ -300,8 +300,8 @@ parameters:
     category: mixer
     type: float
     effect: pan
-    range: [0.0, 1.0]
-    default: 0.5
+    range: [-1.0, 1.0]
+    default: 0.0
 
   - id: mixer_seethe
     name: Console Warmth
@@ -457,8 +457,8 @@ parameters:
     range: [0.0, 1.0]
     default: 0.0
 
-  - id: rand_pan
-    name: RDM Pan
+  - id: rand_spread
+    name: RDM Spread
     category: random
     type: float
     effect: pan

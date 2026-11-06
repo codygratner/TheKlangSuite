@@ -201,7 +201,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         *apvts_.getRawParameterValue(Ids::rand_z_transform),
         *apvts_.getRawParameterValue(Ids::rand_seethe),
         *apvts_.getRawParameterValue(Ids::rand_amp_decay),
-        *apvts_.getRawParameterValue(Ids::rand_pan)
+        *apvts_.getRawParameterValue(Ids::rand_spread)
     };
 
     int zModel = static_cast<int>(*apvts_.getRawParameterValue(Ids::z_model));
