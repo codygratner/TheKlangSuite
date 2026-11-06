@@ -139,6 +139,21 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         *apvts_.getRawParameterValue(Ids::osc2_sync) > 0.5f,
         *apvts_.getRawParameterValue(Ids::osc3_sync) > 0.5f
     };
+    int oscStarts[3] = {
+        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc1_start)),
+        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc2_start)),
+        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc3_start))
+    };
+    float oscSpeeds[3] = {
+        *apvts_.getRawParameterValue(Ids::osc1_speed),
+        *apvts_.getRawParameterValue(Ids::osc2_speed),
+        *apvts_.getRawParameterValue(Ids::osc3_speed)
+    };
+    int oscLoops[3] = {
+        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc1_loop)),
+        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc2_loop)),
+        static_cast<int>(*apvts_.getRawParameterValue(Ids::osc3_loop))
+    };
 
     float osc1Lvl = *apvts_.getRawParameterValue(Ids::osc1_level);
     float osc2Lvl = *apvts_.getRawParameterValue(Ids::osc2_level);
@@ -222,6 +237,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
             voices_[v].processSample(
                 vL, vR,
                 oscBanks, oscWaves, oscMasks, oscDetunes, oscOctaves, oscOctLocks, oscSyncs,
+                oscStarts, oscSpeeds, oscLoops,
                 osc1Lvl, osc2Lvl, osc3Lvl, noiseLvl, noiseTone, oscSpread, mixerSeethe,
                 chaosRate, chaosDrift, chaosPoly, randAttenuverters,
                 zModel, zFreq, zMorph, zTransform, fEnvDepth, fVel,
@@ -317,6 +333,9 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         telemetry_[v].x = std::log10(zFreq / 20.0f) / 3.0f;
         telemetry_[v].y = zMorph;
         telemetry_[v].z = zTransform;
+        telemetry_[v].statorOffsets[0] = voices_[v].getStatorOffset(0);
+        telemetry_[v].statorOffsets[1] = voices_[v].getStatorOffset(1);
+        telemetry_[v].statorOffsets[2] = voices_[v].getStatorOffset(2);
     }
 }
 

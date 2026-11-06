@@ -41,7 +41,7 @@ parameters:
     type: int
     effect: timbre
     range: [0, 511]
-    default: 31
+    default: 24
 
   - id: osc1_start
     name: Osc 1 Mask Start
@@ -65,7 +65,7 @@ parameters:
     type: choice
     effect: timbre
     choices: ['Off', 'Saw', 'Ping-Pong']
-    default: 'Off'
+    default: 'Saw'
 
   - id: osc1_octave
     name: Osc 1 Octave
@@ -124,7 +124,7 @@ parameters:
     type: int
     effect: timbre
     range: [0, 511]
-    default: 31
+    default: 24
 
   - id: osc2_start
     name: Osc 2 Mask Start
@@ -148,7 +148,7 @@ parameters:
     type: choice
     effect: timbre
     choices: ['Off', 'Saw', 'Ping-Pong']
-    default: 'Off'
+    default: 'Saw'
 
   - id: osc2_octave
     name: Osc 2 Octave
@@ -215,7 +215,7 @@ parameters:
     type: int
     effect: timbre
     range: [0, 511]
-    default: 31
+    default: 24
 
   - id: osc3_start
     name: Osc 3 Mask Start
@@ -239,7 +239,7 @@ parameters:
     type: choice
     effect: timbre
     choices: ['Off', 'Saw', 'Ping-Pong']
-    default: 'Off'
+    default: 'Saw'
 
   - id: osc3_octave
     name: Osc 3 Octave

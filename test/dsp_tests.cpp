@@ -57,6 +57,7 @@
 #include "hastur/AlphaOscillator.h"
 #include "hastur/HasturVoice.h"
 #include "nyarlat/AbyssReverb.h"
+#include "nyarlat/NyarlatOscillator.h"
 
 int main() {
     std::cout << "Starting DSP Verification Tests for 22-Block Modular Drum Synth..." << std::endl;
@@ -6598,7 +6599,90 @@ int main() {
         std::cout << "PASS: Suite 74: Nyarlat AbyssReverb DC Stability & Allpass Gauntlet completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 74 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    // SUITE 75: Nyarlat Bitmask Stator Sweep & Hard Sync Gauntlet
+    {
+        std::cout << "\nRunning Suite 75: Nyarlat Bitmask Stator Sweep & Hard Sync Gauntlet..." << std::endl;
+
+        // Test 1: Auto-promotion of loopMode == 0 (Off) to Saw when speed > 0
+        {
+            Nyarlat::BitmaskOscillator osc;
+            osc.prepare(44100.0);
+
+            // With speed = 0 and loopMode = 0: stator offset stays at base
+            osc.processSample(440.0f, 24, 0, 0.0f, 0, false);
+            uint32_t off0 = osc.getStatorOffset();
+
+            // Run 1000 samples with speed = 5.0f and loopMode = 0 (Off)
+            // Stator accumulator MUST advance because speed > 0 auto-promotes to active sweep
+            for (int i = 0; i < 1000; ++i) {
+                osc.processSample(440.0f, 24, 0, 5.0f, 0, false);
+            }
+            uint32_t off1 = osc.getStatorOffset();
+            assert(off1 != off0);
+            std::cout << "  [PASS] Stator Sweep Auto-Promotion: off0 = " << off0 << ", off1 = " << off1 << " (advanced)" << std::endl;
+        }
+
+        // Test 2: Bounded Cyclic Stator Range [0, 511]
+        {
+            Nyarlat::BitmaskOscillator osc;
+            osc.prepare(44100.0);
+
+            // Torture sweep across 10,000 samples at max speed 50 Hz in Saw and Ping-Pong
+            for (int loop = 0; loop <= 2; ++loop) {
+                for (int i = 0; i < 5000; ++i) {
+                    float s = osc.processSample(220.0f, 24, 50, 50.0f, loop, false);
+                    assert(std::isfinite(s));
+                    assert(osc.getStatorOffset() < 512u);
+                }
+            }
+            std::cout << "  [PASS] Stator Range & Stability: All offsets strictly < 512, zero NaN/Inf" << std::endl;
+        }
+
+        // Test 3: Master Hard Sync 24-bit Wrap Verification
+        {
+            Nyarlat::BitmaskOscillator oscMaster;
+            Nyarlat::BitmaskOscillator oscSlave;
+            oscMaster.prepare(44100.0);
+            oscSlave.prepare(44100.0);
+
+            // At 44100 Hz sample rate and 441 Hz frequency, period is 100 samples (1600 substeps)
+            // Sync triggers should fire every ~100 samples, not once every 25,600 samples
+            int syncCount = 0;
+            for (int i = 0; i < 1000; ++i) {
+                uint32_t prevP = oscMaster.getPhase() & 0x00FFFFFFu;
+                oscMaster.processSample(441.0f, 24, 0, 0.0f, 0, false);
+                bool syncTrigger = ((oscMaster.getPhase() & 0x00FFFFFFu) < prevP);
+                if (syncTrigger) {
+                    ++syncCount;
+                    oscSlave.processSample(882.0f, 24, 0, 0.0f, 0, false, true);
+                } else {
+                    oscSlave.processSample(882.0f, 24, 0, 0.0f, 0, false, false);
+                }
+            }
+            // In 1000 samples at 441 Hz, there should be 10 full waveform periods (sync triggers)
+            std::cout << "  [PASS] 24-Bit Hard Sync Trigger: Detected " << syncCount << " sync triggers in 1000 samples (expected 9-11)" << std::endl;
+            assert(syncCount >= 9 && syncCount <= 11);
+        }
+
+        // Test 4: Extreme Modulation Torture (Rapid Speed Changes + Mask Morphing)
+        {
+            Nyarlat::BitmaskOscillator osc;
+            osc.prepare(48000.0);
+            for (int i = 0; i < 5000; ++i) {
+                float sp = (i % 2 == 0) ? 0.0f : 50.0f;
+                int mask = (i * 7) % 512;
+                int start = (i * 13) % 511 - 255;
+                float out = osc.processSample(100.0f + (i % 500), mask, start, sp, (i % 3), (i % 2 == 0));
+                assert(std::isfinite(out));
+                assert(std::abs(out) <= 2.0f);
+            }
+            std::cout << "  [PASS] Modulation Torture: Stable under extreme speed/mask hopping" << std::endl;
+        }
+
+        std::cout << "PASS: Suite 75: Nyarlat Bitmask Stator Sweep & Hard Sync Gauntlet completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 75 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

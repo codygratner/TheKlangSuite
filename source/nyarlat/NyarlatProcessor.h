@@ -68,13 +68,14 @@ public:
     void setStoredEditorScale(float s) noexcept { storedEditorScale_.store(s, std::memory_order_relaxed); }
     [[nodiscard]] float getStoredEditorScale() const noexcept { return storedEditorScale_.load(std::memory_order_relaxed); }
 
-    // Telemetry for Z-Cube Visualizer
+    // Telemetry for Z-Cube Visualizer and Bitmask Stator Views
     struct VoiceTelemetry {
         bool active = false;
         int note = 60;
         float x = 0.5f;
         float y = 0.0f;
         float z = 0.0f;
+        uint32_t statorOffsets[3] = {0, 0, 0};
     };
     std::array<VoiceTelemetry, kNumVoices> getVoiceTelemetry() const noexcept {
         return telemetry_;

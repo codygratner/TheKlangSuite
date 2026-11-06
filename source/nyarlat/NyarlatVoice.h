@@ -152,6 +152,9 @@ public:
     }
 
     int getMidiNote() const noexcept { return midiNote_; }
+    uint32_t getStatorOffset(int osc) const noexcept {
+        return (osc >= 0 && osc < 3) ? oscs_[osc].getStatorOffset() : 0;
+    }
 
     // Update MPE per-note controllers
     void setMpePitchBend(float semitones) noexcept { mpePitchBendSemitones_ = semitones; }
@@ -164,6 +167,7 @@ public:
                        const float* oscBankIdx, const float* oscWaveMorph,
                        const int* oscMask, const float* oscDetune, const int* oscOctave,
                        const bool* oscOctLock, const bool* oscSync,
+                       const int* oscStart, const float* oscSpeed, const int* oscLoop,
                        float osc1Level, float osc2Level, float osc3Level,
                        float noiseLevel, float noiseTone, float oscSpread, float mixerSeethe,
                        // Chaos & Random Attenuverters
@@ -197,7 +201,7 @@ public:
         float ampGain = ampEnv_.process();
         float filtEnvVal = filterEnv_.process();
 
-        // 3. Process 3 Oscillators with Hard Sync
+        // 3. Process 3 Oscillators with Hard Sync & Q32 Stator Sweep
         float octMult[3];
         for (int i = 0; i < 3; ++i) {
             float semis = (oscOctave[i] - 2) * 12.0f + oscDetune[i];
@@ -207,12 +211,21 @@ public:
             octMult[i] = std::pow(2.0f, semis / 12.0f);
         }
 
-        uint32_t prevP1 = oscs_[0].getPhase();
-        float sig1 = oscs_[0].processSample(basePitch * octMult[0], oscMask[0], 0, 0, 0, oscOctLock[0]);
-        bool syncTrigger = (oscs_[0].getPhase() < prevP1); // Master phase wrapped
+        // Modulate stator speed and mask aperture with chaos attenuverters
+        float effSpeed1 = oscSpeed[0] + chaos_.getModulation(1, randAttenuverters[1]) * 25.0f;
+        float effSpeed2 = oscSpeed[1] + chaos_.getModulation(4, randAttenuverters[4]) * 25.0f;
+        float effSpeed3 = oscSpeed[2] + chaos_.getModulation(7, randAttenuverters[7]) * 25.0f;
 
-        float sig2 = oscs_[1].processSample(basePitch * octMult[1], oscMask[1], 0, 0, 0, oscOctLock[1], oscSync[1] && syncTrigger);
-        float sig3 = oscs_[2].processSample(basePitch * octMult[2], oscMask[2], 0, 0, 0, oscOctLock[2], oscSync[2] && syncTrigger);
+        int effMask1 = juce::jlimit(0, 511, oscMask[0] + static_cast<int>(chaos_.getModulation(0, randAttenuverters[0]) * 255.0f));
+        int effMask2 = juce::jlimit(0, 511, oscMask[1] + static_cast<int>(chaos_.getModulation(3, randAttenuverters[3]) * 255.0f));
+        int effMask3 = juce::jlimit(0, 511, oscMask[2] + static_cast<int>(chaos_.getModulation(6, randAttenuverters[6]) * 255.0f));
+
+        const uint32_t prevP1 = oscs_[0].getPhase() & 0x00FFFFFFu;
+        float sig1 = oscs_[0].processSample(basePitch * octMult[0], effMask1, oscStart[0], effSpeed1, oscLoop[0], oscOctLock[0]);
+        bool syncTrigger = ((oscs_[0].getPhase() & 0x00FFFFFFu) < prevP1); // Master phase wrapped (24-bit period)
+
+        float sig2 = oscs_[1].processSample(basePitch * octMult[1], effMask2, oscStart[1], effSpeed2, oscLoop[1], oscOctLock[1], oscSync[1] && syncTrigger);
+        float sig3 = oscs_[2].processSample(basePitch * octMult[2], effMask3, oscStart[2], effSpeed3, oscLoop[2], oscOctLock[2], oscSync[2] && syncTrigger);
 
         // 4. Variable-rate Sample-and-Hold Noise
         int noiseHoldMax = 1 + static_cast<int>(noiseTone * 126.0f);

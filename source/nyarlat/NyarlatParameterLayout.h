@@ -83,7 +83,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc1_mask [dco]
     layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_mask, 1}, nyarlatParameters::Names::osc1_mask, 0, 511, 31));
+        juce::ParameterID{nyarlatParameters::Ids::osc1_mask, 1}, nyarlatParameters::Names::osc1_mask, 0, 511, 24));
 
     // osc1_start [dco]
     layout.add(std::make_unique<juce::AudioParameterInt>(
@@ -96,7 +96,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // osc1_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc1_loop, 1}, nyarlatParameters::Names::osc1_loop,
-        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 0));
+        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 1));
 
     // osc1_octave [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -123,7 +123,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc2_mask [dco]
     layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_mask, 1}, nyarlatParameters::Names::osc2_mask, 0, 511, 31));
+        juce::ParameterID{nyarlatParameters::Ids::osc2_mask, 1}, nyarlatParameters::Names::osc2_mask, 0, 511, 24));
 
     // osc2_start [dco]
     layout.add(std::make_unique<juce::AudioParameterInt>(
@@ -136,7 +136,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // osc2_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc2_loop, 1}, nyarlatParameters::Names::osc2_loop,
-        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 0));
+        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 1));
 
     // osc2_octave [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -168,7 +168,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc3_mask [dco]
     layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_mask, 1}, nyarlatParameters::Names::osc3_mask, 0, 511, 31));
+        juce::ParameterID{nyarlatParameters::Ids::osc3_mask, 1}, nyarlatParameters::Names::osc3_mask, 0, 511, 24));
 
     // osc3_start [dco]
     layout.add(std::make_unique<juce::AudioParameterInt>(
@@ -181,7 +181,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // osc3_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc3_loop, 1}, nyarlatParameters::Names::osc3_loop,
-        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 0));
+        juce::StringArray{"Off", "Saw", "Ping-Pong"}, 1));
 
     // osc3_octave [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(

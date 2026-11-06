@@ -11,6 +11,7 @@
 #include <array>
 #include <unordered_map>
 #include <functional>
+#include <cmath>
 
 namespace Nyarlat {
 
@@ -162,12 +163,189 @@ public:
 
 private:
     std::array<juce::String, 3> labels_;
-    int activeIndex_{0}; // Default: Synthetic
+    int activeIndex_{0};
     std::array<juce::Colour, 3> colours_{
         Colours::kSynthetic, // 0xFF00C8FF (Tron Blue)
         Colours::kCyborg,    // 0xFFE08C00 (Toxic Amber)
         Colours::kOrganic    // 0xFF6BBF59 (Warm Green)
     };
+};
+
+// ==============================================================================
+// BitmaskWaveVisualizer: Real-Time Single-Cycle AKWF Stator Display
+// ==============================================================================
+class BitmaskWaveVisualizer : public juce::Component {
+public:
+    BitmaskWaveVisualizer(NyarlatProcessor& proc, int oscIndex)
+        : proc_(proc), oscIndex_(oscIndex) {
+        setInterceptsMouseClicks(false, false);
+    }
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        g.setColour(juce::Colour(0xFF0D1117));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        // Center zero-crossing baseline
+        g.setColour(juce::Colour(0xFF161B22));
+        float midY = bounds.getCentreY();
+        g.drawHorizontalLine(static_cast<int>(midY), bounds.getX() + 2.0f, bounds.getRight() - 2.0f);
+
+        namespace Ids = nyarlatParameters::Ids;
+        float waveVal = 0.0f;
+        int maskVal = 24;
+        int startVal = 0;
+        float speedVal = 0.0f;
+        int loopVal = 1;
+        uint32_t bankVal = 0;
+
+        if (oscIndex_ == 0) {
+            bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_bank));
+            waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc1_wave);
+            maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_mask));
+            startVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_start));
+            speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc1_speed);
+            loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_loop));
+        } else if (oscIndex_ == 1) {
+            bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_bank));
+            waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc2_wave);
+            maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_mask));
+            startVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_start));
+            speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc2_speed);
+            loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_loop));
+        } else {
+            bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_bank));
+            waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc3_wave);
+            maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_mask));
+            startVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_start));
+            speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc3_speed);
+            loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_loop));
+        }
+
+        std::array<float, 512> waveTable;
+        AkwfRom::getInstance().interpolateWaveform(bankVal, waveVal, waveTable.data());
+
+        int effectiveMask = juce::jlimit(1, 8191, (maskVal * 16) + 15);
+        uint32_t statorOff = static_cast<uint32_t>((startVal + 512) & 0x1FF);
+
+        bool activeVoiceFound = false;
+        auto tele = proc_.getVoiceTelemetry();
+        for (const auto& vt : tele) {
+            if (vt.active) {
+                statorOff = vt.statorOffsets[oscIndex_];
+                activeVoiceFound = true;
+                break;
+            }
+        }
+
+        if (!activeVoiceFound && speedVal > 0.0f) {
+            const int effLoop = (loopVal == 0) ? 1 : loopVal;
+            previewPhase_ += speedVal * 0.033f; // ~30 Hz timer delta
+            if (previewPhase_ >= 1.0f) previewPhase_ -= std::floor(previewPhase_);
+            uint32_t p = static_cast<uint32_t>(previewPhase_ * 512.0f) & 0x1FFu;
+            uint32_t sweep = (effLoop == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
+            statorOff = (sweep + static_cast<uint32_t>(startVal + 512)) & 0x1FFu;
+        }
+
+        juce::Path p;
+        float w = bounds.getWidth() - 8.0f;
+        float h = bounds.getHeight() - 8.0f;
+        float startX = bounds.getX() + 4.0f;
+        float startY = bounds.getY() + 4.0f;
+
+        const int numPts = 128;
+        for (int i = 0; i < numPts; ++i) {
+            uint32_t phaseIdx = static_cast<uint32_t>((i * 512) / numPts);
+            uint32_t tableIdx = (phaseIdx + statorOff) & static_cast<uint32_t>(effectiveMask);
+            float samp = (tableIdx < 512) ? waveTable[tableIdx] : 0.0f;
+
+            float px = startX + (static_cast<float>(i) / static_cast<float>(numPts - 1)) * w;
+            float py = startY + (0.5f - samp * 0.44f) * h;
+
+            if (i == 0) p.startNewSubPath(px, py);
+            else p.lineTo(px, py);
+        }
+
+        g.setColour(Colours::kOsc.withAlpha(0.25f));
+        g.strokePath(p, juce::PathStrokeType(3.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        g.setColour(Colours::kOsc);
+        g.strokePath(p, juce::PathStrokeType(1.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+        // Draw vertical stator cursor line showing sweep head position
+        float cursorNorm = static_cast<float>(statorOff) / 512.0f;
+        float cursorX = startX + cursorNorm * w;
+        g.setColour(Colours::kOsc.withAlpha(0.45f));
+        g.drawVerticalLine(static_cast<int>(cursorX), startY + 2.0f, startY + h - 2.0f);
+        g.setColour(Colours::kOsc);
+        g.fillEllipse(cursorX - 2.0f, startY + h - 4.0f, 4.0f, 4.0f);
+    }
+
+private:
+    NyarlatProcessor& proc_;
+    int oscIndex_ = 0;
+    float previewPhase_ = 0.0f;
+};
+
+// ==============================================================================
+// VectorAdsrVisualizer: Glowing Vector ADSR Envelope Curve Display
+// ==============================================================================
+class VectorAdsrVisualizer : public juce::Component {
+public:
+    VectorAdsrVisualizer(NyarlatProcessor& proc) : proc_(proc) {
+        setInterceptsMouseClicks(false, false);
+    }
+
+    void paint(juce::Graphics& g) override {
+        auto bounds = getLocalBounds().toFloat();
+        g.setColour(juce::Colour(0xFF0D1117));
+        g.fillRoundedRectangle(bounds, 4.0f);
+        g.setColour(juce::Colour(0xFF262D38));
+        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+        namespace Ids = nyarlatParameters::Ids;
+        float a = *proc_.getAPVTS().getRawParameterValue(Ids::amp_attack);
+        float d = *proc_.getAPVTS().getRawParameterValue(Ids::amp_decay);
+        float s = *proc_.getAPVTS().getRawParameterValue(Ids::amp_sustain);
+        float r = *proc_.getAPVTS().getRawParameterValue(Ids::amp_release);
+
+        float pad = 6.0f;
+        float w = bounds.getWidth() - pad * 2.0f;
+        float h = bounds.getHeight() - pad * 2.0f;
+        float x0 = bounds.getX() + pad;
+        float y0 = bounds.getBottom() - pad;
+
+        float aW = std::clamp(a / 1.5f, 0.05f, 1.0f) * (w * 0.25f);
+        float dW = std::clamp(d / 2.5f, 0.05f, 1.0f) * (w * 0.25f);
+        float sW = w * 0.25f;
+        float rW = std::clamp(r / 4.0f, 0.05f, 1.0f) * (w * 0.25f);
+
+        float susY = y0 - (s * h * 0.88f);
+        float peakY = y0 - (h * 0.88f);
+
+        juce::Path curve;
+        curve.startNewSubPath(x0, y0);
+        curve.lineTo(x0 + aW, peakY);
+        curve.lineTo(x0 + aW + dW, susY);
+        curve.lineTo(x0 + aW + dW + sW, susY);
+        curve.lineTo(x0 + aW + dW + sW + rW, y0);
+
+        juce::Path fillPath(curve);
+        fillPath.lineTo(x0, y0);
+        fillPath.closeSubPath();
+
+        juce::ColourGradient grad(Colours::kVca.withAlpha(0.28f), x0, peakY,
+                                  Colours::kVca.withAlpha(0.02f), x0, y0, false);
+        g.setGradientFill(grad);
+        g.fillPath(fillPath);
+
+        g.setColour(Colours::kVca);
+        g.strokePath(curve, juce::PathStrokeType(1.8f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    }
+
+private:
+    NyarlatProcessor& proc_;
 };
 
 // ==============================================================================
@@ -190,13 +368,14 @@ public:
         const float badgeW = std::clamp(textW + 10.0f, 26.0f, bounds.getWidth() - 6.0f);
         const float badgeH = 14.0f;
         const float badgeX = bounds.getCentreX() - badgeW * 0.5f;
-        const float badgeY = bounds.getCentreY() - badgeH * 0.5f;
+        // Positioned strictly at bottom rim of dial track
+        const float badgeY = bounds.getBottom() - badgeH - 1.0f;
         auto badgeRect = juce::Rectangle<float>(badgeX, badgeY, badgeW, badgeH);
 
-        g.setColour(juce::Colour(0xFF0D1117).withAlpha(0.92f));
-        g.fillRoundedRectangle(badgeRect, 3.0f);
-        g.setColour(accentColour.withAlpha(0.85f));
-        g.drawRoundedRectangle(badgeRect, 3.0f, 1.0f);
+        g.setColour(juce::Colour(0xFA090D12));
+        g.fillRoundedRectangle(badgeRect, 3.5f);
+        g.setColour(accentColour.withAlpha(0.65f));
+        g.drawRoundedRectangle(badgeRect, 3.5f, 1.0f);
 
         g.setFont(font);
         g.setColour(juce::Colour(0xFFF0F6FC));
@@ -267,7 +446,6 @@ public:
         g.fillEllipse(centre.x - 2.5f, centre.y - 2.5f, 5.0f, 5.0f);
 
         // Concentric Dual-Radar Telemetry Arc Halos
-        // 1. Outer Ring: Stepped Random & Chaos (Caustic Yellow 0xFFF2E10F)
         if (slider.getProperties().contains("randLo") && slider.getProperties().contains("randHi")) {
             const float lo = static_cast<float>(slider.getProperties()["randLo"]);
             const float hi = static_cast<float>(slider.getProperties()["randHi"]);
@@ -295,7 +473,6 @@ public:
             }
         }
 
-        // 2. Inner Ring: Macro Vector Modulation (Movie Poster Orange 0xFFFF7B25)
         if (slider.getProperties().contains("modLo") && slider.getProperties().contains("modHi")) {
             const float lo = static_cast<float>(slider.getProperties()["modLo"]);
             const float hi = static_cast<float>(slider.getProperties()["modHi"]);
@@ -349,21 +526,18 @@ public:
 
         auto trackX = x + width * 0.5f;
 
-        // Track Groove
         g.setColour(juce::Colour(0xFF0F131A));
         g.fillRoundedRectangle(trackX - 3.0f, static_cast<float>(y), 6.0f, static_cast<float>(height), 3.0f);
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(trackX - 3.0f, static_cast<float>(y), 6.0f, static_cast<float>(height), 3.0f, 1.0f);
 
-        // Active fill
         float bottomY = static_cast<float>(y + height);
         g.setColour(trackCol.withAlpha(0.75f));
         if (sliderPos < bottomY) {
             g.fillRoundedRectangle(trackX - 2.0f, sliderPos, 4.0f, bottomY - sliderPos, 2.0f);
         }
 
-        // Fader Cap
-        float capW = std::clamp(static_cast<float>(width) - 6.0f, 28.0f, 36.0f);
+        float capW = std::clamp(static_cast<float>(width) - 6.0f, 26.0f, 32.0f);
         float capH = 14.0f;
         auto capBounds = juce::Rectangle<float>(trackX - capW * 0.5f, sliderPos - capH * 0.5f, capW, capH);
 
@@ -372,7 +546,6 @@ public:
         g.setColour(juce::Colour(0xFF484F58));
         g.drawRoundedRectangle(capBounds, 3.0f, 1.0f);
 
-        // Center indicator line
         g.setColour(thumbCol);
         g.fillRect(capBounds.getX() + 3.0f, sliderPos - 1.0f, capBounds.getWidth() - 6.0f, 2.0f);
     }
@@ -399,6 +572,9 @@ private:
     juce::Colour accentColour_{0xFF00C8F0};
 };
 
+// ==============================================================================
+// NyarlatEditor
+// ==============================================================================
 class NyarlatEditor : public juce::AudioProcessorEditor, private juce::Timer {
 public:
     static constexpr int kBaseWidth = 1160;
@@ -439,6 +615,12 @@ private:
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> attachment;
     };
 
+    struct ButtonItem {
+        juce::TextButton button;
+        juce::String paramId;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> attachment;
+    };
+
     class ContentCanvas : public juce::Component {
     public:
         std::function<void(juce::Graphics&)> onPaint;
@@ -450,6 +632,7 @@ private:
     void setupKnob(RotaryKnob& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
     void setupFader(SliderFader& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
     void setupCombo(ComboBoxItem& item, const juce::String& paramId, const juce::String& label);
+    void setupButton(ButtonItem& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
 
     void layoutControls();
     void applyDragSensitivity(float s);
@@ -475,11 +658,14 @@ private:
 
     // Visualizers
     std::unique_ptr<ZCubeVisualizer> zCubeRadar_;
+    std::array<std::unique_ptr<BitmaskWaveVisualizer>, 3> oscWaveViews_;
+    std::unique_ptr<VectorAdsrVisualizer> vcaAdsrView_;
 
     // All parameter controls
     std::vector<std::unique_ptr<RotaryKnob>> knobs_;
     std::vector<std::unique_ptr<SliderFader>> faders_;
     std::vector<std::unique_ptr<ComboBoxItem>> combos_;
+    std::vector<std::unique_ptr<ButtonItem>> buttons_;
 
     std::unordered_map<juce::Component*, const ControlInfo*> controlMap_;
 

@@ -12,6 +12,10 @@ int main(int argc, char* argv[])
     juce::File outputFile;
     for (int i = 1; i < argc; ++i) {
         juce::String arg(argv[i]);
+        if (arg == "--dump-telemetry") {
+            ++i; // skip next argument (telemetry path)
+            continue;
+        }
         if (!arg.startsWith("--")) {
             if (juce::File::isAbsolutePath(arg)) {
                 outputFile = juce::File(arg);

@@ -2,8 +2,10 @@
 
 #include <cmath>
 #include <array>
+#include <vector>
 #include <cstring>
 #include <cstdint>
+#include <algorithm>
 #include <juce_core/juce_core.h>
 #include "NyarlatRom.h"
 
@@ -22,13 +24,17 @@ public:
     void prepare(double sampleRate) noexcept {
         sampleRate_ = (sampleRate > 0.0) ? sampleRate : 44100.0;
         phase_ = 0;
+        statorQ_ = 0;
         dcState_ = 0.0f;
         prevInput_ = 0.0f;
         syncFade_ = 0.0f;
+        // Pre-warm static pitch compensation table outside real-time audio thread
+        juce::ignoreUnused(getSharedPitchTable()[0]);
     }
 
     void reset() noexcept {
         phase_ = 0;
+        statorQ_ = 0;
         dcState_ = 0.0f;
         prevInput_ = 0.0f;
         syncFade_ = 0.0f;
@@ -39,13 +45,13 @@ public:
         AkwfRom::getInstance().interpolateWaveform(bankIdx, waveMorph, buffer8k_.data());
     }
 
-    // Process a single audio sample (evaluates 16 sub-samples internally)
-    float processSample(float freqHz, int rawMask, float maskStart, float maskSpeed,
+    // Process a single audio sample (evaluates 16 sub-samples internally with Q32 Stator Sweep)
+    float processSample(float freqHz, int rawMask, int maskStart, float maskSpeed,
                         int loopMode, bool octLock, bool hardSyncTrigger = false) noexcept {
-        juce::ignoreUnused(maskStart, maskSpeed, loopMode);
         // Handle hard sync reset with 2-subsample anti-glitch
         if (hardSyncTrigger) {
             phase_ = 0;
+            statorQ_ = 0;
             syncFade_ = 1.0f;
         }
 
@@ -66,14 +72,28 @@ public:
         double incPerSubstep = (static_cast<double>(effectiveFreq) * 16777216.0) / (sampleRate_ * 16.0);
         uint32_t phaseInc = static_cast<uint32_t>(incPerSubstep);
 
-        // 4. Evaluate 16 sub-samples and sum (boxcar decimation)
+        // 4. Q32 Stator Sweep Setup
+        const float sp = (maskSpeed > 0.0f && std::isfinite(maskSpeed)) ? std::fmin(maskSpeed, 50.0f) : 0.0f;
+        const uint32_t statorInc = static_cast<uint32_t>(sp * (4294967296.0 / (sampleRate_ * 16.0)));
+        const uint32_t base = static_cast<uint32_t>(maskStart + 512); // >= 257, no signed underflow
+
+        // 5. Evaluate 16 sub-samples and sum (boxcar decimation)
+        // Auto-promote loopMode == 0 (Off) to Saw (1) when speed > 0 so SPEED is never silently dead
+        const int effectiveLoop = (loopMode == 0 && sp > 0.0f) ? 1 : loopMode;
         float sum = 0.0f;
         for (int sub = 0; sub < kOversample; ++sub) {
-            // Read index masked against the 8KB buffer
-            uint32_t tableIdx = (phase_ >> 15) & static_cast<uint32_t>(mask);
-            tableIdx &= 0x1FFF; // Ensure strictly within 8192 bounds
+            uint32_t sweep = 0;
+            if (effectiveLoop != 0) {
+                statorQ_ += statorInc;
+                const uint32_t p = statorQ_ >> 23; // 0..511 cyclic position
+                // Saw (1): linear ramp | Ping-Pong (2): triangle bounce
+                sweep = (effectiveLoop == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
+            }
+            const uint32_t off = (sweep + base) & 0x1FFu; // Circular mod-512 offset
+            lastStatorOffset_ = off;
+            const uint32_t tableIdx = ((phase_ >> 15) + off) & static_cast<uint32_t>(mask);
 
-            sum += buffer8k_[tableIdx];
+            sum += buffer8k_[tableIdx & 0x1FFFu];
             phase_ += phaseInc;
         }
 
@@ -86,7 +106,7 @@ public:
             if (syncFade_ < 0.0f) syncFade_ = 0.0f;
         }
 
-        // 5. High-Pass Leaky DC Blocker (R = 0.999)
+        // 6. High-Pass Leaky DC Blocker (R = 0.999)
         // y[n] = x[n] - x[n-1] + R * y[n-1]
         float dcOut = decimated - prevInput_ + 0.999f * dcState_;
         prevInput_ = decimated;
@@ -96,6 +116,7 @@ public:
     }
 
     uint32_t getPhase() const noexcept { return phase_; }
+    uint32_t getStatorOffset() const noexcept { return lastStatorOffset_; }
 
 private:
     static const std::array<float, 512>& getSharedPitchTable() {
@@ -120,6 +141,8 @@ private:
 
     double sampleRate_ = 44100.0;
     uint32_t phase_ = 0;
+    uint32_t statorQ_ = 0;
+    uint32_t lastStatorOffset_ = 0;
     float dcState_ = 0.0f;
     float prevInput_ = 0.0f;
     float syncFade_ = 0.0f;
