@@ -276,5 +276,14 @@ namespace HardeningSuites {
                 "TextTruncationAuditSuite: Audited " + juce::String(totalTextElementsChecked) +
                 " visible text elements across 3 window sizes and 4 DPI scales (" + juce::String(totalTruncations) + " truncations detected)");
         }
+
+        // --- INC-05: Headless Platform Shield Verification ---
+        {
+#if JUCE_LINUX
+            reporter.expect(HeadlessX11::isInstalled(), "INC-05: HeadlessX11 error interceptor must be actively installed on Linux");
+#else
+            reporter.expect(!HeadlessX11::isInstalled(), "INC-05: HeadlessX11 error interceptor correctly dormant on non-Linux platform");
+#endif
+        }
     }
 }

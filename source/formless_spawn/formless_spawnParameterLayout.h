@@ -6,7 +6,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "Formless_spawnParameterIds.h"
+#include "formless_spawnParameterIds.h"
 
 namespace formless_spawnParameters {
 

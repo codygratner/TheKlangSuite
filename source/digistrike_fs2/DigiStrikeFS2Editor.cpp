@@ -1,5 +1,5 @@
 #include "DigiStrikeFS2Editor.h"
-#include "Digistrike_fs2ParameterIds.h"
+#include "digistrike_fs2ParameterIds.h"
 
 using namespace digistrike_fs2Parameters::Ids;
 

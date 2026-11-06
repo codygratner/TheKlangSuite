@@ -1,7 +1,7 @@
 #include "DigiStrikeFS2Processor.h"
 #include "DigiStrikeFS2Editor.h"
-#include "Digistrike_fs2ParameterIds.h"
-#include "Digistrike_fs2ParameterLayout.h"
+#include "digistrike_fs2ParameterIds.h"
+#include "digistrike_fs2ParameterLayout.h"
 
 DigiStrikeFS2AudioProcessor::DigiStrikeFS2AudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),

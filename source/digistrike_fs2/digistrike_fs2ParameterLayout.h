@@ -6,7 +6,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "Digistrike_fs2ParameterIds.h"
+#include "digistrike_fs2ParameterIds.h"
 
 namespace digistrike_fs2Parameters {
 

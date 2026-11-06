@@ -12,7 +12,10 @@
 #include "hastur/HasturProcessor.h"
 #include "hastur/HasturParameterIds.h"
 
+#include "support/HeadlessX11.h"
+
 int main(int argc, char* argv[]) {
+    HeadlessX11::install();
     juce::ScopedJuceInitialiser_GUI guiInit;
 
     std::cout << "Starting Headless Plugin-Boundary Harness for Hastur..." << std::endl;

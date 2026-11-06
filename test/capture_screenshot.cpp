@@ -57,7 +57,10 @@ public:
     }
 };
 
+#include "support/HeadlessX11.h"
+
 int main() {
+    HeadlessX11::install();
     juce::ScopedJuceInitialiser_GUI guiInit;
     AdvancedColorPickerComponent picker(juce::Colour(0xff33A1FF));
     

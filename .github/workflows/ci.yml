@@ -9,9 +9,28 @@ on:
       - master
       - main
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  preflight:
+    name: Pre-Flight Cross-Platform & Audio Safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Cross-Platform & Platform Airlock Linter
+        run: python3 tools/compat_check.py --strict --root .
+
+      - name: Run Audio-Thread Safety Linter
+        run: python3 tools/audit_audiothread.py --strict
+
   test-macos:
     name: macOS (AU / VST3 / Unit Tests / auval / pluginval)
+    needs: preflight
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -26,12 +45,10 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 
-      - name: Build Plugins & Tests
+      - name: Build DSP & GUI Tests (Test-First)
         run: |
           cmake --build build --config Release --parallel --target \
-            TheKlangFarmer_VST3 TheKlangFarmer_AU \
-            TheKlangPlanter_VST3 TheKlangPlanter_AU \
-            TheKlangEditor dsp_tests gui_tests capture_screenshot capture_planter_screenshot
+            dsp_tests gui_tests capture_screenshot capture_planter_screenshot
 
       - name: Run DSP Unit Tests
         run: |
@@ -40,6 +57,13 @@ jobs:
           elif [ -f "./build/Release/dsp_tests" ]; then
             ./build/Release/dsp_tests
           fi
+
+      - name: Build Plugins & The Klang Editor
+        run: |
+          cmake --build build --config Release --parallel --target \
+            TheKlangFarmer_VST3 TheKlangFarmer_AU \
+            TheKlangPlanter_VST3 TheKlangPlanter_AU \
+            TheKlangEditor
 
       - name: Codesign macOS Plugins (Ad-hoc)
         run: |
@@ -73,13 +97,11 @@ jobs:
 
   test-linux:
     name: Linux x86_64 (VST3 / Unit Tests / Xvfb / pluginval)
+    needs: preflight
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Run Audio-Thread Safety Linter
-        run: python3 tools/audit_audiothread.py --strict
 
       - name: Install Dependencies
         run: |
@@ -111,11 +133,10 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build Plugins & Tests
+      - name: Build DSP & GUI Tests (Test-First Fail-Fast)
         run: |
           cmake --build build --config Release --parallel --target \
-            TheKlangFarmer_VST3 TheKlangPlanter_VST3 \
-            TheKlangEditor dsp_tests gui_tests capture_screenshot capture_planter_screenshot
+            dsp_tests gui_tests capture_screenshot capture_planter_screenshot
 
       - name: Run DSP Unit Tests
         run: |
@@ -145,6 +166,11 @@ jobs:
               sh -c "fluxbox & sleep 1; ./build/capture_screenshot && ./build/capture_planter_screenshot"
           fi
 
+      - name: Build Plugins & Editor (Incremental after Tests Pass)
+        run: |
+          cmake --build build --config Release --parallel --target \
+            TheKlangFarmer_VST3 TheKlangPlanter_VST3 TheKlangEditor
+
       - name: Download & Run Tracktion pluginval
         run: |
           curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Linux.zip
@@ -161,13 +187,11 @@ jobs:
 
   test-windows:
     name: Windows x64 (VST3 / Unit Tests / pluginval)
+    needs: preflight
     runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Run Audio-Thread Safety Linter
-        run: python tools/audit_audiothread.py --strict
 
       - name: Clone JUCE 9.0.3
         run: git clone --depth 1 --branch 9.0.3 https://github.com/juce-framework/JUCE.git JUCE
@@ -175,11 +199,10 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build Plugins & Tests
+      - name: Build DSP & GUI Tests (Test-First)
         run: |
           cmake --build build --config Release --parallel --target `
-            TheKlangFarmer_VST3 TheKlangPlanter_VST3 `
-            TheKlangEditor dsp_tests gui_tests capture_screenshot capture_planter_screenshot
+            dsp_tests gui_tests capture_screenshot capture_planter_screenshot
 
       - name: Run DSP Unit Tests
         run: .\build\Release\dsp_tests.exe
@@ -192,6 +215,11 @@ jobs:
           .\build\Release\capture_screenshot.exe
           .\build\Release\capture_planter_screenshot.exe
 
+      - name: Build Plugins & Editor (Incremental after Tests Pass)
+        run: |
+          cmake --build build --config Release --parallel --target `
+            TheKlangFarmer_VST3 TheKlangPlanter_VST3 TheKlangEditor
+
       - name: Download & Run Tracktion pluginval
         shell: pwsh
         run: |
@@ -199,6 +227,3 @@ jobs:
           Expand-Archive -Path "pluginval.zip" -DestinationPath "."
           .\pluginval.exe --strictness-level 5 --validate-in-process --timeout-ms 60000 "build\TheKlangFarmer_artefacts\Release\VST3\The Klang Farmer.vst3"
           .\pluginval.exe --strictness-level 5 --validate-in-process --timeout-ms 60000 "build\TheKlangPlanter_artefacts\Release\VST3\The Klang Planter.vst3"
-
-
-

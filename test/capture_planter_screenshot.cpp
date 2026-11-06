@@ -4,7 +4,10 @@
 #include "PlanterProcessor.h"
 #include "PlanterEditor.h"
 
+#include "support/HeadlessX11.h"
+
 int main(int argc, char* argv[]) {
+    HeadlessX11::install();
     juce::ScopedJuceInitialiser_GUI guiInit;
 
     TheKlangPlanterAudioProcessor processor;

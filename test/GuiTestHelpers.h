@@ -10,24 +10,7 @@
 #include <vector>
 #include <algorithm>
 #include "UIComponents.h"
-#if JUCE_LINUX
-#include <X11/Xlib.h>
-#undef Status
-#undef KeyPress
-#undef KeyRelease
-#undef ButtonPress
-#undef ButtonRelease
-#undef FocusIn
-#undef FocusOut
-#undef Font
-#undef None
-#undef Bool
-#undef Success
-#undef CursorShape
-#undef Above
-#undef Below
-#undef Always
-#endif
+#include "support/HeadlessX11.h"
 
 namespace GuiTestHelpers {
 
@@ -95,24 +78,22 @@ namespace GuiTestHelpers {
         }
     };
 
-#if JUCE_LINUX
-    inline int x11NonFatalErrorHandler(Display* /*d*/, XErrorEvent* e) {
-        if (e != nullptr && (e->error_code == BadAtom || e->error_code == BadWindow || e->error_code == BadMatch)) {
-            return 0;
-        }
-        return 0;
-    }
-#endif
-
     // ==============================================================================
     // 2. Headless GUI Environment Setup
     // ==============================================================================
     struct ScopedGuiContext {
+        // Declared first -> constructed before guiInitialiser opens any display
+        struct X11First {
+            X11First() { HeadlessX11::install(); }
+        } x11First;
+
         juce::ScopedJuceInitialiser_GUI guiInitialiser;
-        ScopedGuiContext() {
-#if JUCE_LINUX
-            XSetErrorHandler(x11NonFatalErrorHandler);
-#endif
+
+        ~ScopedGuiContext() {
+            if (auto n = HeadlessX11::swallowedErrorCount()) {
+                std::fprintf(stderr, "\n  ⚠️ [HeadlessX11] Caught & swallowed %u non-fatal X errors (last code=%u req=%u)\n\n",
+                             n, HeadlessX11::lastErrorCode(), HeadlessX11::lastRequestCode());
+            }
         }
     };
 

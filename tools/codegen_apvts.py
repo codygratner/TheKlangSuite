@@ -46,9 +46,14 @@ def load_contract(plugin_name: str) -> dict:
 
 def resolve_plugin_prefix(plugin: str) -> str:
     target_dir = ROOT_TKS / "source" / plugin.lower()
+    if not target_dir.exists():
+        return plugin
     pascal = plugin[:1].upper() + plugin[1:]
-    if (target_dir / f"{pascal}ParameterIds.h").exists():
-        return pascal
+    target_filename = f"{pascal}ParameterIds.h"
+    # Case-sensitive check to prevent Windows NTFS false positive
+    for item in target_dir.iterdir():
+        if item.name == target_filename:
+            return pascal
     return plugin
 
 def generate_ids_header(contract: dict) -> str:

@@ -701,23 +701,25 @@ target_include_directories(benchmark_dsp PRIVATE source)
 # 9. Screenshot snapshot generator
 add_executable(capture_screenshot
     test/capture_screenshot.cpp
+    test/support/HeadlessX11.cpp
 )
 target_link_libraries(capture_screenshot PRIVATE
     TheKlangFarmer
     juce::juce_gui_basics
     juce::juce_graphics
 )
-target_include_directories(capture_screenshot PRIVATE source)
+target_include_directories(capture_screenshot PRIVATE source test)
 
 add_executable(capture_planter_screenshot
     test/capture_planter_screenshot.cpp
+    test/support/HeadlessX11.cpp
 )
 target_link_libraries(capture_planter_screenshot PRIVATE
     TheKlangPlanter
     juce::juce_gui_basics
     juce::juce_graphics
 )
-target_include_directories(capture_planter_screenshot PRIVATE source)
+target_include_directories(capture_planter_screenshot PRIVATE source test)
 
 
 
@@ -839,6 +841,7 @@ add_custom_command(TARGET TheKlangEditor POST_BUILD
 # 11b. Automated Headless Plugin-Boundary Harness
 add_executable(headless_plugin_runner
     test/headless_plugin_runner.cpp
+    test/support/HeadlessX11.cpp
     source/hastur/HasturProcessor.cpp
     source/hastur/HasturEditor.cpp
 )
@@ -850,7 +853,7 @@ target_link_libraries(headless_plugin_runner PRIVATE
     juce::juce_gui_basics
     juce::juce_graphics
 )
-target_include_directories(headless_plugin_runner PRIVATE source)
+target_include_directories(headless_plugin_runner PRIVATE source test)
 target_compile_definitions(headless_plugin_runner PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
 if(MSVC)
     target_compile_options(headless_plugin_runner PRIVATE /utf-8)
@@ -859,6 +862,7 @@ endif()
 # 11. Automated GUI Test Harness
 add_executable(gui_tests
     test/gui_tests.cpp
+    test/support/HeadlessX11.cpp
     test/ChaosMonkeySuite.h
     source/PlanterProcessor.cpp
     source/PlanterEditor.cpp
@@ -869,7 +873,7 @@ target_link_libraries(gui_tests PRIVATE
     juce::juce_gui_basics
     juce::juce_graphics
 )
-target_include_directories(gui_tests PRIVATE source tools/editor)
+target_include_directories(gui_tests PRIVATE source tools/editor test)
 target_compile_definitions(gui_tests PRIVATE TKF_GUI_TESTS=1 JUCE_MODAL_LOOPS_PERMITTED=1)
 
 # ==============================================================================
