@@ -413,6 +413,69 @@ if (UNIX AND NOT APPLE)
     target_link_options(Hastur PRIVATE -static-libstdc++ -static-libgcc)
 endif()
 
+# --- 6f. Nyarlat Plugin Target (16-Voice Metamorphic Z-Domain Synthesizer) ---
+juce_add_plugin(Nyarlat
+    COMPANY_NAME "Cracked Chimes"
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    
+    PLUGIN_MANUFACTURER_CODE CkCh
+    PLUGIN_CODE Nyrt
+    BUNDLE_ID com.crackedchimes.nyarlat
+    VERSION "1.0.0"
+    
+    FORMATS ${TKF_FORMATS}
+    PRODUCT_NAME "Nyarlat"
+    VST3_CAN_REPLACE_VST2 FALSE
+)
+
+target_sources(Nyarlat PRIVATE
+    source/FastMath.h
+    source/nyarlat/NyarlatRomMetadata.h
+    source/nyarlat/NyarlatRom.h
+    source/nyarlat/NyarlatOscillator.h
+    source/nyarlat/ZDomainFilter14.h
+    source/nyarlat/NyarlatChaosMatrix.h
+    source/nyarlat/AbyssReverb.h
+    source/nyarlat/NyarlatVoice.h
+    source/nyarlat/NyarlatProcessor.h
+    source/nyarlat/NyarlatProcessor.cpp
+    source/nyarlat/ZCubeVisualizer.h
+    source/nyarlat/NyarlatEditor.h
+    source/nyarlat/NyarlatEditor.cpp
+)
+
+target_include_directories(Nyarlat PRIVATE source)
+
+target_compile_definitions(Nyarlat PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+)
+
+if (MSVC)
+    target_compile_options(Nyarlat PRIVATE /utf-8 /fp:fast)
+endif()
+
+set_target_properties(Nyarlat PROPERTIES VST3_AUTO_MANIFEST FALSE)
+
+target_link_libraries(Nyarlat PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+if (UNIX AND NOT APPLE)
+    target_link_options(Nyarlat PRIVATE -static-libstdc++ -static-libgcc)
+endif()
+
+
 
 # --- 6f. Hastur Headless UI Fast-Preview Target ---
 add_executable(Hastur_Preview
@@ -435,6 +498,37 @@ if (MSVC)
 endif()
 
 target_link_libraries(Hastur_Preview PRIVATE
+    TheKlangDSP
+    ${TKF_JUCE_MODULES}
+    TkfAssets
+    PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
+# --- 6f2. Nyarlat Headless UI Fast-Preview Target ---
+add_executable(Nyarlat_Preview
+    source/nyarlat/ui_preview_main.cpp
+    source/nyarlat/NyarlatProcessor.cpp
+    source/nyarlat/NyarlatEditor.cpp
+)
+
+target_include_directories(Nyarlat_Preview PRIVATE source)
+
+target_compile_definitions(Nyarlat_Preview PUBLIC
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    NYARLAT_HEADLESS_PREVIEW=1
+)
+
+if (MSVC)
+    target_compile_options(Nyarlat_Preview PRIVATE /utf-8 /fp:fast)
+    set_target_properties(Nyarlat_Preview PROPERTIES LINK_FLAGS "/STACK:8388608")
+endif()
+
+target_link_libraries(Nyarlat_Preview PRIVATE
     TheKlangDSP
     ${TKF_JUCE_MODULES}
     TkfAssets
@@ -725,6 +819,15 @@ add_custom_command(TARGET DigiStrikeFS2_VST3 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/digistrike_fs2_rom.bin" "${CMAKE_CURRENT_BINARY_DIR}/DigiStrikeFS2_artefacts/$<CONFIG>/VST3/DigiStrike FS2.vst3/Contents/Resources/"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/digistrike_fs2_rom.bin" "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3/Contents/Resources/"
 )
+
+# Nyarlat
+add_custom_command(TARGET Nyarlat_VST3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/Nyarlat.vst3"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/Nyarlat_artefacts/$<CONFIG>/VST3/Nyarlat.vst3" "${ARTIFACT_DIR}/VST3/Nyarlat.vst3"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/nyarlat_akwf_rom.bin" "${CMAKE_CURRENT_BINARY_DIR}/Nyarlat_artefacts/$<CONFIG>/VST3/Nyarlat.vst3/Contents/Resources/"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/nyarlat_akwf_rom.bin" "${ARTIFACT_DIR}/VST3/Nyarlat.vst3/Contents/Resources/"
+)
+
 
 # The Klang Editor
 add_custom_command(TARGET TheKlangEditor POST_BUILD

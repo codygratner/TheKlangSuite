@@ -23,6 +23,8 @@ public:
 
     void prepare(double sampleRate) noexcept {
         sampleRate_ = (sampleRate > 0.0) ? sampleRate : 44100.0;
+        incScale_ = 16777216.0 / (sampleRate_ * 16.0);
+        statorScale_ = 4294967296.0 / sampleRate_;
         phase_ = 0;
         statorQ_ = 0;
         bakedKey_ = 0xFFFFFFFFu;
@@ -34,8 +36,9 @@ public:
         tableDirty_ = false;
         lastBank_ = 0xFFFFFFFFu;
         lastMorph_ = -1.0f;
-        // Pre-warm static pitch compensation table & AKWF ROM outside real-time audio thread
+        // Pre-warm static pitch compensation table, seam window & AKWF ROM outside real-time audio thread
         juce::ignoreUnused(getSharedPitchTable()[0]);
+        juce::ignoreUnused(getWindowTable()[0]);
         juce::ignoreUnused(AkwfRom::getInstance());
     }
 
@@ -69,7 +72,7 @@ public:
         const float sp = (maskSpeed > 0.0f && std::isfinite(maskSpeed)) ? std::fmin(maskSpeed, 10.0f) : 0.0f;
 
         // Advance stator accumulator once per output sample (lightweight, zero inner-loop cost)
-        statorQ_ += static_cast<uint32_t>(sp * (4294967296.0 / sampleRate_));
+        statorQ_ += static_cast<uint32_t>(sp * statorScale_);
 
         // Handle hard sync reset with 2-subsample anti-glitch
         if (hardSyncTrigger) {
@@ -84,14 +87,17 @@ public:
         }
 
         // Phase increment for 16x oversampling using seam-latched octave lock ratio
-        const double incPerSubstep = (static_cast<double>(freqHz * latchedRatio_) * 16777216.0) / (sampleRate_ * 16.0);
-        const uint32_t inc = std::max<uint32_t>(1u, static_cast<uint32_t>(incPerSubstep));
+        const double incPerSubstep = static_cast<double>(freqHz * latchedRatio_) * incScale_;
+        const uint32_t inc = std::max<uint32_t>(1u, static_cast<uint32_t>(std::min(incPerSubstep, 16777215.0)));
 
         // Ultra-lean integer-only 16x oversampling loop (split at seam for sample-accurate latching)
         const float* c = cycle_.data();
         uint32_t ph = phase_ & 0x00FFFFFFu;
-        const uint32_t toSeam = (0x01000000u - ph + inc - 1u) / inc;
-        const int nPre = static_cast<int>(std::min<uint32_t>(16u, toSeam));
+        // Division-free fast path: all 16 sub-steps stay in-cycle unless ph + 16*inc reaches the seam
+        int nPre = 16;
+        if (static_cast<uint64_t>(ph) + 16ull * inc >= 0x01000000ull) {
+            nPre = static_cast<int>(std::min<uint32_t>(16u, (0x01000000u - ph + inc - 1u) / inc));
+        }
 
         float sum = 0.0f;
         for (int k = 0; k < nPre; ++k) {
@@ -150,17 +156,16 @@ private:
         const float gain = (1.0f + 0.6f * depth) * (1.0f / 16.0f); // Pre-fold decimation scale
         const bool identity = (mask9 == 0x1FFu);
         const float* tbl = buffer8k_.data();
+        const float* win = getWindowTable().data();
 
         for (uint32_t n = 0; n < kTableSize; ++n) {
-            const float phi = static_cast<float>(n) * (1.0f / 512.0f);
-            float x = phi * r;
-            x -= std::floor(x);
-            const float pos = x * 512.0f;
-            const uint32_t i = static_cast<uint32_t>(pos);
+            const float pos = static_cast<float>(n) * r; // 512 * phi * r, unwrapped
+            const uint32_t k = static_cast<uint32_t>(pos);
+            const uint32_t i = k & 0x1FFu;
             const uint32_t im = i & mask9;
             float s = tbl[im];
-            if (identity) s += (pos - static_cast<float>(i)) * (tbl[(im + 1u) & 0x1FFu] - s);
-            cycle_[n] = gain * s * (1.0f - depth * S(phi));
+            if (identity) s += (pos - static_cast<float>(k)) * (tbl[(im + 1u) & 0x1FFu] - s);
+            cycle_[n] = gain * s * (1.0f - depth * win[n]);
         }
     }
 
@@ -200,7 +205,21 @@ private:
         return table;
     }
 
+    static const std::array<float, 512>& getWindowTable() {
+        static const auto table = []() {
+            std::array<float, 512> t;
+            for (int n = 0; n < 512; ++n) {
+                const float x = static_cast<float>(n) * (1.0f / 512.0f);
+                t[n] = x * x * (3.0f - 2.0f * x); // S(phi) smoothstep seam window
+            }
+            return t;
+        }();
+        return table;
+    }
+
     double sampleRate_ = 44100.0;
+    double incScale_ = 16777216.0 / (44100.0 * 16.0);
+    double statorScale_ = 4294967296.0 / 44100.0;
     uint32_t phase_ = 0;
     uint32_t statorQ_ = 0;
     uint32_t lastStatorOffset_ = 0;

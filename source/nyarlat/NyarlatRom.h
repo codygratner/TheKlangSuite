@@ -8,6 +8,7 @@
 #include <cmath>
 #include <juce_core/juce_core.h>
 #include "NyarlatRomMetadata.h"
+#include "../FastMath.h"
 
 namespace Nyarlat {
 
@@ -98,9 +99,9 @@ public:
         const float* wA = &samples_[(bank.offset + idxA) * NyarlatRom::kTableSize];
         const float* wB = &samples_[(bank.offset + idxB) * NyarlatRom::kTableSize];
 
-        // Equal-power circular morphing
-        float cosA = std::cos(alpha * 1.57079632679f);
-        float sinB = std::sin(alpha * 1.57079632679f);
+        // Equal-power circular morphing via fast minimax normalized trig
+        float cosA = TbdAudio::FastMath::fastCosNorm(alpha * 0.25f);
+        float sinB = TbdAudio::FastMath::fastSinNorm(alpha * 0.25f);
 
         for (uint32_t i = 0; i < NyarlatRom::kTableSize; ++i) {
             dest512[i] = wA[i] * cosA + wB[i] * sinB;

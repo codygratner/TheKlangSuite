@@ -3,6 +3,7 @@
 #include <cmath>
 #include <array>
 #include <juce_core/juce_core.h>
+#include "../FastMath.h"
 
 namespace Nyarlat {
 
@@ -25,9 +26,11 @@ struct BiquadTDF2 {
         s2 = 0.0f;
     }
 
-    void setTarget(float inB0, float inB1, float inB2, float inA1, float inA2) noexcept {
+    bool setTarget(float inB0, float inB1, float inB2, float inA1, float inA2) noexcept {
+        const bool changed = (tb0 != inB0) || (tb1 != inB1) || (tb2 != inB2) || (ta1 != inA1) || (ta2 != inA2);
         tb0 = inB0; tb1 = inB1; tb2 = inB2;
         ta1 = inA1; ta2 = inA2;
+        return changed;
     }
 
     void snap() noexcept {
@@ -88,12 +91,17 @@ public:
     void reset() noexcept {
         for (auto& b : leftStages_) b.reset();
         for (auto& b : rightStages_) b.reset();
+        settleSamples_ = 0;
+        lastModel_ = -1;
+        lastX_ = -1.0f; lastY_ = -1.0f; lastZ_ = -1.0f;
     }
 
     // Evaluate 3D Trilinear interpolation across active model's 8 corners
     // X = Freq (0..1), Y = Morph (0..1), Z = Transform (0..1)
     void updateCube(int modelIdx, float xNorm, float yNorm, float zNorm) noexcept {
         modelIdx = juce::jlimit(0, 19, modelIdx);
+        if (modelIdx == lastModel_ && xNorm == lastX_ && yNorm == lastY_ && zNorm == lastZ_) return;
+        lastModel_ = modelIdx; lastX_ = xNorm; lastY_ = yNorm; lastZ_ = zNorm;
         const auto& model = getSharedModels()[modelIdx];
 
         float cx = juce::jlimit(0.0f, 1.0f, xNorm);
@@ -112,7 +120,7 @@ public:
         float w6 = (1.0f - cx) * cy * cz;
         float w7 = cx * cy * cz;
 
-
+        bool changed = false;
         for (int s = 0; s < kNumSections; ++s) {
             float pr = 0.0f, pt = 0.0f, zr = 0.0f, zt = 0.0f;
             const auto& c = model.corners;
@@ -141,27 +149,34 @@ public:
             pr = juce::jlimit(0.0f, 0.990f, pr);
             zr = juce::jlimit(0.0f, 1.0f, zr);
 
+            // Fast minimax cosine
+            const float cp = TbdAudio::FastMath::fastCos(pt);
+            const float czAngle = TbdAudio::FastMath::fastCos(zt);
+
             // Convert polar to polynomial biquad coefficients
             // a1 = -2 * rho * cos(theta), a2 = rho^2
             // b0 = 1.0, b1 = -2 * z_rho * cos(z_theta), b2 = z_rho^2
-            float a1 = -2.0f * pr * std::cos(pt);
+            float a1 = -2.0f * pr * cp;
             float a2 = pr * pr;
 
             // |H(1)| = N/D (cancellation-free). Attenuate-only: a DC null (N->0) never divides.
-            const float sp = std::sin(0.5f * pt);
-            const float sz = std::sin(0.5f * zt);
-            const float D = (1.0f - pr) * (1.0f - pr) + 4.0f * pr * sp * sp; // >= 1e-4 (pr <= 0.990)
-            const float N = (1.0f - zr) * (1.0f - zr) + 4.0f * zr * sz * sz;
+            // By exact trigonometric half-angle identity:
+            // 4 sin^2(t/2) == 2(1 - cos(t))
+            // D == (1 - pr)^2 + 4 pr sin^2(pt/2) == 1 + a2 + a1
+            // N == (1 - zr)^2 + 4 zr sin^2(zt/2) == 1 + zr^2 - 2 zr cos(zt)
+            const float D = std::max(1e-4f, 1.0f + a2 + a1);
+            const float N = 1.0f + zr * zr - 2.0f * zr * czAngle;
             const float g = (N > D) ? (D / N) : 1.0f;
 
             float b0 = g;
-            float b1 = -2.0f * zr * std::cos(zt) * g;
+            float b1 = -2.0f * zr * czAngle * g;
             float b2 = zr * zr * g;
 
-            leftStages_[s].setTarget(b0, b1, b2, a1, a2);
+            changed |= leftStages_[s].setTarget(b0, b1, b2, a1, a2);
             rightStages_[s].setTarget(b0, b1, b2, a1, a2);
         }
 
+        if (changed) settleSamples_ = kSettleSamples;
         activeModelNorm_ = model.modelNorm;
     }
 
@@ -184,9 +199,18 @@ public:
         float l = left;
         float r = right;
 
+        if (settleSamples_ > 0) {
+            for (int s = 0; s < kNumSections; ++s) {
+                leftStages_[s].smooth(kLambda);
+                rightStages_[s].smooth(kLambda);
+            }
+            if (--settleSamples_ == 0) {
+                for (auto& b : leftStages_) b.snap();
+                for (auto& b : rightStages_) b.snap();
+            }
+        }
+
         for (int s = 0; s < kNumSections; ++s) {
-            leftStages_[s].smooth(kLambda);
-            rightStages_[s].smooth(kLambda);
             l = leftStages_[s].process(l);
             r = rightStages_[s].process(r);
         }
@@ -235,6 +259,11 @@ private:
 
     double sampleRate_ = 44100.0;
     float activeModelNorm_ = 0.35f;
+
+    static constexpr int kSettleSamples = 256; // Fast ~5ms settle before coefficient snap
+    int settleSamples_ = 0;
+    int lastModel_ = -1;
+    float lastX_ = -1.0f, lastY_ = -1.0f, lastZ_ = -1.0f;
 
     std::array<BiquadTDF2, kNumSections> leftStages_;
     std::array<BiquadTDF2, kNumSections> rightStages_;

@@ -6,6 +6,7 @@
 #include "ZDomainFilter14.h"
 #include "NyarlatChaosMatrix.h"
 #include "../hastur/HasturFilterUtils.h"
+#include "../FastMath.h"
 
 namespace Nyarlat {
 
@@ -32,7 +33,8 @@ public:
 
             attackRate = static_cast<float>(1.0 / (scaledA * sr));
             decayRate = static_cast<float>(1.0 / (scaledD * sr));
-            releaseRate = static_cast<float>(1.0 / (scaledR * sr));
+            // Exact one-pole coefficient: level falls 1.0 -> 1e-4 (-80 dB, the idle cutoff) in scaledR seconds
+            releaseRate = static_cast<float>(-std::expm1(-9.210340371976184 / (scaledR * sr)));
         }
 
         void noteOn() noexcept {
@@ -96,8 +98,6 @@ public:
         filter_.prepare(sampleRate);
         mixerDcBlockerL_.prepare(sampleRate, 5.0);
         mixerDcBlockerR_.prepare(sampleRate, 5.0);
-        postFilterDcBlockerL_.prepare(sampleRate, 5.0);
-        postFilterDcBlockerR_.prepare(sampleRate, 5.0);
         reset();
     }
 
@@ -106,8 +106,6 @@ public:
         filter_.reset();
         mixerDcBlockerL_.reset();
         mixerDcBlockerR_.reset();
-        postFilterDcBlockerL_.reset();
-        postFilterDcBlockerR_.reset();
         ampEnv_.stage = EnvStage::Idle;
         ampEnv_.level = 0.0f;
         filterEnv_.stage = EnvStage::Idle;
@@ -124,6 +122,8 @@ public:
         cachedBendMult_ = 1.0f;
         cachedEffSpeed_[0] = 0.0f; cachedEffSpeed_[1] = 0.0f; cachedEffSpeed_[2] = 0.0f;
         cachedEffMask_[0] = 511; cachedEffMask_[1] = 511; cachedEffMask_[2] = 511;
+        lastSemis_[0] = lastSemis_[1] = lastSemis_[2] = 1e9f;
+        lastTotalBend_ = 1e9f;
     }
 
     void sanitize() noexcept {
@@ -207,12 +207,18 @@ public:
         if ((ctrlCounter_++ & 15) == 0) {
             // Total pitch with Pitch Bend (MPE + Global)
             float totalBend = mpePitchBendSemitones_ + globalPitchBendSemitones;
-            cachedBendMult_ = std::pow(2.0f, totalBend / 12.0f);
+            if (totalBend != lastTotalBend_) {
+                lastTotalBend_ = totalBend;
+                cachedBendMult_ = TbdAudio::FastMath::fastPow2(totalBend / 12.0f);
+            }
 
             // Process 3 Oscillator Pitch Ratios (no random pitch wobble on pads)
             for (int i = 0; i < 3; ++i) {
                 float semis = (oscOctave[i] - 2) * 12.0f + oscDetune[i];
-                cachedOctMult_[i] = std::pow(2.0f, semis / 12.0f);
+                if (semis != lastSemis_[i]) {
+                    lastSemis_[i] = semis;
+                    cachedOctMult_[i] = TbdAudio::FastMath::fastPow2(semis / 12.0f);
+                }
             }
 
             // Modulate stator speed and mask aperture with chaos attenuverters
@@ -233,7 +239,7 @@ public:
 
             float effFreq = zFreq + (filtEnvVal * filterEnvDepth * 8000.0f);
             effFreq = juce::jlimit(20.0f, 20000.0f, effFreq);
-            float xNorm = std::log10(effFreq / 20.0f) / 3.0f;
+            float xNorm = TbdAudio::FastMath::fastLog2(effFreq / 20.0f) * 0.10034333f; // log10(x) / 3
 
             filter_.updateCube(zModel, xNorm, effMorph, effTransform);
         }
@@ -266,8 +272,8 @@ public:
         // 6. Per-Voice Console Seethe Drive (Soft-Knee Asymmetric Saturation)
         if (mixerSeethe > 0.001f) {
             float driveGain = 1.0f + mixerSeethe * 4.0f;
-            mixL = std::tanh(mixL * driveGain);
-            mixR = std::tanh(mixR * driveGain);
+            mixL = TbdAudio::FastMath::fastTanh(mixL * driveGain);
+            mixR = TbdAudio::FastMath::fastTanh(mixR * driveGain);
         }
 
         // Pre-Filter DC Blocker (strips bitmask & console seethe baseline DC)
@@ -276,10 +282,6 @@ public:
 
         // 7. Process Z-Plane Filter (per-sample coefficient slew & TDF-II biquads)
         filter_.processStereo(mixL, mixR);
-
-        // Post-Filter DC Blocker
-        mixL = postFilterDcBlockerL_.process(mixL);
-        mixR = postFilterDcBlockerR_.process(mixR);
 
         // 8. VCA Stage with Velocity Scaling
         float velScale = 1.0f - ampVelocity + (ampVelocity * velocity_ * velocity_);
@@ -326,13 +328,13 @@ private:
     float cachedBendMult_ = 1.0f;
     float cachedEffSpeed_[3] = { 0.0f, 0.0f, 0.0f };
     int cachedEffMask_[3] = { 511, 511, 511 };
+    float lastSemis_[3] = { 1e9f, 1e9f, 1e9f };
+    float lastTotalBend_ = 1e9f;
 
     std::array<BitmaskOscillator, 3> oscs_;
     ZDomainFilter14 filter_;
     CrackedChimes::DSP::LeakyDCBlocker mixerDcBlockerL_;
     CrackedChimes::DSP::LeakyDCBlocker mixerDcBlockerR_;
-    CrackedChimes::DSP::LeakyDCBlocker postFilterDcBlockerL_;
-    CrackedChimes::DSP::LeakyDCBlocker postFilterDcBlockerR_;
     VoiceChaosEngine chaos_;
     Envelope ampEnv_;
     Envelope filterEnv_;
