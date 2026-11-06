@@ -12,6 +12,21 @@
 #include "UIComponents.h"
 #if JUCE_LINUX
 #include <X11/Xlib.h>
+#undef Status
+#undef KeyPress
+#undef KeyRelease
+#undef ButtonPress
+#undef ButtonRelease
+#undef FocusIn
+#undef FocusOut
+#undef Font
+#undef None
+#undef Bool
+#undef Success
+#undef CursorShape
+#undef Above
+#undef Below
+#undef Always
 #endif
 
 namespace GuiTestHelpers {

@@ -1766,12 +1766,7 @@ void RotaryKnobSlider::openHoveringEditor() {
         }
     }
     auto callout = std::make_unique<SliderCalloutComponent>(*this, paramId, getModInfoFunc);
-    if (top != nullptr) {
-        auto area = top->getLocalArea(this, getLocalBounds());
-        juce::CallOutBox::launchAsynchronously(std::move(callout), area, top);
-    } else {
-        juce::CallOutBox::launchAsynchronously(std::move(callout), getScreenBounds(), nullptr);
-    }
+    juce::CallOutBox::launchAsynchronously(std::move(callout), getScreenBounds(), nullptr);
 }
 
 juce::String RotaryKnobSlider::getTextFromValue(double val) {
@@ -2571,13 +2566,7 @@ void ModuleCardComponent::mouseDown(const juce::MouseEvent& e) {
 
 void ModuleCardComponent::launchCardInspector() {
     auto popover = std::make_unique<CardInspectorPopover>(*this);
-    auto* top = getTopLevelComponent();
-    if (top != nullptr) {
-        auto area = top->getLocalArea(this, getLocalBounds());
-        juce::CallOutBox::launchAsynchronously(std::move(popover), area, top);
-    } else {
-        juce::CallOutBox::launchAsynchronously(std::move(popover), getScreenBounds(), nullptr);
-    }
+    juce::CallOutBox::launchAsynchronously(std::move(popover), getScreenBounds(), nullptr);
 }
 
 void ModuleCardComponent::paint(juce::Graphics& g) {
