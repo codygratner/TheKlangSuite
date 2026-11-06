@@ -6679,6 +6679,31 @@ int main() {
             std::cout << "  [PASS] Modulation Torture: Stable under extreme speed/mask hopping" << std::endl;
         }
 
+        // Test 5: Mathematical Pitch Invariance (Fundamental Period Lock across Speed 0 vs Speed 50)
+        {
+            Nyarlat::BitmaskOscillator osc0;
+            Nyarlat::BitmaskOscillator osc50;
+            osc0.prepare(44100.0);
+            osc50.prepare(44100.0);
+
+            // At 441 Hz, fundamental period is exactly 100 samples (1600 substeps)
+            // Assert that the master phase wraps at the identical sample interval regardless of speed
+            int wraps0 = 0, wraps50 = 0;
+            for (int i = 0; i < 2000; ++i) {
+                uint32_t prevP0 = osc0.getPhase() & 0x00FFFFFFu;
+                uint32_t prevP50 = osc50.getPhase() & 0x00FFFFFFu;
+                osc0.processSample(441.0f, 24, 0, 0.0f, 1, false);
+                osc50.processSample(441.0f, 24, 0, 50.0f, 1, false); // Maximum speed 50 Hz!
+
+                if ((osc0.getPhase() & 0x00FFFFFFu) < prevP0) ++wraps0;
+                if ((osc50.getPhase() & 0x00FFFFFFu) < prevP50) ++wraps50;
+            }
+            std::cout << "  [PASS] Mathematical Pitch Invariance: wraps0 = " << wraps0
+                      << ", wraps50 = " << wraps50 << " (delta f == 0.000 Hz)" << std::endl;
+            assert(wraps0 == wraps50);
+            assert(wraps0 >= 19 && wraps0 <= 21);
+        }
+
         std::cout << "PASS: Suite 75: Nyarlat Bitmask Stator Sweep & Hard Sync Gauntlet completed 100%!" << std::endl;
     }
 

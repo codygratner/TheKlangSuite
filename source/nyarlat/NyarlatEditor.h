@@ -249,6 +249,9 @@ public:
             statorOff = (sweep + static_cast<uint32_t>(startVal + 512)) & 0x1FFu;
         }
 
+        // Apply pitch-invariant k-scaling (duty-cycle formant squeeze matching DSP engine)
+        const uint32_t k = 16u + ((statorOff * 15u) >> 5);
+
         juce::Path p;
         float w = bounds.getWidth() - 8.0f;
         float h = bounds.getHeight() - 8.0f;
@@ -258,7 +261,8 @@ public:
         const int numPts = 128;
         for (int i = 0; i < numPts; ++i) {
             uint32_t phaseIdx = static_cast<uint32_t>((i * 512) / numPts);
-            uint32_t tableIdx = (phaseIdx + statorOff) & static_cast<uint32_t>(effectiveMask);
+            uint32_t m = phaseIdx & static_cast<uint32_t>(effectiveMask);
+            uint32_t tableIdx = (((m & 0x1FFu) * k) >> 4) | (m & ~0x1FFu);
             float samp = (tableIdx < 512) ? waveTable[tableIdx] : 0.0f;
 
             float px = startX + (static_cast<float>(i) / static_cast<float>(numPts - 1)) * w;

@@ -81,6 +81,7 @@ public:
         // Auto-promote loopMode == 0 (Off) to Saw (1) when speed > 0 so SPEED is never silently dead
         const int effectiveLoop = (loopMode == 0 && sp > 0.0f) ? 1 : loopMode;
         float sum = 0.0f;
+        uint32_t lastK = 16u;
         for (int sub = 0; sub < kOversample; ++sub) {
             uint32_t sweep = 0;
             if (effectiveLoop != 0) {
@@ -89,15 +90,24 @@ public:
                 // Saw (1): linear ramp | Ping-Pong (2): triangle bounce
                 sweep = (effectiveLoop == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
             }
-            const uint32_t off = (sweep + base) & 0x1FFu; // Circular mod-512 offset
+            const uint32_t off = (sweep + base) & 0x1FFu; // Stator position (0..511)
             lastStatorOffset_ = off;
-            const uint32_t tableIdx = ((phase_ >> 15) + off) & static_cast<uint32_t>(mask);
+
+            // Pitch-invariant duty-cycle formant squeeze into 8KB zero runway:
+            // k=16 is 1.0x (identity baseline). k=255 is ~16x formant squeeze.
+            // Fundamental period is strictly anchored to phase_, guaranteeing delta f == 0.0 Hz.
+            const uint32_t k = 16u + ((off * 15u) >> 5);
+            const uint32_t m = (phase_ >> 15) & static_cast<uint32_t>(mask);
+            const uint32_t tableIdx = (((m & 0x1FFu) * k) >> 4) | (m & ~0x1FFu);
 
             sum += buffer8k_[tableIdx & 0x1FFFu];
+            lastK = k;
             phase_ += phaseInc;
         }
 
-        float decimated = sum * (1.0f / 16.0f);
+        // Soft RMS power compensation: (k/16)^0.25 (gentle boost up to +4.5 dB for high squeeze)
+        const float gainComp = std::sqrt(std::sqrt(static_cast<float>(lastK) * (1.0f / 16.0f)));
+        float decimated = sum * (1.0f / 16.0f) * gainComp;
 
         // Smooth hard-sync transition if active
         if (syncFade_ > 0.0f) {
