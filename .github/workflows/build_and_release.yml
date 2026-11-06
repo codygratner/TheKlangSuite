@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name to release to (e.g. v0.1.5)'
+        description: 'Tag name to release to (e.g. v0.5.0)'
         required: true
-        default: 'v0.1.5'
+        default: 'v0.5.0'
 
 permissions:
   contents: write
@@ -39,11 +39,16 @@ jobs:
         run: |
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DTKS_BUILD_EXPERIMENTAL_TESTS=OFF
 
       - name: Build Plugins & Standalone
         run: |
-          cmake --build build --config Release --parallel --target TheKlangFarmer_VST3 TheKlangFarmer_AU TheKlangFarmer_Standalone TheKlangPlanter_VST3 TheKlangPlanter_AU TheKlangPlanter_Standalone TheKlangEditor dsp_tests
+          cmake --build build --config Release --parallel --target \
+            Hastur_VST3 Hastur_AU Hastur_Standalone \
+            FormlessSpawn_VST3 FormlessSpawn_AU FormlessSpawn_Standalone \
+            DigiStrikeFS2_VST3 DigiStrikeFS2_AU DigiStrikeFS2_Standalone \
+            dsp_tests
 
       - name: Run DSP Unit Tests
         run: |
@@ -53,19 +58,59 @@ jobs:
             ./build/Release/dsp_tests
           fi
 
-      - name: Build macOS Distribution Packages (.pkg Installer, .dmg, .zip)
+      - name: Package macOS Distribution Archives
         run: |
-          chmod +x scripts/mac/build_mac_distribution.sh scripts/mac/postinstall scripts/mac/Fix_Mac_Permissions.command
-          ./scripts/mac/build_mac_distribution.sh "${{ steps.tag.outputs.tag }}" build
+          TAG="${{ steps.tag.outputs.tag }}"
+          mkdir -p dist_mac/hastur dist_mac/formless dist_mac/digistrike dist_mac/suite
+
+          # Copy Hastur bundles
+          find build -name "Hastur.vst3" -type d -exec cp -R -P {} dist_mac/hastur/ \;
+          find build -name "Hastur.component" -type d -exec cp -R -P {} dist_mac/hastur/ \;
+          find build -name "Hastur.app" -type d -exec cp -R -P {} dist_mac/hastur/ \;
+
+          # Copy Formless Spawn bundles
+          find build -name "Formless Spawn.vst3" -type d -exec cp -R -P {} dist_mac/formless/ \;
+          find build -name "Formless Spawn.component" -type d -exec cp -R -P {} dist_mac/formless/ \;
+          find build -name "Formless Spawn.app" -type d -exec cp -R -P {} dist_mac/formless/ \;
+
+          # Copy DigiStrike FS2 bundles
+          find build -name "DigiStrike FS2.vst3" -type d -exec cp -R -P {} dist_mac/digistrike/ \;
+          find build -name "DigiStrike FS2.component" -type d -exec cp -R -P {} dist_mac/digistrike/ \;
+          find build -name "DigiStrike FS2.app" -type d -exec cp -R -P {} dist_mac/digistrike/ \;
+
+          # Ensure ROM is in all DigiStrike bundles
+          find dist_mac/digistrike -name "DigiStrike FS2.vst3" -o -name "DigiStrike FS2.component" -o -name "DigiStrike FS2.app" | while read -r item; do
+            mkdir -p "$item/Contents/Resources"
+            cp assets/digistrike_fs2_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
+          done
+
+          # Ad-hoc codesign all binaries
+          find dist_mac -name "*.vst3" -o -name "*.component" -o -name "*.app" | while read -r item; do
+            codesign --force --deep -s - "$item" 2>/dev/null || true
+          done
+
+          # Assemble Suite bundle
+          cp -R -P dist_mac/hastur/* dist_mac/suite/
+          cp -R -P dist_mac/formless/* dist_mac/suite/
+          cp -R -P dist_mac/digistrike/* dist_mac/suite/
+
+          # Create zip archives (preserving symlinks)
+          cd dist_mac/hastur && zip -r -y "../../Hastur-v1.0.6-macOS.zip" * && cd ../..
+          cd dist_mac/formless && zip -r -y "../../Formless_Spawn-v1.0.1-macOS.zip" * && cd ../..
+          cd dist_mac/digistrike && zip -r -y "../../DigiStrike_FS2-v1.0.0-macOS.zip" * && cd ../..
+          cd dist_mac/suite && zip -r -y "../../TheKlangSuite-${TAG}-macOS.zip" * && cd ../..
+
+          ls -lh *-macOS.zip
 
       - name: Upload macOS Packages to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           files: |
-            TheKlangFarmer-*-macOS-Installer.pkg
-            TheKlangFarmer-*-macOS.dmg
-            TheKlangFarmer-*-macOS.zip
+            TheKlangSuite-*-macOS.zip
+            Hastur-*-macOS.zip
+            Formless_Spawn-*-macOS.zip
+            DigiStrike_FS2-*-macOS.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -101,8 +146,6 @@ jobs:
             libxrandr-dev \
             libxrender-dev \
             libxi-dev \
-            libglu1-mesa-dev \
-            mesa-common-dev \
             libgl1-mesa-dev \
             libfontconfig1-dev \
             zip
@@ -112,11 +155,15 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DTKS_BUILD_EXPERIMENTAL_TESTS=OFF
 
       - name: Build Plugins & Standalone
         run: |
-          cmake --build build --config Release --parallel --target TheKlangFarmer_VST3 TheKlangFarmer_Standalone TheKlangPlanter_VST3 TheKlangPlanter_Standalone TheKlangEditor dsp_tests
+          cmake --build build --config Release --parallel --target \
+            Hastur_VST3 Hastur_Standalone \
+            FormlessSpawn_VST3 FormlessSpawn_Standalone \
+            DigiStrikeFS2_VST3 DigiStrikeFS2_Standalone \
+            dsp_tests
 
       - name: Run DSP Unit Tests
         run: |
@@ -129,23 +176,48 @@ jobs:
       - name: Package Linux Binaries
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
-          ZIP_NAME="TheKlangFarmer-${TAG}-Linux.zip"
-          mkdir -p linux_dist
-          find build/TheKlangFarmer_artefacts -name "The Klang Farmer.vst3" -exec cp -r {} linux_dist/ \;
-          find build/TheKlangFarmer_artefacts -name "The Klang Farmer" -type f -exec cp {} linux_dist/ \;
-          find build/TheKlangPlanter_artefacts -name "The Klang Planter.vst3" -exec cp -r {} linux_dist/ \;
-                    find build/TheKlangPlanter_artefacts -name "The Klang Planter" -type f -exec cp {} linux_dist/ \;
-          find build/TheKlangEditor_artefacts -name "The Klang Editor" -type f -exec cp {} linux_dist/ \;
-          cd linux_dist
-          zip -r "../${ZIP_NAME}" *
-          cd ..
-          ls -lh "${ZIP_NAME}"
+          mkdir -p dist_linux/hastur dist_linux/formless dist_linux/digistrike dist_linux/suite
+
+          # Copy Hastur
+          find build -name "Hastur.vst3" -type d -exec cp -R -P {} dist_linux/hastur/ \;
+          find build -path "*Hastur_artefacts*Standalone/Hastur" -type f -exec cp {} dist_linux/hastur/ \;
+
+          # Copy Formless Spawn
+          find build -name "Formless Spawn.vst3" -type d -exec cp -R -P {} dist_linux/formless/ \;
+          find build -path "*FormlessSpawn_artefacts*Standalone/Formless Spawn" -type f -exec cp {} dist_linux/formless/ \;
+
+          # Copy DigiStrike FS2
+          find build -name "DigiStrike FS2.vst3" -type d -exec cp -R -P {} dist_linux/digistrike/ \;
+          find build -path "*DigiStrikeFS2_artefacts*Standalone/DigiStrike FS2" -type f -exec cp {} dist_linux/digistrike/ \;
+
+          # Ensure ROM is in DigiStrike VST3
+          find dist_linux/digistrike -name "DigiStrike FS2.vst3" | while read -r item; do
+            mkdir -p "$item/Contents/Resources"
+            cp assets/digistrike_fs2_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
+          done
+
+          # Assemble Suite
+          cp -R -P dist_linux/hastur/* dist_linux/suite/
+          cp -R -P dist_linux/formless/* dist_linux/suite/
+          cp -R -P dist_linux/digistrike/* dist_linux/suite/
+
+          # Create zip archives
+          cd dist_linux/hastur && zip -r "../../Hastur-v1.0.6-Linux.zip" * && cd ../..
+          cd dist_linux/formless && zip -r "../../Formless_Spawn-v1.0.1-Linux.zip" * && cd ../..
+          cd dist_linux/digistrike && zip -r "../../DigiStrike_FS2-v1.0.0-Linux.zip" * && cd ../..
+          cd dist_linux/suite && zip -r "../../TheKlangSuite-${TAG}-Linux.zip" * && cd ../..
+
+          ls -lh *-Linux.zip
 
       - name: Upload Linux Archive to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          files: TheKlangFarmer-*-Linux.zip
+          files: |
+            TheKlangSuite-*-Linux.zip
+            Hastur-*-Linux.zip
+            Formless_Spawn-*-Linux.zip
+            DigiStrike_FS2-*-Linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -171,10 +243,15 @@ jobs:
         run: git clone --depth 1 --branch 9.0.3 https://github.com/juce-framework/JUCE.git JUCE
 
       - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DTKS_BUILD_EXPERIMENTAL_TESTS=OFF
 
       - name: Build Plugins & Standalone
-        run: cmake --build build --config Release --parallel --target TheKlangFarmer_VST3 TheKlangFarmer_Standalone TheKlangPlanter_VST3 TheKlangPlanter_Standalone TheKlangEditor dsp_tests
+        run: |
+          cmake --build build --config Release --parallel --target `
+            Hastur_VST3 Hastur_Standalone `
+            FormlessSpawn_VST3 FormlessSpawn_Standalone `
+            DigiStrikeFS2_VST3 DigiStrikeFS2_Standalone `
+            dsp_tests
 
       - name: Run DSP Unit Tests
         run: .\build\Release\dsp_tests.exe
@@ -183,22 +260,51 @@ jobs:
         shell: pwsh
         run: |
           $TAG = "${{ steps.tag.outputs.tag }}"
-          $ZIP_NAME = "TheKlangFarmer-$TAG-Windows.zip"
-          New-Item -ItemType Directory -Path win_dist
-          Copy-Item -Recurse "build/TheKlangFarmer_artefacts/Release/VST3/The Klang Farmer.vst3" win_dist/
-          Copy-Item "build/TheKlangFarmer_artefacts/Release/Standalone/The Klang Farmer.exe" win_dist/
-          Copy-Item -Recurse "build/TheKlangPlanter_artefacts/Release/VST3/The Klang Planter.vst3" win_dist/
-                    Copy-Item "build/TheKlangPlanter_artefacts/Release/Standalone/The Klang Planter.exe" win_dist/
-          Copy-Item "build/TheKlangEditor_artefacts/Release/The Klang Editor.exe" win_dist/
-          Compress-Archive -Path win_dist/* -DestinationPath $ZIP_NAME
-          Get-Item $ZIP_NAME
+          New-Item -ItemType Directory -Path dist_win/hastur, dist_win/formless, dist_win/digistrike, dist_win/suite -Force
+
+          # Hastur
+          $hasturVst3 = (Get-ChildItem -Path "build/Hastur_artefacts" -Filter "Hastur.vst3" -Recurse -Directory | Select-Object -First 1).FullName
+          $hasturExe = (Get-ChildItem -Path "build/Hastur_artefacts" -Filter "Hastur.exe" -Recurse -File | Select-Object -First 1).FullName
+          Copy-Item -Recurse $hasturVst3 dist_win/hastur/
+          Copy-Item $hasturExe dist_win/hastur/
+
+          # Formless Spawn
+          $formlessVst3 = (Get-ChildItem -Path "build/FormlessSpawn_artefacts" -Filter "Formless Spawn.vst3" -Recurse -Directory | Select-Object -First 1).FullName
+          $formlessExe = (Get-ChildItem -Path "build/FormlessSpawn_artefacts" -Filter "Formless Spawn.exe" -Recurse -File | Select-Object -First 1).FullName
+          Copy-Item -Recurse $formlessVst3 dist_win/formless/
+          Copy-Item $formlessExe dist_win/formless/
+
+          # DigiStrike FS2
+          $digistrikeVst3 = (Get-ChildItem -Path "build/DigiStrikeFS2_artefacts" -Filter "DigiStrike FS2.vst3" -Recurse -Directory | Select-Object -First 1).FullName
+          $digistrikeExe = (Get-ChildItem -Path "build/DigiStrikeFS2_artefacts" -Filter "DigiStrike FS2.exe" -Recurse -File | Select-Object -First 1).FullName
+          Copy-Item -Recurse $digistrikeVst3 dist_win/digistrike/
+          Copy-Item $digistrikeExe dist_win/digistrike/
+
+          # Ensure ROM in DigiStrike VST3
+          New-Item -ItemType Directory -Path "dist_win/digistrike/DigiStrike FS2.vst3/Contents/Resources" -Force
+          Copy-Item "assets/digistrike_fs2_rom.bin" "dist_win/digistrike/DigiStrike FS2.vst3/Contents/Resources/" -Force
+
+          # Suite
+          Copy-Item -Recurse dist_win/hastur/* dist_win/suite/
+          Copy-Item -Recurse dist_win/formless/* dist_win/suite/
+          Copy-Item -Recurse dist_win/digistrike/* dist_win/suite/
+
+          # Compress
+          Compress-Archive -Path dist_win/hastur/* -DestinationPath "Hastur-v1.0.6-Windows.zip" -Force
+          Compress-Archive -Path dist_win/formless/* -DestinationPath "Formless_Spawn-v1.0.1-Windows.zip" -Force
+          Compress-Archive -Path dist_win/digistrike/* -DestinationPath "DigiStrike_FS2-v1.0.0-Windows.zip" -Force
+          Compress-Archive -Path dist_win/suite/* -DestinationPath "TheKlangSuite-$TAG-Windows.zip" -Force
+
+          Get-ChildItem *-Windows.zip
 
       - name: Upload Windows Archive to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          files: TheKlangFarmer-*-Windows.zip
+          files: |
+            TheKlangSuite-*-Windows.zip
+            Hastur-*-Windows.zip
+            Formless_Spawn-*-Windows.zip
+            DigiStrike_FS2-*-Windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
