@@ -890,3 +890,19 @@ ew, malloc, ree, or resize dynamic containers (std::vector::push_back, juce::Ar
   - Recent Commits: 3345db1 fix(digistrike): decouple traversal from midi pitch, implement master macro decay fan-out & suite 71, 33bf396 feat(digistrike_fs2): alphabetize lineage grid and apply authentic 20-brand hardware livery
   - Branch: `0.4.0-dev` (3345db1)
   - Active Plan Target: `DIGISTRIKE_FS` · Status: `UNKNOWN`
+
+### Session: 2026-11-05 19:15 (manual_run)
+- **Chat Role:** Nyarlat Architect
+- **Primary Objectives:** Nyarlat v1.0.0 16-Voice Metamorphic Z-Domain Synthesizer implementation under Cracked Chimes: 3x bitmask stator oscillators (4,358 AKWF waves with Vital circular phase alignment), 14-pole Z-domain resonator matrix, 16-voice polyphony with MPE and chord glide, Abyss plate reverb, 40Hz bass boost, alpha chorus, dual-card UI verified with 0 collisions and live window proof.
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 8f55f6a chore(release): bump Hastur to v1.0.6, Formless Spawn to v1.0.1, DigiStrike FS2 to v1.0.0, and The Klang Suite to v0.5.0, 44185cc feat(dsp): deploy hardened Triad Modal Strike Engine & Suite 73 gauntlet to DigiStrike FS2
+  - Branch: `0.4.0-dev` (8f55f6a)
+  - Active Plan Target: `FACTORY_FLOOR` · Status: `UNKNOWN`
+
+### Session: 2026-11-06 04:01 (manual_run)
+- **Chat Role:** Automated Nightly Sentry
+- **Primary Objectives:** Scheduled 4 AM Black Box Memory Flush and State Integrity Audit
+- **Key Decisions & Deliverables:**
+  - Recent Commits: 1277721 fix(ci): restore desktop callout parenting in UIComponents and undefine X11 macro collisions in GuiTestHelpers, 0250a8c fix(nyarlat): eliminate runaway DC via canonical Schroeder allpass, in-loop DC blocking, and dual master DC stage
+  - Branch: `0.4.0-dev` (1277721)
+  - Active Plan Target: `FACTORY_FLOOR` · Status: `UNKNOWN`

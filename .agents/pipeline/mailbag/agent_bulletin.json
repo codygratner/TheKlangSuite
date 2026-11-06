@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-11-05 04:00:37",
-  "briefing_title": "Implementation Plan: DigiStrike FS2 Stuck Notes Elimination (Role & Lineage Switching)",
+  "updated_at": "2026-11-06 04:01:25",
+  "briefing_title": "Implementation Plan",
   "briefing_text": "Scheduled 4 AM Black Box Memory Flush and State Integrity Audit",
-  "status_badge": "ACTIVE \u26a1",
+  "status_badge": "IDLE \ud83d\udfe2",
   "pending_decisions_count": 0,
-  "last_flight": "Implementation Plan: DigiStrike FS2 Stuck Notes Elimination (Role & Lineage Switching)",
+  "last_flight": "Implementation Plan",
   "git_branch": "0.4.0-dev",
-  "target_pipeline": "DIGISTRIKE_FS"
+  "target_pipeline": "FACTORY_FLOOR"
 }

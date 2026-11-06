@@ -1,26 +1,26 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "3345db1",
+    "commit": "1277721",
     "is_clean": false,
-    "dirty_count": 72,
+    "dirty_count": 83,
     "staged": 1,
-    "modified": 5,
-    "untracked": 67,
+    "modified": 14,
+    "untracked": 69,
     "recent_commits": [
-      "3345db1 fix(digistrike): decouple traversal from midi pitch, implement master macro decay fan-out & suite 71",
-      "33bf396 feat(digistrike_fs2): alphabetize lineage grid and apply authentic 20-brand hardware livery",
-      "28a1cde feat(digistrike): unified continuous voice engine, zero-crossing onset sanitization & Suite 70"
+      "1277721 fix(ci): restore desktop callout parenting in UIComponents and undefine X11 macro collisions in GuiTestHelpers",
+      "0250a8c fix(nyarlat): eliminate runaway DC via canonical Schroeder allpass, in-loop DC blocking, and dual master DC stage",
+      "31035ff fix(ci, linux): eliminate X11 BadAtom crash in gui_tests via fluxbox, safe callout parenting, and X11 error handler"
     ]
   },
   "plan": {
     "has_plan": true,
-    "is_idle": false,
-    "title": "Implementation Plan: DigiStrike FS2 Stuck Notes Elimination (Role & Lineage Switching)",
-    "target": "DIGISTRIKE_FS",
+    "is_idle": true,
+    "title": "Implementation Plan",
+    "target": "FACTORY_FLOOR",
     "status": "UNKNOWN",
-    "progress": "0/13",
-    "active_phase": "Phase 1 Contract & Parameter Audit (`40ms` Gate)"
+    "progress": "0/0",
+    "active_phase": "Idle / Standby"
   },
   "communique": {
     "factory_dispatch": "COMPLETED",
