@@ -119,6 +119,11 @@ public:
         mpePressure_ = 0.0f;
         noiseHoldCounter_ = 0;
         noiseSample_ = 0.0f;
+        ctrlCounter_ = 0;
+        cachedOctMult_[0] = 1.0f; cachedOctMult_[1] = 1.0f; cachedOctMult_[2] = 1.0f;
+        cachedBendMult_ = 1.0f;
+        cachedEffSpeed_[0] = 0.0f; cachedEffSpeed_[1] = 0.0f; cachedEffSpeed_[2] = 0.0f;
+        cachedEffMask_[0] = 511; cachedEffMask_[1] = 511; cachedEffMask_[2] = 511;
     }
 
     void sanitize() noexcept {
@@ -140,6 +145,7 @@ public:
         chaos_.triggerNoteOn();
         ampEnv_.noteOn();
         filterEnv_.noteOn();
+        ctrlCounter_ = 0;
     }
 
     void noteOff() noexcept {
@@ -193,39 +199,56 @@ public:
             currentPitchHz_ += (targetPitchHz_ - currentPitchHz_) * glideSpeed_;
         }
 
-        // Total pitch with Pitch Bend (MPE + Global)
-        float totalBend = mpePitchBendSemitones_ + globalPitchBendSemitones;
-        float basePitch = currentPitchHz_ * std::pow(2.0f, totalBend / 12.0f);
-
         // 2. Advance Envelopes
         float ampGain = ampEnv_.process();
         float filtEnvVal = filterEnv_.process();
 
-        // 3. Process 3 Oscillators with Hard Sync & Q32 Stator Sweep
-        float octMult[3];
-        for (int i = 0; i < 3; ++i) {
-            float semis = (oscOctave[i] - 2) * 12.0f + oscDetune[i];
-            // Random pitch modulation
-            float randPitch = chaos_.getModulation(i * 3 + 2, randAttenuverters[i * 3 + 2]);
-            semis += randPitch * 12.0f;
-            octMult[i] = std::pow(2.0f, semis / 12.0f);
+        // Control-rate decimation (every 16 samples, ~2.76 kHz at 44.1k)
+        if ((ctrlCounter_++ & 15) == 0) {
+            // Total pitch with Pitch Bend (MPE + Global)
+            float totalBend = mpePitchBendSemitones_ + globalPitchBendSemitones;
+            cachedBendMult_ = std::pow(2.0f, totalBend / 12.0f);
+
+            // Process 3 Oscillator Pitch Ratios
+            for (int i = 0; i < 3; ++i) {
+                float semis = (oscOctave[i] - 2) * 12.0f + oscDetune[i];
+                float randPitch = chaos_.getModulation(i * 3 + 2, randAttenuverters[i * 3 + 2]);
+                semis += randPitch * 12.0f;
+                cachedOctMult_[i] = std::pow(2.0f, semis / 12.0f);
+            }
+
+            // Modulate stator speed and mask aperture with chaos attenuverters
+            cachedEffSpeed_[0] = oscSpeed[0] + chaos_.getModulation(1, randAttenuverters[1]) * 25.0f;
+            cachedEffSpeed_[1] = oscSpeed[1] + chaos_.getModulation(4, randAttenuverters[4]) * 25.0f;
+            cachedEffSpeed_[2] = oscSpeed[2] + chaos_.getModulation(7, randAttenuverters[7]) * 25.0f;
+
+            cachedEffMask_[0] = juce::jlimit(0, 511, oscMask[0] + static_cast<int>(chaos_.getModulation(0, randAttenuverters[0]) * 255.0f));
+            cachedEffMask_[1] = juce::jlimit(0, 511, oscMask[1] + static_cast<int>(chaos_.getModulation(3, randAttenuverters[3]) * 255.0f));
+            cachedEffMask_[2] = juce::jlimit(0, 511, oscMask[2] + static_cast<int>(chaos_.getModulation(6, randAttenuverters[6]) * 255.0f));
+
+            // Z-Plane Filter Expression & Target Coefficients Update
+            float effMorph = zMorph + mpeSlide_ + globalModWheel;
+            effMorph = juce::jlimit(0.0f, 1.0f, effMorph);
+
+            float effTransform = zTransform + std::max(mpePressure_, globalChannelAftertouch);
+            effTransform = juce::jlimit(0.0f, 1.0f, effTransform);
+
+            float effFreq = zFreq + (filtEnvVal * filterEnvDepth * 8000.0f);
+            effFreq = juce::jlimit(20.0f, 20000.0f, effFreq);
+            float xNorm = std::log10(effFreq / 20.0f) / 3.0f;
+
+            filter_.updateCube(zModel, xNorm, effMorph, effTransform);
         }
 
-        // Modulate stator speed and mask aperture with chaos attenuverters
-        float effSpeed1 = oscSpeed[0] + chaos_.getModulation(1, randAttenuverters[1]) * 25.0f;
-        float effSpeed2 = oscSpeed[1] + chaos_.getModulation(4, randAttenuverters[4]) * 25.0f;
-        float effSpeed3 = oscSpeed[2] + chaos_.getModulation(7, randAttenuverters[7]) * 25.0f;
+        float basePitch = currentPitchHz_ * cachedBendMult_;
 
-        int effMask1 = juce::jlimit(0, 511, oscMask[0] + static_cast<int>(chaos_.getModulation(0, randAttenuverters[0]) * 255.0f));
-        int effMask2 = juce::jlimit(0, 511, oscMask[1] + static_cast<int>(chaos_.getModulation(3, randAttenuverters[3]) * 255.0f));
-        int effMask3 = juce::jlimit(0, 511, oscMask[2] + static_cast<int>(chaos_.getModulation(6, randAttenuverters[6]) * 255.0f));
-
+        // 3. Process 3 Oscillators with Hard Sync & Q32 Stator Sweep
         const uint32_t prevP1 = oscs_[0].getPhase() & 0x00FFFFFFu;
-        float sig1 = oscs_[0].processSample(basePitch * octMult[0], effMask1, oscStart[0], effSpeed1, oscLoop[0], oscOctLock[0]);
+        float sig1 = oscs_[0].processSample(basePitch * cachedOctMult_[0], cachedEffMask_[0], oscStart[0], cachedEffSpeed_[0], oscLoop[0], oscOctLock[0]);
         bool syncTrigger = ((oscs_[0].getPhase() & 0x00FFFFFFu) < prevP1); // Master phase wrapped (24-bit period)
 
-        float sig2 = oscs_[1].processSample(basePitch * octMult[1], effMask2, oscStart[1], effSpeed2, oscLoop[1], oscOctLock[1], oscSync[1] && syncTrigger);
-        float sig3 = oscs_[2].processSample(basePitch * octMult[2], effMask3, oscStart[2], effSpeed3, oscLoop[2], oscOctLock[2], oscSync[2] && syncTrigger);
+        float sig2 = oscs_[1].processSample(basePitch * cachedOctMult_[1], cachedEffMask_[1], oscStart[1], cachedEffSpeed_[1], oscLoop[1], oscOctLock[1], oscSync[1] && syncTrigger);
+        float sig3 = oscs_[2].processSample(basePitch * cachedOctMult_[2], cachedEffMask_[2], oscStart[2], cachedEffSpeed_[2], oscLoop[2], oscOctLock[2], oscSync[2] && syncTrigger);
 
         // 4. Variable-rate Sample-and-Hold Noise
         int noiseHoldMax = 1 + static_cast<int>(noiseTone * 126.0f);
@@ -253,19 +276,7 @@ public:
         mixL = mixerDcBlockerL_.process(mixL);
         mixR = mixerDcBlockerR_.process(mixR);
 
-        // 7. Universal Expression Injection into Z-Plane Filter
-        float effMorph = zMorph + mpeSlide_ + globalModWheel;
-        effMorph = juce::jlimit(0.0f, 1.0f, effMorph);
-
-        float effTransform = zTransform + std::max(mpePressure_, globalChannelAftertouch);
-        effTransform = juce::jlimit(0.0f, 1.0f, effTransform);
-
-        // Modulate Z-Cube with Filter Envelope & Random Attenuverters
-        float effFreq = zFreq + (filtEnvVal * filterEnvDepth * 8000.0f);
-        effFreq = juce::jlimit(20.0f, 20000.0f, effFreq);
-        float xNorm = std::log10(effFreq / 20.0f) / 3.0f;
-
-        filter_.updateCube(zModel, xNorm, effMorph, effTransform);
+        // 7. Process Z-Plane Filter (per-sample coefficient slew & TDF-II biquads)
         filter_.processStereo(mixL, mixR);
 
         // Post-Filter DC Blocker
@@ -309,6 +320,12 @@ private:
     uint32_t noiseSeed_ = 12345;
     int noiseHoldCounter_ = 0;
     float noiseSample_ = 0.0f;
+
+    uint32_t ctrlCounter_ = 0;
+    float cachedOctMult_[3] = { 1.0f, 1.0f, 1.0f };
+    float cachedBendMult_ = 1.0f;
+    float cachedEffSpeed_[3] = { 0.0f, 0.0f, 0.0f };
+    int cachedEffMask_[3] = { 511, 511, 511 };
 
     std::array<BitmaskOscillator, 3> oscs_;
     ZDomainFilter14 filter_;

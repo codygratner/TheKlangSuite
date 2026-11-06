@@ -25,6 +25,9 @@ public:
         sampleRate_ = (sampleRate > 0.0) ? sampleRate : 44100.0;
         phase_ = 0;
         statorQ_ = 0;
+        bakedKey_ = 0xFFFFFFFFu;
+        latchedRatio_ = 1.0f;
+        cycle_.fill(0.0f);
         dcState_ = 0.0f;
         prevInput_ = 0.0f;
         syncFade_ = 0.0f;
@@ -35,6 +38,9 @@ public:
     void reset() noexcept {
         phase_ = 0;
         statorQ_ = 0;
+        bakedKey_ = 0xFFFFFFFFu;
+        latchedRatio_ = 1.0f;
+        cycle_.fill(0.0f);
         dcState_ = 0.0f;
         prevInput_ = 0.0f;
         syncFade_ = 0.0f;
@@ -43,86 +49,58 @@ public:
     // Updates the morphed AKWF cycle in the first 512 samples of the 8KB buffer
     void updateTable(uint32_t bankIdx, float waveMorph) noexcept {
         AkwfRom::getInstance().interpolateWaveform(bankIdx, waveMorph, buffer8k_.data());
+        bakedKey_ = 0xFFFFFFFFu; // Invalidate cache so cycle_ re-bakes on next seam
     }
 
     // Process a single audio sample (evaluates 16 sub-samples internally with Q32 Stator Sweep)
     float processSample(float freqHz, int rawMask, int maskStart, float maskSpeed,
                         int loopMode, bool octLock, bool hardSyncTrigger = false) noexcept {
+        const uint32_t mask9 = static_cast<uint32_t>(juce::jlimit(0, 511, rawMask) * 16 + 15) & 0x1FFu;
+        const float sp = (maskSpeed > 0.0f && std::isfinite(maskSpeed)) ? std::fmin(maskSpeed, 50.0f) : 0.0f;
+
+        // Advance stator accumulator once per output sample (lightweight, zero inner-loop cost)
+        statorQ_ += static_cast<uint32_t>(sp * (4294967296.0 / sampleRate_));
+
         // Handle hard sync reset with 2-subsample anti-glitch
         if (hardSyncTrigger) {
             phase_ = 0;
             statorQ_ = 0;
             syncFade_ = 1.0f;
+            bakedKey_ = 0xFFFFFFFFu;
         }
 
-        // 1. Calculate effective 9-bit table mask (bits strictly within 512-sample cycle)
-        const uint32_t mask9 = static_cast<uint32_t>(juce::jlimit(0, 511, rawMask) * 16 + 15) & 0x1FFu;
-        const bool maskIdentity = (mask9 == 0x1FFu);
-
-        // 2. Octave Lock frequency compensation
-        float effectiveFreq = freqHz;
-        if (octLock && rawMask >= 0 && rawMask < 512) {
-            effectiveFreq *= getSharedPitchTable()[rawMask];
+        if (hardSyncTrigger || bakedKey_ == 0xFFFFFFFFu) {
+            latchSeam(mask9, rawMask, maskStart, loopMode, sp, octLock);
         }
 
-        // 3. Phase increment for 16x oversampling:
-        // One period = 2^24 phase units = 512 table indices (512 * 2^15)
-        // inc_per_substep = (freq * 2^24) / (sampleRate * 16)
-        double incPerSubstep = (static_cast<double>(effectiveFreq) * 16777216.0) / (sampleRate_ * 16.0);
-        uint32_t phaseInc = static_cast<uint32_t>(incPerSubstep);
+        // Phase increment for 16x oversampling using seam-latched octave lock ratio
+        const double incPerSubstep = (static_cast<double>(freqHz * latchedRatio_) * 16777216.0) / (sampleRate_ * 16.0);
+        const uint32_t inc = std::max<uint32_t>(1u, static_cast<uint32_t>(incPerSubstep));
 
-        // 4. Stator -> smooth Casio CZ resonant phase-distortion depth
-        const float sp = (maskSpeed > 0.0f && std::isfinite(maskSpeed)) ? std::fmin(maskSpeed, 50.0f) : 0.0f;
-        const uint32_t statorInc = static_cast<uint32_t>(sp * (4294967296.0 / (sampleRate_ * 16.0)));
-        const uint32_t base = static_cast<uint32_t>(maskStart + 512); // >= 257, no signed underflow
-        const int effectiveLoop = (loopMode == 0 && sp > 0.0f) ? 1 : loopMode;
+        // Ultra-lean integer-only 16x oversampling loop (split at seam for sample-accurate latching)
+        const float* c = cycle_.data();
+        uint32_t ph = phase_ & 0x00FFFFFFu;
+        const uint32_t toSeam = (0x01000000u - ph + inc - 1u) / inc;
+        const int nPre = static_cast<int>(std::min<uint32_t>(16u, toSeam));
 
-        auto S = [](float x) noexcept {
-            x = juce::jlimit(0.0f, 1.0f, x);
-            return x * x * (3.0f - 2.0f * x);
-        };
-
-        // 5. Evaluate 16 sub-samples and sum (boxcar decimation)
         float sum = 0.0f;
-        float lastDepth = 0.0f;
-        const float* tbl = buffer8k_.data();
-
-        for (int sub = 0; sub < kOversample; ++sub) {
-            uint32_t sweep = 0;
-            if (effectiveLoop != 0) {
-                statorQ_ += statorInc;
-                const uint32_t p = statorQ_ >> 23; // 0..511 cyclic position
-                sweep = (effectiveLoop == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
-            }
-            const uint32_t off = (sweep + base) & 0x1FFu; // Stator position (0..511)
-            lastStatorOffset_ = off;
-
-            const float t = static_cast<float>(off) * (1.0f / 512.0f);
-            const float depth = (effectiveLoop == 2)
-                ? S(1.0f - std::fabs(2.0f * t - 1.0f))
-                : (t <= 0.9f ? t : t * (1.0f - S((t - 0.9f) * 10.0f)));
-            lastDepth = depth;
-            const float r = 1.0f + 5.0f * depth;
-
-            // Normalized cycle phase strictly in [0, 1), guaranteeing 100% pitch lock to f0
-            const float phi = static_cast<float>(phase_ & 0x00FFFFFFu) * (1.0f / 16777216.0f);
-            float x = phi * r;
-            x -= std::floor(x);
-            const float pos = x * 512.0f;
-            const uint32_t i = static_cast<uint32_t>(pos);
-            const uint32_t im = i & mask9;
-            float s = tbl[im];
-            if (maskIdentity) {
-                const float frac = pos - static_cast<float>(i);
-                s += frac * (tbl[(im + 1u) & 0x1FFu] - s);
-            }
-            // Cubic smooth window tapers resonant seam smoothly to zero at phi = 1 (no edge clicks)
-            sum += s * (1.0f - depth * S(phi));
-            phase_ += phaseInc;
+        for (int k = 0; k < nPre; ++k) {
+            sum += c[ph >> 15];
+            ph += inc;
         }
+        if (nPre < 16) {
+            // Seam wrap landed inside this audio sample: re-latch parameters exactly at the boundary!
+            ph &= 0x00FFFFFFu;
+            latchSeam(mask9, rawMask, maskStart, loopMode, sp, octLock);
+            for (int k = nPre; k < 16; ++k) {
+                sum += c[(ph >> 15) & 0x1FFu];
+                ph += inc;
+            }
+        }
+        phase_ = ph & 0x00FFFFFFu;
 
-        // Soft linear gain scaling (1.0x .. 1.6x) keeping perceived volume uniform across resonant depth
-        float decimated = sum * (1.0f / 16.0f) * (1.0f + 0.6f * lastDepth);
+        // Decimation scaling (1/16) and resonant gain are pre-folded into cycle_
+        float decimated = sum;
 
         // Smooth hard-sync transition if active
         if (syncFade_ > 0.0f) {
@@ -142,6 +120,52 @@ public:
 
     uint32_t getPhase() const noexcept { return phase_; }
     uint32_t getStatorOffset() const noexcept { return lastStatorOffset_; }
+
+private:
+    // Bakes one full 512-sample cycle (mask, resonance depth, seam window, gain).
+    // Runs strictly at phase seam wrap or key invalidation (0% CPU during static holding).
+    void bakeCycle(uint32_t mask9, uint32_t off, int loop) noexcept {
+        const uint32_t key = (mask9 << 9) | off | (static_cast<uint32_t>(loop) << 18);
+        if (key == bakedKey_) return;
+        bakedKey_ = key;
+
+        auto S = [](float x) noexcept {
+            x = juce::jlimit(0.0f, 1.0f, x);
+            return x * x * (3.0f - 2.0f * x);
+        };
+        const float t = static_cast<float>(off) * (1.0f / 512.0f);
+        const float depth = (loop == 2) ? S(1.0f - std::fabs(2.0f * t - 1.0f))
+                                        : (t <= 0.9f ? t : t * (1.0f - S((t - 0.9f) * 10.0f)));
+        const float r = 1.0f + 5.0f * depth;
+        const float gain = (1.0f + 0.6f * depth) * (1.0f / 16.0f); // Pre-fold decimation scale
+        const bool identity = (mask9 == 0x1FFu);
+        const float* tbl = buffer8k_.data();
+
+        for (uint32_t n = 0; n < kTableSize; ++n) {
+            const float phi = static_cast<float>(n) * (1.0f / 512.0f);
+            float x = phi * r;
+            x -= std::floor(x);
+            const float pos = x * 512.0f;
+            const uint32_t i = static_cast<uint32_t>(pos);
+            const uint32_t im = i & mask9;
+            float s = tbl[im];
+            if (identity) s += (pos - static_cast<float>(i)) * (tbl[(im + 1u) & 0x1FFu] - s);
+            cycle_[n] = gain * s * (1.0f - depth * S(phi));
+        }
+    }
+
+    void latchSeam(uint32_t mask9, int rawMask, int maskStart, int loop, float sp, bool octLock) noexcept {
+        const int eff = (loop == 0 && sp > 0.0f) ? 1 : loop;
+        uint32_t sweep = 0;
+        if (eff != 0) {
+            const uint32_t p = statorQ_ >> 23;
+            sweep = (eff == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
+        }
+        const uint32_t off = (sweep + static_cast<uint32_t>(maskStart + 512)) & 0x1FFu;
+        lastStatorOffset_ = off;
+        latchedRatio_ = (octLock && rawMask >= 0 && rawMask < 512) ? getSharedPitchTable()[rawMask] : 1.0f;
+        bakeCycle(mask9, off, eff);
+    }
 
 private:
     static const std::array<float, 512>& getSharedPitchTable() {
@@ -169,6 +193,10 @@ private:
     float dcState_ = 0.0f;
     float prevInput_ = 0.0f;
     float syncFade_ = 0.0f;
+
+    alignas(32) std::array<float, kTableSize> cycle_{};
+    uint32_t bakedKey_ = 0xFFFFFFFFu;
+    float latchedRatio_ = 1.0f;
 
     std::vector<float> buffer8k_;
 };
