@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <juce_core/juce_core.h>
+#include "../hastur/HasturFilterUtils.h"
 
 namespace Nyarlat {
 
@@ -12,6 +13,8 @@ public:
     void prepare(double sampleRate) noexcept {
         sampleRate_ = (sampleRate > 0.0) ? sampleRate : 44100.0;
         initDelayLines();
+        loopDcBlockerL_.prepare(sampleRate_, 10.0);
+        loopDcBlockerR_.prepare(sampleRate_, 10.0);
         reset();
     }
 
@@ -19,6 +22,8 @@ public:
         for (auto& line : delayLines_) std::fill(line.begin(), line.end(), 0.0f);
         dampStateL_ = 0.0f;
         dampStateR_ = 0.0f;
+        loopDcBlockerL_.reset();
+        loopDcBlockerR_.reset();
     }
 
     void processStereo(float& left, float& right, float timeSec, float dampNorm, float mixNorm) noexcept {
@@ -31,17 +36,23 @@ public:
         float feedback = juce::jlimit(0.2f, 0.985f, 1.0f - (1.0f / (timeSec * 2.5f + 1.0f)));
         float damp = juce::jlimit(0.05f, 0.95f, 1.0f - dampNorm * 0.75f);
 
-        // Figure-eight loop A & B
-        float tapA = readDelay(0, idxA_);
-        float tapB = readDelay(1, idxB_);
+        // Figure-eight loop A & B with in-loop 10Hz DC blocking
+        float tapA = loopDcBlockerL_.process(readDelay(0, idxA_));
+        float tapB = loopDcBlockerR_.process(readDelay(1, idxB_));
 
         // Lowpass damping inside loops
         dampStateL_ += damp * (tapA - dampStateL_);
         dampStateR_ += damp * (tapB - dampStateR_);
 
-        // Feed forward into allpass diffusers
+        // Feed forward into canonical allpass diffusers
         float apL = processAllpass(0, inL + dampStateR_ * feedback, 0.55f);
         float apR = processAllpass(1, inR + dampStateL_ * feedback, 0.55f);
+
+        // Fault guard: catches NaN (comparison false) and sudden runaway
+        if (!(std::abs(apL) < 16.0f && std::abs(apR) < 16.0f)) {
+            reset();
+            return;
+        }
 
         writeDelay(0, idxA_, apL);
         writeDelay(1, idxB_, apR);
@@ -65,11 +76,13 @@ private:
         delayLines_[lineIdx][ptr] = val;
     }
 
+    // Canonical Schroeder single-delay-line allpass: |H(e^jw)| == 1.0000 strictly
     float processAllpass(int apIdx, float in, float coeff) noexcept {
         int ptr = apPtrs_[apIdx];
         float delayed = apLines_[apIdx][ptr];
-        float out = delayed - coeff * in;
-        apLines_[apIdx][ptr] = in + coeff * delayed;
+        float v = in + coeff * delayed;
+        float out = delayed - coeff * v;
+        apLines_[apIdx][ptr] = v;
         apPtrs_[apIdx] = (ptr + 1) % apLengths_[apIdx];
         return out;
     }
@@ -83,7 +96,7 @@ private:
         delayLines_[1].assign(lineLengths_[1], 0.0f);
 
         apLengths_[0] = static_cast<int>(556.0f * sScale);
-        apLengths_[1] = static_cast<int>(441.0f * sScale);
+        apLengths_[1] = static_cast<int>(443.0f * sScale); // Detuned to 443 (coprime to 4410)
         apLines_[0].assign(apLengths_[0], 0.0f);
         apLines_[1].assign(apLengths_[1], 0.0f);
         apPtrs_[0] = 0;
@@ -99,11 +112,14 @@ private:
     int idxB_ = 0;
 
     std::vector<float> apLines_[2];
-    int apLengths_[2]{ 556, 441 };
+    int apLengths_[2]{ 556, 443 };
     int apPtrs_[2]{ 0, 0 };
 
     float dampStateL_ = 0.0f;
     float dampStateR_ = 0.0f;
+
+    CrackedChimes::DSP::LeakyDCBlocker loopDcBlockerL_;
+    CrackedChimes::DSP::LeakyDCBlocker loopDcBlockerR_;
 };
 
 } // namespace Nyarlat

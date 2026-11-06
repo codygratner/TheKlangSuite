@@ -33,6 +33,8 @@ void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     bassBpR_.set(40.0f, 0.7f, static_cast<float>(sampleRate));
     masterDcBlockerL_.prepare(sampleRate, 5.0);
     masterDcBlockerR_.prepare(sampleRate, 5.0);
+    postDcBlockerL_.prepare(sampleRate, 5.0);
+    postDcBlockerR_.prepare(sampleRate, 5.0);
     trebleStateL_ = trebleStateR_ = 0.0f;
 }
 
@@ -43,6 +45,8 @@ void NyarlatProcessor::releaseResources() {
     bassBpR_.reset();
     masterDcBlockerL_.reset();
     masterDcBlockerR_.reset();
+    postDcBlockerL_.reset();
+    postDcBlockerR_.reset();
 }
 
 void NyarlatProcessor::handleMidiEvent(const juce::MidiMessage& msg) noexcept {
@@ -286,13 +290,25 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         l = mid - side;
         r = mid + side;
 
+        // 1. Pre-saturation DC centering (keep drive symmetric)
         l = masterDcBlockerL_.process(l);
         r = masterDcBlockerR_.process(r);
-        if (!std::isfinite(l)) { l = 0.0f; masterDcBlockerL_.reset(); }
-        if (!std::isfinite(r)) { r = 0.0f; masterDcBlockerR_.reset(); }
 
-        leftChannel[i] = std::tanh(l * masterVol);
-        rightChannel[i] = std::tanh(r * masterVol);
+        // 2. Master saturation
+        l = std::tanh(l * masterVol);
+        r = std::tanh(r * masterVol);
+
+        // 3. Pre-sanitization before post-blocker
+        if (!std::isfinite(l)) { l = 0.0f; postDcBlockerL_.reset(); }
+        if (!std::isfinite(r)) { r = 0.0f; postDcBlockerR_.reset(); }
+
+        // 4. Post-saturation DC blocker (nullifies saturation DC bias)
+        l = postDcBlockerL_.process(l);
+        r = postDcBlockerR_.process(r);
+
+        // 5. Host 0 dBFS ceiling clamp (prevents differentiator step overshoot)
+        leftChannel[i] = juce::jlimit(-1.0f, 1.0f, l);
+        rightChannel[i] = juce::jlimit(-1.0f, 1.0f, r);
     }
 
     for (int v = 0; v < kNumVoices; ++v) {

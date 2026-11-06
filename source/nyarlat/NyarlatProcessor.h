@@ -95,6 +95,8 @@ private:
     SvfBandpass bassBpR_;
     CrackedChimes::DSP::LeakyDCBlocker masterDcBlockerL_;
     CrackedChimes::DSP::LeakyDCBlocker masterDcBlockerR_;
+    CrackedChimes::DSP::LeakyDCBlocker postDcBlockerL_;
+    CrackedChimes::DSP::LeakyDCBlocker postDcBlockerR_;
 
     // Treble Tame State
     float trebleStateL_ = 0.0f;

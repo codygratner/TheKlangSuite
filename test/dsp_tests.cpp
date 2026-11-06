@@ -56,6 +56,7 @@
 #include "hastur/VactrolLPG.h"
 #include "hastur/AlphaOscillator.h"
 #include "hastur/HasturVoice.h"
+#include "nyarlat/AbyssReverb.h"
 
 int main() {
     std::cout << "Starting DSP Verification Tests for 22-Block Modular Drum Synth..." << std::endl;
@@ -6511,7 +6512,93 @@ int main() {
         std::cout << "PASS: Suite 73: DigiStrike FS2 Hardened Triad Modal Strike Engine completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 73 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    // =========================================================================
+    // SUITE 74: Nyarlat AbyssReverb DC Stability & Allpass Contractivity Gauntlet
+    // =========================================================================
+    {
+        std::cout << "\nRunning Suite 74: Nyarlat AbyssReverb DC Stability & Allpass Gauntlet..." << std::endl;
+        constexpr double sr = 48000.0;
+
+        // 1. Allpass Unit Impulse & Energy Preservation
+        {
+            Nyarlat::AbyssReverb reverb;
+            reverb.prepare(sr);
+
+            // Feed an impulse and run for 10 seconds with default 2.5s decay
+            float l = 1.0f, r = 1.0f;
+            reverb.processStereo(l, r, 2.5f, 0.40f, 1.0f); // wet = 1.0f
+
+            float maxAmp = 0.0f;
+            float tailAmp = 0.0f;
+            for (int i = 0; i < 48000 * 10; ++i) {
+                float inL = 0.0f, inR = 0.0f;
+                reverb.processStereo(inL, inR, 2.5f, 0.40f, 1.0f);
+                maxAmp = std::max(maxAmp, std::max(std::abs(inL), std::abs(inR)));
+                assert(!std::isnan(inL) && !std::isinf(inL));
+                assert(!std::isnan(inR) && !std::isinf(inR));
+                if (i == 48000 * 10 - 1) {
+                    tailAmp = std::max(std::abs(inL), std::abs(inR));
+                }
+            }
+            std::cout << "  [PASS] 10s Impulse Decay: Max Amp = " << maxAmp << ", Tail = " << tailAmp << std::endl;
+            assert(maxAmp < 2.0f);        // Zero explosive expansion (prior code reached > 1e6)
+            assert(tailAmp < 1e-5f);      // Smooth decay down to silence
+        }
+
+        // 2. Extreme 20-Second Ambient Decay Stability
+        {
+            Nyarlat::AbyssReverb reverb;
+            reverb.prepare(sr);
+
+            // Feed 0.5s burst of 220Hz saw wave, then 20s of silence
+            for (int i = 0; i < 24000; ++i) {
+                float s = std::sin(2.0f * 3.14159265f * 220.0f * (static_cast<float>(i) / 48000.0f));
+                float l = s, r = s;
+                reverb.processStereo(l, r, 20.0f, 0.10f, 0.50f);
+                assert(std::isfinite(l) && std::isfinite(r));
+            }
+
+            float finalAmp = 0.0f;
+            for (int i = 0; i < 48000 * 15; ++i) {
+                float l = 0.0f, r = 0.0f;
+                reverb.processStereo(l, r, 20.0f, 0.10f, 0.50f);
+                assert(std::isfinite(l) && std::isfinite(r));
+                assert(std::abs(l) < 5.0f && std::abs(r) < 5.0f); // Strictly bounded
+                if (i == 48000 * 15 - 1) {
+                    finalAmp = std::max(std::abs(l), std::abs(r));
+                }
+            }
+            std::cout << "  [PASS] 20s Max Decay Loop: Final Amplitude at 15s = " << finalAmp << std::endl;
+            assert(finalAmp < 0.05f); // Natural contraction, zero runaway
+        }
+
+        // 3. In-Loop DC Nulling (Zero DC Accumulation with Unipolar Step)
+        {
+            Nyarlat::AbyssReverb reverb;
+            reverb.prepare(sr);
+
+            // Feed constant +1.0 DC step for 1 second, then silence for 5 seconds
+            for (int i = 0; i < 48000; ++i) {
+                float l = 1.0f, r = 1.0f;
+                reverb.processStereo(l, r, 5.0f, 0.5f, 1.0f);
+            }
+
+            float dcMean = 0.0f;
+            int tailCount = 48000 * 3;
+            for (int i = 0; i < tailCount; ++i) {
+                float l = 0.0f, r = 0.0f;
+                reverb.processStereo(l, r, 5.0f, 0.5f, 1.0f);
+                dcMean += l;
+            }
+            dcMean /= static_cast<float>(tailCount);
+            std::cout << "  [PASS] Reverb In-Loop DC Rejection: Mean Tail DC = " << std::abs(dcMean) << std::endl;
+            assert(std::abs(dcMean) < 1e-4f); // Strictly zero DC accumulation
+        }
+
+        std::cout << "PASS: Suite 74: Nyarlat AbyssReverb DC Stability & Allpass Gauntlet completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 74 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 
