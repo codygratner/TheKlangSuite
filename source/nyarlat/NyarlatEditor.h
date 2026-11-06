@@ -439,22 +439,27 @@ private:
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> attachment;
     };
 
+    class ContentCanvas : public juce::Component {
+    public:
+        std::function<void(juce::Graphics&)> onPaint;
+        void paint(juce::Graphics& g) override {
+            if (onPaint) onPaint(g);
+        }
+    };
+
     void setupKnob(RotaryKnob& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
     void setupFader(SliderFader& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
     void setupCombo(ComboBoxItem& item, const juce::String& paramId, const juce::String& label);
 
-    void layoutOscillatorBay(int oscIdx, int x, int y, int w, int h);
-    void layoutMixerAndChaos(int x, int y, int w, int h);
-    void layoutFilterBay(int x, int y, int w, int h);
-    void layoutVcaBay(int x, int y, int w, int h);
-    void layoutMasterBay(int x, int y, int w, int h);
+    void layoutControls();
+    void applyDragSensitivity(float s);
     void paintCanvas(juce::Graphics& g);
 
     NyarlatProcessor& processor_;
     NyarlatLookAndFeel lnf_;
 
     // Resizability Container & Constrainer
-    juce::Component contentContainer;
+    ContentCanvas contentContainer;
     juce::ComponentBoundsConstrainer constrainer;
     rlyeh::ui::EditorScaleManager::Writer scaleWriter_;
     float effScale_ = 1.0f;

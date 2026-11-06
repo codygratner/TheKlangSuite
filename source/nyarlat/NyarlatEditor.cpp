@@ -20,12 +20,12 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
     const float sessionScale = processor_.getStoredEditorScale();
     effScale_ = rlyeh::ui::EditorScaleManager::getPreferredScale("nyarlat", sessionScale);
     expectedSize_ = { juce::roundToInt(kBaseWidth * effScale_), juce::roundToInt(kBaseHeight * effScale_) };
-    setSize(expectedSize_.x, expectedSize_.y);
 
     // 3. Mount Content Container
     addAndMakeVisible(contentContainer);
     contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
     contentContainer.setInterceptsMouseClicks(false, true);
+    contentContainer.onPaint = [this](juce::Graphics& g) { paintCanvas(g); };
 
     // Header Labels (Position A: x=14, y=4, w=140)
     titleLabel.setText("NYARLAT", juce::dontSendNotification);
@@ -187,10 +187,21 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
     smoothedRandPips_.assign(knobs_.size(), 0.5f);
 
+    // Lay out all 72 controls and visualizer into canonical 1160x870 coordinates
+    layoutControls();
+
+    // Unconditionally scale drag sensitivity for the initial scale factor
+    applyDragSensitivity(effScale_);
+
+    // Set initial size and trigger container scaling
+    setSize(expectedSize_.x, expectedSize_.y);
+    resized();
+
     startTimerHz(60);
 }
 
 NyarlatEditor::~NyarlatEditor() {
+    setConstrainer(nullptr);
     stopTimer();
     contentContainer.removeMouseListener(this);
     setLookAndFeel(nullptr);
@@ -211,6 +222,9 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
     contentContainer.addAndMakeVisible(item.slider);
 
     if (auto* p = processor_.getAPVTS().getParameter(paramId)) {
+        if (p->getNormalisableRange().start < 0.0f && p->getNormalisableRange().end > 0.0f) {
+            item.slider.setDoubleClickReturnValue(true, 0.0f);
+        }
         item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
             processor_.getAPVTS(), paramId, item.slider);
     }
@@ -320,7 +334,6 @@ void NyarlatEditor::mouseDrag(const juce::MouseEvent& e) {
 
 void NyarlatEditor::paint(juce::Graphics& g) {
     g.fillAll(Colours::kChassisBg);
-    paintCanvas(g);
 }
 
 void NyarlatEditor::paintCanvas(juce::Graphics& g) {
@@ -354,6 +367,16 @@ void NyarlatEditor::paintCanvas(juce::Graphics& g) {
     drawBay(875, 462, 271, 398, "MASTER & SPACE", Colours::kMaster, 124);
 }
 
+void NyarlatEditor::applyDragSensitivity(float s) {
+    const int sens = juce::roundToInt(250.0f / s);
+    for (auto& k : knobs_) {
+        if (k) k->slider.setMouseDragSensitivity(sens);
+    }
+    for (auto& f : faders_) {
+        if (f) f->slider.setMouseDragSensitivity(sens);
+    }
+}
+
 void NyarlatEditor::resized() {
     const int w = getWidth();
     const int h = getHeight();
@@ -369,13 +392,7 @@ void NyarlatEditor::resized() {
 
     if (std::abs(s - effScale_) > 1.0e-4f) {
         effScale_ = s;
-        const int sens = juce::roundToInt(250.0f / s);
-        for (auto& k : knobs_) {
-            if (k) k->slider.setMouseDragSensitivity(sens);
-        }
-        for (auto& f : faders_) {
-            if (f) f->slider.setMouseDragSensitivity(sens);
-        }
+        applyDragSensitivity(s);
     }
 
     if (getPeer() != nullptr && juce::Point<int>{ w, h } != expectedSize_) {
@@ -383,7 +400,9 @@ void NyarlatEditor::resized() {
         scaleWriter_.note("nyarlat", s);
         processor_.setStoredEditorScale(s);
     }
+}
 
+void NyarlatEditor::layoutControls() {
     // 4-Block Header Strip Geometry (1160px canvas, Omega = 0px)
     titleLabel.setBounds      (14,  4, 140, 20);
     subtitleLabel.setBounds   (14, 24, 140, 12);
@@ -498,6 +517,20 @@ void NyarlatEditor::resized() {
         int mx = 886 + col * 86;
         int ky = my + row * 74;
         placeKnob(mx, ky, 54);
+    }
+
+    // Permanent Regression Guards (Claude Audit Invariant)
+    for (auto& k : knobs_) {
+        jassert(k && !k->slider.getBounds().isEmpty());
+    }
+    for (auto& f : faders_) {
+        jassert(f && !f->slider.getBounds().isEmpty());
+    }
+    for (auto& c : combos_) {
+        jassert(c && !c->combo.getBounds().isEmpty());
+    }
+    if (zCubeRadar_ != nullptr) {
+        jassert(!zCubeRadar_->getBounds().isEmpty());
     }
 }
 

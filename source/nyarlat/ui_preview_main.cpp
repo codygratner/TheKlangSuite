@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     }
 
     if (outputFile == juce::File()) {
-        outputFile = juce::File("C:/Users/codyg/.gemini/antigravity/brain/11c3a555-c199-48ba-b81c-7d17b68eccbe/nyarlat_ui_proof.png");
+        outputFile = juce::File("C:/Users/codyg/.gemini/antigravity/brain/8e191a0d-9f3e-4128-b565-5bb54f0edf9e/nyarlat_ui_proof.png");
     }
 
     std::cout << "[Nyarlat_Preview] Step 1: Initializing NyarlatProcessor..." << std::endl;
@@ -63,8 +63,17 @@ int main(int argc, char* argv[])
 
     std::cout << "[Nyarlat_Preview] Step 3: Editor visible at " << kWidth << "x" << kHeight << std::endl;
 
-    auto& controls = editor->getChildren();
-    std::cout << "[Nyarlat_Preview] Scanned " << controls.size() << " children on editor." << std::endl;
+    juce::Array<juce::Component*> controls;
+    for (auto* c : editor->getChildren()) {
+        if (c->getNumChildComponents() > 0) {
+            for (auto* sub : c->getChildren()) {
+                controls.add(sub);
+            }
+        } else {
+            controls.add(c);
+        }
+    }
+    std::cout << "[Nyarlat_Preview] Scanned " << controls.size() << " active controls." << std::endl;
 
     int collisionCount = 0;
     for (int i = 0; i < controls.size(); ++i) {
