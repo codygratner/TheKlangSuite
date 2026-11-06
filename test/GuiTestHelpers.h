@@ -10,6 +10,9 @@
 #include <vector>
 #include <algorithm>
 #include "UIComponents.h"
+#if JUCE_LINUX
+#include <X11/Xlib.h>
+#endif
 
 namespace GuiTestHelpers {
 
@@ -77,12 +80,25 @@ namespace GuiTestHelpers {
         }
     };
 
+#if JUCE_LINUX
+    inline int x11NonFatalErrorHandler(Display* /*d*/, XErrorEvent* e) {
+        if (e != nullptr && (e->error_code == BadAtom || e->error_code == BadWindow || e->error_code == BadMatch)) {
+            return 0;
+        }
+        return 0;
+    }
+#endif
+
     // ==============================================================================
     // 2. Headless GUI Environment Setup
     // ==============================================================================
     struct ScopedGuiContext {
         juce::ScopedJuceInitialiser_GUI guiInitialiser;
-        ScopedGuiContext() {}
+        ScopedGuiContext() {
+#if JUCE_LINUX
+            XSetErrorHandler(x11NonFatalErrorHandler);
+#endif
+        }
     };
 
     // ==============================================================================

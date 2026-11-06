@@ -101,6 +101,7 @@ jobs:
             libgl1-mesa-dev \
             libfontconfig1-dev \
             xvfb \
+            fluxbox \
             curl \
             unzip
 
@@ -126,17 +127,22 @@ jobs:
 
       - name: Run GUI & Schema Audit Tests
         run: |
+          GUI_BIN=""
           if [ -f "./build/gui_tests" ]; then
-            xvfb-run -a ./build/gui_tests
+            GUI_BIN="./build/gui_tests"
           elif [ -f "./build/Release/gui_tests" ]; then
-            xvfb-run -a ./build/Release/gui_tests
+            GUI_BIN="./build/Release/gui_tests"
+          fi
+          if [ -n "$GUI_BIN" ]; then
+            xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
+              sh -c "fluxbox & sleep 1; $GUI_BIN"
           fi
 
       - name: Run Headless UI Capture
         run: |
           if [ -f "./build/capture_screenshot" ]; then
-            xvfb-run -a ./build/capture_screenshot
-            xvfb-run -a ./build/capture_planter_screenshot
+            xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
+              sh -c "fluxbox & sleep 1; ./build/capture_screenshot && ./build/capture_planter_screenshot"
           fi
 
       - name: Download & Run Tracktion pluginval
@@ -146,10 +152,12 @@ jobs:
           chmod +x pluginval
           TKF_VST3=$(find build/TheKlangFarmer_artefacts -name "The Klang Farmer.vst3" | head -n 1)
           TKP_VST3=$(find build/TheKlangPlanter_artefacts -name "The Klang Planter.vst3" | head -n 1)
-          echo "Validating $TKF_VST3 under Xvfb..."
-          xvfb-run -a ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 "$TKF_VST3"
-          echo "Validating $TKP_VST3 under Xvfb..."
-          xvfb-run -a ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 "$TKP_VST3"
+          echo "Validating $TKF_VST3 under Xvfb + Fluxbox..."
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
+            sh -c "fluxbox & sleep 1; ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 \"$TKF_VST3\""
+          echo "Validating $TKP_VST3 under Xvfb + Fluxbox..."
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
+            sh -c "fluxbox & sleep 1; ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 \"$TKP_VST3\""
 
   test-windows:
     name: Windows x64 (VST3 / Unit Tests / pluginval)
