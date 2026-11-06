@@ -3,70 +3,65 @@
 #include <cmath>
 #include <array>
 #include <algorithm>
-#include <immintrin.h>
 #include <juce_core/juce_core.h>
 #include "../FastMath.h"
 
 namespace Nyarlat {
 
-// Portable lane-0 extraction (MSVC / GCC / Clang compliant; zero member access)
-static inline float lane0(__m128 v) noexcept { return _mm_cvtss_f32(v); }
+// High-precision Portable Stereo Transposed Direct Form II Biquad
+// Evaluates both Left and Right audio channels with scalar math (auto-vectorized by modern compilers).
+struct BiquadTDF2Stereo {
+    float s1L = 0.0f, s1R = 0.0f;
+    float s2L = 0.0f, s2R = 0.0f;
 
-// High-precision SIMD 2-Wide Stereo Transposed Direct Form II Biquad
-// Evaluates both Left and Right audio channels simultaneously in 3 vector FMA/SSE instructions.
-struct alignas(16) BiquadTDF2Stereo {
-    __m128 s1 = _mm_setzero_ps();
-    __m128 s2 = _mm_setzero_ps();
-
-    // Active smoothed coefficients [c, c, 0, 0]
-    __m128 b0 = _mm_set1_ps(1.0f);
-    __m128 b1 = _mm_setzero_ps();
-    __m128 b2 = _mm_setzero_ps();
-    __m128 a1 = _mm_setzero_ps();
-    __m128 a2 = _mm_setzero_ps();
+    // Active smoothed coefficients
+    float b0 = 1.0f;
+    float b1 = 0.0f;
+    float b2 = 0.0f;
+    float a1 = 0.0f;
+    float a2 = 0.0f;
 
     // Target coefficients
-    __m128 tb0 = _mm_set1_ps(1.0f);
-    __m128 tb1 = _mm_setzero_ps();
-    __m128 tb2 = _mm_setzero_ps();
-    __m128 ta1 = _mm_setzero_ps();
-    __m128 ta2 = _mm_setzero_ps();
+    float tb0 = 1.0f;
+    float tb1 = 0.0f;
+    float tb2 = 0.0f;
+    float ta1 = 0.0f;
+    float ta2 = 0.0f;
 
     // Sub-block linear delta slopes
-    __m128 db0 = _mm_setzero_ps();
-    __m128 db1 = _mm_setzero_ps();
-    __m128 db2 = _mm_setzero_ps();
-    __m128 da1 = _mm_setzero_ps();
-    __m128 da2 = _mm_setzero_ps();
+    float db0 = 0.0f;
+    float db1 = 0.0f;
+    float db2 = 0.0f;
+    float da1 = 0.0f;
+    float da2 = 0.0f;
     int rampSteps = 0;
 
     void reset() noexcept {
-        s1 = _mm_setzero_ps();
-        s2 = _mm_setzero_ps();
+        s1L = s1R = 0.0f;
+        s2L = s2R = 0.0f;
         rampSteps = 0;
     }
 
     bool setTargetWithRamp(float inB0, float inB1, float inB2, float inA1, float inA2, float invSteps) noexcept {
-        const bool changed = (lane0(tb0) != inB0) || (lane0(tb1) != inB1) ||
-                             (lane0(tb2) != inB2) || (lane0(ta1) != inA1) ||
-                             (lane0(ta2) != inA2);
-        tb0 = _mm_set1_ps(inB0);
-        tb1 = _mm_set1_ps(inB1);
-        tb2 = _mm_set1_ps(inB2);
-        ta1 = _mm_set1_ps(inA1);
-        ta2 = _mm_set1_ps(inA2);
+        const bool changed = (tb0 != inB0) || (tb1 != inB1) ||
+                             (tb2 != inB2) || (ta1 != inA1) ||
+                             (ta2 != inA2);
+        tb0 = inB0;
+        tb1 = inB1;
+        tb2 = inB2;
+        ta1 = inA1;
+        ta2 = inA2;
 
         if (changed) {
             if (invSteps <= 0.0f) {
                 snap();
                 return true;
             }
-            __m128 vInv = _mm_set1_ps(invSteps);
-            db0 = _mm_mul_ps(_mm_sub_ps(tb0, b0), vInv);
-            db1 = _mm_mul_ps(_mm_sub_ps(tb1, b1), vInv);
-            db2 = _mm_mul_ps(_mm_sub_ps(tb2, b2), vInv);
-            da1 = _mm_mul_ps(_mm_sub_ps(ta1, a1), vInv);
-            da2 = _mm_mul_ps(_mm_sub_ps(ta2, a2), vInv);
+            db0 = (tb0 - b0) * invSteps;
+            db1 = (tb1 - b1) * invSteps;
+            db2 = (tb2 - b2) * invSteps;
+            da1 = (ta1 - a1) * invSteps;
+            da2 = (ta2 - a2) * invSteps;
             rampSteps = static_cast<int>(std::lround(1.0f / invSteps));
         }
         return changed;
@@ -80,11 +75,11 @@ struct alignas(16) BiquadTDF2Stereo {
 
     inline void stepRamp() noexcept {
         if (rampSteps > 0) {
-            b0 = _mm_add_ps(b0, db0);
-            b1 = _mm_add_ps(b1, db1);
-            b2 = _mm_add_ps(b2, db2);
-            a1 = _mm_add_ps(a1, da1);
-            a2 = _mm_add_ps(a2, da2);
+            b0 += db0;
+            b1 += db1;
+            b2 += db2;
+            a1 += da1;
+            a2 += da2;
             if (--rampSteps == 0) {
                 b0 = tb0; b1 = tb1; b2 = tb2;
                 a1 = ta1; a2 = ta2;
@@ -92,26 +87,25 @@ struct alignas(16) BiquadTDF2Stereo {
         }
     }
 
-    inline __m128 process(__m128 in) noexcept {
-        // y[n] = b0 * x[n] + s1
-        __m128 out = _mm_add_ps(_mm_mul_ps(b0, in), s1);
-        // s1 = b1 * x[n] - a1 * y[n] + s2
-        s1 = _mm_add_ps(_mm_sub_ps(_mm_mul_ps(b1, in), _mm_mul_ps(a1, out)), s2);
-        // s2 = b2 * x[n] - a2 * y[n]
-        s2 = _mm_sub_ps(_mm_mul_ps(b2, in), _mm_mul_ps(a2, out));
-        return out;
+    inline void process(float& l, float& r) noexcept {
+        // Left channel: TDF-II
+        float outL = b0 * l + s1L;
+        s1L = b1 * l - a1 * outL + s2L;
+        s2L = b2 * l - a2 * outL;
+        l = outL;
+
+        // Right channel: TDF-II
+        float outR = b0 * r + s1R;
+        s1R = b1 * r - a1 * outR + s2R;
+        s2R = b2 * r - a2 * outR;
+        r = outR;
     }
 };
 
 // Branchless Padé soft-knee inter-stage limiter: clamps to [-2.0, +2.0]
-static inline __m128 softLimit2Wide(__m128 v) noexcept {
-    const __m128 vMin = _mm_set1_ps(-2.0f);
-    const __m128 vMax = _mm_set1_ps(2.0f);
-    const __m128 vInv12 = _mm_set1_ps(1.0f / 12.0f);
-    __m128 c = _mm_max_ps(vMin, _mm_min_ps(vMax, v));
-    __m128 c2 = _mm_mul_ps(c, c);
-    __m128 c3 = _mm_mul_ps(c2, c);
-    return _mm_sub_ps(c, _mm_mul_ps(c3, vInv12));
+static inline float softLimit(float v) noexcept {
+    const float c = std::max(-2.0f, std::min(2.0f, v));
+    return c - (c * c * c) * (1.0f / 12.0f);
 }
 
 // Exact rational quadratic peak power solver for H(z) = (b0 + b1 z^-1 + b2 z^-2)/(1 + a1 z^-1 + a2 z^-2)
@@ -292,32 +286,27 @@ public:
     void sanitize() noexcept {
         for (int s = 0; s < kNumSections; ++s) {
             auto& st = stages_[s];
-            alignas(16) float a[4], b[4];
-            _mm_store_ps(a, st.s1);
-            _mm_store_ps(b, st.s2);
-            if (!std::isfinite(a[0] + a[1] + b[0] + b[1]) ||
-                std::abs(a[0]) > 1e4f || std::abs(a[1]) > 1e4f ||
-                std::abs(b[0]) > 1e4f || std::abs(b[1]) > 1e4f) {
+            if (!std::isfinite(st.s1L + st.s1R + st.s2L + st.s2R) ||
+                std::abs(st.s1L) > 1e4f || std::abs(st.s1R) > 1e4f ||
+                std::abs(st.s2L) > 1e4f || std::abs(st.s2R) > 1e4f) {
                 st.reset();
             }
         }
     }
 
     inline void processStereo(float& left, float& right) noexcept {
-        // Pack Left and Right into 2-wide SIMD vector: [left, right, 0, 0]
-        __m128 in = _mm_setr_ps(left, right, 0.0f, 0.0f);
+        float l = left;
+        float r = right;
 
         for (int s = 0; s < kNumSections; ++s) {
             stages_[s].stepRamp();
-            in = stages_[s].process(in);
-            in = softLimit2Wide(in);
+            stages_[s].process(l, r);
+            l = softLimit(l);
+            r = softLimit(r);
         }
 
-        alignas(16) float out[4];
-        _mm_store_ps(out, in);
-
-        left = out[0] * activeModelNorm_;
-        right = out[1] * activeModelNorm_;
+        left = l * activeModelNorm_;
+        right = r * activeModelNorm_;
     }
 
 private:

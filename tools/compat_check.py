@@ -16,6 +16,7 @@ Checks Enforced:
 - C6: Target link libraries naming X11/X11::X11 forbidden (pure dynamic dlsym model)
 - C7: ScopedJuceInitialiser_GUI restricted to ScopedGuiContext encapsulation
 - C8: Zero non-portable MSVC SIMD vector members (.m128_f32)
+- C8b: Zero raw architecture-locked SIMD headers in engine headers (<immintrin.h>)
 - C9: Active Fleet CI Alignment (Hastur, Formless, DigiStrike FS2)
 
 Usage:
@@ -304,7 +305,9 @@ def check_source_portability(repo_root: Path, auto_fix: bool = False) -> List[Di
     c4_undef_macro_violations: List[str] = []
     c7_scoped_gui_violations: List[str] = []
     c8_msvc_simd_violations: List[str] = []
+    c8b_raw_simd_header_violations: List[str] = []
     msvc_simd_regex = re.compile(r'\.m128[di]?_(f32|f64|i8|i16|i32|i64|u8|u16|u32|u64)\b')
+    raw_simd_header_re = re.compile(r'^\s*#\s*include\s*[<"](immintrin\.h|xmmintrin\.h|emmintrin\.h|pmmintrin\.h|smmintrin\.h|nmmintrin\.h|avxintrin\.h)[>"]', re.IGNORECASE)
 
     dir_entries_cache: Dict[Path, Dict[str, str]] = {}
 
@@ -385,6 +388,11 @@ def check_source_portability(repo_root: Path, auto_fix: bool = False) -> List[Di
             # C8: Detect MSVC-only union member access on vector types
             if msvc_simd_regex.search(clean_line):
                 c8_msvc_simd_violations.append(f"{rel_path}:{i}: `{clean_line.strip()}` (non-portable MSVC .m128 member)")
+
+            # C8b: Detect unencapsulated architecture-locked SIMD headers in engine headers
+            if is_header and rel_path != "source/FastMath.h":
+                if raw_simd_header_re.search(line):
+                    c8b_raw_simd_header_violations.append(f"{rel_path}:{i}: `{line.strip()}` (unencapsulated x86 SIMD header)")
 
             if "ScopedJuceInitialiser_GUI" in clean_line:
                 is_standalone_preview = rel_path.endswith("_main.cpp") or "preview" in rel_path.lower()
@@ -513,6 +521,14 @@ def check_source_portability(repo_root: Path, auto_fix: bool = False) -> List[Di
         "name": "Zero Non-Portable MSVC SIMD Vector Members",
         "passed": len(c8_msvc_simd_violations) == 0,
         "message": "No non-portable MSVC .m128 vector members detected" if not c8_msvc_simd_violations else f"{len(c8_msvc_simd_violations)} MSVC SIMD violation(s): {'; '.join(c8_msvc_simd_violations[:3])}",
+    })
+
+    # 9. C8b: Anti-Raw Architecture SIMD in Headers
+    checks.append({
+        "category": "Platform Airlock (C8b)",
+        "name": "Zero Raw Architecture-Locked SIMD Headers",
+        "passed": len(c8b_raw_simd_header_violations) == 0,
+        "message": "No raw architecture-locked SIMD headers detected in engine headers" if not c8b_raw_simd_header_violations else f"{len(c8b_raw_simd_header_violations)} raw SIMD header violation(s): {'; '.join(c8b_raw_simd_header_violations[:3])}",
     })
 
     return checks

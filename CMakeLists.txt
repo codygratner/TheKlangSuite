@@ -674,7 +674,7 @@ add_executable(dsp_tests
 )
 target_include_directories(dsp_tests PRIVATE source)
 target_link_libraries(dsp_tests PRIVATE TheKlangDSP TkfAssets juce::juce_audio_processors)
-option(TKS_BUILD_EXPERIMENTAL_TESTS "Include experimental synth suites (Nyarlat) in dsp_tests" ON)
+option(TKS_BUILD_EXPERIMENTAL_TESTS "Include experimental synth suites (Nyarlat) in dsp_tests" OFF)
 if(NOT TKS_BUILD_EXPERIMENTAL_TESTS)
     target_compile_definitions(dsp_tests PRIVATE TKS_EXCLUDE_EXPERIMENTAL_SYNTHS=1)
 endif()
