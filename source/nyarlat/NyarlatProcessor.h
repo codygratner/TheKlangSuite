@@ -12,6 +12,27 @@
 
 namespace Nyarlat {
 
+struct CoupledPhasorLFO {
+    float sinVal = 0.0f;
+    float cosVal = 1.0f;
+    float epsilon = 0.0002f;
+
+    void setFrequency(float freqHz, float sampleRate) noexcept {
+        float omega = 2.0f * juce::MathConstants<float>::pi * freqHz / std::max(1000.0f, static_cast<float>(sampleRate));
+        epsilon = 2.0f * std::sin(omega * 0.5f);
+    }
+
+    void reset() noexcept {
+        sinVal = 0.0f;
+        cosVal = 1.0f;
+    }
+
+    inline void step() noexcept {
+        sinVal += epsilon * cosVal;
+        cosVal -= epsilon * sinVal;
+    }
+};
+
 struct SvfBandpass {
     float ic1 = 0.0f, ic2 = 0.0f;
     float g = 0.0f, k = 1.0f, a1 = 0.0f, a2 = 0.0f, a3 = 0.0f;
@@ -68,7 +89,7 @@ public:
     void setStoredEditorScale(float s) noexcept { storedEditorScale_.store(s, std::memory_order_relaxed); }
     [[nodiscard]] float getStoredEditorScale() const noexcept { return storedEditorScale_.load(std::memory_order_relaxed); }
 
-    // Telemetry for Z-Cube Visualizer and Bitmask Stator Views
+    // Telemetry for Z-Cube Visualizer, Bitmask Stator Views and Modulation Arc Halos
     struct VoiceTelemetry {
         bool active = false;
         int note = 60;
@@ -76,15 +97,43 @@ public:
         float y = 0.0f;
         float z = 0.0f;
         uint32_t statorOffsets[3] = {0, 0, 0};
+        float oscEffWave[3] = {0.0f, 0.0f, 0.0f};
+        int oscEffMask[3] = {511, 511, 511};
+        float oscEffSpeed[3] = {0.0f, 0.0f, 0.0f};
     };
     std::array<VoiceTelemetry, kNumVoices> getVoiceTelemetry() const noexcept {
         return telemetry_;
     }
+    int getNewestVoice() const noexcept {
+        return newestVoice_.load(std::memory_order_relaxed);
+    }
 
 private:
+    struct VoiceParams {
+        float oscBanks[3];
+        float oscWaves[3];
+        int oscMasks[3];
+        float oscDetunes[3];
+        int oscOctaves[3];
+        bool oscOctLocks[3];
+        bool oscSyncs[3];
+        float oscSpeeds[3];
+        int oscLoops[3];
+        float osc1Lvl, osc2Lvl, osc3Lvl;
+        float noiseLvl, noiseTone;
+        float oscSpread, mixerSeethe;
+        float chaosRate, chaosDrift, chaosPoly;
+        float randAttenuverters[15];
+        int zModel;
+        float zFreq, zMorph, zTransform;
+        float fEnvDepth, fVel;
+        float ampVel, globalBendSemi;
+    };
+
     void handleMidiEvent(const juce::MidiMessage& msg) noexcept;
     void allocateVoice(int midiNote, float velocity) noexcept;
     void releaseVoice(int midiNote) noexcept;
+    void renderSegment(float* left, float* right, int numSamples, const VoiceParams& params, int activeVoiceCount) noexcept;
 
     juce::AudioProcessorValueTreeState apvts_;
 
@@ -103,11 +152,18 @@ private:
     float trebleStateL_ = 0.0f;
     float trebleStateR_ = 0.0f;
 
-    // Alpha Chorus State
-    std::vector<float> chorusBufferL_;
-    std::vector<float> chorusBufferR_;
+    // Alpha Chorus State (power-of-two 2048 buffer with fast bitmasking & coupled phasor)
+    static constexpr int kChorusSize = 2048;
+    static constexpr int kChorusMask = 2047;
+    std::array<float, kChorusSize> chorusBufferL_{};
+    std::array<float, kChorusSize> chorusBufferR_{};
     int chorusPtr_ = 0;
-    float chorusPhase_ = 0.0f;
+    CoupledPhasorLFO chorusLfo_;
+
+    // Shared Wavetable Cache (deduplicates 48 AKWF interpolations per block)
+    std::array<std::array<float, 512>, 3> sharedWavetables_{};
+    uint32_t lastSharedBank_[3] = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu };
+    float lastSharedMorph_[3] = { -1.0f, -1.0f, -1.0f };
 
     // MIDI / MPE Expression State
     float globalPitchWheel_ = 0.0f;
@@ -116,6 +172,7 @@ private:
     int nextVoiceIndex_ = 0;
 
     std::array<VoiceTelemetry, kNumVoices> telemetry_;
+    std::atomic<int> newestVoice_{-1};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NyarlatProcessor)
 };

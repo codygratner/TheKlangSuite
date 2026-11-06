@@ -17,17 +17,19 @@ NyarlatProcessor::NyarlatProcessor()
 void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     juce::ignoreUnused(samplesPerBlock);
 
+    TbdAudio::FastMath::enableFTZDAZ();
+
     for (auto& v : voices_) {
         v.prepare(sampleRate);
     }
     reverb_.prepare(sampleRate);
 
-    // Chorus delay line (~20ms)
-    int chorusLen = static_cast<int>(sampleRate * 0.025);
-    chorusBufferL_.assign(chorusLen, 0.0f);
-    chorusBufferR_.assign(chorusLen, 0.0f);
+    // Alpha Chorus power-of-two delay line (2048 samples, ~46ms)
+    chorusBufferL_.fill(0.0f);
+    chorusBufferR_.fill(0.0f);
     chorusPtr_ = 0;
-    chorusPhase_ = 0.0f;
+    chorusLfo_.setFrequency(0.25f, static_cast<float>(sampleRate));
+    chorusLfo_.reset();
 
     bassBpL_.set(40.0f, 0.7f, static_cast<float>(sampleRate));
     bassBpR_.set(40.0f, 0.7f, static_cast<float>(sampleRate));
@@ -36,6 +38,11 @@ void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     postDcBlockerL_.prepare(sampleRate, 5.0);
     postDcBlockerR_.prepare(sampleRate, 5.0);
     trebleStateL_ = trebleStateR_ = 0.0f;
+
+    for (int i = 0; i < 3; ++i) {
+        lastSharedBank_[i] = 0xFFFFFFFFu;
+        lastSharedMorph_[i] = -1.0f;
+    }
 }
 
 void NyarlatProcessor::releaseResources() {
@@ -47,6 +54,8 @@ void NyarlatProcessor::releaseResources() {
     masterDcBlockerR_.reset();
     postDcBlockerL_.reset();
     postDcBlockerR_.reset();
+    chorusLfo_.reset();
+    chorusPtr_ = 0;
 }
 
 void NyarlatProcessor::handleMidiEvent(const juce::MidiMessage& msg) noexcept {
@@ -78,6 +87,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
         bestIdx = nextVoiceIndex_;
     }
     nextVoiceIndex_ = (bestIdx + 1) % kNumVoices;
+    newestVoice_.store(bestIdx, std::memory_order_relaxed);
 
     float glide = *apvts_.getRawParameterValue(nyarlatParameters::Ids::glide_time);
     voices_[bestIdx].noteOn(midiNote, velocity, glide);
@@ -91,12 +101,26 @@ void NyarlatProcessor::releaseVoice(int midiNote) noexcept {
     }
 }
 
+void NyarlatProcessor::renderSegment(float* left, float* right, int numSamples, const VoiceParams& params, int activeVoiceCount) noexcept {
+    for (int v = 0; v < kNumVoices; ++v) {
+        if (!voices_[v].isActive()) continue;
+        voices_[v].renderBlockAdd(
+            left, right, numSamples, activeVoiceCount,
+            params.oscBanks, params.oscWaves, params.oscMasks, params.oscDetunes, params.oscOctaves,
+            params.oscOctLocks, params.oscSyncs, params.oscSpeeds, params.oscLoops,
+            params.osc1Lvl, params.osc2Lvl, params.osc3Lvl,
+            params.noiseLvl, params.noiseTone, params.oscSpread, params.mixerSeethe,
+            params.chaosRate, params.chaosDrift, params.chaosPoly, params.randAttenuverters,
+            params.zModel, params.zFreq, params.zMorph, params.zTransform,
+            params.fEnvDepth, params.fVel,
+            params.ampVel, params.globalBendSemi, globalModWheel_, globalChannelAftertouch_
+        );
+    }
+}
+
 void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
-
-    for (const auto metadata : midiMessages) {
-        handleMidiEvent(metadata.getMessage());
-    }
+    TbdAudio::FastMath::enableFTZDAZ();
 
     const int numSamples = buffer.getNumSamples();
     float* leftChannel = buffer.getWritePointer(0);
@@ -206,8 +230,19 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
     uint32_t uBanks[3] = { static_cast<uint32_t>(oscBanks[0]), static_cast<uint32_t>(oscBanks[1]), static_cast<uint32_t>(oscBanks[2]) };
 
+    // Processor-level shared wavetable cache: 1 interpolation per osc instead of 16
+    for (int i = 0; i < 3; ++i) {
+        if (uBanks[i] != lastSharedBank_[i] || std::fabs(oscWaves[i] - lastSharedMorph_[i]) >= (1.0f / 4096.0f)) {
+            lastSharedBank_[i] = uBanks[i];
+            lastSharedMorph_[i] = oscWaves[i];
+            AkwfRom::getInstance().interpolateWaveform(uBanks[i], oscWaves[i], sharedWavetables_[i].data());
+        }
+    }
+
+    int activeVoiceCount = 0;
     for (int v = 0; v < kNumVoices; ++v) {
         if (!voices_[v].isActive()) continue;
+        activeVoiceCount++;
         voices_[v].sanitize();
 
         float noteScale = 1.0f - ktRate * (static_cast<float>(voices_[v].getMidiNote() - 60) / 60.0f);
@@ -216,34 +251,48 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         voices_[v].getAmpEnv().setADSR(ampA, ampD, ampS, ampR, sr, noteScale);
         voices_[v].getFilterEnv().setADSR(filtA, filtD, filtS, filtR, sr, noteScale);
         voices_[v].advanceChaos(chaosRate, chaosDrift, numSamples / sr);
-        voices_[v].updateWavetables(uBanks, oscWaves, randAttenuverters);
+        voices_[v].updateWavetables(uBanks, oscWaves, randAttenuverters, &sharedWavetables_);
     }
 
     buffer.clear();
 
-    for (int i = 0; i < numSamples; ++i) {
-        float mixL = 0.0f;
-        float mixR = 0.0f;
+    VoiceParams params;
+    for (int i = 0; i < 3; ++i) {
+        params.oscBanks[i] = oscBanks[i];
+        params.oscWaves[i] = oscWaves[i];
+        params.oscMasks[i] = oscMasks[i];
+        params.oscDetunes[i] = oscDetunes[i];
+        params.oscOctaves[i] = oscOctaves[i];
+        params.oscOctLocks[i] = oscOctLocks[i];
+        params.oscSyncs[i] = oscSyncs[i];
+        params.oscSpeeds[i] = oscSpeeds[i];
+        params.oscLoops[i] = oscLoops[i];
+    }
+    params.osc1Lvl = osc1Lvl; params.osc2Lvl = osc2Lvl; params.osc3Lvl = osc3Lvl;
+    params.noiseLvl = noiseLvl; params.noiseTone = noiseTone;
+    params.oscSpread = oscSpread; params.mixerSeethe = mixerSeethe;
+    params.chaosRate = chaosRate; params.chaosDrift = chaosDrift; params.chaosPoly = chaosPoly;
+    std::memcpy(params.randAttenuverters, randAttenuverters, 15 * sizeof(float));
+    params.zModel = zModel; params.zFreq = zFreq; params.zMorph = zMorph; params.zTransform = zTransform;
+    params.fEnvDepth = fEnvDepth; params.fVel = fVel;
+    params.ampVel = ampVel; params.globalBendSemi = globalBendSemi;
 
-        for (int v = 0; v < kNumVoices; ++v) {
-            if (!voices_[v].isActive()) continue;
-
-            float vL = 0.0f, vR = 0.0f;
-            voices_[v].processSample(
-                vL, vR,
-                oscBanks, oscWaves, oscMasks, oscDetunes, oscOctaves, oscOctLocks, oscSyncs,
-                oscSpeeds, oscLoops,
-                osc1Lvl, osc2Lvl, osc3Lvl, noiseLvl, noiseTone, oscSpread, mixerSeethe,
-                chaosRate, chaosDrift, chaosPoly, randAttenuverters,
-                zModel, zFreq, zMorph, zTransform, fEnvDepth, fVel,
-                ampVel, globalBendSemi, globalModWheel_, globalChannelAftertouch_
-            );
-            mixL += vL;
-            mixR += vR;
+    // Timestamp-sliced voice rendering: slices at MIDI event boundaries for sample-accurate timing
+    int currentSample = 0;
+    for (const auto metadata : midiMessages) {
+        const int eventPos = metadata.samplePosition;
+        if (eventPos > currentSample) {
+            const int segLen = std::min(eventPos - currentSample, numSamples - currentSample);
+            if (segLen > 0) {
+                renderSegment(leftChannel + currentSample, rightChannel + currentSample, segLen, params, activeVoiceCount);
+                currentSample += segLen;
+            }
         }
+        handleMidiEvent(metadata.getMessage());
+    }
 
-        leftChannel[i] = mixL;
-        rightChannel[i] = mixR;
+    if (currentSample < numSamples) {
+        renderSegment(leftChannel + currentSample, rightChannel + currentSample, numSamples - currentSample, params, activeVoiceCount);
     }
 
     float bassBoost = *apvts_.getRawParameterValue(Ids::bass_boost);
@@ -254,8 +303,6 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     float alphaChorus = *apvts_.getRawParameterValue(Ids::alpha_chorus);
     float width = *apvts_.getRawParameterValue(Ids::global_width);
     float masterVol = *apvts_.getRawParameterValue(Ids::output_level);
-
-    int chorusSize = static_cast<int>(chorusBufferL_.size());
 
     for (int i = 0; i < numSamples; ++i) {
         float l = leftChannel[i];
@@ -274,23 +321,21 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
             r = trebleStateR_;
         }
 
-        if (alphaChorus > 0.01f && chorusSize > 0) {
+        if (alphaChorus > 0.01f) {
             chorusBufferL_[chorusPtr_] = l;
             chorusBufferR_[chorusPtr_] = r;
 
-            chorusPhase_ += 0.0002f;
-            if (chorusPhase_ >= 6.2831853f) chorusPhase_ -= 6.2831853f;
+            float modOffsetL = (chorusLfo_.sinVal + 1.0f) * 0.4f * static_cast<float>(kChorusSize);
+            float modOffsetR = (chorusLfo_.cosVal + 1.0f) * 0.4f * static_cast<float>(kChorusSize);
+            chorusLfo_.step();
 
-            float modOffsetL = (std::sin(chorusPhase_) + 1.0f) * 0.4f * static_cast<float>(chorusSize);
-            float modOffsetR = (std::cos(chorusPhase_) + 1.0f) * 0.4f * static_cast<float>(chorusSize);
-
-            int readL = (chorusPtr_ - static_cast<int>(modOffsetL) + chorusSize) % chorusSize;
-            int readR = (chorusPtr_ - static_cast<int>(modOffsetR) + chorusSize) % chorusSize;
+            int readL = (chorusPtr_ - static_cast<int>(modOffsetL)) & kChorusMask;
+            int readR = (chorusPtr_ - static_cast<int>(modOffsetR)) & kChorusMask;
 
             l += chorusBufferL_[readL] * alphaChorus * 0.6f;
             r += chorusBufferR_[readR] * alphaChorus * 0.6f;
 
-            chorusPtr_ = (chorusPtr_ + 1) % chorusSize;
+            chorusPtr_ = (chorusPtr_ + 1) & kChorusMask;
         }
 
         reverb_.processStereo(l, r, revTime, revDamp, revMix);
@@ -305,9 +350,9 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         l = masterDcBlockerL_.process(l);
         r = masterDcBlockerR_.process(r);
 
-        // 2. Master saturation
-        l = std::tanh(l * masterVol);
-        r = std::tanh(r * masterVol);
+        // 2. Master saturation (branchless Padé fastTanh)
+        l = TbdAudio::FastMath::fastTanh(l * masterVol);
+        r = TbdAudio::FastMath::fastTanh(r * masterVol);
 
         // 3. Pre-sanitization before post-blocker
         if (!std::isfinite(l)) { l = 0.0f; postDcBlockerL_.reset(); }
@@ -322,15 +367,30 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         rightChannel[i] = juce::jlimit(-1.0f, 1.0f, r);
     }
 
+    int nv = newestVoice_.load(std::memory_order_relaxed);
+    if (nv >= 0 && !voices_[nv].isActive()) {
+        int fallback = -1;
+        for (int v = 0; v < kNumVoices; ++v) {
+            if (voices_[v].isActive()) {
+                fallback = v;
+                break;
+            }
+        }
+        newestVoice_.store(fallback, std::memory_order_relaxed);
+    }
+
     for (int v = 0; v < kNumVoices; ++v) {
         telemetry_[v].active = voices_[v].isActive();
         telemetry_[v].note = voices_[v].getMidiNote();
         telemetry_[v].x = std::log10(zFreq / 20.0f) / 3.0f;
         telemetry_[v].y = zMorph;
         telemetry_[v].z = zTransform;
-        telemetry_[v].statorOffsets[0] = voices_[v].getStatorOffset(0);
-        telemetry_[v].statorOffsets[1] = voices_[v].getStatorOffset(1);
-        telemetry_[v].statorOffsets[2] = voices_[v].getStatorOffset(2);
+        for (int i = 0; i < 3; ++i) {
+            telemetry_[v].statorOffsets[i] = voices_[v].getStatorOffset(i);
+            telemetry_[v].oscEffWave[i] = voices_[v].getEffWave(i);
+            telemetry_[v].oscEffMask[i] = voices_[v].getEffMask(i);
+            telemetry_[v].oscEffSpeed[i] = voices_[v].getEffSpeed(i);
+        }
     }
 }
 

@@ -181,6 +181,15 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
+    void setLive(bool on, float wave, int mask, float speed) {
+        if (on == hasLive_ && std::abs(wave - liveWave_) < 1e-3f && mask == liveMask_ && std::abs(speed - liveSpeed_) < 1e-3f) return;
+        hasLive_ = on;
+        liveWave_ = wave;
+        liveMask_ = mask;
+        liveSpeed_ = speed;
+        repaint();
+    }
+
     void paint(juce::Graphics& g) override {
         auto bounds = getLocalBounds().toFloat();
         g.setColour(juce::Colour(0xFF0D1117));
@@ -202,21 +211,21 @@ public:
 
         if (oscIndex_ == 0) {
             bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_bank));
-            waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc1_wave);
-            maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_mask));
-            speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc1_speed);
+            waveVal = hasLive_ ? liveWave_ : static_cast<float>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_wave));
+            maskVal = hasLive_ ? liveMask_ : static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_mask));
+            speedVal = hasLive_ ? liveSpeed_ : static_cast<float>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_speed));
             loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc1_loop));
         } else if (oscIndex_ == 1) {
             bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_bank));
-            waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc2_wave);
-            maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_mask));
-            speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc2_speed);
+            waveVal = hasLive_ ? liveWave_ : static_cast<float>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_wave));
+            maskVal = hasLive_ ? liveMask_ : static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_mask));
+            speedVal = hasLive_ ? liveSpeed_ : static_cast<float>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_speed));
             loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc2_loop));
         } else {
             bankVal = static_cast<uint32_t>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_bank));
-            waveVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc3_wave);
-            maskVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_mask));
-            speedVal = *proc_.getAPVTS().getRawParameterValue(Ids::osc3_speed);
+            waveVal = hasLive_ ? liveWave_ : static_cast<float>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_wave));
+            maskVal = hasLive_ ? liveMask_ : static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_mask));
+            speedVal = hasLive_ ? liveSpeed_ : static_cast<float>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_speed));
             loopVal = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::osc3_loop));
         }
 
@@ -303,6 +312,10 @@ private:
     NyarlatProcessor& proc_;
     int oscIndex_ = 0;
     float previewPhase_ = 0.0f;
+    bool hasLive_ = false;
+    float liveWave_ = 0.0f;
+    int liveMask_ = 511;
+    float liveSpeed_ = 0.0f;
 };
 
 // ==============================================================================
@@ -425,7 +438,7 @@ public:
         if (isBipolar) {
             float zeroNorm = 0.5f;
             if (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0) {
-                zeroNorm = static_cast<float>(-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
+                zeroNorm = static_cast<float>(slider.valueToProportionOfLength(0.0));
             }
             const float midAngle = rotaryStartAngle + zeroNorm * sweep;
             if (std::abs(angle - midAngle) > 0.005f) {

@@ -73,7 +73,7 @@ parameters:
     category: dco
     type: float
     effect: pitch
-    range: [-50.0, 50.0]
+    range: [-100.0, 100.0]
     default: 0.0
 
   - id: osc1_oct_lock
@@ -149,8 +149,8 @@ parameters:
     category: dco
     type: float
     effect: pitch
-    range: [-50.0, 50.0]
-    default: 4.0
+    range: [-100.0, 100.0]
+    default: 0.0
 
   - id: osc2_oct_lock
     name: Osc 2 Octave Lock
@@ -233,8 +233,8 @@ parameters:
     category: dco
     type: float
     effect: pitch
-    range: [-50.0, 50.0]
-    default: -4.0
+    range: [-100.0, 100.0]
+    default: 0.0
 
   - id: osc3_oct_lock
     name: Osc 3 Octave Lock

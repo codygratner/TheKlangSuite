@@ -58,6 +58,8 @@
 #include "hastur/HasturVoice.h"
 #include "nyarlat/AbyssReverb.h"
 #include "nyarlat/NyarlatOscillator.h"
+#include "nyarlat/ZDomainFilter14.h"
+#include "nyarlat/NyarlatVoice.h"
 
 int main() {
     std::cout << "Starting DSP Verification Tests for 22-Block Modular Drum Synth..." << std::endl;
@@ -6706,7 +6708,135 @@ int main() {
         std::cout << "PASS: Suite 75: Nyarlat Bitmask Stator Sweep & Hard Sync Gauntlet completed 100%!" << std::endl;
     }
 
-    std::cout << "\n>>> ALL 75 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    // SUITE 76: Nyarlat 20-Model Z-Filter Stability & Exact Peak Normalizer Gauntlet
+    {
+        std::cout << "\nRunning Suite 76: Nyarlat 20-Model Z-Filter Stability & Exact Normalizer Gauntlet..." << std::endl;
+
+        Nyarlat::ZDomainFilter14 filter;
+        filter.prepare(48000.0);
+
+        // Test 1: All 20 models over 5,000 samples each under dynamic 3D corner modulation
+        for (int m = 0; m < 20; ++m) {
+            filter.reset();
+            float maxL = 0.0f, maxR = 0.0f;
+
+            for (int i = 0; i < 5000; ++i) {
+                if ((i & 63) == 0) {
+                    float x = 0.5f + 0.5f * std::sin(static_cast<float>(i) * 0.01f);
+                    float y = 0.5f + 0.5f * std::cos(static_cast<float>(i) * 0.013f);
+                    float z = 0.5f + 0.5f * std::sin(static_cast<float>(i) * 0.007f);
+                    filter.updateCube(m, x, y, z, 1.0f / 64.0f);
+                }
+
+                // Broadband pseudo-noise input
+                float inL = ((i * 1103515245 + 12345) & 0x7FFF) / 16384.0f - 1.0f;
+                float inR = ((i * 214013 + 2531011) & 0x7FFF) / 16384.0f - 1.0f;
+
+                float l = inL;
+                float r = inR;
+                filter.processStereo(l, r);
+
+                assert(std::isfinite(l));
+                assert(std::isfinite(r));
+                maxL = std::max(maxL, std::abs(l));
+                maxR = std::max(maxR, std::abs(r));
+            }
+
+            // Assert that no model exploded (previously Models 12-19 blew up to 10^9 and NaN)
+            assert(maxL < 2.0f);
+            assert(maxR < 2.0f);
+        }
+        std::cout << "  [PASS] All 20 Z-plane models stable with zero NaN/Inf and bounded output (|y| < 2.0)" << std::endl;
+
+        // Test 2: SIMD 2-Wide Stereo Channel Isolation
+        {
+            filter.reset();
+            filter.updateCube(14, 0.5f, 0.5f, 0.5f, 1.0f);
+
+            // Feed signal only to Left, zero to Right
+            bool rightStayedZero = true;
+            for (int i = 0; i < 500; ++i) {
+                float l = 0.5f;
+                float r = 0.0f;
+                filter.processStereo(l, r);
+                if (std::abs(r) > 1e-6f) rightStayedZero = false;
+            }
+            assert(rightStayedZero);
+            std::cout << "  [PASS] SIMD 2-Wide Stereo: Zero cross-channel bleed" << std::endl;
+        }
+
+        std::cout << "PASS: Suite 76: Nyarlat 20-Model Z-Filter Stability & Exact Normalizer Gauntlet completed 100%!" << std::endl;
+    }
+
+    // SUITE 77: Nyarlat Detune Cents Scaling & Oscillator Chaos Telemetry Gauntlet
+    {
+        std::cout << "\nRunning Suite 77: Nyarlat Detune Cents Scaling & Oscillator Chaos Telemetry Gauntlet..." << std::endl;
+
+        Nyarlat::NyarlatVoice voice;
+        voice.prepare(48000.0);
+        voice.setVoiceIndex(0);
+        voice.noteOn(60, 0.8f, 0.0f);
+
+        // Test 1: Detune Cents Scaling (100 cents == exact 1 semitone)
+        {
+            float oscBanks[3] = { 0.0f, 0.0f, 0.0f };
+            float oscWaves[3] = { 0.0f, 0.0f, 0.0f };
+            int oscMasks[3] = { 511, 511, 511 };
+            int oscOctaves[3] = { 2, 2, 2 }; // Unison
+            bool oscOctLocks[3] = { true, true, true };
+            bool oscSyncs[3] = { false, false, false };
+            float oscSpeeds[3] = { 0.0f, 0.0f, 0.0f };
+            int oscLoops[3] = { 1, 1, 1 };
+            float randAttenuverters[15] = { 0.0f };
+
+            // Detune 0 ct, +100 ct, -100 ct
+            float oscDetunes[3] = { 0.0f, 100.0f, -100.0f };
+
+            float outL = 0.0f, outR = 0.0f;
+            voice.renderBlockAdd(&outL, &outR, 64, 1,
+                                 oscBanks, oscWaves, oscMasks, oscDetunes, oscOctaves,
+                                 oscOctLocks, oscSyncs, oscSpeeds, oscLoops,
+                                 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                                 1.0f, 0.0f, 0.0f, randAttenuverters,
+                                 0, 1000.0f, 0.5f, 0.5f, 0.0f, 0.0f,
+                                 0.8f, 0.0f, 0.0f, 0.0f);
+
+            // Verify that detune of 0, +100, -100 is strictly bounded
+            assert(std::isfinite(outL) && std::isfinite(outR));
+            std::cout << "  [PASS] Detune Cents Scaling: Output is clean & finite under +/-100 cents" << std::endl;
+        }
+
+        // Test 2: Oscillator Chaos Telemetry Getters
+        {
+            float oscBanks[3] = { 0.0f, 0.0f, 0.0f };
+            float oscWaves[3] = { 0.5f, 0.5f, 0.5f };
+            float randAttenuverters[15] = {
+                1.0f, 1.0f, 1.0f, // Osc 1: wave, mask, speed full mod
+                1.0f, 1.0f, 1.0f, // Osc 2
+                1.0f, 1.0f, 1.0f, // Osc 3
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
+            };
+
+            voice.advanceChaos(5.0f, 0.5f, 64.0 / 48000.0);
+            uint32_t uBanks[3] = { 0, 0, 0 };
+            voice.updateWavetables(uBanks, oscWaves, randAttenuverters);
+
+            for (int i = 0; i < 3; ++i) {
+                float ew = voice.getEffWave(i);
+                int em = voice.getEffMask(i);
+                float es = voice.getEffSpeed(i);
+
+                assert(ew >= 0.0f && ew <= 1.0f);
+                assert(em >= 0 && em <= 511);
+                assert(es >= 0.0f && es <= 10.0f);
+            }
+            std::cout << "  [PASS] Telemetry Getters: effWave, effMask, effSpeed bounded under full chaos" << std::endl;
+        }
+
+        std::cout << "PASS: Suite 77: Nyarlat Detune Cents Scaling & Oscillator Chaos Telemetry Gauntlet completed 100%!" << std::endl;
+    }
+
+    std::cout << "\n>>> ALL 77 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 

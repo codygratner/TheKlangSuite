@@ -260,6 +260,15 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
             processor_.getAPVTS(), paramId, item.slider);
     }
 
+    if (paramId == nyarlatParameters::Ids::osc1_detune ||
+        paramId == nyarlatParameters::Ids::osc2_detune ||
+        paramId == nyarlatParameters::Ids::osc3_detune) {
+        item.slider.textFromValueFunction = [](double val) {
+            return (val > 0.0 ? "+" : "") + juce::String(val, 1) + " ct";
+        };
+        item.slider.setDoubleClickReturnValue(true, 0.0f);
+    }
+
     if (auto* info = findNyarlatControlInfo(paramId)) {
         controlMap_[&item.slider] = info;
     }
@@ -734,23 +743,32 @@ void NyarlatEditor::layoutControls() {
 }
 
 void NyarlatEditor::timerCallback() {
-    // 1. Repaint animated Bitmask Waveform previews
-    for (auto& wv : oscWaveViews_) {
-        if (wv != nullptr) wv->repaint();
+    namespace Ids = nyarlatParameters::Ids;
+    auto tele = processor_.getVoiceTelemetry();
+    const int nv = processor_.getNewestVoice();
+    const bool hasLiveVoice = (nv >= 0 && nv < static_cast<int>(tele.size()) && tele[nv].active);
+
+    // 1. Repaint animated Bitmask Waveform previews with live voice modulation
+    for (int o = 0; o < 3; ++o) {
+        if (oscWaveViews_[o] != nullptr) {
+            if (hasLiveVoice) {
+                oscWaveViews_[o]->setLive(true, tele[nv].oscEffWave[o], tele[nv].oscEffMask[o], tele[nv].oscEffSpeed[o]);
+            } else {
+                oscWaveViews_[o]->setLive(false, 0.0f, 511, 0.0f);
+            }
+            oscWaveViews_[o]->repaint();
+        }
     }
+
     // 2. Repaint Vector ADSR curve preview
     if (vcaAdsrView_ != nullptr) {
         vcaAdsrView_->repaint();
     }
 
-    // 3. Dynamic modulation halos for Z-Cube hero knobs and chaos parameters
-    auto tele = processor_.getVoiceTelemetry();
-    bool anyVoiceActive = false;
+    // 3. Dynamic modulation halos for Z-Cube hero knobs and oscillator knobs
     float activeX = 0.5f, activeY = 0.0f, activeZ = 0.0f;
-
     for (const auto& vt : tele) {
         if (vt.active) {
-            anyVoiceActive = true;
             activeX = vt.x;
             activeY = vt.y;
             activeZ = vt.z;
@@ -758,11 +776,82 @@ void NyarlatEditor::timerCallback() {
         }
     }
 
+    struct OscModMapping {
+        const juce::String baseId;
+        const juce::String randId;
+        int osc;
+        int kind; // 0 = wave, 1 = mask, 2 = speed
+    };
+
+    static const OscModMapping kOscModMappings[9] = {
+        { Ids::osc1_wave,  Ids::rand_o1_wave,  0, 0 },
+        { Ids::osc1_mask,  Ids::rand_o1_mask,  0, 1 },
+        { Ids::osc1_speed, Ids::rand_o1_speed, 0, 2 },
+        { Ids::osc2_wave,  Ids::rand_o2_wave,  1, 0 },
+        { Ids::osc2_mask,  Ids::rand_o2_mask,  1, 1 },
+        { Ids::osc2_speed, Ids::rand_o2_speed, 1, 2 },
+        { Ids::osc3_wave,  Ids::rand_o3_wave,  2, 0 },
+        { Ids::osc3_mask,  Ids::rand_o3_mask,  2, 1 },
+        { Ids::osc3_speed, Ids::rand_o3_speed, 2, 2 }
+    };
+
     for (size_t i = 0; i < knobs_.size(); ++i) {
         auto* k = knobs_[i].get();
         if (!k) continue;
 
-        if (k->paramId == nyarlatParameters::Ids::z_freq) {
+        // Check if this knob is one of the 9 oscillator modulation targets
+        const OscModMapping* oscMap = nullptr;
+        for (const auto& m : kOscModMappings) {
+            if (k->paramId == m.baseId) {
+                oscMap = &m;
+                break;
+            }
+        }
+
+        if (oscMap != nullptr) {
+            auto* p = processor_.getAPVTS().getParameter(oscMap->baseId);
+            const float randAmt = *processor_.getAPVTS().getRawParameterValue(oscMap->randId);
+            const float baseNorm = p ? p->getValue() : 0.5f;
+            auto& sp = k->slider.getProperties();
+
+            if (randAmt < 0.001f) {
+                if (sp.contains("randLo") || sp.contains("randHi") || sp.contains("randPip")) {
+                    sp.remove("randLo");
+                    sp.remove("randHi");
+                    sp.remove("randPip");
+                    k->slider.repaint();
+                }
+            } else {
+                float targetPip = baseNorm;
+                if (hasLiveVoice) {
+                    float raw = 0.0f;
+                    if (oscMap->kind == 0) raw = tele[nv].oscEffWave[oscMap->osc];
+                    else if (oscMap->kind == 1) raw = static_cast<float>(tele[nv].oscEffMask[oscMap->osc]);
+                    else if (oscMap->kind == 2) raw = tele[nv].oscEffSpeed[oscMap->osc];
+                    targetPip = p ? p->convertTo0to1(raw) : baseNorm;
+                }
+
+                float& curPip = smoothedRandPips_[i];
+                curPip += 0.25f * (targetPip - curPip);
+
+                const float lo = juce::jlimit(0.0f, 1.0f, baseNorm - randAmt);
+                const float hi = juce::jlimit(0.0f, 1.0f, baseNorm + randAmt);
+
+                const float oldPip = sp.getWithDefault("randPip", -1.0f);
+                const float oldLo  = sp.getWithDefault("randLo", -1.0f);
+                const float oldHi  = sp.getWithDefault("randHi", -1.0f);
+
+                if (std::abs(oldPip - curPip) > 0.002f || std::abs(oldLo - lo) > 0.002f || std::abs(oldHi - hi) > 0.002f) {
+                    sp.set("randLo", lo);
+                    sp.set("randHi", hi);
+                    sp.set("randPip", curPip);
+                    k->slider.repaint();
+                }
+            }
+            continue;
+        }
+
+        if (k->paramId == Ids::z_freq) {
             float targetPip = activeX;
             float& curPip = smoothedRandPips_[i];
             curPip += 0.25f * (targetPip - curPip);
@@ -771,7 +860,7 @@ void NyarlatEditor::timerCallback() {
             k->slider.getProperties().set("randHi", std::min(1.0f, curPip + 0.15f));
             k->slider.getProperties().set("randPip", curPip);
             k->slider.repaint();
-        } else if (k->paramId == nyarlatParameters::Ids::z_morph) {
+        } else if (k->paramId == Ids::z_morph) {
             float targetPip = activeY;
             float& curPip = smoothedRandPips_[i];
             curPip += 0.25f * (targetPip - curPip);
@@ -780,7 +869,7 @@ void NyarlatEditor::timerCallback() {
             k->slider.getProperties().set("modHi", std::min(1.0f, curPip + 0.12f));
             k->slider.getProperties().set("modPip", curPip);
             k->slider.repaint();
-        } else if (k->paramId == nyarlatParameters::Ids::z_transform) {
+        } else if (k->paramId == Ids::z_transform) {
             float targetPip = activeZ;
             float& curPip = smoothedRandPips_[i];
             curPip += 0.25f * (targetPip - curPip);

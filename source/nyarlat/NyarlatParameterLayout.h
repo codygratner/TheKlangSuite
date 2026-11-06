@@ -102,7 +102,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc1_detune [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_detune, 1}, nyarlatParameters::Names::osc1_detune, -50.0000f, 50.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc1_detune, 1}, nyarlatParameters::Names::osc1_detune, -100.0000f, 100.0000f, 0.0000f));
 
     // osc1_oct_lock [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -139,7 +139,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc2_detune [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_detune, 1}, nyarlatParameters::Names::osc2_detune, -50.0000f, 50.0000f, 4.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc2_detune, 1}, nyarlatParameters::Names::osc2_detune, -100.0000f, 100.0000f, 0.0000f));
 
     // osc2_oct_lock [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -181,7 +181,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc3_detune [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_detune, 1}, nyarlatParameters::Names::osc3_detune, -50.0000f, 50.0000f, -4.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc3_detune, 1}, nyarlatParameters::Names::osc3_detune, -100.0000f, 100.0000f, 0.0000f));
 
     // osc3_oct_lock [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
