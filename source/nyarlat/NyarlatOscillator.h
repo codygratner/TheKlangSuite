@@ -55,10 +55,9 @@ public:
             syncFade_ = 1.0f;
         }
 
-        // 1. Calculate effective mask
-        int mask = (rawMask * 16) + 15;
-        // Clamp to 1..8191
-        mask = juce::jlimit(1, 8191, mask);
+        // 1. Calculate effective 9-bit table mask (bits strictly within 512-sample cycle)
+        const uint32_t mask9 = static_cast<uint32_t>(juce::jlimit(0, 511, rawMask) * 16 + 15) & 0x1FFu;
+        const bool maskIdentity = (mask9 == 0x1FFu);
 
         // 2. Octave Lock frequency compensation
         float effectiveFreq = freqHz;
@@ -72,42 +71,58 @@ public:
         double incPerSubstep = (static_cast<double>(effectiveFreq) * 16777216.0) / (sampleRate_ * 16.0);
         uint32_t phaseInc = static_cast<uint32_t>(incPerSubstep);
 
-        // 4. Q32 Stator Sweep Setup
+        // 4. Stator -> smooth Casio CZ resonant phase-distortion depth
         const float sp = (maskSpeed > 0.0f && std::isfinite(maskSpeed)) ? std::fmin(maskSpeed, 50.0f) : 0.0f;
         const uint32_t statorInc = static_cast<uint32_t>(sp * (4294967296.0 / (sampleRate_ * 16.0)));
         const uint32_t base = static_cast<uint32_t>(maskStart + 512); // >= 257, no signed underflow
+        const int effectiveLoop = (loopMode == 0 && sp > 0.0f) ? 1 : loopMode;
+
+        auto S = [](float x) noexcept {
+            x = juce::jlimit(0.0f, 1.0f, x);
+            return x * x * (3.0f - 2.0f * x);
+        };
 
         // 5. Evaluate 16 sub-samples and sum (boxcar decimation)
-        // Auto-promote loopMode == 0 (Off) to Saw (1) when speed > 0 so SPEED is never silently dead
-        const int effectiveLoop = (loopMode == 0 && sp > 0.0f) ? 1 : loopMode;
         float sum = 0.0f;
-        uint32_t lastK = 16u;
+        float lastDepth = 0.0f;
+        const float* tbl = buffer8k_.data();
+
         for (int sub = 0; sub < kOversample; ++sub) {
             uint32_t sweep = 0;
             if (effectiveLoop != 0) {
                 statorQ_ += statorInc;
                 const uint32_t p = statorQ_ >> 23; // 0..511 cyclic position
-                // Saw (1): linear ramp | Ping-Pong (2): triangle bounce
                 sweep = (effectiveLoop == 1) ? p : (p < 256u ? p * 2u : (511u - p) * 2u);
             }
             const uint32_t off = (sweep + base) & 0x1FFu; // Stator position (0..511)
             lastStatorOffset_ = off;
 
-            // Pitch-invariant duty-cycle formant squeeze into 8KB zero runway:
-            // k=16 is 1.0x (identity baseline). k=255 is ~16x formant squeeze.
-            // Fundamental period is strictly anchored to phase_, guaranteeing delta f == 0.0 Hz.
-            const uint32_t k = 16u + ((off * 15u) >> 5);
-            const uint32_t m = (phase_ >> 15) & static_cast<uint32_t>(mask);
-            const uint32_t tableIdx = (((m & 0x1FFu) * k) >> 4) | (m & ~0x1FFu);
+            const float t = static_cast<float>(off) * (1.0f / 512.0f);
+            const float depth = (effectiveLoop == 2)
+                ? S(1.0f - std::fabs(2.0f * t - 1.0f))
+                : (t <= 0.9f ? t : t * (1.0f - S((t - 0.9f) * 10.0f)));
+            lastDepth = depth;
+            const float r = 1.0f + 5.0f * depth;
 
-            sum += buffer8k_[tableIdx & 0x1FFFu];
-            lastK = k;
+            // Normalized cycle phase strictly in [0, 1), guaranteeing 100% pitch lock to f0
+            const float phi = static_cast<float>(phase_ & 0x00FFFFFFu) * (1.0f / 16777216.0f);
+            float x = phi * r;
+            x -= std::floor(x);
+            const float pos = x * 512.0f;
+            const uint32_t i = static_cast<uint32_t>(pos);
+            const uint32_t im = i & mask9;
+            float s = tbl[im];
+            if (maskIdentity) {
+                const float frac = pos - static_cast<float>(i);
+                s += frac * (tbl[(im + 1u) & 0x1FFu] - s);
+            }
+            // Cubic smooth window tapers resonant seam smoothly to zero at phi = 1 (no edge clicks)
+            sum += s * (1.0f - depth * S(phi));
             phase_ += phaseInc;
         }
 
-        // Soft RMS power compensation: (k/16)^0.25 (gentle boost up to +4.5 dB for high squeeze)
-        const float gainComp = std::sqrt(std::sqrt(static_cast<float>(lastK) * (1.0f / 16.0f)));
-        float decimated = sum * (1.0f / 16.0f) * gainComp;
+        // Soft linear gain scaling (1.0x .. 1.6x) keeping perceived volume uniform across resonant depth
+        float decimated = sum * (1.0f / 16.0f) * (1.0f + 0.6f * lastDepth);
 
         // Smooth hard-sync transition if active
         if (syncFade_ > 0.0f) {
@@ -139,8 +154,6 @@ private:
                     ratio = 0.5f;
                 } else if ((mask & 128) == 0 && (mask & 64) != 0) {
                     ratio = 0.25f;
-                } else if ((mask & 512) != 0) {
-                    ratio = 2.0f;
                 }
                 t[m] = ratio;
             }

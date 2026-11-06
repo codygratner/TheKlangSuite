@@ -227,7 +227,8 @@ public:
         std::array<float, 512> waveTable;
         AkwfRom::getInstance().interpolateWaveform(bankVal, waveVal, waveTable.data());
 
-        int effectiveMask = juce::jlimit(1, 8191, (maskVal * 16) + 15);
+        const uint32_t mask9 = static_cast<uint32_t>(juce::jlimit(0, 511, maskVal) * 16 + 15) & 0x1FFu;
+        const bool maskIdentity = (mask9 == 0x1FFu);
         uint32_t statorOff = static_cast<uint32_t>((startVal + 512) & 0x1FF);
 
         bool activeVoiceFound = false;
@@ -240,8 +241,8 @@ public:
             }
         }
 
+        const int effLoop = (loopVal == 0) ? 1 : loopVal;
         if (!activeVoiceFound && speedVal > 0.0f) {
-            const int effLoop = (loopVal == 0) ? 1 : loopVal;
             previewPhase_ += speedVal * 0.033f; // ~30 Hz timer delta
             if (previewPhase_ >= 1.0f) previewPhase_ -= std::floor(previewPhase_);
             uint32_t p = static_cast<uint32_t>(previewPhase_ * 512.0f) & 0x1FFu;
@@ -249,8 +250,16 @@ public:
             statorOff = (sweep + static_cast<uint32_t>(startVal + 512)) & 0x1FFu;
         }
 
-        // Apply pitch-invariant k-scaling (duty-cycle formant squeeze matching DSP engine)
-        const uint32_t k = 16u + ((statorOff * 15u) >> 5);
+        auto S = [](float x) noexcept {
+            x = juce::jlimit(0.0f, 1.0f, x);
+            return x * x * (3.0f - 2.0f * x);
+        };
+
+        const float t = static_cast<float>(statorOff) * (1.0f / 512.0f);
+        const float depth = (effLoop == 2)
+            ? S(1.0f - std::fabs(2.0f * t - 1.0f))
+            : (t <= 0.9f ? t : t * (1.0f - S((t - 0.9f) * 10.0f)));
+        const float r = 1.0f + 5.0f * depth;
 
         juce::Path p;
         float w = bounds.getWidth() - 8.0f;
@@ -259,16 +268,24 @@ public:
         float startY = bounds.getY() + 4.0f;
 
         const int numPts = 128;
-        for (int i = 0; i < numPts; ++i) {
-            uint32_t phaseIdx = static_cast<uint32_t>((i * 512) / numPts);
-            uint32_t m = phaseIdx & static_cast<uint32_t>(effectiveMask);
-            uint32_t tableIdx = (((m & 0x1FFu) * k) >> 4) | (m & ~0x1FFu);
-            float samp = (tableIdx < 512) ? waveTable[tableIdx] : 0.0f;
+        for (int pt = 0; pt < numPts; ++pt) {
+            const float phi = static_cast<float>(pt) / static_cast<float>(numPts - 1);
+            float x = phi * r;
+            x -= std::floor(x);
+            const float pos = x * 512.0f;
+            const uint32_t i = static_cast<uint32_t>(pos);
+            const uint32_t im = i & mask9;
+            float s = waveTable[im];
+            if (maskIdentity) {
+                const float frac = pos - static_cast<float>(i);
+                s += frac * (waveTable[(im + 1u) & 0x1FFu] - s);
+            }
+            s *= (1.0f - depth * S(phi));
 
-            float px = startX + (static_cast<float>(i) / static_cast<float>(numPts - 1)) * w;
-            float py = startY + (0.5f - samp * 0.44f) * h;
+            float px = startX + phi * w;
+            float py = startY + (0.5f - s * 0.44f) * h;
 
-            if (i == 0) p.startNewSubPath(px, py);
+            if (pt == 0) p.startNewSubPath(px, py);
             else p.lineTo(px, py);
         }
 
