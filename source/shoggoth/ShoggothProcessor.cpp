@@ -142,8 +142,12 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
             const int vIdx = allocateVoice(note);
             auto& voice = voices_[vIdx];
 
-            // Copy master harmonic amplitudes into voice
-            for (int k = 0; k < 63; ++k) {
+            // 1. Initialize voice phase, envelopes, and active partial ceiling for this f0
+            voice.noteOn(note, vel, f0, pitchPunch, modernMode, cpuTier);
+
+            // 2. Copy master harmonic amplitudes into voice
+            const int activeLimit = std::min(static_cast<int>(voice.getState().activePartials), kMaxPartials);
+            for (int k = 0; k < 63 && k < activeLimit; ++k) {
                 // Morph between S1 and S2
                 const float s1 = s1Harmonics_[k] / 99.0f;
                 const float s2 = s2Harmonics_[k] / 99.0f;
@@ -156,7 +160,7 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
 
             if (modernMode) {
                 const float lastAmp = voice.getState().p.baseHarmonic[62];
-                for (int k = 63; k < static_cast<int>(voice.getState().activePartials); ++k) {
+                for (int k = 63; k < activeLimit; ++k) {
                     const float extAmp = lastAmp * (63.0f / static_cast<float>(k + 1));
                     voice.getState().p.baseHarmonic[k] = extAmp;
                     voice.getState().p.kAmp[k + kGuard] = extAmp;
@@ -169,12 +173,10 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
                 }
             }
 
-            // Copy DHG envelopes
+            // 3. Copy DHG envelopes
             for (int e = 0; e < kNumDHGEnv; ++e) {
                 voice.getState().dhgData[e] = dhgEnvelopes_[e];
             }
-
-            voice.noteOn(note, vel, f0, pitchPunch, modernMode, cpuTier);
 
         } else if (msg.isNoteOff()) {
             const int note = msg.getNoteNumber();
@@ -201,8 +203,10 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
     float* leftChannel = buffer.getWritePointer(0);
     float* rightChannel = buffer.getWritePointer(1);
 
+    int activeCount = 0;
     for (auto& v : voices_) {
         if (v.isVoiceActive()) {
+            activeCount++;
             v.renderBlock(leftChannel, rightChannel, numSamples,
                           filterCutoff, filterReso, spectralTilt,
                           sourceMorph, oddEvenBal, disWarp,

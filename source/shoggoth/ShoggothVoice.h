@@ -220,9 +220,10 @@ public:
 
                 const float fk = effF0 * state_.p.ratio[k];
 
-                // Envelope modulation
+                // Envelope modulation: In modern mode, ampEnv is applied cleanly once at ampTgt.
+                // In 1987 vintage mode, dhgEnvOut modulates harmonic groups before master DDA ampEnv.
                 const uint8_t envIdx = state_.p.envAssign[k] & 0x03;
-                const float envGain = dhgEnvOut[envIdx];
+                const float envGain = state_.modernMode ? 1.0f : dhgEnvOut[envIdx];
 
                 // Odd / Even balance
                 const bool isOdd = ((k + 1) % 2 != 0);
@@ -288,7 +289,7 @@ public:
             osc_.projectStereo(sRe, sIm, subL, subR, chunkSize, chorusMode, waterbedDepth, 0.0f);
 
             // 7. Accumulate into output with calibrated voice scaling & anti-click stealing fade
-            constexpr float kVoiceScale = 0.08f; // Headroom scaling for 64-voice additive sum
+            constexpr float kVoiceScale = 0.25f; // Headroom scaling for 64-voice additive sum (-12 dB)
             for (int i = 0; i < chunkSize; ++i) {
                 float gain = kVoiceScale;
                 if (stealFadeRemaining_ > 0) {

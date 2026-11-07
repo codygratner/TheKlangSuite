@@ -79,10 +79,10 @@ public:
             const float a1 = voice.p.ampTgt[k];
 
             // Defect F1 Fix: Fresh onset seeding & bounded exponential transition
-            const float a0_clamped = std::max(a0, 1e-4f);
-            const float a1_clamped = std::max(a1, 1e-4f);
+            const float a0_clamped = std::max(a0, 1e-5f);
+            const float a1_clamped = std::max(a1, 1e-5f);
 
-            if (a0 < 2e-4f && a1 >= 1e-3f) {
+            if (a0 < 2e-4f && a1 >= 1e-5f) {
                 const float curMag = std::sqrt(voice.p.re[k] * voice.p.re[k] + voice.p.im[k] * voice.p.im[k]);
                 if (curMag < 1e-6f) {
                     voice.p.re[k] = a1;
@@ -95,7 +95,7 @@ public:
                 voice.p.amp[k] = a1;
             }
 
-            const float ratio = a1_clamped / std::max(voice.p.amp[k], 1e-4f);
+            const float ratio = a1_clamped / std::max(voice.p.amp[k], 1e-5f);
             const float clampedRatio = std::clamp(ratio, 0.001f, 1000.0f);
             const float g = std::pow(clampedRatio, 0.0625f);
             voice.p.dAmp[k] = 0.0f;
@@ -111,6 +111,16 @@ public:
 
         voice.masterPhase += 16.0f * (f0 * baseRad);
         while (voice.masterPhase >= kTwoPi) voice.masterPhase -= kTwoPi;
+    }
+
+    static inline float hsum256(__m256 v) noexcept {
+        const __m128 lo = _mm256_castps256_ps128(v);
+        const __m128 hi = _mm256_extractf128_ps(v, 1);
+        const __m128 sum128 = _mm_add_ps(lo, hi);
+        const __m128 shuf = _mm_movehl_ps(sum128, sum128);
+        const __m128 sums = _mm_add_ps(sum128, shuf);
+        const __m128 shuf2 = _mm_shuffle_ps(sums, sums, 1);
+        return _mm_cvtss_f32(_mm_add_ss(sums, shuf2));
     }
 
     // ==============================================================================
@@ -139,27 +149,16 @@ public:
 
             // Process 16 samples
             for (int n = 0; n < kSub; ++n) {
-                // Dual-FMA complex rotation:
+                // Complex rotation:
                 // nextRe = re * wRe - im * wIm
                 // nextIm = re * wIm + im * wRe
-                const __m256 nextRe = _mm256_fmsub_ps(re, wRe, _mm256_mul_ps(im, wIm));
-                const __m256 nextIm = _mm256_fmadd_ps(re, wIm, _mm256_mul_ps(im, wRe));
+                const __m256 nextRe = _mm256_sub_ps(_mm256_mul_ps(re, wRe), _mm256_mul_ps(im, wIm));
+                const __m256 nextIm = _mm256_add_ps(_mm256_mul_ps(re, wIm), _mm256_mul_ps(im, wRe));
                 re = nextRe;
                 im = nextIm;
 
-                // Horizontal sum into buses
-                alignas(32) float tempRe[8];
-                alignas(32) float tempIm[8];
-                _mm256_store_ps(tempRe, re);
-                _mm256_store_ps(tempIm, im);
-
-                float blockSumRe = 0.0f, blockSumIm = 0.0f;
-                for (int j = 0; j < 8; ++j) {
-                    blockSumRe += tempRe[j];
-                    blockSumIm += tempIm[j];
-                }
-                outSRe[n] += blockSumRe;
-                outSIm[n] += blockSumIm;
+                outSRe[n] += hsum256(re);
+                outSIm[n] += hsum256(im);
             }
 
             // Store back state
