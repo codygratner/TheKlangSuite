@@ -402,7 +402,7 @@ void NyarlatProcessor::renderSegment(float* left, float* right, int numSamples, 
 
             params.oscSpread, params.mixerSeethe,
 
-            params.randAttenuverters, params.randSpread,
+            params.randAttenuverters, params.randSpread, params.randTune, params.randCutoff,
 
             params.filterCutoff, params.filterResonance, params.filterSlope, params.filterDrive,
 
@@ -645,6 +645,8 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     params.randAttenuverters[17] = *apvts_.getRawParameterValue(Ids::rand_o3_speed);
 
     params.randSpread = *apvts_.getRawParameterValue(Ids::rand_spread);
+    params.randTune = *apvts_.getRawParameterValue(Ids::rand_tune);
+    params.randCutoff = *apvts_.getRawParameterValue(Ids::rand_cutoff);
 
 
 

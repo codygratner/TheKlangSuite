@@ -595,6 +595,7 @@ public:
                         // 18-Channel Chaos Attenuverters & Spread Chaos
 
                         const float* randAttenuverters, float randSpread,
+                        float randTune, float randCutoff,
 
                         // Silky Analog Filter
 
@@ -681,22 +682,19 @@ public:
 
 
                 // Process 3 Oscillator Pitch Ratios (detune scaled: 100 ct = 1 st)
+                const float chaosDetuneNorm = (chaos_.getRawValue(19) * 2.0f - 1.0f);
+                const float chaosDeltaSemis = randTune * chaosDetuneNorm * 1.0f; // max ±1 st (±100 ct)
 
                 for (int i = 0; i < 3; ++i) {
-
                     float semis = (oscOctave[i] - 2) * 12.0f + (oscDetune[i] * 0.01f);
+                    if (i == 1) semis += chaosDeltaSemis;
+                    else if (i == 2) semis -= chaosDeltaSemis;
 
                     if (semis != lastSemis_[i]) {
-
                         lastSemis_[i] = semis;
-
                         cachedOctMult_[i] = TbdAudio::FastMath::fastPow2(semis / 12.0f);
-
                     }
-
                 }
-
-
 
                 // Destination-anchored stator speed and mask aperture with chaos channels (12..17)
 
@@ -855,20 +853,14 @@ public:
 
 
             // 7. Process Silky Analog ZDF Filter
-
+            const float chaosCutoffOct = (chaos_.getRawValue(20) * 2.0f - 1.0f) * randCutoff * 2.0f;
             const float effCutoff = juce::jlimit(15.0f, 20000.0f,
-
                 filterCutoff * std::pow(2.0f, filtEnvVal * filterEnvDepth * 4.0f +
-
                                               (velocity_ - 0.5f) * filterVelocity * 2.0f +
-
                                               keytrackOffset * filterKeytrack +
-
+                                              chaosCutoffOct +
                                               mpeSlide_ * 2.0f +
-
                                               std::max(mpePressure_, globalChannelAftertouch) * 2.0f));
-
-
 
             filter_.processStereo(mixL, mixR, effCutoff, filterResonance, filterSlope, filterDrive);
 

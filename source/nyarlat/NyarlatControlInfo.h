@@ -64,6 +64,12 @@ namespace Colours {
 
     static const juce::Colour kOsc        = juce::Colour(0xFF00C8F0); // Cyan
 
+    static const juce::Colour kOsc1       = juce::Colour(0xFF00C8F0); // Movie Poster Blue
+
+    static const juce::Colour kOsc2       = juce::Colour(0xFFFF7A1A); // Movie Poster Orange
+
+    static const juce::Colour kOsc3       = juce::Colour(0xFFB66DFF); // Sorcerous Purple
+
 
 
     static const juce::Colour kMixer      = juce::Colour(0xFFFF3347); // Red
@@ -387,6 +393,10 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
         { Ids::rand_spread, "Spread Chaos", "chaos modulation depth into stereo spread swimming", Colours::kChaos },
+
+        { Ids::rand_tune, "Chaos Detune", "symmetric opposite chaos pitch modulation for Osc 2 and Osc 3", Colours::kChaos },
+
+        { Ids::rand_cutoff, "Chaos Cutoff", "chaos modulation depth into filter cutoff frequency", Colours::kChaos },
 
 
 

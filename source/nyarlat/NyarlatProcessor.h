@@ -303,6 +303,8 @@ private:
         float randAttenuverters[18];
 
         float randSpread = 0.0f;
+        float randTune = 0.0f;
+        float randCutoff = 0.0f;
 
         float filterCutoff, filterResonance;
 

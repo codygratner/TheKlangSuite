@@ -338,6 +338,14 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::rand_spread, 1}, nyarlatParameters::Names::rand_spread, 0.0000f, 1.0000f, 0.0000f));
 
+    // rand_tune [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_tune, 1}, nyarlatParameters::Names::rand_tune, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_cutoff [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_cutoff, 1}, nyarlatParameters::Names::rand_cutoff, 0.0000f, 1.0000f, 0.0000f));
+
     // rand_o1_morph [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::rand_o1_morph, 1}, nyarlatParameters::Names::rand_o1_morph, 0.0000f, 1.0000f, 0.0000f));

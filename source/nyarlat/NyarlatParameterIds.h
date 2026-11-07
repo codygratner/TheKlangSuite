@@ -70,6 +70,8 @@ namespace Ids {
     constexpr auto chaos_drift = "chaos_drift";
     constexpr auto chaos_poly_spread = "chaos_poly_spread";
     constexpr auto rand_spread = "rand_spread";
+    constexpr auto rand_tune = "rand_tune";
+    constexpr auto rand_cutoff = "rand_cutoff";
     constexpr auto rand_o1_morph = "rand_o1_morph";
     constexpr auto rand_o2_morph = "rand_o2_morph";
     constexpr auto rand_o3_morph = "rand_o3_morph";
@@ -170,6 +172,8 @@ namespace Names {
     constexpr auto chaos_drift = "Chaos Drift";
     constexpr auto chaos_poly_spread = "Poly Chaos Spread";
     constexpr auto rand_spread = "Spread Chaos";
+    constexpr auto rand_tune = "Chaos Detune";
+    constexpr auto rand_cutoff = "Chaos Cutoff";
     constexpr auto rand_o1_morph = "RDM O1 Morph";
     constexpr auto rand_o2_morph = "RDM O2 Morph";
     constexpr auto rand_o3_morph = "RDM O3 Morph";
@@ -207,6 +211,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 97;
+    constexpr int count = 99;
 } // namespace Total
 } // namespace nyarlatParameters
