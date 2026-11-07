@@ -30,6 +30,8 @@ struct alignas(64) ShoggothPartialsSoA {
 
     // --- WARM: touched once per 16-sample subblock ---
     alignas(64) float baseHarmonic[kMaxPartials]; // Master static timbre recipe for this voice note (0..1 linear)
+    alignas(64) float s1Harmonic  [kMaxPartials]; // Source 1 harmonic recipe (0..1 linear)
+    alignas(64) float s2Harmonic  [kMaxPartials]; // Source 2 harmonic recipe (0..1 linear)
     alignas(64) float ampTgt[kMaxPartials]; // Pre-cull target linear amplitude
     alignas(64) float ratio [kMaxPartials]; // Harmonic or inharmonic frequency ratio (f_k / f_0)
     alignas(64) float dOmega[kMaxPartials]; // Kuramoto frequency correction delta-omega_k [rad/sample]

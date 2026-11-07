@@ -21,43 +21,51 @@ public:
     }
 
     // ==============================================================================
-    // 1. Kuramoto Stencil Evaluation (Detune Phase psi_k)
+    // 1. Kuramoto Stencil Evaluation (Detune Phase psi_k) & Chaos Wander
     // ==============================================================================
-    void updateKuramoto(ShoggothVoiceState& voice, float K) noexcept {
-        if (std::abs(K) < 1e-5f) {
-            for (int k = 0; k < kMaxPartials; ++k) {
-                voice.p.dOmega[k] = 0.0f;
-            }
-            return;
-        }
-
-        const float maxDeltaOmega = (kTwoPi * 5.0f) * invSampleRate_; // Max +/-5 Hz drift
-        const auto& psi = voice.p.psi;
-        const auto& kAmp = voice.p.kAmp;
-
-        // Active blocks evaluated strictly
+    void updateKuramoto(ShoggothVoiceState& voice, float K, float chaosAmount = 0.0f) noexcept {
         const int activeLimit = std::min(static_cast<int>(voice.activePartials), kMaxPartials);
 
-        for (int k = 0; k < activeLimit; ++k) {
-            const int idx = k + kGuard; // Offset into guarded array
-            const float psi_k = psi[idx];
+        if (std::abs(K) < 1e-5f) {
+            for (int k = 0; k < activeLimit; ++k) {
+                voice.p.dOmega[k] = 0.0f;
+            }
+        } else {
+            const float maxDeltaOmega = (kTwoPi * 5.0f) * invSampleRate_; // Max +/-5 Hz drift
+            const auto& psi = voice.p.psi;
+            const auto& kAmp = voice.p.kAmp;
 
-            // 5-tap stencil: j in {-2, -1, 1, 2}
-            const float d1 = psi[idx - 1] - psi_k;
-            const float d2 = psi[idx + 1] - psi_k;
-            const float d3 = psi[idx - 2] - psi_k;
-            const float d4 = psi[idx + 2] - psi_k;
+            for (int k = 0; k < activeLimit; ++k) {
+                const int idx = k + kGuard; // Offset into guarded array
+                const float psi_k = psi[idx];
 
-            const float w1 = kAmp[idx - 1] * 1.0f;
-            const float w2 = kAmp[idx + 1] * 1.0f;
-            const float w3 = kAmp[idx - 2] * 0.5f;
-            const float w4 = kAmp[idx + 2] * 0.5f;
+                // 5-tap stencil: j in {-2, -1, 1, 2}
+                const float d1 = psi[idx - 1] - psi_k;
+                const float d2 = psi[idx + 1] - psi_k;
+                const float d3 = psi[idx - 2] - psi_k;
+                const float d4 = psi[idx + 2] - psi_k;
 
-            const float sumSin = w1 * std::sin(d1) + w2 * std::sin(d2) + w3 * std::sin(d3) + w4 * std::sin(d4);
-            const float sumW = w1 + w2 + w3 + w4 + 1e-12f;
+                const float w1 = kAmp[idx - 1] * 1.0f;
+                const float w2 = kAmp[idx + 1] * 1.0f;
+                const float w3 = kAmp[idx - 2] * 0.5f;
+                const float w4 = kAmp[idx + 2] * 0.5f;
 
-            float deltaOmega = (K / sumW) * sumSin;
-            voice.p.dOmega[k] = std::clamp(deltaOmega, -maxDeltaOmega, maxDeltaOmega);
+                const float sumSin = w1 * std::sin(d1) + w2 * std::sin(d2) + w3 * std::sin(d3) + w4 * std::sin(d4);
+                const float sumW = w1 + w2 + w3 + w4 + 1e-12f;
+
+                float deltaOmega = (K / sumW) * sumSin;
+                voice.p.dOmega[k] = std::clamp(deltaOmega, -maxDeltaOmega, maxDeltaOmega);
+            }
+        }
+
+        // Chaos Amount: inject Brownian / pseudo-random frequency wander across partials
+        if (chaosAmount > 0.001f) {
+            const float maxChaos = (kTwoPi * 4.0f) * invSampleRate_ * chaosAmount;
+            for (int k = 0; k < activeLimit; ++k) {
+                const uint32_t seed = static_cast<uint32_t>(voice.ageSamples) * 1664525u + static_cast<uint32_t>(k) * 1013904223u;
+                const float noise = (static_cast<float>(seed & 0xFFFF) / 32768.0f) - 1.0f;
+                voice.p.dOmega[k] += noise * maxChaos * (static_cast<float>(k + 1) / 32.0f);
+            }
         }
     }
 

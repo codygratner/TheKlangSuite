@@ -86,14 +86,18 @@ private:
 
     // Voice Allocation & Stealing
     uint32_t nextNoteId_{1};
-    int allocateVoice(int midiNote) noexcept;
+    int allocateVoice(int midiNote, int voiceMode) noexcept;
+    void setupVoiceHarmonics(Voice& voice, int activeLimit, bool modernMode) noexcept;
 
     // UI Zoom
     std::atomic<float> storedEditorScale_{1.0f};
 
-    // MIDI State
+    // MIDI & Modulation State
     float pitchBendSemitones_{0.0f};
     float modWheelNorm_{0.0f};
+    float mpeSlideNorm_{0.0f};
+    float mpePressureNorm_{0.0f};
+    float lastNoteF0_{440.0f};
     bool sustainPedalDown_{false};
 
     void initDefaultHarmonics() noexcept;

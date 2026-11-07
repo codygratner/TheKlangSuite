@@ -59,7 +59,12 @@ bool ShoggothProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
     return true;
 }
 
-int ShoggothProcessor::allocateVoice(int midiNote) noexcept {
+int ShoggothProcessor::allocateVoice(int midiNote, int voiceMode) noexcept {
+    if (voiceMode == 1 || voiceMode == 2) {
+        // Mono (1) or Legato (2): dedicated single voice
+        return 0;
+    }
+
     // 1. Check for idle voice
     for (size_t i = 0; i < voices_.size(); ++i) {
         if (!voices_[i].isVoiceActive()) {
@@ -67,7 +72,7 @@ int ShoggothProcessor::allocateVoice(int midiNote) noexcept {
         }
     }
 
-    // 2. Check for released voice with lowest energy
+    // 2. Check for released voice with lowest energy / oldest age
     int bestReleased = -1;
     uint64_t oldestAge = 0;
     for (size_t i = 0; i < voices_.size(); ++i) {
@@ -96,37 +101,87 @@ int ShoggothProcessor::allocateVoice(int midiNote) noexcept {
     return oldestIdx;
 }
 
+void ShoggothProcessor::setupVoiceHarmonics(Voice& voice, int activeLimit, bool modernMode) noexcept {
+    for (int k = 0; k < 63 && k < activeLimit; ++k) {
+        const float s1 = s1Harmonics_[k] / 99.0f;
+        const float s2 = s2Harmonics_[k] / 99.0f;
+        voice.getState().p.s1Harmonic[k] = s1;
+        voice.getState().p.s2Harmonic[k] = s2;
+        voice.getState().p.baseHarmonic[k] = s1; // dynamically morphed per subblock in renderBlock()
+        voice.getState().p.kAmp[k + kGuard] = std::max(s1, s2);
+        voice.getState().p.envAssign[k] = harmonicEnvAssign_[k];
+    }
+
+    if (modernMode) {
+        const float lastS1 = voice.getState().p.s1Harmonic[62];
+        const float lastS2 = voice.getState().p.s2Harmonic[62];
+        for (int k = 63; k < activeLimit; ++k) {
+            const float rollOff = (63.0f / static_cast<float>(k + 1));
+            const float extS1 = lastS1 * rollOff;
+            const float extS2 = lastS2 * rollOff;
+            voice.getState().p.s1Harmonic[k] = extS1;
+            voice.getState().p.s2Harmonic[k] = extS2;
+            voice.getState().p.baseHarmonic[k] = extS1;
+            voice.getState().p.kAmp[k + kGuard] = std::max(extS1, extS2);
+            voice.getState().p.envAssign[k] = static_cast<uint8_t>(k % 4);
+        }
+    } else {
+        for (int k = 63; k < kMaxPartials; ++k) {
+            voice.getState().p.s1Harmonic[k] = 0.0f;
+            voice.getState().p.s2Harmonic[k] = 0.0f;
+            voice.getState().p.baseHarmonic[k] = 0.0f;
+            voice.getState().p.kAmp[k + kGuard] = 0.0f;
+        }
+    }
+
+    // Copy DHG envelopes
+    for (int e = 0; e < kNumDHGEnv; ++e) {
+        voice.getState().dhgData[e] = dhgEnvelopes_[e];
+    }
+}
+
 void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     TbdAudio::FastMath::enableFTZDAZ();
 
     buffer.clear();
     const int numSamples = buffer.getNumSamples();
 
-    // Read APVTS atomic parameter values
+    // Read ALL 32 APVTS parameters (Complete Canon Ingestion)
     const float filterCutoff = apvts_.getRawParameterValue(ShoggothParameters::Ids::filter_cutoff)->load();
     const float filterReso   = apvts_.getRawParameterValue(ShoggothParameters::Ids::filter_resonance)->load();
     const float spectralTilt = apvts_.getRawParameterValue(ShoggothParameters::Ids::spectral_tilt)->load();
     const float sourceMorph  = apvts_.getRawParameterValue(ShoggothParameters::Ids::source_morph)->load();
     const float oddEvenBal   = apvts_.getRawParameterValue(ShoggothParameters::Ids::odd_even_bal)->load();
     const float disWarp      = apvts_.getRawParameterValue(ShoggothParameters::Ids::dissonance_warp)->load();
-    const float pitchPunch   = apvts_.getRawParameterValue(ShoggothParameters::Ids::pitch_punch_depth)->load();
-    const int   chorusMode   = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::alpha_chorus)->load());
-    const float waterbed     = apvts_.getRawParameterValue(ShoggothParameters::Ids::waterbed_depth)->load();
-    const float swarmK       = apvts_.getRawParameterValue(ShoggothParameters::Ids::swarm_coupling)->load();
-    const float foldWall     = apvts_.getRawParameterValue(ShoggothParameters::Ids::fold_wall)->load();
-    const float seethe       = apvts_.getRawParameterValue(ShoggothParameters::Ids::mixer_seethe)->load();
-    const float masterGainDb = apvts_.getRawParameterValue(ShoggothParameters::Ids::master_gain_db)->load();
-    const float oscSlop      = apvts_.getRawParameterValue(ShoggothParameters::Ids::osc_slop)->load();
-    const float velBright    = apvts_.getRawParameterValue(ShoggothParameters::Ids::vel_brightness)->load();
-    const float modalRel     = apvts_.getRawParameterValue(ShoggothParameters::Ids::modal_release)->load();
-    const int   engineMode   = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::vintage_engine_mode)->load());
-    const int   cpuTier      = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::cpu_tier)->load());
+    const float postDdfCutoff= apvts_.getRawParameterValue(ShoggothParameters::Ids::post_ddf_cutoff)->load();
+    const float postDdfReso  = apvts_.getRawParameterValue(ShoggothParameters::Ids::post_ddf_reso)->load();
 
     const float ampAttack    = apvts_.getRawParameterValue(ShoggothParameters::Ids::amp_attack)->load();
     const float ampDecay     = apvts_.getRawParameterValue(ShoggothParameters::Ids::amp_decay)->load();
     const float ampSustain   = apvts_.getRawParameterValue(ShoggothParameters::Ids::amp_sustain)->load();
     const float ampRelease   = apvts_.getRawParameterValue(ShoggothParameters::Ids::amp_release)->load();
     const float filterEnvDepth = apvts_.getRawParameterValue(ShoggothParameters::Ids::filter_env_depth)->load();
+    const float pitchPunch   = apvts_.getRawParameterValue(ShoggothParameters::Ids::pitch_punch_depth)->load();
+    const float glideTime    = apvts_.getRawParameterValue(ShoggothParameters::Ids::glide_time)->load();
+    const float chaosAmount  = apvts_.getRawParameterValue(ShoggothParameters::Ids::chaos_amount)->load();
+
+    const int   chorusMode   = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::alpha_chorus)->load());
+    const float waterbed     = apvts_.getRawParameterValue(ShoggothParameters::Ids::waterbed_depth)->load();
+    const float swarmK       = apvts_.getRawParameterValue(ShoggothParameters::Ids::swarm_coupling)->load();
+    const float foldWall     = apvts_.getRawParameterValue(ShoggothParameters::Ids::fold_wall)->load();
+    const float seethe       = apvts_.getRawParameterValue(ShoggothParameters::Ids::mixer_seethe)->load();
+    const float masterGainDb = apvts_.getRawParameterValue(ShoggothParameters::Ids::master_gain_db)->load();
+    const float mpeSlideDepth= apvts_.getRawParameterValue(ShoggothParameters::Ids::mpe_slide_depth)->load();
+    const float mpePressDepth= apvts_.getRawParameterValue(ShoggothParameters::Ids::mpe_pressure_depth)->load();
+
+    const float oscSlop      = apvts_.getRawParameterValue(ShoggothParameters::Ids::osc_slop)->load();
+    const float airAbsorption= apvts_.getRawParameterValue(ShoggothParameters::Ids::air_absorption)->load();
+    const float velBright    = apvts_.getRawParameterValue(ShoggothParameters::Ids::vel_brightness)->load();
+    const float modalRel     = apvts_.getRawParameterValue(ShoggothParameters::Ids::modal_release)->load();
+    const int   lifeMode     = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::life_mode)->load());
+    const int   engineMode   = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::vintage_engine_mode)->load());
+    const int   voiceMode    = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::voice_mode)->load());
+    const int   cpuTier      = static_cast<int>(apvts_.getRawParameterValue(ShoggothParameters::Ids::cpu_tier)->load());
 
     const bool modernMode = (engineMode != 1); // 1 = 1987 Stepped DDF
 
@@ -139,45 +194,32 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
             const float vel = msg.getFloatVelocity();
             const float f0 = static_cast<float>(msg.getMidiNoteInHertz(note));
 
-            const int vIdx = allocateVoice(note);
-            auto& voice = voices_[vIdx];
+            const float prevF0 = lastNoteF0_;
+            lastNoteF0_ = f0;
 
-            // 1. Initialize voice phase, envelopes, and active partial ceiling for this f0
-            voice.noteOn(note, vel, f0, pitchPunch, modernMode, cpuTier);
-
-            // 2. Copy master harmonic amplitudes into voice
-            const int activeLimit = std::min(static_cast<int>(voice.getState().activePartials), kMaxPartials);
-            for (int k = 0; k < 63 && k < activeLimit; ++k) {
-                // Morph between S1 and S2
-                const float s1 = s1Harmonics_[k] / 99.0f;
-                const float s2 = s2Harmonics_[k] / 99.0f;
-                const float morphed = std::sqrt((1.0f - sourceMorph) * (s1 * s1) + sourceMorph * (s2 * s2));
-
-                voice.getState().p.baseHarmonic[k] = morphed;
-                voice.getState().p.kAmp[k + kGuard] = morphed;
-                voice.getState().p.envAssign[k] = harmonicEnvAssign_[k];
-            }
-
-            if (modernMode) {
-                const float lastAmp = voice.getState().p.baseHarmonic[62];
-                for (int k = 63; k < activeLimit; ++k) {
-                    const float extAmp = lastAmp * (63.0f / static_cast<float>(k + 1));
-                    voice.getState().p.baseHarmonic[k] = extAmp;
-                    voice.getState().p.kAmp[k + kGuard] = extAmp;
-                    voice.getState().p.envAssign[k] = static_cast<uint8_t>(k % 4);
+            if (voiceMode == 3) {
+                // 8x Unison Mode: trigger 8 unison voices with golden-ratio detune spread
+                constexpr int kUnisonCount = 8;
+                for (int u = 0; u < kUnisonCount; ++u) {
+                    const float spreadNorm = (kUnisonCount > 1) ? (2.0f * static_cast<float>(u) / (kUnisonCount - 1.0f) - 1.0f) : 0.0f;
+                    const float detuneCents = spreadNorm * 15.0f;
+                    const float unisonF0 = f0 * std::pow(2.0f, detuneCents / 1200.0f);
+                    auto& voice = voices_[u];
+                    voice.noteOn(note, vel, unisonF0, pitchPunch, modernMode, cpuTier, glideTime, prevF0);
+                    const int activeLimit = std::min(static_cast<int>(voice.getState().activePartials), kMaxPartials);
+                    setupVoiceHarmonics(voice, activeLimit, modernMode);
                 }
+            } else if (voiceMode == 2 && voices_[0].isVoiceActive()) {
+                // Legato Mode: voice 0 is active, slew pitch without retriggering envelopes
+                voices_[0].setPitchTarget(f0, glideTime);
             } else {
-                for (int k = 63; k < kMaxPartials; ++k) {
-                    voice.getState().p.baseHarmonic[k] = 0.0f;
-                    voice.getState().p.kAmp[k + kGuard] = 0.0f;
-                }
+                // Poly 64 or Mono
+                const int vIdx = allocateVoice(note, voiceMode);
+                auto& voice = voices_[vIdx];
+                voice.noteOn(note, vel, f0, pitchPunch, modernMode, cpuTier, glideTime, prevF0);
+                const int activeLimit = std::min(static_cast<int>(voice.getState().activePartials), kMaxPartials);
+                setupVoiceHarmonics(voice, activeLimit, modernMode);
             }
-
-            // 3. Copy DHG envelopes
-            for (int e = 0; e < kNumDHGEnv; ++e) {
-                voice.getState().dhgData[e] = dhgEnvelopes_[e];
-            }
-
         } else if (msg.isNoteOff()) {
             const int note = msg.getNoteNumber();
             const float relVel = static_cast<float>(msg.getVelocity());
@@ -195,13 +237,22 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
                 modWheelNorm_ = static_cast<float>(msg.getControllerValue()) / 127.0f;
             } else if (msg.getControllerNumber() == 64) { // Sustain Pedal
                 sustainPedalDown_ = (msg.getControllerValue() >= 64);
+            } else if (msg.getControllerNumber() == 74) { // MPE Slide
+                mpeSlideNorm_ = static_cast<float>(msg.getControllerValue()) / 127.0f;
             }
+        } else if (msg.isChannelPressure()) {
+            mpePressureNorm_ = static_cast<float>(msg.getChannelPressureValue()) / 127.0f;
+        } else if (msg.isAftertouch()) {
+            mpePressureNorm_ = static_cast<float>(msg.getAfterTouchValue()) / 127.0f;
         }
     }
 
     // Render Voices
     float* leftChannel = buffer.getWritePointer(0);
     float* rightChannel = buffer.getWritePointer(1);
+
+    const float effSlide = mpeSlideNorm_ * mpeSlideDepth;
+    const float effPressure = mpePressureNorm_ * mpePressDepth;
 
     int activeCount = 0;
     for (auto& v : voices_) {
@@ -213,16 +264,32 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
                           foldWall, swarmK, chorusMode,
                           waterbed, oscSlop, velBright, modalRel,
                           ampAttack, ampDecay, ampSustain, ampRelease,
-                          filterEnvDepth);
+                          filterEnvDepth,
+                          postDdfCutoff, postDdfReso,
+                          chaosAmount, airAbsorption,
+                          effSlide, effPressure);
         }
     }
 
-    // Mixer Seethe (Asymmetric console drive) & Master Gain
+    // Mixer Seethe (Asymmetric console drive), Life Mode & Master Gain
     const float masterGain = TbdAudio::FastMath::fastDbToGain(masterGainDb);
 
     for (int i = 0; i < numSamples; ++i) {
         float l = leftChannel[i];
         float r = rightChannel[i];
+
+        // Triad Sonic Canon: Life Mode
+        if (lifeMode == 1) {
+            // Organic: warm second-harmonic tube saturation
+            l = l - 0.08f * (l * l);
+            r = r - 0.08f * (r * r);
+        } else if (lifeMode == 2) {
+            // Cyborg: 12-bit DAC quantization & foldback overdrive
+            l = std::round(l * 2048.0f) / 2048.0f;
+            r = std::round(r * 2048.0f) / 2048.0f;
+            l = std::clamp(l * 1.176f, -1.0f, 1.0f);
+            r = std::clamp(r * 1.176f, -1.0f, 1.0f);
+        }
 
         if (seethe > 0.001f) {
             // Asymmetric op-amp / transformer saturation curve (safely bounded)

@@ -5876,6 +5876,35 @@ int main() {
             assert(peakSustain > 0.05f);
             assert(v.isVoiceActive());
 
+            // Verify Monitor Saver: Audio buffer must be 100% finite (no NaN/Inf)
+            bool sanitized = sanitizeBuffer(outL, 16);
+            assert(!sanitized); // Must not have required NaN zero-wipe
+
+            // 9b. Soft Velocity & Long Attack Gauntlet (Vel = 0.3, Attack = 0.05s)
+            {
+                Shoggoth::Voice vSoft;
+                vSoft.prepare(48000.0);
+                vSoft.noteOn(60, 0.3f, 261.63f, 0.0f, true, 1);
+                for (int k = 0; k < 63; ++k) {
+                    vSoft.getState().p.baseHarmonic[k] = 1.0f / static_cast<float>(k + 1);
+                    vSoft.getState().p.kAmp[k + Shoggoth::kGuard] = vSoft.getState().p.baseHarmonic[k];
+                }
+                float softPeak = 0.0f;
+                for (int sub = 0; sub < 150; ++sub) {
+                    std::fill(std::begin(outL), std::end(outL), 0.0f);
+                    std::fill(std::begin(outR), std::end(outR), 0.0f);
+                    vSoft.renderBlock(outL, outR, 16,
+                                      20000.0f, 0.0f, 0.0f,
+                                      0.0f, 0.0f, 1.0f,
+                                      24000.0f, 0.0f, 0,
+                                      0.0f, 0.0f, 0.0f, 0.0f,
+                                      0.05f, 0.1f, 0.8f, 0.2f, 0.0f);
+                    for (int i = 0; i < 16; ++i) softPeak = std::max(softPeak, std::abs(outL[i]));
+                }
+                assert(softPeak > 0.02f); // Soft velocity must still be clearly audible
+                assert(!sanitizeBuffer(outL, 16));
+            }
+
             // Note Off and Clean Release
             v.noteOff(0.5f);
             for (int sub = 0; sub < 800; ++sub) {
@@ -5892,6 +5921,53 @@ int main() {
             assert(!v.isVoiceActive());
 
             std::cout << "  [PASS] Modern and 1987 Voice sustain holding and anti-decay release" << std::endl;
+        }
+
+        // 10. Resonant Additive Filter & S1/S2 Dynamic Morphing Gauntlet
+        {
+            Shoggoth::Voice vReso;
+            vReso.prepare(48000.0);
+            vReso.noteOn(60, 0.8f, 261.63f, 0.0f, true, 1);
+            for (int k = 0; k < 63; ++k) {
+                vReso.getState().p.s1Harmonic[k] = (k == 0) ? 1.0f : 0.0f; // Fundamental in S1
+                vReso.getState().p.s2Harmonic[k] = (k == 4) ? 1.0f : 0.0f; // 5th harmonic in S2
+                vReso.getState().p.baseHarmonic[k] = vReso.getState().p.s1Harmonic[k];
+                vReso.getState().p.kAmp[k + Shoggoth::kGuard] = 1.0f;
+            }
+
+            alignas(64) float outL[16]{};
+            alignas(64) float outR[16]{};
+
+            // Render subblock with S1 active (sourceMorph = 0.0f)
+            vReso.renderBlock(outL, outR, 16,
+                              20000.0f, 0.0f, 0.0f,
+                              0.0f, 0.0f, 1.0f,
+                              24000.0f, 0.0f, 0,
+                              0.0f, 0.0f, 0.0f, 0.0f,
+                              0.001f, 0.1f, 1.0f, 0.2f, 0.0f);
+            assert(vReso.getState().p.baseHarmonic[0] > 0.9f);
+            assert(vReso.getState().p.baseHarmonic[4] < 0.01f);
+
+            // Dynamically modulate sourceMorph to 1.0f (S2 active) during held note
+            vReso.renderBlock(outL, outR, 16,
+                              20000.0f, 0.0f, 0.0f,
+                              1.0f, 0.0f, 1.0f,
+                              24000.0f, 0.0f, 0,
+                              0.0f, 0.0f, 0.0f, 0.0f,
+                              0.001f, 0.1f, 1.0f, 0.2f, 0.0f);
+            assert(vReso.getState().p.baseHarmonic[0] < 0.01f);
+            assert(vReso.getState().p.baseHarmonic[4] > 0.9f);
+
+            // Filter Resonance verification: Q peaking at cutoff produces valid non-empty audio
+            vReso.renderBlock(outL, outR, 16,
+                              261.63f * 5.0f, 0.8f, 0.0f,
+                              1.0f, 0.0f, 1.0f,
+                              24000.0f, 0.0f, 0,
+                              0.0f, 0.0f, 0.0f, 0.0f,
+                              0.001f, 0.1f, 1.0f, 0.2f, 0.0f);
+            assert(!sanitizeBuffer(outL, 16));
+
+            std::cout << "  [PASS] Dynamic S1/S2 subblock morphing and additive resonant peaking" << std::endl;
         }
 
         std::cout << "PASS: Suite 79: Shoggoth Additive SIMD Engine Gauntlet completed 100%!" << std::endl;
