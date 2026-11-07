@@ -6,6 +6,7 @@
 #include "WaveformPreviewEngine.h"
 #include "ui/EditorScaleManager.h"
 #include "HasturControlInfo.h"
+#include "ui/CrackedChimesUI.h"
 #include <unordered_map>
 #include <array>
 #include <functional>
@@ -676,17 +677,7 @@ public:
             g.setColour(accentColour);
             g.strokePath(p, juce::PathStrokeType(2.0f));
 
-            g.setFont(juce::Font(juce::FontOptions(10.5f).withStyle("Bold")));
-            g.setColour(accentColour);
-            juce::String labelPrefix = title_.isNotEmpty() ? title_ : "VORTEX";
-            juce::String timeStr = juce::String::formatted("%s A:%dms D:%dms", labelPrefix.toRawUTF8(), (int)std::round(atkMs_), (int)std::round(decMs_));
-            g.drawText(timeStr, static_cast<int>(bounds.getX() + 4.0f), static_cast<int>(bounds.getY() + 1.0f),
-                       130, 16, juce::Justification::left);
-
-            juce::String susStr = juce::String::formatted("R:%dms S:%d%%", (int)std::round(relMs_), (int)std::round(sustainLevel_ * 100.0f));
-            g.setColour(juce::Colour(0xFF8B949E));
-            g.drawText(susStr, static_cast<int>(bounds.getRight() - 110.0f), static_cast<int>(bounds.getY() + 1.0f),
-                       106, 16, juce::Justification::right);
+            // Pure OLED display law: zero text overlays inside plot canvas
         } else {
             // Proportional SubStator Curve (Full OLED Canvas without Header)
             float wSnap = std::pow(std::clamp(snapMs_, 0.5f, 50.0f), 0.45f);
@@ -1228,18 +1219,31 @@ public:
         const bool animate = (lfoAmt > 0.001f);
 
         if (animate) {
+            const float audioLfoVal = processor_.getPwLfoAtomic();
+            float lfoVal = audioLfoVal;
+
             const double nowMs = juce::Time::getMillisecondCounterHiRes();
             double dt = (lastTickMs_ > 0.0) ? (nowMs - lastTickMs_) * 0.001 : 0.0;
             lastTickMs_ = nowMs;
             dt = std::min(dt, 0.1);
 
-            const double hz = std::clamp(static_cast<double>(lfoRate), 0.01, 50.0);
-            lfoPhase_ += hz * dt;
-            lfoPhase_ -= std::floor(lfoPhase_);
+            if (std::abs(audioLfoVal - lastAudioLfoVal_) < 1e-6f) {
+                idleAudioMs_ += dt * 1000.0;
+            } else {
+                idleAudioMs_ = 0.0;
+                lastAudioLfoVal_ = audioLfoVal;
+            }
 
-            // Parity with HasturVoice.h:561 (Bounded Headroom Shift)
-            const float lfoVal = std::sin(static_cast<float>(lfoPhase_) * 6.28318530717958647692f);
-            const float effMorph = CrackedChimes::DSP::HasturVoice::boundedShift(
+            if (idleAudioMs_ > 150.0) {
+                // Host stopped audio thread: fallback to offline preview phase
+                const double hz = std::clamp(static_cast<double>(lfoRate), 0.01, 50.0);
+                lfoPhase_ += hz * dt;
+                lfoPhase_ -= std::floor(lfoPhase_);
+                lfoVal = std::sin(static_cast<float>(lfoPhase_) * 6.28318530717958647692f);
+            }
+
+            // Parity with HasturVoice.h:561 (Sliding Window Shift)
+            const float effMorph = CrackedChimes::DSP::HasturVoice::slidingWindowShift(
                 std::clamp(morph, 0.0f, 1.0f), 0.0f, 1.0f, lfoAmt, lfoVal);
 
             family_   = family;
@@ -1359,6 +1363,8 @@ private:
     double lfoPhase_{0.0};
     double lastTickMs_{0.0};
     bool   animating_{false};
+    float  lastAudioLfoVal_{0.0f};
+    double idleAudioMs_{0.0};
 };
 
 class SubWaveformVisualizer : public juce::Component, private juce::Timer {

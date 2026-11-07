@@ -2263,17 +2263,49 @@ void HasturAudioProcessorEditor::timerCallback() {
         putProp(*randTargets[i], "activeStepVal",  processor_.getStepRandAtomic(i));
     }
 
-    // 2. Morph / Orbit LFO Arcs
+    // 2. Morph / Orbit LFO Arcs & Live Moving Pips
     const int lfoDest = juce::roundToInt(getParam("filter_lfo_dest"));
     const float lfoDepth = getParam("filter_lfo_depth");
-    putProp(dcoMorphKnob,   "morphLfoAmount", getParam("pw_lfo_amount"));
-    putProp(filterOrbitKnob, "orbitLfoAmount", (lfoDest == 1) ? lfoDepth : 0.0f);
+    const float pwLfoAmt = getParam("pw_lfo_amount");
+    putProp(dcoMorphKnob, "morphLfoAmount", pwLfoAmt);
+    if (pwLfoAmt > 0.001f) {
+        const float morphVal = getParam("dco_morph");
+        const float pwLfoVal = processor_.getPwLfoAtomic();
+        const float w = pwLfoAmt;
+        const float a = std::clamp(morphVal - 0.5f * w, 0.0f, 1.0f - w);
+        const float b = a + w;
+        const float effMorph = CrackedChimes::DSP::HasturVoice::slidingWindowShift(
+            std::clamp(morphVal, 0.0f, 1.0f), 0.0f, 1.0f, pwLfoAmt, pwLfoVal);
+        putProp(dcoMorphKnob, "modLo", a);
+        putProp(dcoMorphKnob, "modHi", b);
+        putProp(dcoMorphKnob, "modPip", effMorph);
+    } else {
+        dcoMorphKnob.slider.getProperties().remove("modLo");
+        dcoMorphKnob.slider.getProperties().remove("modHi");
+        dcoMorphKnob.slider.getProperties().remove("modPip");
+    }
 
-    // 3. AM X-Mod on Master Output Level
+    const float orbitLfoAmt = (lfoDest == 1) ? lfoDepth : 0.0f;
+    putProp(filterOrbitKnob, "orbitLfoAmount", orbitLfoAmt);
+    if (orbitLfoAmt > 0.001f) {
+        const float orbitVal = getParam("filter_orbit");
+        const float lfoVal = processor_.getGlobalLfoAtomic();
+        const float effOrbit = CrackedChimes::DSP::HasturVoice::boundedShift(
+            std::clamp((orbitVal + 1.0f) * 0.5f, 0.0f, 1.0f), 0.0f, 1.0f, orbitLfoAmt, lfoVal);
+        putProp(filterOrbitKnob, "modLo", std::clamp(((orbitVal + 1.0f) * 0.5f) * (1.0f - orbitLfoAmt), 0.0f, 1.0f));
+        putProp(filterOrbitKnob, "modHi", std::clamp(((orbitVal + 1.0f) * 0.5f) + orbitLfoAmt * (1.0f - (orbitVal + 1.0f) * 0.5f), 0.0f, 1.0f));
+        putProp(filterOrbitKnob, "modPip", effOrbit);
+    } else {
+        filterOrbitKnob.slider.getProperties().remove("modLo");
+        filterOrbitKnob.slider.getProperties().remove("modHi");
+        filterOrbitKnob.slider.getProperties().remove("modPip");
+    }
+
+    // 3. AM X-Mod on Master Output Level (Audio-rate -> Range Arc Only, No Pip)
     putProp(outputLevelKnob, "amXModAmount", getParam("mod_b_amount"));
     putProp(outputLevelKnob, "amXModSource", juce::roundToInt(getParam("mod_b_source", 2.0f)));
 
-    // 4. Cutoff Concentric Rings (Computed in Slider's Proportional Space)
+    // 4. Cutoff Concentric Rings & Live Sample Pips (Computed in Slider's Proportional Space)
     auto& cs = cutoffKnob.slider;
     const double hz = juce::jlimit(cs.getMinimum(), cs.getMaximum(), static_cast<double>(getParam("cutoff", 1200.0f)));
     auto prop = [&cs](double f) {
@@ -2281,14 +2313,49 @@ void HasturAudioProcessorEditor::timerCallback() {
     };
     const double k = prop(hz);
     bool cutoffDirty = false;
+
+    // Ring 0: Env
     const float effEnvDepth = std::pow(getParam("env_depth"), 1.25f);
-    cutoffDirty |= putProp(cutoffKnob, "cutoffEnvDepth",
-        juce::jmax(0.0, prop(hz * std::exp2(8.0 * effEnvDepth)) - k));
+    const double envDepthNorm = juce::jmax(0.0, prop(hz * std::exp2(8.0 * effEnvDepth)) - k);
+    cutoffDirty |= putProp(cutoffKnob, "cutoffEnvDepth", envDepthNorm);
+    if (envDepthNorm > 0.001) {
+        const float envVal = processor_.getFilterEnvAtomic();
+        const double envCurHz = hz * std::exp2(8.0 * effEnvDepth * envVal);
+        cutoffDirty |= putProp(cutoffKnob, "cutoffEnvPip", prop(envCurHz));
+    } else {
+        cutoffKnob.slider.getProperties().remove("cutoffEnvPip");
+    }
+
+    // Ring 1: LFO
     cutoffDirty |= putProp(cutoffKnob, "cutoffLfoDest", lfoDest);
-    cutoffDirty |= putProp(cutoffKnob, "cutoffLfoDepth", (lfoDest == 0) ? lfoDepth : 0.0f);
+    const float lfoCutoffDepth = (lfoDest == 0) ? lfoDepth : 0.0f;
+    cutoffDirty |= putProp(cutoffKnob, "cutoffLfoDepth", lfoCutoffDepth);
+    if (lfoCutoffDepth > 0.001f) {
+        const float lfoVal = processor_.getGlobalLfoAtomic();
+        const double loNorm = std::clamp(k * (1.0f - lfoCutoffDepth), 0.0, 1.0);
+        const double hiNorm = std::clamp(k + lfoCutoffDepth * (1.0f - k), 0.0, 1.0);
+        const double lfoCurProp = std::clamp(loNorm + (hiNorm - loNorm) * (lfoVal * 0.5f + 0.5f), 0.0, 1.0);
+        cutoffDirty |= putProp(cutoffKnob, "cutoffLfoPip", lfoCurProp);
+    } else {
+        cutoffKnob.slider.getProperties().remove("cutoffLfoPip");
+    }
+
+    // Ring 2: Burble
     const float bDepth = getParam("burble_depth");
     const float effB = std::copysign(std::pow(std::abs(bDepth), 2.2f), bDepth);
     cutoffDirty |= putProp(cutoffKnob, "cutoffBurbleDepth", effB);
+    if (std::abs(effB) > 0.001f) {
+        const float burbleVal = processor_.getBurbleAtomic();
+        const double tgtNorm = (effB >= 0.0f)
+            ? std::clamp(k + effB * (1.0 - k), 0.0, 1.0)
+            : std::clamp(k + effB * k, 0.0, 1.0);
+        const double burbleCurProp = std::clamp(k + (tgtNorm - k) * (burbleVal * 0.5f + 0.5f), 0.0, 1.0);
+        cutoffDirty |= putProp(cutoffKnob, "cutoffBurblePip", burbleCurProp);
+    } else {
+        cutoffKnob.slider.getProperties().remove("cutoffBurblePip");
+    }
+
+    // Ring 3: FM X-Mod (Audio-rate -> Range Arc Only, No Pip)
     cutoffDirty |= putProp(cutoffKnob, "cutoffFmDepth",  getParam("mod_a_amount"));
     cutoffDirty |= putProp(cutoffKnob, "cutoffFmSource", juce::roundToInt(getParam("mod_a_source")));
     if (cutoffDirty) {

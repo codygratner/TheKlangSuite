@@ -37,6 +37,14 @@ namespace FastMath = TbdAudio::FastMath;
  */
 class HasturVoice {
 public:
+    [[nodiscard]] static constexpr float slidingWindowShift(float k, float lo, float hi, float amount, float s) noexcept {
+        const float span = hi - lo;
+        const float w = std::clamp(amount, 0.0f, 1.0f) * span;
+        const float a = std::clamp(k - 0.5f * w, lo, hi - w);
+        const float u = 0.5f + 0.5f * std::clamp(s, -1.0f, 1.0f);
+        return a + w * u;
+    }
+
     [[nodiscard]] static constexpr float boundedShift(float k, float lo, float hi, float amount, float s) noexcept {
         const float a = std::clamp(amount, 0.0f, 1.0f);
         const float x = a * std::clamp(s, -1.0f, 1.0f);
@@ -558,7 +566,7 @@ public:
         const float pwLfoVal = std::sin(pwLfoPhase_ * 6.28318530717958647692f);
 
         // 7. Modulated Morph with Bounded Headroom Shift (No Seams, Full Span)
-        const float effMorph = boundedShift(std::clamp(morph, 0.0f, 1.0f), 0.0f, 1.0f, pwLfoAmount, pwLfoVal);
+        const float effMorph = slidingWindowShift(std::clamp(morph, 0.0f, 1.0f), 0.0f, 1.0f, pwLfoAmount, pwLfoVal);
         const float effPwm = 0.0f;
 
         // 8. Mod Matrix
@@ -692,9 +700,11 @@ public:
         float subFiltTapL[2] = {0.0f, 0.0f};
         float subFiltTapR[2] = {0.0f, 0.0f};
 
+        float lastBurbleMod = 0.0f;
         for (int k = 0; k < 2; ++k) {
             // Sub-tick Burble Mod evaluation
             const float burbleMod = osc1_.getBurbleMod();
+            lastBurbleMod = burbleMod;
             float burbleMult = 1.0f;
             if (std::abs(burbleDepth) > 0.0001f) {
                 const float effBurble = std::copysign(std::pow(std::abs(burbleDepth), 2.2f), burbleDepth);
@@ -854,6 +864,13 @@ public:
         prevNoise_      = osc1_.getNoise();
         prevPreFilter_  = 0.5f * (mixL + mixR);
         prevPostFilter_ = 0.5f * (filteredL + filteredR);
+
+        lastFilterEnvVal_.store(filterEnvVal, std::memory_order_relaxed);
+        lastGlobalLfoVal_.store(lfoVal, std::memory_order_relaxed);
+        lastPwLfoVal_.store(pwLfoVal, std::memory_order_relaxed);
+        lastBurbleVal_.store(lastBurbleMod, std::memory_order_relaxed);
+        lastModAFmVal_.store(modRes.cutoffMult, std::memory_order_relaxed);
+        lastModBAmVal_.store(modRes.postFilterMult, std::memory_order_relaxed);
     }
 
     void processStereoSample(
@@ -1332,6 +1349,12 @@ private:
     uint32_t stepRandSeed_{0x85432107u};
     std::array<float, 9> stepRand_{};
     std::array<std::atomic<float>, 9> stepRandAtom_{};
+    std::atomic<float> lastFilterEnvVal_{0.0f};
+    std::atomic<float> lastGlobalLfoVal_{0.0f};
+    std::atomic<float> lastPwLfoVal_{0.0f};
+    std::atomic<float> lastBurbleVal_{0.0f};
+    std::atomic<float> lastModAFmVal_{1.0f};
+    std::atomic<float> lastModBAmVal_{1.0f};
 
 public:
     void seed(uint64_t s) noexcept {
@@ -1369,6 +1392,13 @@ public:
     [[nodiscard]] float getStepRandAtomic(int i) const noexcept {
         return (i >= 0 && i < 9) ? stepRandAtom_[i].load(std::memory_order_relaxed) : 0.0f;
     }
+
+    [[nodiscard]] float getFilterEnvAtomic() const noexcept { return lastFilterEnvVal_.load(std::memory_order_relaxed); }
+    [[nodiscard]] float getGlobalLfoAtomic() const noexcept { return lastGlobalLfoVal_.load(std::memory_order_relaxed); }
+    [[nodiscard]] float getPwLfoAtomic() const noexcept { return lastPwLfoVal_.load(std::memory_order_relaxed); }
+    [[nodiscard]] float getBurbleAtomic() const noexcept { return lastBurbleVal_.load(std::memory_order_relaxed); }
+    [[nodiscard]] float getModAFmAtomic() const noexcept { return lastModAFmVal_.load(std::memory_order_relaxed); }
+    [[nodiscard]] float getModBAmAtomic() const noexcept { return lastModBAmVal_.load(std::memory_order_relaxed); }
 };
 
 } // namespace CrackedChimes::DSP
