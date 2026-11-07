@@ -391,81 +391,14 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
         { Ids::rand_tune, "Chaos Detune", "symmetric opposite chaos pitch modulation for Osc 2 and Osc 3", Colours::kChaos },
 
-        { Ids::rand_cutoff, "Chaos Cutoff", "chaos modulation depth into filter cutoff frequency", Colours::kChaos },
+        { Ids::rand_chorus_rate, "Chaos Chorus Rate", "Hermite chaos frequency modulation depth into Alpha Chorus LFO rate", Colours::kChaos },
 
-
-
-        { Ids::rand_o1_morph, "RDM O1 Morph", "additive seed spectrum crossfade", Colours::kChaos },
-
-
-
-        { Ids::rand_o2_morph, "RDM O2 Morph", "additive seed spectrum crossfade", Colours::kChaos },
-
-
-
-        { Ids::rand_o3_morph, "RDM O3 Morph", "additive seed spectrum crossfade", Colours::kChaos },
-
-
-
-        { Ids::rand_o1_odd_even, "RDM O1 Odd/Even", "hollow odd harmonics vs warm even harmonics balance", Colours::kChaos },
-
-
-
-        { Ids::rand_o2_odd_even, "RDM O2 Odd/Even", "hollow odd harmonics vs warm even harmonics balance", Colours::kChaos },
-
-
-
-        { Ids::rand_o3_odd_even, "RDM O3 Odd/Even", "hollow odd harmonics vs warm even harmonics balance", Colours::kChaos },
-
-
-
-        { Ids::rand_o1_tilt, "RDM O1 Tilt", "additive spectral slope dB/octave", Colours::kChaos },
-
-
-
-        { Ids::rand_o2_tilt, "RDM O2 Tilt", "additive spectral slope dB/octave", Colours::kChaos },
-
-
-
-        { Ids::rand_o3_tilt, "RDM O3 Tilt", "additive spectral slope dB/octave", Colours::kChaos },
-
-
-
-        { Ids::rand_o1_formant, "RDM O1 Formant", "additive harmonic peak formant cluster", Colours::kChaos },
-
-
-
-        { Ids::rand_o2_formant, "RDM O2 Formant", "additive harmonic peak formant cluster", Colours::kChaos },
-
-
-
-        { Ids::rand_o3_formant, "RDM O3 Formant", "additive harmonic peak formant cluster", Colours::kChaos },
-
-
-
-        { Ids::rand_o1_mask, "RDM O1 Mask", "unipolar destination-anchored chaos modulation depth into o1_mask", Colours::kChaos },
-
-
-
-        { Ids::rand_o2_mask, "RDM O2 Mask", "unipolar destination-anchored chaos modulation depth into o2_mask", Colours::kChaos },
-
-
-
-        { Ids::rand_o3_mask, "RDM O3 Mask", "unipolar destination-anchored chaos modulation depth into o3_mask", Colours::kChaos },
-
-
-
-        { Ids::rand_o1_speed, "RDM O1 Speed", "unipolar destination-anchored chaos modulation depth into o1_speed", Colours::kChaos },
-
-
-
-        { Ids::rand_o2_speed, "RDM O2 Speed", "unipolar destination-anchored chaos modulation depth into o2_speed", Colours::kChaos },
-
-
-
-        { Ids::rand_o3_speed, "RDM O3 Speed", "unipolar destination-anchored chaos modulation depth into o3_speed", Colours::kChaos },
-
-
+        { Ids::rand_morph, "Chaos Morph", "additive seed spectrum chaos crossfade depth across all oscillators", Colours::kChaos },
+        { Ids::rand_odd_even, "Chaos Odd/Even", "hollow odd harmonics vs warm even harmonics chaos balance", Colours::kChaos },
+        { Ids::rand_tilt, "Chaos Tilt", "additive spectral slope dB/octave chaos modulation depth", Colours::kChaos },
+        { Ids::rand_formant, "Chaos Formant", "additive harmonic peak formant cluster chaos modulation depth", Colours::kChaos },
+        { Ids::rand_mask, "Chaos Mask", "unipolar chaos modulation depth into bitmask stator across all oscillators", Colours::kChaos },
+        { Ids::rand_speed, "Chaos Speed", "unipolar chaos modulation depth into wavetable speed across all oscillators", Colours::kChaos },
 
         { Ids::amp_attack, "Amp Attack", "amp attack parameter", Colours::kVca },
 
@@ -515,21 +448,8 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
 
-        { Ids::reverb_time, "Reverb Time", "reverb time parameter", Colours::kMaster },
-
-
-
-        { Ids::reverb_damp, "Reverb Damp", "reverb damp parameter", Colours::kMaster },
-
-
-
-        { Ids::reverb_mix, "Reverb Mix", "reverb mix parameter", Colours::kMaster },
-
-
-
-        { Ids::alpha_chorus, "Alpha Chorus", "continuous zero-latency quadrature phase chorus", Colours::kMaster },
-
-
+        { Ids::alpha_chorus, "Chorus Amount", "continuous zero-latency quadrature phase chorus depth and wet mix", Colours::kMaster },
+        { Ids::chorus_rate, "Chorus Rate", "quadrature phase chorus LFO modulation speed (0.1 to 8.0 Hz)", Colours::kMaster },
 
         { Ids::osc_slop, "Voice Drift / Slop", "voice drift / slop parameter", Colours::kMaster },
 

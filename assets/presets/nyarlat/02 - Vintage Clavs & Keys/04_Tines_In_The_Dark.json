@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Tines In The Dark",
+    "author": "Cracked Chimes",
+    "category": "02 - Vintage Clavs & Keys",
+    "bank": "02 - Vintage Clavs & Keys",
+    "description": "Warm triode saturation on electric piano tines",
+    "tags": [
+      "Factory",
+      "02 - Vintage Clavs & Keys",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 2200.0,
+    "filter_resonance": 0.1,
+    "filter_slope": 1,
+    "filter_drive": 0.3,
+    "osc1_formant": 0.6,
+    "osc1_tilt": -3.0,
+    "osc2_formant": 0.7,
+    "osc2_detune": -4.0,
+    "alpha_chorus": 0.2,
+    "life_mode": 2,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

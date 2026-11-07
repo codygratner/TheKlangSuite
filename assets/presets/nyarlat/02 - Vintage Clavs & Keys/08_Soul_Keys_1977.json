@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Soul Keys 1977",
+    "author": "Cracked Chimes",
+    "category": "02 - Vintage Clavs & Keys",
+    "bank": "02 - Vintage Clavs & Keys",
+    "description": "Classic 70s keyboard warmth with 12dB analog filter and bass boost",
+    "tags": [
+      "Factory",
+      "02 - Vintage Clavs & Keys",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 2400.0,
+    "filter_resonance": 0.18,
+    "filter_slope": 0,
+    "filter_drive": 0.3,
+    "bass_boost": 0.35,
+    "alpha_chorus": 0.3,
+    "life_mode": 2,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

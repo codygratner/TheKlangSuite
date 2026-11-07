@@ -62,7 +62,9 @@ void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
 
     }
 
-    reverb_.prepare(sampleRate);
+    masterChaos_ = Nyarlat::VoiceChaosEngine();
+    masterChaos_.setVoiceSeed(99, 0.0f);
+    smoothedChorusRate_ = 1.2f;
 
 
 
@@ -98,7 +100,6 @@ void NyarlatProcessor::releaseResources() {
 
     for (auto& v : voices_) v.reset();
 
-    reverb_.reset();
 
     bassBpL_.reset();
 
@@ -402,7 +403,7 @@ void NyarlatProcessor::renderSegment(float* left, float* right, int numSamples, 
 
             params.oscSpread, params.mixerSeethe,
 
-            params.randAttenuverters, params.randSpread, params.randTune, params.randCutoff,
+            params.randAttenuverters, params.randSpread, params.randTune, 0.0f,
 
             params.filterCutoff, params.filterResonance, params.filterSlope, params.filterDrive,
 
@@ -596,49 +597,23 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 
 
-    // 18 Chaos Attenuverters
-
-    params.randAttenuverters[0] = *apvts_.getRawParameterValue(Ids::rand_o1_morph);
-
-    params.randAttenuverters[1] = *apvts_.getRawParameterValue(Ids::rand_o2_morph);
-
-    params.randAttenuverters[2] = *apvts_.getRawParameterValue(Ids::rand_o3_morph);
-
-    params.randAttenuverters[3] = *apvts_.getRawParameterValue(Ids::rand_o1_odd_even);
-
-    params.randAttenuverters[4] = *apvts_.getRawParameterValue(Ids::rand_o2_odd_even);
-
-    params.randAttenuverters[5] = *apvts_.getRawParameterValue(Ids::rand_o3_odd_even);
-
-    params.randAttenuverters[6] = *apvts_.getRawParameterValue(Ids::rand_o1_tilt);
-
-    params.randAttenuverters[7] = *apvts_.getRawParameterValue(Ids::rand_o2_tilt);
-
-    params.randAttenuverters[8] = *apvts_.getRawParameterValue(Ids::rand_o3_tilt);
-
-    params.randAttenuverters[9] = *apvts_.getRawParameterValue(Ids::rand_o1_formant);
-
-    params.randAttenuverters[10] = *apvts_.getRawParameterValue(Ids::rand_o2_formant);
-
-    params.randAttenuverters[11] = *apvts_.getRawParameterValue(Ids::rand_o3_formant);
-
-    params.randAttenuverters[12] = *apvts_.getRawParameterValue(Ids::rand_o1_mask);
-
-    params.randAttenuverters[13] = *apvts_.getRawParameterValue(Ids::rand_o2_mask);
-
-    params.randAttenuverters[14] = *apvts_.getRawParameterValue(Ids::rand_o3_mask);
-
-    params.randAttenuverters[15] = *apvts_.getRawParameterValue(Ids::rand_o1_speed);
-
-    params.randAttenuverters[16] = *apvts_.getRawParameterValue(Ids::rand_o2_speed);
-
-    params.randAttenuverters[17] = *apvts_.getRawParameterValue(Ids::rand_o3_speed);
+    // 6 Consolidated Chaos Macro Parameters
+    params.randChaos[0] = *apvts_.getRawParameterValue(Ids::rand_morph);
+    params.randChaos[1] = *apvts_.getRawParameterValue(Ids::rand_odd_even);
+    params.randChaos[2] = *apvts_.getRawParameterValue(Ids::rand_tilt);
+    params.randChaos[3] = *apvts_.getRawParameterValue(Ids::rand_formant);
+    params.randChaos[4] = *apvts_.getRawParameterValue(Ids::rand_mask);
+    params.randChaos[5] = *apvts_.getRawParameterValue(Ids::rand_speed);
 
     params.randSpread = *apvts_.getRawParameterValue(Ids::rand_spread);
     params.randTune = *apvts_.getRawParameterValue(Ids::rand_tune);
-    params.randCutoff = *apvts_.getRawParameterValue(Ids::rand_cutoff);
+    params.randChorusRate = *apvts_.getRawParameterValue(Ids::rand_chorus_rate);
 
-
+    for (int k = 0; k < 6; ++k) {
+        params.randAttenuverters[3 * k + 0] = params.randChaos[k];
+        params.randAttenuverters[3 * k + 1] = params.randChaos[k];
+        params.randAttenuverters[3 * k + 2] = params.randChaos[k];
+    }
 
     // 6. Silky Analog Filter & Envelopes
 
@@ -798,27 +773,20 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
     const float trebleTame = *apvts_.getRawParameterValue(Ids::treble_tame);
 
-    const float revTime = *apvts_.getRawParameterValue(Ids::reverb_time);
-
-    const float revDamp = *apvts_.getRawParameterValue(Ids::reverb_damp);
-
-    const float revMix = *apvts_.getRawParameterValue(Ids::reverb_mix);
-
     const float alphaChorus = *apvts_.getRawParameterValue(Ids::alpha_chorus);
-
+    const float chorusRate = *apvts_.getRawParameterValue(Ids::chorus_rate);
     const float width = *apvts_.getRawParameterValue(Ids::global_width);
-
     const float masterVol = *apvts_.getRawParameterValue(Ids::output_level);
 
-
-
-    // Alpha Chorus LFO rate: continuous from 0.2 Hz to 6.0 Hz
-
-    const float chorusRateHz = 0.2f + alphaChorus * 5.8f;
-
-    const float chorusStep = static_cast<float>(6.28318530717958647692 * chorusRateHz / std::max(1000.0, sr));
-
-
+    // Master Chaos Engine update for continuous Chorus Rate frequency modulation
+    masterChaos_.updateBlock(params.chaosRate, params.chaosDrift, static_cast<double>(numSamples) / sr);
+    const float rawChaos = masterChaos_.getRawValue(20);
+    const float bipolarChaos = rawChaos * 2.0f - 1.0f;
+    const float modOct = bipolarChaos * params.randChorusRate * 2.0f;
+    const float targetRateHz = std::clamp(chorusRate * std::exp2(modOct), 0.02f, 20.0f);
+    const float slewCoeff = std::clamp(static_cast<float>(numSamples / (sr * 0.060)), 0.01f, 1.0f);
+    smoothedChorusRate_ += slewCoeff * (targetRateHz - smoothedChorusRate_);
+    const float chorusStep = static_cast<float>(6.28318530717958647692 * smoothedChorusRate_ / std::max(1000.0, sr));
 
     for (int i = 0; i < numSamples; ++i) {
 
@@ -902,7 +870,6 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 
 
-        reverb_.processStereo(l, r, revTime, revDamp, revMix);
 
 
 

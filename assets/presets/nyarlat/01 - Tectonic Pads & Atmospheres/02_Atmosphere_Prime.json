@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Atmosphere Prime",
+    "author": "Cracked Chimes",
+    "category": "01 - Tectonic Pads & Atmospheres",
+    "bank": "01 - Tectonic Pads & Atmospheres",
+    "description": "Shimmering high-order partials with acoustic string dispersion",
+    "tags": [
+      "Factory",
+      "01 - Tectonic Pads & Atmospheres",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 2400.0,
+    "filter_resonance": 0.15,
+    "filter_slope": 1,
+    "filter_drive": 0.1,
+    "filter_attack": 0.8,
+    "filter_decay": 1.8,
+    "filter_sustain": 0.75,
+    "filter_release": 2.5,
+    "osc1_morph": 0.4,
+    "osc1_formant": 0.7,
+    "osc1_tilt": -2.0,
+    "osc2_morph": 0.6,
+    "osc2_formant": 0.65,
+    "osc2_detune": 7.0,
+    "osc3_morph": 0.8,
+    "osc3_formant": 0.8,
+    "osc3_detune": -7.0,
+    "alpha_chorus": 0.4,
+    "life_mode": 2,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

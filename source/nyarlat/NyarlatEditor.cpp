@@ -485,54 +485,30 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
 
 
-    // Master Chaos Deck
+    // Master Chaos Deck & 3x3 Modulation Matrix
     makeKnob(Ids::chaos_rate, "RATE", Colours::kChaos);
     makeKnob(Ids::chaos_drift, "DRIFT", Colours::kChaos);
     makeKnob(Ids::chaos_poly_spread, "POLY SPRD", Colours::kChaos);
+
     makeKnob(Ids::rand_spread, "R-SPREAD", Colours::kChaos);
     makeKnob(Ids::rand_tune, "R-TUNE", Colours::kChaos);
-    makeKnob(Ids::rand_cutoff, "R-CUTOFF", Colours::kChaos);
+    makeKnob(Ids::rand_chorus_rate, "R-CHR-RT", Colours::kChaos);
 
-    // 18 Attenuverters (6 Timbral controls x 3 Oscillators, colored per osc)
-    makeKnob(Ids::rand_o1_morph, "O1 MRP", Colours::kOsc1);
-    makeKnob(Ids::rand_o1_odd_even, "O1 O/E", Colours::kOsc1);
-    makeKnob(Ids::rand_o1_tilt, "O1 TLT", Colours::kOsc1);
-    makeKnob(Ids::rand_o1_formant, "O1 FRM", Colours::kOsc1);
-    makeKnob(Ids::rand_o1_mask, "O1 MSK", Colours::kOsc1);
-    makeKnob(Ids::rand_o1_speed, "O1 SPD", Colours::kOsc1);
+    // 6 Timbral Macro Controls across all oscillators
+    makeKnob(Ids::rand_morph,    "R-MORPH",   Colours::kChaos);
+    makeKnob(Ids::rand_odd_even, "R-ODD/EVN", Colours::kChaos);
+    makeKnob(Ids::rand_tilt,     "R-TILT",    Colours::kChaos);
+    makeKnob(Ids::rand_formant,  "R-FORMANT", Colours::kChaos);
+    makeKnob(Ids::rand_mask,     "R-MASK",    Colours::kChaos);
+    makeKnob(Ids::rand_speed,    "R-SPEED",   Colours::kChaos);
 
-    makeKnob(Ids::rand_o2_morph, "O2 MRP", Colours::kOsc2);
-    makeKnob(Ids::rand_o2_odd_even, "O2 O/E", Colours::kOsc2);
-    makeKnob(Ids::rand_o2_tilt, "O2 TLT", Colours::kOsc2);
-    makeKnob(Ids::rand_o2_formant, "O2 FRM", Colours::kOsc2);
-    makeKnob(Ids::rand_o2_mask, "O2 MSK", Colours::kOsc2);
-    makeKnob(Ids::rand_o2_speed, "O2 SPD", Colours::kOsc2);
-
-    makeKnob(Ids::rand_o3_morph, "O3 MRP", Colours::kOsc3);
-    makeKnob(Ids::rand_o3_odd_even, "O3 O/E", Colours::kOsc3);
-    makeKnob(Ids::rand_o3_tilt, "O3 TLT", Colours::kOsc3);
-    makeKnob(Ids::rand_o3_formant, "O3 FRM", Colours::kOsc3);
-    makeKnob(Ids::rand_o3_mask, "O3 MSK", Colours::kOsc3);
-    makeKnob(Ids::rand_o3_speed, "O3 SPD", Colours::kOsc3);
-
-    // Master & Space
-
+    // Master & Chorus
     makeKnob(Ids::bass_boost, "40Hz BASS", Colours::kMaster);
-
     makeKnob(Ids::treble_tame, "TREBLE", Colours::kMaster);
-
-    makeKnob(Ids::alpha_chorus, "CHORUS", Colours::kMaster);
-
-    makeKnob(Ids::reverb_time, "TIME", Colours::kMaster);
-
-    makeKnob(Ids::reverb_damp, "DAMP", Colours::kMaster);
-
-    makeKnob(Ids::reverb_mix, "REVERB", Colours::kMaster);
-
+    makeKnob(Ids::alpha_chorus, "CHR AMT", Colours::kMaster);
+    makeKnob(Ids::chorus_rate, "CHR RATE", Colours::kMaster);
     makeKnob(Ids::osc_slop, "SLOP", Colours::kMaster);
-
     makeKnob(Ids::global_width, "WIDTH", Colours::kMaster);
-
     makeKnob(Ids::output_level, "VOLUME", Colours::kMaster);
 
 
@@ -614,17 +590,14 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
         };
 
     } else if (paramId == Ids::alpha_chorus) {
-
         item.slider.textFromValueFunction = [](double v) {
-
             if (v <= 0.001) return juce::String("OFF");
-
-            float rateHz = 0.2f + static_cast<float>(v) * 5.8f;
-
-            return juce::String(rateHz, 1) + " Hz";
-
+            return juce::String(juce::roundToInt(v * 100.0)) + " %";
         };
-
+    } else if (paramId == Ids::chorus_rate) {
+        item.slider.textFromValueFunction = [](double v) {
+            return juce::String(v, 2) + " Hz";
+        };
     } else if (paramId == Ids::output_level) {
 
         item.slider.textFromValueFunction = [](double v) {
@@ -1054,17 +1027,12 @@ void NyarlatEditor::paintCanvas(juce::Graphics& g) {
     drawSubtlePod(392, 326, 356, 532, "CHAOS ENGINE");
 
     // Inside Chaos: Framed Sub-Pod for R-Triad
-    drawSubtlePod(398, 400, 344, 70, "RANDOM MODULATORS");
-
-    // Inside Chaos: 3 Oscillator Channel Strips
-    drawSubtlePod(398, 478, 110, 374, "OSC 1", Colours::kOsc1);
-    drawSubtlePod(515, 478, 110, 374, "OSC 2", Colours::kOsc2);
-    drawSubtlePod(632, 478, 110, 374, "OSC 3", Colours::kOsc3);
+    drawSubtlePod(398, 420, 344, 432, "MODULATION MATRIX");
 
     // Subtle Pods inside Bay 3 (Filter, VCA, Master)
     drawSubtlePod(772, 50,  368, 256, "SILKY ZERO-DELAY FEEDBACK FILTER");
     drawSubtlePod(772, 326, 368, 256, "VOICING & VCA ENVELOPE");
-    drawSubtlePod(772, 602, 368, 256, "MASTER & SPACE");
+    drawSubtlePod(772, 602, 368, 256, "MASTER & CHORUS");
 }
 
 void NyarlatEditor::applyDragSensitivity(float s) {
@@ -1272,50 +1240,27 @@ void NyarlatEditor::layoutControls() {
     placeKnob(Ids::mixer_seethe, 650, 180, 56, 60, 11);
 
     // Pod 2B: Chaos Engine (392, 326, 356, 532)
-    // Row 1: Master Chaos Knobs (Rate, Drift, Poly: label 334, slider 347..399)
-    placeKnob(Ids::chaos_rate,        422, 334, 56, 60, 11);
-    placeKnob(Ids::chaos_drift,       538, 336, 52, 56, 11);
-    placeKnob(Ids::chaos_poly_spread, 650, 336, 52, 56, 11);
+    // Top Deck: Master Chaos Knobs (Rate, Drift, Poly: label 334, slider 347..399)
+    placeKnob(Ids::chaos_rate,        414, 334, 56, 60, 11);
+    placeKnob(Ids::chaos_drift,       544, 336, 52, 56, 11);
+    placeKnob(Ids::chaos_poly_spread, 672, 336, 52, 56, 11);
 
-    // Row 2: Framed Sub-Pod (R-Spread, R-Tune, R-Cutoff: label 406, slider 419..471)
-    placeKnob(Ids::rand_spread, 422, 406, 52, 56, 11);
-    placeKnob(Ids::rand_tune,   538, 406, 52, 56, 11);
-    placeKnob(Ids::rand_cutoff, 650, 406, 52, 56, 11);
+    // The 3x3 Modulation Matrix (3 rows of 3 knobs, 52px each, cols 416, 544, 672)
+    // Row 1: Pitch & Space (y = 444)
+    placeKnob(Ids::rand_spread,      416, 444, 52, 56, 11);
+    placeKnob(Ids::rand_tune,        544, 444, 52, 56, 11);
+    placeKnob(Ids::rand_chorus_rate, 672, 444, 52, 58, 11);
 
-    // 3 Oscillator Channel Strips (110px wide each, 6 knobs in 1 vertical file, 44px knobs, pitch 59px)
-    // labelH=10, size=44 -> total height 56px < 59px pitch -> ZERO collision!
-    const std::array<int, 3> stripX = { 398, 515, 632 };
-    const int stripKnobX0 = stripX[0] + 33; // centered in 110px (44px knob)
-    const int stripKnobX1 = stripX[1] + 33;
-    const int stripKnobX2 = stripX[2] + 33;
-    const int chaosYBase = 488;
-    const int chaosYPitch = 59;
+    // Row 2: Wave & Form (y = 568)
+    placeKnob(Ids::rand_morph,    416, 568, 52, 56, 11);
+    placeKnob(Ids::rand_odd_even, 544, 568, 52, 58, 11);
+    placeKnob(Ids::rand_tilt,     672, 568, 52, 56, 11);
 
-    // Osc 1 Channel Strip (Movie Poster Blue)
-    placeKnob(Ids::rand_o1_morph,    stripKnobX0, chaosYBase + 0 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o1_odd_even, stripKnobX0, chaosYBase + 1 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o1_tilt,     stripKnobX0, chaosYBase + 2 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o1_formant,  stripKnobX0, chaosYBase + 3 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o1_mask,     stripKnobX0, chaosYBase + 4 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o1_speed,    stripKnobX0, chaosYBase + 5 * chaosYPitch, 44, 48, 10);
+    // Row 3: Color & Motion (y = 692)
+    placeKnob(Ids::rand_formant,  416, 692, 52, 58, 11);
+    placeKnob(Ids::rand_mask,     544, 692, 52, 56, 11);
+    placeKnob(Ids::rand_speed,    672, 692, 52, 56, 11);
 
-    // Osc 2 Channel Strip (Movie Poster Orange)
-    placeKnob(Ids::rand_o2_morph,    stripKnobX1, chaosYBase + 0 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o2_odd_even, stripKnobX1, chaosYBase + 1 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o2_tilt,     stripKnobX1, chaosYBase + 2 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o2_formant,  stripKnobX1, chaosYBase + 3 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o2_mask,     stripKnobX1, chaosYBase + 4 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o2_speed,    stripKnobX1, chaosYBase + 5 * chaosYPitch, 44, 48, 10);
-
-    // Osc 3 Channel Strip (Sorcerous Purple)
-    placeKnob(Ids::rand_o3_morph,    stripKnobX2, chaosYBase + 0 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o3_odd_even, stripKnobX2, chaosYBase + 1 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o3_tilt,     stripKnobX2, chaosYBase + 2 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o3_formant,  stripKnobX2, chaosYBase + 3 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o3_mask,     stripKnobX2, chaosYBase + 4 * chaosYPitch, 44, 48, 10);
-    placeKnob(Ids::rand_o3_speed,    stripKnobX2, chaosYBase + 5 * chaosYPitch, 44, 48, 10);
-
-    // ==============================================================================
     // Bay 3: Filter & Master (766, 44, 380, 816)
     // ==============================================================================
     // Pod 3A: Silky Analog ZDF Filter (772, 50, 368, 256)
@@ -1361,21 +1306,17 @@ void NyarlatEditor::layoutControls() {
     placeKnob(Ids::mpe_pressure_depth, 900, 528, 48, 52, 11);
     placeKnob(Ids::pitch_bend_range,   996, 528, 48, 52, 11);
 
-    // Pod 3C: Master & Space (772, 602, 368, 256)
-    // Row 1: Tone & Chorus (label 610, slider 623..675)
-    placeKnob(Ids::bass_boost,   804, 610, 52, 56, 11);
-    placeKnob(Ids::treble_tame,  900, 610, 52, 56, 11);
-    placeKnob(Ids::alpha_chorus, 996, 610, 52, 56, 11);
+    // Pod 3C: Master & Chorus (772, 602, 368, 256)
+    // Row 1: Tone & Chorus (label 632, slider 645..697)
+    placeKnob(Ids::bass_boost,   792,  632, 52, 56, 11);
+    placeKnob(Ids::treble_tame,  884,  632, 52, 56, 11);
+    placeKnob(Ids::alpha_chorus, 976,  632, 52, 56, 11);
+    placeKnob(Ids::chorus_rate,  1068, 632, 52, 56, 11);
 
-    // Row 2: Reverb (Time, Damp, Mix: label 678, slider 691..743)
-    placeKnob(Ids::reverb_time,  804, 678, 52, 56, 11);
-    placeKnob(Ids::reverb_damp,  900, 678, 52, 56, 11);
-    placeKnob(Ids::reverb_mix,   996, 678, 52, 56, 11);
-
-    // Row 3: Master (Slop, Width, Volume: label 748, slider 761..)
-    placeKnob(Ids::osc_slop,     804, 748, 52, 56, 11);
-    placeKnob(Ids::global_width, 900, 748, 52, 56, 11);
-    placeKnob(Ids::output_level, 992, 744, 72, 76, 11);
+    // Row 2: Master (Slop, Width, Volume: label 742, slider 755 / 745)
+    placeKnob(Ids::osc_slop,     792,  742, 52, 56, 11);
+    placeKnob(Ids::global_width, 884,  742, 52, 56, 11);
+    placeKnob(Ids::output_level, 1012, 732, 72, 76, 11);
 
 #if JUCE_DEBUG
     // Regression Safety Guards
@@ -1578,49 +1519,27 @@ void NyarlatEditor::timerCallback() {
     };
 
     static const OscModTarget kTargets[18] = {
-
         // Osc 1
-
-        { Ids::osc1_morph,    Ids::rand_o1_morph,    0 },
-
-        { Ids::osc1_odd_even, Ids::rand_o1_odd_even, 3 },
-
-        { Ids::osc1_tilt,     Ids::rand_o1_tilt,     6 },
-
-        { Ids::osc1_formant,  Ids::rand_o1_formant,  9 },
-
-        { Ids::osc1_mask,     Ids::rand_o1_mask,     12 },
-
-        { Ids::osc1_speed,    Ids::rand_o1_speed,    15 },
-
+        { Ids::osc1_morph,    Ids::rand_morph,    0 },
+        { Ids::osc1_odd_even, Ids::rand_odd_even, 3 },
+        { Ids::osc1_tilt,     Ids::rand_tilt,     6 },
+        { Ids::osc1_formant,  Ids::rand_formant,  9 },
+        { Ids::osc1_mask,     Ids::rand_mask,     12 },
+        { Ids::osc1_speed,    Ids::rand_speed,    15 },
         // Osc 2
-
-        { Ids::osc2_morph,    Ids::rand_o2_morph,    1 },
-
-        { Ids::osc2_odd_even, Ids::rand_o2_odd_even, 4 },
-
-        { Ids::osc2_tilt,     Ids::rand_o2_tilt,     7 },
-
-        { Ids::osc2_formant,  Ids::rand_o2_formant,  10 },
-
-        { Ids::osc2_mask,     Ids::rand_o2_mask,     13 },
-
-        { Ids::osc2_speed,    Ids::rand_o2_speed,    16 },
-
+        { Ids::osc2_morph,    Ids::rand_morph,    1 },
+        { Ids::osc2_odd_even, Ids::rand_odd_even, 4 },
+        { Ids::osc2_tilt,     Ids::rand_tilt,     7 },
+        { Ids::osc2_formant,  Ids::rand_formant,  10 },
+        { Ids::osc2_mask,     Ids::rand_mask,     13 },
+        { Ids::osc2_speed,    Ids::rand_speed,    16 },
         // Osc 3
-
-        { Ids::osc3_morph,    Ids::rand_o3_morph,    2 },
-
-        { Ids::osc3_odd_even, Ids::rand_o3_odd_even, 5 },
-
-        { Ids::osc3_tilt,     Ids::rand_o3_tilt,     8 },
-
-        { Ids::osc3_formant,  Ids::rand_o3_formant,  11 },
-
-        { Ids::osc3_mask,     Ids::rand_o3_mask,     14 },
-
-        { Ids::osc3_speed,    Ids::rand_o3_speed,    17 }
-
+        { Ids::osc3_morph,    Ids::rand_morph,    2 },
+        { Ids::osc3_odd_even, Ids::rand_odd_even, 5 },
+        { Ids::osc3_tilt,     Ids::rand_tilt,     8 },
+        { Ids::osc3_formant,  Ids::rand_formant,  11 },
+        { Ids::osc3_mask,     Ids::rand_mask,     14 },
+        { Ids::osc3_speed,    Ids::rand_speed,    17 }
     };
 
 

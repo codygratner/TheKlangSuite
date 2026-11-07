@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Solar Vocalise",
+    "author": "Cracked Chimes",
+    "category": "03 - Choral & Morphing Strings",
+    "bank": "03 - Choral & Morphing Strings",
+    "description": "Slow vocal swelling pad with 2-minute chaos partial wander",
+    "tags": [
+      "Factory",
+      "03 - Choral & Morphing Strings",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 2100.0,
+    "filter_resonance": 0.35,
+    "filter_slope": 1,
+    "filter_attack": 1.5,
+    "amp_attack": 1.2,
+    "chaos_rate": 0.008,
+    "chaos_drift": 0.8,
+    "life_mode": 2,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.6754628043053148,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Cosmic Dust",
+    "author": "Cracked Chimes",
+    "category": "01 - Tectonic Pads & Atmospheres",
+    "bank": "01 - Tectonic Pads & Atmospheres",
+    "description": "High-frequency formant spray and gentle noise air",
+    "tags": [
+      "Factory",
+      "01 - Tectonic Pads & Atmospheres",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 4800.0,
+    "filter_resonance": 0.2,
+    "filter_slope": 0,
+    "osc1_formant": 0.85,
+    "osc2_formant": 0.9,
+    "noise_level": 0.25,
+    "noise_tone": 0.7,
+    "global_width": 0.75,
+    "life_mode": 0,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

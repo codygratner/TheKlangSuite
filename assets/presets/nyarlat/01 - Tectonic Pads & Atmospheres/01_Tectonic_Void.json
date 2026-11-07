@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Tectonic Void",
+    "author": "Cracked Chimes",
+    "category": "01 - Tectonic Pads & Atmospheres",
+    "bank": "01 - Tectonic Pads & Atmospheres",
+    "description": "Tectonic pad drifting over 10-minute Brownian chaos",
+    "tags": [
+      "Factory",
+      "01 - Tectonic Pads & Atmospheres",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 850.0,
+    "filter_resonance": 0.2,
+    "filter_slope": 1,
+    "filter_drive": 0.25,
+    "filter_attack": 1.2,
+    "filter_decay": 2.5,
+    "filter_sustain": 0.8,
+    "filter_release": 3.0,
+    "filter_env_depth": 0.35,
+    "amp_attack": 1.0,
+    "amp_decay": 2.0,
+    "amp_sustain": 0.85,
+    "amp_release": 3.5,
+    "chaos_rate": 0.002,
+    "chaos_drift": 0.85,
+    "chaos_poly_spread": 0.75,
+    "osc1_level": 0.8,
+    "osc2_level": 0.75,
+    "osc3_level": 0.7,
+    "osc_spread": 0.6,
+    "mixer_seethe": 0.3,
+    "alpha_chorus": 0.25,
+    "global_width": 0.5,
+    "voice_mode": 0,
+    "life_mode": 0,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.6055300708194983,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

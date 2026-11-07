@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Tectonic Acid Bass",
+    "author": "Cracked Chimes",
+    "category": "04 - Unison Swarm Leads & Bass",
+    "bank": "04 - Unison Swarm Leads & Bass",
+    "description": "Monophonic resonant acid bass with saturated 24dB ladder filter",
+    "tags": [
+      "Factory",
+      "04 - Unison Swarm Leads & Bass",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 950.0,
+    "filter_resonance": 0.82,
+    "filter_slope": 1,
+    "filter_drive": 0.65,
+    "filter_attack": 0.002,
+    "filter_decay": 0.22,
+    "filter_sustain": 0.0,
+    "filter_env_depth": 0.85,
+    "amp_attack": 0.001,
+    "amp_decay": 0.3,
+    "amp_sustain": 0.0,
+    "amp_release": 0.15,
+    "osc1_odd_even": 0.6,
+    "mixer_seethe": 0.7,
+    "bass_boost": 0.4,
+    "voice_mode": 1,
+    "glide_time": 0.04,
+    "life_mode": 0,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

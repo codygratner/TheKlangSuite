@@ -56,10 +56,8 @@ namespace Ids {
     constexpr auto pitch_bend_range = "pitch_bend_range";
     constexpr auto bass_boost = "bass_boost";
     constexpr auto treble_tame = "treble_tame";
-    constexpr auto reverb_time = "reverb_time";
-    constexpr auto reverb_damp = "reverb_damp";
-    constexpr auto reverb_mix = "reverb_mix";
     constexpr auto alpha_chorus = "alpha_chorus";
+    constexpr auto chorus_rate = "chorus_rate";
     constexpr auto osc_slop = "osc_slop";
     constexpr auto global_width = "global_width";
     constexpr auto output_level = "output_level";
@@ -68,25 +66,13 @@ namespace Ids {
     constexpr auto chaos_poly_spread = "chaos_poly_spread";
     constexpr auto rand_spread = "rand_spread";
     constexpr auto rand_tune = "rand_tune";
-    constexpr auto rand_cutoff = "rand_cutoff";
-    constexpr auto rand_o1_morph = "rand_o1_morph";
-    constexpr auto rand_o2_morph = "rand_o2_morph";
-    constexpr auto rand_o3_morph = "rand_o3_morph";
-    constexpr auto rand_o1_odd_even = "rand_o1_odd_even";
-    constexpr auto rand_o2_odd_even = "rand_o2_odd_even";
-    constexpr auto rand_o3_odd_even = "rand_o3_odd_even";
-    constexpr auto rand_o1_tilt = "rand_o1_tilt";
-    constexpr auto rand_o2_tilt = "rand_o2_tilt";
-    constexpr auto rand_o3_tilt = "rand_o3_tilt";
-    constexpr auto rand_o1_formant = "rand_o1_formant";
-    constexpr auto rand_o2_formant = "rand_o2_formant";
-    constexpr auto rand_o3_formant = "rand_o3_formant";
-    constexpr auto rand_o1_mask = "rand_o1_mask";
-    constexpr auto rand_o2_mask = "rand_o2_mask";
-    constexpr auto rand_o3_mask = "rand_o3_mask";
-    constexpr auto rand_o1_speed = "rand_o1_speed";
-    constexpr auto rand_o2_speed = "rand_o2_speed";
-    constexpr auto rand_o3_speed = "rand_o3_speed";
+    constexpr auto rand_chorus_rate = "rand_chorus_rate";
+    constexpr auto rand_morph = "rand_morph";
+    constexpr auto rand_odd_even = "rand_odd_even";
+    constexpr auto rand_tilt = "rand_tilt";
+    constexpr auto rand_formant = "rand_formant";
+    constexpr auto rand_mask = "rand_mask";
+    constexpr auto rand_speed = "rand_speed";
     constexpr auto osc1_octave = "osc1_octave";
     constexpr auto osc1_speed_lock = "osc1_speed_lock";
     constexpr auto osc1_loop = "osc1_loop";
@@ -153,10 +139,8 @@ namespace Names {
     constexpr auto pitch_bend_range = "Pitch Bend Range";
     constexpr auto bass_boost = "40Hz Bass Boost";
     constexpr auto treble_tame = "Treble Tame";
-    constexpr auto reverb_time = "Reverb Time";
-    constexpr auto reverb_damp = "Reverb Damp";
-    constexpr auto reverb_mix = "Reverb Mix";
-    constexpr auto alpha_chorus = "Alpha Chorus";
+    constexpr auto alpha_chorus = "Chorus Amount";
+    constexpr auto chorus_rate = "Chorus Rate";
     constexpr auto osc_slop = "Voice Drift / Slop";
     constexpr auto global_width = "Stereo Width";
     constexpr auto output_level = "Master Volume";
@@ -165,25 +149,13 @@ namespace Names {
     constexpr auto chaos_poly_spread = "Poly Chaos Spread";
     constexpr auto rand_spread = "Spread Chaos";
     constexpr auto rand_tune = "Chaos Detune";
-    constexpr auto rand_cutoff = "Chaos Cutoff";
-    constexpr auto rand_o1_morph = "RDM O1 Morph";
-    constexpr auto rand_o2_morph = "RDM O2 Morph";
-    constexpr auto rand_o3_morph = "RDM O3 Morph";
-    constexpr auto rand_o1_odd_even = "RDM O1 Odd/Even";
-    constexpr auto rand_o2_odd_even = "RDM O2 Odd/Even";
-    constexpr auto rand_o3_odd_even = "RDM O3 Odd/Even";
-    constexpr auto rand_o1_tilt = "RDM O1 Tilt";
-    constexpr auto rand_o2_tilt = "RDM O2 Tilt";
-    constexpr auto rand_o3_tilt = "RDM O3 Tilt";
-    constexpr auto rand_o1_formant = "RDM O1 Formant";
-    constexpr auto rand_o2_formant = "RDM O2 Formant";
-    constexpr auto rand_o3_formant = "RDM O3 Formant";
-    constexpr auto rand_o1_mask = "RDM O1 Mask";
-    constexpr auto rand_o2_mask = "RDM O2 Mask";
-    constexpr auto rand_o3_mask = "RDM O3 Mask";
-    constexpr auto rand_o1_speed = "RDM O1 Speed";
-    constexpr auto rand_o2_speed = "RDM O2 Speed";
-    constexpr auto rand_o3_speed = "RDM O3 Speed";
+    constexpr auto rand_chorus_rate = "Chaos Chorus Rate";
+    constexpr auto rand_morph = "Chaos Morph";
+    constexpr auto rand_odd_even = "Chaos Odd/Even";
+    constexpr auto rand_tilt = "Chaos Tilt";
+    constexpr auto rand_formant = "Chaos Formant";
+    constexpr auto rand_mask = "Chaos Mask";
+    constexpr auto rand_speed = "Chaos Speed";
     constexpr auto osc1_octave = "Osc 1 Octave";
     constexpr auto osc1_speed_lock = "Osc 1 Speed Lock";
     constexpr auto osc1_loop = "Osc 1 Mask Loop";
@@ -201,6 +173,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 94;
+    constexpr int count = 80;
 } // namespace Total
 } // namespace nyarlatParameters

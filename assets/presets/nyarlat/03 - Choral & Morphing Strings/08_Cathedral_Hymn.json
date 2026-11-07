@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Cathedral Hymn",
+    "author": "Cracked Chimes",
+    "category": "03 - Choral & Morphing Strings",
+    "bank": "03 - Choral & Morphing Strings",
+    "description": "Majestic liturgical organ-string hybrid with endless reverb tail",
+    "tags": [
+      "Factory",
+      "03 - Choral & Morphing Strings",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 3400.0,
+    "filter_resonance": 0.15,
+    "filter_slope": 1,
+    "osc1_octave": 2,
+    "osc2_octave": 3,
+    "osc3_octave": 1,
+    "alpha_chorus": 0.35,
+    "life_mode": 0,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}

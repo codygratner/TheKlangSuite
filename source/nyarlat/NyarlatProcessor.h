@@ -14,7 +14,6 @@
 
 #include "NyarlatVoice.h"
 
-#include "AbyssReverb.h"
 
 #include "NyarlatParameterIds.h"
 
@@ -296,11 +295,11 @@ private:
 
         float chaosRate, chaosDrift, chaosPoly;
 
-        float randAttenuverters[18];
-
+        float randChaos[6] = {0.0f};
+        float randAttenuverters[18] = {0.0f};
         float randSpread = 0.0f;
         float randTune = 0.0f;
-        float randCutoff = 0.0f;
+        float randChorusRate = 0.0f;
 
         float filterCutoff, filterResonance;
 
@@ -338,7 +337,6 @@ private:
 
     std::array<NyarlatVoice, kNumVoices> voices_;
 
-    AbyssReverb reverb_;
 
 
 
@@ -373,6 +371,8 @@ private:
     HilbertNetwork hilbertR_;
 
     float chorusPhase_ = 0.0f;
+    Nyarlat::VoiceChaosEngine masterChaos_;
+    float smoothedChorusRate_ = 1.2f;
 
 
 

@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "nyarlat",
+  "metadata": {
+    "name": "Mellotron Cellos",
+    "author": "Cracked Chimes",
+    "category": "03 - Choral & Morphing Strings",
+    "bank": "03 - Choral & Morphing Strings",
+    "description": "Warm vintage cello section with gentle pitch drift and keytrack",
+    "tags": [
+      "Factory",
+      "03 - Choral & Morphing Strings",
+      "Nyarlat"
+    ]
+  },
+  "parameters": {
+    "filter_cutoff": 1600.0,
+    "filter_resonance": 0.15,
+    "filter_slope": 0,
+    "filter_drive": 0.25,
+    "osc1_tilt": -4.0,
+    "osc2_tilt": -3.5,
+    "osc2_detune": 6.0,
+    "osc_slop": 0.3,
+    "alpha_chorus": 0.25,
+    "life_mode": 2,
+    "chorus_rate": 1.2,
+    "rand_chorus_rate": 0.0,
+    "rand_morph": 0.0,
+    "rand_odd_even": 0.0,
+    "rand_tilt": 0.0,
+    "rand_formant": 0.0,
+    "rand_mask": 0.0,
+    "rand_speed": 0.0
+  }
+}
