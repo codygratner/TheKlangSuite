@@ -1,16 +1,16 @@
 {
   "git": {
     "branch": "0.4.0-dev",
-    "commit": "1277721",
+    "commit": "39c690a",
     "is_clean": false,
-    "dirty_count": 83,
+    "dirty_count": 180,
     "staged": 1,
-    "modified": 14,
-    "untracked": 69,
+    "modified": 48,
+    "untracked": 90,
     "recent_commits": [
-      "1277721 fix(ci): restore desktop callout parenting in UIComponents and undefine X11 macro collisions in GuiTestHelpers",
-      "0250a8c fix(nyarlat): eliminate runaway DC via canonical Schroeder allpass, in-loop DC blocking, and dual master DC stage",
-      "31035ff fix(ci, linux): eliminate X11 BadAtom crash in gui_tests via fluxbox, safe callout parenting, and X11 error handler"
+      "39c690a feat(sqa): implement dual-chassis anti-hollow armor and task-finish gate",
+      "59d40d0 feat(shoggoth): wire 32-control canon, dynamic S1/S2 morph, resonant filter, DHG animation & 480 calibrated K5 presets",
+      "1b39899 fix(shoggoth): optimize SIMD complex rotator accumulation and noteOn initialization order"
     ]
   },
   "plan": {
