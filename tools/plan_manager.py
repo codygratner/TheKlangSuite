@@ -571,6 +571,28 @@ def cmd_finish(args: argparse.Namespace) -> int:
         print("Use --force to archive anyway.", file=sys.stderr)
         return 1
 
+    # SQA Anti-Hollow Gate Verification (anti_hollow_canon.md)
+    if not getattr(args, "skip_sqa", False):
+        plugin = detect_target_plugin(content)
+        contract_file = (REPO_ROOT / "contracts" / f"{plugin}.yaml") if (REPO_ROOT / "contracts").exists() else (Path(r"C:\Dev\TheKlangSuite\contracts") / f"{plugin}.yaml")
+        if contract_file.exists():
+            print(f"🛡️  [SQA Armor] Running Anti-Hollow Gate for '{plugin}'...")
+            v_script = (REPO_ROOT / "tools" / "verify_contract_bindings.py") if (REPO_ROOT / "tools" / "verify_contract_bindings.py").exists() else Path(r"C:\Dev\TheKlangSuite\tools\verify_contract_bindings.py")
+            if v_script.exists():
+                res = subprocess.run([sys.executable, str(v_script), plugin], capture_output=True, text=True)
+                if res.returncode != 0:
+                    print(f"❌ [SQA FAILURE] Bidirectional contract bijection failed for '{plugin}':\n{res.stdout}", file=sys.stderr)
+                    if not args.force:
+                        return 1
+            lint_script = (REPO_ROOT / "tools" / "sqa" / "lint_dsp.py") if (REPO_ROOT / "tools" / "sqa" / "lint_dsp.py").exists() else Path(r"C:\Dev\TheKlangSuite\tools\sqa\lint_dsp.py")
+            if lint_script.exists():
+                res = subprocess.run([sys.executable, str(lint_script), plugin], capture_output=True, text=True)
+                if res.returncode != 0:
+                    print(f"❌ [SQA FAILURE] DSP sink reachability failed for '{plugin}':\n{res.stdout}", file=sys.stderr)
+                    if not args.force:
+                        return 1
+            print(f"✅ [SQA Armor] 100% Anti-Hollow verification passed for '{plugin}'.")
+
     # Derive slug
     slug = args.slug
     if not slug:
@@ -680,6 +702,7 @@ def main() -> int:
     parser_finish.add_argument("--slug", type=str, help="Custom archive filename slug (defaults to title)")
     parser_finish.add_argument("--force", "-f", action="store_true", help="Force archive even if incomplete phases remain")
     parser_finish.add_argument("--dry-run", action="store_true", help="Simulate archival without touching disk")
+    parser_finish.add_argument("--skip-sqa", action="store_true", help="Bypass SQA Anti-Hollow verification gate")
     parser_finish.add_argument("--lesson", type=str, default=None, help="ExpeL experiential lesson learned ('<plugin>:<comp> | <symptom> -> <fix>')")
 
     args = parser.parse_args()
