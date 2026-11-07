@@ -296,26 +296,78 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
     // --- OSCILLATORS (Bay 1) ---
 
-    // loopTags_ retired per UI overhaul (Lock button replaces LOOP label at x=28)
+    // 2x2 Vector Icon Grids (Lock, Triangle, Saw Up, Saw Down)
+    const std::array<juce::Colour, 3> oscGridCols = { Colours::kOsc1, Colours::kOsc2, Colours::kOsc3 };
+    const std::array<juce::String, 3> lockIds = { Ids::osc1_speed_lock, Ids::osc2_speed_lock, Ids::osc3_speed_lock };
+    const std::array<juce::String, 3> loopIds = { Ids::osc1_loop, Ids::osc2_loop, Ids::osc3_loop };
+    for (int o = 0; o < 3; ++o) {
+        const juce::String lockId = lockIds[o];
+        const juce::String loopId = loopIds[o];
+        auto col = oscGridCols[o];
 
+        auto& grid = oscShapeGrids_[o];
+        grid.lockBtn = std::make_unique<VectorIconButton>(lockId, VectorIconButton::IconType::Lock, col);
+        grid.triBtn  = std::make_unique<VectorIconButton>(loopId + "_tri", VectorIconButton::IconType::Triangle, col);
+        grid.upBtn   = std::make_unique<VectorIconButton>(loopId + "_up", VectorIconButton::IconType::SawUp, col);
+        grid.downBtn = std::make_unique<VectorIconButton>(loopId + "_down", VectorIconButton::IconType::SawDown, col);
 
+        contentContainer.addAndMakeVisible(*grid.lockBtn);
+        contentContainer.addAndMakeVisible(*grid.triBtn);
+        contentContainer.addAndMakeVisible(*grid.upBtn);
+        contentContainer.addAndMakeVisible(*grid.downBtn);
 
-    osc1MasterButton_.setButtonText("MSTR");
+        for (const auto& ci : getNyarlatControlCatalog()) {
+            if (lockId == ci.paramId) controlMap_[grid.lockBtn.get()] = &ci;
+            if (loopId == ci.paramId) {
+                controlMap_[grid.triBtn.get()]  = &ci;
+                controlMap_[grid.upBtn.get()]   = &ci;
+                controlMap_[grid.downBtn.get()] = &ci;
+            }
+        }
 
-    osc1MasterButton_.setEnabled(false);
+        // Lock button APVTS attachment
+        grid.lockAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+            processor_.getAPVTS(), lockId, *grid.lockBtn);
 
-    osc1MasterButton_.setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF161B22));
+        // Loop radio group logic (3 mutually exclusive buttons: 0=SawUp, 1=Triangle, 2=SawDown)
+        if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(processor_.getAPVTS().getParameter(loopId))) {
+            auto updateLoopButtons = [&grid](int idx) {
+                grid.upBtn->setToggleState(idx == 0, juce::dontSendNotification);
+                grid.triBtn->setToggleState(idx == 1, juce::dontSendNotification);
+                grid.downBtn->setToggleState(idx == 2, juce::dontSendNotification);
+            };
 
-    osc1MasterButton_.setColour(juce::TextButton::textColourOffId, juce::Colour(0xFF6E7681));
+            updateLoopButtons(choiceParam->getIndex());
 
-    contentContainer.addAndMakeVisible(osc1MasterButton_);
+            grid.loopAttachment = std::make_unique<juce::ParameterAttachment>(
+                *choiceParam, [&grid, updateLoopButtons](float v) {
+                    updateLoopButtons(static_cast<int>(v));
+                });
 
-
+            grid.upBtn->onClick = [this, loopId, updateLoopButtons]() {
+                if (auto* p = processor_.getAPVTS().getParameter(loopId)) {
+                    p->setValueNotifyingHost(p->convertTo0to1(0.0f));
+                    updateLoopButtons(0);
+                }
+            };
+            grid.triBtn->onClick = [this, loopId, updateLoopButtons]() {
+                if (auto* p = processor_.getAPVTS().getParameter(loopId)) {
+                    p->setValueNotifyingHost(p->convertTo0to1(1.0f));
+                    updateLoopButtons(1);
+                }
+            };
+            grid.downBtn->onClick = [this, loopId, updateLoopButtons]() {
+                if (auto* p = processor_.getAPVTS().getParameter(loopId)) {
+                    p->setValueNotifyingHost(p->convertTo0to1(2.0f));
+                    updateLoopButtons(2);
+                }
+            };
+        }
+    }
 
     // Osc 1 (Movie Poster Blue)
     makeStepper(Ids::osc1_bank, "O1 BANK", Colours::kOsc1);
     makeRadio(Ids::osc1_octave, Colours::kOsc1, 12.5f);
-    makeButton(Ids::osc1_speed_lock, "LOCK", juce::Colour(0xFFFFD700));
     makeKnob(Ids::osc1_morph, "MORPH", Colours::kOsc1);
     makeKnob(Ids::osc1_odd_even, "ODD/EV", Colours::kOsc1);
     makeKnob(Ids::osc1_tilt, "TILT", Colours::kOsc1);
@@ -342,36 +394,26 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
             }
         }
     }
-    makeKnob(Ids::osc1_detune, "TUNE", Colours::kOsc1);
-    makeRadio(Ids::osc1_loop, Colours::kOsc1);
 
     // Osc 2 (Movie Poster Orange)
     makeStepper(Ids::osc2_bank, "O2 BANK", Colours::kOsc2);
     makeRadio(Ids::osc2_octave, Colours::kOsc2, 12.5f);
-    makeButton(Ids::osc2_speed_lock, "LOCK", juce::Colour(0xFFFFD700));
-    makeButton(Ids::osc2_sync, "SYNC", Colours::kOsc2);
     makeKnob(Ids::osc2_morph, "MORPH", Colours::kOsc2);
     makeKnob(Ids::osc2_odd_even, "ODD/EV", Colours::kOsc2);
     makeKnob(Ids::osc2_tilt, "TILT", Colours::kOsc2);
     makeKnob(Ids::osc2_formant, "FORM", Colours::kOsc2);
     makeKnob(Ids::osc2_mask, "MASK", Colours::kOsc2);
     makeKnob(Ids::osc2_speed, "SPEED", Colours::kOsc2);
-    makeKnob(Ids::osc2_detune, "TUNE", Colours::kOsc2);
-    makeRadio(Ids::osc2_loop, Colours::kOsc2);
 
     // Osc 3 (Sorcerous Purple)
     makeStepper(Ids::osc3_bank, "O3 BANK", Colours::kOsc3);
     makeRadio(Ids::osc3_octave, Colours::kOsc3, 12.5f);
-    makeButton(Ids::osc3_speed_lock, "LOCK", juce::Colour(0xFFFFD700));
-    makeButton(Ids::osc3_sync, "SYNC", Colours::kOsc3);
     makeKnob(Ids::osc3_morph, "MORPH", Colours::kOsc3);
     makeKnob(Ids::osc3_odd_even, "ODD/EV", Colours::kOsc3);
     makeKnob(Ids::osc3_tilt, "TILT", Colours::kOsc3);
     makeKnob(Ids::osc3_formant, "FORM", Colours::kOsc3);
     makeKnob(Ids::osc3_mask, "MASK", Colours::kOsc3);
     makeKnob(Ids::osc3_speed, "SPEED", Colours::kOsc3);
-    makeKnob(Ids::osc3_detune, "TUNE", Colours::kOsc3);
-    makeRadio(Ids::osc3_loop, Colours::kOsc3);
 
     // --- BAY 2: SILKY ANALOG FILTER & VOICING ---
 
@@ -1177,29 +1219,27 @@ void NyarlatEditor::layoutControls() {
         // Row 1: Bank Stepper Audition Bar (by+14..by+34)
         placeStepper(oPrefix + "bank", 28, by + 14, 332, 20);
 
-        // Row 2: Expanded Octave Radio (252px) + Sync/MSTR (284px) (by+38..by+58)
+        // Row 2: Full-Width Octave Radio (332px across 5 segments) (by+38..by+58)
         if (auto* r = findRadio(oPrefix + "octave")) {
-            r->setBounds(28, by + 38, 252, 20);
-        }
-        if (o == 0) {
-            osc1MasterButton_.setBounds(284, by + 38, 66, 20);
-        } else if (auto* b = findButton(oPrefix + "sync")) {
-            b->button.setBounds(284, by + 38, 66, 20);
+            r->setBounds(28, by + 38, 332, 20);
         }
 
-        // Row 3: Additive Waveform Preview (by+62..by+98) flanked by Detune Knob (label by+62, slider by+75..by+123)
+        // Row 3: Additive Waveform Preview (by+62..by+126, 64px tall, 260px wide)
         if (oscWaveViews_[o] != nullptr) {
-            oscWaveViews_[o]->setBounds(28, by + 62, 236, 36);
+            oscWaveViews_[o]->setBounds(28, by + 62, 260, 64);
         }
-        placeKnob(oPrefix + "detune", 284, by + 62, 48, 52, 11);
 
-        // Row 4: Speed Lock Button + Loop Radio (by+102..by+122)
-        if (auto* b = findButton(oPrefix + "speed_lock")) {
-            b->button.setBounds(28, by + 102, 46, 20);
-        }
-        if (auto* r = findRadio(oPrefix + "loop")) {
-            r->setBounds(78, by + 102, 186, 20);
-        }
+        // Row 3 Right: 2x2 Vector Icon Grid (64x64px at x=296..360, y=by+62..by+126)
+        // Top-Left: Lock | Top-Right: Triangle | Bottom-Left: Saw Up | Bottom-Right: Saw Down
+        constexpr int cell = 30;
+        constexpr int gap = 4;
+        constexpr int gx = 296;
+        const int gy = by + 62;
+        auto& grid = oscShapeGrids_[o];
+        if (grid.lockBtn) grid.lockBtn->setBounds(gx,              gy,              cell, cell);
+        if (grid.triBtn)  grid.triBtn->setBounds(gx + cell + gap, gy,              cell, cell);
+        if (grid.upBtn)   grid.upBtn->setBounds(gx,              gy + cell + gap, cell, cell);
+        if (grid.downBtn) grid.downBtn->setBounds(gx + cell + gap, gy + cell + gap, cell, cell);
 
         // Row 5a: Morph, Odd/Even, Tilt (3 knobs, 48px, label at by+130, slider by+143..by+191)
         placeKnob(oPrefix + "morph",    38,  by + 130, 48, 52, 11);

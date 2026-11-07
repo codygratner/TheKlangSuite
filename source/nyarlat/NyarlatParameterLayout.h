@@ -146,10 +146,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         juce::ParameterID{nyarlatParameters::Ids::osc1_speed, 1}, nyarlatParameters::Names::osc1_speed,
         juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
 
-    // osc1_detune [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_detune, 1}, nyarlatParameters::Names::osc1_detune, -100.0000f, 100.0000f, 0.0000f));
-
     // osc1_level [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::osc1_level, 1}, nyarlatParameters::Names::osc1_level, 0.0000f, 1.0000f, 0.8000f));
@@ -179,10 +175,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         juce::ParameterID{nyarlatParameters::Ids::osc2_speed, 1}, nyarlatParameters::Names::osc2_speed,
         juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
 
-    // osc2_detune [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_detune, 1}, nyarlatParameters::Names::osc2_detune, -100.0000f, 100.0000f, 0.0000f));
-
     // osc2_level [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::osc2_level, 1}, nyarlatParameters::Names::osc2_level, 0.0000f, 1.0000f, 0.7000f));
@@ -211,10 +203,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::osc3_speed, 1}, nyarlatParameters::Names::osc3_speed,
         juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
-
-    // osc3_detune [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_detune, 1}, nyarlatParameters::Names::osc3_detune, -100.0000f, 100.0000f, 0.0000f));
 
     // osc3_level [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -448,11 +436,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         juce::ParameterID{nyarlatParameters::Ids::osc2_speed_lock, 1}, nyarlatParameters::Names::osc2_speed_lock,
         juce::StringArray{"Off", "On"}, 0));
 
-    // osc2_sync [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_sync, 1}, nyarlatParameters::Names::osc2_sync,
-        juce::StringArray{"Off", "Sync 1->2"}, 0));
-
     // osc2_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc2_loop, 1}, nyarlatParameters::Names::osc2_loop,
@@ -472,11 +455,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{nyarlatParameters::Ids::osc3_speed_lock, 1}, nyarlatParameters::Names::osc3_speed_lock,
         juce::StringArray{"Off", "On"}, 0));
-
-    // osc3_sync [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_sync, 1}, nyarlatParameters::Names::osc3_sync,
-        juce::StringArray{"Off", "Sync 1->3"}, 0));
 
     // osc3_loop [dco]
     layout.add(std::make_unique<juce::AudioParameterChoice>(

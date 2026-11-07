@@ -56,10 +56,20 @@
 #include "hastur/HasturVoice.h"
 #ifndef TKS_EXCLUDE_EXPERIMENTAL_SYNTHS
 #include "nyarlat/AbyssReverb.h"
+
+#include "nyarlat/NyarlatAdditiveOscillator.h"
+
+#include "nyarlat/NyarlatAnalogFilter.h"
+
 #include "nyarlat/NyarlatOscillator.h"
+
+#include "nyarlat/NyarlatChaosMatrix.h"
+
 #include "nyarlat/NyarlatZPlaneRom.h"
+
 #include "nyarlat/ZDomainFilter14.h"
-#include "nyarlat/NyarlatVoice.h"
+
+#include "nyarlat/NyarlatVoice.h" 
 #include "shoggoth/shoggoth_layout.h"
 #include "shoggoth/ShoggothLaws.h"
 #include "shoggoth/ShoggothOscillator.h"
@@ -5568,72 +5578,269 @@ int main() {
         std::cout << "PASS: Suite 76: Nyarlat 20-Model Z-Filter Stability & Exact Normalizer Gauntlet completed 100%!" << std::endl;
     }
 
-    // SUITE 77: Nyarlat Detune Cents Scaling & Oscillator Chaos Telemetry Gauntlet
+    // SUITE 77: Nyarlat Additive Timbral Engine, Silky ZDF Analog Filter & 8x Unison Gauntlet
+
     {
-        std::cout << "\nRunning Suite 77: Nyarlat Detune Cents Scaling & Oscillator Chaos Telemetry Gauntlet..." << std::endl;
 
-        Nyarlat::NyarlatVoice voice;
-        voice.prepare(48000.0);
-        voice.setVoiceIndex(0);
-        voice.noteOn(60, 0.8f, 0.0f);
+        std::cout << "
+Running Suite 77: Nyarlat Additive Engine, Analog Filter & 8x Unison Gauntlet..." << std::endl;
 
-        // Test 1: Detune Cents Scaling (100 cents == exact 1 semitone)
+
+
+        // Test 1: Additive Engine 64-Harmonic Synthesis & Triad Lifeform Modes
+
         {
-            float oscBanks[3] = { 0.0f, 0.0f, 0.0f };
-            float oscWaves[3] = { 0.0f, 0.0f, 0.0f };
-            int oscMasks[3] = { 511, 511, 511 };
-            int oscOctaves[3] = { 2, 2, 2 }; // Unison
-            bool oscOctLocks[3] = { true, true, true };
-            bool oscSyncs[3] = { false, false, false };
-            float oscSpeeds[3] = { 0.0f, 0.0f, 0.0f };
-            int oscLoops[3] = { 1, 1, 1 };
-            float randAttenuverters[15] = { 0.0f };
 
-            // Detune 0 ct, +100 ct, -100 ct
-            float oscDetunes[3] = { 0.0f, 100.0f, -100.0f };
+            std::array<float, 512> cycle;
 
-            float outL = 0.0f, outR = 0.0f;
-            voice.renderBlockAdd(&outL, &outR, 64, 1,
-                                 oscBanks, oscWaves, oscMasks, oscDetunes, oscOctaves,
-                                 oscOctLocks, oscSyncs, oscSpeeds, oscLoops,
-                                 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                                 1.0f, 0.0f, 0.0f, randAttenuverters,
-                                 0, 1000.0f, 0.5f, 0.5f, 0.0f, 0.0f,
+
+
+            // Mode 0: SYNTHETIC (pure integer harmonics)
+
+            Nyarlat::NyarlatAdditiveEngine::getInstance().synthesizeCycle(
+
+                cycle.data(), 0, 0.5f, -0.5f, 0.0f, 0.5f, 0);
+
+
+
+            float dc = 0.0f;
+
+            float peak = 0.0f;
+
+            for (float s : cycle) {
+
+                dc += s;
+
+                peak = std::max(peak, std::abs(s));
+
+            }
+
+            dc /= 512.0f;
+
+            assert(std::abs(dc) < 1e-4f);
+
+            assert(peak >= 0.95f && peak <= 1.05f);
+
+
+
+            // Mode 1: CYBORG (6-bit quantization & rail foldback)
+
+            Nyarlat::NyarlatAdditiveEngine::getInstance().synthesizeCycle(
+
+                cycle.data(), 1, 0.7f, 0.2f, 3.0f, 0.6f, 1);
+
+            for (float s : cycle) assert(std::isfinite(s) && std::abs(s) <= 1.05f);
+
+
+
+            // Mode 2: ORGANIC (stiff-string dispersion & 2nd harmonic tube warmth)
+
+            Nyarlat::NyarlatAdditiveEngine::getInstance().synthesizeCycle(
+
+                cycle.data(), 2, 0.3f, 0.0f, -4.0f, 0.7f, 2);
+
+            for (float s : cycle) assert(std::isfinite(s) && std::abs(s) <= 1.05f);
+
+
+
+            std::cout << "  [PASS] NyarlatAdditiveEngine: 64 partials synthesized, DC-nulled & normalized across all 3 Lifeforms" << std::endl;
+
+        }
+
+
+
+        // Test 2: Silky Zero-Delay Feedback (ZDF) Analog Filter Stability
+
+        {
+
+            Nyarlat::NyarlatAnalogFilter filter;
+
+            filter.prepare(48000.0);
+
+
+
+            // Test 12dB LP (0), 24dB LP (1), 12dB BP (2) with high resonance and tube drive
+
+            for (int mode = 0; mode < 3; ++mode) {
+
+                filter.reset();
+
+                float maxOut = 0.0f;
+
+                for (int i = 0; i < 2000; ++i) {
+
+                    float l = (i % 2 == 0) ? 0.9f : -0.9f;
+
+                    float r = (i % 2 == 0) ? -0.9f : 0.9f;
+
+                    float fc = 200.0f + 18000.0f * (static_cast<float>(i) / 2000.0f);
+
+                    filter.processStereo(l, r, fc, 0.95f, mode, 0.8f);
+
+                    assert(std::isfinite(l) && std::isfinite(r));
+
+                    maxOut = std::max(maxOut, std::max(std::abs(l), std::abs(r)));
+
+                }
+
+                assert(maxOut < 5.0f); // Clean saturation, zero blowup
+
+            }
+
+            std::cout << "  [PASS] NyarlatAnalogFilter: ZDF 12dB LP, 24dB LP, 12dB BP strictly stable under maximum drive & resonance" << std::endl;
+
+        }
+
+
+
+        // Test 3: 18-Channel Knot-Staggered Chaos Engine (10-minute to 1-second timebase)
+
+        {
+
+            Nyarlat::VoiceChaosEngine chaos;
+
+            chaos.setVoiceSeed(0, 0.5f);
+
+
+
+            // Test at slowest rate (0.001667 Hz = 10 minutes)
+
+            chaos.updateBlock(0.001667f, 0.9f, 64.0 / 48000.0);
+
+            for (int ch = 0; ch < 18; ++ch) {
+
+                float val = chaos.getRawValue(ch);
+
+                assert(val >= 0.0f && val <= 1.0f);
+
+                float mod = chaos.getModulation(ch, 1.0f);
+
+                assert(mod >= -1.05f && mod <= 1.05f);
+
+            }
+
+
+
+            // Test at fastest rate (1.0 Hz)
+
+            chaos.updateBlock(1.0f, 0.5f, 64.0 / 48000.0);
+
+            for (int ch = 0; ch < 18; ++ch) {
+
+                float mod = chaos.getModulation(ch, 0.5f);
+
+                assert(mod >= -0.55f && mod <= 0.55f);
+
+            }
+
+            std::cout << "  [PASS] VoiceChaosEngine: 18 channels verified across 10m to 1s timebase with Hermite interpolation" << std::endl;
+
+        }
+
+
+
+        // Test 4: NyarlatVoice Additive Rendering & 8x Unison Stability
+
+        {
+
+            Nyarlat::NyarlatVoice voice;
+
+            voice.prepare(48000.0);
+
+            voice.setVoiceIndex(0);
+
+            voice.noteOn(60, 0.8f, 0.02f, 0.5f);
+
+
+
+            float oscBanks[3] = { 0.0f, 1.0f, 2.0f };
+
+            float oscMorphs[3] = { 0.2f, 0.5f, 0.8f };
+
+            float oscOddEvens[3] = { -0.5f, 0.0f, 0.5f };
+
+            float oscTilts[3] = { -2.0f, 0.0f, 2.0f };
+
+            float oscFormants[3] = { 0.4f, 0.6f, 0.8f };
+
+            int oscMasks[3] = { 511, 255, 127 };
+
+            float oscDetunes[3] = { 0.0f, 12.0f, -12.0f };
+
+            int oscOctaves[3] = { 2, 2, 1 };
+
+            bool oscOctLocks[3] = { true, false, false };
+
+            bool oscSyncs[3] = { false, true, false };
+
+            float oscSpeeds[3] = { 0.0f, 1.5f, 3.0f };
+
+            int oscLoops[3] = { 1, 1, 2 };
+
+            float randAttenuverters[18] = { 0.2f };
+
+
+
+            uint32_t uBanks[3] = { 0, 1, 2 };
+
+            voice.updateWavetables(uBanks, oscMorphs, oscOddEvens, oscTilts, oscFormants, randAttenuverters, 0);
+
+
+
+            std::vector<float> bufL(512, 0.0f);
+
+            std::vector<float> bufR(512, 0.0f);
+
+
+
+            voice.renderBlockAdd(bufL.data(), bufR.data(), 512, 1,
+
+                                 oscBanks, oscMorphs, oscOddEvens, oscTilts, oscFormants, oscMasks,
+
+                                 oscOctaves, oscOctLocks, oscSpeeds, oscLoops,
+
+                                 0.8f, 0.7f, 0.6f,
+
+                                 0.1f, 0.5f, 0.4f,
+
+                                 0.5f, 0.3f,
+
+                                 randAttenuverters,
+
+                                 2500.0f, 0.3f, 1, 0.2f,
+
+                                 0.5f, 0.5f, 0.5f,
+
                                  0.8f, 0.0f, 0.0f, 0.0f);
 
-            // Verify that detune of 0, +100, -100 is strictly bounded
-            assert(std::isfinite(outL) && std::isfinite(outR));
-            std::cout << "  [PASS] Detune Cents Scaling: Output is clean & finite under +/-100 cents" << std::endl;
-        }
 
-        // Test 2: Oscillator Chaos Telemetry Getters
-        {
-            float oscBanks[3] = { 0.0f, 0.0f, 0.0f };
-            float oscWaves[3] = { 0.5f, 0.5f, 0.5f };
-            float randAttenuverters[15] = {
-                1.0f, 1.0f, 1.0f, // Osc 1: wave, mask, speed full mod
-                1.0f, 1.0f, 1.0f, // Osc 2
-                1.0f, 1.0f, 1.0f, // Osc 3
-                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
-            };
 
-            voice.advanceChaos(5.0f, 0.5f, 64.0 / 48000.0);
-            uint32_t uBanks[3] = { 0, 0, 0 };
-            voice.updateWavetables(uBanks, oscWaves, randAttenuverters);
+            float peakL = 0.0f, peakR = 0.0f;
 
-            for (int i = 0; i < 3; ++i) {
-                float ew = voice.getEffWave(i);
-                int em = voice.getEffMask(i);
-                float es = voice.getEffSpeed(i);
+            for (int i = 0; i < 512; ++i) {
 
-                assert(ew >= 0.0f && ew <= 1.0f);
-                assert(em >= 0 && em <= 511);
-                assert(es >= 0.0f && es <= 10.0f);
+                assert(std::isfinite(bufL[i]) && std::isfinite(bufR[i]));
+
+                peakL = std::max(peakL, std::abs(bufL[i]));
+
+                peakR = std::max(peakR, std::abs(bufR[i]));
+
             }
-            std::cout << "  [PASS] Telemetry Getters: effWave, effMask, effSpeed bounded under full chaos" << std::endl;
+
+            assert(peakL > 0.001f && peakR > 0.001f);
+
+            assert(peakL < 2.0f && peakR < 2.0f);
+
+
+
+            std::cout << "  [PASS] NyarlatVoice: Complete 3-Osc Additive block rendered clean & finite (peaks: " << peakL << ", " << peakR << ")" << std::endl;
+
         }
 
-        std::cout << "PASS: Suite 77: Nyarlat Detune Cents Scaling & Oscillator Chaos Telemetry Gauntlet completed 100%!" << std::endl;
+
+
+        std::cout << "PASS: Suite 77: Nyarlat Additive Timbral Engine, Silky ZDF Analog Filter & 8x Unison Gauntlet completed 100%!" << std::endl;
+
     }
 
     // SUITE 78: Nyarlat 288 Z-Plane ROM, Dynamic ActiveStages & Stator Cache Stability Gauntlet

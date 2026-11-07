@@ -232,7 +232,6 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
 
-        { Ids::osc1_detune, "Osc 1 Detune", "osc 1 detune parameter", Colours::kOsc },
 
 
 
@@ -280,7 +279,6 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
 
-        { Ids::osc2_detune, "Osc 2 Detune", "osc 2 detune parameter", Colours::kOsc },
 
 
 
@@ -292,7 +290,6 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
 
-        { Ids::osc2_sync, "Osc 2 Hard Sync", "osc 2 hard sync parameter", Colours::kOsc },
 
 
 
@@ -332,7 +329,6 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
 
-        { Ids::osc3_detune, "Osc 3 Detune", "osc 3 detune parameter", Colours::kOsc },
 
 
 
@@ -344,7 +340,6 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
 
-        { Ids::osc3_sync, "Osc 3 Hard Sync", "osc 3 hard sync parameter", Colours::kOsc },
 
 
 

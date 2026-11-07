@@ -278,13 +278,9 @@ private:
 
         int oscMasks[3];
 
-        float oscDetunes[3];
-
         int oscOctaves[3];
 
         bool oscSpeedLocks[3];
-
-        bool oscSyncs[3];
 
         float bpm = 120.0f;
 

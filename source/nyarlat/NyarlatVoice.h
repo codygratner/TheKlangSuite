@@ -580,9 +580,9 @@ public:
 
                         const float* oscTilt, const float* oscFormant, const int* oscMask,
 
-                        const float* oscDetune, const int* oscOctave, const bool* oscSpeedLock,
+                        const int* oscOctave, const bool* oscSpeedLock,
 
-                        const bool* oscSync, const float* oscSpeed, const int* oscLoop,
+                        const float* oscSpeed, const int* oscLoop,
 
                         float osc1Level, float osc2Level, float osc3Level,
 
@@ -686,7 +686,7 @@ public:
                 const float chaosDeltaSemis = randTune * chaosDetuneNorm * 1.0f; // max ±1 st (±100 ct)
 
                 for (int i = 0; i < 3; ++i) {
-                    float semis = (oscOctave[i] - 2) * 12.0f + (oscDetune[i] * 0.01f);
+                    float semis = (oscOctave[i] - 2) * 12.0f;
                     if (i == 1) semis += chaosDeltaSemis;
                     else if (i == 2) semis -= chaosDeltaSemis;
 
@@ -780,19 +780,10 @@ public:
 
 
 
-            // 3. Process 3 Oscillators with Hard Sync & Q32 Stator Sweep
-
-            const uint32_t prevP1 = oscs_[0].getPhase() & 0x00FFFFFFu;
-
+            // 3. Process 3 Oscillators with Q32 Stator Sweep
             float sig1 = oscs_[0].processSample(basePitch * cachedOctMult_[0], cachedEffMask_[0], cachedEffSpeed_[0], oscLoop[0], false);
-
-            bool syncTrigger = ((oscs_[0].getPhase() & 0x00FFFFFFu) < prevP1);
-
-
-
-            float sig2 = oscs_[1].processSample(basePitch * cachedOctMult_[1], cachedEffMask_[1], cachedEffSpeed_[1], oscLoop[1], false, oscSync[1] && syncTrigger);
-
-            float sig3 = oscs_[2].processSample(basePitch * cachedOctMult_[2], cachedEffMask_[2], cachedEffSpeed_[2], oscLoop[2], false, oscSync[2] && syncTrigger);
+            float sig2 = oscs_[1].processSample(basePitch * cachedOctMult_[1], cachedEffMask_[1], cachedEffSpeed_[1], oscLoop[1], false);
+            float sig3 = oscs_[2].processSample(basePitch * cachedOctMult_[2], cachedEffMask_[2], cachedEffSpeed_[2], oscLoop[2], false);
 
 
 

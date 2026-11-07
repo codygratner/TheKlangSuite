@@ -374,28 +374,6 @@ parameters:
 
   unit: Hz
 
-- id: osc1_detune
-
-  automation_tier: 2
-
-  name: Osc 1 Detune
-
-  category: dco
-
-  type: float
-
-  effect: pitch
-
-  range:
-
-  - -100.0
-
-  - 100.0
-
-  default: 0.0
-
-  unit: ct
-
 - id: osc1_level
 
   automation_tier: 2
@@ -542,28 +520,6 @@ parameters:
 
   unit: Hz
 
-- id: osc2_detune
-
-  automation_tier: 2
-
-  name: Osc 2 Detune
-
-  category: dco
-
-  type: float
-
-  effect: pitch
-
-  range:
-
-  - -100.0
-
-  - 100.0
-
-  default: 0.0
-
-  unit: ct
-
 - id: osc2_level
 
   automation_tier: 2
@@ -709,28 +665,6 @@ parameters:
   default: 0.0
 
   unit: Hz
-
-- id: osc3_detune
-
-  automation_tier: 2
-
-  name: Osc 3 Detune
-
-  category: dco
-
-  type: float
-
-  effect: pitch
-
-  range:
-
-  - -100.0
-
-  - 100.0
-
-  default: 0.0
-
-  unit: ct
 
 - id: osc3_level
 
@@ -1982,26 +1916,6 @@ parameters:
 
   default: 'Off'
 
-- id: osc2_sync
-
-  automation_tier: 4
-
-  name: Osc 2 Hard Sync
-
-  category: dco
-
-  type: choice
-
-  effect: timbre
-
-  choices:
-
-  - 'Off'
-
-  - Sync 1->2
-
-  default: 'Off'
-
 - id: osc2_loop
 
   automation_tier: 4
@@ -2213,26 +2127,6 @@ parameters:
   - 'Off'
 
   - 'On'
-
-  default: 'Off'
-
-- id: osc3_sync
-
-  automation_tier: 4
-
-  name: Osc 3 Hard Sync
-
-  category: dco
-
-  type: choice
-
-  effect: timbre
-
-  choices:
-
-  - 'Off'
-
-  - Sync 1->3
 
   default: 'Off'
 

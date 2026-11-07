@@ -24,7 +24,6 @@ namespace Ids {
     constexpr auto osc1_formant = "osc1_formant";
     constexpr auto osc1_mask = "osc1_mask";
     constexpr auto osc1_speed = "osc1_speed";
-    constexpr auto osc1_detune = "osc1_detune";
     constexpr auto osc1_level = "osc1_level";
     constexpr auto osc2_morph = "osc2_morph";
     constexpr auto osc2_odd_even = "osc2_odd_even";
@@ -32,7 +31,6 @@ namespace Ids {
     constexpr auto osc2_formant = "osc2_formant";
     constexpr auto osc2_mask = "osc2_mask";
     constexpr auto osc2_speed = "osc2_speed";
-    constexpr auto osc2_detune = "osc2_detune";
     constexpr auto osc2_level = "osc2_level";
     constexpr auto osc3_morph = "osc3_morph";
     constexpr auto osc3_odd_even = "osc3_odd_even";
@@ -40,7 +38,6 @@ namespace Ids {
     constexpr auto osc3_formant = "osc3_formant";
     constexpr auto osc3_mask = "osc3_mask";
     constexpr auto osc3_speed = "osc3_speed";
-    constexpr auto osc3_detune = "osc3_detune";
     constexpr auto osc3_level = "osc3_level";
     constexpr auto noise_level = "noise_level";
     constexpr auto noise_tone = "noise_tone";
@@ -96,12 +93,10 @@ namespace Ids {
     constexpr auto osc1_bank = "osc1_bank";
     constexpr auto osc2_octave = "osc2_octave";
     constexpr auto osc2_speed_lock = "osc2_speed_lock";
-    constexpr auto osc2_sync = "osc2_sync";
     constexpr auto osc2_loop = "osc2_loop";
     constexpr auto osc2_bank = "osc2_bank";
     constexpr auto osc3_octave = "osc3_octave";
     constexpr auto osc3_speed_lock = "osc3_speed_lock";
-    constexpr auto osc3_sync = "osc3_sync";
     constexpr auto osc3_loop = "osc3_loop";
     constexpr auto osc3_bank = "osc3_bank";
     constexpr auto voice_mode = "voice_mode";
@@ -126,7 +121,6 @@ namespace Names {
     constexpr auto osc1_formant = "Osc 1 Formant";
     constexpr auto osc1_mask = "Osc 1 Mask";
     constexpr auto osc1_speed = "Osc 1 Speed";
-    constexpr auto osc1_detune = "Osc 1 Detune";
     constexpr auto osc1_level = "Osc 1 Level";
     constexpr auto osc2_morph = "Osc 2 Morph";
     constexpr auto osc2_odd_even = "Osc 2 Odd / Even";
@@ -134,7 +128,6 @@ namespace Names {
     constexpr auto osc2_formant = "Osc 2 Formant";
     constexpr auto osc2_mask = "Osc 2 Mask";
     constexpr auto osc2_speed = "Osc 2 Speed";
-    constexpr auto osc2_detune = "Osc 2 Detune";
     constexpr auto osc2_level = "Osc 2 Level";
     constexpr auto osc3_morph = "Osc 3 Morph";
     constexpr auto osc3_odd_even = "Osc 3 Odd / Even";
@@ -142,7 +135,6 @@ namespace Names {
     constexpr auto osc3_formant = "Osc 3 Formant";
     constexpr auto osc3_mask = "Osc 3 Mask";
     constexpr auto osc3_speed = "Osc 3 Speed";
-    constexpr auto osc3_detune = "Osc 3 Detune";
     constexpr auto osc3_level = "Osc 3 Level";
     constexpr auto noise_level = "Noise Level";
     constexpr auto noise_tone = "Noise Tone";
@@ -198,12 +190,10 @@ namespace Names {
     constexpr auto osc1_bank = "Osc 1 Seed Bank";
     constexpr auto osc2_octave = "Osc 2 Octave";
     constexpr auto osc2_speed_lock = "Osc 2 Speed Lock";
-    constexpr auto osc2_sync = "Osc 2 Hard Sync";
     constexpr auto osc2_loop = "Osc 2 Mask Loop";
     constexpr auto osc2_bank = "Osc 2 Seed Bank";
     constexpr auto osc3_octave = "Osc 3 Octave";
     constexpr auto osc3_speed_lock = "Osc 3 Speed Lock";
-    constexpr auto osc3_sync = "Osc 3 Hard Sync";
     constexpr auto osc3_loop = "Osc 3 Mask Loop";
     constexpr auto osc3_bank = "Osc 3 Seed Bank";
     constexpr auto voice_mode = "Voicing Mode";
@@ -211,6 +201,6 @@ namespace Names {
 } // namespace Names
 
 namespace Total {
-    constexpr int count = 99;
+    constexpr int count = 94;
 } // namespace Total
 } // namespace nyarlatParameters

@@ -510,6 +510,148 @@ private:
 
 
 
+
+// ==============================================================================
+// Icons: Vector glyphs for 2x2 oscillator grid (Padlock, Triangle, Saw Up/Down)
+// ==============================================================================
+namespace Icons {
+
+inline juce::Path sawUp() {
+    juce::Path p;
+    p.startNewSubPath(0.12f, 0.78f);
+    p.lineTo(0.50f, 0.22f);
+    p.lineTo(0.50f, 0.78f);
+    p.lineTo(0.88f, 0.22f);
+    return p;
+}
+
+inline juce::Path triangle() {
+    juce::Path p;
+    p.startNewSubPath(0.10f, 0.78f);
+    p.lineTo(0.30f, 0.22f);
+    p.lineTo(0.50f, 0.78f);
+    p.lineTo(0.70f, 0.22f);
+    p.lineTo(0.90f, 0.78f);
+    return p;
+}
+
+inline juce::Path sawDown() {
+    juce::Path p;
+    p.startNewSubPath(0.12f, 0.22f);
+    p.lineTo(0.50f, 0.78f);
+    p.lineTo(0.50f, 0.22f);
+    p.lineTo(0.88f, 0.78f);
+    return p;
+}
+
+inline juce::Path padlockBody() {
+    juce::Path p;
+    p.addRoundedRectangle(0.20f, 0.44f, 0.60f, 0.46f, 0.08f);
+    return p;
+}
+
+inline juce::Path shackleClosed() {
+    juce::Path p;
+    p.startNewSubPath(0.32f, 0.44f);
+    p.lineTo(0.32f, 0.28f);
+    p.cubicTo(0.32f, 0.08f, 0.68f, 0.08f, 0.68f, 0.28f);
+    p.lineTo(0.68f, 0.44f);
+    return p;
+}
+
+inline juce::Path shackleOpen() {
+    juce::Path p;
+    p.startNewSubPath(0.32f, 0.44f);
+    p.lineTo(0.32f, 0.26f);
+    p.cubicTo(0.32f, 0.04f, 0.68f, 0.04f, 0.68f, 0.18f);
+    p.lineTo(0.68f, 0.24f);
+    return p;
+}
+
+} // namespace Icons
+
+// ==============================================================================
+// VectorIconButton: Large tactile square button rendering crisp vector iconography
+// ==============================================================================
+class VectorIconButton : public juce::Button {
+public:
+    enum class IconType {
+        Lock,
+        Triangle,
+        SawUp,
+        SawDown
+    };
+
+    VectorIconButton(const juce::String& name, IconType type, juce::Colour accentCol)
+        : juce::Button(name), type_(type), accentCol_(accentCol) {
+        setClickingTogglesState(true);
+    }
+
+    void setAccentColour(juce::Colour c) { accentCol_ = c; repaint(); }
+
+    void paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override {
+        auto bounds = getLocalBounds().toFloat().reduced(0.5f);
+        if (bounds.isEmpty()) return;
+
+        const bool on = getToggleState();
+
+        if (type_ == IconType::Lock) {
+            juce::Colour bg = shouldDrawButtonAsDown ? juce::Colour(0xFF262D38)
+                            : (shouldDrawButtonAsHighlighted ? juce::Colour(0xFF21262D) : juce::Colour(0xFF161B22));
+            g.setColour(bg);
+            g.fillRoundedRectangle(bounds, 4.0f);
+
+            juce::Colour borderCol = on ? juce::Colour(0xFFFFD700)
+                                   : (shouldDrawButtonAsHighlighted ? juce::Colour(0xFF484F58) : juce::Colour(0xFF30363D));
+            g.setColour(borderCol);
+            g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+            auto iconArea = bounds.reduced(5.0f);
+            juce::Colour glyphCol = on ? juce::Colour(0xFFFFD700) : juce::Colour(0xFF8B949E);
+            g.setColour(glyphCol);
+
+            auto body = Icons::padlockBody();
+            body.applyTransform(juce::AffineTransform::scale(iconArea.getWidth(), iconArea.getHeight())
+                                    .translated(iconArea.getX(), iconArea.getY()));
+            g.fillPath(body);
+
+            auto shackle = on ? Icons::shackleClosed() : Icons::shackleOpen();
+            shackle.applyTransform(juce::AffineTransform::scale(iconArea.getWidth(), iconArea.getHeight())
+                                       .translated(iconArea.getX(), iconArea.getY()));
+            g.strokePath(shackle, juce::PathStrokeType(1.75f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        } else {
+            juce::Colour bg = on ? accentCol_
+                            : (shouldDrawButtonAsDown ? juce::Colour(0xFF262D38)
+                            : (shouldDrawButtonAsHighlighted ? juce::Colour(0xFF21262D) : juce::Colour(0xFF161B22)));
+            g.setColour(bg);
+            g.fillRoundedRectangle(bounds, 4.0f);
+
+            juce::Colour borderCol = on ? accentCol_
+                                   : (shouldDrawButtonAsHighlighted ? juce::Colour(0xFF484F58) : juce::Colour(0xFF30363D));
+            g.setColour(borderCol);
+            g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+
+            auto iconArea = bounds.reduced(5.0f);
+            juce::Colour iconCol = on ? juce::Colour(0xFF0D1117)
+                                 : (shouldDrawButtonAsHighlighted ? juce::Colours::white : accentCol_.withAlpha(0.85f));
+            g.setColour(iconCol);
+
+            juce::Path shapePath;
+            if (type_ == IconType::SawUp) shapePath = Icons::sawUp();
+            else if (type_ == IconType::Triangle) shapePath = Icons::triangle();
+            else if (type_ == IconType::SawDown) shapePath = Icons::sawDown();
+
+            shapePath.applyTransform(juce::AffineTransform::scale(iconArea.getWidth(), iconArea.getHeight())
+                                         .translated(iconArea.getX(), iconArea.getY()));
+            g.strokePath(shapePath, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        }
+    }
+
+private:
+    IconType type_;
+    juce::Colour accentCol_;
+};
+
 // ==============================================================================
 
 // AuditionMenuButton: Clean dark capsule button with vector down-chevron
@@ -1492,7 +1634,15 @@ private:
 
     std::array<juce::Label, 3> loopTags_;
 
-    juce::TextButton osc1MasterButton_{"MSTR"};
+    struct OscShapeGrid {
+        std::unique_ptr<VectorIconButton> lockBtn;
+        std::unique_ptr<VectorIconButton> triBtn;
+        std::unique_ptr<VectorIconButton> upBtn;
+        std::unique_ptr<VectorIconButton> downBtn;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> lockAttachment;
+        std::unique_ptr<juce::ParameterAttachment> loopAttachment;
+    };
+    std::array<OscShapeGrid, 3> oscShapeGrids_;
 
 
 

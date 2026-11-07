@@ -394,7 +394,7 @@ void NyarlatProcessor::renderSegment(float* left, float* right, int numSamples, 
 
             params.oscBanks, params.oscMorphs, params.oscOddEvens, params.oscTilts, params.oscFormants, params.oscMasks,
 
-            params.oscDetunes, params.oscOctaves, params.oscSpeedLocks, params.oscSyncs, params.oscSpeeds, params.oscLoops,
+            params.oscOctaves, params.oscSpeedLocks, params.oscSpeeds, params.oscLoops,
 
             params.osc1Lvl, params.osc2Lvl, params.osc3Lvl,
 
@@ -532,12 +532,6 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
     // 3. Tuning & Structure
 
-    params.oscDetunes[0] = *apvts_.getRawParameterValue(Ids::osc1_detune);
-
-    params.oscDetunes[1] = *apvts_.getRawParameterValue(Ids::osc2_detune);
-
-    params.oscDetunes[2] = *apvts_.getRawParameterValue(Ids::osc3_detune);
-
 
 
     params.oscOctaves[0] = static_cast<int>(*apvts_.getRawParameterValue(Ids::osc1_octave));
@@ -558,11 +552,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 
 
-    params.oscSyncs[0] = false;
 
-    params.oscSyncs[1] = *apvts_.getRawParameterValue(Ids::osc2_sync) > 0.5f;
-
-    params.oscSyncs[2] = *apvts_.getRawParameterValue(Ids::osc3_sync) > 0.5f;
 
 
 
