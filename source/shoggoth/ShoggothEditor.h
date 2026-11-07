@@ -251,7 +251,6 @@ class HeaderInspector : public juce::Component {
 public:
     struct Readout {
         juce::String name{"SHOGGOTH"};
-        juce::String value{"READY"};
         juce::String blurb{"Multidimensional clean-room additive synthesizer (AVX2 complex rotators)"};
         juce::Colour accent{0xFF00FFCC};
         bool isDefault{true};
@@ -270,7 +269,6 @@ public:
     void setReadoutDefault() {
         Readout d;
         d.name = "SHOGGOTH";
-        d.value = "READY";
         d.blurb = "Multidimensional clean-room additive synthesizer (AVX2 complex rotators)";
         d.accent = juce::Colour(0xFF00FFCC);
         d.isDefault = true;
@@ -284,21 +282,19 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        auto nameRect = juce::Rectangle<float>(bounds.getX() + 8.0f, bounds.getY(), 95.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
+        auto nameRect = juce::Rectangle<float>(bounds.getX() + 8.0f, bounds.getY(), 105.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
-        auto valueRect = juce::Rectangle<float>(bounds.getX() + 105.0f, bounds.getY(), 85.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
-        g.setColour(juce::Colour(0xFFF0F6FC));
-        g.drawText(readout_.value, valueRect, juce::Justification::centredLeft, true);
+        g.setColour(juce::Colour(0xFF262D38).withAlpha(0.65f));
+        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 118.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
 
-        float blurbW = std::max(40.0f, bounds.getWidth() - 195.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 192.0f, bounds.getY(), blurbW, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(11.0f)));
+        float blurbW = std::max(40.0f, bounds.getWidth() - 133.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 125.0f, bounds.getY(), blurbW, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(11.5f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
-        g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 1);
+        g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
     }
 
 private:

@@ -5,6 +5,7 @@
 #include "FormlessProcessor.h"
 #include "formless_spawn/FormlessControlInfo.h"
 #include "ui/EditorScaleManager.h"
+#include "ui/CrackedChimesUI.h"
 #include <vector>
 #include <array>
 #include <memory>
@@ -49,7 +50,6 @@ class HeaderInspector : public juce::Component {
 public:
     struct Readout {
         juce::String name;
-        juce::String value;
         juce::String blurb;
         juce::Colour accent{0xFFFFAA00};
         bool isDefault{false};
@@ -61,8 +61,7 @@ public:
     }
 
     void setReadout(Readout r) {
-        if (readout_.name == r.name && readout_.value == r.value &&
-            readout_.blurb == r.blurb && readout_.accent == r.accent &&
+        if (readout_.name == r.name && readout_.blurb == r.blurb && readout_.accent == r.accent &&
             readout_.isDefault == r.isDefault)
             return;
 
@@ -73,7 +72,6 @@ public:
     void setReadoutDefault() {
         Readout d;
         d.name = "FORMLESS SPAWN";
-        d.value = "READY";
         d.blurb = "sovereign 64-model percussion synthesizer (8 roles x 8 models)";
         d.accent = juce::Colour(0xFFFFAA00);
         d.isDefault = true;
@@ -95,9 +93,13 @@ public:
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
-        // Col 2: Explanation blurb across the full remaining area (x: 116, w: bounds.getWidth() - 122.0f, 2 lines)
-        float blurbW = std::max(50.0f, bounds.getWidth() - 122.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 116.0f, bounds.getY(), blurbW, bounds.getHeight());
+        // Subtle vertical separator
+        g.setColour(juce::Colour(0xFF262D38).withAlpha(0.65f));
+        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 112.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
+
+        // Col 2: Explanation blurb across the full remaining area (x: 118, w: bounds.getWidth() - 124.0f, 2 lines)
+        float blurbW = std::max(40.0f, bounds.getWidth() - 124.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 118.0f, bounds.getY(), blurbW, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.0f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
         g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
@@ -640,229 +642,12 @@ private:
 };
 
 // ==============================================================================
-// Formless LookAndFeel (Vector Dial Mechanics matching Hastur)
+// Formless LookAndFeel (Vector Dial Mechanics matching Hastur via CrackedChimesUI)
 // ==============================================================================
-class FormlessLookAndFeel : public juce::LookAndFeel_V4 {
+class FormlessLookAndFeel : public CrackedChimes::UI::CrackedChimesLookAndFeel {
 public:
     FormlessLookAndFeel() {
         setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(0xFF0D1117));
-    }
-
-    void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
-                          float sliderPosProportional, float rotaryStartAngle,
-                          float rotaryEndAngle, juce::Slider& slider) override {
-        auto bounds = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y),
-                                             static_cast<float>(width), static_cast<float>(height)).reduced(3.0f);
-        auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) * 0.5f;
-        auto centre = bounds.getCentre();
-        auto angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
-        const float sweep = rotaryEndAngle - rotaryStartAngle;
-
-        const bool compact = radius < 26.0f; // Small-knob mode for 2x4 grid (44px knobs)
-        const bool hasMod = slider.getProperties().contains("modLo");
-        const bool hasRand = slider.getProperties().contains("randLo");
-        const bool dualRadar = hasMod && hasRand;
-
-        // Concentric Dual-Radar Radial Offsets
-        float hrYellow, hrOrange, trackRadius, dialRadius;
-        float yellowGlow, yellowCore, yellowPipR;
-        float orangeGlow, orangeCore, orangePipR;
-        float trackStroke;
-
-        if (compact) {
-            if (dualRadar) {
-                hrYellow    = radius - 1.0f;
-                yellowGlow  = 2.5f; yellowCore = 1.4f; yellowPipR = 1.8f;
-                hrOrange    = radius - 3.2f;
-                orangeGlow  = 2.2f; orangeCore = 1.4f; orangePipR = 1.6f;
-                trackRadius = radius - 5.5f;
-                trackStroke = 2.5f;
-                dialRadius  = radius - 7.5f;
-            } else {
-                hrYellow    = radius - 1.0f;
-                yellowGlow  = 3.0f; yellowCore = 1.6f; yellowPipR = 2.0f;
-                hrOrange    = hrYellow;
-                orangeGlow  = yellowGlow; orangeCore = yellowCore; orangePipR = yellowPipR;
-                trackRadius = radius - 3.5f;
-                trackStroke = 3.0f;
-                dialRadius  = radius - 7.0f;
-            }
-        } else {
-            if (dualRadar) {
-                hrYellow    = radius - 1.2f;
-                yellowGlow  = 4.0f; yellowCore = 2.0f; yellowPipR = 2.2f;
-                hrOrange    = radius - 4.2f;
-                orangeGlow  = 3.5f; orangeCore = 1.8f; orangePipR = 2.0f;
-                trackRadius = radius - 7.2f;
-                trackStroke = 3.5f;
-                dialRadius  = radius - 9.8f;
-            } else {
-                hrYellow    = radius - 1.5f;
-                yellowGlow  = 4.5f; yellowCore = 2.0f; yellowPipR = 2.5f;
-                hrOrange    = hrYellow;
-                orangeGlow  = yellowGlow; orangeCore = yellowCore; orangePipR = yellowPipR;
-                trackRadius = radius - 4.0f;
-                trackStroke = 4.0f;
-                dialRadius  = radius - 8.0f;
-            }
-        }
-
-        // 1. Background track ring
-        g.setColour(juce::Colour(0xFF21262D));
-        juce::Path trackPath;
-        trackPath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
-        g.strokePath(trackPath, juce::PathStrokeType(trackStroke, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-
-        // 2. Active modulation arc with Bipolar Mid-Point Glow
-        auto fillCol = slider.findColour(juce::Slider::rotarySliderFillColourId);
-        g.setColour(fillCol);
-        juce::Path activePath;
-        const bool propBipolar = slider.getProperties().contains("isBipolar") && static_cast<bool>(slider.getProperties()["isBipolar"]);
-        const bool rangeBipolar = (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0);
-        const bool isBipolar = rangeBipolar || propBipolar;
-
-        if (isBipolar) {
-            float zeroNorm = 0.5f;
-            if (rangeBipolar) {
-                zeroNorm = static_cast<float>(-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
-            }
-            const float midAngle = rotaryStartAngle + zeroNorm * sweep;
-            if (std::abs(angle - midAngle) > 0.005f) {
-                if (angle > midAngle) {
-                    activePath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, midAngle, angle, true);
-                } else {
-                    activePath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, angle, midAngle, true);
-                }
-                g.strokePath(activePath, juce::PathStrokeType(trackStroke, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-            }
-        } else {
-            if (sliderPosProportional > 0.001f) {
-                activePath.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, angle, true);
-                g.strokePath(activePath, juce::PathStrokeType(trackStroke, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-            }
-        }
-
-        // 3. Dial body
-        g.setColour(juce::Colour(0xFF161B22));
-        g.fillEllipse(centre.x - dialRadius, centre.y - dialRadius, dialRadius * 2.0f, dialRadius * 2.0f);
-        g.setColour(juce::Colour(0xFF30363D));
-        g.drawEllipse(centre.x - dialRadius, centre.y - dialRadius, dialRadius * 2.0f, dialRadius * 2.0f, 1.2f);
-
-        // Position pointer needle
-        juce::Path p;
-        auto pointerLen = dialRadius * 0.75f;
-        p.startNewSubPath(centre.x, centre.y);
-        p.lineTo(centre.x + pointerLen * std::sin(angle), centre.y - pointerLen * std::cos(angle));
-        g.setColour(juce::Colour(0xFFF0F6FC));
-        g.strokePath(p, juce::PathStrokeType(compact ? 2.0f : 2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-
-        // Center jewel pip
-        g.setColour(fillCol);
-        const float pipD = compact ? 4.0f : 5.0f;
-        g.fillEllipse(centre.x - pipD * 0.5f, centre.y - pipD * 0.5f, pipD, pipD);
-
-        // =====================================================================
-        // VISUAL MODULATION RADAR TELEMETRY (Concentric Source-Color Arc Halos & Pips)
-        // =====================================================================
-        // Inner Ring: Macro Vector Modulation Halos (Movie Poster Orange 0xFFFF7B25)
-        if (hasMod) {
-            const float lo = static_cast<float>(slider.getProperties()["modLo"]);
-            const float hi = static_cast<float>(slider.getProperties()["modHi"]);
-            if (hi - lo > 0.002f) {
-                const auto orangeCol = juce::Colour(0xFFFF7B25); // Movie Poster Orange
-
-                juce::Path arc;
-                arc.addCentredArc(centre.x, centre.y, hrOrange, hrOrange, 0.0f,
-                                  rotaryStartAngle + lo * sweep, rotaryStartAngle + hi * sweep, true);
-                g.setColour(orangeCol.withAlpha(0.28f));
-                g.strokePath(arc, juce::PathStrokeType(orangeGlow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-                g.setColour(orangeCol.withAlpha(0.95f));
-                g.strokePath(arc, juce::PathStrokeType(orangeCore, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-
-                if (slider.getProperties().contains("modPip")) {
-                    const float pipNorm = static_cast<float>(slider.getProperties()["modPip"]);
-                    const float pipAngle = rotaryStartAngle + pipNorm * sweep;
-                    const float px = centre.x + hrOrange * std::sin(pipAngle);
-                    const float py = centre.y - hrOrange * std::cos(pipAngle);
-
-                    g.setColour(juce::Colours::white);
-                    g.fillEllipse(px - orangePipR, py - orangePipR, 2.0f * orangePipR, 2.0f * orangePipR);
-                    g.setColour(orangeCol);
-                    g.drawEllipse(px - orangePipR - 1.0f, py - orangePipR - 1.0f, 2.0f * orangePipR + 2.0f, 2.0f * orangePipR + 2.0f, 1.0f);
-                }
-            }
-        }
-
-        // Outer Ring: Stepped Random & Velocity Dynamic Halos (Caustic Hastur Yellow 0xFFF2E10F)
-        if (hasRand) {
-            const float lo = static_cast<float>(slider.getProperties()["randLo"]);
-            const float hi = static_cast<float>(slider.getProperties()["randHi"]);
-            if (hi - lo > 0.002f) {
-                const auto yellowCol = juce::Colour(0xFFF2E10F); // Caustic Hastur Yellow
-
-                juce::Path arc;
-                arc.addCentredArc(centre.x, centre.y, hrYellow, hrYellow, 0.0f,
-                                  rotaryStartAngle + lo * sweep, rotaryStartAngle + hi * sweep, true);
-                g.setColour(yellowCol.withAlpha(0.25f));
-                g.strokePath(arc, juce::PathStrokeType(yellowGlow, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-                g.setColour(yellowCol.withAlpha(0.95f));
-                g.strokePath(arc, juce::PathStrokeType(yellowCore, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-
-                if (slider.getProperties().contains("randPip")) {
-                    const float pipNorm = static_cast<float>(slider.getProperties()["randPip"]);
-                    const float pipAngle = rotaryStartAngle + pipNorm * sweep;
-                    const float px = centre.x + hrYellow * std::sin(pipAngle);
-                    const float py = centre.y - hrYellow * std::cos(pipAngle);
-
-                    g.setColour(juce::Colours::white);
-                    g.fillEllipse(px - yellowPipR, py - yellowPipR, 2.0f * yellowPipR, 2.0f * yellowPipR);
-                    g.setColour(yellowCol);
-                    g.drawEllipse(px - yellowPipR - 1.0f, py - yellowPipR - 1.0f, 2.0f * yellowPipR + 2.0f, 2.0f * yellowPipR + 2.0f, 1.0f);
-                }
-            }
-        }
-
-        // =====================================================================
-        // KILOHEARTS IN-DIAL VALUE BADGE (Ephemerally Rendered On Interaction)
-        // =====================================================================
-        bool isInteracting = slider.isMouseButtonDown();
-        if (!isInteracting && slider.getProperties().contains("badgeExpiry")) {
-            auto expiry = static_cast<juce::int64>(static_cast<double>(slider.getProperties()["badgeExpiry"]));
-            if (juce::Time::getMillisecondCounter() < expiry) {
-                isInteracting = true;
-            }
-        }
-        if (isInteracting) {
-            juce::String text = slider.textFromValueFunction
-                ? slider.textFromValueFunction(slider.getValue())
-                : slider.getTextFromValue(slider.getValue());
-            drawKiloheartsValueBadge(g, bounds, text, fillCol);
-        }
-    }
-
-    static void drawKiloheartsValueBadge(juce::Graphics& g, const juce::Rectangle<float>& bounds,
-                                         const juce::String& text, juce::Colour accentColour) {
-        if (text.isEmpty()) return;
-        const auto font = juce::Font(juce::FontOptions(10.5f).withStyle("Bold"));
-        const float textW = juce::GlyphArrangement::getStringWidth(font, text);
-        const float badgeW = std::clamp(textW + 10.0f, 26.0f, bounds.getWidth() - 6.0f);
-        const float badgeH = 14.0f;
-        const float badgeX = bounds.getCentreX() - badgeW * 0.5f;
-        const float badgeY = bounds.getBottom() - badgeH - 1.0f;
-        const auto badgeRect = juce::Rectangle<float>(badgeX, badgeY, badgeW, badgeH);
-
-        // Obsidian Badge Background
-        g.setColour(juce::Colour(0xFA090D12));
-        g.fillRoundedRectangle(badgeRect, 3.5f);
-
-        // Subtle Accent-tinted Border
-        g.setColour(accentColour.withAlpha(0.65f));
-        g.drawRoundedRectangle(badgeRect, 3.5f, 1.0f);
-
-        // Crisp White Text
-        g.setFont(font);
-        g.setColour(juce::Colour(0xFFF0F6FC));
-        g.drawFittedText(text, badgeRect.toNearestInt(), juce::Justification::centred, 1);
     }
 };
 

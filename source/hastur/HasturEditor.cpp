@@ -1,4 +1,5 @@
 #include "HasturEditor.h"
+#include "../dsp/common/MasterTaper.h"
 
 // ==============================================================================
 // Waveform Geometry & Visual Vector Helpers
@@ -1576,7 +1577,9 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
     setupRotaryKnob(outputLevelKnob, "output_level", "VOLUME", HasturColours::kOutput);
     outputLevelKnob.slider.textFromValueFunction = [](double val) {
-        return juce::String::formatted("%.0f%%", val * 100.0);
+        const float db = tkdsp::common::evalMasterVolumeDb(static_cast<float>(val));
+        if (db <= -60.0f) return juce::String("-inf dB");
+        return juce::String::formatted("%+.1f dB", db);
     };
     outputLevelKnob.slider.updateText();
 
@@ -1844,8 +1847,8 @@ void HasturAudioProcessorEditor::bindDiscreteControls() {
 void HasturAudioProcessorEditor::layoutControls() {
     // Header (Position A: Title -> Preset Stub -> Unified Inspector -> Lifeform Toggle)
     headerLabel.setBounds(14, 4, 140, 36);
-    presetStub.setBounds(162, 8, 168, 28);
-    headerInspector.setBounds(338, 8, 566, 28);
+    presetStub.setBounds(162, 8, 288, 28);
+    headerInspector.setBounds(458, 8, 446, 28);
     lifeModeToggle.setBounds(912, 8, 234, 28);
 
     // =========================================================================
@@ -2529,21 +2532,13 @@ void HasturAudioProcessorEditor::updateInspectorForComponent(juce::Component* co
             r.blurb = juce::String(dynamicBlurb.data(), dynamicBlurb.size());
         }
 
-        // Live value formatting
-        if (binding.slider != nullptr) {
-            if (binding.slider->textFromValueFunction)
-                r.value = binding.slider->textFromValueFunction(binding.slider->getValue());
-            else
-                r.value = binding.slider->getTextFromValue(binding.slider->getValue());
-        } else if (auto* param = processor_.getAPVTS().getParameter(binding.paramId)) {
+        // Context-sensitive choice option blurb
+        if (auto* param = processor_.getAPVTS().getParameter(binding.paramId)) {
             if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param)) {
-                r.value = choiceParam->getCurrentChoiceName();
                 int idx = choiceParam->getIndex();
                 if (!info->options.empty() && idx >= 0 && idx < static_cast<int>(info->options.size())) {
                     r.blurb = juce::String(info->options[idx].blurb.data(), info->options[idx].blurb.size());
                 }
-            } else {
-                r.value = param->getCurrentValueAsText();
             }
         }
     }

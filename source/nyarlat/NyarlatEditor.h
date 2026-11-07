@@ -115,11 +115,7 @@ class HeaderInspector : public juce::Component {
 public:
 
     struct Readout {
-
         juce::String name;
-
-        juce::String value;
-
         juce::String blurb;
 
         juce::Colour accent{0xFF00C8F0};
@@ -142,7 +138,7 @@ public:
 
     void setReadout(Readout r) {
 
-        if (readout_.name == r.name && readout_.value == r.value &&
+        if (readout_.name == r.name &&
 
             readout_.blurb == r.blurb && readout_.accent == r.accent &&
 
@@ -165,8 +161,6 @@ public:
         Readout d;
 
         d.name = "NYARLAT";
-
-        d.value = "READY";
 
         d.blurb = "16-voice metamorphic Z-domain synthesizer (3 bitmask oscs x 14-pole Z-cube)";
 
@@ -199,34 +193,18 @@ public:
 
 
         // Col 1: Parameter / System Name
-
-        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 100.0f, bounds.getHeight());
-
-        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
-
+        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 110.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
         g.setColour(readout_.accent);
-
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
+        // Subtle separator
+        g.setColour(juce::Colour(0xFF262D38).withAlpha(0.65f));
+        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 124.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
 
-
-        // Col 2: Live Value Readout
-
-        auto valueRect = juce::Rectangle<float>(bounds.getX() + 116.0f, bounds.getY(), 96.0f, bounds.getHeight());
-
-        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
-
-        g.setColour(juce::Colour(0xFFF0F6FC));
-
-        g.drawText(readout_.value, valueRect, juce::Justification::centredLeft, true);
-
-
-
-        // Col 3: Explanation blurb across the full remaining area
-
-        float blurbW = std::max(50.0f, bounds.getWidth() - 224.0f);
-
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 218.0f, bounds.getY(), blurbW, bounds.getHeight());
+        // Col 2: Explanation blurb across the full remaining area (2 lines)
+        float blurbW = std::max(50.0f, bounds.getWidth() - 138.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 130.0f, bounds.getY(), blurbW, bounds.getHeight());
 
         g.setFont(juce::Font(juce::FontOptions(11.5f)));
 

@@ -61,7 +61,6 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     roleGrid_.onHover = [this](int roleIdx) {
         HeaderInspector::Readout r;
         r.name = "ROLE: " + juce::String(tkdsp::FormlessSpawnVoice::kRoleNames[roleIdx]);
-        r.value = "SEL";
         r.blurb = juce::String(FormlessInfo::kRoleDescriptions[roleIdx].data(), FormlessInfo::kRoleDescriptions[roleIdx].size());
         r.accent = juce::Colour(0xFFFF9D00);
         r.isDefault = false;
@@ -78,7 +77,6 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     modelGrid_.onHover = [this](int modelIdx, const juce::String& modelName) {
         HeaderInspector::Readout r;
         r.name = "MODEL: " + modelName;
-        r.value = juce::String::formatted("#%02d", modelIdx);
         r.blurb = "active drum synthesis topology and transient core";
         r.accent = juce::Colour(0xFF00C8FF);
         r.isDefault = false;
@@ -329,9 +327,9 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
 
     // Live Streaming Telemetry to HeaderInspector
     auto sendTelemetry = [this, &item, blurb, col](double val) {
+        juce::ignoreUnused(val);
         HeaderInspector::Readout r;
         r.name = item.label.getText();
-        r.value = item.slider.textFromValueFunction ? item.slider.textFromValueFunction(val) : juce::String(val, 2);
 
         // Dynamically serve Card 2 blurbs & names per active role
         const int curRole = std::clamp(roleGrid_.getState(), 0, tkdsp::FormlessSpawnVoice::kTotalRoles - 1);
@@ -444,8 +442,8 @@ void FormlessSpawnAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
 
 void FormlessSpawnAudioProcessorEditor::layoutControls() {
     // Header: right edge lands on 880 (matches card right edge)
-    presetStub_.setBounds(174, 8, 145, 28);
-    headerInspector_.setBounds(326, 8, 314, 28);
+    presetStub_.setBounds(174, 8, 180, 28);
+    headerInspector_.setBounds(361, 8, 279, 28);
     lifeformRocker_.setBounds(646, 8, 234, 28);
 
     // Card 0

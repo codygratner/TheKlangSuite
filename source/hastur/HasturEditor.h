@@ -1000,7 +1000,6 @@ class HeaderInspector : public juce::Component {
 public:
     struct Readout {
         juce::String name;
-        juce::String value;
         juce::String blurb;
         juce::Colour accent{0xFF7DFF3B}; // Default Acid Green
         bool isDefault{false};
@@ -1012,8 +1011,7 @@ public:
     }
 
     void setReadout(Readout r) {
-        if (readout_.name == r.name && readout_.value == r.value &&
-            readout_.blurb == r.blurb && readout_.accent == r.accent &&
+        if (readout_.name == r.name && readout_.blurb == r.blurb && readout_.accent == r.accent &&
             readout_.isDefault == r.isDefault)
             return;
 
@@ -1024,7 +1022,6 @@ public:
     void setReadoutDefault() {
         Readout d;
         d.name = "HASTUR";
-        d.value = "READY";
         d.blurb = "cascaded dual-svf metamorphic analog bass synthesizer";
         d.accent = juce::Colour(0xFF7DFF3B);
         d.isDefault = true;
@@ -1040,15 +1037,19 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        // Unified Monolithic OLED Ribbon (w: 566px, h: 28px, >= 13pt typography, pure gear manual text)
+        // Unified Monolithic OLED Ribbon (w: 446px, h: 28px, >= 13pt typography, pure gear manual text)
         // Col 1: Name (x: 10, w: 105, h: 28, 13pt bold)
         auto nameRect = juce::Rectangle<float>(10.0f, 0.0f, 105.0f, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
-        // Col 2: Explanation blurb across the full 445px area (x: 120, w: bounds.getWidth() - 128.0f, 2 lines)
-        auto blurbRect = juce::Rectangle<float>(120.0f, 0.0f, bounds.getWidth() - 128.0f, bounds.getHeight());
+        // Subtle vertical separator
+        g.setColour(juce::Colour(0xFF262D38).withAlpha(0.65f));
+        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 118.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
+
+        // Col 2: Explanation blurb across remaining area (x: 125, w: bounds.getWidth() - 133.0f, 2 lines)
+        auto blurbRect = juce::Rectangle<float>(125.0f, 0.0f, bounds.getWidth() - 133.0f, bounds.getHeight());
         g.setFont(juce::Font(juce::FontOptions(12.5f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
         g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);

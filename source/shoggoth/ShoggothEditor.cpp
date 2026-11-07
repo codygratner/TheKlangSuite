@@ -322,9 +322,9 @@ void ShoggothEditor::resized() {
     // 4-Capsule Header Strip Geometry (1160px canvas)
     titleLabel.setBounds        (14,  4, 120, 20);
     subtitleLabel.setBounds     (14, 24, 120, 12);
-    presetSelector_.setBounds   (140, 8, 210, 28);
-    lifeModeToggle_.setBounds   (356, 8, 185, 28);
-    headerInspector_.setBounds  (548, 8, 598, 28);
+    presetSelector_.setBounds   (140, 8, 288, 28);
+    lifeModeToggle_.setBounds   (436, 8, 185, 28);
+    headerInspector_.setBounds  (629, 8, 517, 28);
 
     // Visualizers inside Cards
     spectrumCanvas_.setBounds   (24, 76, 540, 200);

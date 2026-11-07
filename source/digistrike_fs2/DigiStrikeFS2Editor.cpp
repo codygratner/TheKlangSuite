@@ -257,7 +257,6 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     lineageGrid_.onBudgetLimit = [this](const juce::String& msg) {
         DigiStrikeHeaderInspector::Readout r;
         r.name = "BUDGET";
-        r.value = "64/64 MAX";
         r.blurb = msg;
         r.accent = juce::Colour(0xFFFF5555);
         headerInspector_.setReadout(r);
@@ -425,20 +424,13 @@ void DigiStrikeFS2AudioProcessorEditor::updateInspectorForComponent(juce::Compon
     if (!binding.customName.isEmpty()) {
         r.name = binding.customName;
         r.blurb = binding.customBlurb;
-        r.value = "TRIG";
-    } else if (info != nullptr) {
+        } else if (info != nullptr) {
         r.name = juce::String(info->name.data(), info->name.size());
         r.blurb = juce::String(info->blurb.data(), info->blurb.size());
 
-        if (binding.slider != nullptr) {
-            if (binding.slider->textFromValueFunction)
-                r.value = binding.slider->textFromValueFunction(binding.slider->getValue());
-            else
-                r.value = juce::String(binding.slider->getValue(), 2);
-        } else if (binding.paramId == "category") {
+        if (binding.paramId == "category") {
             const int cat = std::clamp(categoryGrid_.getState(), 0, 10);
             const juce::StringArray catNames{"BD", "SN", "TM", "CP", "HH", "CY", "LN", "MC", "FX", "ST", "BS"};
-            r.value = catNames[cat];
             r.blurb = juce::String(DigiStrikeFS2Info::kCategoryDescriptions[cat].data(), DigiStrikeFS2Info::kCategoryDescriptions[cat].size());
         } else if (binding.paramId == "lineage") {
             const uint32_t mask = lineageGrid_.getMask();
@@ -459,7 +451,6 @@ void DigiStrikeFS2AudioProcessorEditor::updateInspectorForComponent(juce::Compon
                 if ((mask & (1u << i)) != 0) ++activeCount;
             }
             r.name = "LINEAGE: " + linNames[lin];
-            r.value = isActive ? (juce::String(activeCount * 4) + "/80 WAVES (" + juce::String(activeCount) + " LIN)") : "MUTED";
             if (lin + 1 < static_cast<int>(std::size(DigiStrikeFS2Info::kLineageDescriptions))) {
                 r.blurb = juce::String(DigiStrikeFS2Info::kLineageDescriptions[lin + 1].data(), DigiStrikeFS2Info::kLineageDescriptions[lin + 1].size())
                          + " (Click: toggle, R-Click/Alt: solo, 2x-Click: Fairlight reset)";
@@ -468,20 +459,16 @@ void DigiStrikeFS2AudioProcessorEditor::updateInspectorForComponent(juce::Compon
             }
         } else if (binding.paramId == "voice_mode") {
             const int mode = std::clamp(voiceModeRocker_.getState(), 0, 2);
-            r.value = (mode == 0 ? "MONO" : (mode == 1 ? "GLIDE" : "POLY"));
             r.blurb = juce::String(DigiStrikeFS2Info::kVoiceModeDescriptions[mode].data(), DigiStrikeFS2Info::kVoiceModeDescriptions[mode].size());
         } else if (binding.paramId == "life_mode") {
             const int life = std::clamp(lifeformRocker_.getState(), 0, 2);
-            r.value = (life == 0 ? "SYNTHETIC" : (life == 1 ? "CYBORG" : "ORGANIC"));
             r.blurb = juce::String(DigiStrikeFS2Info::kLifeformDescriptions[life].data(), DigiStrikeFS2Info::kLifeformDescriptions[life].size());
         } else if (binding.paramId == "loop_mode") {
             const int mode = std::clamp(loopModeBar_.getState(), 0, 3);
             const juce::StringArray loopNames{"ONCE (ONE-SHOT)", "HOLD (SUSTAIN FREEZE)", "LOOP (FORWARD LOOP)", "PING (PING-PONG)"};
-            r.value = loopNames[mode];
             r.blurb = "wavetable frame traversal boundary behavior: one-shot release, sustain freeze, continuous loop, or ping-pong";
         } else if (binding.paramId == "reverse") {
             const bool on = revButton_.getToggleState();
-            r.value = on ? "REVERSE (B -> A)" : "FORWARD (A -> B)";
             r.blurb = "playback traversal direction: forward from start offset or reverse sweeping toward transient crack";
         }
     }
@@ -920,6 +907,15 @@ void DigiStrikeFS2AudioProcessorEditor::timerCallback() {
         cutHalo.active = false;
     }
     updateModProp(cutSlider, cutHalo);
+
+    // 4. Master Limiter Hardware Jewel LED Telemetry (Instant attack, 300ms visual release)
+    const float rawGr = processor_.exchangeLimiterGrMin(1.0f);
+    if (rawGr < guiLimiterGr_) {
+        guiLimiterGr_ = rawGr;
+    } else {
+        guiLimiterGr_ += 0.15f * (rawGr - guiLimiterGr_);
+    }
+    limiterButton_.updateTelemetry(guiLimiterGr_);
 }
 
 void DigiStrikeFS2AudioProcessorEditor::paint(juce::Graphics& g) {
@@ -1020,8 +1016,8 @@ void DigiStrikeFS2AudioProcessorEditor::paintCanvas(juce::Graphics& g) {
 
 void DigiStrikeFS2AudioProcessorEditor::layoutControls() {
     // 1. Header Layout (Restored Preset Stub at 174)
-    presetStub_.setBounds(174, 8, 145, 28);
-    headerInspector_.setBounds(326, 8, 314, 28);
+    presetStub_.setBounds(174, 8, 180, 28);
+    headerInspector_.setBounds(361, 8, 279, 28);
     lifeformRocker_.setBounds(646, 8, 234, 28);
 
     // Helper: place label directly above slider

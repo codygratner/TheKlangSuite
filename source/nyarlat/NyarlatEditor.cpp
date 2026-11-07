@@ -1141,8 +1141,8 @@ void NyarlatEditor::layoutControls() {
     // Header Strip Geometry
     titleLabel.setBounds          (14,  4, 140, 20);
     subtitleLabel.setBounds       (14, 24, 140, 12);
-    stepperAuditionBar_.setBounds  (162, 8, 168, 28);
-    headerInspector_.setBounds    (338, 8, 566, 28);
+    stepperAuditionBar_.setBounds  (162, 8, 288, 28);
+    headerInspector_.setBounds    (458, 8, 446, 28);
     lifeModeToggle_.setBounds     (912, 8, 234, 28);
 
     auto findKnob = [this](const juce::String& id) -> RotaryKnob* {
@@ -1711,27 +1711,7 @@ void NyarlatEditor::inspectComponent(juce::Component* comp) {
 
 
 
-        if (auto* s = dynamic_cast<juce::Slider*>(comp)) {
-
-            r.value = s->getTextFromValue(s->getValue());
-
-        } else if (auto* c = dynamic_cast<juce::ComboBox*>(comp)) {
-
-            r.value = c->getText();
-
-        } else if (auto* b = dynamic_cast<juce::TextButton*>(comp)) {
-
-            r.value = b->getToggleState() ? "ON" : "OFF";
-
-        } else if (auto* rad = dynamic_cast<SegmentedRadio*>(comp)) {
-
-            r.value = rad->getValueText();
-
-        } else if (auto* step = dynamic_cast<StepperAuditionBar*>(comp)) {
-
-            r.value = juce::String(step->getCurrentIndex());
-
-        }
+        
 
         headerInspector_.setReadout(r);
 
