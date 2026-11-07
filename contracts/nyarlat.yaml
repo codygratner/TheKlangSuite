@@ -1,780 +1,1214 @@
-plugin: nyarlat
-name: Nyarlat Metamorphic Z-Domain Synthesizer
-version: 1.0.0
-manufacturer: Cracked Chimes
-category: synth
-
-parameters:
-  # ==============================================================================
-  # BAY 1: 3x BITMASK STATOR OSCILLATORS (29 parameters)
-  # ==============================================================================
-  # --- OSCILLATOR 1 ---
-  - id: osc1_bank
-    name: Osc 1 Bank
-    category: dco
-    type: choice
-    effect: timbre
-    choices: [
-      '0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010',
-      '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018', '0019', '0020',
-      'aguitar', 'altosax', 'birds', 'bitreduced', 'bw_blended', 'bw_perfectwaves',
-      'bw_saw', 'bw_sawbright', 'bw_sawgap', 'bw_sawrounded', 'bw_sin', 'bw_squ',
-      'bw_squrounded', 'bw_tri', 'c604', 'cello', 'clarinett', 'clavinet', 'dbass',
-      'distorted', 'ebass', 'eguitar', 'eorgan', 'epiano', 'flute', 'fmsynth',
-      'granular', 'hdrawn', 'hvoice', 'linear', 'oboe', 'oscchip', 'overtone',
-      'piano', 'pluckalgo', 'raw', 'sinharm', 'snippets', 'stereo', 'stringbox',
-      'symetric', 'theremin', 'vgame', 'vgamebasic', 'violin'
-    ]
-    default: 'bw_saw'
-
-  - id: osc1_wave
-    name: Osc 1 Wave Morph
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: osc1_mask
-    name: Osc 1 Mask
-    category: dco
-    type: int
-    effect: timbre
-    range: [0, 511]
-    default: 31
-
-  - id: osc1_speed
-    name: Osc 1 Mask Speed
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 10.0]
-    skew: 0.301
-    default: 0.0
-
-  - id: osc1_loop
-    name: Osc 1 Mask Loop
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Saw Up', 'Triangle', 'Saw Down']
-    default: 'Saw Up'
-
-  - id: osc1_octave
-    name: Osc 1 Octave
-    category: dco
-    type: choice
-    effect: pitch
-    choices: ['-2 Oct', '-1 Oct', 'Unison', '+1 Oct', '+2 Oct']
-    default: 'Unison'
-
-  - id: osc1_detune
-    name: Osc 1 Detune
-    category: dco
-    type: float
-    effect: pitch
-    range: [-100.0, 100.0]
-    default: 0.0
-
-  - id: osc1_oct_lock
-    name: Osc 1 Octave Lock
-    category: dco
-    type: choice
-    effect: pitch
-    choices: ['Off', 'On']
-    default: 'On'
-
-  # --- OSCILLATOR 2 ---
-  - id: osc2_bank
-    name: Osc 2 Bank
-    category: dco
-    type: choice
-    effect: timbre
-    choices: [
-      '0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010',
-      '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018', '0019', '0020',
-      'aguitar', 'altosax', 'birds', 'bitreduced', 'bw_blended', 'bw_perfectwaves',
-      'bw_saw', 'bw_sawbright', 'bw_sawgap', 'bw_sawrounded', 'bw_sin', 'bw_squ',
-      'bw_squrounded', 'bw_tri', 'c604', 'cello', 'clarinett', 'clavinet', 'dbass',
-      'distorted', 'ebass', 'eguitar', 'eorgan', 'epiano', 'flute', 'fmsynth',
-      'granular', 'hdrawn', 'hvoice', 'linear', 'oboe', 'oscchip', 'overtone',
-      'piano', 'pluckalgo', 'raw', 'sinharm', 'snippets', 'stereo', 'stringbox',
-      'symetric', 'theremin', 'vgame', 'vgamebasic', 'violin'
-    ]
-    default: 'hvoice'
-
-  - id: osc2_wave
-    name: Osc 2 Wave Morph
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: osc2_mask
-    name: Osc 2 Mask
-    category: dco
-    type: int
-    effect: timbre
-    range: [0, 511]
-    default: 31
-
-  - id: osc2_speed
-    name: Osc 2 Mask Speed
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 10.0]
-    skew: 0.301
-    default: 0.0
-
-  - id: osc2_loop
-    name: Osc 2 Mask Loop
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Saw Up', 'Triangle', 'Saw Down']
-    default: 'Saw Up'
-
-  - id: osc2_octave
-    name: Osc 2 Octave
-    category: dco
-    type: choice
-    effect: pitch
-    choices: ['-2 Oct', '-1 Oct', 'Unison', '+1 Oct', '+2 Oct']
-    default: 'Unison'
-
-  - id: osc2_detune
-    name: Osc 2 Detune
-    category: dco
-    type: float
-    effect: pitch
-    range: [-100.0, 100.0]
-    default: 0.0
-
-  - id: osc2_oct_lock
-    name: Osc 2 Octave Lock
-    category: dco
-    type: choice
-    effect: pitch
-    choices: ['Off', 'On']
-    default: 'On'
-
-  - id: osc2_sync
-    name: Osc 2 Hard Sync
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Off', 'Sync 1->2']
-    default: 'Off'
-
-  # --- OSCILLATOR 3 ---
-  - id: osc3_bank
-    name: Osc 3 Bank
-    category: dco
-    type: choice
-    effect: timbre
-    choices: [
-      '0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010',
-      '0011', '0012', '0013', '0014', '0015', '0016', '0017', '0018', '0019', '0020',
-      'aguitar', 'altosax', 'birds', 'bitreduced', 'bw_blended', 'bw_perfectwaves',
-      'bw_saw', 'bw_sawbright', 'bw_sawgap', 'bw_sawrounded', 'bw_sin', 'bw_squ',
-      'bw_squrounded', 'bw_tri', 'c604', 'cello', 'clarinett', 'clavinet', 'dbass',
-      'distorted', 'ebass', 'eguitar', 'eorgan', 'epiano', 'flute', 'fmsynth',
-      'granular', 'hdrawn', 'hvoice', 'linear', 'oboe', 'oscchip', 'overtone',
-      'piano', 'pluckalgo', 'raw', 'sinharm', 'snippets', 'stereo', 'stringbox',
-      'symetric', 'theremin', 'vgame', 'vgamebasic', 'violin'
-    ]
-    default: 'dbass'
-
-  - id: osc3_wave
-    name: Osc 3 Wave Morph
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: osc3_mask
-    name: Osc 3 Mask
-    category: dco
-    type: int
-    effect: timbre
-    range: [0, 511]
-    default: 31
-
-  - id: osc3_speed
-    name: Osc 3 Mask Speed
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 10.0]
-    skew: 0.301
-    default: 0.0
-
-  - id: osc3_loop
-    name: Osc 3 Mask Loop
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Saw Up', 'Triangle', 'Saw Down']
-    default: 'Saw Up'
-
-  - id: osc3_octave
-    name: Osc 3 Octave
-    category: dco
-    type: choice
-    effect: pitch
-    choices: ['-2 Oct', '-1 Oct', 'Unison', '+1 Oct', '+2 Oct']
-    default: '-1 Oct'
-
-  - id: osc3_detune
-    name: Osc 3 Detune
-    category: dco
-    type: float
-    effect: pitch
-    range: [-100.0, 100.0]
-    default: 0.0
-
-  - id: osc3_oct_lock
-    name: Osc 3 Octave Lock
-    category: dco
-    type: choice
-    effect: pitch
-    choices: ['Off', 'On']
-    default: 'On'
-
-  - id: osc3_sync
-    name: Osc 3 Hard Sync
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Off', 'Sync 1->3']
-    default: 'Off'
-
-  # ==============================================================================
-  # BAY 2: 4-CHANNEL MIXER & PRE-FILTER DRIVE (7 parameters)
-  # ==============================================================================
-  - id: osc1_level
-    name: Osc 1 Level
-    category: mixer
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.8
-
-  - id: osc2_level
-    name: Osc 2 Level
-    category: mixer
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.7
-
-  - id: osc3_level
-    name: Osc 3 Level
-    category: mixer
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.6
-
-  - id: noise_level
-    name: Noise Level
-    category: mixer
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: noise_tone
-    name: Noise Tone
-    category: mixer
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: osc_spread
-    name: Osc Pan Spread
-    category: mixer
-    type: float
-    effect: pan
-    range: [-1.0, 1.0]
-    default: 0.0
-
-  - id: mixer_seethe
-    name: Console Warmth
-    category: mixer
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  # ==============================================================================
-  # BAY 3: CHAOS ENGINE & 15-KNOB ATTENUVERTER MATRIX (18 parameters)
-  # ==============================================================================
-  # Master Chaos Deck
-  - id: chaos_rate
-    name: Chaos Rate
-    category: random
-    type: float
-    effect: timbre
-    range: [0.01, 10.0]
-    skew: 0.35
-    default: 0.5
-
-  - id: chaos_drift
-    name: Chaos Drift
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: chaos_poly_spread
-    name: Poly Chaos Spread
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
-
-  # Attenuverter Pod 1: Osc 1
-  - id: rand_o1_wave
-    name: RDM O1 Wave
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_o1_mask
-    name: RDM O1 Mask
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_o1_speed
-    name: RDM O1 Speed
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  # Attenuverter Pod 2: Osc 2
-  - id: rand_o2_wave
-    name: RDM O2 Wave
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_o2_mask
-    name: RDM O2 Mask
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_o2_speed
-    name: RDM O2 Speed
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  # Attenuverter Pod 3: Osc 3
-  - id: rand_o3_wave
-    name: RDM O3 Wave
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_o3_mask
-    name: RDM O3 Mask
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_o3_speed
-    name: RDM O3 Speed
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  # Attenuverter Pod 4: Z-Filter
-  - id: rand_z_freq
-    name: RDM Z-Freq
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_z_morph
-    name: RDM Z-Morph
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_z_transform
-    name: RDM Z-Transform
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  # Attenuverter Pod 5: Dynamics & Space
-  - id: rand_seethe
-    name: RDM Seethe
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_amp_decay
-    name: RDM Amp Decay
-    category: random
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_spread
-    name: RDM Spread
-    category: random
-    type: float
-    effect: pan
-    range: [0.0, 1.0]
-    default: 0.0
-
-  # ==============================================================================
-  # BAY 4: 14-POLE 3D Z-DOMAIN FILTER MATRIX (15 parameters)
-  # ==============================================================================
-  - id: z_model
-    name: Z-Filter Model
-    category: filter
-    type: choice
-    effect: timbre
-    choices: [
-      '001 Vocal Ah-Ee', '002 Vocal Oo-Ah', '003 Deep Throat', '004 Talking Box', '005 Choir Vowels',
-      '006 Formant Shifter', '007 Ceramic Horn', '008 Wooden Cavity', '009 Cello Body', '010 Bell Shell',
-      '011 Metallic Plate', '012 Comb Cluster', '013 Jet Flanger', '014 14-Pole Phaser', '015 Acid Squeeze',
-      '016 Bottom Heavy', '017 Sub Shifter', '018 24dB-to-Comb', '019 Inverted Poles', '020 Nuclear Waste'
-    ]
-    default: '001 Vocal Ah-Ee'
-
-  - id: z_freq
-    name: Z-Frequency
-    category: filter
-    type: float
-    effect: timbre
-    range: [10.0, 20000.0]
-    skew: 0.25
-    default: 1500.0
-
-  - id: z_morph
-    name: Z-Morph
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: z_transform
-    name: Z-Transform
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.3
-
-  # Filter Envelope
-  - id: filter_attack
-    name: Filter Attack
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.001, 10.0]
-    skew: 0.3
-    default: 0.01
-
-  - id: filter_decay
-    name: Filter Decay
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.01, 10.0]
-    skew: 0.3
-    default: 0.6
-
-  - id: filter_sustain
-    name: Filter Sustain
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.4
-
-  - id: filter_release
-    name: Filter Release
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.01, 15.0]
-    skew: 0.3
-    default: 0.5
-
-  - id: filter_env_depth
-    name: Filter Env Depth
-    category: filter
-    type: float
-    effect: timbre
-    range: [-1.0, 1.0]
-    default: 0.5
-
-  - id: filter_velocity
-    name: Filter Velocity
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
-
-  # Filter LFO
-  - id: filter_lfo_rate
-    name: Filter LFO Rate
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.05, 30.0]
-    skew: 0.35
-    default: 1.5
-
-  - id: filter_lfo_shape
-    name: Filter LFO Shape
-    category: filter
-    type: choice
-    effect: timbre
-    choices: ['Sine', 'Triangle', 'Saw', 'Pulse', 'Random']
-    default: 'Triangle'
-
-  - id: filter_lfo_dest
-    name: Filter LFO Dest
-    category: filter
-    type: choice
-    effect: timbre
-    choices: ['Freq (X)', 'Morph (Y)', 'Transform (Z)']
-    default: 'Morph (Y)'
-
-  - id: filter_lfo_depth
-    name: Filter LFO Depth
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: filter_keytrack
-    name: Filter Key Track
-    category: filter
-    type: float
-    effect: pitch
-    range: [0.0, 1.0]
-    default: 0.5
-
-  # ==============================================================================
-  # BAY 5: VCA, VELOCITY, PLAYABILITY & MPE (11 parameters)
-  # ==============================================================================
-  - id: amp_attack
-    name: Amp Attack
-    category: vca
-    type: float
-    effect: rms
-    range: [0.001, 10.0]
-    skew: 0.3
-    default: 0.005
-
-  - id: amp_decay
-    name: Amp Decay
-    category: vca
-    type: float
-    effect: rms
-    range: [0.01, 10.0]
-    skew: 0.3
-    default: 0.8
-
-  - id: amp_sustain
-    name: Amp Sustain
-    category: vca
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.7
-
-  - id: amp_release
-    name: Amp Release
-    category: vca
-    type: float
-    effect: rms
-    range: [0.01, 15.0]
-    skew: 0.3
-    default: 0.5
-
-  - id: amp_velocity
-    name: Amp Velocity
-    category: vca
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: keytrack_rate
-    name: Keytrack Rate
-    category: vca
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.3
-
-  - id: glide_time
-    name: Poly Glide Time
-    category: vca
-    type: float
-    effect: pitch
-    range: [0.0, 2.0]
-    skew: 0.3
-    default: 0.0
-
-  - id: voice_mode
-    name: Voicing Mode
-    category: vca
-    type: choice
-    effect: timbre
-    choices: ['Poly 16', 'Mono', 'Legato', 'Unison']
-    default: 'Poly 16'
-
-  - id: mpe_slide_depth
-    name: MPE Slide (Y) Depth
-    category: vca
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.75
-
-  - id: mpe_pressure_depth
-    name: MPE Press (Z) Depth
-    category: vca
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.75
-
-  - id: pitch_bend_range
-    name: Pitch Bend Range
-    category: vca
-    type: float
-    effect: pitch
-    range: [0.0, 24.0]
-    default: 2.0
-
-  # ==============================================================================
-  # BAY 6: MASTER OUTPUT & SPACE STAGE (9 parameters)
-  # ==============================================================================
-  - id: bass_boost
-    name: 40Hz Bass Boost
-    category: master
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: treble_tame
-    name: Treble Tame
-    category: master
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.3
-
-  - id: reverb_time
-    name: Reverb Time
-    category: master
-    type: float
-    effect: timbre
-    range: [0.2, 20.0]
-    skew: 0.35
-    default: 2.5
-
-  - id: reverb_damp
-    name: Reverb Damp
-    category: master
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.4
-
-  - id: reverb_mix
-    name: Reverb Mix
-    category: master
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.25
-
-  - id: alpha_chorus
-    name: Alpha Chorus
-    category: master
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.2
-
-  - id: osc_slop
-    name: Voice Drift / Slop
-    category: master
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.15
-
-  - id: global_width
-    name: Stereo Width
-    category: master
-    type: float
-    effect: pan
-    range: [-1.0, 1.0]
-    default: 0.0
-
-  - id: output_level
-    name: Master Volume
-    category: master
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.8
-
-  - id: life_mode
-    name: Life Mode
-    category: master
-    type: choice
-    effect: timbre
-    choices: ['Synthetic', 'Cyborg', 'Organic']
-    default: 'Synthetic'
+plugin: nyarlat
+name: Nyarlat Additive Timbral Synthesizer
+version: 0.2.0
+manufacturer: Cracked Chimes
+category: synth
+parameters:
+- id: filter_cutoff
+  automation_tier: 1
+  name: Filter Cutoff
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 15.0
+  - 20000.0
+  skew: 0.25
+  default: 3500.0
+  unit: Hz
+- id: filter_resonance
+  automation_tier: 1
+  name: Filter Resonance
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.15
+- id: filter_slope
+  automation_tier: 1
+  name: Filter Slope
+  category: filter
+  type: choice
+  effect: timbre
+  choices:
+  - 12 dB Lowpass
+  - 24 dB Lowpass
+  - 12 dB Bandpass
+  default: 24 dB Lowpass
+- id: filter_drive
+  automation_tier: 1
+  name: Filter Drive
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: filter_attack
+  automation_tier: 1
+  name: Filter Attack
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 0.001
+  - 10.0
+  skew: 0.3
+  default: 0.01
+  unit: s
+- id: filter_decay
+  automation_tier: 1
+  name: Filter Decay
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 0.01
+  - 10.0
+  skew: 0.3
+  default: 0.4
+  unit: s
+- id: filter_sustain
+  automation_tier: 1
+  name: Filter Sustain
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.3
+- id: filter_release
+  automation_tier: 1
+  name: Filter Release
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 0.01
+  - 15.0
+  skew: 0.3
+  default: 0.5
+  unit: s
+- id: filter_env_depth
+  automation_tier: 1
+  name: Filter Env Depth
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - -1.0
+  - 1.0
+  default: 0.5
+- id: filter_velocity
+  automation_tier: 1
+  name: Filter Velocity
+  category: filter
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: filter_keytrack
+  automation_tier: 1
+  name: Filter Key Track
+  category: filter
+  type: float
+  effect: pitch
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: osc1_morph
+  automation_tier: 2
+  name: Osc 1 Morph
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: osc1_odd_even
+  automation_tier: 2
+  name: Osc 1 Odd / Even
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - -1.0
+  - 1.0
+  default: 0.0
+- id: osc1_tilt
+  automation_tier: 2
+  name: Osc 1 Tilt
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - -12.0
+  - 6.0
+  default: 0.0
+  unit: dB/oct
+- id: osc1_formant
+  automation_tier: 2
+  name: Osc 1 Formant
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: osc1_mask
+  automation_tier: 2
+  name: Osc 1 Mask
+  category: dco
+  type: int
+  effect: timbre
+  range:
+  - 0
+  - 511
+  default: 511
+- id: osc1_speed
+  automation_tier: 2
+  name: Osc 1 Speed
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 10.0
+  skew: 0.301
+  default: 0.0
+  unit: Hz
+- id: osc1_detune
+  automation_tier: 2
+  name: Osc 1 Detune
+  category: dco
+  type: float
+  effect: pitch
+  range:
+  - -100.0
+  - 100.0
+  default: 0.0
+  unit: ct
+- id: osc1_level
+  automation_tier: 2
+  name: Osc 1 Level
+  category: mixer
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.8
+- id: osc2_morph
+  automation_tier: 2
+  name: Osc 2 Morph
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: osc2_odd_even
+  automation_tier: 2
+  name: Osc 2 Odd / Even
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - -1.0
+  - 1.0
+  default: 0.0
+- id: osc2_tilt
+  automation_tier: 2
+  name: Osc 2 Tilt
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - -12.0
+  - 6.0
+  default: 0.0
+  unit: dB/oct
+- id: osc2_formant
+  automation_tier: 2
+  name: Osc 2 Formant
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: osc2_mask
+  automation_tier: 2
+  name: Osc 2 Mask
+  category: dco
+  type: int
+  effect: timbre
+  range:
+  - 0
+  - 511
+  default: 511
+- id: osc2_speed
+  automation_tier: 2
+  name: Osc 2 Speed
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 10.0
+  skew: 0.301
+  default: 0.0
+  unit: Hz
+- id: osc2_detune
+  automation_tier: 2
+  name: Osc 2 Detune
+  category: dco
+  type: float
+  effect: pitch
+  range:
+  - -100.0
+  - 100.0
+  default: 0.0
+  unit: ct
+- id: osc2_level
+  automation_tier: 2
+  name: Osc 2 Level
+  category: mixer
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.7
+- id: osc3_morph
+  automation_tier: 2
+  name: Osc 3 Morph
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: osc3_odd_even
+  automation_tier: 2
+  name: Osc 3 Odd / Even
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - -1.0
+  - 1.0
+  default: 0.0
+- id: osc3_tilt
+  automation_tier: 2
+  name: Osc 3 Tilt
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - -12.0
+  - 6.0
+  default: 0.0
+  unit: dB/oct
+- id: osc3_formant
+  automation_tier: 2
+  name: Osc 3 Formant
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: osc3_mask
+  automation_tier: 2
+  name: Osc 3 Mask
+  category: dco
+  type: int
+  effect: timbre
+  range:
+  - 0
+  - 511
+  default: 511
+- id: osc3_speed
+  automation_tier: 2
+  name: Osc 3 Speed
+  category: dco
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 10.0
+  skew: 0.301
+  default: 0.0
+  unit: Hz
+- id: osc3_detune
+  automation_tier: 2
+  name: Osc 3 Detune
+  category: dco
+  type: float
+  effect: pitch
+  range:
+  - -100.0
+  - 100.0
+  default: 0.0
+  unit: ct
+- id: osc3_level
+  automation_tier: 2
+  name: Osc 3 Level
+  category: mixer
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.6
+- id: noise_level
+  automation_tier: 2
+  name: Noise Level
+  category: mixer
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: noise_tone
+  automation_tier: 2
+  name: Noise Tone
+  category: mixer
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: noise_hammer_snap
+  automation_tier: 2
+  name: Clav Hammer Snap
+  category: mixer
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: osc_spread
+  automation_tier: 2
+  name: Osc Pan Spread
+  category: mixer
+  type: float
+  effect: pan
+  range:
+  - -1.0
+  - 1.0
+  default: 0.0
+- id: mixer_seethe
+  automation_tier: 2
+  name: Console Warmth
+  category: mixer
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: amp_attack
+  automation_tier: 2
+  name: Amp Attack
+  category: vca
+  type: float
+  effect: rms
+  range:
+  - 0.001
+  - 10.0
+  skew: 0.3
+  default: 0.005
+  unit: s
+- id: amp_decay
+  automation_tier: 2
+  name: Amp Decay
+  category: vca
+  type: float
+  effect: rms
+  range:
+  - 0.01
+  - 10.0
+  skew: 0.3
+  default: 0.8
+  unit: s
+- id: amp_sustain
+  automation_tier: 2
+  name: Amp Sustain
+  category: vca
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.7
+- id: amp_release
+  automation_tier: 2
+  name: Amp Release
+  category: vca
+  type: float
+  effect: rms
+  range:
+  - 0.01
+  - 15.0
+  skew: 0.3
+  default: 0.5
+  unit: s
+- id: amp_velocity
+  automation_tier: 2
+  name: Amp Velocity
+  category: vca
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: keytrack_rate
+  automation_tier: 2
+  name: Keytrack Rate
+  category: vca
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.3
+- id: glide_time
+  automation_tier: 2
+  name: Glide Time
+  category: vca
+  type: float
+  effect: pitch
+  range:
+  - 0.0
+  - 2.0
+  skew: 0.3
+  default: 0.0
+  unit: s
+- id: mpe_slide_depth
+  automation_tier: 2
+  name: MPE Slide (Y) Depth
+  category: vca
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.75
+- id: mpe_pressure_depth
+  automation_tier: 2
+  name: MPE Press (Z) Depth
+  category: vca
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.75
+- id: pitch_bend_range
+  automation_tier: 2
+  name: Pitch Bend Range
+  category: vca
+  type: float
+  effect: pitch
+  range:
+  - 0.0
+  - 24.0
+  default: 2.0
+  unit: st
+- id: bass_boost
+  automation_tier: 2
+  name: 40Hz Bass Boost
+  category: master
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: treble_tame
+  automation_tier: 2
+  name: Treble Tame
+  category: master
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.3
+- id: reverb_time
+  automation_tier: 2
+  name: Reverb Time
+  category: master
+  type: float
+  effect: timbre
+  range:
+  - 0.2
+  - 20.0
+  skew: 0.35
+  default: 2.5
+  unit: s
+- id: reverb_damp
+  automation_tier: 2
+  name: Reverb Damp
+  category: master
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.4
+- id: reverb_mix
+  automation_tier: 2
+  name: Reverb Mix
+  category: master
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.25
+- id: alpha_chorus
+  automation_tier: 2
+  name: Alpha Chorus
+  category: master
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: osc_slop
+  automation_tier: 2
+  name: Voice Drift / Slop
+  category: master
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.15
+- id: global_width
+  automation_tier: 2
+  name: Stereo Width
+  category: master
+  type: float
+  effect: pan
+  range:
+  - -1.0
+  - 1.0
+  default: 0.0
+- id: output_level
+  automation_tier: 2
+  name: Master Volume
+  category: master
+  type: float
+  effect: rms
+  range:
+  - 0.0
+  - 1.0
+  default: 0.8
+- id: chaos_rate
+  automation_tier: 3
+  name: Chaos Rate
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.001667
+  - 1.0
+  skew: 0.28
+  default: 0.0667
+  unit: Hz
+- id: chaos_drift
+  automation_tier: 3
+  name: Chaos Drift
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: chaos_poly_spread
+  automation_tier: 3
+  name: Poly Chaos Spread
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.5
+- id: rand_spread
+  automation_tier: 3
+  name: Spread Chaos
+  category: random
+  type: float
+  effect: pan
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o1_morph
+  automation_tier: 3
+  name: RDM O1 Morph
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o2_morph
+  automation_tier: 3
+  name: RDM O2 Morph
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o3_morph
+  automation_tier: 3
+  name: RDM O3 Morph
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o1_odd_even
+  automation_tier: 3
+  name: RDM O1 Odd/Even
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o2_odd_even
+  automation_tier: 3
+  name: RDM O2 Odd/Even
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o3_odd_even
+  automation_tier: 3
+  name: RDM O3 Odd/Even
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o1_tilt
+  automation_tier: 3
+  name: RDM O1 Tilt
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o2_tilt
+  automation_tier: 3
+  name: RDM O2 Tilt
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o3_tilt
+  automation_tier: 3
+  name: RDM O3 Tilt
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o1_formant
+  automation_tier: 3
+  name: RDM O1 Formant
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o2_formant
+  automation_tier: 3
+  name: RDM O2 Formant
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o3_formant
+  automation_tier: 3
+  name: RDM O3 Formant
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o1_mask
+  automation_tier: 3
+  name: RDM O1 Mask
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o2_mask
+  automation_tier: 3
+  name: RDM O2 Mask
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o3_mask
+  automation_tier: 3
+  name: RDM O3 Mask
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o1_speed
+  automation_tier: 3
+  name: RDM O1 Speed
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o2_speed
+  automation_tier: 3
+  name: RDM O2 Speed
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: rand_o3_speed
+  automation_tier: 3
+  name: RDM O3 Speed
+  category: random
+  type: float
+  effect: timbre
+  range:
+  - 0.0
+  - 1.0
+  default: 0.0
+- id: osc1_octave
+  automation_tier: 4
+  name: Osc 1 Octave
+  category: dco
+  type: choice
+  effect: pitch
+  choices:
+  - '-2'
+  - '-1'
+  - '0'
+  - '+1'
+  - '+2'
+  default: '0'
+- id: osc1_speed_lock
+  automation_tier: 4
+  name: Osc 1 Speed Lock
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - 'Off'
+  - 'On'
+  default: 'Off'
+- id: osc1_loop
+  automation_tier: 4
+  name: Osc 1 Mask Loop
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - Saw Up
+  - Triangle
+  - Saw Down
+  default: Saw Up
+- id: osc1_bank
+  automation_tier: 4
+  name: Osc 1 Seed Bank
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - '0001'
+  - '0002'
+  - '0003'
+  - '0004'
+  - '0005'
+  - '0006'
+  - '0007'
+  - 0008
+  - 0009
+  - '0010'
+  - '0011'
+  - '0012'
+  - '0013'
+  - '0014'
+  - '0015'
+  - '0016'
+  - '0017'
+  - 0018
+  - 0019
+  - '0020'
+  - aguitar
+  - altosax
+  - birds
+  - bitreduced
+  - bw_blended
+  - bw_perfectwaves
+  - bw_saw
+  - bw_sawbright
+  - bw_sawgap
+  - bw_sawrounded
+  - bw_sin
+  - bw_squ
+  - bw_squrounded
+  - bw_tri
+  - c604
+  - cello
+  - clarinett
+  - clavinet
+  - dbass
+  - distorted
+  - ebass
+  - eguitar
+  - eorgan
+  - epiano
+  - flute
+  - fmsynth
+  - granular
+  - hdrawn
+  - hvoice
+  - linear
+  - oboe
+  - oscchip
+  - overtone
+  - piano
+  - pluckalgo
+  - raw
+  - sinharm
+  - snippets
+  - stereo
+  - stringbox
+  - symetric
+  - theremin
+  - vgame
+  - vgamebasic
+  - violin
+  default: bw_saw
+- id: osc2_octave
+  automation_tier: 4
+  name: Osc 2 Octave
+  category: dco
+  type: choice
+  effect: pitch
+  choices:
+  - '-2'
+  - '-1'
+  - '0'
+  - '+1'
+  - '+2'
+  default: '0'
+- id: osc2_speed_lock
+  automation_tier: 4
+  name: Osc 2 Speed Lock
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - 'Off'
+  - 'On'
+  default: 'Off'
+- id: osc2_sync
+  automation_tier: 4
+  name: Osc 2 Hard Sync
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - 'Off'
+  - Sync 1->2
+  default: 'Off'
+- id: osc2_loop
+  automation_tier: 4
+  name: Osc 2 Mask Loop
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - Saw Up
+  - Triangle
+  - Saw Down
+  default: Saw Up
+- id: osc2_bank
+  automation_tier: 4
+  name: Osc 2 Seed Bank
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - '0001'
+  - '0002'
+  - '0003'
+  - '0004'
+  - '0005'
+  - '0006'
+  - '0007'
+  - 0008
+  - 0009
+  - '0010'
+  - '0011'
+  - '0012'
+  - '0013'
+  - '0014'
+  - '0015'
+  - '0016'
+  - '0017'
+  - 0018
+  - 0019
+  - '0020'
+  - aguitar
+  - altosax
+  - birds
+  - bitreduced
+  - bw_blended
+  - bw_perfectwaves
+  - bw_saw
+  - bw_sawbright
+  - bw_sawgap
+  - bw_sawrounded
+  - bw_sin
+  - bw_squ
+  - bw_squrounded
+  - bw_tri
+  - c604
+  - cello
+  - clarinett
+  - clavinet
+  - dbass
+  - distorted
+  - ebass
+  - eguitar
+  - eorgan
+  - epiano
+  - flute
+  - fmsynth
+  - granular
+  - hdrawn
+  - hvoice
+  - linear
+  - oboe
+  - oscchip
+  - overtone
+  - piano
+  - pluckalgo
+  - raw
+  - sinharm
+  - snippets
+  - stereo
+  - stringbox
+  - symetric
+  - theremin
+  - vgame
+  - vgamebasic
+  - violin
+  default: hvoice
+- id: osc3_octave
+  automation_tier: 4
+  name: Osc 3 Octave
+  category: dco
+  type: choice
+  effect: pitch
+  choices:
+  - '-2'
+  - '-1'
+  - '0'
+  - '+1'
+  - '+2'
+  default: '-1'
+- id: osc3_speed_lock
+  automation_tier: 4
+  name: Osc 3 Speed Lock
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - 'Off'
+  - 'On'
+  default: 'Off'
+- id: osc3_sync
+  automation_tier: 4
+  name: Osc 3 Hard Sync
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - 'Off'
+  - Sync 1->3
+  default: 'Off'
+- id: osc3_loop
+  automation_tier: 4
+  name: Osc 3 Mask Loop
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - Saw Up
+  - Triangle
+  - Saw Down
+  default: Saw Up
+- id: osc3_bank
+  automation_tier: 4
+  name: Osc 3 Seed Bank
+  category: dco
+  type: choice
+  effect: timbre
+  choices:
+  - '0001'
+  - '0002'
+  - '0003'
+  - '0004'
+  - '0005'
+  - '0006'
+  - '0007'
+  - 0008
+  - 0009
+  - '0010'
+  - '0011'
+  - '0012'
+  - '0013'
+  - '0014'
+  - '0015'
+  - '0016'
+  - '0017'
+  - 0018
+  - 0019
+  - '0020'
+  - aguitar
+  - altosax
+  - birds
+  - bitreduced
+  - bw_blended
+  - bw_perfectwaves
+  - bw_saw
+  - bw_sawbright
+  - bw_sawgap
+  - bw_sawrounded
+  - bw_sin
+  - bw_squ
+  - bw_squrounded
+  - bw_tri
+  - c604
+  - cello
+  - clarinett
+  - clavinet
+  - dbass
+  - distorted
+  - ebass
+  - eguitar
+  - eorgan
+  - epiano
+  - flute
+  - fmsynth
+  - granular
+  - hdrawn
+  - hvoice
+  - linear
+  - oboe
+  - oscchip
+  - overtone
+  - piano
+  - pluckalgo
+  - raw
+  - sinharm
+  - snippets
+  - stereo
+  - stringbox
+  - symetric
+  - theremin
+  - vgame
+  - vgamebasic
+  - violin
+  default: dbass
+- id: voice_mode
+  automation_tier: 4
+  name: Voicing Mode
+  category: vca
+  type: choice
+  effect: timbre
+  choices:
+  - Poly 16
+  - Mono
+  - Legato
+  - 8x Unison
+  default: Poly 16
+- id: life_mode
+  automation_tier: 4
+  name: Life Mode
+  category: master
+  type: choice
+  effect: timbre
+  choices:
+  - Synthetic
+  - Cyborg
+  - Organic
+  default: Synthetic

@@ -72,245 +72,23 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         );
     };
 
-    // osc1_bank [dco]
+    // filter_cutoff [filter]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::filter_cutoff, 1}, nyarlatParameters::Names::filter_cutoff,
+        juce::NormalisableRange<float>{15.0000f, 20000.0000f, 0.0000f, 0.2500f}, 3500.0000f));
+
+    // filter_resonance [filter]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::filter_resonance, 1}, nyarlatParameters::Names::filter_resonance, 0.0000f, 1.0000f, 0.1500f));
+
+    // filter_slope [filter]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_bank, 1}, nyarlatParameters::Names::osc1_bank,
-        juce::StringArray{"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013", "0014", "0015", "0016", "0017", "0018", "0019", "0020", "aguitar", "altosax", "birds", "bitreduced", "bw_blended", "bw_perfectwaves", "bw_saw", "bw_sawbright", "bw_sawgap", "bw_sawrounded", "bw_sin", "bw_squ", "bw_squrounded", "bw_tri", "c604", "cello", "clarinett", "clavinet", "dbass", "distorted", "ebass", "eguitar", "eorgan", "epiano", "flute", "fmsynth", "granular", "hdrawn", "hvoice", "linear", "oboe", "oscchip", "overtone", "piano", "pluckalgo", "raw", "sinharm", "snippets", "stereo", "stringbox", "symetric", "theremin", "vgame", "vgamebasic", "violin"}, 26));
+        juce::ParameterID{nyarlatParameters::Ids::filter_slope, 1}, nyarlatParameters::Names::filter_slope,
+        juce::StringArray{"12 dB Lowpass", "24 dB Lowpass", "12 dB Bandpass"}, 1));
 
-    // osc1_wave [dco]
+    // filter_drive [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_wave, 1}, nyarlatParameters::Names::osc1_wave, 0.0000f, 1.0000f, 0.0000f));
-
-    // osc1_mask [dco]
-    layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_mask, 1}, nyarlatParameters::Names::osc1_mask, 0, 511, 31));
-
-    // osc1_speed [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_speed, 1}, nyarlatParameters::Names::osc1_speed,
-        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
-
-    // osc1_loop [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_loop, 1}, nyarlatParameters::Names::osc1_loop,
-        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
-
-    // osc1_octave [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_octave, 1}, nyarlatParameters::Names::osc1_octave,
-        juce::StringArray{"-2 Oct", "-1 Oct", "Unison", "+1 Oct", "+2 Oct"}, 2));
-
-    // osc1_detune [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_detune, 1}, nyarlatParameters::Names::osc1_detune, -100.0000f, 100.0000f, 0.0000f));
-
-    // osc1_oct_lock [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_oct_lock, 1}, nyarlatParameters::Names::osc1_oct_lock,
-        juce::StringArray{"Off", "On"}, 1));
-
-    // osc2_bank [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_bank, 1}, nyarlatParameters::Names::osc2_bank,
-        juce::StringArray{"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013", "0014", "0015", "0016", "0017", "0018", "0019", "0020", "aguitar", "altosax", "birds", "bitreduced", "bw_blended", "bw_perfectwaves", "bw_saw", "bw_sawbright", "bw_sawgap", "bw_sawrounded", "bw_sin", "bw_squ", "bw_squrounded", "bw_tri", "c604", "cello", "clarinett", "clavinet", "dbass", "distorted", "ebass", "eguitar", "eorgan", "epiano", "flute", "fmsynth", "granular", "hdrawn", "hvoice", "linear", "oboe", "oscchip", "overtone", "piano", "pluckalgo", "raw", "sinharm", "snippets", "stereo", "stringbox", "symetric", "theremin", "vgame", "vgamebasic", "violin"}, 48));
-
-    // osc2_wave [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_wave, 1}, nyarlatParameters::Names::osc2_wave, 0.0000f, 1.0000f, 0.0000f));
-
-    // osc2_mask [dco]
-    layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_mask, 1}, nyarlatParameters::Names::osc2_mask, 0, 511, 31));
-
-    // osc2_speed [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_speed, 1}, nyarlatParameters::Names::osc2_speed,
-        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
-
-    // osc2_loop [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_loop, 1}, nyarlatParameters::Names::osc2_loop,
-        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
-
-    // osc2_octave [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_octave, 1}, nyarlatParameters::Names::osc2_octave,
-        juce::StringArray{"-2 Oct", "-1 Oct", "Unison", "+1 Oct", "+2 Oct"}, 2));
-
-    // osc2_detune [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_detune, 1}, nyarlatParameters::Names::osc2_detune, -100.0000f, 100.0000f, 0.0000f));
-
-    // osc2_oct_lock [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_oct_lock, 1}, nyarlatParameters::Names::osc2_oct_lock,
-        juce::StringArray{"Off", "On"}, 1));
-
-    // osc2_sync [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_sync, 1}, nyarlatParameters::Names::osc2_sync,
-        juce::StringArray{"Off", "Sync 1->2"}, 0));
-
-    // osc3_bank [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_bank, 1}, nyarlatParameters::Names::osc3_bank,
-        juce::StringArray{"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013", "0014", "0015", "0016", "0017", "0018", "0019", "0020", "aguitar", "altosax", "birds", "bitreduced", "bw_blended", "bw_perfectwaves", "bw_saw", "bw_sawbright", "bw_sawgap", "bw_sawrounded", "bw_sin", "bw_squ", "bw_squrounded", "bw_tri", "c604", "cello", "clarinett", "clavinet", "dbass", "distorted", "ebass", "eguitar", "eorgan", "epiano", "flute", "fmsynth", "granular", "hdrawn", "hvoice", "linear", "oboe", "oscchip", "overtone", "piano", "pluckalgo", "raw", "sinharm", "snippets", "stereo", "stringbox", "symetric", "theremin", "vgame", "vgamebasic", "violin"}, 38));
-
-    // osc3_wave [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_wave, 1}, nyarlatParameters::Names::osc3_wave, 0.0000f, 1.0000f, 0.0000f));
-
-    // osc3_mask [dco]
-    layout.add(std::make_unique<juce::AudioParameterInt>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_mask, 1}, nyarlatParameters::Names::osc3_mask, 0, 511, 31));
-
-    // osc3_speed [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_speed, 1}, nyarlatParameters::Names::osc3_speed,
-        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
-
-    // osc3_loop [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_loop, 1}, nyarlatParameters::Names::osc3_loop,
-        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
-
-    // osc3_octave [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_octave, 1}, nyarlatParameters::Names::osc3_octave,
-        juce::StringArray{"-2 Oct", "-1 Oct", "Unison", "+1 Oct", "+2 Oct"}, 1));
-
-    // osc3_detune [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_detune, 1}, nyarlatParameters::Names::osc3_detune, -100.0000f, 100.0000f, 0.0000f));
-
-    // osc3_oct_lock [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_oct_lock, 1}, nyarlatParameters::Names::osc3_oct_lock,
-        juce::StringArray{"Off", "On"}, 1));
-
-    // osc3_sync [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_sync, 1}, nyarlatParameters::Names::osc3_sync,
-        juce::StringArray{"Off", "Sync 1->3"}, 0));
-
-    // osc1_level [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_level, 1}, nyarlatParameters::Names::osc1_level, 0.0000f, 1.0000f, 0.8000f));
-
-    // osc2_level [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_level, 1}, nyarlatParameters::Names::osc2_level, 0.0000f, 1.0000f, 0.7000f));
-
-    // osc3_level [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_level, 1}, nyarlatParameters::Names::osc3_level, 0.0000f, 1.0000f, 0.6000f));
-
-    // noise_level [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::noise_level, 1}, nyarlatParameters::Names::noise_level, 0.0000f, 1.0000f, 0.0000f));
-
-    // noise_tone [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::noise_tone, 1}, nyarlatParameters::Names::noise_tone, 0.0000f, 1.0000f, 0.0000f));
-
-    // osc_spread [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc_spread, 1}, nyarlatParameters::Names::osc_spread, -1.0000f, 1.0000f, 0.0000f));
-
-    // mixer_seethe [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::mixer_seethe, 1}, nyarlatParameters::Names::mixer_seethe, 0.0000f, 1.0000f, 0.0000f));
-
-    // chaos_rate [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::chaos_rate, 1}, nyarlatParameters::Names::chaos_rate,
-        juce::NormalisableRange<float>{0.0100f, 10.0000f, 0.0000f, 0.3500f}, 0.5000f));
-
-    // chaos_drift [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::chaos_drift, 1}, nyarlatParameters::Names::chaos_drift, 0.0000f, 1.0000f, 0.0000f));
-
-    // chaos_poly_spread [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::chaos_poly_spread, 1}, nyarlatParameters::Names::chaos_poly_spread, 0.0000f, 1.0000f, 0.5000f));
-
-    // rand_o1_wave [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o1_wave, 1}, nyarlatParameters::Names::rand_o1_wave, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o1_mask [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o1_mask, 1}, nyarlatParameters::Names::rand_o1_mask, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o1_speed [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o1_speed, 1}, nyarlatParameters::Names::rand_o1_speed, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o2_wave [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o2_wave, 1}, nyarlatParameters::Names::rand_o2_wave, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o2_mask [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o2_mask, 1}, nyarlatParameters::Names::rand_o2_mask, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o2_speed [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o2_speed, 1}, nyarlatParameters::Names::rand_o2_speed, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o3_wave [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o3_wave, 1}, nyarlatParameters::Names::rand_o3_wave, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o3_mask [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o3_mask, 1}, nyarlatParameters::Names::rand_o3_mask, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_o3_speed [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_o3_speed, 1}, nyarlatParameters::Names::rand_o3_speed, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_z_freq [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_z_freq, 1}, nyarlatParameters::Names::rand_z_freq, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_z_morph [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_z_morph, 1}, nyarlatParameters::Names::rand_z_morph, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_z_transform [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_z_transform, 1}, nyarlatParameters::Names::rand_z_transform, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_seethe [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_seethe, 1}, nyarlatParameters::Names::rand_seethe, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_amp_decay [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_amp_decay, 1}, nyarlatParameters::Names::rand_amp_decay, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_spread [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::rand_spread, 1}, nyarlatParameters::Names::rand_spread, 0.0000f, 1.0000f, 0.0000f));
-
-    // z_model [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::z_model, 1}, nyarlatParameters::Names::z_model,
-        juce::StringArray{"001 Vocal Ah-Ee", "002 Vocal Oo-Ah", "003 Deep Throat", "004 Talking Box", "005 Choir Vowels", "006 Formant Shifter", "007 Ceramic Horn", "008 Wooden Cavity", "009 Cello Body", "010 Bell Shell", "011 Metallic Plate", "012 Comb Cluster", "013 Jet Flanger", "014 14-Pole Phaser", "015 Acid Squeeze", "016 Bottom Heavy", "017 Sub Shifter", "018 24dB-to-Comb", "019 Inverted Poles", "020 Nuclear Waste"}, 0));
-
-    // z_freq [filter]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::z_freq, 1}, nyarlatParameters::Names::z_freq,
-        juce::NormalisableRange<float>{10.0000f, 20000.0000f, 0.0000f, 0.2500f}, 1500.0000f));
-
-    // z_morph [filter]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::z_morph, 1}, nyarlatParameters::Names::z_morph, 0.0000f, 1.0000f, 0.0000f));
-
-    // z_transform [filter]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::z_transform, 1}, nyarlatParameters::Names::z_transform, 0.0000f, 1.0000f, 0.3000f));
+        juce::ParameterID{nyarlatParameters::Ids::filter_drive, 1}, nyarlatParameters::Names::filter_drive, 0.0000f, 1.0000f, 0.0000f));
 
     // filter_attack [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -320,11 +98,11 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // filter_decay [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::filter_decay, 1}, nyarlatParameters::Names::filter_decay,
-        juce::NormalisableRange<float>{0.0100f, 10.0000f, 0.0000f, 0.3000f}, 0.6000f));
+        juce::NormalisableRange<float>{0.0100f, 10.0000f, 0.0000f, 0.3000f}, 0.4000f));
 
     // filter_sustain [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::filter_sustain, 1}, nyarlatParameters::Names::filter_sustain, 0.0000f, 1.0000f, 0.4000f));
+        juce::ParameterID{nyarlatParameters::Ids::filter_sustain, 1}, nyarlatParameters::Names::filter_sustain, 0.0000f, 1.0000f, 0.3000f));
 
     // filter_release [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -339,28 +117,128 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::filter_velocity, 1}, nyarlatParameters::Names::filter_velocity, 0.0000f, 1.0000f, 0.5000f));
 
-    // filter_lfo_rate [filter]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::filter_lfo_rate, 1}, nyarlatParameters::Names::filter_lfo_rate,
-        juce::NormalisableRange<float>{0.0500f, 30.0000f, 0.0000f, 0.3500f}, 1.5000f));
-
-    // filter_lfo_shape [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::filter_lfo_shape, 1}, nyarlatParameters::Names::filter_lfo_shape,
-        juce::StringArray{"Sine", "Triangle", "Saw", "Pulse", "Random"}, 1));
-
-    // filter_lfo_dest [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::filter_lfo_dest, 1}, nyarlatParameters::Names::filter_lfo_dest,
-        juce::StringArray{"Freq (X)", "Morph (Y)", "Transform (Z)"}, 1));
-
-    // filter_lfo_depth [filter]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::filter_lfo_depth, 1}, nyarlatParameters::Names::filter_lfo_depth, 0.0000f, 1.0000f, 0.0000f));
-
     // filter_keytrack [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::filter_keytrack, 1}, nyarlatParameters::Names::filter_keytrack, 0.0000f, 1.0000f, 0.5000f));
+
+    // osc1_morph [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_morph, 1}, nyarlatParameters::Names::osc1_morph, 0.0000f, 1.0000f, 0.0000f));
+
+    // osc1_odd_even [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_odd_even, 1}, nyarlatParameters::Names::osc1_odd_even, -1.0000f, 1.0000f, 0.0000f));
+
+    // osc1_tilt [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_tilt, 1}, nyarlatParameters::Names::osc1_tilt, -12.0000f, 6.0000f, 0.0000f));
+
+    // osc1_formant [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_formant, 1}, nyarlatParameters::Names::osc1_formant, 0.0000f, 1.0000f, 0.5000f));
+
+    // osc1_mask [dco]
+    layout.add(std::make_unique<juce::AudioParameterInt>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_mask, 1}, nyarlatParameters::Names::osc1_mask, 0, 511, 511));
+
+    // osc1_speed [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_speed, 1}, nyarlatParameters::Names::osc1_speed,
+        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
+
+    // osc1_detune [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_detune, 1}, nyarlatParameters::Names::osc1_detune, -100.0000f, 100.0000f, 0.0000f));
+
+    // osc1_level [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_level, 1}, nyarlatParameters::Names::osc1_level, 0.0000f, 1.0000f, 0.8000f));
+
+    // osc2_morph [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_morph, 1}, nyarlatParameters::Names::osc2_morph, 0.0000f, 1.0000f, 0.0000f));
+
+    // osc2_odd_even [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_odd_even, 1}, nyarlatParameters::Names::osc2_odd_even, -1.0000f, 1.0000f, 0.0000f));
+
+    // osc2_tilt [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_tilt, 1}, nyarlatParameters::Names::osc2_tilt, -12.0000f, 6.0000f, 0.0000f));
+
+    // osc2_formant [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_formant, 1}, nyarlatParameters::Names::osc2_formant, 0.0000f, 1.0000f, 0.5000f));
+
+    // osc2_mask [dco]
+    layout.add(std::make_unique<juce::AudioParameterInt>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_mask, 1}, nyarlatParameters::Names::osc2_mask, 0, 511, 511));
+
+    // osc2_speed [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_speed, 1}, nyarlatParameters::Names::osc2_speed,
+        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
+
+    // osc2_detune [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_detune, 1}, nyarlatParameters::Names::osc2_detune, -100.0000f, 100.0000f, 0.0000f));
+
+    // osc2_level [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_level, 1}, nyarlatParameters::Names::osc2_level, 0.0000f, 1.0000f, 0.7000f));
+
+    // osc3_morph [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_morph, 1}, nyarlatParameters::Names::osc3_morph, 0.0000f, 1.0000f, 0.0000f));
+
+    // osc3_odd_even [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_odd_even, 1}, nyarlatParameters::Names::osc3_odd_even, -1.0000f, 1.0000f, 0.0000f));
+
+    // osc3_tilt [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_tilt, 1}, nyarlatParameters::Names::osc3_tilt, -12.0000f, 6.0000f, 0.0000f));
+
+    // osc3_formant [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_formant, 1}, nyarlatParameters::Names::osc3_formant, 0.0000f, 1.0000f, 0.5000f));
+
+    // osc3_mask [dco]
+    layout.add(std::make_unique<juce::AudioParameterInt>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_mask, 1}, nyarlatParameters::Names::osc3_mask, 0, 511, 511));
+
+    // osc3_speed [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_speed, 1}, nyarlatParameters::Names::osc3_speed,
+        juce::NormalisableRange<float>{0.0000f, 10.0000f, 0.0000f, 0.3010f}, 0.0000f));
+
+    // osc3_detune [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_detune, 1}, nyarlatParameters::Names::osc3_detune, -100.0000f, 100.0000f, 0.0000f));
+
+    // osc3_level [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_level, 1}, nyarlatParameters::Names::osc3_level, 0.0000f, 1.0000f, 0.6000f));
+
+    // noise_level [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::noise_level, 1}, nyarlatParameters::Names::noise_level, 0.0000f, 1.0000f, 0.0000f));
+
+    // noise_tone [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::noise_tone, 1}, nyarlatParameters::Names::noise_tone, 0.0000f, 1.0000f, 0.0000f));
+
+    // noise_hammer_snap [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::noise_hammer_snap, 1}, nyarlatParameters::Names::noise_hammer_snap, 0.0000f, 1.0000f, 0.0000f));
+
+    // osc_spread [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::osc_spread, 1}, nyarlatParameters::Names::osc_spread, -1.0000f, 1.0000f, 0.0000f));
+
+    // mixer_seethe [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::mixer_seethe, 1}, nyarlatParameters::Names::mixer_seethe, 0.0000f, 1.0000f, 0.0000f));
 
     // amp_attack [vca]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -393,11 +271,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::glide_time, 1}, nyarlatParameters::Names::glide_time,
         juce::NormalisableRange<float>{0.0000f, 2.0000f, 0.0000f, 0.3000f}, 0.0000f));
-
-    // voice_mode [vca]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{nyarlatParameters::Ids::voice_mode, 1}, nyarlatParameters::Names::voice_mode,
-        juce::StringArray{"Poly 16", "Mono", "Legato", "Unison"}, 0));
 
     // mpe_slide_depth [vca]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -434,7 +307,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // alpha_chorus [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::alpha_chorus, 1}, nyarlatParameters::Names::alpha_chorus, 0.0000f, 1.0000f, 0.2000f));
+        juce::ParameterID{nyarlatParameters::Ids::alpha_chorus, 1}, nyarlatParameters::Names::alpha_chorus, 0.0000f, 1.0000f, 0.0000f));
 
     // osc_slop [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -447,6 +320,170 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     // output_level [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::output_level, 1}, nyarlatParameters::Names::output_level, 0.0000f, 1.0000f, 0.8000f));
+
+    // chaos_rate [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::chaos_rate, 1}, nyarlatParameters::Names::chaos_rate,
+        juce::NormalisableRange<float>{0.0017f, 1.0000f, 0.0000f, 0.2800f}, 0.0667f));
+
+    // chaos_drift [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::chaos_drift, 1}, nyarlatParameters::Names::chaos_drift, 0.0000f, 1.0000f, 0.5000f));
+
+    // chaos_poly_spread [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::chaos_poly_spread, 1}, nyarlatParameters::Names::chaos_poly_spread, 0.0000f, 1.0000f, 0.5000f));
+
+    // rand_spread [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_spread, 1}, nyarlatParameters::Names::rand_spread, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o1_morph [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o1_morph, 1}, nyarlatParameters::Names::rand_o1_morph, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o2_morph [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o2_morph, 1}, nyarlatParameters::Names::rand_o2_morph, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o3_morph [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o3_morph, 1}, nyarlatParameters::Names::rand_o3_morph, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o1_odd_even [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o1_odd_even, 1}, nyarlatParameters::Names::rand_o1_odd_even, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o2_odd_even [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o2_odd_even, 1}, nyarlatParameters::Names::rand_o2_odd_even, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o3_odd_even [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o3_odd_even, 1}, nyarlatParameters::Names::rand_o3_odd_even, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o1_tilt [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o1_tilt, 1}, nyarlatParameters::Names::rand_o1_tilt, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o2_tilt [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o2_tilt, 1}, nyarlatParameters::Names::rand_o2_tilt, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o3_tilt [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o3_tilt, 1}, nyarlatParameters::Names::rand_o3_tilt, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o1_formant [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o1_formant, 1}, nyarlatParameters::Names::rand_o1_formant, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o2_formant [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o2_formant, 1}, nyarlatParameters::Names::rand_o2_formant, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o3_formant [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o3_formant, 1}, nyarlatParameters::Names::rand_o3_formant, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o1_mask [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o1_mask, 1}, nyarlatParameters::Names::rand_o1_mask, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o2_mask [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o2_mask, 1}, nyarlatParameters::Names::rand_o2_mask, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o3_mask [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o3_mask, 1}, nyarlatParameters::Names::rand_o3_mask, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o1_speed [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o1_speed, 1}, nyarlatParameters::Names::rand_o1_speed, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o2_speed [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o2_speed, 1}, nyarlatParameters::Names::rand_o2_speed, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_o3_speed [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{nyarlatParameters::Ids::rand_o3_speed, 1}, nyarlatParameters::Names::rand_o3_speed, 0.0000f, 1.0000f, 0.0000f));
+
+    // osc1_octave [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_octave, 1}, nyarlatParameters::Names::osc1_octave,
+        juce::StringArray{"-2", "-1", "0", "+1", "+2"}, 2));
+
+    // osc1_speed_lock [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_speed_lock, 1}, nyarlatParameters::Names::osc1_speed_lock,
+        juce::StringArray{"Off", "On"}, 0));
+
+    // osc1_loop [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_loop, 1}, nyarlatParameters::Names::osc1_loop,
+        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
+
+    // osc1_bank [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc1_bank, 1}, nyarlatParameters::Names::osc1_bank,
+        juce::StringArray{"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013", "0014", "0015", "0016", "0017", "0018", "0019", "0020", "aguitar", "altosax", "birds", "bitreduced", "bw_blended", "bw_perfectwaves", "bw_saw", "bw_sawbright", "bw_sawgap", "bw_sawrounded", "bw_sin", "bw_squ", "bw_squrounded", "bw_tri", "c604", "cello", "clarinett", "clavinet", "dbass", "distorted", "ebass", "eguitar", "eorgan", "epiano", "flute", "fmsynth", "granular", "hdrawn", "hvoice", "linear", "oboe", "oscchip", "overtone", "piano", "pluckalgo", "raw", "sinharm", "snippets", "stereo", "stringbox", "symetric", "theremin", "vgame", "vgamebasic", "violin"}, 26));
+
+    // osc2_octave [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_octave, 1}, nyarlatParameters::Names::osc2_octave,
+        juce::StringArray{"-2", "-1", "0", "+1", "+2"}, 2));
+
+    // osc2_speed_lock [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_speed_lock, 1}, nyarlatParameters::Names::osc2_speed_lock,
+        juce::StringArray{"Off", "On"}, 0));
+
+    // osc2_sync [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_sync, 1}, nyarlatParameters::Names::osc2_sync,
+        juce::StringArray{"Off", "Sync 1->2"}, 0));
+
+    // osc2_loop [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_loop, 1}, nyarlatParameters::Names::osc2_loop,
+        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
+
+    // osc2_bank [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc2_bank, 1}, nyarlatParameters::Names::osc2_bank,
+        juce::StringArray{"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013", "0014", "0015", "0016", "0017", "0018", "0019", "0020", "aguitar", "altosax", "birds", "bitreduced", "bw_blended", "bw_perfectwaves", "bw_saw", "bw_sawbright", "bw_sawgap", "bw_sawrounded", "bw_sin", "bw_squ", "bw_squrounded", "bw_tri", "c604", "cello", "clarinett", "clavinet", "dbass", "distorted", "ebass", "eguitar", "eorgan", "epiano", "flute", "fmsynth", "granular", "hdrawn", "hvoice", "linear", "oboe", "oscchip", "overtone", "piano", "pluckalgo", "raw", "sinharm", "snippets", "stereo", "stringbox", "symetric", "theremin", "vgame", "vgamebasic", "violin"}, 48));
+
+    // osc3_octave [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_octave, 1}, nyarlatParameters::Names::osc3_octave,
+        juce::StringArray{"-2", "-1", "0", "+1", "+2"}, 1));
+
+    // osc3_speed_lock [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_speed_lock, 1}, nyarlatParameters::Names::osc3_speed_lock,
+        juce::StringArray{"Off", "On"}, 0));
+
+    // osc3_sync [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_sync, 1}, nyarlatParameters::Names::osc3_sync,
+        juce::StringArray{"Off", "Sync 1->3"}, 0));
+
+    // osc3_loop [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_loop, 1}, nyarlatParameters::Names::osc3_loop,
+        juce::StringArray{"Saw Up", "Triangle", "Saw Down"}, 0));
+
+    // osc3_bank [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::osc3_bank, 1}, nyarlatParameters::Names::osc3_bank,
+        juce::StringArray{"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013", "0014", "0015", "0016", "0017", "0018", "0019", "0020", "aguitar", "altosax", "birds", "bitreduced", "bw_blended", "bw_perfectwaves", "bw_saw", "bw_sawbright", "bw_sawgap", "bw_sawrounded", "bw_sin", "bw_squ", "bw_squrounded", "bw_tri", "c604", "cello", "clarinett", "clavinet", "dbass", "distorted", "ebass", "eguitar", "eorgan", "epiano", "flute", "fmsynth", "granular", "hdrawn", "hvoice", "linear", "oboe", "oscchip", "overtone", "piano", "pluckalgo", "raw", "sinharm", "snippets", "stereo", "stringbox", "symetric", "theremin", "vgame", "vgamebasic", "violin"}, 38));
+
+    // voice_mode [vca]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{nyarlatParameters::Ids::voice_mode, 1}, nyarlatParameters::Names::voice_mode,
+        juce::StringArray{"Poly 16", "Mono", "Legato", "8x Unison"}, 0));
 
     // life_mode [master]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
