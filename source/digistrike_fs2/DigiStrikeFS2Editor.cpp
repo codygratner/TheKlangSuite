@@ -614,7 +614,8 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
         if (name == "VOLUME") {
             const float u = static_cast<float>(val);
             if (u <= 0.0001f) return "-inf dB";
-            float db = (u <= 0.5f) ? (-60.0f + (u / 0.5f) * 60.0f) : ((u - 0.5f) / 0.5f * 12.0f);
+            const float db = tkdsp::formless::evalDigiStrikeMasterVolumeDb(u);
+            if (std::isinf(db)) return "-inf dB";
             return (db > 0.0f ? "+" : "") + juce::String(db, 1) + " dB";
         }
         if (name == "AMP-DEC" || name == "FE-DEC" || name == "GLIDE") {

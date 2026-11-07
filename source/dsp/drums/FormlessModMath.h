@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include "FastMath.h"
 #include "../common/SteppedRandom.h"
 
@@ -248,6 +249,30 @@ inline float evalMasterVolumeDb(float u) noexcept {
     if (!(u > 0.0f)) return -std::numeric_limits<float>::infinity();
     const float cu = std::min(u, 1.0f);
     return (cu <= 0.5f) ? 40.0f * std::log10(2.0f * cu) : kMasterVolumeMaxDb * (2.0f * cu - 1.0f);
+}
+
+// ==============================================================================
+// DIGISTRIKE FS2 SOVEREIGN LOUDNESS TAPER (-inf .. 0 dB (noon) .. +18 dB)
+// ==============================================================================
+inline constexpr float kDigiStrikeVolumeMaxDb   = 18.0f;
+inline constexpr float kDigiStrikeVolumeMaxGain = 7.94328235f;  // 10^(18/20)
+
+/** DigiStrike Master Volume taper: u in [0,1] -> linear gain. 0 = silence, 0.5 = unity (1.0), 1 = +18 dB. */
+inline float evalDigiStrikeMasterVolumeGain(float u) noexcept {
+    if (!(u > 0.0f)) return 0.0f;
+    const float cu = std::min(u, 1.0f);
+    if (cu <= 0.5f) {
+        const float t = 2.0f * cu;
+        return t * t; // Quadratic fader taper (-inf .. 0 dB)
+    }
+    return std::pow(10.0f, kDigiStrikeVolumeMaxDb * (2.0f * cu - 1.0f) * (1.0f / 20.0f));
+}
+
+/** DigiStrike Master Volume taper in dB: -inf at u <= 0, 0.0 dB at u == 0.5, +18.0 dB at u == 1.0. */
+inline float evalDigiStrikeMasterVolumeDb(float u) noexcept {
+    if (!(u > 0.0f)) return -std::numeric_limits<float>::infinity();
+    const float cu = std::min(u, 1.0f);
+    return (cu <= 0.5f) ? 40.0f * std::log10(2.0f * cu) : kDigiStrikeVolumeMaxDb * (2.0f * cu - 1.0f);
 }
 
 // ==============================================================================

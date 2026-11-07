@@ -114,6 +114,7 @@ public:
         lpgRelCoeff_ = 1.0f - std::exp(-invSampleRate_ / 0.060f); // 60ms sluggish droop
         slewCoeff5ms_ = std::exp(-invSampleRate_ / 0.005f);       // 5ms one-pole parameter smoother
         dcBlockerR_ = 1.0f - 2.0f * 3.14159265f * 6.0f * invSampleRate_; // 6Hz 1-pole bus DC blocker
+        masterSmoothCoeff_ = 1.0f - slewCoeff5ms_;
 
         // Noise crack band: 1.8kHz / Q 0.9 ZDF SVF bandpass (-3dB at ~1.06k..3.06k), RMS-matched to legacy HP throw
         {
@@ -225,6 +226,9 @@ public:
         cyborgDitherEnv_ = 0.0f;
         panPhase_ = 0.0f;
         loopPhase_ = 0.0f;
+        const float punchInit = 1.0f + 0.25f * (params_.macroY - 0.5f) * 2.0f;
+        masterGain_ = tkdsp::formless::evalDigiStrikeMasterVolumeGain(params_.volume) * punchInit;
+        if (params_.volume <= 0.0001f) masterGain_ = 0.0f;
     }
 
     [[nodiscard]] int getActiveVoiceCount() const noexcept { return activeVoiceCount_; }
@@ -633,9 +637,13 @@ private:
         v.effTimb = effTimb;
 
         const float initPan = std::clamp(params_.pan + v.randBip[6] * (params_.randPan * 0.01f), -1.0f, 1.0f);
-        const float initAngle = (initPan + 1.0f) * 0.25f * 3.14159265f;
-        v.panL = std::cos(initAngle);
-        v.panR = std::sin(initAngle);
+        if (initPan <= 0.0f) {
+            v.panL = 1.0f;
+            v.panR = std::sin((initPan + 1.0f) * 0.5f * 3.14159265f);
+        } else {
+            v.panL = std::cos(initPan * 0.5f * 3.14159265f);
+            v.panR = 1.0f;
+        }
         v.targetPanL = v.panL;
         v.targetPanR = v.panR;
 
@@ -926,9 +934,13 @@ private:
 
     void renderVoice(VoiceSlot& v, float* accL, float* accR, int numSamples, float targetMorph, float invNumSamples) noexcept {
         const float effectivePan = std::clamp(params_.pan + v.randBip[6] * (params_.randPan * 0.01f), -1.0f, 1.0f);
-        const float panAngle = (effectivePan + 1.0f) * 0.25f * 3.14159265f;
-        v.targetPanL = std::cos(panAngle);
-        v.targetPanR = std::sin(panAngle);
+        if (effectivePan <= 0.0f) {
+            v.targetPanL = 1.0f;
+            v.targetPanR = std::sin((effectivePan + 1.0f) * 0.5f * 3.14159265f);
+        } else {
+            v.targetPanL = std::cos(effectivePan * 0.5f * 3.14159265f);
+            v.targetPanR = 1.0f;
+        }
         v.panL += (v.targetPanL - v.panL) * 0.2f;
         v.panR += (v.targetPanR - v.panR) * 0.2f;
         const float panL = v.panL;
@@ -1113,6 +1125,7 @@ private:
                     } else if (sampleVal < -0.85f) {
                         sampleVal = -0.85f - (sampleVal + 0.85f) * 0.5f;
                     }
+                    sampleVal *= 1.17647f; // kFoldMakeup (1.0 / 0.85) to level-match with Synthetic bypass
                     break;
                 }
                 case 2: { // Organic: Sloshy Tube-Back Warmth with VTL5C3 LPG droop
@@ -1347,8 +1360,10 @@ private:
     }
 
     void processMasterBus(float* outL, float* outR, int numSamples) noexcept {
-        float masterGain = params_.volume * (1.0f + params_.macroY * 0.25f);
-        if (params_.volume <= 0.0001f) masterGain = 0.0f;
+        const float punchMult = 1.0f + 0.25f * (params_.macroY - 0.5f) * 2.0f;
+        float targetMasterGain = tkdsp::formless::evalDigiStrikeMasterVolumeGain(params_.volume) * punchMult;
+        if (params_.volume <= 0.0001f) targetMasterGain = 0.0f;
+        if (activeVoiceCount_ == 0) masterGain_ = targetMasterGain;
 
         const float macroDecayMultBus = tkdsp::formless::evalMacroMultiplier(params_.macroDecay);
         const float effFilterDecaySec = std::clamp(params_.filterDecay * macroDecayMultBus, 0.005f, 5.0f);
@@ -1427,9 +1442,6 @@ private:
                     filtR = (lpR - 2.0f * bpR + hpR) * 0.707f;
                 }
 
-                filtL *= masterGain;
-                filtR *= masterGain;
-
                 // Crush: Machinedrum S&H Clock Decimation
                 if (params_.crush < 47500.0f) {
                     crushPhase_ += params_.crush * invSampleRate_;
@@ -1456,8 +1468,24 @@ private:
                     widerStage_.process(filtL, filtR, params_.wider, params_.category);
                 }
 
+                // Master Volume with smooth 5ms one-pole interpolation
+                masterGain_ += masterSmoothCoeff_ * (targetMasterGain - masterGain_);
+                filtL *= masterGain_;
+                filtR *= masterGain_;
+
                 if (params_.masterLimiter) {
                     drumLimiter_.process(filtL, filtR, true);
+                } else {
+                    // Transparent C1 safety soft-clipper (T = -1 dBFS, bit-transparent below T)
+                    constexpr float kSafetyT = 0.891250938f; // -1.0 dBFS
+                    auto safetyClip = [](float x) noexcept -> float {
+                        const float a = std::abs(x);
+                        if (a <= kSafetyT) return x;
+                        const float y = kSafetyT + (1.0f - kSafetyT) * FastMath::fastTanh((a - kSafetyT) / (1.0f - kSafetyT));
+                        return std::copysign(y, x);
+                    };
+                    filtL = safetyClip(filtL);
+                    filtR = safetyClip(filtR);
                 }
 
                 // 6Hz 1-pole master bus DC blocker (stops sub-audio strike thump)
@@ -1548,6 +1576,8 @@ private:
     float dcBlockerR_{0.9992f};
     float cyborgDitherEnv_{0.0f};
     std::array<float, 8> latchedDraw_{{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+    float masterGain_{1.0f};
+    float masterSmoothCoeff_{0.00416f};
 };
 
 } // namespace tkdsp
