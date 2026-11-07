@@ -780,6 +780,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     // Master Chaos Engine update for continuous Chorus Rate frequency modulation
     masterChaos_.updateBlock(params.chaosRate, params.chaosDrift, static_cast<double>(numSamples) / sr);
     const float rawChaos = masterChaos_.getRawValue(20);
+    masterChorusChaos_.store(rawChaos, std::memory_order_relaxed);
     const float bipolarChaos = rawChaos * 2.0f - 1.0f;
     const float modOct = bipolarChaos * params.randChorusRate * 2.0f;
     const float targetRateHz = std::clamp(chorusRate * std::exp2(modOct), 0.02f, 20.0f);

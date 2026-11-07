@@ -259,6 +259,10 @@ public:
 
     }
 
+    [[nodiscard]] float getMasterChorusChaos() const noexcept {
+        return masterChorusChaos_.load(std::memory_order_relaxed);
+    }
+
 
 
 private:
@@ -399,6 +403,7 @@ private:
     std::atomic<int> newestVoice_{-1};
 
     std::atomic<float> currentBpm_{120.0f};
+    std::atomic<float> masterChorusChaos_{0.5f};
 
 
 

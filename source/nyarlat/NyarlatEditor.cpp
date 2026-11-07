@@ -6,6 +6,75 @@
 
 namespace Nyarlat {
 
+void NyarlatLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height,
+                                         float sliderPos, float minSliderPos, float maxSliderPos,
+                                         const juce::Slider::SliderStyle style, juce::Slider& slider)
+{
+    using namespace Colours;
+    if (style != juce::Slider::LinearVertical) {
+        CrackedChimes::UI::CrackedChimesLookAndFeel::drawLinearSlider(
+            g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
+        return;
+    }
+
+    using namespace CrackedChimes::UI::Colours;
+
+    const auto area = juce::Rectangle<int>(x, y, width, height).toFloat();
+    const auto trackCol = slider.isColourSpecified(juce::Slider::trackColourId)
+        ? slider.findColour(juce::Slider::trackColourId) : accentColour_;
+
+    // 1. Bottom Kilohearts Value Badge Bounds (recessed OLED)
+    const float badgeH = 16.0f;
+    const float badgeY = area.getBottom() - badgeH - 2.0f;
+    const auto badgeRect = juce::Rectangle<float>(area.getX() + 2.0f, badgeY, area.getWidth() - 4.0f, badgeH);
+
+    // 2. Fader Track Bounds (restricted to travel above badge)
+    const float trackTop = area.getY() + 4.0f;
+    const float trackBottom = badgeRect.getY() - 6.0f;
+    const float trackHeight = trackBottom - trackTop;
+    const float trackX = area.getCentreX();
+    const float grooveW = 6.0f;
+    const auto track = juce::Rectangle<float>(trackX - grooveW * 0.5f, trackTop, grooveW, trackHeight);
+
+    // Track Cavity & Border
+    g.setColour(kCavity);
+    g.fillRoundedRectangle(track, 3.0f);
+    g.setColour(kBadgeBorder);
+    g.drawRoundedRectangle(track, 3.0f, 1.0f);
+
+    // Active fill up to clamped thumb position
+    const float clampedPos = std::clamp(sliderPos, trackTop, trackBottom);
+    if (clampedPos < trackBottom) {
+        auto filled = track.withTop(clampedPos);
+        g.setColour(trackCol.withAlpha(0.85f));
+        g.fillRoundedRectangle(filled.reduced(1.0f), 2.0f);
+    }
+
+    // 3. Tactile Fader Cap
+    const float capW = std::clamp(area.getWidth() - 8.0f, 26.0f, 34.0f);
+    const float capH = 13.0f;
+    const auto capBounds = juce::Rectangle<float>(trackX - capW * 0.5f, clampedPos - capH * 0.5f, capW, capH);
+
+    g.setColour(kChassisDisc);
+    g.fillRoundedRectangle(capBounds, 2.5f);
+    g.setColour(kChassisRim);
+    g.drawRoundedRectangle(capBounds, 2.5f, 1.0f);
+    g.setColour(kNeedle);
+    g.drawLine(capBounds.getX() + 3.0f, capBounds.getCentreY(), capBounds.getRight() - 3.0f, capBounds.getCentreY(), 1.5f);
+
+    // 4. Kilohearts Badge Value Rendering
+    juce::String text = slider.textFromValueFunction
+        ? slider.textFromValueFunction(slider.getValue())
+        : slider.getTextFromValue(slider.getValue());
+
+    if (text.isNotEmpty()) {
+        const bool hot = slider.isMouseButtonDown();
+        drawKiloheartsValueBadge(g, badgeRect, text, hot ? trackCol : kBadgeBorder);
+    }
+}
+
+
+
 
 
 NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
@@ -200,7 +269,7 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
     // Vector ADSR Visualizer (Bay 2)
 
-    vcaAdsrView_ = std::make_unique<VectorAdsrVisualizer>(proc);
+    vcaAdsrView_ = std::make_unique<VectorAdsrVisualizer>(proc, VectorAdsrVisualizer::Target::Amp);
 
     contentContainer.addAndMakeVisible(*vcaAdsrView_);
 
@@ -276,16 +345,11 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
 
 
-    auto makeRadio = [this](const juce::String& paramId, juce::Colour col, float fontSize = 10.0f) {
-
+        auto makeRadio = [this](const juce::String& paramId, juce::Colour col, float fontSize = 10.0f, const juce::StringArray& customLabels = {}) {
         auto item = std::make_unique<RadioItem>();
-
-        setupRadio(*item, paramId, col, fontSize);
-
+        setupRadio(*item, paramId, col, fontSize, customLabels);
         radios_.push_back(std::move(item));
-
         return &radios_.back()->radio;
-
     };
 
 
@@ -417,7 +481,7 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
     // --- BAY 2: SILKY ANALOG FILTER & VOICING ---
 
-    makeCombo(Ids::filter_slope, "SLOPE");
+    makeRadio(Ids::filter_slope, Colours::kFilter, 10.0f, {"12 LP", "24 LP", "12 BP"});
 
     makeKnob(Ids::filter_cutoff, "CUTOFF", Colours::kFilter);
 
@@ -441,9 +505,12 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
     makeKnob(Ids::noise_hammer_snap, "SNAP", Colours::kFilter);
 
+    filterAdsrView_ = std::make_unique<VectorAdsrVisualizer>(proc, VectorAdsrVisualizer::Target::Filter);
+    contentContainer.addAndMakeVisible(*filterAdsrView_);
 
 
-    makeCombo(Ids::voice_mode, "VOICING");
+
+    makeRadio(Ids::voice_mode, Colours::kVca, 10.0f, {"POLY", "MONO", "LEGATO", "UNISON"});
 
     makeKnob(Ids::amp_attack, "ATK", Colours::kVca);
 
@@ -663,6 +730,12 @@ void NyarlatEditor::setupFader(SliderFader& item, const juce::String& paramId, c
     item.slider.setColour(juce::Slider::thumbColourId, col);
 
     item.slider.setColour(juce::Slider::trackColourId, juce::Colour(0xFF262D38));
+
+    item.slider.textFromValueFunction = [](double val) {
+        if (val <= 0.0001) return juce::String("-inf dB");
+        const float db = juce::Decibels::gainToDecibels(static_cast<float>(val), -60.0f);
+        return juce::String::formatted("%.1f dB", db);
+    };
 
 
 
@@ -892,13 +965,11 @@ void NyarlatEditor::setupButton(ButtonItem& item, const juce::String& paramId, c
 
 
 
-void NyarlatEditor::setupRadio(RadioItem& item, const juce::String& paramId, juce::Colour col, float fontSize) {
-
+void NyarlatEditor::setupRadio(RadioItem& item, const juce::String& paramId, juce::Colour col, float fontSize, const juce::StringArray& customLabels) {
     item.paramId = paramId;
-
     if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(processor_.getAPVTS().getParameter(paramId))) {
-
-        item.radio.configure(choiceParam->choices, col, 2, fontSize);
+        const auto labels = customLabels.isEmpty() ? choiceParam->choices : customLabels;
+        item.radio.configure(labels, col, 2, fontSize);
 
         item.attachment = std::make_unique<juce::ParameterAttachment>(
 
@@ -977,7 +1048,7 @@ void NyarlatEditor::paintCanvas(juce::Graphics& g) {
     g.setColour(Colours::kOsc);
     g.fillRect(8, 38, kBaseWidth - 16, 2);
 
-    auto drawBay = [&](int x, int y, int w, int h, const juce::String& title, juce::Colour badgeCol, int badgeWidth = 100) {
+    auto drawBay = [&](int x, int y, int w, int h, const juce::String& title, juce::Colour badgeCol, int badgeWidth = 120, int badgeXOffset = -1) {
         auto r = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
         g.setColour(Colours::kBayBg);
         g.fillRoundedRectangle(r, 6.0f);
@@ -987,7 +1058,10 @@ void NyarlatEditor::paintCanvas(juce::Graphics& g) {
         if (title.isNotEmpty()) {
             float bw = static_cast<float>(badgeWidth);
             float bh = 18.0f;
-            auto badge = juce::Rectangle<float>(static_cast<float>(x) + (static_cast<float>(w) - bw) * 0.5f, static_cast<float>(y + 6), bw, bh);
+            float bx = (badgeXOffset >= 0)
+                ? static_cast<float>(x + badgeXOffset)
+                : static_cast<float>(x) + (static_cast<float>(w) - bw) * 0.5f;
+            auto badge = juce::Rectangle<float>(bx, static_cast<float>(y + 6), bw, bh);
             g.setColour(badgeCol);
             g.fillRoundedRectangle(badge, 4.0f);
             g.setFont(juce::Font(juce::FontOptions(10.5f).withStyle("Bold")));
@@ -996,43 +1070,21 @@ void NyarlatEditor::paintCanvas(juce::Graphics& g) {
         }
     };
 
-    auto drawSubtlePod = [&](int x, int y, int w, int h, const juce::String& label = {}, juce::Colour labelCol = juce::Colour(0xFF6E7681)) {
-        auto r = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
-        g.setColour(juce::Colour(0xFF0B0F14));
-        g.fillRoundedRectangle(r, 4.0f);
-        g.setColour(juce::Colour(0xFF262D38));
-        g.drawRoundedRectangle(r, 4.0f, 1.0f);
-        if (label.isNotEmpty()) {
-            g.setFont(juce::Font(juce::FontOptions(9.0f).withStyle("Bold")));
-            g.setColour(labelCol);
-            g.drawText(label, x + 8, y + 2, w - 16, 12, juce::Justification::centredLeft);
-        }
-    };
+    // The Master 3x3 Grid (1160 x 870 4:3 Ratio)
+    // Col 0: Oscillators (x=14, w=368, y=44, 320, 596, h=264)
+    drawBay(14,  44, 368, 264, "OSCILLATOR 1", Colours::kOsc1, 130);
+    drawBay(14, 320, 368, 264, "OSCILLATOR 2", Colours::kOsc2, 130);
+    drawBay(14, 596, 368, 264, "OSCILLATOR 3", Colours::kOsc3, 130);
 
-    // 3 Primary Master Bays (1160 x 870 4:3 Ratio)
-    // Col 1: Oscillators (14, 44, 360, 816)
-    // Col 2: Mixer & Chaos (386, 44, 368, 816)
-    // Col 3: Filter & Master (766, 44, 380, 816)
-    drawBay(14,  44, 360, 816, "ADDITIVE OSCILLATORS", Colours::kOsc, 160);
-    drawBay(386, 44, 368, 816, "MIXER & CHAOS", Colours::kMixer, 150);
-    drawBay(766, 44, 380, 816, "FILTER & MASTER", Colours::kFilter, 160);
+    // Col 1: Sub-Mixer, Osc Chaos Matrix, Master Chaos (x=394, w=368, y=44, 320, 596, h=264)
+    drawBay(394,  44, 368, 264, "SUB-MIXER", Colours::kMixer, 120);
+    drawBay(394, 320, 368, 264, "OSC CHAOS MATRIX", Colours::kChaos, 160);
+    drawBay(394, 596, 368, 264, "CHAOS & SPACE MOD", juce::Colour(0xFFB66DFF), 160);
 
-    // Subtle Pods inside Bay 1 (3 Oscillators)
-    drawSubtlePod(20, 50,  348, 256, "OSCILLATOR 1", Colours::kOsc1);
-    drawSubtlePod(20, 326, 348, 256, "OSCILLATOR 2", Colours::kOsc2);
-    drawSubtlePod(20, 602, 348, 256, "OSCILLATOR 3", Colours::kOsc3);
-
-    // Subtle Pods inside Bay 2 (Mixer & Chaos)
-    drawSubtlePod(392, 50,  356, 256, "SUB-MIXER");
-    drawSubtlePod(392, 326, 356, 532, "CHAOS ENGINE");
-
-    // Inside Chaos: Framed Sub-Pod for R-Triad
-    drawSubtlePod(398, 420, 344, 432, "MODULATION MATRIX");
-
-    // Subtle Pods inside Bay 3 (Filter, VCA, Master)
-    drawSubtlePod(772, 50,  368, 256, "SILKY ZERO-DELAY FEEDBACK FILTER");
-    drawSubtlePod(772, 326, 368, 256, "VOICING & VCA ENVELOPE");
-    drawSubtlePod(772, 602, 368, 256, "MASTER & CHORUS");
+    // Col 2: Filter, VCA, Output & Expression (x=774, w=372, y=44, 320, 596, h=264)
+    drawBay(774,  44, 372, 264, "SILKY ZDF FILTER", Colours::kFilter, 140, 10);
+    drawBay(774, 320, 372, 264, "AMPLIFIER & VOICING", Colours::kVca, 160, 10);
+    drawBay(774, 596, 372, 264, "OUTPUT & EXPRESSION", Colours::kMaster, 170);
 }
 
 void NyarlatEditor::applyDragSensitivity(float s) {
@@ -1121,12 +1173,8 @@ void NyarlatEditor::layoutControls() {
         for (auto& f : faders_) if (f->paramId == id) return f.get();
         return nullptr;
     };
-    auto findCombo = [this](const juce::String& id) -> ComboBoxItem* {
-        for (auto& c : combos_) if (c->paramId == id) return c.get();
-        return nullptr;
-    };
-    auto findButton = [this](const juce::String& id) -> ButtonItem* {
-        for (auto& b : buttons_) if (b->paramId == id) return b.get();
+    auto findStepper = [this](const juce::String& id) -> StepperItem* {
+        for (auto& s : steppers_) if (s->paramId == id) return s.get();
         return nullptr;
     };
 
@@ -1145,69 +1193,43 @@ void NyarlatEditor::layoutControls() {
         f->slider.setBounds(x, y + labelH + 2, w, h);
     };
 
-    auto placeCombo = [&](const juce::String& id, int x, int y, int w, int h, int labelH = 11, bool labelAbove = false) {
-        auto* c = findCombo(id);
-        if (c == nullptr) return;
-        if (labelAbove) {
-            c->label.setBounds(x, y, w, labelH);
-            c->combo.setBounds(x, y + labelH + 2, w, h);
-        } else {
-            c->combo.setBounds(x, y, w, h);
-            c->label.setBounds(x, y - labelH, w, labelH);
-        }
-    };
-
-    auto placeStepper = [&](const juce::String& id, int x, int y, int w, int h, int labelH = 0, bool labelAbove = false) {
+    auto placeStepper = [&](const juce::String& id, int x, int y, int w, int h) {
         auto* s = findStepper(id);
         if (s == nullptr) return;
-        if (labelH > 0) {
-            if (labelAbove) {
-                s->label.setBounds(x, y, w, labelH);
-                s->bar.setBounds(x, y + labelH + 2, w, h);
-                return;
-            } else {
-                s->label.setBounds(x, y - labelH, w, labelH);
-            }
-        }
         s->bar.setBounds(x, y, w, h);
     };
 
     namespace Ids = nyarlatParameters::Ids;
 
     // ==============================================================================
-    // Bay 1: Additive Oscillators (14, 44, 360, 816)
-    // 3 Pods: 348 x 256px each (Base Y: 50, 326, 602)
+    // Column 0: Additive Oscillators 1, 2, 3 (x=14, w=368, y=44, 320, 596)
     // ==============================================================================
-    const std::array<int, 3> oscBaseY = { 50, 326, 602 };
+    const std::array<int, 3> oscBaseY = { 44, 320, 596 };
 
     for (int o = 0; o < 3; ++o) {
         const int by = oscBaseY[o];
         const juce::String oPrefix = (o == 0) ? "osc1_" : (o == 1 ? "osc2_" : "osc3_");
 
         // Row 1: Bank Stepper Audition Bar (by+14..by+34)
-        placeStepper(oPrefix + "bank", 28, by + 14, 332, 20);
+        placeStepper(oPrefix + "bank", 24, by + 14, 348, 20);
 
-        // Row 2: Full-Width Octave Radio (332px across 5 segments) (by+38..by+58)
+        // Row 2: Full-Width Octave Radio (348px across 5 segments) (by+38..by+58)
         if (auto* r = findRadio(oPrefix + "octave")) {
-            r->setBounds(28, by + 38, 332, 20);
+            r->setBounds(24, by + 38, 348, 20);
         }
 
-        // Row 3: Morph Knob (under -2 octave button, center 60, 48px knob)
-        placeKnob(oPrefix + "morph", 36, by + 62, 48, 52, 11);
+        // Row 3: Wave Deck (Morph, OLED, Speed, 2x2 Icon Grid)
+        placeKnob(oPrefix + "morph", 30, by + 62, 52, 56, 11);
 
-        // Row 3: Additive Waveform Preview (spans under -1 and 0 octave buttons: 94..226, 64px tall, 132px wide)
         if (oscWaveViews_[o] != nullptr) {
-            oscWaveViews_[o]->setBounds(94, by + 62, 132, 64);
+            oscWaveViews_[o]->setBounds(88, by + 62, 136, 64);
         }
 
-        // Row 3: Speed Knob (under +1 octave button, center 261, 48px knob)
-        placeKnob(oPrefix + "speed", 237, by + 62, 48, 52, 11);
+        placeKnob(oPrefix + "speed", 230, by + 62, 52, 56, 11);
 
-        // Row 3 Right: 2x2 Vector Icon Grid (under +2 octave button: 64x64px at x=296..360, y=by+62..by+126)
-        // Top-Left: Lock | Top-Right: Triangle | Bottom-Left: Saw Up | Bottom-Right: Saw Down
         constexpr int cell = 30;
         constexpr int gap = 4;
-        constexpr int gx = 296;
+        constexpr int gx = 288;
         const int gy = by + 62;
         auto& grid = oscShapeGrids_[o];
         if (grid.lockBtn) grid.lockBtn->setBounds(gx,              gy,              cell, cell);
@@ -1215,108 +1237,122 @@ void NyarlatEditor::layoutControls() {
         if (grid.upBtn)   grid.upBtn->setBounds(gx,              gy + cell + gap, cell, cell);
         if (grid.downBtn) grid.downBtn->setBounds(gx + cell + gap, gy + cell + gap, cell, cell);
 
-        // Row 5: Consolidated Hero Knob Row (4 knobs, 64px dials, y=by+152, slider by+165..by+229)
-        // Evenly spaced in 83px slots: 38, 121, 204, 287 (19px gutters, 26px top / 27px bottom margin)
-        placeKnob(oPrefix + "odd_even", 38,  by + 152, 64, 68, 11);
-        placeKnob(oPrefix + "mask",     121, by + 152, 64, 68, 11);
-        placeKnob(oPrefix + "formant",  204, by + 152, 64, 68, 11);
-        placeKnob(oPrefix + "tilt",     287, by + 152, 64, 68, 11);
+        // Row 4: Harmonic Shaping Quad (4 Knobs, 64px Primary dials)
+        placeKnob(oPrefix + "odd_even", 26,  by + 132, 64, 68, 11);
+        placeKnob(oPrefix + "mask",     114, by + 132, 64, 68, 11);
+        placeKnob(oPrefix + "formant",  202, by + 132, 64, 68, 11);
+        placeKnob(oPrefix + "tilt",     290, by + 132, 64, 68, 11);
     }
 
     // ==============================================================================
-    // Bay 2: Mixer & Chaos (386, 44, 368, 816)
+    // Column 1, Row 0: Sub-Mixer (x=394, y=44, w=368, h=264)
+    // 4 Full-Height Faders (210px) on left + 3 Knobs stacked vertically on right
     // ==============================================================================
-    // Pod 2A: Sub-Mixer (392, 50, 356, 256)
-    // 4 Vertical Level Sliders on top (labels 68, sliders 81..175)
-    const std::array<int, 4> faderX = { 412, 492, 572, 652 };
-    placeFader(Ids::osc1_level,  faderX[0], 68, 28, 94);
-    placeFader(Ids::osc2_level,  faderX[1], 68, 28, 94);
-    placeFader(Ids::osc3_level,  faderX[2], 68, 28, 94);
-    placeFader(Ids::noise_level, faderX[3], 68, 28, 94);
+    placeFader(Ids::osc1_level,  406, 72, 46, 210, 12);
+    placeFader(Ids::osc2_level,  470, 72, 46, 210, 12);
+    placeFader(Ids::osc3_level,  534, 72, 46, 210, 12);
+    placeFader(Ids::noise_level, 598, 72, 46, 210, 12);
 
-    // 3 Knobs below (Tone, Spread, Warmth: label 182, slider 195..247)
-    placeKnob(Ids::noise_tone,   422, 182, 52, 56, 11);
-    placeKnob(Ids::osc_spread,   538, 182, 52, 56, 11);
-    placeKnob(Ids::mixer_seethe, 650, 180, 56, 60, 11);
+    placeKnob(Ids::noise_tone,   684, 74,  52, 56, 11);
+    placeKnob(Ids::osc_spread,   684, 155, 52, 56, 11);
+    placeKnob(Ids::mixer_seethe, 684, 236, 52, 56, 11);
 
-    // Pod 2B: Chaos Engine (392, 326, 356, 532)
-    // Top Deck: Master Chaos Knobs (Rate, Drift, Poly: label 334, slider 347..399)
-    placeKnob(Ids::chaos_rate,        414, 334, 56, 60, 11);
-    placeKnob(Ids::chaos_drift,       544, 336, 52, 56, 11);
-    placeKnob(Ids::chaos_poly_spread, 672, 336, 52, 56, 11);
-
-    // The 3x3 Modulation Matrix (3 rows of 3 knobs, 52px each, cols 416, 544, 672)
-    // Row 1: Pitch & Space (y = 444)
-    placeKnob(Ids::rand_spread,      416, 444, 52, 56, 11);
-    placeKnob(Ids::rand_tune,        544, 444, 52, 56, 11);
-    placeKnob(Ids::rand_chorus_rate, 672, 444, 52, 58, 11);
-
-    // Row 2: Wave & Form (y = 568)
-    placeKnob(Ids::rand_morph,    416, 568, 52, 56, 11);
-    placeKnob(Ids::rand_odd_even, 544, 568, 52, 58, 11);
-    placeKnob(Ids::rand_tilt,     672, 568, 52, 56, 11);
-
-    // Row 3: Color & Motion (y = 692)
-    placeKnob(Ids::rand_formant,  416, 692, 52, 58, 11);
-    placeKnob(Ids::rand_mask,     544, 692, 52, 56, 11);
-    placeKnob(Ids::rand_speed,    672, 692, 52, 56, 11);
-
-    // Bay 3: Filter & Master (766, 44, 380, 816)
     // ==============================================================================
-    // Pod 3A: Silky Analog ZDF Filter (772, 50, 368, 256)
-    placeCombo(Ids::filter_slope, 780, 54, 130, 20, 11, false);
+    // Column 1, Row 1: Oscillator Chaos Matrix (x=394, y=320, w=368, h=264)
+    // 6 Knobs for Chaos to Osc Controls (64px Primary dials)
+    // ==============================================================================
+    // Row 1: Morph, Odd/Even, Tilt
+    placeKnob(Ids::rand_morph,    424, 356, 64, 68, 11);
+    placeKnob(Ids::rand_odd_even, 546, 356, 64, 68, 11);
+    placeKnob(Ids::rand_tilt,     668, 356, 64, 68, 11);
 
-    // Hero Knobs: Cutoff & Resonance (72px!), Drive (54px), Hammer Snap (52px)
-    placeKnob(Ids::filter_cutoff,     782, 80,  72, 76, 11);
-    placeKnob(Ids::filter_resonance,  866, 80,  72, 76, 11);
-    placeKnob(Ids::filter_drive,      950, 88,  54, 58, 11);
-    placeKnob(Ids::noise_hammer_snap, 1022, 90, 52, 56, 11);
+    // Row 2: Formant, Mask, Speed
+    placeKnob(Ids::rand_formant,  424, 472, 64, 68, 11);
+    placeKnob(Ids::rand_mask,     546, 472, 64, 68, 11);
+    placeKnob(Ids::rand_speed,    668, 472, 64, 68, 11);
 
-    // Filter Envelope (4 Knobs, 52px, label 168, slider 181..233)
-    placeKnob(Ids::filter_attack,  780, 168, 52, 56, 11);
-    placeKnob(Ids::filter_decay,   856, 168, 52, 56, 11);
-    placeKnob(Ids::filter_sustain, 932, 168, 52, 56, 11);
-    placeKnob(Ids::filter_release, 1008, 168, 52, 56, 11);
+    // ==============================================================================
+    // Column 1, Row 2: Master Chaos & Space (x=394, y=596, w=368, h=264)
+    // ==============================================================================
+    // Row 1: Master Chaos Engine
+    placeKnob(Ids::chaos_rate,        424, 631, 64, 68, 11); // Primary 64px
+    placeKnob(Ids::chaos_drift,       552, 637, 52, 56, 11); // Secondary 52px
+    placeKnob(Ids::chaos_poly_spread, 674, 637, 52, 56, 11); // Secondary 52px
 
-    // Filter Modulation (3 Knobs, 52px, label 238, slider 251..303)
-    placeKnob(Ids::filter_env_depth, 804, 238, 52, 56, 11);
-    placeKnob(Ids::filter_velocity,  900, 238, 52, 56, 11);
-    placeKnob(Ids::filter_keytrack,  996, 238, 52, 56, 11);
+    // Row 2: Space & Detune Modulators
+    placeKnob(Ids::rand_tune,        430, 741, 52, 56, 11);
+    placeKnob(Ids::rand_chorus_rate, 552, 741, 52, 56, 11);
+    placeKnob(Ids::rand_spread,      674, 741, 52, 56, 11);
 
-    // Pod 3B: Voicing & VCA (772, 326, 368, 256)
-    placeCombo(Ids::voice_mode, 780, 330, 140, 20, 11, false);
+    // ==============================================================================
+    // Column 2, Row 0: Silky ZDF Filter (x=774, y=44, w=372, h=264)
+    // Tri-Zone Partition: Core -> Visualizer/Mod -> Envelope Strip
+    // ==============================================================================
+    if (auto* r = findRadio(Ids::filter_slope)) {
+        r->setBounds(974, 48, 160, 18);
+    }
+
+    // Zone 1: Filter Core Acoustics
+    placeKnob(Ids::filter_cutoff,     784, 66,  72, 80, 11); // Hero Dial!
+    placeKnob(Ids::filter_resonance,  872, 70,  64, 72, 11); // Primary 64px
+    placeKnob(Ids::filter_drive,      954, 76,  52, 60, 11); // Secondary 52px
+    placeKnob(Ids::noise_hammer_snap, 1024, 76, 52, 60, 11); // Secondary 52px
+
+    // Zone 2: Filter ADSR Visualizer + Tracking
+    if (filterAdsrView_ != nullptr) {
+        filterAdsrView_->setBounds(784, 154, 196, 62);
+    }
+    placeKnob(Ids::filter_velocity,  998,  152, 52, 60, 11);
+    placeKnob(Ids::filter_keytrack,  1068, 152, 52, 60, 11);
+
+    // Zone 3: Envelope Generator Strip
+    placeKnob(Ids::filter_env_depth, 784,  226, 52, 60, 11);
+    placeKnob(Ids::filter_attack,    854,  226, 52, 60, 11);
+    placeKnob(Ids::filter_decay,     924,  226, 52, 60, 11);
+    placeKnob(Ids::filter_sustain,   994,  226, 52, 60, 11);
+    placeKnob(Ids::filter_release,   1064, 226, 52, 60, 11);
+
+    // ==============================================================================
+    // Column 2, Row 1: Amplifier & Voicing (x=774, y=320, w=372, h=264)
+    // ==============================================================================
+    if (auto* r = findRadio(Ids::voice_mode)) {
+        r->setBounds(946, 326, 190, 18);
+    }
 
     if (vcaAdsrView_ != nullptr) {
-        vcaAdsrView_->setBounds(780, 352, 352, 38);
+        vcaAdsrView_->setBounds(786, 352, 348, 56);
     }
 
-    // Amp Envelope (4 Knobs, 48px, label 396, slider 409..457)
-    placeKnob(Ids::amp_attack,  780, 396, 48, 52, 11);
-    placeKnob(Ids::amp_decay,   856, 396, 48, 52, 11);
-    placeKnob(Ids::amp_sustain, 932, 396, 48, 52, 11);
-    placeKnob(Ids::amp_release, 1008, 396, 48, 52, 11);
+    // Row 1: Amp Envelope Quad (52px)
+    placeKnob(Ids::amp_attack,  808,  416, 52, 56, 11);
+    placeKnob(Ids::amp_decay,   892,  416, 52, 56, 11);
+    placeKnob(Ids::amp_sustain, 976,  416, 52, 56, 11);
+    placeKnob(Ids::amp_release, 1060, 416, 52, 56, 11);
 
-    // Dynamics & Glide (3 Knobs, 48px, label 462, slider 475..523)
-    placeKnob(Ids::amp_velocity, 804, 462, 48, 52, 11);
-    placeKnob(Ids::keytrack_rate, 900, 462, 48, 52, 11);
-    placeKnob(Ids::glide_time,    996, 462, 48, 52, 11);
+    // Row 2: Dynamics & Keytrack (64px Primary)
+    placeKnob(Ids::amp_velocity, 850, 494, 64, 68, 11);
+    placeKnob(Ids::keytrack_rate, 990, 494, 64, 68, 11);
 
-    // Expression & Bend (3 Knobs, 48px, label 528, slider 541..589)
-    placeKnob(Ids::mpe_slide_depth,    804, 528, 48, 52, 11);
-    placeKnob(Ids::mpe_pressure_depth, 900, 528, 48, 52, 11);
-    placeKnob(Ids::pitch_bend_range,   996, 528, 48, 52, 11);
+    // ==============================================================================
+    // Column 2, Row 2: Output & Expression (x=774, y=596, w=372, h=264)
+    // Strictly NOT "Master"
+    // ==============================================================================
+    // Row 1: Expression & Glide (52px)
+    placeKnob(Ids::glide_time,         808,  620, 52, 56, 11);
+    placeKnob(Ids::pitch_bend_range,    892,  620, 52, 56, 11);
+    placeKnob(Ids::mpe_slide_depth,     976,  620, 52, 56, 11);
+    placeKnob(Ids::mpe_pressure_depth,  1060, 620, 52, 56, 11);
 
-    // Pod 3C: Master & Chorus (772, 602, 368, 256)
-    // Row 1: Tone & Chorus (label 632, slider 645..697)
-    placeKnob(Ids::bass_boost,   792,  632, 52, 56, 11);
-    placeKnob(Ids::treble_tame,  884,  632, 52, 56, 11);
-    placeKnob(Ids::alpha_chorus, 976,  632, 52, 56, 11);
-    placeKnob(Ids::chorus_rate,  1068, 632, 52, 56, 11);
+    // Row 2: Analog Chorus & Slop (52px)
+    placeKnob(Ids::alpha_chorus, 808,  692, 52, 56, 11);
+    placeKnob(Ids::chorus_rate,  892,  692, 52, 56, 11); // live chaos arc halo!
+    placeKnob(Ids::osc_slop,     976,  692, 52, 56, 11);
+    placeKnob(Ids::global_width, 1060, 692, 52, 56, 11);
 
-    // Row 2: Master (Slop, Width, Volume: label 742, slider 755 / 745)
-    placeKnob(Ids::osc_slop,     792,  742, 52, 56, 11);
-    placeKnob(Ids::global_width, 884,  742, 52, 56, 11);
-    placeKnob(Ids::output_level, 1012, 732, 72, 76, 11);
+    // Row 3: Master Tone & Output Level
+    placeKnob(Ids::bass_boost,   808,  768, 52, 56, 11);
+    placeKnob(Ids::treble_tame,  892,  768, 52, 56, 11);
+    placeKnob(Ids::output_level, 1008, 762, 64, 72, 11); // Primary 64px
 
 #if JUCE_DEBUG
     // Regression Safety Guards
@@ -1326,8 +1362,8 @@ void NyarlatEditor::layoutControls() {
     for (auto& f : faders_) {
         jassert(f && !f->slider.getBounds().isEmpty());
     }
-    for (auto& c : combos_) {
-        jassert(c && !c->combo.getBounds().isEmpty());
+    for (auto& r : radios_) {
+        jassert(r && !r->radio.getBounds().isEmpty());
     }
 #endif
 }
@@ -1596,7 +1632,35 @@ void NyarlatEditor::timerCallback() {
 
     }
 
+
+    // 3D. Master Chorus Rate Chaos Arc Halo
+    if (auto* kChorusRate = findKnob(Ids::chorus_rate)) {
+        const float randChRate = *apvts.getRawParameterValue(Ids::rand_chorus_rate);
+        auto& sp = kChorusRate->slider.getProperties();
+
+        if (randChRate > 0.002f) {
+            const float kNorm = static_cast<float>(kChorusRate->slider.valueToProportionOfLength(kChorusRate->slider.getValue()));
+            const float rVal = processor_.getMasterChorusChaos();
+
+            const auto halo = CrackedChimes::DSP::computeStepRandHalo(kNorm, randChRate, rVal);
+
+            const float oldPip = sp.getWithDefault("randPip", -1.0f);
+            if (std::abs(oldPip - halo.pip) > 0.002f) {
+                sp.set("randLo", halo.lo);
+                sp.set("randHi", halo.hi);
+                sp.set("randPip", halo.pip);
+                sp.set("randColour", static_cast<juce::int64>(Colours::kChaos.getARGB()));
+                kChorusRate->slider.repaint();
+            }
+        } else if (sp.contains("randLo")) {
+            sp.remove("randLo");
+            sp.remove("randHi");
+            sp.remove("randPip");
+            kChorusRate->slider.repaint();
+        }
+    }
 }
+
 
 
 

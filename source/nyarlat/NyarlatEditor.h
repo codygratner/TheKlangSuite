@@ -1234,7 +1234,10 @@ class VectorAdsrVisualizer : public juce::Component {
 
 public:
 
-    VectorAdsrVisualizer(NyarlatProcessor& proc) : proc_(proc) {
+    enum class Target { Filter, Amp };
+
+    VectorAdsrVisualizer(NyarlatProcessor& proc, Target target = Target::Amp)
+        : proc_(proc), target_(target) {
 
         setInterceptsMouseClicks(false, false);
 
@@ -1257,14 +1260,20 @@ public:
 
 
         namespace Ids = nyarlatParameters::Ids;
+        float a = 0.01f, d = 0.4f, s = 0.3f, r = 0.5f;
+        juce::Colour accent = (target_ == Target::Filter) ? Colours::kFilter : Colours::kVca;
 
-        float a = *proc_.getAPVTS().getRawParameterValue(Ids::amp_attack);
-
-        float d = *proc_.getAPVTS().getRawParameterValue(Ids::amp_decay);
-
-        float s = *proc_.getAPVTS().getRawParameterValue(Ids::amp_sustain);
-
-        float r = *proc_.getAPVTS().getRawParameterValue(Ids::amp_release);
+        if (target_ == Target::Filter) {
+            a = *proc_.getAPVTS().getRawParameterValue(Ids::filter_attack);
+            d = *proc_.getAPVTS().getRawParameterValue(Ids::filter_decay);
+            s = *proc_.getAPVTS().getRawParameterValue(Ids::filter_sustain);
+            r = *proc_.getAPVTS().getRawParameterValue(Ids::filter_release);
+        } else {
+            a = *proc_.getAPVTS().getRawParameterValue(Ids::amp_attack);
+            d = *proc_.getAPVTS().getRawParameterValue(Ids::amp_decay);
+            s = *proc_.getAPVTS().getRawParameterValue(Ids::amp_sustain);
+            r = *proc_.getAPVTS().getRawParameterValue(Ids::amp_release);
+        }
 
 
 
@@ -1318,9 +1327,9 @@ public:
 
 
 
-        juce::ColourGradient grad(Colours::kVca.withAlpha(0.28f), x0, peakY,
+        juce::ColourGradient grad(accent.withAlpha(0.28f), x0, peakY,
 
-                                  Colours::kVca.withAlpha(0.02f), x0, y0, false);
+                                  accent.withAlpha(0.02f), x0, y0, false);
 
         g.setGradientFill(grad);
 
@@ -1328,7 +1337,7 @@ public:
 
 
 
-        g.setColour(Colours::kVca);
+        g.setColour(accent);
 
         g.strokePath(curve, juce::PathStrokeType(1.8f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
@@ -1339,6 +1348,7 @@ public:
 private:
 
     NyarlatProcessor& proc_;
+    Target target_{Target::Amp};
 
 };
 
@@ -1381,6 +1391,10 @@ public:
     void setAccentColour(juce::Colour c) { accentColour_ = c; }
 
     juce::Colour getAccentColour() const noexcept { return accentColour_; }
+
+    void drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height,
+                           float sliderPos, float minSliderPos, float maxSliderPos,
+                           juce::Slider::SliderStyle style, juce::Slider& slider) override;
 
 };
 
@@ -1536,7 +1550,7 @@ private:
 
     void setupButton(ButtonItem& item, const juce::String& paramId, const juce::String& label, juce::Colour col);
 
-    void setupRadio(RadioItem& item, const juce::String& paramId, juce::Colour col, float fontSize = 10.0f);
+    void setupRadio(RadioItem& item, const juce::String& paramId, juce::Colour col, float fontSize = 10.0f, const juce::StringArray& customLabels = {});
 
     SegmentedRadio* findRadio(const juce::String& paramId);
 
@@ -1592,6 +1606,7 @@ private:
 
     std::array<std::unique_ptr<BitmaskWaveVisualizer>, 3> oscWaveViews_;
 
+    std::unique_ptr<VectorAdsrVisualizer> filterAdsrView_;
     std::unique_ptr<VectorAdsrVisualizer> vcaAdsrView_;
 
 
