@@ -28,6 +28,7 @@ public:
         state_.voiceGain = 1.0f;
         state_.ageSamples = 0;
         state_.noteId = 0;
+        state_.masterPhase = 0.0f;
         stealFadeSamples_ = 0;
         stealFadeRemaining_ = 0;
 
@@ -40,6 +41,11 @@ public:
             state_.p.ratio[k] = static_cast<float>(k + 1);
             state_.p.dOmega[k] = 0.0f;
             state_.p.envAssign[k] = static_cast<uint8_t>(k % 4);
+        }
+
+        for (int i = 0; i < kGuarded; ++i) {
+            state_.p.psi[i] = 0.0f;
+            state_.p.kAmp[i] = 0.0f;
         }
     }
 
@@ -62,16 +68,17 @@ public:
         // Set partial pool ceiling based on cpuTier
         int maxPool = 1024;
         if (cpuTier == 1) maxPool = 2048;
-        else if (cpuTier == 2) maxPool = 2048;
+        else if (cpuTier == 2) maxPool = kMaxPartials;
 
         if (!modernMode) {
             state_.activePartials = 126;
         } else {
             // Adaptive Nyquist limit: f_k < 0.495 * fs
             const int nyqPartials = static_cast<int>((0.495f * sampleRate_) / std::max(20.0f, f0Hz));
-            state_.activePartials = static_cast<uint32_t>(std::clamp(nyqPartials, 126, maxPool));
+            state_.activePartials = static_cast<uint32_t>(std::clamp(nyqPartials, 1, maxPool));
         }
         state_.activeBlocks = (state_.activePartials + 7) / 8;
+        state_.masterPhase = 0.0f;
 
         // Trigger DHG & AHDSR envelopes
         for (int e = 0; e < kNumDHGEnv; ++e) {
@@ -82,15 +89,23 @@ public:
         envs_.triggerAhdsr(state_.filterAhdsr);
 
         // Phase initialization: Schroeder turns for low crest factor
-        for (int k = 0; k < static_cast<int>(state_.activePartials); ++k) {
-            float phase = 0.0f;
-            if (modernMode && k >= kMax1987Partials) {
-                const float turns = Laws::computeSchroederPhaseTurns(k, state_.activePartials, 1.0f);
-                phase = turns * Oscillator::kTwoPi;
+        for (int k = 0; k < kMaxPartials; ++k) {
+            if (k < static_cast<int>(state_.activePartials)) {
+                float phase = 0.0f;
+                if (modernMode && k >= kMax1987Partials) {
+                    const float turns = Laws::computeSchroederPhaseTurns(k, state_.activePartials, 1.0f);
+                    phase = turns * Oscillator::kTwoPi;
+                }
+                state_.p.re[k] = 1e-4f * std::cos(phase);
+                state_.p.im[k] = 1e-4f * std::sin(phase);
+                state_.p.amp[k] = 1e-4f;
+            } else {
+                state_.p.re[k] = 0.0f;
+                state_.p.im[k] = 0.0f;
+                state_.p.amp[k] = 0.0f;
+                state_.p.ampTgt[k] = 0.0f;
+                state_.p.baseHarmonic[k] = 0.0f;
             }
-            state_.p.re[k] = 1e-4f * std::cos(phase);
-            state_.p.im[k] = 1e-4f * std::sin(phase);
-            state_.p.amp[k] = 1e-4f;
         }
     }
 
@@ -272,13 +287,14 @@ public:
             // 6. In-Synthesis Alpha Chorus & Stereo Projection
             osc_.projectStereo(sRe, sIm, subL, subR, chunkSize, chorusMode, waterbedDepth, 0.0f);
 
-            // 7. Accumulate into output with anti-click stealing fade if needed
+            // 7. Accumulate into output with calibrated voice scaling & anti-click stealing fade
+            constexpr float kVoiceScale = 0.08f; // Headroom scaling for 64-voice additive sum
             for (int i = 0; i < chunkSize; ++i) {
-                float gain = 1.0f;
+                float gain = kVoiceScale;
                 if (stealFadeRemaining_ > 0) {
                     // Cosine window fade-out
                     const float progress = static_cast<float>(stealFadeRemaining_) / static_cast<float>(stealFadeSamples_);
-                    gain = 0.5f * (1.0f - std::cos(3.14159265f * progress));
+                    gain *= 0.5f * (1.0f - std::cos(3.14159265f * progress));
                     stealFadeRemaining_--;
                     if (stealFadeRemaining_ <= 0) {
                         state_.phase = VoicePhase::Idle;

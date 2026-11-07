@@ -171,8 +171,11 @@ public:
         for (int k = 0; k < numBlocks * kLanes; ++k) {
             const float targetAmp = voice.p.ampTgt[k];
             if (targetAmp < 1e-5f) {
-                voice.p.re[k] = 0.0f;
-                voice.p.im[k] = 0.0f;
+                // Smooth exponential decay towards zero rather than discontinuous hard clipping
+                voice.p.re[k] *= 0.5f;
+                voice.p.im[k] *= 0.5f;
+                if (std::abs(voice.p.re[k]) < 1e-7f) voice.p.re[k] = 0.0f;
+                if (std::abs(voice.p.im[k]) < 1e-7f) voice.p.im[k] = 0.0f;
                 voice.p.amp[k] = 0.0f;
             } else {
                 const float currentMag2 = voice.p.re[k] * voice.p.re[k] + voice.p.im[k] * voice.p.im[k];

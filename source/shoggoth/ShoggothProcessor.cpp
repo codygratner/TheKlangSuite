@@ -221,8 +221,10 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
         float r = rightChannel[i];
 
         if (seethe > 0.001f) {
-            // Asymmetric op-amp / transformer saturation curve
+            // Asymmetric op-amp / transformer saturation curve (safely bounded)
             const float drive = 1.0f + seethe * 2.0f;
+            l = std::clamp(l, -3.0f, 3.0f);
+            r = std::clamp(r, -3.0f, 3.0f);
             l = (l * drive) - 0.15f * (l * l * drive * drive) - 0.05f * (l * l * l);
             r = (r * drive) - 0.15f * (r * r * drive * drive) - 0.05f * (r * r * r);
         }
@@ -253,11 +255,26 @@ void ShoggothProcessor::getStateInformation(juce::MemoryBlock& destData) {
     for (int k = 0; k < 63; ++k) {
         s1Str << s1Harmonics_[k] << (k < 62 ? " " : "");
         s2Str << s2Harmonics_[k] << (k < 62 ? " " : "");
-        assignStr << static_cast<int>(harmonicEnvAssign_[k]) << " ";
+    }
+    for (int k = 0; k < 126; ++k) {
+        assignStr << static_cast<int>(harmonicEnvAssign_[k]) << (k < 125 ? " " : "");
     }
     specXml->setAttribute("s1", s1Str);
     specXml->setAttribute("s2", s2Str);
     specXml->setAttribute("assign", assignStr);
+
+    for (int e = 0; e < kNumDHGEnv; ++e) {
+        auto* envXml = specXml->createNewChildElement("DHGEnv");
+        envXml->setAttribute("index", e);
+        envXml->setAttribute("loop34", dhgEnvelopes_[e].loop34 ? 1 : 0);
+        juce::String rStr, lStr;
+        for (int stage = 0; stage < 6; ++stage) {
+            rStr << dhgEnvelopes_[e].stages[stage].rate << (stage < 5 ? " " : "");
+            lStr << dhgEnvelopes_[e].stages[stage].level << (stage < 5 ? " " : "");
+        }
+        envXml->setAttribute("rates", rStr);
+        envXml->setAttribute("levels", lStr);
+    }
 
     copyXmlToBinary(*xml, destData);
 }
@@ -277,7 +294,24 @@ void ShoggothProcessor::setStateInformation(const void* data, int sizeInBytes) {
             for (int k = 0; k < 63; ++k) {
                 if (k < s1Tokens.size()) s1Harmonics_[k] = s1Tokens[k].getFloatValue();
                 if (k < s2Tokens.size()) s2Harmonics_[k] = s2Tokens[k].getFloatValue();
-                if (k < assignTokens.size()) harmonicEnvAssign_[k] = static_cast<uint8_t>(assignTokens[k].getIntValue());
+            }
+            for (int k = 0; k < 126 && k < assignTokens.size(); ++k) {
+                harmonicEnvAssign_[k] = static_cast<uint8_t>(assignTokens[k].getIntValue() & 0x03);
+            }
+
+            for (auto* envXml : specXml->getChildIterator()) {
+                if (envXml->hasTagName("DHGEnv")) {
+                    int e = envXml->getIntAttribute("index", -1);
+                    if (e >= 0 && e < kNumDHGEnv) {
+                        dhgEnvelopes_[e].loop34 = (envXml->getIntAttribute("loop34", 0) != 0);
+                        auto rTokens = juce::StringArray::fromTokens(envXml->getStringAttribute("rates"), " ", "");
+                        auto lTokens = juce::StringArray::fromTokens(envXml->getStringAttribute("levels"), " ", "");
+                        for (int stage = 0; stage < 6; ++stage) {
+                            if (stage < rTokens.size()) dhgEnvelopes_[e].stages[stage].rate = rTokens[stage].getFloatValue();
+                            if (stage < lTokens.size()) dhgEnvelopes_[e].stages[stage].level = lTokens[stage].getFloatValue();
+                        }
+                    }
+                }
             }
         }
 
