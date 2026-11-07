@@ -339,19 +339,16 @@ public:
 
 
     NyarlatVoice(int voiceIndex = 0) : voiceIndex_(voiceIndex) {
-
         chaos_.setVoiceSeed(voiceIndex, 0.5f);
-
+        voiceNoteSeed_ = 123456789u + static_cast<uint32_t>(voiceIndex * 7919);
+        slopSeed_ = 987654321u + static_cast<uint32_t>(voiceIndex * 6271);
     }
 
-
-
     void setVoiceIndex(int voiceIndex) noexcept {
-
         voiceIndex_ = voiceIndex;
-
         chaos_.setVoiceSeed(voiceIndex, 0.5f);
-
+        voiceNoteSeed_ = 123456789u + static_cast<uint32_t>(voiceIndex * 7919);
+        slopSeed_ = 987654321u + static_cast<uint32_t>(voiceIndex * 6271);
     }
 
 
@@ -368,6 +365,8 @@ public:
 
         reconstructionLp_.prepare(sampleRate);
 
+        currentEffCutoff_ = 1000.0f;
+        targetEffCutoff_ = 1000.0f;
         panSlewCoeff_ = static_cast<float>(1.0 - std::exp(-1.0 / (0.015 * (sampleRate > 0.0 ? sampleRate : 44100.0))));
 
         hammerDecayCoeff_ = static_cast<float>(std::exp(-1.0 / (0.0025 * (sampleRate > 0.0 ? sampleRate : 44100.0))));
@@ -451,47 +450,43 @@ public:
 
 
     void sanitize() noexcept {
-
         filter_.sanitize();
-
+        sharedThermalPole_ = 0.0f;
+        statorWowFilter_ = 0.0f;
+        slopWanderSemi_[0] = 0.0f;
+        slopWanderSemi_[1] = 0.0f;
+        slopWanderSemi_[2] = 0.0f;
     }
 
 
 
-    void noteOn(int midiNote, float velocity, float glideTimeSec, float hammerSnap = 0.0f, float targetHz = -1.0f) noexcept {
-
+    void noteOn(int midiNote, float velocity, float glideTimeSec, float hammerSnap = 0.0f, float targetHz = -1.0f, float oscSlop = 0.0f) noexcept {
         midiNote_ = midiNote;
-
         velocity_ = velocity;
-
         targetPitchHz_ = (targetHz > 0.0f) ? targetHz : 440.0f * std::pow(2.0f, (midiNote - 69.0f) / 12.0f);
 
-
-
         if (glideTimeSec <= 0.001f || !ampEnv_.isActive()) {
-
             currentPitchHz_ = targetPitchHz_;
-
         }
-
         glideSpeed_ = (glideTimeSec > 0.001f)
-
             ? static_cast<float>(1.0 / (glideTimeSec * sampleRate_))
-
             : 1.0f;
 
-
-
         hammerSnapEnv_ = hammerSnap * velocity;
-
         chaos_.triggerNoteOn();
-
         ampEnv_.noteOn();
-
         filterEnv_.noteOn();
-
         ctrlCounter_ = 0;
 
+        // Static voice card component tolerance + note-to-note junction temperature:
+        if (oscSlop > 0.001f) {
+            voiceNoteSeed_ = voiceNoteSeed_ * 1664525u + 1013904223u;
+            const float rawBi = static_cast<float>(static_cast<int16_t>(voiceNoteSeed_ >> 16)) * (1.0f / 32768.0f);
+            const float voiceCardBias = (static_cast<float>((voiceIndex_ * 7) % 11) - 5.0f) * 0.2f; // [-1.0, 1.0]
+            voiceToleranceSemi_ = (voiceCardBias * 0.6f + rawBi * 0.4f) * (0.025f * oscSlop); // max +/- 2.5 cents
+        } else {
+            voiceToleranceSemi_ = 0.0f;
+        }
     }
 
 
@@ -606,10 +601,9 @@ public:
                         // Dynamics & Global
 
                         float ampVelocity, float globalPitchBendSemitones,
-
                         float globalModWheel, float globalChannelAftertouch,
-
-                        float hostBpm = 120.0f) noexcept {
+                        float hostBpm = 120.0f,
+                        float oscSlop = 0.0f) noexcept {
 
 
 
@@ -664,84 +658,92 @@ public:
 
 
             // Control-rate decimation staggered across voices (every 32 samples)
-
             if (((ctrlCounter_++ + static_cast<uint32_t>(voiceIndex_ * 2)) & 31) == 0) {
+                // Slop dynamic thermal wander and chaos coupling
+                if (oscSlop > 0.001f) {
+                    const float chaosPerturb = (chaos_.getRawValue(19) * 2.0f - 1.0f) * (oscSlop * oscSlop);
+                    const float wanderAlpha = 0.003f + 0.004f * std::abs(chaosPerturb);
 
-                // Total pitch with Pitch Bend
+                    // Signed 16-bit LCG white noise (guaranteed zero-mean [-1.0, 1.0])
+                    slopSeed_ = slopSeed_ * 196314165u + 907633515u;
+                    const float white = static_cast<float>(static_cast<int16_t>(slopSeed_ >> 16)) * (1.0f / 32768.0f);
 
-                float totalBend = mpePitchBendSemitones_ + globalPitchBendSemitones;
+                    // Leaky integration with zero-mean white noise
+                    sharedThermalPole_ += wanderAlpha * (white + 0.5f * chaosPerturb - sharedThermalPole_ * 0.90f);
+                    sharedThermalPole_ = std::clamp(sharedThermalPole_, -1.0f, 1.0f);
 
-                if (totalBend != lastTotalBend_) {
+                    // Harmonic centroid-preserving wander:
+                    // Osc 1 (fundamental anchor): +/- 0.8 cents max
+                    // Osc 2 & 3: equal-and-opposite drift (+/- 5.0 cents max)
+                    const float maxWanderSemi = 0.05f * oscSlop; // 5.0 cents at slop = 1.0
+                    slopWanderSemi_[0] = sharedThermalPole_ * (maxWanderSemi * 0.16f);
+                    slopWanderSemi_[1] = +sharedThermalPole_ * maxWanderSemi;
+                    slopWanderSemi_[2] = -sharedThermalPole_ * maxWanderSemi;
 
-                    lastTotalBend_ = totalBend;
-
-                    cachedBendMult_ = TbdAudio::FastMath::fastPow2(totalBend / 12.0f);
-
+                    // Stator wow filter: slow low-pass tracking (< 1.5 Hz)
+                    statorWowFilter_ += 0.005f * (sharedThermalPole_ - statorWowFilter_);
+                } else {
+                    slopWanderSemi_[0] = 0.0f;
+                    slopWanderSemi_[1] = 0.0f;
+                    slopWanderSemi_[2] = 0.0f;
+                    statorWowFilter_ = 0.0f;
                 }
 
-
+                // Total pitch with Pitch Bend and Voice Tolerance
+                float totalBend = mpePitchBendSemitones_ + globalPitchBendSemitones + voiceToleranceSemi_;
+                if (totalBend != lastTotalBend_) {
+                    lastTotalBend_ = totalBend;
+                    cachedBendMult_ = TbdAudio::FastMath::fastPow2(totalBend / 12.0f);
+                }
 
                 // Process 3 Oscillator Pitch Ratios (detune scaled: 100 ct = 1 st)
                 const float chaosDetuneNorm = (chaos_.getRawValue(19) * 2.0f - 1.0f);
                 const float chaosDeltaSemis = randTune * chaosDetuneNorm * 1.0f; // max ±1 st (±100 ct)
 
                 for (int i = 0; i < 3; ++i) {
-                    float semis = (oscOctave[i] - 2) * 12.0f;
+                    float semis = (oscOctave[i] - 2) * 12.0f + slopWanderSemi_[i];
                     if (i == 1) semis += chaosDeltaSemis;
                     else if (i == 2) semis -= chaosDeltaSemis;
 
-                    if (semis != lastSemis_[i]) {
+                    if (std::abs(semis - lastSemis_[i]) > 0.0002f) {
                         lastSemis_[i] = semis;
                         cachedOctMult_[i] = TbdAudio::FastMath::fastPow2(semis / 12.0f);
                     }
                 }
 
                 // Destination-anchored stator speed and mask aperture with chaos channels (12..17)
-
                 const float safeBpm = (hostBpm > 20.0f && hostBpm < 999.0f && std::isfinite(hostBpm)) ? hostBpm : 120.0f;
-
                 for (int i = 0; i < 3; ++i) {
-
                     cachedEffMask_[i] = static_cast<int>(CrackedChimes::DSP::stepRandomRange(
-
                         static_cast<float>(oscMask[i]), 0.0f, 511.0f, randAttenuverters[12 + i], chaos_.getRawValue(12 + i)));
 
-
-
                     if (oscSpeedLock[i]) {
-
                         // Discrete 1/16th note tempo grid (1/16 to 64/16 in 1/16th steps)
-
                         const float u = juce::jlimit(0.0f, 1.0f, oscSpeed[i] * 0.1f);
-
                         const int dialedN = 1 + static_cast<int>(std::round(63.0f * u));
 
-
-
                         // Modulate N via Chaos Channel (15 + i)
-
                         const float chaosRaw = chaos_.getRawValue(15 + i);
-
                         const float chaosDepth = randAttenuverters[15 + i];
-
                         const int deltaN = static_cast<int>(std::round(chaosDepth * (chaosRaw * 63.0f)));
 
-
-
                         const int effN = std::clamp(dialedN + deltaN, 1, 64);
-
                         // Frequency for N sixteenth notes: f = B / (15 * N) Hz
-
-                        cachedEffSpeed_[i] = safeBpm / (15.0f * static_cast<float>(effN));
-
+                        float speed = safeBpm / (15.0f * static_cast<float>(effN));
+                        if (oscSlop > 0.001f) {
+                            // Elastic subtle wow: +/- 0.5% max, preserving DAW tempo sync
+                            speed *= (1.0f + statorWowFilter_ * (0.005f * oscSlop));
+                        }
+                        cachedEffSpeed_[i] = speed;
                     } else {
-
-                        cachedEffSpeed_[i] = CrackedChimes::DSP::stepRandomRange(
-
+                        float speed = CrackedChimes::DSP::stepRandomRange(
                             oscSpeed[i], 0.0f, 10.0f, randAttenuverters[15 + i], chaos_.getRawValue(15 + i));
-
+                        if (oscSlop > 0.001f) {
+                            // Mechanical wow: +/- 2.0% max
+                            speed *= (1.0f + statorWowFilter_ * (0.02f * oscSlop));
+                        }
+                        cachedEffSpeed_[i] = speed;
                     }
-
                 }
 
 
@@ -843,17 +845,20 @@ public:
 
 
 
-            // 7. Process Silky Analog ZDF Filter
-            const float chaosCutoffOct = (chaos_.getRawValue(20) * 2.0f - 1.0f) * randCutoff * 2.0f;
-            const float effCutoff = juce::jlimit(15.0f, 20000.0f,
-                filterCutoff * std::pow(2.0f, filtEnvVal * filterEnvDepth * 4.0f +
-                                              (velocity_ - 0.5f) * filterVelocity * 2.0f +
-                                              keytrackOffset * filterKeytrack +
-                                              chaosCutoffOct +
-                                              mpeSlide_ * 2.0f +
-                                              std::max(mpePressure_, globalChannelAftertouch) * 2.0f));
+            // 7. Process Silky Analog ZDF Filter with Subblocked Slew & FastMath
+            if ((s & 15) == 0) {
+                const float chaosCutoffOct = (chaos_.getRawValue(20) * 2.0f - 1.0f) * randCutoff * 2.0f;
+                const float modOct = filtEnvVal * filterEnvDepth * 4.0f +
+                                     (velocity_ - 0.5f) * filterVelocity * 2.0f +
+                                     keytrackOffset * filterKeytrack +
+                                     chaosCutoffOct +
+                                     mpeSlide_ * 2.0f +
+                                     std::max(mpePressure_, globalChannelAftertouch) * 2.0f;
+                targetEffCutoff_ = juce::jlimit(15.0f, 20000.0f, filterCutoff * TbdAudio::FastMath::fastPow2(modOct));
+            }
+            currentEffCutoff_ += 0.0625f * (targetEffCutoff_ - currentEffCutoff_);
 
-            filter_.processStereo(mixL, mixR, effCutoff, filterResonance, filterSlope, filterDrive);
+            filter_.processStereo(mixL, mixR, currentEffCutoff_, filterResonance, filterSlope, filterDrive);
 
 
 
@@ -1036,6 +1041,15 @@ private:
     Envelope filterEnv_;
 
     float lastEffSpread_ = 0.0f;
+    float currentEffCutoff_ = 1000.0f;
+    float targetEffCutoff_ = 1000.0f;
+
+    float voiceToleranceSemi_ = 0.0f;
+    uint32_t voiceNoteSeed_ = 12345;
+    uint32_t slopSeed_ = 54321;
+    float sharedThermalPole_ = 0.0f;
+    float slopWanderSemi_[3] = { 0.0f, 0.0f, 0.0f };
+    float statorWowFilter_ = 0.0f;
 
 };
 

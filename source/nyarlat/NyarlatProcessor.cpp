@@ -205,7 +205,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         newestVoice_.store(bestIdx, std::memory_order_relaxed);
 
-        voices_[bestIdx].noteOn(midiNote, velocity, glide, hammerSnap);
+        voices_[bestIdx].noteOn(midiNote, velocity, glide, hammerSnap, -1.0f, oscSlop);
 
     }
 
@@ -215,7 +215,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         heldNotes_.push_back({midiNote, velocity});
 
-        voices_[0].noteOn(midiNote, velocity, glide, hammerSnap);
+        voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, -1.0f, oscSlop);
 
         newestVoice_.store(0, std::memory_order_relaxed);
 
@@ -233,7 +233,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         } else {
 
-            voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, targetHz);
+            voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, targetHz, oscSlop);
 
         }
 
@@ -257,7 +257,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
             const float targetHz = 440.0f * std::pow(2.0f, (midiNote + detuneSemi - 69.0f) / 12.0f);
 
-            voices_[v].noteOn(midiNote, velocity, glide, hammerSnap, targetHz);
+            voices_[v].noteOn(midiNote, velocity, glide, hammerSnap, targetHz, oscSlop);
 
             voices_[v].setPolyChaosSpread(polySpread * (static_cast<float>(v) / 7.0f));
 
@@ -410,9 +410,8 @@ void NyarlatProcessor::renderSegment(float* left, float* right, int numSamples, 
             params.filterEnvDepth, params.filterVelocity, params.filterKeytrack,
 
             params.ampVel, params.globalBendSemi, globalModWheel_, globalChannelAftertouch_,
-
-            params.bpm
-
+            params.bpm,
+            params.oscSlop
         );
 
     }

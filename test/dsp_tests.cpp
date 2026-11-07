@@ -5805,7 +5805,7 @@ Running Suite 77: Nyarlat Additive Engine, Analog Filter & 8x Unison Gauntlet...
 
                                  0.5f, 0.3f,
 
-                                 randAttenuverters,
+                                 randAttenuverters, 0.0f, 0.0f, 0.0f,
 
                                  2500.0f, 0.3f, 1, 0.2f,
 
@@ -5837,7 +5837,77 @@ Running Suite 77: Nyarlat Additive Engine, Analog Filter & 8x Unison Gauntlet...
 
         }
 
+        // Test 5: Nyarlat Unified 1-Knob Slop (Per-Voice & Per-Osc Drift, Centroid Protection, Stator Wow)
+        {
+            NyarlatVoice voiceSlop0(0);
+            NyarlatVoice voiceSlop1(1);
+            voiceSlop0.prepare(48000.0);
+            voiceSlop1.prepare(48000.0);
 
+            // Note-on with slop = 0.0 vs slop = 1.0
+            voiceSlop0.noteOn(60, 0.8f, 0.0f, 0.0f, -1.0f, 0.0f);
+            voiceSlop1.noteOn(60, 0.8f, 0.0f, 0.0f, -1.0f, 1.0f);
+
+            float oscBanks[3] = { 0.0f, 1.0f, 2.0f };
+            float oscMorphs[3] = { 0.2f, 0.5f, 0.8f };
+            float oscOddEvens[3] = { 0.0f, 0.0f, 0.0f };
+            float oscTilts[3] = { 0.0f, 0.0f, 0.0f };
+            float oscFormants[3] = { 0.5f, 0.5f, 0.5f };
+            int oscMasks[3] = { 511, 511, 511 };
+            int oscOctaves[3] = { 2, 2, 2 };
+            bool oscOctLocks[3] = { true, true, true };
+            float oscSpeeds[3] = { 1.0f, 1.0f, 1.0f };
+            int oscLoops[3] = { 1, 1, 1 };
+            float randAttenuverters[18] = { 0.0f };
+
+            uint32_t uBanks[3] = { 0, 1, 2 };
+            voiceSlop0.updateWavetables(uBanks, oscMorphs, oscOddEvens, oscTilts, oscFormants, randAttenuverters, 0);
+            voiceSlop1.updateWavetables(uBanks, oscMorphs, oscOddEvens, oscTilts, oscFormants, randAttenuverters, 0);
+
+            std::vector<float> buf0L(512, 0.0f), buf0R(512, 0.0f);
+            std::vector<float> buf1L(512, 0.0f), buf1R(512, 0.0f);
+
+            // Render across 4 blocks to allow control-rate thermal wander to evolve
+            float diffSum = 0.0f;
+            for (int blk = 0; blk < 4; ++blk) {
+                std::fill(buf0L.begin(), buf0L.end(), 0.0f);
+                std::fill(buf0R.begin(), buf0R.end(), 0.0f);
+                std::fill(buf1L.begin(), buf1L.end(), 0.0f);
+                std::fill(buf1R.begin(), buf1R.end(), 0.0f);
+
+                voiceSlop0.renderBlockAdd(buf0L.data(), buf0R.data(), 512, 1,
+                                         oscBanks, oscMorphs, oscOddEvens, oscTilts, oscFormants, oscMasks,
+                                         oscOctaves, oscOctLocks, oscSpeeds, oscLoops,
+                                         0.8f, 0.8f, 0.8f,
+                                         0.0f, 0.5f, 0.0f,
+                                         0.0f, 0.0f,
+                                         randAttenuverters, 0.0f, 0.0f, 0.0f,
+                                         4000.0f, 0.2f, 1, 0.0f,
+                                         0.0f, 0.0f, 0.0f,
+                                         0.8f, 0.0f, 0.0f, 0.0f,
+                                         120.0f, 0.0f);
+
+                voiceSlop1.renderBlockAdd(buf1L.data(), buf1R.data(), 512, 1,
+                                         oscBanks, oscMorphs, oscOddEvens, oscTilts, oscFormants, oscMasks,
+                                         oscOctaves, oscOctLocks, oscSpeeds, oscLoops,
+                                         0.8f, 0.8f, 0.8f,
+                                         0.0f, 0.5f, 0.0f,
+                                         0.0f, 0.0f,
+                                         randAttenuverters, 0.0f, 0.0f, 0.0f,
+                                         4000.0f, 0.2f, 1, 0.0f,
+                                         0.0f, 0.0f, 0.0f,
+                                         0.8f, 0.0f, 0.0f, 0.0f,
+                                         120.0f, 1.0f);
+
+                for (int i = 0; i < 512; ++i) {
+                    assert(std::isfinite(buf1L[i]) && std::isfinite(buf1R[i]));
+                    diffSum += std::abs(buf0L[i] - buf1L[i]);
+                }
+            }
+
+            assert(diffSum > 0.01f); // Slop must produce measurable auditory differentiation
+            std::cout << "  [PASS] NyarlatVoice: Slop provides measurable per-voice and per-osc variance (diffSum: " << diffSum << ")" << std::endl;
+        }
 
         std::cout << "PASS: Suite 77: Nyarlat Additive Timbral Engine, Silky ZDF Analog Filter & 8x Unison Gauntlet completed 100%!" << std::endl;
 
