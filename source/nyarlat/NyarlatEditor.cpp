@@ -1224,12 +1224,18 @@ void NyarlatEditor::layoutControls() {
             r->setBounds(28, by + 38, 332, 20);
         }
 
-        // Row 3: Additive Waveform Preview (by+62..by+126, 64px tall, 260px wide)
+        // Row 3: Morph Knob (under -2 octave button, center 60, 48px knob)
+        placeKnob(oPrefix + "morph", 36, by + 62, 48, 52, 11);
+
+        // Row 3: Additive Waveform Preview (spans under -1 and 0 octave buttons: 94..226, 64px tall, 132px wide)
         if (oscWaveViews_[o] != nullptr) {
-            oscWaveViews_[o]->setBounds(28, by + 62, 260, 64);
+            oscWaveViews_[o]->setBounds(94, by + 62, 132, 64);
         }
 
-        // Row 3 Right: 2x2 Vector Icon Grid (64x64px at x=296..360, y=by+62..by+126)
+        // Row 3: Speed Knob (under +1 octave button, center 261, 48px knob)
+        placeKnob(oPrefix + "speed", 237, by + 62, 48, 52, 11);
+
+        // Row 3 Right: 2x2 Vector Icon Grid (under +2 octave button: 64x64px at x=296..360, y=by+62..by+126)
         // Top-Left: Lock | Top-Right: Triangle | Bottom-Left: Saw Up | Bottom-Right: Saw Down
         constexpr int cell = 30;
         constexpr int gap = 4;
@@ -1241,15 +1247,12 @@ void NyarlatEditor::layoutControls() {
         if (grid.upBtn)   grid.upBtn->setBounds(gx,              gy + cell + gap, cell, cell);
         if (grid.downBtn) grid.downBtn->setBounds(gx + cell + gap, gy + cell + gap, cell, cell);
 
-        // Row 5a: Morph, Odd/Even, Tilt (3 knobs, 48px, label at by+130, slider by+143..by+191)
-        placeKnob(oPrefix + "morph",    38,  by + 130, 48, 52, 11);
-        placeKnob(oPrefix + "odd_even", 150, by + 130, 48, 52, 11);
-        placeKnob(oPrefix + "tilt",     262, by + 130, 48, 52, 11);
-
-        // Row 5b: Formant, Mask, Speed (3 knobs, 48px, label at by+194, slider by+207..by+255)
-        placeKnob(oPrefix + "formant", 38,  by + 194, 48, 52, 11);
-        placeKnob(oPrefix + "mask",    150, by + 194, 48, 52, 11);
-        placeKnob(oPrefix + "speed",   262, by + 194, 48, 52, 11);
+        // Row 5: Consolidated Hero Knob Row (4 knobs, 64px dials, y=by+152, slider by+165..by+229)
+        // Evenly spaced in 83px slots: 38, 121, 204, 287 (19px gutters, 26px top / 27px bottom margin)
+        placeKnob(oPrefix + "odd_even", 38,  by + 152, 64, 68, 11);
+        placeKnob(oPrefix + "mask",     121, by + 152, 64, 68, 11);
+        placeKnob(oPrefix + "formant",  204, by + 152, 64, 68, 11);
+        placeKnob(oPrefix + "tilt",     287, by + 152, 64, 68, 11);
     }
 
     // ==============================================================================
