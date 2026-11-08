@@ -570,12 +570,16 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     rotarySliders_.push_back(&item.slider);
 
     item.label.setText(name, juce::dontSendNotification);
-    item.label.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+    item.label.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
     item.label.setColour(juce::Label::textColourId, juce::Colour(0xFF8B949E));
     item.label.setJustificationType(juce::Justification::centred);
     item.label.setBorderSize(juce::BorderSize<int>(0));
     item.label.setInterceptsMouseClicks(false, false);
     contentContainer.addAndMakeVisible(item.label);
+
+    if (paramId == cutoff || name == "CUTOFF") {
+        item.slider.getProperties().set("isCutoffDial", true);
+    }
 
     item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor_.getAPVTS(), paramId, item.slider);
@@ -961,15 +965,15 @@ void DigiStrikeFS2AudioProcessorEditor::paintCanvas(juce::Graphics& g) {
     };
 
     // Cards 1 & 2
-    const juce::Rectangle<int> kCard1{20, 44, 424, 174};
-    const juce::Rectangle<int> kCard2{456, 44, 424, 174};
+    const juce::Rectangle<int> kCard1{20, 44, 490, 236};
+    const juce::Rectangle<int> kCard2{520, 44, 620, 236};
     drawCard(kCard1);
-    drawCardPill(kCard1, 240, "CARD 1: MASTER MACRO & DYNAMICS", juce::Colour(0xFF00C8FF));
+    drawCardPill(kCard1, 280, "CARD 1: MASTER MACRO & DYNAMICS", juce::Colour(0xFF00C8FF));
     drawCard(kCard2);
 
     // Dedicated Pod: Sovereign Lineages (20 Families)
-    const juce::Rectangle<int> kPodLineage{20, 226, 860, 76};
-    drawPod(kPodLineage, 270, "SOVEREIGN LINEAGE MATRIX (20 FAMILIES)", juce::Colour(0xFF00E5FF));
+    const juce::Rectangle<int> kPodLineage{20, 292, 1120, 152};
+    drawPod(kPodLineage, 320, "SOVEREIGN LINEAGE MATRIX (20 FAMILIES)", juce::Colour(0xFF00E5FF));
 
     // Sovereign Lineage Status Badge (Option B: N LIN · X / 64 WAVES)
     {
@@ -980,168 +984,145 @@ void DigiStrikeFS2AudioProcessorEditor::paintCanvas(juce::Graphics& g) {
         }
         const int activeWaves = std::min(64, activeLinCount * 4);
 
-        auto linBadge = juce::Rectangle<float>(716.0f, 231.0f, 154.0f, 15.0f);
+        auto linBadge = juce::Rectangle<float>(920.0f, 297.0f, 190.0f, 18.0f);
         g.setColour(juce::Colour(0xFF181C26));
         g.fillRoundedRectangle(linBadge, 3.0f);
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(linBadge, 3.0f, 0.8f);
 
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
         if (activeLinCount >= 20) {
             g.setColour(juce::Colour(0xFFFFAA00));
             g.drawText("20 LIN \xc2\xb7 80/80 FULL", linBadge, juce::Justification::centred);
         } else {
             g.setColour(juce::Colour(0xFF00E5FF));
-            g.drawText(juce::String(activeLinCount) + " LIN \xc2\xb7 " + juce::String(activeLinCount * 4) + "/80 WAVES", linBadge, juce::Justification::centred);
+            g.drawText(juce::String(activeLinCount) + " LIN \xc2\xb7 " + juce::String(activeWaves) + "/80 WAVES", linBadge, juce::Justification::centred);
         }
     }
 
     // Card 3 + Pods
-    const juce::Rectangle<int> kCard3{20, 312, 860, 232};
-    const juce::Rectangle<int> kPod1{28, 320, 296, 216};
-    const juce::Rectangle<int> kPod2{332, 320, 92, 216};
-    const juce::Rectangle<int> kPod3{432, 320, 440, 216};
+    const juce::Rectangle<int> kCard3{20, 456, 1120, 400};
+    const juce::Rectangle<int> kPod1{28, 464, 440, 384};
+    const juce::Rectangle<int> kPod2{478, 464, 124, 384};
+    const juce::Rectangle<int> kPod3{612, 464, 520, 384};
 
     drawCard(kCard3);
-    drawPod(kPod1, 190, "STEPPED RANDOM HUMANIZER", juce::Colour(0xFFB374FF));
+    drawPod(kPod1, 220, "STEPPED RANDOM HUMANIZER", juce::Colour(0xFFB374FF));
     drawPod(kPod2, kPod2.getWidth() - 16, "ALTAR", juce::Colour(0xFFFF9D00));
-    drawPod(kPod3, 190, "VCF / MOJO / OUTPUT", juce::Colour(0xFFFF5252));
+    drawPod(kPod3, 220, "VCF / MOJO / OUTPUT", juce::Colour(0xFFFF5252));
 
-    // Pod 3 Internals: Mojo Row separator & Master-Column divider
+    // Pod 3 Internals: Row separators
     const int p3y = kPod3.getY();
     g.setColour(juce::Colour(0xFF1F2633));
-    g.drawHorizontalLine(p3y + 104, (float)kPod3.getX() + 8.0f, (float)kPod3.getX() + 280.0f);
-    g.drawVerticalLine(kPod3.getX() + 288, (float)p3y + 24.0f, (float)kPod3.getBottom() - 8.0f);
+    g.drawHorizontalLine(p3y + 125, (float)kPod3.getX() + 8.0f, (float)kPod3.getRight() - 8.0f);
+    g.drawHorizontalLine(p3y + 240, (float)kPod3.getX() + 8.0f, (float)kPod3.getRight() - 8.0f);
+    g.drawVerticalLine(1030, (float)p3y + 16.0f, (float)kPod3.getBottom() - 8.0f);
 }
 
 void DigiStrikeFS2AudioProcessorEditor::layoutControls() {
-    // 1. Header Layout (Restored Preset Stub at 174)
-    presetStub_.setBounds(174, 8, 180, 28);
-    headerInspector_.setBounds(361, 8, 279, 28);
-    lifeformRocker_.setBounds(646, 8, 234, 28);
+    // 1. Header Layout
+    presetStub_.setBounds(162, 8, 220, 28);
+    headerInspector_.setBounds(390, 8, 380, 28);
+    lifeformRocker_.setBounds(780, 8, 210, 28);
+    voiceModeRocker_.setBounds(1000, 8, 140, 28);
 
-    // Helper: place label directly above slider
+    // Helper: place label directly above slider (label h=18, centred on cx)
     auto place = [](KnobItem& k, int cx, int labelY, int labelW, int size, int sliderY) {
-        k.label.setBounds(cx - labelW / 2, labelY, labelW, 14);
+        k.label.setBounds(cx - labelW / 2, labelY, labelW, 18);
         k.slider.setBounds(cx - size / 2, sliderY, size, size);
     };
 
-    auto colCentre = [](int cardX, int col, int cellPitch) {
-        return cardX + 16 + cellPitch / 2 + col * cellPitch;
-    };
-
     // Cards 1 & 2:
-    const int kCard1X = 20;
-    const int kCard2X = 456;
-    const int kCellPitch = 98;
-
     KnobItem* c1[2][4] = {
         {&macroXKnob_,  &macroYKnob_,  &macroZKnob_, &macroTKnob_},
         {&velAggrKnob_, &velTimbKnob_, &panKnob_,    &decayCurveKnob_}
     };
 
-    // Card 1 Knobs: Symmetrical 2x4 grid (52px knobs, cleared below header pill)
+    // Card 1 Knobs: Symmetrical 2x4 grid (64px Primary dials, pitch 106px)
     for (int r = 0; r < 2; ++r) {
-        const int labelY = (r == 0) ? 76 : 148;
-        const int sliderY = labelY + 16;
+        const int labelY = (r == 0) ? 78 : 170;
+        const int sliderY = (r == 0) ? 98 : 190;
         for (int c = 0; c < 4; ++c) {
-            place(*c1[r][c], colCentre(kCard1X, c, kCellPitch), labelY, kCellPitch, 52, sliderY);
+            const int cx = 20 + 20 + 53 + c * 106;
+            place(*c1[r][c], cx, labelY, 106, 64, sliderY);
         }
     }
 
     // Card 2 Header: Category Role 1x8 button strip
-    categoryGrid_.setBounds(468, 46, 400, 20);
+    categoryGrid_.setBounds(534, 48, 410, 24);
 
     // Voice Selector Capsule
-    voiceSelectorCapsule_.setBounds(468, 68, 318, 18);
+    voiceSelectorCapsule_.setBounds(534, 76, 410, 24);
 
-    // Card 2 Knobs: 4 columns with 76px pitch centered at cx in {496, 572, 648, 724}
+    // Card 2 Knobs: 4 columns with 102px pitch centered at cx in {595, 697, 799, 901}
     KnobItem* c2[2][4] = {
         {&pitchDecayKnob_, &clickKnob_, &startKnob_,  &timeKnob_},
         {&punchKnob_,      &klangKnob_, &lengthKnob_, &morphKnob_}
     };
 
     for (int r = 0; r < 2; ++r) {
-        const int labelY = (r == 0) ? 88 : 158;
-        const int sliderY = (r == 0) ? 104 : 172;
+        const int labelY = (r == 0) ? 104 : 176;
+        const int sliderY = (r == 0) ? 122 : 194;
         for (int c = 0; c < 4; ++c) {
-            place(*c2[r][c], 496 + c * 76, labelY, 76, 52, sliderY);
+            place(*c2[r][c], 595 + c * 102, labelY, 96, 64, sliderY);
         }
     }
 
     // Card 2 Right Bay: LOOP 2x2 Switch & REV Button
-    loopLabel_.setBounds(782, 90, 76, 14);
-    loopModeBar_.setBounds(782, 108, 76, 52);
-    revButton_.setBounds(782, 166, 76, 22);
+    loopLabel_.setBounds(980, 78, 90, 18);
+    loopModeBar_.setBounds(980, 100, 90, 70);
+    revButton_.setBounds(980, 184, 90, 36);
 
     // Dedicated Full-Width Pod: Sovereign Lineage 2x10 Button Matrix
-    lineageGrid_.setBounds(32, 246, 836, 48);
+    lineageGrid_.setBounds(32, 324, 1096, 110);
 
-    // Card 3 Pod 1: Stepped Random (2x4 grid, 44px knobs, 70px pitch, width 296px)
-    const int kPod1X = 28;
-    const int kRandPitch = 70;
+    // Card 3 Pod 1: Stepped Random (2x4 grid, 64px Primary dials, pitch 102px)
     KnobItem* p1[2][4] = {
         {&randXKnob_,    &randYKnob_,    &randZKnob_,   &randTKnob_},
         {&randAggrKnob_, &randTimbKnob_, &randPanKnob_, &randDecayKnob_}
     };
 
+    constexpr int kRandPitch = 102;
+    constexpr int kRandInset = 17;
     for (int r = 0; r < 2; ++r) {
-        const int labelY = (r == 0) ? 346 : 434;
-        const int sliderY = labelY + 15;
+        const int labelY = (r == 0) ? 488 : 604;
+        const int sliderY = (r == 0) ? 508 : 624;
         for (int c = 0; c < 4; ++c) {
-            place(*p1[r][c], kPod1X + 8 + kRandPitch / 2 + c * kRandPitch, labelY, kRandPitch, 44, sliderY);
+            const int cx = 28 + kRandInset + kRandPitch * c + kRandPitch / 2;
+            place(*p1[r][c], cx, labelY, kRandPitch, 64, sliderY);
         }
     }
 
-    // Card 3 Pod 2: Performance Altar
+    // Card 3 Pod 2: Performance Altar (80px Hero Dial + Strike Pad)
     {
-        const int cx = 332 + 92 / 2; // 378
-        place(macroDecayKnob_, cx, 340, 88, 72, 356);
-        trigButton_.setBounds(cx - 36, 452, 72, 48);
+        const int cx = 478 + 124 / 2; // 540
+        place(macroDecayKnob_, cx, 488, 110, 80, 508);
+        trigButton_.setBounds(cx - 52, 624, 104, 190);
     }
 
-    // Card 3 Pod 3: VCF, Mojo & Output
+    // Card 3 Pod 3: VCF, Mojo & Master Output (All 64px Primary dials + 80px Cutoff Hero!)
     {
-        const int x0 = 438;
-        const int pitch = 52;
-        const int labelY0 = 346;
-        const int sliderY0 = labelY0 + 15;
-        const int labelY1 = 434;
-        const int sliderY1 = labelY1 + 15;
+        // Row 0 (VCF Strip): CUTOFF (80px Hero), RES, FE-AMT, FE-DEC, FilterType 2x2, Limiter
+        place(cutoffKnob_,       665, 488, 74, 80, 508); // Hero Dial!
+        place(resonanceKnob_,    745, 488, 64, 64, 516);
+        place(filterEnvAmtKnob_, 825, 488, 64, 64, 516);
+        place(filterDecayKnob_,  905, 488, 64, 64, 516);
+        filterTypeBar_.setBounds(955, 516, 64, 64);
+        limiterButton_.setBounds(1045, 532, 68, 28);
 
-        // Row 0 (VCF Strip): CUTOFF, RES, FE-AMT, FE-DEC, and filterTypeBar_ (48x48)
-        place(cutoffKnob_,       x0 + pitch / 2 + pitch * 0, labelY0, pitch, 44, sliderY0);
-        place(resonanceKnob_,    x0 + pitch / 2 + pitch * 1, labelY0, pitch, 44, sliderY0);
-        place(filterEnvAmtKnob_, x0 + pitch / 2 + pitch * 2, labelY0, pitch, 44, sliderY0);
-        place(filterDecayKnob_,  x0 + pitch / 2 + pitch * 3, labelY0, pitch, 44, sliderY0);
-        filterTypeBar_.setBounds(x0 + pitch * 4 + 4, sliderY0 - 3, 48, 48);
+        // Row 1 (Mojo Strip): DRIVE, CRUSH, SHIFT, SQUASH, WIDER (all 64px)
+        place(filterDriveKnob_,  665, 604, 64, 64, 624);
+        place(crushKnob_,        755, 604, 64, 64, 624);
+        place(shiftKnob_,        845, 604, 64, 64, 624);
+        place(squashKnob_,       935, 604, 64, 64, 624);
+        place(widerKnob_,        1025, 604, 64, 64, 624);
 
-        // Row 1 (Mojo Strip): DRIVE, CRUSH, SHIFT, SQUASH, WIDER
-        place(filterDriveKnob_,  x0 + pitch / 2 + pitch * 0, labelY1, pitch, 44, sliderY1);
-        place(crushKnob_,        x0 + pitch / 2 + pitch * 1, labelY1, pitch, 44, sliderY1);
-        place(shiftKnob_,        x0 + pitch / 2 + pitch * 2, labelY1, pitch, 44, sliderY1);
-        place(squashKnob_,       x0 + pitch / 2 + pitch * 3, labelY1, pitch, 44, sliderY1);
-        place(widerKnob_,        x0 + pitch / 2 + pitch * 4, labelY1, pitch, 44, sliderY1);
-
-        // Master Output Bay:
-        // Col AX (754): SUSTAIN, AMP-DEC, GLIDE
-        // Col BX (822): LIMIT, VOLUME
-        // Bottom: [ MONO | GLIDE | POLY ] rocker directly below amp knobs
-        const int colAX = 754;
-        const int colBX = 822;
-
-        // Envelope Column (Col AX)
-        place(sustainKnob_,   colAX, 342, 48, 40, 356);
-        place(ampDecayKnob_,  colAX, 398, 48, 40, 412);
-        place(glideTimeKnob_, colAX, 454, 48, 40, 468);
-
-        // Master Level Column (Col BX)
-        limiterButton_.setBounds(colBX - 26, 356, 52, 22);
-        place(volumeKnob_,    colBX, 398, 48, 46, 412);
-        place(velocityKnob_,  colBX, 454, 48, 40, 468);
-
-        // Voice Mode Selector (Directly below amp knobs in Pod 3)
-        voiceModeRocker_.setBounds(738, 510, 116, 22);
+        // Row 2 (Master Output Strip): SUSTAIN, AMP-DEC, GLIDE, VEL, VOLUME (all 64px)
+        place(sustainKnob_,      665, 720, 64, 64, 740);
+        place(ampDecayKnob_,     755, 720, 64, 64, 740);
+        place(glideTimeKnob_,    845, 720, 64, 64, 740);
+        place(velocityKnob_,     935, 720, 64, 64, 740);
+        place(volumeKnob_,       1025, 720, 64, 64, 740);
     }
 }
 

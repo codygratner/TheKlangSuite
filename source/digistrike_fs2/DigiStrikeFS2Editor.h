@@ -44,7 +44,7 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(14.0f).withStyle("Bold")));
         g.setColour(accent_.withAlpha(0.90f));
         g.drawText("<  01: DEFAULT VOID  >", bounds, juce::Justification::centred);
     }
@@ -97,20 +97,20 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        // Col 1: Parameter Name (x: 10, w: 100, 12pt bold - zero truncation)
-        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 100.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
+        // Col 1: Parameter Name (x: 12, w: 130, 14.5pt bold)
+        auto nameRect = juce::Rectangle<float>(bounds.getX() + 12.0f, bounds.getY(), 130.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(14.5f).withStyle("Bold")));
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
         // Subtle vertical separator
         g.setColour(juce::Colour(0xFF262D38).withAlpha(0.65f));
-        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 112.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
+        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 148.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
 
-        // Col 2: Explanation blurb across remaining area (2 lines)
-        float blurbW = std::max(40.0f, bounds.getWidth() - 124.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 118.0f, bounds.getY(), blurbW, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(11.0f)));
+        // Col 2: Explanation blurb across remaining area (2 lines, 13.5pt)
+        float blurbW = std::max(40.0f, bounds.getWidth() - 156.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 154.0f, bounds.getY(), blurbW, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(13.5f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
         g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
     }
@@ -154,7 +154,7 @@ public:
         g.setColour(colours_[static_cast<size_t>(activeIndex_)]);
         g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
         for (int i = 0; i < 3; ++i) {
             bool isActive = (i == activeIndex_);
             auto segRect = juce::Rectangle<float>(bounds.getX() + static_cast<float>(i) * segW, bounds.getY(), segW, bounds.getHeight());
@@ -232,7 +232,7 @@ public:
             }
         }
 
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         for (int i = 0; i < numSegs; ++i) {
             bool isActive = (i == activeIndex_);
             auto segRect = juce::Rectangle<float>(bounds.getX() + static_cast<float>(i) * segW, bounds.getY(), segW, bounds.getHeight());
@@ -455,11 +455,11 @@ public:
         const int totalButtons = static_cast<int>(labels_.size());
         if (totalButtons <= 0) return;
 
-        // Render strictly alphabetical 2x10 Grid (80x22px buttons, 4px gaps)
+        // Render strictly alphabetical 2x10 Grid (buttons, 6px gaps)
         const int cols = 10;
         const int rows = 2;
-        const float gapX = 4.0f;
-        const float gapY = 4.0f;
+        const float gapX = 6.0f;
+        const float gapY = 6.0f;
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
@@ -498,10 +498,10 @@ public:
                     g.fillRoundedRectangle(haloBar, 1.25f);
                 }
 
-                auto textRect = btnRect.withTrimmedTop(3.0f).withTrimmedBottom(1.0f).reduced(2.0f, 0.0f);
-                g.setFont(juce::Font(juce::FontOptions(9.5f).withStyle("Bold")));
+                auto textRect = btnRect.withTrimmedTop(4.0f).withTrimmedBottom(2.0f).reduced(2.0f, 0.0f);
+                g.setFont(juce::Font(juce::FontOptions(13.5f).withStyle("Bold")));
                 g.setColour(juce::Colour(theme.textActive));
-                g.drawFittedText(labels_[static_cast<size_t>(lin)], textRect.toNearestInt(), juce::Justification::centred, 1, 0.80f);
+                g.drawFittedText(labels_[static_cast<size_t>(lin)], textRect.toNearestInt(), juce::Justification::centred, 1, 0.85f);
             } else {
                 // Normal inactive button: Dark obsidian body with 8% brand undertone
                 g.setColour(juce::Colour(theme.bgInactive));
@@ -513,10 +513,10 @@ public:
                 g.setColour(heritageCol.withAlpha(0.70f));
                 g.fillRoundedRectangle(stripe, 1.25f);
 
-                auto textRect = btnRect.withTrimmedTop(3.0f).withTrimmedBottom(1.0f).reduced(2.0f, 0.0f);
-                g.setFont(juce::Font(juce::FontOptions(9.5f).withStyle("Bold")));
+                auto textRect = btnRect.withTrimmedTop(4.0f).withTrimmedBottom(2.0f).reduced(2.0f, 0.0f);
+                g.setFont(juce::Font(juce::FontOptions(13.5f).withStyle("Bold")));
                 g.setColour(juce::Colour(theme.textInactive));
-                g.drawFittedText(labels_[static_cast<size_t>(lin)], textRect.toNearestInt(), juce::Justification::centred, 1, 0.80f);
+                g.drawFittedText(labels_[static_cast<size_t>(lin)], textRect.toNearestInt(), juce::Justification::centred, 1, 0.85f);
             }
         }
     }
@@ -528,8 +528,8 @@ public:
         auto bounds = getLocalBounds().toFloat();
         const int cols = 10;
         const int rows = 2;
-        const float gapX = 4.0f;
-        const float gapY = 4.0f;
+        const float gapX = 6.0f;
+        const float gapY = 6.0f;
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
@@ -589,8 +589,8 @@ public:
         auto bounds = getLocalBounds().toFloat();
         const int cols = 10;
         const int rows = 2;
-        const float gapX = 4.0f;
-        const float gapY = 4.0f;
+        const float gapX = 6.0f;
+        const float gapY = 6.0f;
         const float btnW = (bounds.getWidth() - static_cast<float>(cols - 1) * gapX) / static_cast<float>(cols);
         const float btnH = (bounds.getHeight() - static_cast<float>(rows - 1) * gapY) / static_cast<float>(rows);
 
@@ -648,7 +648,7 @@ public:
         if (isDown_) {
             g.setColour(isRightClick_ ? juce::Colour(0xFF00E676) : juce::Colour(0xFFFFAA00));
             g.fillRoundedRectangle(bounds, 5.0f);
-            g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+            g.setFont(juce::Font(juce::FontOptions(16.0f).withStyle("Bold")));
             g.setColour(juce::Colour(0xFF0D1117));
             g.drawText(isRightClick_ ? "C3" : "TRIG", bounds, juce::Justification::centred);
         } else {
@@ -656,7 +656,7 @@ public:
             g.fillRoundedRectangle(bounds, 5.0f);
             g.setColour(juce::Colour(0xFF30363D));
             g.drawRoundedRectangle(bounds, 5.0f, 1.2f);
-            g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+            g.setFont(juce::Font(juce::FontOptions(16.0f).withStyle("Bold")));
             g.setColour(juce::Colour(0xFFF0F6FC));
             g.drawText("TRIG", bounds, juce::Justification::centred);
         }
@@ -766,7 +766,7 @@ public:
 
         const auto textCol = on ? juce::Colours::white : juce::Colour(0xFF8B949E);
         g.setColour(textCol);
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
         const juce::Rectangle<float> labelArea(15.0f, 0.0f, bounds.getWidth() - 17.0f, bounds.getHeight());
         g.drawText("LIMIT", labelArea, juce::Justification::centred, false);
     }
@@ -805,28 +805,28 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        auto leftArrow = juce::Rectangle<float>(bounds.getX(), bounds.getY(), 22.0f, bounds.getHeight());
-        auto rightArrow = juce::Rectangle<float>(bounds.getRight() - 22.0f, bounds.getY(), 22.0f, bounds.getHeight());
+        auto leftArrow = juce::Rectangle<float>(bounds.getX(), bounds.getY(), 26.0f, bounds.getHeight());
+        auto rightArrow = juce::Rectangle<float>(bounds.getRight() - 26.0f, bounds.getY(), 26.0f, bounds.getHeight());
 
         g.setColour(juce::Colour(0xFF222834));
         g.fillRoundedRectangle(leftArrow.reduced(1.0f), 3.0f);
         g.fillRoundedRectangle(rightArrow.reduced(1.0f), 3.0f);
 
         g.setColour(juce::Colour(0xFF8B949E));
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
         g.drawText("<", leftArrow, juce::Justification::centred);
         g.drawText(">", rightArrow, juce::Justification::centred);
 
-        auto textRect = bounds.withTrimmedLeft(24.0f).withTrimmedRight(24.0f);
+        auto textRect = bounds.withTrimmedLeft(28.0f).withTrimmedRight(28.0f);
         g.setColour(juce::Colour(0xFF00E5FF));
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
         g.drawText(displayText_, textRect, juce::Justification::centred);
     }
 
     void mouseDown(const juce::MouseEvent& e) override {
-        if (e.position.x < 24.0f) {
+        if (e.position.x < 28.0f) {
             if (onStepPrev) onStepPrev();
-        } else if (e.position.x > getWidth() - 24.0f) {
+        } else if (e.position.x > getWidth() - 28.0f) {
             if (onStepNext) onStepNext();
         } else {
             if (onClickCenter) onClickCenter();
@@ -861,7 +861,7 @@ public:
         g.drawRoundedRectangle(bounds.reduced(0.5f), 3.0f, 1.0f);
 
         g.setColour(on ? juce::Colour(0xFF0D1117) : juce::Colour(0xFFF0F6FC));
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         g.drawText("REV", bounds, juce::Justification::centred);
     }
 };
@@ -903,7 +903,7 @@ public:
         g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
         g.drawVerticalLine(static_cast<int>(std::round(bounds.getX() + colW)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         for (int i = 0; i < 4; ++i) {
             int row = i / 2;
             int col = i % 2;
@@ -962,8 +962,8 @@ class DigiStrikeFS2AudioProcessorEditor : public juce::AudioProcessorEditor,
                                           private juce::Timer
 {
 public:
-    static constexpr int kBaseWidth = 900;
-    static constexpr int kBaseHeight = 564;
+    static constexpr int kBaseWidth = 1160;
+    static constexpr int kBaseHeight = 870;
 
     class ContentCanvas : public juce::Component {
     public:

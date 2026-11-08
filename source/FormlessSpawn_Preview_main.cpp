@@ -52,9 +52,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    constexpr int kWidth = 900;
-    constexpr int kHeight = 560;
-    editor->setSize(kWidth, kHeight);
+    editor->setSize(FormlessSpawnAudioProcessorEditor::kBaseWidth, FormlessSpawnAudioProcessorEditor::kBaseHeight);
     editor->setVisible(true);
 
     // Render snapshot via createComponentSnapshot

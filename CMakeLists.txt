@@ -308,7 +308,7 @@ target_compile_definitions(Nyarlat PUBLIC
 )
 
 if (MSVC)
-    target_compile_options(Nyarlat PRIVATE /utf-8 /fp:fast)
+    target_compile_options(Nyarlat PRIVATE /utf-8 /fp:fast /arch:AVX2)
 endif()
 
 set_target_properties(Nyarlat PROPERTIES VST3_AUTO_MANIFEST FALSE)
@@ -345,7 +345,7 @@ target_compile_definitions(Nyarlat_Preview PUBLIC
 )
 
 if (MSVC)
-    target_compile_options(Nyarlat_Preview PRIVATE /utf-8 /fp:fast)
+    target_compile_options(Nyarlat_Preview PRIVATE /utf-8 /fp:fast /arch:AVX2)
     set_target_properties(Nyarlat_Preview PROPERTIES LINK_FLAGS "/STACK:8388608")
 endif()
 
@@ -569,7 +569,6 @@ target_link_libraries(test_mme PRIVATE TheKlangDSP)
 # FastMath & DSP performance benchmark
 add_executable(benchmark_dsp
     test/benchmark_dsp.cpp
-    source/nyarlat/NyarlatZPlaneRom.cpp
     source/FastMath.h
 )
 target_include_directories(benchmark_dsp PRIVATE source)
@@ -599,6 +598,12 @@ endif()
 # 9. Artifact Gathering (Copy to current_build/)
 # ==============================================================================
 set(ARTIFACT_DIR "${CMAKE_SOURCE_DIR}/current_build")
+
+# Formless Spawn
+add_custom_command(TARGET FormlessSpawn_VST3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/Formless Spawn.vst3"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/FormlessSpawn_artefacts/$<CONFIG>/VST3/Formless Spawn.vst3" "${ARTIFACT_DIR}/VST3/Formless Spawn.vst3"
+)
 
 # Hastur
 add_custom_command(TARGET Hastur_Standalone POST_BUILD

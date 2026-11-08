@@ -34,7 +34,7 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(14.0f).withStyle("Bold")));
         g.setColour(accent_.withAlpha(0.92f));
         g.drawText("<  01: DEFAULT VOID  >", bounds, juce::Justification::centred);
     }
@@ -87,20 +87,20 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-        // Col 1: Parameter / System Name (x: 10, w: 100, 12.5pt bold)
-        auto nameRect = juce::Rectangle<float>(bounds.getX() + 10.0f, bounds.getY(), 100.0f, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
+        // Col 1: Parameter / System Name (x: 12, w: 130, 14.5pt bold)
+        auto nameRect = juce::Rectangle<float>(bounds.getX() + 12.0f, bounds.getY(), 130.0f, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(14.5f).withStyle("Bold")));
         g.setColour(readout_.accent);
         g.drawText(readout_.name, nameRect, juce::Justification::centredLeft, true);
 
         // Subtle vertical separator
         g.setColour(juce::Colour(0xFF262D38).withAlpha(0.65f));
-        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 112.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
+        g.drawVerticalLine(juce::roundToInt(bounds.getX() + 148.0f), bounds.getY() + 5.0f, bounds.getBottom() - 5.0f);
 
-        // Col 2: Explanation blurb across the full remaining area (x: 118, w: bounds.getWidth() - 124.0f, 2 lines)
-        float blurbW = std::max(40.0f, bounds.getWidth() - 124.0f);
-        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 118.0f, bounds.getY(), blurbW, bounds.getHeight());
-        g.setFont(juce::Font(juce::FontOptions(12.0f)));
+        // Col 2: Explanation blurb across the full remaining area (2 lines, 13.5pt)
+        float blurbW = std::max(40.0f, bounds.getWidth() - 156.0f);
+        auto blurbRect = juce::Rectangle<float>(bounds.getX() + 154.0f, bounds.getY(), blurbW, bounds.getHeight());
+        g.setFont(juce::Font(juce::FontOptions(13.5f)));
         g.setColour(readout_.isDefault ? juce::Colour(0xFF6E7681) : juce::Colour(0xFFC9D1D9));
         g.drawFittedText(readout_.blurb, blurbRect.toNearestInt(), juce::Justification::centredLeft, 2);
     }
@@ -139,7 +139,7 @@ public:
         g.setColour(colours_[activeIndex_]);
         g.fillRoundedRectangle(activeRect.reduced(1.0f), 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
         for (int i = 0; i < 3; ++i) {
             bool isActive = (i == activeIndex_);
             auto segRect = juce::Rectangle<float>(bounds.getX() + i * segW, bounds.getY(), segW, bounds.getHeight());
@@ -208,7 +208,7 @@ public:
             g.drawVerticalLine(static_cast<int>(std::round(divX)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
         }
 
-        g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(14.0f).withStyle("Bold")));
         for (int r = 0; r < tkdsp::FormlessSpawnVoice::kTotalRoles; ++r) {
             int row = r / 4;
             int col = r % 4;
@@ -311,7 +311,7 @@ public:
             g.drawVerticalLine(static_cast<int>(std::round(divX)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
         }
 
-        g.setFont(juce::Font(juce::FontOptions(12.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(13.5f).withStyle("Bold")));
 
         for (int m = 0; m < tkdsp::FormlessSpawnVoice::kModelsPerRole; ++m) {
             int row = m / 4;
@@ -407,7 +407,7 @@ public:
         g.setColour(juce::Colour(0xFF262D38));
         g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         for (int i = 0; i < 2; ++i) {
             bool isActive = (i == activeIndex_);
             auto r = juce::Rectangle<float>(bounds.getX(), bounds.getY() + i * rowH, bounds.getWidth(), rowH);
@@ -472,7 +472,7 @@ public:
         g.drawHorizontalLine(static_cast<int>(std::round(bounds.getY() + rowH)), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
         g.drawVerticalLine(static_cast<int>(std::round(bounds.getX() + colW)), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
 
-        g.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         for (int i = 0; i < 4; ++i) {
             int row = i / 2;
             int col = i % 2;
@@ -525,7 +525,7 @@ public:
         if (isDown_) {
             g.setColour(isRightClick_ ? juce::Colour(0xFF00E676) : juce::Colour(0xFFFFAA00));
             g.fillRoundedRectangle(bounds, 5.0f);
-            g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+            g.setFont(juce::Font(juce::FontOptions(16.0f).withStyle("Bold")));
             g.setColour(juce::Colour(0xFF0D1117));
             g.drawText(isRightClick_ ? "C3" : "TRIG", bounds, juce::Justification::centred);
         } else {
@@ -533,7 +533,7 @@ public:
             g.fillRoundedRectangle(bounds, 5.0f);
             g.setColour(juce::Colour(0xFF30363D));
             g.drawRoundedRectangle(bounds, 5.0f, 1.2f);
-            g.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+            g.setFont(juce::Font(juce::FontOptions(16.0f).withStyle("Bold")));
             g.setColour(juce::Colour(0xFFF0F6FC));
             g.drawText("TRIG", bounds, juce::Justification::centred);
         }
@@ -731,7 +731,7 @@ public:
         // 3. Typography Label "LIMIT"
         const auto textCol = on ? juce::Colours::white : juce::Colour(0xFF8B949E);
         g.setColour(textCol);
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
         const juce::Rectangle<float> labelArea(15.0f, 0.0f, bounds.getWidth() - 17.0f, bounds.getHeight());
         g.drawText("LIMIT", labelArea, juce::Justification::centred, false);
     }
@@ -743,8 +743,8 @@ private:
 class FormlessSpawnAudioProcessorEditor : public juce::AudioProcessorEditor,
                                           public juce::Timer {
 public:
-    static constexpr int kBaseWidth = 900;
-    static constexpr int kBaseHeight = 560;
+    static constexpr int kBaseWidth = 1160;
+    static constexpr int kBaseHeight = 870;
 
     class ContentCanvas : public juce::Component {
     public:

@@ -229,12 +229,16 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     rotarySliders_.push_back(&item.slider);
 
     item.label.setText(name, juce::dontSendNotification);
-    item.label.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
+    item.label.setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
     item.label.setColour(juce::Label::textColourId, juce::Colour(0xFF8B949E));
     item.label.setJustificationType(juce::Justification::centred);
     item.label.setBorderSize(juce::BorderSize<int>(0));
     item.label.setInterceptsMouseClicks(false, false);
     contentContainer.addAndMakeVisible(item.label);
+
+    if (paramId == "filter_cutoff" || name == "CUTOFF") {
+        item.slider.getProperties().set("isCutoffDial", true);
+    }
 
     item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor_.getAPVTS(), paramId, item.slider);
@@ -358,16 +362,16 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
 }
 
 namespace {
-const juce::Rectangle<int> kCard1{20, 104, 420, 198};
-const juce::Rectangle<int> kCard2{460, 104, 420, 198};
-const juce::Rectangle<int> kCard3{20, 310, 860, 240};
-const juce::Rectangle<int> kPod1{28, 318, 404, 224};   // kCard1 inset 8 -> columns align 1:1
-const juce::Rectangle<int> kPod2{440, 318, 96, 224};
-const juce::Rectangle<int> kPod3{544, 318, 328, 224};
+const juce::Rectangle<int> kCard0{20, 44, 1120, 68};
+const juce::Rectangle<int> kCard1{20, 122, 552, 334};
+const juce::Rectangle<int> kCard2{588, 122, 552, 334};
+const juce::Rectangle<int> kCard3{20, 466, 1120, 390};
+const juce::Rectangle<int> kPod1{28, 474, 440, 374};
+const juce::Rectangle<int> kPod2{478, 474, 124, 374};
+const juce::Rectangle<int> kPod3{612, 474, 520, 374};
 
-constexpr int kCellPitch = 98;   // 4 equal cells per 420 card (14px side inset)
-constexpr int kCellInset = 14;
-constexpr int kPod3Divider = 804;
+constexpr int kCellPitch = 130;   // 4 equal cells per 552 card (16px side inset)
+constexpr int kCellInset = 16;
 
 // Centre of column c (0..3) for a card whose left edge is cardX.
 inline int colCentre(int cardX, int c) { return cardX + kCellInset + kCellPitch * c + kCellPitch / 2; }
@@ -380,7 +384,7 @@ void FormlessSpawnAudioProcessorEditor::paint(juce::Graphics& g) {
 void FormlessSpawnAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
     g.fillAll(juce::Colour(0xFF0D1117));
 
-    g.setFont(juce::Font(juce::FontOptions(15.0f).withStyle("Bold")));
+    g.setFont(juce::Font(juce::FontOptions(16.0f).withStyle("Bold")));
     g.setColour(juce::Colour(0xFFFFAA00));
     g.drawText("FORMLESS SPAWN", 20, 8, 140, 28, juce::Justification::centredLeft);
 
@@ -391,10 +395,10 @@ void FormlessSpawnAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
         g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 6.0f, 1.0f);
     };
     auto drawCardPill = [&g](juce::Rectangle<int> card, int w, const char* text, juce::Colour accent) {
-        auto pill = juce::Rectangle<float>((float)card.getX() + 10.0f, (float)card.getY() + 6.0f, (float)w, 16.0f);
+        auto pill = juce::Rectangle<float>((float)card.getX() + 10.0f, (float)card.getY() + 6.0f, (float)w, 18.0f);
         g.setColour(juce::Colour(0xFF1F242E));
         g.fillRoundedRectangle(pill, 3.0f);
-        g.setFont(juce::Font(juce::FontOptions(10.5f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(12.5f).withStyle("Bold")));
         g.setColour(accent);
         g.drawText(text, pill, juce::Justification::centred);
     };
@@ -404,120 +408,119 @@ void FormlessSpawnAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
         g.setColour(juce::Colour(0xFF1F2633));
         g.drawRoundedRectangle(pod.toFloat().reduced(0.5f), 5.0f, 1.0f);
 
-        auto pill = juce::Rectangle<float>((float)pod.getX() + 8.0f, (float)pod.getY() + 5.0f, (float)pillW, 15.0f);
+        auto pill = juce::Rectangle<float>((float)pod.getX() + 8.0f, (float)pod.getY() + 5.0f, (float)pillW, 16.0f);
         g.setColour(juce::Colour(0xFF181C26));
         g.fillRoundedRectangle(pill, 3.0f);
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
+        g.setFont(juce::Font(juce::FontOptions(11.5f).withStyle("Bold")));
         g.setColour(accent);
         g.drawText(text, pill, juce::Justification::centred);
     };
 
-    // Card 0: Voice Navigator
-    auto card0 = juce::Rectangle<float>(20.0f, 42.0f, 860.0f, 54.0f);
+    // Card 0: Voice Navigator (Role Grid & Model Grid)
+    auto card0 = kCard0.toFloat();
     g.setColour(juce::Colour(0xFF13171F));
     g.fillRoundedRectangle(card0, 6.0f);
     g.setColour(juce::Colour(0xFF262D38));
     g.drawRoundedRectangle(card0.reduced(0.5f), 6.0f, 1.0f);
     g.setColour(juce::Colour(0xFF21262D));
-    g.drawVerticalLine(274, card0.getY() + 4.0f, card0.getBottom() - 4.0f);
+    g.drawVerticalLine(398, card0.getY() + 4.0f, card0.getBottom() - 4.0f);
 
     // Cards 1 & 2
     drawCard(kCard1);
-    drawCardPill(kCard1, 250, "CARD 1: MASTER MACROS & DYNAMICS", juce::Colour(0xFF00C8FF));
+    drawCardPill(kCard1, 280, "CARD 1: MASTER MACROS & DYNAMICS", juce::Colour(0xFF00C8FF));
     drawCard(kCard2);
-    drawCardPill(kCard2, 240, "CARD 2: ROLE SYNTHESIS LAB (A..H)", juce::Colour(0xFFFFAA00));
+    drawCardPill(kCard2, 280, "CARD 2: ROLE SYNTHESIS LAB (A..H)", juce::Colour(0xFFFFAA00));
 
     // Card 3 + pods
     drawCard(kCard3);
-    drawPod(kPod1, 180, "STEPPED RANDOM HUMANIZER", juce::Colour(0xFFB374FF));
+    drawPod(kPod1, 220, "STEPPED RANDOM HUMANIZER", juce::Colour(0xFFB374FF));
     drawPod(kPod2, kPod2.getWidth() - 16, "ALTAR", juce::Colour(0xFFFF9D00));
-    drawPod(kPod3, 180, "VCF / MOJO / OUTPUT", juce::Colour(0xFFFF5252));
+    drawPod(kPod3, 220, "VCF / MOJO / OUTPUT", juce::Colour(0xFFFF5252));
 
-    // Pod 3 internals: VCF/Mojo row separator and master-column divider
+    // Pod 3 internals: Row separators & master section divider
     const int p3y = kPod3.getY();
     g.setColour(juce::Colour(0xFF1F2633));
-    g.drawHorizontalLine(p3y + 113, (float)kPod3.getX() + 8.0f, 796.0f);
-    g.drawVerticalLine(kPod3Divider, (float)p3y + 26.0f, (float)kPod3.getBottom() - 8.0f);
+    g.drawHorizontalLine(p3y + 125, (float)kPod3.getX() + 8.0f, (float)kPod3.getRight() - 8.0f);
+    g.drawHorizontalLine(p3y + 240, (float)kPod3.getX() + 8.0f, (float)kPod3.getRight() - 8.0f);
+    g.drawVerticalLine(1030, (float)p3y + 16.0f, (float)kPod3.getBottom() - 8.0f);
 }
 
 void FormlessSpawnAudioProcessorEditor::layoutControls() {
-    // Header: right edge lands on 880 (matches card right edge)
-    presetStub_.setBounds(174, 8, 180, 28);
-    headerInspector_.setBounds(361, 8, 279, 28);
-    lifeformRocker_.setBounds(646, 8, 234, 28);
+    // Header
+    presetStub_.setBounds(162, 8, 288, 28);
+    headerInspector_.setBounds(458, 8, 446, 28);
+    lifeformRocker_.setBounds(912, 8, 228, 28);
 
-    // Card 0
-    roleGrid_.setBounds(28, 46, 236, 48);
-    modelGrid_.setBounds(282, 46, 588, 48);
+    // Card 0: Voice Navigator
+    roleGrid_.setBounds(28, 49, 360, 58);
+    modelGrid_.setBounds(412, 49, 720, 58);
 
-    // Label sits directly above its slider (label h=14, centred on cx).
+    // Helper: place label directly above slider (label h=18, centred on cx)
     auto place = [](KnobItem& k, int cx, int labelY, int labelW, int size, int sliderY) {
-        k.label.setBounds(cx - labelW / 2, labelY, labelW, 14);
+        k.label.setBounds(cx - labelW / 2, labelY, labelW, 18);
         k.slider.setBounds(cx - size / 2, sliderY, size, size);
     };
 
-    // Cards 1 & 2: 2x4 grid, 56px knobs, 98px cells
+    // Cards 1 & 2: 2x4 grid, 64px Primary dials, 130px cells
     KnobItem* c1[2][4] = {
         {&macroXKnob_,    &macroYKnob_,    &macroZKnob_,  &macroTKnob_},
         {&velAggrKnob_,   &velTimbKnob_,   &panKnob_,     &decayCurveKnob_}};
     KnobItem* c2[2][4] = {
         {&paramAKnob_, &paramBKnob_, &paramCKnob_, &paramDKnob_},
         {&paramEKnob_, &paramFKnob_, &paramGKnob_, &paramHKnob_}};
+
     for (int r = 0; r < 2; ++r) {
-        const int labelY = (r == 0) ? 30 : 114;
+        const int labelY = (r == 0) ? 164 : 284;
+        const int sliderY = (r == 0) ? 186 : 306;
         for (int c = 0; c < 4; ++c) {
-            place(*c1[r][c], colCentre(kCard1.getX(), c), kCard1.getY() + labelY, kCellPitch, 56, kCard1.getY() + labelY + 14);
-            place(*c2[r][c], colCentre(kCard2.getX(), c), kCard2.getY() + labelY, kCellPitch, 56, kCard2.getY() + labelY + 14);
+            place(*c1[r][c], colCentre(kCard1.getX(), c), labelY, kCellPitch, 64, sliderY);
+            place(*c2[r][c], colCentre(kCard2.getX(), c), labelY, kCellPitch, 64, sliderY);
         }
     }
 
-    // Pod 1: identical column centres to Card 1 (shared colCentre) -> exact 1:1 alignment
+    // Pod 1: Stepped Random Humanizer (2x4 grid, 64px Primary dials, 102px pitch)
     KnobItem* p1[2][4] = {
         {&randXKnob_,    &randYKnob_,    &randZKnob_,   &randTKnob_},
         {&randAggrKnob_, &randTimbKnob_, &randPanKnob_, &randDecayKnob_}};
+    constexpr int kRandPitch = 102;
+    constexpr int kRandInset = 17;
     for (int r = 0; r < 2; ++r) {
-        const int labelY = kPod1.getY() + ((r == 0) ? 32 : 128);
-        for (int c = 0; c < 4; ++c)
-            place(*p1[r][c], colCentre(kCard1.getX(), c), labelY, kCellPitch, 56, labelY + 14);
+        const int labelY = (r == 0) ? 492 : 608;
+        const int sliderY = (r == 0) ? 512 : 628;
+        for (int c = 0; c < 4; ++c) {
+            const int cx = kPod1.getX() + kRandInset + kRandPitch * c + kRandPitch / 2;
+            place(*p1[r][c], cx, labelY, kRandPitch, 64, sliderY);
+        }
     }
 
-    // Pod 2: Performance Altar (hero knob + strike pad on the pod centreline)
+    // Pod 2: Performance Altar (80px Hero Dial + Strike Pad)
     {
         const int cx = kPod2.getCentreX();
-        const int py = kPod2.getY();
-        place(macroDecayKnob_, cx, py + 30, kPod2.getWidth(), 72, py + 44);
-        trigButton_.setBounds(cx - 36, py + 146, 72, 48);
+        place(macroDecayKnob_, cx, 492, kPod2.getWidth(), 80, 512);
+        trigButton_.setBounds(cx - 52, 628, 104, 180);
     }
 
-    // Pod 3: 5 columns (Row 0: VCF Strip, Row 1: Mojo Strip) + Master Column
+    // Pod 3: VCF, Mojo & Master Output (All 64px Primary dials + 80px Cutoff Hero!)
     {
-        const int py = kPod3.getY();
-        const int x0 = kPod3.getX() + 8;          // 552
-        const int pitch = 49;
-        const int labelY0 = py + 32;
-        const int sliderY0 = labelY0 + 18;
-        const int labelY1 = py + 128;
-        const int sliderY1 = labelY1 + 18;
+        // Row 0: VCF Strip (Cutoff 80px Hero, Res 64px, EnvAmt 64px, EnvDecay 64px, FilterType 2x2, Limiter)
+        place(cutoffKnob_,       665, 492, 74, 80, 512); // Hero Dial!
+        place(resonanceKnob_,    745, 492, 64, 64, 520);
+        place(filterEnvAmtKnob_, 825, 492, 64, 64, 520);
+        place(filterDecayKnob_,  905, 492, 64, 64, 520);
+        filterTypeBar_.setBounds(955, 520, 64, 64);
+        limiterButton_.setBounds(1045, 536, 68, 28);
 
-        // Row 0 (VCF Strip): CUTOFF, RES, FE-AMT, FE-DEC, and filterTypeBar_ (48x48)
-        place(cutoffKnob_,       x0 + pitch / 2 + pitch * 0, labelY0, pitch, 48, sliderY0);
-        place(resonanceKnob_,    x0 + pitch / 2 + pitch * 1, labelY0, pitch, 48, sliderY0);
-        place(filterEnvAmtKnob_, x0 + pitch / 2 + pitch * 2, labelY0, pitch, 48, sliderY0);
-        place(filterDecayKnob_,  x0 + pitch / 2 + pitch * 3, labelY0, pitch, 48, sliderY0);
-        filterTypeBar_.setBounds(x0 + pitch * 4 + 2, sliderY0, 48, 48);
+        // Row 1: Mojo Strip (Drive, Crush, Shift, Squash, Wider - all 64px)
+        place(preDriveKnob_,     665, 608, 64, 64, 628);
+        place(crushKnob_,        755, 608, 64, 64, 628);
+        place(shiftKnob_,        845, 608, 64, 64, 628);
+        place(squashKnob_,       935, 608, 64, 64, 628);
+        place(widerKnob_,        1025, 608, 64, 64, 628);
 
-        // Row 1 (Mojo Strip): DRIVE, CRUSH, BITS, SQUASH, and WIDER knob
-        place(preDriveKnob_,     x0 + pitch / 2 + pitch * 0, labelY1, pitch, 48, sliderY1);
-        place(crushKnob_,        x0 + pitch / 2 + pitch * 1, labelY1, pitch, 48, sliderY1);
-        place(shiftKnob_,        x0 + pitch / 2 + pitch * 2, labelY1, pitch, 48, sliderY1);
-        place(squashKnob_,       x0 + pitch / 2 + pitch * 3, labelY1, pitch, 48, sliderY1);
-        place(widerKnob_,        x0 + pitch / 2 + pitch * 4, labelY1, pitch, 48, sliderY1);
-
-        // Master Column: Limiter button, Volume knob, Amp Decay knob, Velocity knob (x=804..872)
-        limiterButton_.setBounds(814, py + 8, 48, 20);
-        place(volumeKnob_,   838, py + 32, 52, 40, py + 46);
-        place(ampDecayKnob_, 838, py + 90, 52, 40, py + 104);
-        place(velocityKnob_, 838, py + 148, 52, 40, py + 162);
+        // Row 2: Master Output (Amp Decay, Velocity, Volume - all 64px)
+        place(ampDecayKnob_,     665, 724, 64, 64, 744);
+        place(velocityKnob_,     755, 724, 64, 64, 744);
+        place(volumeKnob_,       1025, 724, 64, 64, 744);
     }
 }
 
