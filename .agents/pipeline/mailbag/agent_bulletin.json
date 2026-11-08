@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-11-07 04:00:37",
-  "briefing_title": "Implementation Plan",
+  "updated_at": "2026-11-08 04:00:39",
+  "briefing_title": "\ud83e\udde0 PLAN: Nyarlat Harmonic Width & Coupled Spread Overhaul",
   "briefing_text": "Scheduled 4 AM Black Box Memory Flush and State Integrity Audit",
   "status_badge": "IDLE \ud83d\udfe2",
   "pending_decisions_count": 0,
-  "last_flight": "Implementation Plan",
+  "last_flight": "\ud83e\udde0 PLAN: Nyarlat Harmonic Width & Coupled Spread Overhaul",
   "git_branch": "0.4.0-dev",
-  "target_pipeline": "FACTORY_FLOOR"
+  "target_pipeline": "NYARLAT"
 }
