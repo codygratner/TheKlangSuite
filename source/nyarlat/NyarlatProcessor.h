@@ -156,6 +156,7 @@ public:
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
 
     void releaseResources() override;
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
 
@@ -415,6 +416,8 @@ private:
     int masterSilenceSamples_ = 0;
 
     bool masterSleeping_ = false;
+    NyarlatAdditiveEngine audioEngine_;
+    std::vector<float> monoScratchBuffer_;
 
 
 

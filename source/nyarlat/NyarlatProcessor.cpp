@@ -56,9 +56,11 @@ void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
 
 
 
+    monoScratchBuffer_.assign(std::max(samplesPerBlock, 4096), 0.0f);
+
     for (auto& v : voices_) {
 
-        v.prepare(sampleRate);
+        v.prepare(sampleRate, &audioEngine_);
 
     }
 
@@ -99,6 +101,13 @@ void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
 }
 
 
+
+bool NyarlatProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
+     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        return false;
+    return true;
+}
 
 void NyarlatProcessor::releaseResources() {
 
@@ -507,8 +516,10 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 
     const int numSamples = buffer.getNumSamples();
+    const int numChannels = buffer.getNumChannels();
 
-
+    if (numSamples <= 0 || numChannels <= 0)
+        return;
 
     float hostBpm = 120.0f;
 
@@ -535,8 +546,15 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     currentBpm_.store(hostBpm, std::memory_order_relaxed);
 
     float* leftChannel = buffer.getWritePointer(0);
-
-    float* rightChannel = buffer.getWritePointer(1);
+    float* rightChannel = nullptr;
+    if (numChannels > 1) {
+        rightChannel = buffer.getWritePointer(1);
+    } else {
+        if (monoScratchBuffer_.size() < static_cast<size_t>(numSamples))
+            monoScratchBuffer_.resize(numSamples, 0.0f);
+        rightChannel = monoScratchBuffer_.data();
+        std::fill(rightChannel, rightChannel + numSamples, 0.0f);
+    }
 
 
 
@@ -1090,7 +1108,14 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
     }
 
-
+    if (numChannels == 1) {
+        for (int s = 0; s < numSamples; ++s) {
+            leftChannel[s] = 0.5f * (leftChannel[s] + rightChannel[s]);
+        }
+    }
+    for (int ch = 2; ch < numChannels; ++ch) {
+        buffer.clear(ch, 0, numSamples);
+    }
 
     const int nv = newestVoice_.load(std::memory_order_relaxed);
 

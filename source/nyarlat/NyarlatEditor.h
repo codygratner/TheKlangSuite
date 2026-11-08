@@ -1047,8 +1047,7 @@ public:
 
         int lifeMode = static_cast<int>(*proc_.getAPVTS().getRawParameterValue(Ids::life_mode));
 
-        NyarlatAdditiveEngine::getInstance().synthesizeCycle(
-
+        additiveEngine_.synthesizeCycle(
             waveTable.data(), bankVal, morphVal, oddEvenVal, tiltVal, formantVal, lifeMode);
 
 
@@ -1220,6 +1219,7 @@ private:
     int liveMask_ = 511;
 
     float liveSpeed_ = 0.0f;
+    NyarlatAdditiveEngine additiveEngine_;
 
 };
 

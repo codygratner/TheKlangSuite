@@ -303,11 +303,11 @@ public:
 
 
 
-    void prepare(double sampleRate) noexcept {
+    void prepare(double sampleRate, NyarlatAdditiveEngine* additiveEngine = nullptr) noexcept {
 
         sampleRate_ = sampleRate;
 
-        for (auto& osc : oscs_) osc.prepare(sampleRate);
+        for (auto& osc : oscs_) osc.prepare(sampleRate, additiveEngine);
 
         filter_.prepare(sampleRate);
 

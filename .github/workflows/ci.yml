@@ -64,6 +64,17 @@ jobs:
             DigiStrikeFS2_VST3 DigiStrikeFS2_AU \
             Nyarlat_VST3 Nyarlat_AU
 
+      - name: Copy ROM Resources to Bundles
+        run: |
+          find build -name "DigiStrike FS2.vst3" -o -name "DigiStrike FS2.component" | while read -r item; do
+            mkdir -p "$item/Contents/Resources"
+            cp assets/digistrike_fs2_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
+          done
+          find build -name "Nyarlat.vst3" -o -name "Nyarlat.component" | while read -r item; do
+            mkdir -p "$item/Contents/Resources"
+            cp assets/nyarlat_akwf_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
+          done
+
       - name: Codesign macOS Plugins (Ad-hoc)
         run: |
           find build -name "*.vst3" -o -name "*.component" | while read -r item; do
@@ -157,6 +168,9 @@ jobs:
           chmod +x pluginval
           for p in "Hastur.vst3" "Formless Spawn.vst3" "DigiStrike FS2.vst3" "Nyarlat.vst3"; do
             TARGET=$(find build -name "$p" | head -n 1)
+            mkdir -p "$TARGET/Contents/Resources"
+            cp assets/digistrike_fs2_rom.bin "$TARGET/Contents/Resources/" 2>/dev/null || true
+            cp assets/nyarlat_akwf_rom.bin "$TARGET/Contents/Resources/" 2>/dev/null || true
             echo "Validating $TARGET under Xvfb..."
             xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
               sh -c "fluxbox & sleep 1; ./pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 \"$TARGET\""
@@ -195,6 +209,14 @@ jobs:
           $targets = @("Hastur.vst3", "Formless Spawn.vst3", "DigiStrike FS2.vst3", "Nyarlat.vst3")
           foreach ($t in $targets) {
             $p = (Get-ChildItem -Path build -Filter $t -Recurse | Select-Object -First 1).FullName
+            if ($t -eq "DigiStrike FS2.vst3") {
+              New-Item -ItemType Directory -Path "$p/Contents/Resources" -Force
+              Copy-Item "assets/digistrike_fs2_rom.bin" "$p/Contents/Resources/" -Force
+            }
+            if ($t -eq "Nyarlat.vst3") {
+              New-Item -ItemType Directory -Path "$p/Contents/Resources" -Force
+              Copy-Item "assets/nyarlat_akwf_rom.bin" "$p/Contents/Resources/" -Force
+            }
             echo "Validating $p with pluginval..."
             .\pluginval.exe --strictness-level 5 --validate-in-process --timeout-ms 60000 "$p"
           }

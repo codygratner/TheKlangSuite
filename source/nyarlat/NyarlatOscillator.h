@@ -29,7 +29,8 @@ public:
         activeCycleR_ = statorCacheR_[0].data();
     }
 
-    void prepare(double sampleRate) noexcept {
+    void prepare(double sampleRate, NyarlatAdditiveEngine* additiveEngine = nullptr) noexcept {
+        additiveEngine_ = additiveEngine;
         sampleRate_ = (sampleRate > 0.0) ? sampleRate : 44100.0;
         incScale_ = 16777216.0 / (sampleRate_ * 4.0);
         statorScale_ = 4294967296.0 / sampleRate_;
@@ -108,9 +109,15 @@ public:
         lastWidth_ = width;
         lastSpread_ = spread;
 
-        NyarlatAdditiveEngine::getInstance().synthesizeCycleStereo(
-            buffer8kL_.data(), buffer8kR_.data(),
-            bankIdx, morph, oddEven, tilt, formant, lifeMode, width, spread);
+        if (additiveEngine_ != nullptr) {
+            additiveEngine_->synthesizeCycleStereo(
+                buffer8kL_.data(), buffer8kR_.data(),
+                bankIdx, morph, oddEven, tilt, formant, lifeMode, width, spread);
+        } else {
+            NyarlatAdditiveEngine::getInstance().synthesizeCycleStereo(
+                buffer8kL_.data(), buffer8kR_.data(),
+                bankIdx, morph, oddEven, tilt, formant, lifeMode, width, spread);
+        }
 
         buffer8kL_[512] = buffer8kL_[0]; buffer8kL_[513] = buffer8kL_[1]; buffer8kL_[514] = buffer8kL_[2]; buffer8kL_[515] = buffer8kL_[3];
         buffer8kR_[512] = buffer8kR_[0]; buffer8kR_[513] = buffer8kR_[1]; buffer8kR_[514] = buffer8kR_[2]; buffer8kR_[515] = buffer8kR_[3];
@@ -383,6 +390,7 @@ private:
         return table;
     }
 
+    NyarlatAdditiveEngine* additiveEngine_{nullptr};
     double sampleRate_ = 44100.0;
     double incScale_ = 16777216.0 / (44100.0 * 4.0);
     double statorScale_ = 4294967296.0 / 44100.0;
