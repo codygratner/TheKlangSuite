@@ -808,38 +808,27 @@ public:
 
 
 
-            // 3. Process 3 Oscillators with Q32 Stator Sweep
-            float sig1 = oscs_[0].processSample(basePitch * cachedOctMult_[0], cachedEffMask_[0], cachedEffSpeed_[0], oscLoop[0], false);
-            float sig2 = oscs_[1].processSample(basePitch * cachedOctMult_[1], cachedEffMask_[1], cachedEffSpeed_[1], oscLoop[1], false);
-            float sig3 = oscs_[2].processSample(basePitch * cachedOctMult_[2], cachedEffMask_[2], cachedEffSpeed_[2], oscLoop[2], false);
-
-
+            // 3. Process 3 Oscillators with Q32 Stator Sweep (Harmonic Stereo)
+            float sig1L = 0.0f, sig1R = 0.0f;
+            float sig2L = 0.0f, sig2R = 0.0f;
+            float sig3L = 0.0f, sig3R = 0.0f;
+            oscs_[0].processSampleStereo(basePitch * cachedOctMult_[0], cachedEffMask_[0], cachedEffSpeed_[0], oscLoop[0], false, sig1L, sig1R);
+            oscs_[1].processSampleStereo(basePitch * cachedOctMult_[1], cachedEffMask_[1], cachedEffSpeed_[1], oscLoop[1], false, sig2L, sig2R);
+            oscs_[2].processSampleStereo(basePitch * cachedOctMult_[2], cachedEffMask_[2], cachedEffSpeed_[2], oscLoop[2], false, sig3L, sig3R);
 
             // 4. Variable-rate Sample-and-Hold Noise + Clavinet Hammer Snap
-
             if (++noiseHoldCounter_ >= noiseHoldMax) {
-
                 noiseHoldCounter_ = 0;
-
                 noiseSeed_ = 214013 * noiseSeed_ + 2531011;
-
                 noiseSample_ = static_cast<float>((noiseSeed_ >> 16) & 0x7FFF) / 16384.0f - 1.0f;
-
             }
 
-
-
             hammerSnapEnv_ *= hammerDecayCoeff_;
-
             const float totalNoise = noiseSample_ * (noiseLevel + hammerSnapEnv_ * 0.7f);
 
-
-
-            // 5. Pre-Filter Stereo Stem Mixer with Constant-Power Bipolar Spread
-
-            float mixL = (sig1 * osc1Level * 0.7071068f + sig2 * osc2Level * curPan2L_ + sig3 * osc3Level * curPan2R_ + totalNoise) * 0.333f;
-
-            float mixR = (sig1 * osc1Level * 0.7071068f + sig2 * osc2Level * curPan2R_ + sig3 * osc3Level * curPan2L_ + totalNoise) * 0.333f;
+            // 5. Pre-Filter Stereo Stem Mixer with Harmonic Additive Width & Panned Partials
+            float mixL = (sig1L * osc1Level + sig2L * osc2Level + sig3L * osc3Level + totalNoise) * 0.333f;
+            float mixR = (sig1R * osc1Level + sig2R * osc2Level + sig3R * osc3Level + totalNoise) * 0.333f;
 
 
 
@@ -913,39 +902,27 @@ public:
 
 
     void updateWavetables(const uint32_t* bankIdx, const float* oscMorph, const float* oscOddEven,
-
                           const float* oscTilt, const float* oscFormant, const float* randAttenuverters,
-
-                          int lifeMode) noexcept {
+                          int lifeMode, float width = 0.5f, float oscSpread = 0.0f, float randSpread = 0.0f) noexcept {
+        const float effSpread = CrackedChimes::DSP::stepRandomRange(
+            oscSpread, -1.0f, 1.0f, randSpread, chaos_.getRawValue(18));
+        lastEffSpread_ = effSpread;
+        const float spreadOffsets[3] = { 0.0f, -effSpread, +effSpread };
 
         for (int i = 0; i < 3; ++i) {
-
             // Destination-anchored unipolar chaos modulation
-
             const float effMorph = CrackedChimes::DSP::stepRandomNorm(
-
                 oscMorph[i], randAttenuverters[i], chaos_.getRawValue(i));
-
             const float effOddEven = CrackedChimes::DSP::stepRandomRange(
-
                 oscOddEven[i], -1.0f, 1.0f, randAttenuverters[3 + i], chaos_.getRawValue(3 + i));
-
             const float effTilt = CrackedChimes::DSP::stepRandomRange(
-
                 oscTilt[i], -12.0f, 6.0f, randAttenuverters[6 + i], chaos_.getRawValue(6 + i));
-
             const float effFormant = CrackedChimes::DSP::stepRandomNorm(
-
                 oscFormant[i], randAttenuverters[9 + i], chaos_.getRawValue(9 + i));
 
-
-
             effMorph_[i] = effMorph;
-
-            oscs_[i].updateTable(bankIdx[i], effMorph, effOddEven, effTilt, effFormant, lifeMode);
-
+            oscs_[i].updateTableStereo(bankIdx[i], effMorph, effOddEven, effTilt, effFormant, lifeMode, width, spreadOffsets[i]);
         }
-
     }
 
 
@@ -1090,4 +1067,3 @@ private:
 
 
 } // namespace Nyarlat
-

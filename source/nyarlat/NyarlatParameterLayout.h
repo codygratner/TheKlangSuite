@@ -295,7 +295,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // global_width [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::global_width, 1}, nyarlatParameters::Names::global_width, -1.0000f, 1.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::global_width, 1}, nyarlatParameters::Names::global_width, 0.0000f, 1.0000f, 0.5000f));
 
     // output_level [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

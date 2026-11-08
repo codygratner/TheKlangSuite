@@ -665,6 +665,13 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
         item.slider.textFromValueFunction = [](double v) {
             return juce::String(v, 2) + " Hz";
         };
+    } else if (paramId == Ids::global_width) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (v <= 0.005) return juce::String("MONO");
+            if (std::abs(v - 0.5) < 0.02) return juce::String("SPLIT");
+            if (v >= 0.995) return juce::String("WIDE");
+            return juce::String(juce::roundToInt(v * 100.0)) + " %";
+        };
     } else if (paramId == Ids::output_level) {
 
         item.slider.textFromValueFunction = [](double v) {

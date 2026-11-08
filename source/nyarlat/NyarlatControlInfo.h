@@ -455,7 +455,7 @@ inline const std::vector<ControlInfo>& getNyarlatControlCatalog() {
 
 
 
-        { Ids::global_width, "Stereo Width", "stereo width parameter", Colours::kMaster },
+        { Ids::global_width, "Stereo Width", "Pitch-relative harmonic width: 0% mono, 50% mono fundamental + wide top partial, 100% full stereo", Colours::kMaster },
 
 
 

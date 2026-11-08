@@ -561,9 +561,10 @@ parameters:
   type: float
   effect: pan
   range:
-  - -1.0
+  - 0.0
   - 1.0
-  default: 0.0
+  default: 0.5
+  unit: "%"
 - id: output_level
   automation_tier: 2
   name: Master Volume

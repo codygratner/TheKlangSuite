@@ -5646,6 +5646,51 @@ Running Suite 77: Nyarlat Additive Engine, Analog Filter & 8x Unison Gauntlet...
             std::cout << "  [PASS] NyarlatAdditiveEngine: 64 partials synthesized, DC-nulled & normalized across all 3 Lifeforms" << std::endl;
 
         }
+        // Test 1B: Pitch-Relative Additive Harmonic Stereo Width & Thue-Morse Balance
+        {
+            // 1. Verify partialWidth piecewise math
+            for (int k = 1; k <= 64; ++k) {
+                assert(Nyarlat::NyarlatAdditiveEngine::partialWidth(k, 0.0f) == 0.0f);
+            }
+            // Fundamental at noon MUST be 0.0 (dead center mono)
+            assert(std::abs(Nyarlat::NyarlatAdditiveEngine::partialWidth(1, 0.5f)) < 1e-6f);
+            // Top partial at noon MUST be 1.0 (full stereo)
+            assert(std::abs(Nyarlat::NyarlatAdditiveEngine::partialWidth(64, 0.5f) - 1.0f) < 1e-6f);
+            // 75% width MUST have fundamental at exactly 50%
+            assert(std::abs(Nyarlat::NyarlatAdditiveEngine::partialWidth(1, 0.75f) - 0.5f) < 1e-6f);
+            // 100% width MUST have fundamental at 1.0
+            assert(std::abs(Nyarlat::NyarlatAdditiveEngine::partialWidth(1, 1.0f) - 1.0f) < 1e-6f);
+
+            // 2. Verify Thue-Morse balance
+            float oddSignSum = 0.0f;
+            for (int k : {1, 3, 5, 7}) oddSignSum += Nyarlat::NyarlatAdditiveEngine::thueMorseSign(k);
+            assert(oddSignSum == 0.0f); // Balanced between L and R
+
+            float evenSignSum = 0.0f;
+            for (int k : {2, 4, 6, 8}) evenSignSum += Nyarlat::NyarlatAdditiveEngine::thueMorseSign(k);
+            assert(evenSignSum == 0.0f); // Balanced between L and R
+
+            // 3. Stereo Additive Table Synthesis & Shared-Peak Normalization
+            std::array<float, 512> cycleL, cycleR;
+            Nyarlat::NyarlatAdditiveEngine::getInstance().synthesizeCycleStereo(
+                cycleL.data(), cycleR.data(), 0, 0.5f, 0.0f, 0.0f, 0.5f, 0, 0.5f, 0.0f);
+
+            float peakL = 0.0f, peakR = 0.0f;
+            for (int n = 0; n < 512; ++n) {
+                assert(std::isfinite(cycleL[n]) && std::isfinite(cycleR[n]));
+                peakL = std::max(peakL, std::abs(cycleL[n]));
+                peakR = std::max(peakR, std::abs(cycleR[n]));
+            }
+            float maxPeak = std::max(peakL, peakR);
+            assert(maxPeak >= 0.95f && maxPeak <= 1.05f);
+
+            // 4. Pure Mono Verification at width = 0.0f
+            std::array<float, 512> monoL, monoR;
+            Nyarlat::NyarlatAdditiveEngine::getInstance().synthesizeCycleStereo(
+                monoL.data(), monoR.data(), 0, 0.5f, 0.0f, 0.0f, 0.5f, 0, 0.0f, 0.0f);
+            for (int n = 0; n < 512; ++n) {
+                assert(std::abs(monoL[n] - monoR[n]) < 1e-6f);
+            
 
 
 
@@ -6342,5 +6387,4 @@ Running Suite 77: Nyarlat Additive Engine, Analog Filter & 8x Unison Gauntlet...
     std::cout << "\n>>> ALL 80 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
-
 

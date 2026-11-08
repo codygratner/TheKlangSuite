@@ -661,6 +661,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     params.oscSpread = *apvts_.getRawParameterValue(Ids::osc_spread);
 
     params.mixerSeethe = *apvts_.getRawParameterValue(Ids::mixer_seethe);
+    params.width = *apvts_.getRawParameterValue(Ids::global_width);
 
 
 
@@ -798,7 +799,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
         voices_[v].advanceChaos(params.chaosRate, params.chaosDrift, numSamples / sr);
 
-        voices_[v].updateWavetables(uBanks, params.oscMorphs, params.oscOddEvens, params.oscTilts, params.oscFormants, params.randAttenuverters, params.lifeMode);
+        voices_[v].updateWavetables(uBanks, params.oscMorphs, params.oscOddEvens, params.oscTilts, params.oscFormants, params.randAttenuverters, params.lifeMode, params.width, params.oscSpread, params.randSpread);
 
     }
 
@@ -1030,7 +1031,8 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
         float side = (r - l) * 0.5f;
 
-        side *= (1.0f + width);
+        const float sideGain = 2.0f * width;
+        side *= sideGain;
 
         l = mid - side;
 
@@ -1207,4 +1209,3 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
     return new Nyarlat::NyarlatProcessor();
 
 }
-

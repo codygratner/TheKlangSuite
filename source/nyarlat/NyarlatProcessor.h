@@ -296,6 +296,7 @@ private:
         float noiseLvl, noiseTone, noiseHammerSnap;
 
         float oscSpread, mixerSeethe;
+        float width = 0.5f;
 
         float chaosRate, chaosDrift, chaosPoly;
 
