@@ -5690,7 +5690,29 @@ Running Suite 77: Nyarlat Additive Engine, Analog Filter & 8x Unison Gauntlet...
                 monoL.data(), monoR.data(), 0, 0.5f, 0.0f, 0.0f, 0.5f, 0, 0.0f, 0.0f);
             for (int n = 0; n < 512; ++n) {
                 assert(std::abs(monoL[n] - monoR[n]) < 1e-6f);
-            
+            }
+
+            // 5. Left-Right Centroid Energy Balance at Full Width (width = 1.0f)
+            // Confirms zero right-channel tilt across waveforms and lifeforms
+            for (int bank = 0; bank < 4; ++bank) {
+                for (int life = 0; life < 3; ++life) {
+                    std::array<float, 512> fullL, fullR;
+                    Nyarlat::NyarlatAdditiveEngine::getInstance().synthesizeCycleStereo(
+                        fullL.data(), fullR.data(), bank, 0.5f, 0.0f, 0.0f, 0.5f, life, 1.0f, 0.0f);
+
+                    float eL = 0.0f, eR = 0.0f;
+                    for (int n = 0; n < 512; ++n) {
+                        eL += fullL[n] * fullL[n];
+                        eR += fullR[n] * fullR[n];
+                    }
+                    assert(eL > 1e-6f && eR > 1e-6f);
+                    const float dbDiff = std::abs(10.0f * std::log10(eR / eL));
+                    assert(dbDiff < 0.5f);
+                }
+            }
+
+            std::cout << "  [PASS] NyarlatAdditiveEngine: Harmonic width energy centroid balanced (<0.5dB tilt) and mono-cancellation proof" << std::endl;
+        }
 
 
 

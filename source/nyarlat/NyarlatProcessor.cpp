@@ -1031,7 +1031,7 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
         float side = (r - l) * 0.5f;
 
-        const float sideGain = 2.0f * width;
+        const float sideGain = std::min(1.0f, 2.0f * width);
         side *= sideGain;
 
         l = mid - side;

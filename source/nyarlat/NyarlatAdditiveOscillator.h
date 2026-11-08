@@ -165,16 +165,39 @@ public:
         std::array<float, kNumPartials> ampR{};
 
         constexpr float kCenterGain = 0.7071068f; // Level matching legacy center loudness
-        for (int k = 1; k <= kNumPartials; ++k) {
-            const float baseAmp = partialAmps[k - 1];
-            if (baseAmp < 1e-6f) continue;
-
-            if (isPureMono) {
+        if (isPureMono) {
+            for (int k = 1; k <= kNumPartials; ++k) {
+                const float baseAmp = partialAmps[k - 1];
+                if (baseAmp < 1e-6f) continue;
                 ampL[k - 1] = baseAmp * kCenterGain;
                 ampR[k - 1] = baseAmp * kCenterGain;
-            } else {
+            }
+        } else {
+            // Pre-calculate spectral energy balance across alternating harmonics (k >= 2).
+            // Fundamental (k=1) has sigma_1 = 0.0 (anchored center; spread is scaled by spreadOffset).
+            // Harmonics k >= 2 are dynamically normalized so Left and Right harmonic energy are identical (0 dB tilt).
+            float energyPos = 0.0f;
+            float energyNeg = 0.0f;
+            for (int k = 2; k <= kNumPartials; ++k) {
+                const float a = partialAmps[k - 1];
+                const float e = a * a;
+                if (thueMorseSign(k) > 0.0f) {
+                    energyPos += e;
+                } else {
+                    energyNeg += e;
+                }
+            }
+            const float scalePos = std::min(1.0f, energyNeg / std::max(1e-9f, energyPos));
+            const float scaleNeg = std::min(1.0f, energyPos / std::max(1e-9f, energyNeg));
+
+            for (int k = 1; k <= kNumPartials; ++k) {
+                const float baseAmp = partialAmps[k - 1];
+                if (baseAmp < 1e-6f) continue;
+
                 const float wk = partialWidth(k, clampedWidth);
-                const float sigma = thueMorseSign(k);
+                const float rawSigma = (k == 1) ? 0.0f : thueMorseSign(k);
+                const float sigma = rawSigma * (rawSigma > 0.0f ? scalePos : scaleNeg);
+
                 // Bounded pan position p in [-1.0, 1.0]
                 const float p = std::clamp(wk * (clampedSpread + sigma * (1.0f - std::abs(clampedSpread))), -1.0f, 1.0f);
                 // Linear M/S pan law: M = baseAmp, S = baseAmp * p
