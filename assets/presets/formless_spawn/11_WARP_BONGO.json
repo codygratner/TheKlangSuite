@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "formless_spawn",
+  "metadata": {
+    "name": "Tuned Conga Perc",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "formless_spawn"
+    ]
+  },
+  "parameters": {
+    "role": 6.0,
+    "model": 3.0,
+    "macro_x": 0.45,
+    "macro_y": 0.55,
+    "decay": 0.3,
+    "pre_drive": 0.25,
+    "vel_timb": 0.6
+  }
+}

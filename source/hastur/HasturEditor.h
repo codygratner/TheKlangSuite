@@ -1062,7 +1062,7 @@ private:
 // ==============================================================================
 // Custom Rotary & Linear LookAndFeel with Dynamic Accent Tinting
 // ==============================================================================
-class HasturLookAndFeel : public juce::LookAndFeel_V4 {
+class HasturLookAndFeel : public CrackedChimes::UI::CrackedChimesLookAndFeel {
 public:
     HasturLookAndFeel();
     void setAccentColour(juce::Colour c);
@@ -1608,10 +1608,10 @@ private:
     SegmentedButtonBar burbleModeButtons{{"XFM", "LFM"}};
 
     // Card 3: Dedicated 4-Lane Vertical Stem Mixer Strip
-    SliderItem osc1LevelSlider;   // CORE
-    SliderItem subLevelSlider;    // SUB
-    SliderItem noiseLevelSlider;  // NOISE
-    SliderItem mixerDriveSlider;  // DRIVE
+    CrackedChimes::UI::CrackedChimesFaderItem osc1LevelSlider;   // CORE
+    CrackedChimes::UI::CrackedChimesFaderItem subLevelSlider;    // SUB
+    CrackedChimes::UI::CrackedChimesFaderItem noiseLevelSlider;  // NOISE
+    CrackedChimes::UI::CrackedChimesFaderItem mixerDriveSlider;  // DRIVE
 
     // Card 4: Dedicated Global Modulation Block
     SliderItem globalWidthKnob;
@@ -1691,7 +1691,7 @@ private:
     std::unique_ptr<WaveformGridModal> activeWaveModal_;
     std::unique_ptr<KnobTaperModal> activeKnobModal_;
 
-    void setupMixerSlider(SliderItem& item, const juce::String& paramId, const juce::String& name, juce::Colour col);
+    void setupMixerSlider(CrackedChimes::UI::CrackedChimesFaderItem& item, const juce::String& paramId, const juce::String& name, juce::Colour col);
     void setupRotaryKnob(SliderItem& item, const juce::String& paramId, const juce::String& name, juce::Colour col);
     void setupCombo(ComboItem& item, const juce::String& paramId, const juce::String& name, const juce::StringArray& choices);
     void setupButtonBar(SegmentedButtonBar& bar, juce::Label& label, const juce::String& paramId, const juce::String& name, juce::Colour col);

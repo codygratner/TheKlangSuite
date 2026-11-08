@@ -285,8 +285,16 @@ public:
         const float vTube = lp * 1.25f;
         const float yTube = std::tanh((vTube + 0.28f * vTube * vTube) / (1.0f + 0.28f * std::abs(vTube)));
 
-        // D. Optical Conductance Gating
-        const float out = yTube * std::clamp(s, 0.0001f, 1.0f);
+        // D. Optical Conductance Gating with Organic Makeup & Soft Ceiling
+        const float gated = yTube * std::clamp(s, 0.0f, 1.0f) * 1.15f;
+        auto softCeil = [](float x) noexcept {
+            const float ax = std::abs(x);
+            if (ax <= 0.90f) return x;
+            const float excess = ax - 0.90f;
+            const float compressed = 0.90f + 0.10f * std::tanh(excess * 10.0f);
+            return std::copysign(compressed, x);
+        };
+        const float out = softCeil(gated);
 
         // E. Integrated 4 Hz DC Decoupling
         const float hpOut = out - dcBlockerState_;
@@ -295,8 +303,8 @@ public:
     }
 
     [[nodiscard]] bool isRinging() const noexcept {
-        if (mode_ == BackendMode::LPG) return vactrolState_ > 1e-4f;
-        if (mode_ == BackendMode::CYBORG) return cyborgVactrolState_ > 1e-4f;
+        if (mode_ == BackendMode::LPG) return vactrolState_ > 3.2e-6f;
+        if (mode_ == BackendMode::CYBORG) return cyborgVactrolState_ > 3.2e-6f;
         return false;
     }
 

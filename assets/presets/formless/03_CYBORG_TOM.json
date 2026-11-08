@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "formless_spawn",
+  "metadata": {
+    "name": "Resonant Hybrid Tom",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "formless_spawn"
+    ]
+  },
+  "parameters": {
+    "role": 2.0,
+    "model": 1.0,
+    "macro_x": 0.4,
+    "macro_y": 0.5,
+    "decay": 0.55,
+    "pre_drive": 0.3,
+    "wider": 0.4
+  }
+}

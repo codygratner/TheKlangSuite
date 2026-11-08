@@ -47,7 +47,8 @@ def load_contract(plugin_name: str) -> dict:
 def resolve_plugin_prefix(plugin: str) -> str:
     target_dir = ROOT_TKS / "source" / plugin.lower()
     pascal = plugin[:1].upper() + plugin[1:]
-    if (target_dir / f"{pascal}ParameterIds.h").exists():
+    target_name = f"{pascal}ParameterIds.h"
+    if target_dir.exists() and any(f.name == target_name for f in target_dir.iterdir()):
         return pascal
     return plugin
 

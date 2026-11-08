@@ -1,40 +1,16 @@
 plugin: formless_spawn
 name: Formless Spawn Sovereign Drum Voice
-version: 1.0.1
+version: 1.3.0
 manufacturer: Cracked Chimes
+category: drum
 
 parameters:
-  # ==============================================================================
-  # HEADER CONTROLS (3 selectors)
-  # ==============================================================================
-  - id: role
-    name: Drum Role
-    short: ROLE
-    category: header
-    type: choice
-    choices: [BD, SD, TM, CP, HH, CY, PC, FX]
-    default: 0
-
-  - id: model
-    name: Synthesis Model
-    short: MODEL
-    category: header
-    type: choice
-    choices: ["00", "01", "02", "03", "04", "05", "06", "07"]
-    default: 0
-
-  - id: life_mode
-    name: Lifeform Character
-    short: TRIAD
-    category: header
-    type: choice
-    choices: [Synthetic, Cyborg, Organic]
-    default: 2
 
   # ==============================================================================
   # CARD 1: MASTER MACRO & DYNAMICS LAB (8 parameters - Top-Left)
   # ==============================================================================
   - id: macro_x
+    automation_tier: 1
     name: Macro X (Spectral)
     short: MACRO-X
     category: macro
@@ -44,6 +20,7 @@ parameters:
     default: 0.5
 
   - id: macro_y
+    automation_tier: 1
     name: Macro Y (Punch)
     short: MACRO-Y
     category: macro
@@ -53,6 +30,7 @@ parameters:
     default: 0.5
 
   - id: macro_z
+    automation_tier: 1
     name: Macro Z (Timbre)
     short: MACRO-Z
     category: macro
@@ -62,6 +40,7 @@ parameters:
     default: 0.5
 
   - id: macro_t
+    automation_tier: 1
     name: Macro T (Time)
     short: MACRO-T
     category: macro
@@ -70,245 +49,9 @@ parameters:
     range: [0.0, 1.0]
     default: 0.5
 
-  - id: vel_aggr
-    name: Vel To Aggression
-    short: VEL-AGGR
-    category: dynamics
-    type: float
-    effect: dynamics
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: vel_timb
-    name: Vel To Timbre
-    short: VEL-TIMB
-    category: dynamics
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: pan
-    name: Voice Pan
-    short: PAN
-    category: output
-    type: float
-    effect: output
-    range: [-1.0, 1.0]
-    default: 0.0
-
-  - id: decay_curve
-    name: Decay Curve
-    short: DECAY-CRV
-    category: dynamics
-    type: float
-    effect: dynamics
-    range: [-1.0, 1.0]
-    default: 0.0
-
-  # ==============================================================================
-  # CARD 2: ROLE SYNTHESIS LAB (8 parameters - Top-Right)
-  # ==============================================================================
-  - id: param_a
-    name: Role Param A
-    short: PARAM-A
-    category: synthesis
-    type: float
-    effect: pitch
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: param_b
-    name: Role Param B
-    short: PARAM-B
-    category: synthesis
-    type: float
-    effect: dynamics
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: param_c
-    name: Role Param C
-    short: PARAM-C
-    category: synthesis
-    type: float
-    effect: pitch
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: param_d
-    name: Role Param D
-    short: PARAM-D
-    category: synthesis
-    type: float
-    effect: dynamics
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: param_e
-    name: Role Param E
-    short: PARAM-E
-    category: synthesis
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: param_f
-    name: Role Param F
-    short: PARAM-F
-    category: synthesis
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: param_g
-    name: Role Param G
-    short: PARAM-G
-    category: synthesis
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: param_h
-    name: Role Param H
-    short: PARAM-H
-    category: synthesis
-    type: float
-    effect: dynamics
-    range: [0.0, 1.0]
-    default: 0.5
-
-  # ==============================================================================
-  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (18 parameters - Bottom)
-  # ==============================================================================
-  # Left Pod: Stepped Random Humanization (2x4 Grid of 8 Small Knobs)
-  # Row 1: Macro Targets
-  - id: rand_x
-    name: Rand Macro X
-    short: R-X
-    category: random
-    type: float
-    effect: pitch
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_y
-    name: Rand Macro Y
-    short: R-Y
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_z
-    name: Rand Macro Z
-    short: R-Z
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_t
-    name: Rand Macro T
-    short: R-T
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  # Row 2: Dynamics & Altar Targets
-  - id: rand_aggr
-    name: Rand Aggression
-    short: R-AGGR
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_timb
-    name: Rand Timbre
-    short: R-TIMB
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_pan
-    name: Rand Pan
-    short: R-PAN
-    category: random
-    type: float
-    effect: output
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_decay
-    name: Rand Macro Decay
-    short: R-DECAY
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  # Center Altar: The Master Macro & Master Out (2 controls)
-  - id: macro_decay
-    name: Macro Decay
-    short: MACRO
-    category: performance
-    type: float
-    effect: dynamics
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: volume
-    name: Master Volume
-    short: VOLUME
-    category: output
-    type: float
-    effect: output
-    range: [0.0, 1.0]
-    default: 0.5
-    unit: dB
-
-  - id: amp_decay
-    name: Master Amp Decay
-    short: AMP-DEC
-    category: output
-    type: float
-    effect: dynamics
-    range: [0.0, 1.0]
-    default: 1.0
-    unit: s
-
-  - id: amp_velocity
-    name: Master Velocity
-    short: VEL
-    category: output
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 50.0
-
   # Right Pod: VCF & Universal Hardware Mojo Strip (11 controls)
   - id: cutoff
+    automation_tier: 1
     name: Filter Cutoff
     short: CUTOFF
     category: filter
@@ -317,9 +60,10 @@ parameters:
     range: [20.0, 20000.0]
     skew_center: 1000.0
     unit: Hz
-    default: 1000.0
+    default: 20000.0
 
   - id: resonance
+    automation_tier: 1
     name: Filter Resonance
     short: RES
     category: filter
@@ -327,8 +71,10 @@ parameters:
     effect: filter
     range: [0.0, 1.0]
     default: 0.3
+    unit: Q
 
   - id: filter_env_amt
+    automation_tier: 1
     name: Filter Env Amount
     short: FE-AMT
     category: filter
@@ -339,6 +85,7 @@ parameters:
     unit: "%"
 
   - id: filter_decay
+    automation_tier: 1
     name: Filter Env Decay
     short: FE-DEC
     category: filter
@@ -349,15 +96,175 @@ parameters:
     default: 0.150
     unit: s
 
-  - id: filter_type
-    name: Filter Type
-    short: TYPE
-    category: filter
-    type: choice
-    choices: [LP, HP, BP, PK]
-    default: 0
+  - id: vel_aggr
+    automation_tier: 2
+    name: Vel To Aggression
+    short: VEL-AGGR
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: vel_timb
+    automation_tier: 2
+    name: Vel To Timbre
+    short: VEL-TIMB
+    category: dynamics
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: pan
+    automation_tier: 2
+    name: Voice Pan
+    short: PAN
+    category: output
+    type: float
+    effect: output
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: decay_curve
+    automation_tier: 2
+    name: Decay Curve
+    short: DCY-CRV
+    category: dynamics
+    type: float
+    effect: dynamics
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # CARD 2: ROLE SYNTHESIS LAB (8 parameters - Top-Right)
+  # ==============================================================================
+  - id: param_a
+    automation_tier: 2
+    name: Role Param A
+    short: PARAM-A
+    category: synthesis
+    type: float
+    effect: pitch
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_b
+    automation_tier: 2
+    name: Role Param B
+    short: PARAM-B
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_c
+    automation_tier: 2
+    name: Role Param C
+    short: PARAM-C
+    category: synthesis
+    type: float
+    effect: pitch
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_d
+    automation_tier: 2
+    name: Role Param D
+    short: PARAM-D
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_e
+    automation_tier: 2
+    name: Role Param E
+    short: PARAM-E
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_f
+    automation_tier: 2
+    name: Role Param F
+    short: PARAM-F
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_g
+    automation_tier: 2
+    name: Role Param G
+    short: PARAM-G
+    category: synthesis
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: param_h
+    automation_tier: 2
+    name: Role Param H
+    short: PARAM-H
+    category: synthesis
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  # Center Altar: The Master Macro & Master Out (2 controls)
+  - id: macro_decay
+    automation_tier: 2
+    name: Macro Decay
+    short: MACRO
+    category: performance
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: volume
+    automation_tier: 2
+    name: Master Volume
+    short: VOLUME
+    category: output
+    type: float
+    effect: output
+    range: [0.0, 1.0]
+    default: 0.5
+    unit: dB
+
+  - id: amp_decay
+    automation_tier: 2
+    name: Master Amp Decay
+    short: AMP-DEC
+    category: output
+    type: float
+    effect: dynamics
+    range: [0.0, 1.0]
+    default: 1.0
+    unit: s
+
+  - id: amp_velocity
+    automation_tier: 2
+    name: Master Velocity
+    short: VEL
+    category: output
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 50.0
 
   - id: pre_drive
+    automation_tier: 2
     name: Pre-Filter Drive
     short: DRIVE
     category: drive
@@ -365,8 +272,10 @@ parameters:
     effect: saturation
     range: [0.0, 1.0]
     default: 0.0
+    unit: dB
 
   - id: crush
+    automation_tier: 2
     name: Mojo Sample Crush
     short: CRUSH
     category: mojo
@@ -378,6 +287,7 @@ parameters:
     default: 48000.0
 
   - id: shift
+    automation_tier: 2
     name: Frequency Shifter
     short: SHIFT
     category: mojo
@@ -388,6 +298,7 @@ parameters:
     default: 0.0
 
   - id: squash
+    automation_tier: 2
     name: Bipolar Squash
     short: SQUASH
     category: dynamics
@@ -398,6 +309,7 @@ parameters:
     unit: "%"
 
   - id: wider
+    automation_tier: 2
     name: Mojo Wider
     short: WIDER
     category: mojo
@@ -407,9 +319,144 @@ parameters:
     default: 0.0
     unit: "%"
 
+  # ==============================================================================
+  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (18 parameters - Bottom)
+  # ==============================================================================
+  # Left Pod: Stepped Random Humanization (2x4 Grid of 8 Small Knobs)
+  # Row 1: Macro Targets
+  - id: rand_x
+    automation_tier: 3
+    name: Rand Macro X
+    short: R-X
+    category: random
+    type: float
+    effect: pitch
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_y
+    automation_tier: 3
+    name: Rand Macro Y
+    short: R-Y
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_z
+    automation_tier: 3
+    name: Rand Macro Z
+    short: R-Z
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_t
+    automation_tier: 3
+    name: Rand Macro T
+    short: R-T
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  # Row 2: Dynamics & Altar Targets
+  - id: rand_aggr
+    automation_tier: 3
+    name: Rand Aggression
+    short: R-AGGR
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_timb
+    automation_tier: 3
+    name: Rand Timbre
+    short: R-TIMB
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_pan
+    automation_tier: 3
+    name: Rand Pan
+    short: R-PAN
+    category: random
+    type: float
+    effect: output
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_decay
+    automation_tier: 3
+    name: Rand Macro Decay
+    short: R-DECAY
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  # ==============================================================================
+  # HEADER CONTROLS (3 selectors)
+  # ==============================================================================
+  - id: role
+    automation_tier: 4
+    name: Drum Role
+    short: ROLE
+    category: header
+    type: choice
+    choices: [BD, SD, TM, CP, HH, CY, PC, FX]
+    default: 0
+
+  - id: model
+    automation_tier: 4
+    name: Synthesis Model
+    short: MODEL
+    category: header
+    type: choice
+    choices: ["00", "01", "02", "03", "04", "05", "06", "07"]
+    default: 0
+
+  - id: life_mode
+    automation_tier: 4
+    name: Lifeform Character
+    short: TRIAD
+    category: header
+    type: choice
+    choices: [Synthetic, Cyborg, Organic]
+    default: 2
+
+  - id: filter_type
+    automation_tier: 4
+    name: Filter Type
+    short: TYPE
+    category: filter
+    type: choice
+    choices: [LP, HP, BP, PK]
+    default: 0
+
   - id: master_limiter
+    automation_tier: 4
     name: Master Limiter
     short: LIMIT
     category: output
     type: bool
     default: false
+

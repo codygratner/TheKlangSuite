@@ -1,0 +1,295 @@
+plugin: Shoggoth
+name: Shoggoth Multidimensional Additive Synthesizer
+version: 0.1.0
+manufacturer: Cracked Chimes
+category: synth
+
+parameters:
+
+  # ==============================================================================
+  # TIER 1: PRIMARY TIMBRE & FILTERS (Controls 1..8)
+  # ==============================================================================
+  - id: filter_cutoff
+    automation_tier: 1
+    name: Filter Cutoff
+    category: filter
+    type: float
+    range: [20.0, 20000.0]
+    default: 20000.0
+    skew: 0.25
+    unit: Hz
+
+  - id: filter_resonance
+    automation_tier: 1
+    name: Filter Reso
+    category: filter
+    type: float
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: spectral_tilt
+    automation_tier: 1
+    name: Spectral Tilt
+    category: macro
+    type: float
+    range: [-12.0, 12.0]
+    default: 0.0
+    unit: dB/oct
+
+  - id: source_morph
+    automation_tier: 1
+    name: Source Morph
+    category: macro
+    type: float
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: odd_even_bal
+    automation_tier: 1
+    name: Odd / Even Bal
+    category: macro
+    type: float
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: dissonance_warp
+    automation_tier: 1
+    name: Dissonance Warp
+    category: macro
+    type: float
+    range: [0.5, 2.0]
+    default: 1.0
+    skew: 0.5
+    unit: alpha
+
+  - id: post_ddf_cutoff
+    automation_tier: 1
+    name: Post DDF Cutoff
+    category: filter
+    type: float
+    range: [20.0, 20000.0]
+    default: 20000.0
+    skew: 0.25
+    unit: Hz
+
+  - id: post_ddf_reso
+    automation_tier: 1
+    name: Post DDF Reso
+    category: filter
+    type: float
+    range: [0.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # TIER 2: ENVELOPES & DYNAMICS (Controls 9..16)
+  # ==============================================================================
+  - id: amp_attack
+    automation_tier: 2
+    name: Amp Attack
+    category: env
+    type: float
+    range: [0.001, 10.0]
+    default: 0.005
+    skew: 0.3
+    unit: s
+
+  - id: amp_decay
+    automation_tier: 2
+    name: Amp Decay
+    category: env
+    type: float
+    range: [0.01, 20.0]
+    default: 0.5
+    skew: 0.3
+    unit: s
+
+  - id: amp_sustain
+    automation_tier: 2
+    name: Amp Sustain
+    category: env
+    type: float
+    range: [0.0, 1.0]
+    default: 0.8
+
+  - id: amp_release
+    automation_tier: 2
+    name: Amp Release
+    category: env
+    type: float
+    range: [0.01, 20.0]
+    default: 0.5
+    skew: 0.3
+    unit: s
+
+  - id: filter_env_depth
+    automation_tier: 2
+    name: Filter Env Depth
+    category: env
+    type: float
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: pitch_punch_depth
+    automation_tier: 2
+    name: Pitch Punch
+    category: pitch
+    type: float
+    range: [0.0, 24.0]
+    default: 0.0
+    unit: st
+
+  - id: glide_time
+    automation_tier: 2
+    name: Glide Time
+    category: pitch
+    type: float
+    range: [0.0, 2000.0]
+    default: 0.0
+    skew: 0.3
+    unit: ms
+
+  - id: chaos_amount
+    automation_tier: 2
+    name: Chaos Amount
+    category: mod
+    type: float
+    range: [0.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # TIER 3: SPACE, COLOR & DIMENSION (Controls 17..24)
+  # ==============================================================================
+  - id: alpha_chorus
+    automation_tier: 2
+    name: Alpha Chorus
+    category: fx
+    type: choice
+    choices: ['Off', 'Chorus I', 'Chorus II', 'Chorus I+II']
+    default: 'Off'
+
+  - id: waterbed_depth
+    automation_tier: 2
+    name: Waterbed Depth
+    category: fx
+    type: float
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: swarm_coupling
+    automation_tier: 2
+    name: Swarm Coupling
+    category: fx
+    type: float
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: fold_wall
+    automation_tier: 2
+    name: Fold Wall
+    category: fx
+    type: float
+    range: [1000.0, 24000.0]
+    default: 24000.0
+    skew: 0.3
+    unit: Hz
+
+  - id: mixer_seethe
+    automation_tier: 2
+    name: Mixer Seethe
+    category: fx
+    type: float
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: master_gain_db
+    automation_tier: 2
+    name: Master Gain
+    category: master
+    type: float
+    range: [-36.0, 18.0]
+    default: 0.0
+    unit: dB
+
+  - id: mpe_slide_depth
+    automation_tier: 3
+    name: MPE Slide Depth
+    category: mpe
+    type: float
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: mpe_pressure_depth
+    automation_tier: 3
+    name: MPE Press Depth
+    category: mpe
+    type: float
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # TIER 4: PRECISION TRIMPOTS & DIGITAL SWITCHES (Controls 25..32)
+  # ==============================================================================
+  - id: osc_slop
+    automation_tier: 3
+    name: Osc Slop
+    category: trim
+    type: float
+    range: [0.0, 1.0]
+    default: 0.05
+
+  - id: air_absorption
+    automation_tier: 3
+    name: Air Absorption
+    category: trim
+    type: float
+    range: [0.0, 1.0]
+    default: 0.1
+
+  - id: vel_brightness
+    automation_tier: 3
+    name: Vel Brightness
+    category: trim
+    type: float
+    range: [0.0, 1.0]
+    default: 0.5
+
+  - id: modal_release
+    automation_tier: 3
+    name: Modal Release
+    category: trim
+    type: float
+    range: [0.0, 1.0]
+    default: 0.2
+
+  - id: life_mode
+    automation_tier: 4
+    name: Life Mode
+    category: switch
+    type: choice
+    choices: ['Synthetic', 'Organic', 'Cyborg']
+    default: 'Synthetic'
+
+  - id: vintage_engine_mode
+    automation_tier: 4
+    name: Engine Mode
+    category: switch
+    type: choice
+    choices: ['Modern ZDF', '1987 Stepped DDF', 'Bypass']
+    default: 'Modern ZDF'
+
+  - id: voice_mode
+    automation_tier: 4
+    name: Voice Mode
+    category: switch
+    type: choice
+    choices: ['Poly 64', 'Mono', 'Legato', '8x Unison']
+    default: 'Poly 64'
+
+  - id: cpu_tier
+    automation_tier: 4
+    name: CPU Tier
+    category: switch
+    type: choice
+    choices: ['Eco 1024', 'Standard 2048', 'Turbo 4096']
+    default: 'Standard 2048'
+

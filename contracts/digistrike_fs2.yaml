@@ -1,48 +1,16 @@
 plugin: digistrike_fs2
 name: DigiStrike FS2 Sovereign Vintage PCM Workstation
-version: 1.0.0
+version: 1.2.0
 manufacturer: Cracked Chimes
+category: drum
 
 parameters:
-  # ==============================================================================
-  # HEADER CONTROLS (4 selectors)
-  # ==============================================================================
-  - id: category
-    name: Sound Category
-    short: CATEGORY
-    category: header
-    type: choice
-    choices: [BD, SN, TM, CP, HH, CY, LN, MC, FX, ST, BS]
-    default: 1
-
-  - id: lineage
-    name: Sovereign Hardware Lineage
-    short: LINEAGE
-    category: header
-    type: choice
-    choices: [CROWN, APEX, EMPYR, FALCON, K-WRK, COMPACT, TOKYO, GOTHN, CIRCUITS, PHASE, STUDIO, KEIO, NIPPON, ADIOS, FAIRL, SYNCL, ENSON, SIMM, JOMOX, CURIOS]
-    default: 14
-
-  - id: voice_mode
-    name: Voice Playback Mode
-    short: V-MODE
-    category: header
-    type: choice
-    choices: [MONO, GLIDE, POLY]
-    default: 2
-
-  - id: life_mode
-    name: Lifeform Character
-    short: TRIAD
-    category: header
-    type: choice
-    choices: [Synthetic, Cyborg, Organic]
-    default: 1
 
   # ==============================================================================
   # CARD 1: MASTER MACRO & DYNAMICS LAB (8 parameters - Top-Left)
   # ==============================================================================
   - id: macro_x
+    automation_tier: 1
     name: Macro X (Spectral)
     short: MACRO-X
     category: macro
@@ -52,6 +20,7 @@ parameters:
     default: 0.5
 
   - id: macro_y
+    automation_tier: 1
     name: Macro Y (Punch)
     short: MACRO-Y
     category: macro
@@ -61,6 +30,7 @@ parameters:
     default: 0.5
 
   - id: macro_z
+    automation_tier: 1
     name: Macro Z (Timbre)
     short: MACRO-Z
     category: macro
@@ -70,6 +40,7 @@ parameters:
     default: 0.5
 
   - id: macro_t
+    automation_tier: 1
     name: Macro T (Time)
     short: MACRO-T
     category: macro
@@ -78,7 +49,54 @@ parameters:
     range: [0.0, 1.0]
     default: 0.5
 
+  # Right Pod: VCF & Universal Hardware Mojo Strip (11 controls on Master Bus)
+  - id: cutoff
+    automation_tier: 1
+    name: Filter Cutoff
+    short: CUTOFF
+    category: filter
+    type: float
+    effect: filter
+    range: [20.0, 20000.0]
+    skew_center: 1000.0
+    unit: Hz
+    default: 20000.0
+
+  - id: resonance
+    automation_tier: 1
+    name: Filter Resonance
+    short: RES
+    category: filter
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.3
+
+  - id: filter_env_amt
+    automation_tier: 1
+    name: Filter Env Amount
+    short: FE-AMT
+    category: filter
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.0
+    unit: "%"
+
+  - id: filter_decay
+    automation_tier: 1
+    name: Filter Env Decay
+    short: FE-DEC
+    category: filter
+    type: float
+    effect: filter
+    range: [0.005, 5.0]
+    skew_center: 0.150
+    default: 0.150
+    unit: s
+
   - id: vel_aggr
+    automation_tier: 2
     name: Vel To Aggression
     short: VEL-AGGR
     category: dynamics
@@ -88,6 +106,7 @@ parameters:
     default: 0.5
 
   - id: vel_timb
+    automation_tier: 2
     name: Vel To Timbre
     short: VEL-TIMB
     category: dynamics
@@ -97,6 +116,7 @@ parameters:
     default: 0.5
 
   - id: pan
+    automation_tier: 2
     name: Voice Pan
     short: PAN
     category: output
@@ -106,8 +126,9 @@ parameters:
     default: 0.0
 
   - id: decay_curve
+    automation_tier: 2
     name: Decay Curve
-    short: DECAY-CRV
+    short: DCY-CRV
     category: dynamics
     type: float
     effect: dynamics
@@ -122,6 +143,7 @@ parameters:
   # Col 4: TIME (K04)  / MORPH (K08)   - Traversal Motion & Spectral Slice Pod
   # ==============================================================================
   - id: pitch_decay
+    automation_tier: 2
     name: Pitch Dive Decay Duration
     short: P.DEC
     category: synthesis
@@ -133,6 +155,7 @@ parameters:
     unit: ms
 
   - id: click_bleed
+    automation_tier: 2
     name: Transient Click / Noise Bleed
     short: CLICK
     category: synthesis
@@ -143,6 +166,7 @@ parameters:
     unit: "%"
 
   - id: start_offset
+    automation_tier: 2
     name: Sample Start Offset
     short: START
     category: synthesis
@@ -154,6 +178,7 @@ parameters:
     unit: ms
 
   - id: traverse_rate
+    automation_tier: 2
     name: Wavetable Frame Traverse Rate
     short: TIME
     category: synthesis
@@ -165,6 +190,7 @@ parameters:
     unit: x
 
   - id: pitch_dive
+    automation_tier: 2
     name: Transient Pitch Dive Depth
     short: PUNCH
     category: synthesis
@@ -172,19 +198,23 @@ parameters:
     effect: pitch
     range: [0.0, 100.0]
     default: 0.0
-    unit: "%"
+    unit: st
 
   - id: klang_morph
+    automation_tier: 2
     name: Klang Spectral Morph
     short: KLANG
     category: synthesis
     type: float
     effect: timbre
+    bipolar: true
+    center: 0.0
     range: [-100.0, 100.0]
     default: 0.0
     unit: "%"
 
   - id: sample_length
+    automation_tier: 2
     name: Playback Window / Scan Length
     short: LENGTH
     category: synthesis
@@ -195,6 +225,7 @@ parameters:
     unit: "%"
 
   - id: table_morph
+    automation_tier: 2
     name: 3D Wave Morph / Tilt
     short: MORPH
     category: synthesis
@@ -204,250 +235,9 @@ parameters:
     default: 8.74317
     unit: "%"
 
-  - id: loop_mode
-    name: Wavetable Traversal Loop Mode
-    short: LOOP
-    category: synthesis
-    type: choice
-    choices: [ONCE, HOLD, LOOP, PING]
-    default: 0
-
-  - id: reverse
-    name: Reverse Traversal
-    short: REV
-    category: synthesis
-    type: bool
-    default: false
-
-  # ==============================================================================
-  # SOVEREIGN LINEAGE MATRIX (20 Hardware Families)
-  # ==============================================================================
-  - id: lin_crown
-    name: Lineage Crown (Linn)
-    short: LIN-CRWN
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_apex
-    name: Lineage Apex (Oberheim)
-    short: LIN-APEX
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_empyr
-    name: Lineage Empyrean (E-mu/SP)
-    short: LIN-EMPY
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_falcon
-    name: Lineage Falcon (Akai MPC)
-    short: LIN-FALC
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_kwrk
-    name: Lineage K-Works (Kawai)
-    short: LIN-KWRK
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_compact
-    name: Lineage Compact (Boss)
-    short: LIN-CMPCT
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_tokyo
-    name: Lineage Tokyo (Roland PCM)
-    short: LIN-TOKY
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_gothn
-    name: Lineage Gothenburg (Elektron/SID)
-    short: LIN-GOTH
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_circuits
-    name: Lineage Circuits (Sequential)
-    short: LIN-CIRC
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_phase
-    name: Lineage Phase (Casio)
-    short: LIN-PHAS
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_studio
-    name: Lineage Studio (Alesis)
-    short: LIN-STUD
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_keio
-    name: Lineage Keio (Korg)
-    short: LIN-KEIO
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_nippon
-    name: Lineage Nippon (Yamaha AWM)
-    short: LIN-NIPP
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_adios
-    name: Lineage Adios (Venom)
-    short: LIN-ADIOS
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_fairlight
-    name: Lineage Fairlight (CMI)
-    short: LIN-FAIR
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_synclavier
-    name: Lineage Synclavier (NED)
-    short: LIN-SYNC
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_ensoniq
-    name: Lineage Ensoniq (EPS)
-    short: LIN-ENSN
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_simmons
-    name: Lineage Simmons (SDS)
-    short: LIN-SIMM
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_jomox
-    name: Lineage Jomox (XBase)
-    short: LIN-JOMX
-    category: lineage
-    type: bool
-    default: true
-
-  - id: lin_curios
-    name: Lineage Curios (EPROM)
-    short: LIN-CURI
-    category: lineage
-    type: bool
-    default: true
-
-  # ==============================================================================
-  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (22 parameters - Bottom)
-  # ==============================================================================
-  # Left Pod: Stepped Random Humanization (2x4 Grid of 8 Small Knobs)
-  - id: rand_x
-    name: Rand Macro X
-    short: R-X
-    category: random
-    type: float
-    effect: spectral
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_y
-    name: Rand Macro Y
-    short: R-Y
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_z
-    name: Rand Macro Z
-    short: R-Z
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_t
-    name: Rand Macro T
-    short: R-T
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_aggr
-    name: Rand Aggression
-    short: R-AGGR
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_timb
-    name: Rand Timbre
-    short: R-TIMB
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_pan
-    name: Rand Pan
-    short: R-PAN
-    category: random
-    type: float
-    effect: output
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
-  - id: rand_decay
-    name: Rand Macro Decay
-    short: R-DECAY
-    category: random
-    type: float
-    effect: dynamics
-    range: [0.0, 100.0]
-    unit: "%"
-    default: 0.0
-
   # Center Altar: The Master Macro & Master Out (3 controls)
   - id: macro_decay
+    automation_tier: 2
     name: Macro Decay
     short: MACRO
     category: performance
@@ -457,6 +247,7 @@ parameters:
     default: 0.5
 
   - id: volume
+    automation_tier: 2
     name: Master Volume
     short: VOLUME
     category: output
@@ -467,6 +258,7 @@ parameters:
     unit: dB
 
   - id: sustain_level
+    automation_tier: 2
     name: Gated Sustain Level
     short: SUSTAIN
     category: output
@@ -477,6 +269,7 @@ parameters:
     unit: "%"
 
   - id: amp_decay
+    automation_tier: 2
     name: Master Amp Decay / Release
     short: AMP-DEC
     category: output
@@ -488,6 +281,7 @@ parameters:
     unit: s
 
   - id: glide_time
+    automation_tier: 2
     name: Portamento Glide Time
     short: GLIDE
     category: output
@@ -499,6 +293,7 @@ parameters:
     unit: s
 
   - id: amp_velocity
+    automation_tier: 2
     name: Master Velocity
     short: VEL
     category: output
@@ -508,57 +303,8 @@ parameters:
     unit: "%"
     default: 50.0
 
-  # Right Pod: VCF & Universal Hardware Mojo Strip (11 controls on Master Bus)
-  - id: cutoff
-    name: Filter Cutoff
-    short: CUTOFF
-    category: filter
-    type: float
-    effect: filter
-    range: [20.0, 20000.0]
-    skew_center: 1000.0
-    unit: Hz
-    default: 20000.0
-
-  - id: resonance
-    name: Filter Resonance
-    short: RES
-    category: filter
-    type: float
-    effect: filter
-    range: [0.0, 1.0]
-    default: 0.3
-
-  - id: filter_env_amt
-    name: Filter Env Amount
-    short: FE-AMT
-    category: filter
-    type: float
-    effect: filter
-    range: [0.0, 1.0]
-    default: 0.0
-    unit: "%"
-
-  - id: filter_decay
-    name: Filter Env Decay
-    short: FE-DEC
-    category: filter
-    type: float
-    effect: filter
-    range: [0.005, 5.0]
-    skew_center: 0.150
-    default: 0.150
-    unit: s
-
-  - id: filter_type
-    name: Filter Type
-    short: TYPE
-    category: filter
-    type: choice
-    choices: [LP, HP, BP, PK]
-    default: 0
-
   - id: pre_drive
+    automation_tier: 2
     name: Pre-Filter Drive
     short: DRIVE
     category: drive
@@ -566,8 +312,10 @@ parameters:
     effect: saturation
     range: [0.0, 1.0]
     default: 0.0
+    unit: dB
 
   - id: crush
+    automation_tier: 2
     name: Mojo Sample Crush
     short: CRUSH
     category: mojo
@@ -579,6 +327,7 @@ parameters:
     default: 48000.0
 
   - id: shift
+    automation_tier: 2
     name: Frequency Shifter
     short: SHIFT
     category: mojo
@@ -589,6 +338,7 @@ parameters:
     default: 0.0
 
   - id: squash
+    automation_tier: 2
     name: Bipolar Squash
     short: SQUASH
     category: dynamics
@@ -599,6 +349,7 @@ parameters:
     unit: "%"
 
   - id: wider
+    automation_tier: 2
     name: Mojo Wider
     short: WIDER
     category: mojo
@@ -608,9 +359,331 @@ parameters:
     default: 0.0
     unit: "%"
 
+  # ==============================================================================
+  # CARD 3: PERFORMANCE ALTAR & MOJO CONSOLE (22 parameters - Bottom)
+  # ==============================================================================
+  # Left Pod: Stepped Random Humanization (2x4 Grid of 8 Small Knobs)
+  - id: rand_x
+    automation_tier: 3
+    name: Rand Macro X
+    short: R-X
+    category: random
+    type: float
+    effect: spectral
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_y
+    automation_tier: 3
+    name: Rand Macro Y
+    short: R-Y
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_z
+    automation_tier: 3
+    name: Rand Macro Z
+    short: R-Z
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_t
+    automation_tier: 3
+    name: Rand Macro T
+    short: R-T
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_aggr
+    automation_tier: 3
+    name: Rand Aggression
+    short: R-AGGR
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_timb
+    automation_tier: 3
+    name: Rand Timbre
+    short: R-TIMB
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_pan
+    automation_tier: 3
+    name: Rand Pan
+    short: R-PAN
+    category: random
+    type: float
+    effect: output
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  - id: rand_decay
+    automation_tier: 3
+    name: Rand Macro Decay
+    short: R-DECAY
+    category: random
+    type: float
+    effect: dynamics
+    range: [0.0, 100.0]
+    unit: "%"
+    default: 0.0
+
+  # ==============================================================================
+  # HEADER CONTROLS (4 selectors)
+  # ==============================================================================
+  - id: category
+    automation_tier: 4
+    name: Sound Category
+    short: CATEGORY
+    category: header
+    type: choice
+    choices: [BD, SN, TM, CP, HH, CY, LN, MC, FX, ST, BS]
+    default: 1
+
+  - id: lineage
+    automation_tier: 4
+    name: Sovereign Hardware Lineage
+    short: LINEAGE
+    category: header
+    type: choice
+    choices: [CROWN, APEX, EMPYR, FALCON, K-WRK, COMPACT, TOKYO, GOTHN, CIRCUITS, PHASE, STUDIO, KEIO, NIPPON, ADIOS, FAIRL, SYNCL, ENSON, SIMM, JOMOX, CURIOS]
+    default: 14
+
+  - id: voice_mode
+    automation_tier: 4
+    name: Voice Playback Mode
+    short: V-MODE
+    category: header
+    type: choice
+    choices: [MONO, GLIDE, POLY]
+    default: 2
+
+  - id: life_mode
+    automation_tier: 4
+    name: Lifeform Character
+    short: TRIAD
+    category: header
+    type: choice
+    choices: [Synthetic, Cyborg, Organic]
+    default: 1
+
+  - id: loop_mode
+    automation_tier: 4
+    name: Wavetable Traversal Loop Mode
+    short: LOOP
+    category: synthesis
+    type: choice
+    choices: [ONCE, HOLD, LOOP, PING]
+    default: 0
+
+  - id: reverse
+    automation_tier: 4
+    name: Reverse Traversal
+    short: REV
+    category: synthesis
+    type: bool
+    default: false
+
+  - id: filter_type
+    automation_tier: 4
+    name: Filter Type
+    short: TYPE
+    category: filter
+    type: choice
+    choices: [LP, HP, BP, PK]
+    default: 0
+
   - id: master_limiter
+    automation_tier: 4
     name: Master Limiter
     short: LIMIT
     category: output
     type: bool
     default: false
+
+  # ==============================================================================
+  # SOVEREIGN LINEAGE MATRIX (20 Hardware Families)
+  # ==============================================================================
+  - id: lin_crown
+    automation_tier: 4
+    name: Lineage Crown (Linn)
+    short: LIN-CRWN
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_apex
+    automation_tier: 4
+    name: Lineage Apex (Oberheim)
+    short: LIN-APEX
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_empyr
+    automation_tier: 4
+    name: Lineage Empyrean (E-mu/SP)
+    short: LIN-EMPY
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_falcon
+    automation_tier: 4
+    name: Lineage Falcon (Akai MPC)
+    short: LIN-FALC
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_kwrk
+    automation_tier: 4
+    name: Lineage K-Works (Kawai)
+    short: LIN-KWRK
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_compact
+    automation_tier: 4
+    name: Lineage Compact (Boss)
+    short: LIN-CMPCT
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_tokyo
+    automation_tier: 4
+    name: Lineage Tokyo (Roland PCM)
+    short: LIN-TOKY
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_gothn
+    automation_tier: 4
+    name: Lineage Gothenburg (Elektron/SID)
+    short: LIN-GOTH
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_circuits
+    automation_tier: 4
+    name: Lineage Circuits (Sequential)
+    short: LIN-CIRC
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_phase
+    automation_tier: 4
+    name: Lineage Phase (Casio)
+    short: LIN-PHAS
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_studio
+    automation_tier: 4
+    name: Lineage Studio (Alesis)
+    short: LIN-STUD
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_keio
+    automation_tier: 4
+    name: Lineage Keio (Korg)
+    short: LIN-KEIO
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_nippon
+    automation_tier: 4
+    name: Lineage Nippon (Yamaha AWM)
+    short: LIN-NIPP
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_adios
+    automation_tier: 4
+    name: Lineage Adios (Venom)
+    short: LIN-ADIOS
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_fairlight
+    automation_tier: 4
+    name: Lineage Fairlight (CMI)
+    short: LIN-FAIR
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_synclavier
+    automation_tier: 4
+    name: Lineage Synclavier (NED)
+    short: LIN-SYNC
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_ensoniq
+    automation_tier: 4
+    name: Lineage Ensoniq (EPS)
+    short: LIN-ENSN
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_simmons
+    automation_tier: 4
+    name: Lineage Simmons (SDS)
+    short: LIN-SIMM
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_jomox
+    automation_tier: 4
+    name: Lineage Jomox (XBase)
+    short: LIN-JOMX
+    category: lineage
+    type: bool
+    default: true
+
+  - id: lin_curios
+    automation_tier: 4
+    name: Lineage Curios (EPROM)
+    short: LIN-CURI
+    category: lineage
+    type: bool
+    default: true
+

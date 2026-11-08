@@ -7,13 +7,14 @@
 
 namespace formless_spawnParameters {
 namespace Ids {
-    constexpr auto role = "role";
-    constexpr auto model = "model";
-    constexpr auto life_mode = "life_mode";
     constexpr auto macro_x = "macro_x";
     constexpr auto macro_y = "macro_y";
     constexpr auto macro_z = "macro_z";
     constexpr auto macro_t = "macro_t";
+    constexpr auto cutoff = "cutoff";
+    constexpr auto resonance = "resonance";
+    constexpr auto filter_env_amt = "filter_env_amt";
+    constexpr auto filter_decay = "filter_decay";
     constexpr auto vel_aggr = "vel_aggr";
     constexpr auto vel_timb = "vel_timb";
     constexpr auto pan = "pan";
@@ -26,6 +27,15 @@ namespace Ids {
     constexpr auto param_f = "param_f";
     constexpr auto param_g = "param_g";
     constexpr auto param_h = "param_h";
+    constexpr auto macro_decay = "macro_decay";
+    constexpr auto volume = "volume";
+    constexpr auto amp_decay = "amp_decay";
+    constexpr auto amp_velocity = "amp_velocity";
+    constexpr auto pre_drive = "pre_drive";
+    constexpr auto crush = "crush";
+    constexpr auto shift = "shift";
+    constexpr auto squash = "squash";
+    constexpr auto wider = "wider";
     constexpr auto rand_x = "rand_x";
     constexpr auto rand_y = "rand_y";
     constexpr auto rand_z = "rand_z";
@@ -34,31 +44,22 @@ namespace Ids {
     constexpr auto rand_timb = "rand_timb";
     constexpr auto rand_pan = "rand_pan";
     constexpr auto rand_decay = "rand_decay";
-    constexpr auto macro_decay = "macro_decay";
-    constexpr auto volume = "volume";
-    constexpr auto amp_decay = "amp_decay";
-    constexpr auto amp_velocity = "amp_velocity";
-    constexpr auto cutoff = "cutoff";
-    constexpr auto resonance = "resonance";
-    constexpr auto filter_env_amt = "filter_env_amt";
-    constexpr auto filter_decay = "filter_decay";
+    constexpr auto role = "role";
+    constexpr auto model = "model";
+    constexpr auto life_mode = "life_mode";
     constexpr auto filter_type = "filter_type";
-    constexpr auto pre_drive = "pre_drive";
-    constexpr auto crush = "crush";
-    constexpr auto shift = "shift";
-    constexpr auto squash = "squash";
-    constexpr auto wider = "wider";
     constexpr auto master_limiter = "master_limiter";
 } // namespace Ids
 
 namespace Names {
-    constexpr auto role = "Drum Role";
-    constexpr auto model = "Synthesis Model";
-    constexpr auto life_mode = "Lifeform Character";
     constexpr auto macro_x = "Macro X (Spectral)";
     constexpr auto macro_y = "Macro Y (Punch)";
     constexpr auto macro_z = "Macro Z (Timbre)";
     constexpr auto macro_t = "Macro T (Time)";
+    constexpr auto cutoff = "Filter Cutoff";
+    constexpr auto resonance = "Filter Resonance";
+    constexpr auto filter_env_amt = "Filter Env Amount";
+    constexpr auto filter_decay = "Filter Env Decay";
     constexpr auto vel_aggr = "Vel To Aggression";
     constexpr auto vel_timb = "Vel To Timbre";
     constexpr auto pan = "Voice Pan";
@@ -71,6 +72,15 @@ namespace Names {
     constexpr auto param_f = "Role Param F";
     constexpr auto param_g = "Role Param G";
     constexpr auto param_h = "Role Param H";
+    constexpr auto macro_decay = "Macro Decay";
+    constexpr auto volume = "Master Volume";
+    constexpr auto amp_decay = "Master Amp Decay";
+    constexpr auto amp_velocity = "Master Velocity";
+    constexpr auto pre_drive = "Pre-Filter Drive";
+    constexpr auto crush = "Mojo Sample Crush";
+    constexpr auto shift = "Frequency Shifter";
+    constexpr auto squash = "Bipolar Squash";
+    constexpr auto wider = "Mojo Wider";
     constexpr auto rand_x = "Rand Macro X";
     constexpr auto rand_y = "Rand Macro Y";
     constexpr auto rand_z = "Rand Macro Z";
@@ -79,20 +89,10 @@ namespace Names {
     constexpr auto rand_timb = "Rand Timbre";
     constexpr auto rand_pan = "Rand Pan";
     constexpr auto rand_decay = "Rand Macro Decay";
-    constexpr auto macro_decay = "Macro Decay";
-    constexpr auto volume = "Master Volume";
-    constexpr auto amp_decay = "Master Amp Decay";
-    constexpr auto amp_velocity = "Master Velocity";
-    constexpr auto cutoff = "Filter Cutoff";
-    constexpr auto resonance = "Filter Resonance";
-    constexpr auto filter_env_amt = "Filter Env Amount";
-    constexpr auto filter_decay = "Filter Env Decay";
+    constexpr auto role = "Drum Role";
+    constexpr auto model = "Synthesis Model";
+    constexpr auto life_mode = "Lifeform Character";
     constexpr auto filter_type = "Filter Type";
-    constexpr auto pre_drive = "Pre-Filter Drive";
-    constexpr auto crush = "Mojo Sample Crush";
-    constexpr auto shift = "Frequency Shifter";
-    constexpr auto squash = "Bipolar Squash";
-    constexpr auto wider = "Mojo Wider";
     constexpr auto master_limiter = "Master Limiter";
 } // namespace Names
 

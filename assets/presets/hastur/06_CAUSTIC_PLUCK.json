@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Bouncy Acid Pluck",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 950.0,
+    "resonance": 0.7,
+    "filter_env_decay": 0.12,
+    "burble_depth": 0.6,
+    "laser_bite": 0.4,
+    "amp_decay": 0.18
+  }
+}

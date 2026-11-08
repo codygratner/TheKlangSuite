@@ -2,6 +2,7 @@
 
 #include "FastMath.h"
 #include "FormlessModMath.h"
+#include "../common/MasterTaper.h"
 #include "../dynamics/WiderStage.h"
 #include "../dynamics/DrumLimiter.h"
 #include "../dynamics/SquashStage.h"
@@ -21,6 +22,9 @@
 // ==============================================================================
 
 namespace tkdsp {
+
+// evalOrganicTube defined in FormlessModMath.h
+using formless::evalOrganicTube;
 
 namespace FastMath = TbdAudio::FastMath;
 
@@ -105,6 +109,8 @@ public:
         grainLengthSamples_ = static_cast<double>(grainLengthSec_ * sampleRate_);
         invGrainLengthSamples_ = 1.0 / std::max(1.0, grainLengthSamples_);
         kEdgeCoef_ = 1.0f - std::exp(-invSampleRate_ / 0.005f);
+        cyborgChargeDecay_ = std::exp(-invSampleRate_ / 0.000450f); // 450us rail pulse
+        cyborgDitherDecay_ = std::exp(-invSampleRate_ / 0.020f);    // 20ms dither tail
 
         freqShifter_.prepare(sampleRate_);
         widerStage_.prepare(sampleRate_);
@@ -146,6 +152,10 @@ public:
     }
     [[nodiscard]] float getVoiceTravPitchScale(size_t slot) const noexcept {
         return (slot < voices_.size()) ? voices_[slot].travPitchScale : 1.0f;
+    }
+
+    [[nodiscard]] float getLimiterGainReduction() const noexcept {
+        return drumLimiter_.getGainReduction();
     }
 
     void reset() noexcept {
@@ -409,6 +419,17 @@ public:
         }
         activeVoiceCount_ = activeCount;
 
+        // Zero-CPU Master Bus Idle Bypass: bit-exact silence when voices dormant & tail decayed
+        if (activeCount == 0 && masterFilterEnv_ < 1e-6f && cyborgDitherEnv_ <= 0.0001f) {
+            const float punchMult = 1.0f + 0.25f * (params_.macroY - 0.5f) * 2.0f;
+            float targetMasterGain = tkdsp::formless::evalDigiStrikeMasterVolumeGain(params_.volume) * punchMult;
+            if (params_.volume <= 0.0001f) targetMasterGain = 0.0f;
+            masterGain_ = targetMasterGain;
+            std::fill_n(outL, numSamples, 0.0f);
+            std::fill_n(outR, numSamples, 0.0f);
+            return;
+        }
+
         processMasterBus(outL, outR, numSamples);
     }
 
@@ -437,6 +458,7 @@ private:
             std::array<float, 16> modeRatios{};// Nominally assigned ratio for this voice
             std::array<float, 16> panCos{};   // cos(theta_m)
             std::array<float, 16> panSin{};   // sin(theta_m)
+            uint8_t activeModes{16};          // Mode culling count
 
             // Sub-block folded stereo tap weights (Gram-Schmidt orthonormalized)
             std::array<float, 16> cLx{};
@@ -639,9 +661,9 @@ private:
         const float initPan = std::clamp(params_.pan + v.randBip[6] * (params_.randPan * 0.01f), -1.0f, 1.0f);
         if (initPan <= 0.0f) {
             v.panL = 1.0f;
-            v.panR = std::sin((initPan + 1.0f) * 0.5f * 3.14159265f);
+            v.panR = FastMath::fastSinNorm((initPan + 1.0f) * 0.25f);
         } else {
-            v.panL = std::cos(initPan * 0.5f * 3.14159265f);
+            v.panL = FastMath::fastCosNorm(initPan * 0.25f);
             v.panR = 1.0f;
         }
         v.targetPanL = v.panL;
@@ -789,9 +811,10 @@ private:
         const float K = v.effKlangMorph;
         const float absK = std::abs(K);
 
-        // Lifeform mode damping exponent alpha (Synthetic: 0.75, Cyborg: 0.45, Organic: 1.15)
+        // Lifeform mode damping exponent alpha (Synthetic: 0.75, Cyborg: 0.45, Organic: 1.15 or 0.38 for metal)
         static constexpr float kAlphaTable[3] = { 0.75f, 0.45f, 1.15f };
-        const float alpha = kAlphaTable[std::clamp(params_.lifeMode, 0, 2)];
+        const bool isMetalCat = (params_.category == 4 || params_.category == 5 || params_.category == 7);
+        const float alpha = (params_.lifeMode == 2 && isMetalCat) ? 0.38f : kAlphaTable[std::clamp(params_.lifeMode, 0, 2)];
         const float tau0 = std::clamp(ampDecaySeconds * 0.40f, 0.020f, 3.50f);
 
         // Prime table for Cyborg inharmonic dispersion
@@ -800,6 +823,8 @@ private:
             23.0f, 29.0f, 31.0f, 37.0f, 41.0f, 43.0f, 47.0f, 53.0f
         };
 
+        const float betaVal = (K > 0.0001f) ? 0.20f * FastMath::fastPow2(1.5f * FastMath::fastLog2(absK + 1e-6f)) : 0.0f;
+        const float invSqrtBeta = (K > 0.0001f) ? FastMath::fastInvSqrt(1.0f + betaVal) : 1.0f;
         for (size_t m = 0; m < 16; ++m) {
             float r0 = geomRatios[m];
             float rK = r0;
@@ -809,8 +834,7 @@ private:
                 rK = (1.0f - absK) * r0 + absK * targetHarm;
             } else if (K > 0.0001f) {
                 // Stiff-Plate Clang (Right) with Fundamental Normalization Law
-                const float beta = 0.20f * FastMath::fastPow2(1.5f * FastMath::fastLog2(absK + 1e-6f));
-                rK = (r0 * std::sqrt(1.0f + beta * r0 * r0)) / std::sqrt(1.0f + beta);
+                rK = (r0 * std::sqrt(1.0f + betaVal * r0 * r0)) * invSqrtBeta;
             }
 
             // Lifeform Triad ratio adaptations
@@ -872,7 +896,7 @@ private:
 
             // Pre-folded tap weights for initial state
             const float rad = std::max(0.001f, 1.0f - 0.25f * eps0 * eps0);
-            const float invRad = modeGain / std::sqrt(rad);
+            const float invRad = modeGain * FastMath::fastInvSqrt(rad);
             const float ct = v.modalBank.panCos[m];
             const float st = v.modalBank.panSin[m];
 
@@ -887,8 +911,8 @@ private:
         }
 
         // Initialize crossfade weights
-        v.wPcmSm = std::cos(0.5f * 3.14159265f * absK);
-        v.wModalSm = std::sin(0.5f * 3.14159265f * absK);
+        v.wPcmSm = FastMath::fastCosNorm(0.25f * absK);
+        v.wModalSm = FastMath::fastSinNorm(0.25f * absK);
 
         // Commuted Strike Exciter Setup
         const float strikeDurationSec = 0.006f + 0.009f * (v.effClickBleed);
@@ -936,9 +960,9 @@ private:
         const float effectivePan = std::clamp(params_.pan + v.randBip[6] * (params_.randPan * 0.01f), -1.0f, 1.0f);
         if (effectivePan <= 0.0f) {
             v.targetPanL = 1.0f;
-            v.targetPanR = std::sin((effectivePan + 1.0f) * 0.5f * 3.14159265f);
+            v.targetPanR = FastMath::fastSinNorm((effectivePan + 1.0f) * 0.25f);
         } else {
-            v.targetPanL = std::cos(effectivePan * 0.5f * 3.14159265f);
+            v.targetPanL = FastMath::fastCosNorm(effectivePan * 0.25f);
             v.targetPanR = 1.0f;
         }
         v.panL += (v.targetPanL - v.panL) * 0.2f;
@@ -994,7 +1018,7 @@ private:
             // 3. Traversal Speed & Direction (100% Decoupled from Audio Pitch Ratio!)
             const float T = params_.traverseRate;
             const float absT = std::max(0.02f, std::abs(T));
-            const float macroTMod = std::pow(2.0f, 2.0f * (v.effMacroT - 0.5f));
+            const float macroTMod = FastMath::fastPow2(2.0f * (v.effMacroT - 0.5f));
             const float targetT = absT * macroTMod;
             v.tSm += kEdgeCoef_ * (targetT - v.tSm);
 
@@ -1067,7 +1091,7 @@ private:
                 }
 
                 // Partition-of-unity Hann Overlap-Add (w0 + w1 ≡ 1.0)
-                float w0 = 0.5f * (1.0f - std::cos(static_cast<float>(phi0 * 6.283185307179586)));
+                float w0 = 0.5f * (1.0f - FastMath::fastCosNorm(static_cast<float>(phi0)));
                 float w1 = 1.0f - w0;
 
                 // Red Team Invariant: Source-Domain Tail Fade (Anti-Buzz & Anti-Click)
@@ -1088,7 +1112,7 @@ private:
                             return 0.0f; // Beyond end, fully faded out
                         } else if (rawP > b - F && F > 1e-6) {
                             float normFade = static_cast<float>((rawP - (b - F)) / F);
-                            grainFade = 0.5f * (1.0f + std::cos(normFade * 3.141592653589793f));
+                            grainFade = 0.5f * (1.0f + FastMath::fastCosNorm(normFade * 0.5f));
                         }
                         if (rawP <= a) {
                             if (d < 0.0) return 0.0f;
@@ -1117,7 +1141,7 @@ private:
                 case 1: { // Cyborg: Nuclear Reactor Waste (8-bit linear DAC + diode foldback + charge spike)
                     if (v.cyborgChargeSpike > 0.001f) {
                         sampleVal += v.cyborgChargeSpike * (nextFloat() - 0.5f) * 0.15f;
-                        v.cyborgChargeSpike *= 0.96f;
+                        v.cyborgChargeSpike *= cyborgChargeDecay_;
                     }
                     sampleVal = std::clamp(std::round(sampleVal * 128.0f), -128.0f, 127.0f) * (1.0f / 128.0f);
                     if (sampleVal > 0.85f) {
@@ -1128,12 +1152,14 @@ private:
                     sampleVal *= 1.17647f; // kFoldMakeup (1.0 / 0.85) to level-match with Synthetic bypass
                     break;
                 }
-                case 2: { // Organic: Sloshy Tube-Back Warmth with VTL5C3 LPG droop
-                    const float x = sampleVal * 1.35f;
-                    sampleVal = (x + 0.28f * x * x) / (1.0f + 0.28f * std::abs(x));
-                    const float lpgCoeff = (std::abs(sampleVal) > std::abs(v.lpgState)) ? lpgAttCoeff_ : lpgRelCoeff_;
-                    v.lpgState += lpgCoeff * (sampleVal - v.lpgState);
-                    sampleVal = v.lpgState;
+                case 2: { // Organic: dynamic optocoupler aperture (90% air on metal) + 12AX7 warmth
+                    const float rawTarget = std::abs(sampleVal);
+                    const float lpgCoeff = (rawTarget > std::abs(v.lpgState)) ? lpgAttCoeff_ : lpgRelCoeff_;
+                    v.lpgState += lpgCoeff * (rawTarget - v.lpgState);
+                    const int cat = params_.category;
+                    const float airFloor = (cat == 4 || cat == 5 || cat == 7) ? 0.90f : 0.65f;
+                    sampleVal *= (airFloor + (1.0f - airFloor) * std::clamp(v.lpgState * 2.0f, 0.0f, 1.0f));
+                    sampleVal = evalOrganicTube(sampleVal * 1.25f);
                     break;
                 }
             }
@@ -1163,16 +1189,15 @@ private:
                             pDiveSt = v.pitchDiveSemitones * qEnv;
                             break;
                         }
-                        case 2: { // Organic: Viscoelastic Membrane Tension Sag
-                            const float tauSec = std::max(0.005f, params_.pitchDecay * 0.001f);
-                            const float sag = 1.15f * v.pitchEnv - 0.15f * FastMath::fastExp(-static_cast<float>(v.voiceSampleCounter) * invSampleRate_ / (3.5f * tauSec));
-                            pDiveSt = v.pitchDiveSemitones * sag;
+                        case 2: { // Organic: Viscoelastic Membrane Tension Sag (Zero-Tail-Droop)
+                            pDiveSt = v.pitchDiveSemitones * (v.pitchEnv * (1.0f + 0.15f * v.pitchEnv));
                             break;
                         }
                     }
                     const float pitchMult = FastMath::fastPow2(pDiveSt * (1.0f / 12.0f));
 
-                    for (size_t m = 0; m < 16; ++m) {
+                    const size_t numActiveModes = v.modalBank.activeModes;
+                    for (size_t m = 0; m < numActiveModes; ++m) {
                         const float fTarget = v.modalF0 * v.modalBank.modeRatios[m] * pitchMult;
                         const float fClamped = std::clamp(fTarget, 10.0f, 0.4495f * sampleRate_);
                         const float normFreq = fClamped * invSampleRate_;
@@ -1192,7 +1217,7 @@ private:
                         // Sub-block folded stereo tap weights (Gram-Schmidt orthonormalized)
                         const float epsMid = 0.5f * (v.modalBank.eps[m] + newEpsTarget);
                         const float rad = std::max(0.001f, 1.0f - 0.25f * epsMid * epsMid);
-                        const float invRad = cullG * v.modalBank.amp[m] / std::sqrt(rad);
+                        const float invRad = cullG * v.modalBank.amp[m] * FastMath::fastInvSqrt(rad);
                         const float ct = v.modalBank.panCos[m];
                         const float st = v.modalBank.panSin[m];
 
@@ -1244,7 +1269,8 @@ private:
                     0.147f, 0.248f, 0.242f, 0.103f, 0.198f, 0.187f, 0.069f, 0.158f
                 };
 
-                for (size_t m = 0; m < 16; ++m) {
+                const size_t numActiveModes = v.modalBank.activeModes;
+                for (size_t m = 0; m < numActiveModes; ++m) {
                     v.modalBank.eps[m] += v.modalBank.dEps[m];
                     const float epsVal = v.modalBank.eps[m];
                     const float dVal = v.modalBank.d[m];
@@ -1281,17 +1307,15 @@ private:
                         break;
                     }
                     case 2: { // Organic: Cathode-Follower Tube Saturation
-                        const float mxL = modalOutL * 1.25f;
-                        const float mxR = modalOutR * 1.25f;
-                        modalOutL = (mxL + 0.28f * mxL * mxL) / (1.0f + 0.28f * std::abs(mxL));
-                        modalOutR = (mxR + 0.28f * mxR * mxR) / (1.0f + 0.28f * std::abs(mxR));
+                        modalOutL = evalOrganicTube(modalOutL * 1.25f);
+                        modalOutR = evalOrganicTube(modalOutR * 1.25f);
                         break;
                     }
                 }
 
                 // 5ms one-pole linear parameter slewing for crossfade weights
-                const float wPcmTarget = std::cos(0.5f * 3.14159265f * absK);
-                const float wModalTarget = std::sin(0.5f * 3.14159265f * absK);
+                const float wPcmTarget = FastMath::fastCosNorm(0.25f * absK);
+                const float wModalTarget = FastMath::fastSinNorm(0.25f * absK);
                 const float slewRate = 1.0f - slewCoeff5ms_;
                 v.wPcmSm += slewRate * (wPcmTarget - v.wPcmSm);
                 v.wModalSm += slewRate * (wModalTarget - v.wModalSm);
@@ -1374,6 +1398,7 @@ private:
         const float damping = 2.0f * (1.0f - res);
         const float gBassComp = 1.0f + 0.55f * res;
 
+        const float feDecayCoeff16 = std::pow(feDecayCoeff, 16.0f);
         constexpr int kSub = 16;
         for (int i0 = 0; i0 < numSamples; i0 += kSub) {
             const int n = std::min(kSub, numSamples - i0);
@@ -1389,25 +1414,26 @@ private:
             const float denom = 1.0f / (1.0f + damping * g + g * g);
 
             for (int i = i0; i < i0 + n; ++i) {
-                float inL = outL[i];
-                float inR = outR[i];
+                // +4.5 dB clean drum voice summing makeup
+                float inL = outL[i] * 1.6788f;
+                float inR = outR[i] * 1.6788f;
 
                 if (params_.preDrive > 0.01f) {
                     float driveGain = 1.0f + params_.preDrive * 4.0f;
-                    inL = std::tanh(inL * driveGain);
-                    inR = std::tanh(inR * driveGain);
+                    inL = FastMath::fastTanh(inL * driveGain);
+                    inR = FastMath::fastTanh(inR * driveGain);
                 }
 
                 // Left Channel
                 float s1L = masterFilterState_[0];
                 float s2L = masterFilterState_[1];
                 if (res > 0.05f) {
-                    s1L = std::tanh(s1L * 1.5f) * (1.0f / 1.5f);
+                    s1L = FastMath::fastTanh(s1L * 1.5f) * (1.0f / 1.5f);
                 }
                 float hpL = (inL - (damping + g) * s1L - s2L) * denom;
                 float bpL = g * hpL + s1L;
                 if (res > 0.05f) {
-                    bpL = std::tanh(bpL * 1.5f) * (1.0f / 1.5f);
+                    bpL = FastMath::fastTanh(bpL * 1.5f) * (1.0f / 1.5f);
                 }
                 float lpL = g * bpL + s2L;
                 masterFilterState_[0] = g * hpL + bpL;
@@ -1417,12 +1443,12 @@ private:
                 float s1R = masterFilterState_[2];
                 float s2R = masterFilterState_[3];
                 if (res > 0.05f) {
-                    s1R = std::tanh(s1R * 1.5f) * (1.0f / 1.5f);
+                    s1R = FastMath::fastTanh(s1R * 1.5f) * (1.0f / 1.5f);
                 }
                 float hpR = (inR - (damping + g) * s1R - s2R) * denom;
                 float bpR = g * hpR + s1R;
                 if (res > 0.05f) {
-                    bpR = std::tanh(bpR * 1.5f) * (1.0f / 1.5f);
+                    bpR = FastMath::fastTanh(bpR * 1.5f) * (1.0f / 1.5f);
                 }
                 float lpR = g * bpR + s2R;
                 masterFilterState_[2] = g * hpR + bpR;
@@ -1438,8 +1464,8 @@ private:
                     filtL = bpL * (1.0f + res);
                     filtR = bpR * (1.0f + res);
                 } else if (params_.filterType == 3) {
-                    filtL = (lpL - 2.0f * bpL + hpL) * 0.707f;
-                    filtR = (lpR - 2.0f * bpR + hpR) * 0.707f;
+                    filtL = (lpL - 2.0f * bpL + hpL); // PK mode insertion-loss compensation (unity gain)
+                    filtR = (lpR - 2.0f * bpR + hpR);
                 }
 
                 // Crush: Machinedrum S&H Clock Decimation
@@ -1468,27 +1494,7 @@ private:
                     widerStage_.process(filtL, filtR, params_.wider, params_.category);
                 }
 
-                // Master Volume with smooth 5ms one-pole interpolation
-                masterGain_ += masterSmoothCoeff_ * (targetMasterGain - masterGain_);
-                filtL *= masterGain_;
-                filtR *= masterGain_;
-
-                if (params_.masterLimiter) {
-                    drumLimiter_.process(filtL, filtR, true);
-                } else {
-                    // Transparent C1 safety soft-clipper (T = -1 dBFS, bit-transparent below T)
-                    constexpr float kSafetyT = 0.891250938f; // -1.0 dBFS
-                    auto safetyClip = [](float x) noexcept -> float {
-                        const float a = std::abs(x);
-                        if (a <= kSafetyT) return x;
-                        const float y = kSafetyT + (1.0f - kSafetyT) * FastMath::fastTanh((a - kSafetyT) / (1.0f - kSafetyT));
-                        return std::copysign(y, x);
-                    };
-                    filtL = safetyClip(filtL);
-                    filtR = safetyClip(filtR);
-                }
-
-                // 6Hz 1-pole master bus DC blocker (stops sub-audio strike thump)
+                // 6Hz 1-pole master bus DC blocker (runs PRE-master gain to prevent scaling DC bias)
                 const float inDcBlockedL = filtL - dcBlockerXPrevL_ + dcBlockerR_ * dcBlockerYPrevL_;
                 dcBlockerXPrevL_ = filtL;
                 dcBlockerYPrevL_ = inDcBlockedL;
@@ -1502,12 +1508,23 @@ private:
                 if (std::abs(dcBlockerYPrevL_) < 1e-15f) dcBlockerYPrevL_ = 0.0f;
                 if (std::abs(dcBlockerYPrevR_) < 1e-15f) dcBlockerYPrevR_ = 0.0f;
 
+                // Master Volume with smooth 5ms one-pole interpolation (-inf .. 0 dB .. +18 dB Canon)
+                masterGain_ += masterSmoothCoeff_ * (targetMasterGain - masterGain_);
+                filtL *= masterGain_;
+                filtR *= masterGain_;
+
+                // Brickwall Limiter (when enabled)
+                if (params_.masterLimiter) {
+                    drumLimiter_.process(filtL, filtR, true);
+                }
+                // When LIMIT is OFF, zero soft-clipping! Full 32-bit float headroom passes cleanly.
+
                 // Activity-gated Cyborg -38dB master bus dither
                 if (params_.lifeMode == 1) {
                     if (activeVoiceCount_ > 0) {
                         cyborgDitherEnv_ = 1.0f;
                     } else {
-                        cyborgDitherEnv_ *= 0.999f;
+                        cyborgDitherEnv_ *= cyborgDitherDecay_;
                     }
                     if (cyborgDitherEnv_ > 0.0001f) {
                         const float dither = (nextFloat() - 0.5f) * 0.0125f * cyborgDitherEnv_;
@@ -1516,12 +1533,15 @@ private:
                     }
                 }
 
+                // Transparent emergency guard: pass-through up to +30 dBFS (catches numerical instability)
+                tkdsp::common::applyEmergencyGuardStereo(filtL, filtR);
+
                 outL[i] = filtL;
                 outR[i] = filtR;
             }
 
             // Sub-block envelope decay advance
-            masterFilterEnv_ *= std::pow(feDecayCoeff, static_cast<float>(n));
+            masterFilterEnv_ *= (n == 16) ? feDecayCoeff16 : FastMath::fastPow2(static_cast<float>(n) * FastMath::fastLog2(feDecayCoeff));
             if (masterFilterEnv_ < 1e-7f) masterFilterEnv_ = 0.0f;
         }
     }
@@ -1532,6 +1552,8 @@ private:
     double grainLengthSamples_{1440.0};
     double invGrainLengthSamples_{1.0 / 1440.0};
     float kEdgeCoef_{0.004f};
+    float cyborgChargeDecay_{0.96f};
+    float cyborgDitherDecay_{0.999f};
     float noiseA1_{0.872967f};
     float noiseA2_{0.103323f};
     float noiseA3_{0.012229f};

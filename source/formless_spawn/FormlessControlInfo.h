@@ -31,9 +31,9 @@ inline constexpr std::string_view kRoleDescriptions[8] = {
 // 2. Lifeform Triad Canon Descriptions
 // ==============================================================================
 inline constexpr std::string_view kLifeformDescriptions[3] = {
-    "Synthetic: clean wide surgical precision with zero analog drift",
-    "Cyborg: gritty overdriven analog circuits with germanium diode warmth",
-    "Organic: warm drifted vintage circuits with optocoupler vactrol LPG decay"
+    "surgical drum punch: pure mathematical pitch dives & linear-phase snap",
+    "germanium diode clipping, aggressive transient drive & industrial bite",
+    "acoustic drumhead warmth, thermal pitch sag & spongy opto-vactrol LPG"
 };
 
 // ==============================================================================

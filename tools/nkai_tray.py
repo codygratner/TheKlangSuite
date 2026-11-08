@@ -63,6 +63,7 @@ from tools.nkai_daemon import (
     STATE_ATTENTION,
     STATE_CRITICAL,
     evaluate_system_health,
+    format_quota_tooltip,
     start_server_process,
     restart_server_process,
     stop_server_process,
@@ -94,6 +95,7 @@ CMD_REFRESH_QUOTA = 1014
 CMD_OPEN_TELEMETRY = 1015
 CMD_CLAUDE_PRO_STATUS = 1016
 CMD_OPEN_CLAUDE_STREAM = 1017
+CMD_AGY_CLAUDE_INFO = 1018
 
 USER32 = ctypes.windll.user32
 
@@ -119,8 +121,17 @@ def debug_log(text: str):
 
 
 def parse_quota(q_data: dict) -> dict:
-    """Parses raw language_server ConnectRPC quota summary into fraction dictionary."""
-    res = {"g_5h": 1.0, "g_wk": 1.0, "c_5h": 1.0, "c_wk": 1.0}
+    """Parses raw language_server ConnectRPC quota summary into fraction dictionary with reset targets."""
+    res = {
+        "g_5h": 1.0,
+        "g_wk": 1.0,
+        "c_5h": 1.0,
+        "c_wk": 1.0,
+        "g_5h_reset": None,
+        "g_wk_reset": None,
+        "c_5h_reset": None,
+        "c_wk_reset": None,
+    }
     if not isinstance(q_data, dict):
         return res
     for group in q_data.get("groups", []):
@@ -130,16 +141,21 @@ def parse_quota(q_data: dict) -> dict:
         for b in group.get("buckets", []):
             win = str(b.get("window", "")).lower()
             frac = float(b.get("remainingFraction", 1.0))
+            rst = b.get("resetTime")
             if is_gemini:
                 if "5h" in win:
                     res["g_5h"] = frac
+                    res["g_5h_reset"] = rst
                 elif "week" in win:
                     res["g_wk"] = frac
+                    res["g_wk_reset"] = rst
             elif is_claude:
                 if "5h" in win:
                     res["c_5h"] = frac
+                    res["c_5h_reset"] = rst
                 elif "week" in win:
                     res["c_wk"] = frac
+                    res["c_wk_reset"] = rst
     return res
 
 
@@ -391,28 +407,10 @@ class NkaiTrayApp:
                 pass
 
     def _format_tooltip(self, health: dict) -> str:
-        """
-        Formats a compact multi-line tooltip under 127 chars matching the Centaur layout:
-        Top: Gemini (5h / Wk) | Bot: Claude (5h / Wk) | Center: Server (:3030)
-        """
-        g_5h = self.allowances.get("g_5h", 1.0)
-        g_wk = self.allowances.get("g_wk", 1.0)
-        c_5h = self.allowances.get("c_5h", 1.0)
-        c_wk = self.allowances.get("c_wk", 1.0)
-        c_resting = self.allowances.get("c_resting", False)
-        c_rest_str = self.allowances.get("c_rest_str", "")
-        c_active = self.allowances.get("c_active", False)
+        """Formats the canonical multi-line taskbar mouseover tooltip per operator specification."""
+        allowances = health.get("allowances", self.allowances)
         is_online = health.get("is_online", True)
-        status_name = "ONLINE" if is_online else "OFFLINE"
-
-        claude_status = "ACTIVE" if c_active else (f"RESTING ({c_rest_str})" if c_resting else f"{c_5h*100:.0f}%")
-
-        lines = [
-            f"N'kai Centaur [{status_name} :3030]",
-            f"Gemini: 5h {g_5h*100:.0f}% · Wk {g_wk*100:.0f}%",
-            f"Claude: 5h {claude_status} · Wk {c_wk*100:.0f}%"
-        ]
-        return "\n".join(lines)[:127]
+        return format_quota_tooltip(allowances, is_online=is_online)
 
     def _telemetry_worker(self):
         """Worker thread executing health checks every 3s and quota probes every 30s."""
@@ -427,11 +425,26 @@ class NkaiTrayApp:
         last_quota_check = 0.0
         last_pending_count = 0
         last_bloat_check = time.time()
+        consecutive_offline_checks = 0
 
         while self.running:
             try:
                 now = time.time()
                 health = evaluate_system_health()
+                raw_online = health.get("is_online", False)
+
+                if not raw_online:
+                    consecutive_offline_checks += 1
+                else:
+                    consecutive_offline_checks = 0
+
+                # 2-gate consecutive hysteresis: only declare OFFLINE if 2 checks in a row fail (>= 6s)
+                # Prevents transient latency or GC spikes from flashing red or triggering flapping restarts
+                if consecutive_offline_checks < 2 and not raw_online:
+                    health["is_online"] = True
+                    if health.get("state_code") == STATE_CRITICAL:
+                        health["state_code"] = self.current_state if self.current_state != STATE_CRITICAL else STATE_ATTENTION
+
                 self.latest_health = health
 
                 # Allowance probe (synced with daemon health or periodic ConnectRPC probe)
@@ -474,9 +487,10 @@ class NkaiTrayApp:
                     except Exception:
                         pass
 
-                # If server went offline, attempt auto-recovery at most once per 15s
-                if not health.get("is_online", False) and (now - last_recovery_time > 15.0):
+                # If server went offline for >= 2 consecutive checks, attempt auto-recovery at most once per 15s
+                if consecutive_offline_checks >= 2 and (now - last_recovery_time > 15.0):
                     last_recovery_time = now
+                    debug_log("Server offline detected for 2 consecutive checks, invoking auto-recovery")
                     start_server_process(silent=True)
 
                 # Periodic Bloat Guard enforcement (every 60 mins) to defeat Windows Update drift
@@ -654,12 +668,21 @@ class NkaiTrayApp:
 
             g5_dot = "🟢" if g_5h > 0.75 else ("🟡" if g_5h > 0.40 else "🔴")
             c_dot = "🔵" if c_active else ("🟠" if c_resting else ("🟢" if c_5h > 0.75 else ("🟡" if c_5h > 0.40 else "🔴")))
-            c_status_str = f"RESTING ({c_rest_str})" if c_resting else ("ACTIVE" if c_active else f"{c_5h*100:.0f}%")
+            c_pct_val = self.allowances.get("pro_c_5h", c_5h)
+            c_status_str = f"RESTING ({c_rest_str})" if c_resting else (f"{c_pct_val*100:.0f}% (ACTIVE)" if c_active else f"{c_pct_val*100:.0f}%")
 
+            g_rst_label = self.allowances.get("g_rst_label", "WRst")
+            c_rst_label = self.allowances.get("c_rst_label", "WRst")
+            g_rst_str = self.allowances.get("g_rst_str", "0d  0h  0m")
+            ag_c5 = self.allowances.get("agy_c_5h", 1.0)
+            ag_cw = self.allowances.get("agy_c_wk", 1.0)
+            pro_cw = self.allowances.get("pro_c_wk", self.allowances.get("c_wk", 1.0))
+            c_rst_str = self.allowances.get("c_rst_str", "0d  0h  0m")
             win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_STATUS_INFO, f"{server_dot} Server: {'ONLINE' if is_online else 'OFFLINE'} (Port {DEFAULT_PORT})")
             win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_OPEN_TELEMETRY, f"{ctx_dot} Context Size: {active_mb:.2f} MB / 3.5 MB")
-            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_GEMINI_INFO, f"{g5_dot} Gemini: 5h {g_5h*100:.0f}% · Wk {g_wk*100:.0f}%")
-            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_CLAUDE_INFO, f"{c_dot} Claude: 5h {c_status_str} · Wk {c_wk*100:.0f}%")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_GEMINI_INFO, f"{g5_dot} Gemini: 5h {g_5h*100:.0f}% · Wk {g_wk*100:.0f}% · {g_rst_label} {g_rst_str}")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_AGY_CLAUDE_INFO, f"🟣 AGY-Claude: 5h {ag_c5*100:.0f}% · Wk {ag_cw*100:.0f}%")
+            win32gui.AppendMenu(menu, win32con.MF_STRING | win32con.MF_GRAYED, CMD_CLAUDE_INFO, f"{c_dot} Claude Pro: 5h {c_status_str} · Wk {pro_cw*100:.0f}% · {c_rst_label} {c_rst_str}")
 
             win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_OPEN_CLAUDE_STREAM, "👁️ View Claude Stream (latest_live.md)")
             win32gui.AppendMenu(menu, win32con.MF_STRING, CMD_REFRESH_QUOTA, "🔄 Refresh Allowance Now")
@@ -832,24 +855,21 @@ def acquire_single_instance_latch(force_replace: bool = False):
             if existing_hwnd:
                 win32gui.PostMessage(existing_hwnd, win32con.WM_DESTROY, 0, 0)
                 time.sleep(0.3)
-                kernel32.CloseHandle(mutex)
-                mutex = kernel32.CreateMutexW(None, False, SINGLE_INSTANCE_MUTEX_NAME)
-                return mutex
-            else:
-                # If window was not found by title, attempt killing via process scan
-                try:
-                    import psutil
-                    for p in psutil.process_iter(['pid', 'cmdline']):
-                        cmd = p.info.get('cmdline') or []
-                        if any('nkai_tray' in arg for arg in cmd) and p.pid != os.getpid():
-                            p.terminate()
+            # Scan and terminate any remaining nkai_tray processes
+            try:
+                import psutil
+                for p in psutil.process_iter(['pid', 'cmdline']):
+                    cmd = p.info.get('cmdline') or []
+                    if any('nkai_tray' in arg for arg in cmd) and p.pid != os.getpid():
+                        p.terminate()
+                        try:
                             p.wait(timeout=1.0)
-                    time.sleep(0.2)
-                    kernel32.CloseHandle(mutex)
-                    mutex = kernel32.CreateMutexW(None, False, SINGLE_INSTANCE_MUTEX_NAME)
-                    return mutex
-                except Exception:
-                    pass
+                        except Exception:
+                            pass
+                time.sleep(0.2)
+            except Exception:
+                pass
+            return mutex
         kernel32.CloseHandle(mutex)
         return None
     return mutex

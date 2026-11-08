@@ -90,9 +90,9 @@ inline constexpr Option kGlideMode[] = {
 };
 
 inline constexpr Option kLifeMode[] = {
-    {"SYNTHETIC", "clean wide surgical precision"},
-    {"CYBORG",    "gritty overdriven analog character"},
-    {"ORGANIC",   "warm drifted vintage circuit"}
+    {"SYNTHETIC", "pure DCO precision: zero drift, linear phase & surgical OTA ladder snap"},
+    {"CYBORG",    "screaming diode clippers, starved rail foldback & toxic acid overdrive"},
+    {"ORGANIC",   "thermal DCO drift, warm tube saturation & spongy optocoupler LPG decay"}
 };
 
 inline constexpr Option kTriggerMode[] = {

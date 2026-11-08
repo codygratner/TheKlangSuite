@@ -1,71 +1,133 @@
-# 🧠 PLAN: Nyarlat Harmonic Width & Coupled Spread Overhaul
-### *Pitch-Relative Additive Width, Thue-Morse Symmetrical Pan, Authentic Lifeform Saturation & Mono Invariance*
+# 🧠 Master Implementation Plan: Cracked Chimes Fleet Preset & Branding Architecture
+### *Unified PresetManager, DuckGate Sleep-Bypass Watchdog, Log-Domain Smart Dice, HeaderTitleBlock, In-Editor Overlays & Suite 82 SQA Gauntlet*
 
-> **Status:** `IN_PROGRESS`  
-> **Origin:** User Directives in Autoplan 3.0 (Turns 1 & 2)  
-> **Target:** `Nyarlat` (`C:\Dev\TheKlangSuite`)  
-> **Architecture:** Linear Mid/Side Harmonic Additive Table Synthesis + Per-Partial Spread Coupling  
-
----
-
-## 🏛️ Executive Summary
-
-Nyarlat's `WIDTH` control in the Output & Expression card transforms from a generic post-mix Mid/Side scalar into an **acoustically intelligent, pitch-relative harmonic width engine**:
-1. **0.0 (Min):** 100% pure mono across all partials, oscillators, chorus, and noise.
-2. **0.5 (Noon):** Fundamental ($k=1$) is pinned dead-center in mono across all keys; top partial ($k=64$) is 100% wide stereo.
-3. **1.0 (Max):** All partials (including the fundamental) bloom into 100% wide stereo immersion.
-4. **Oscillator Spread Coupling:** Width scales Osc 2 and Osc 3 stereo spread per partial. At 75% width, the fundamental follows exactly 50% of the dialed spread ($W_1 = 0.5$). At noon, all fundamentals are mono while overtones fan out to full spread.
-5. **Thue–Morse Sequence ($\sigma_k = (-1)^{\mathrm{popcount}(k)}$):** Eliminates lopsided panning on odd-only spectra (square, triangle, clarinet waves).
-6. **Authentic Stereo Lifeform Saturation:** `CYBORG` rail-foldback and `ORGANIC` tube saturation run independently on Left and Right channels with shared-peak normalization (zero center image drift).
-7. **Linear M/S Pan Law ($L+R = 2M$):** 100% comb-filtering-free, phase-cancellation-proof mono sum invariant.
+> **Status:** `PLAN_LOCKED_PENDING_OPERATOR_ENGAGE`  
+> **Modality:** `AUTOPLAN_ACTIVE` (Universal Zero-Build Airgap Enforced)  
+> **Target Fleet:** `Hastur` (v1.2.0), `Nyarlat` (v0.2.0), `Formless Spawn` (v1.1.0), `DigiStrike FS2` (v1.1.0)  
+> **Excluded Scope:** `Shoggoth` (Tabled / Graveyarded per Loop Turn 12)  
+> **Recent Upstream Sync:** Reconciled with Hastur v1.2.0 modernization, -110dBFS sleep detector, and Suite 81 completion.  
+> **Peer Reviewers:** Gemini 4 Argon & Claude Sonnet/Opus (Dual-Adversarial Ratified)  
 
 ---
 
-## 📋 Canonical 4-Phase Execution Sequence
+## 🏛️ Comprehensive Architectural Overview
 
-### Phase 1: Contract, Codegen & Parameter Layout Lock
-- [ ] Update `contracts/nyarlat.yaml`:
-  - `global_width`: change `range: [-1.0, 1.0]` to `range: [0.0, 1.0]`, `default: 0.5`, `unit: "%"`.
-- [ ] Run `python tools/codegen_apvts.py -p nyarlat` from `C:\Dev\TheKlangSuite` to regenerate `NyarlatParameterIds.h` and `NyarlatParameterLayout.h`.
-- [ ] Update `NyarlatControlInfo.h` with new tooltip and documentation for `global_width`.
+This unified plan establishes an indestructible, commercial-grade preset and branding infrastructure across the Cracked Chimes fleet. It replaces inert dummy capsules (`"<  01: ACID PRIME  >"`) and duplicate inlined code with shared, high-performance UI components in `CrackedChimesUI.h`, an atomic `DuckGate` audio engine with lock-free idle & sleep bypass, log-domain Smart Dice mutation, and comprehensive SQA verification:
 
-### Phase 2: Additive Engine & Voice DSP Implementation
-- [ ] In `source/nyarlat/NyarlatAdditiveOscillator.h`:
-  - Add `partialWidth(int k, float widthNorm)` implementing the continuous piecewise function:
-    $$W(k, x) = (x \le 0.5f) \ ? \ (2.0f \cdot x \cdot u_k) : (u_k + (2.0f \cdot x - 1.0f) \cdot (1.0f - u_k))$$
-  - Add `thueMorseSign(int k)` via C++20 `std::popcount(static_cast<unsigned int>(k))`.
-  - Update `NyarlatAdditiveEngine::synthesizeCycle`:
-    - Synthesize Mid and Side (or L and R) cycles.
-    - Compute per-partial pan $p_{i, k} = W_k [\beta_i + \sigma_k (1 - |\beta_i|)]$.
-    - Synthesize M/S 512-sample tables via IFFT.
-    - Authentic Lifeform Saturation: run Cyborg foldback and Organic tube saturation independently on L/R.
-    - Per-channel DC nullification and shared-peak normalization.
-- [ ] In `source/nyarlat/NyarlatOscillator.h` (`BitmaskOscillator`):
-  - Support M/S or stereo playback from the 512-sample cycle buffer.
-- [ ] In `source/nyarlat/NyarlatVoice.h`:
-  - Wire oscillator stereo/MS outputs into `mixL` and `mixR`.
-  - Pass width and effective oscillator spread ($\beta_i$) into oscillator rendering.
-- [ ] In `source/nyarlat/NyarlatProcessor.cpp`:
-  - Master width stage: enforce master side collapse as $x \to 0$ ($\text{sideGain} = \min(1.0f, 2.0f \cdot x)$) to guarantee total mono across noise and chorus.
-  - State migration: remap legacy state with $x_{\text{new}} = (x_{\text{old}} + 1.0f) \cdot 0.5f$.
+```text
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                     CRACKED CHIMES HARDENED PRESET & BRANDING ARCHITECTURE                      │
+├──────────────────────────┬──────────────────────────┬─────────────────────┬─────────────────────┤
+│         WAVE 1:          │         WAVE 2:          │       WAVE 3:       │       WAVE 4:       │
+│     ENGINE & STORAGE     │      SHARED HEADER       │    MODAL OVERLAYS   │  FLEET INTEGRATION  │
+├──────────────────────────┼──────────────────────────┼─────────────────────┼─────────────────────┤
+│ • DuckGate Watchdog      │ • HeaderTitleBlock       │ • AboutOverlay      │ • Hastur 70-param   │
+│   (Lock-Free Sleep-Bypass│   (14, 4, 140, 36)       │   (560x400 modal)   │ • Nyarlat migration │
+│ • Log-Domain Smart Dice  │ • StepperAuditionBar     │ • PresetBrowser     │ • Formless Purple   │
+│ • Section Locks Bitmask  │   (Vector Paths, Star,   │   (680x440 modal)   │ • DigiStrike Rust   │
+│ • RCU In-Memory Index    │    Dirty Pip, Wheel Step)│ • Zero-Alloc ListBox│ • Factory Seed -18dB│
+│ • %APPDATA% + BinaryData │ • Adaptive Width         │ • Scrim Shield      │ • 6-Gate Gauntlet   │
+│ • Single NotifyHost Bump │   (220px / 288px)        │ • Esc-Revert Safety │ • Suite 82 Proof    │
+└──────────────────────────┴──────────────────────────┴─────────────────────┴─────────────────────┘
+```
 
-### Phase 3: CrackedChimes UI & Kilohearts In-Dial Badge
-- [ ] In `source/nyarlat/NyarlatEditor.cpp`:
-  - Update `Ids::global_width` `textFromValueFunction` to render dynamic Kilohearts badges:
-    - At `0.0`: `"MONO"`
-    - At `0.5`: `"SPLIT"`
-    - At `1.0`: `"WIDE"`
-    - In-between: `"X%"`
-  - Verify layout integrity and bounds via `Nyarlat_Preview`.
+---
 
-### Phase 4: Tower Compilation, DSP Verification & Release Packaging
-- [ ] Update `test/dsp_tests.cpp` (Suite 77):
-  - Test 1: Mono sum invariance ($L+R = 2M$, zero phase cancellation).
-  - Test 2: Fundamental pinned dead-center ($p_1 = 0$) at $x \le 0.5$.
-  - Test 3: 75% width $\implies$ fundamental follows 50% spread.
-  - Test 4: Thue-Morse spectral balance on square/odd waves.
-  - Test 5: Authentic Lifeform stereo saturation energy symmetry ($\le 0.5\text{ dB}$ difference).
-- [ ] Compile via Tower Shielded Bridge: `python tools/context_bus_bridge.py build --target Nyarlat_All --dispatch`.
-- [ ] Run DSP test gauntlet: `dsp_tests.exe`.
-- [ ] Run headless preview: `Nyarlat_Preview.exe` to verify 0 layout collisions.
-- [ ] Deploy Release `.vst3` and emit silent harvest confirmation.
+## 📋 Four-Wave Implementation Gauntlet
+
+### Wave 1: CMake & Headless Engine Core (`PresetManager.h / .cpp`)
+*Target: Engine correctness, atomic concurrency, and memory isolation.*
+- [ ] **1.1 CMake Target Sources, Version Bumps & Post-Build Packaging ([`CMakeLists.txt`](file:///C:/Dev/TheKlangSuite/CMakeLists.txt))**:
+  - **Minor Version Bumps**:
+    - `TheKlangSuite`: `0.6.0` $\implies$ `0.7.0`
+    - `Hastur`: `1.2.0` $\implies$ `1.3.0` (v1.2 acid squelch landed + v1.3 Preset & About overhaul)
+    - `Formless Spawn`: `1.2.0` $\implies$ `1.3.0` (keeping lockstep with Hastur)
+    - `DigiStrike FS2`: `1.1.0` $\implies$ `1.2.0`
+    - `Nyarlat`: `0.1.0` $\implies$ `0.2.0` (synchronizing CMake with contract)
+    - `Shoggoth`: `0.1.0` (frozen / graveyarded)
+  - Synchronize corresponding `version` tags in `contracts/*.yaml`.
+  - Add `source/PresetManager.cpp` to `target_sources` for `Hastur`, `Hastur_Preview`, `FormlessSpawn`, `FormlessSpawn_Preview`, `DigiStrikeFS2`, and `DigiStrikeFS2_Preview`.
+  - Add post-build copy directory commands for `assets/presets/hastur`, `assets/presets/formless_spawn`, and `assets/presets/digistrike_fs2` into their respective VST3 bundle resources.
+- [ ] **1.2 Audio-Thread DuckGate with Sleep-Bypass Watchdog ([`source/PresetManager.h`](file:///C:/Dev/TheKlangSuite/source/PresetManager.h))**:
+  - Implement `DuckGate` atomic structure with `processBlockCounter` and 20ms timeout watchdog.
+  - **Zero-CPU Sleep Integration**: If `processor.isSleeping()` or `!processor.isPrepared()` or `processBlockCounter` is stale:
+    $\implies$ Audio is already silent! Immediately bypass ducking, snap parameters on message thread with zero wait.
+  - Active audio path: Cosine ramp to $0.0$ over $8\text{ms}$, signal `isSilent`, swap parameters, cosine ramp back to $1.0$.
+- [ ] **1.3 Log-Domain Smart Dice & 16-Step Undo Ring ([`source/PresetManager.cpp`](file:///C:/Dev/TheKlangSuite/source/PresetManager.cpp))**:
+  - Implement log-domain mutation math $t = (\ln x - \ln lo) / (\ln hi - \ln lo)$ with boundary reflection $R(v)$.
+  - Maintain `diceHistory_` ring buffer (16 states) with `undoDice()` and `keepAsPreset()` methods.
+  - Enforce `LoadSkip` (session master volumes/pan) and `DiceDeny` (structural modes/voice masks) parameter exclusion sets.
+- [ ] **1.4 Section Locks Bitmask & Contract Bijection ([`source/PresetManager.h`](file:///C:/Dev/TheKlangSuite/source/PresetManager.h))**:
+  - Implement bitmask: `LockOscCore`, `LockFilterVCF`, `LockEnvelopes`, `LockMasterFX`.
+  - Contract rule: "Destination owns amount, Source owns shape." Sourced from `contracts/hastur.yaml` Tier 1–4 metadata.
+- [ ] **1.5 Host Recall Hygiene & Storage Portability ([`source/PresetManager.cpp`](file:///C:/Dev/TheKlangSuite/source/PresetManager.cpp))**:
+  - Embed `<PRESET_META>` in `getStateInformation` with `restoring_` guard in `setStateInformation`.
+  - Migrate user directory to `%APPDATA%\CrackedChimes\<Plugin>\Presets\` on Windows (eliminating OneDrive cloud placeholder deadlocks).
+  - Implement embedded factory presets fallback (`EmbeddedFactoryPresets.h`).
+  - Batch parameter loading with single `processor.updateHostDisplay()` to prevent host undo flooding.
+- [ ] **1.6 Verification Barrier 1**:
+  - Run `python tools/verify_contract_bindings.py` (Asserts 100% parameter bijection).
+  - Compile `dsp_tests.exe` and execute Suite 82 foundation checks.
+
+---
+
+### Wave 2: Shared Header Components (`CrackedChimesUI.h`)
+*Target: Uniform visual brand identity and ergonomic auditioning.*
+- [ ] **2.1 Shared HeaderTitleBlock ([`source/ui/cracked_chimes/CrackedChimesHeaderTitle.h`](file:///C:/Dev/TheKlangSuite/source/ui/cracked_chimes/CrackedChimesHeaderTitle.h))**:
+  - Standardized placement at `(14, 4, 140, 36)`. Seamlessly replaces `headerLabel` and `subheaderLabel` in `HasturEditor.cpp`.
+  - 19pt bold title in signature accent hue + 9pt "CRACKED CHIMES" slate subtitle.
+  - Hover glow and cursor hand; click triggers `onOpenAbout` callback.
+- [ ] **2.2 Canonical StepperAuditionBar Modernization ([`source/ui/cracked_chimes/CrackedChimesPresets.h`](file:///C:/Dev/TheKlangSuite/source/ui/cracked_chimes/CrackedChimesPresets.h))**:
+  - Vector paths (`juce::Path`) for chevrons, favorite star, amber dirty pip (`●`).
+  - Adaptive width: $220\text{px}$ compact mode for DigiStrike FS2, $288\text{px}$ standard mode for Hastur/Nyarlat/Formless (exact replacement for `presetStub` at `(162, 8, 288, 28)`).
+  - Mouse wheel preset stepping with 40ms debounce.
+  - Hover telemetry dispatch to `HeaderInspector`.
+  - Click on preset label triggers `onOpenBrowser` overlay callback.
+- [ ] **2.3 Verification Barrier 2**:
+  - Compile preview targets (`Hastur_Preview.exe`, `Nyarlat_Preview.exe`).
+  - Run `python tools/ui_gate.py` to verify $\Omega = 0\text{px}$ spatial clearance across all headers.
+
+---
+
+### Wave 3: In-Editor Overlays (`PresetBrowserOverlay.h` & `AboutOverlay.h`)
+*Target: Modal inspection, distraction-free browsing, and attribution transparency.*
+- [ ] **3.1 AboutOverlay Modal ([`source/ui/cracked_chimes/AboutOverlay.h`](file:///C:/Dev/TheKlangSuite/source/ui/cracked_chimes/AboutOverlay.h))**:
+  - $560 \times 400\text{px}$ card over `#0D1117CC` scrim.
+  - Hero header with version (dynamically bound to `JucePlugin_VersionString`: `v1.2.0` for Hastur, `v1.1.0` for Formless/DigiStrike, `v0.2.0` for Nyarlat).
+  - Author credits, clickable attributions (JUCE, AKWF, ZDF, Alpha Juno, TB-303 Acid), DAW host telemetry, docs shortcut (`docs/CHEAT_SHEET.md`), and `[×]` / Esc close.
+- [ ] **3.2 PresetBrowserOverlay Modal ([`source/ui/cracked_chimes/PresetBrowserOverlay.h`](file:///C:/Dev/TheKlangSuite/source/ui/cracked_chimes/PresetBrowserOverlay.h))**:
+  - $680 \times 440\text{px}$ card over `#0D1117CC` scrim.
+  - Left pane: Collections (`All`, `Favorites ★`, `User`, `Factory`) & Categories (`Bass`, `Lead`, `Pad`, `FX`).
+  - Search box with Spacebar host transport passthrough.
+  - Virtualized `juce::ListBox` with zero-alloc flyweight rendering (`paintListBoxItem()`).
+  - Section Locks bar `[🔒 OSC] [🔒 FILTER] [🔒 ENV] [🔒 FX]` + `[🎲 DICE]` + `[↩ Undo Dice]`.
+  - Esc-revert snapshot safety (`Esc` restores starting sound, `Enter` commits).
+- [ ] **3.3 Verification Barrier 3**:
+  - Execute `Gate 1.2` Scrim Shield & Focus Trapping verification.
+
+---
+
+### Wave 4: Fleet Integration & Suite 82 SQA Gauntlet
+*Target: Full fleet adoption, factory sound seeding, and zero-defect proof token.*
+- [ ] **4.1 Fleet Editor & Processor Wiring**:
+  - **Hastur**: Add `PresetManager` to processor, wire `HeaderTitleBlock` (🟡 Carcosa Gold `#F2E10F`) and `StepperAuditionBar`.
+  - **Formless Spawn**: Add `PresetManager` to processor, wire `HeaderTitleBlock` (🟣 Sorcerous Purple `#BC8CFF`) and `StepperAuditionBar`.
+  - **DigiStrike FS2**: Add `PresetManager` to processor, wire `HeaderTitleBlock` (🟧 Industrial Rust `#E08C00`) and `StepperAuditionBar` (compact mode).
+  - **Nyarlat**: Replace private inlined `titleLabel` and `StepperAuditionBar` with shared components (🔵 Tron Blue `#00C8FF`).
+  - **The Writer (Gear Manual Hat) Telemetry & Lifeform Overhaul**:
+    - Update all 58 inspector blurbs in `NyarlatControlInfo.h` and the default idle blurb in `NyarlatEditor.h` per `18_gear_manual_inspector_strings.md` (excising all legacy "Z-plane Z-cube" stubs in favor of punchy $\le 69$-char additive wavetable & chaos matrix descriptors).
+    - Deploy unified Fleet Lifeform Triad Canon descriptions ($\le 71$ chars, spatial-mechanical gear manual stylometry) across all 4 plugins (`HasturControlInfo.h`, `NyarlatControlInfo.h`, `FormlessControlInfo.h`, `DigiStrikeFS2ControlInfo.h`).
+    - Wire `lifeformRocker_` in `FormlessEditor.cpp` and `lifeModeToggle_` in `NyarlatEditor.cpp` to live inspector telemetry matching `Hastur` and `DigiStrike FS2`.
+- [ ] **4.2 Factory Preset Seeding & Level Matching**:
+  - Expand `assets/presets/<plugin>/` from 8-parameter stubs to full 70-parameter contracts.
+  - Level-match presets offline to standardized $-18\text{ LUFS-S}$ benchmark phrase.
+- [ ] **4.3 Six-Gate Master SQA Gauntlet (Suite 82 in `dsp_tests.cpp`)**:
+  - **Gate 1**: Spatial Collision Radar (`tools/ui_gate.py` $\implies \Omega = 0\text{px}$, padding $\ge 4\text{px}$).
+  - **Gate 2**: Real-Time Audio Safety (`tools/sqa/lint_dsp.py` & `audiothread-guard` $\implies$ 0 malloc, 0 locks).
+  - **Gate 3**: Host DAW Stability (`pluginval` Level 5 $\implies$ 0 leaks, 0 crashes).
+  - **Gate 4**: Contract Bijection (`tools/verify_contract_bindings.py` $\implies$ 100% parameter coverage).
+  - **Gate 5**: Information-Theoretic Entropy (`tools/sqa/audit_presets.py` $\implies \sigma^2 > 0.005, H > 0.5\text{b}, \text{NCD} \ge 0.35$).
+  - **Gate 6 (Suite 82)**: Acoustic Oracles & 5 Metamorphic Relations (`dsp_tests.exe` Suites 82.1–82.15, MR-1 through MR-5).
+- [ ] **4.4 Visual Pre-Flight & Cryptographic Token Seal**:
+  - Capture rendered desktop window: `python tools/capture_ui.py "Hastur"`.
+  - Finalize task and seal proof token: `python tools/plan_manager.py finish --target cracked_chimes_preset_system`.

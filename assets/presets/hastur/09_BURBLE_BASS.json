@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Liquid Acid Bass",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 700.0,
+    "resonance": 0.85,
+    "burble_depth": 0.8,
+    "burble_rate": 0.45,
+    "laser_drive": 0.5,
+    "sub_level": 0.5
+  }
+}

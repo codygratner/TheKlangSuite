@@ -74,9 +74,9 @@ inline constexpr std::string_view kVoiceModeDescriptions[3] = {
 };
 
 inline constexpr std::string_view kLifeformDescriptions[3] = {
-    "Synthetic: pristine 32-bit float interpolation with linear phase and crisp highs",
-    "Cyborg: Am6070 u-law 8-bit companding combined with Curtis CEM3320 analog warmth",
-    "Organic: SP-1200 26.04kHz drop-sampling with analog 555-timer jitter and thermal drift"
+    "pristine 32-bit float interpolation, linear phase & crystal PCM clarity",
+    "Am6070 8-bit companded DAC crunch & overdriven Curtis CEM3320 filter",
+    "SP-1200 26.04kHz drop-sample ringing, 555-timer clock jitter & warmth"
 };
 
 // ==============================================================================

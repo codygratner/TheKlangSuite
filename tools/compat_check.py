@@ -544,6 +544,29 @@ def run_compatibility_audit(repo_root: Path, auto_fix: bool = False) -> Dict[str
     timer_checks, source_files_count = check_timer_hygiene(source_dir)
     portability_checks = check_source_portability(repo_root, auto_fix=auto_fix)
 
+    # C10: Anti-Mojibake MSVC & Clean String Law (anti_mojibake_msvc_canon.md)
+    c10_errors = []
+    try:
+        tools_dir = Path(__file__).resolve().parent
+        if str(tools_dir) not in sys.path:
+            sys.path.insert(0, str(tools_dir))
+        from verify_msvc_strings import audit_file as audit_msvc_strings
+        for d in (source_dir, repo_root / "test"):
+            if d.exists():
+                for p in d.rglob("*"):
+                    if p.suffix in {".cpp", ".h", ".hpp", ".cc", ".cxx", ".inl"}:
+                        c10_errors.extend(audit_msvc_strings(p))
+    except Exception as e:
+        c10_errors.append(f"Failed to run verify_msvc_strings: {e}")
+
+    c10_check = [{
+        "category": "Clean String Law (C10)",
+        "name": "Zero MSVC CRT Mojibake String Formatting Hazards",
+        "passed": len(c10_errors) == 0,
+        "message": "Zero String::formatted string specifiers detected" if not c10_errors else f"{len(c10_errors)} MSVC mojibake violation(s): {'; '.join(c10_errors[:3])}",
+    }]
+
+    portability_checks.extend(c10_check)
     all_checks = cmake_checks + timer_checks + portability_checks
     violations = [c for c in all_checks if not c["passed"]]
     duration_ms = (time.perf_counter() - t0) * 1000.0

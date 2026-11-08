@@ -10,67 +10,8 @@ void NyarlatLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int w
                                          float sliderPos, float minSliderPos, float maxSliderPos,
                                          const juce::Slider::SliderStyle style, juce::Slider& slider)
 {
-    using namespace Colours;
-    if (style != juce::Slider::LinearVertical) {
-        CrackedChimes::UI::CrackedChimesLookAndFeel::drawLinearSlider(
-            g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-        return;
-    }
-
-    using namespace CrackedChimes::UI::Colours;
-
-    const auto area = juce::Rectangle<int>(x, y, width, height).toFloat();
-    const auto trackCol = slider.isColourSpecified(juce::Slider::trackColourId)
-        ? slider.findColour(juce::Slider::trackColourId) : accentColour_;
-
-    // 1. Bottom Kilohearts Value Badge Bounds (recessed OLED)
-    const float badgeH = 16.0f;
-    const float badgeY = area.getBottom() - badgeH - 2.0f;
-    const auto badgeRect = juce::Rectangle<float>(area.getX() + 2.0f, badgeY, area.getWidth() - 4.0f, badgeH);
-
-    // 2. Fader Track Bounds (restricted to travel above badge)
-    const float trackTop = area.getY() + 4.0f;
-    const float trackBottom = badgeRect.getY() - 6.0f;
-    const float trackHeight = trackBottom - trackTop;
-    const float trackX = area.getCentreX();
-    const float grooveW = 6.0f;
-    const auto track = juce::Rectangle<float>(trackX - grooveW * 0.5f, trackTop, grooveW, trackHeight);
-
-    // Track Cavity & Border
-    g.setColour(kCavity);
-    g.fillRoundedRectangle(track, 3.0f);
-    g.setColour(kBadgeBorder);
-    g.drawRoundedRectangle(track, 3.0f, 1.0f);
-
-    // Active fill up to clamped thumb position
-    const float clampedPos = std::clamp(sliderPos, trackTop, trackBottom);
-    if (clampedPos < trackBottom) {
-        auto filled = track.withTop(clampedPos);
-        g.setColour(trackCol.withAlpha(0.85f));
-        g.fillRoundedRectangle(filled.reduced(1.0f), 2.0f);
-    }
-
-    // 3. Tactile Fader Cap
-    const float capW = std::clamp(area.getWidth() - 8.0f, 26.0f, 34.0f);
-    const float capH = 13.0f;
-    const auto capBounds = juce::Rectangle<float>(trackX - capW * 0.5f, clampedPos - capH * 0.5f, capW, capH);
-
-    g.setColour(kChassisDisc);
-    g.fillRoundedRectangle(capBounds, 2.5f);
-    g.setColour(kChassisRim);
-    g.drawRoundedRectangle(capBounds, 2.5f, 1.0f);
-    g.setColour(kNeedle);
-    g.drawLine(capBounds.getX() + 3.0f, capBounds.getCentreY(), capBounds.getRight() - 3.0f, capBounds.getCentreY(), 1.5f);
-
-    // 4. Kilohearts Badge Value Rendering
-    juce::String text = slider.textFromValueFunction
-        ? slider.textFromValueFunction(slider.getValue())
-        : slider.getTextFromValue(slider.getValue());
-
-    if (text.isNotEmpty()) {
-        const bool hot = slider.isMouseButtonDown();
-        drawKiloheartsValueBadge(g, badgeRect, text, hot ? trackCol : kBadgeBorder);
-    }
+    CrackedChimes::UI::CrackedChimesLookAndFeel::drawLinearSlider(
+        g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
 }
 
 

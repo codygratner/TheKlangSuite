@@ -232,6 +232,17 @@ void DigiStrikeFS2AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     float* rightChannel = (buffer.getNumChannels() > 1) ? buffer.getWritePointer(1) : leftChannel;
 
     voice_.renderBlock(leftChannel, rightChannel, numSamples);
+
+    // Lock-free minimum tracking for hardware jewel LED pip
+    if (masterLimiterParam_ && masterLimiterParam_->load(std::memory_order_relaxed) > 0.5f) {
+        const float gr = voice_.getLimiterGainReduction();
+        float cur = limiterGrMin_.load(std::memory_order_relaxed);
+        if (gr < cur) {
+            limiterGrMin_.store(gr, std::memory_order_relaxed);
+        }
+    } else {
+        limiterGrMin_.store(1.0f, std::memory_order_relaxed);
+    }
 }
 
 juce::AudioProcessorEditor* DigiStrikeFS2AudioProcessor::createEditor() {

@@ -124,7 +124,7 @@ public:
             // Direct power law without transcendental log10/pow10
             float gr = 1.0f;
             if (distEnvL_ > thresh) {
-                gr = std::pow(distEnvL_ / thresh, -slope);
+                gr = FastMath::fastPow2(-slope * FastMath::fastLog2(distEnvL_ / thresh));
             }
 
             // Auto-makeup gain
@@ -136,11 +136,14 @@ public:
             float yL = xL * gEff;
             float yR = xR * gEff;
 
-            // Tape Hysteresis Saturation: fastTanh with d = 1.0 + 2.5 * a^1.5
-            const float d = 1.0f + 2.5f * std::pow(a, 1.5f);
-            const float invTanhD = 1.0f / FastMath::fastTanh(d);
-            yL = FastMath::fastTanh(yL * d) * invTanhD;
-            yR = FastMath::fastTanh(yR * d) * invTanhD;
+            // Tape Hysteresis Saturation: cached fastTanh with d = 1.0 + 2.5 * a * sqrt(a)
+            if (std::abs(a - cachedSquash_) > 0.0001f) {
+                cachedSquash_ = a;
+                cachedD_ = 1.0f + 2.5f * (a * std::sqrt(a));
+                cachedInvTanhD_ = 1.0f / FastMath::fastTanh(cachedD_);
+            }
+            yL = FastMath::fastTanh(yL * cachedD_) * cachedInvTanhD_;
+            yR = FastMath::fastTanh(yR * cachedD_) * cachedInvTanhD_;
 
             // 80Hz Analog Head Bump (Cached SVF)
             const float bumpL = headBumpLpL_.process(yL);
@@ -173,6 +176,10 @@ private:
     float fastEnvL_{0.0f}, fastEnvR_{0.0f};
     float slowEnvL_{0.0f}, slowEnvR_{0.0f};
     float distEnvL_{0.0f}, distEnvR_{0.0f};
+
+    float cachedSquash_{-999.0f};
+    float cachedD_{1.0f};
+    float cachedInvTanhD_{1.0f};
 
     TbdAudio::DSPCommon::CytomicSVF mudLpL_{}, mudLpR_{};
     TbdAudio::DSPCommon::CytomicSVF headBumpLpL_{}, headBumpLpR_{};

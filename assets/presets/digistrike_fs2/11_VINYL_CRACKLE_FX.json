@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "Vinyl Needle Transient",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 10.0,
+    "lineage": 10.0,
+    "macro_x": 0.3,
+    "macro_y": 0.85,
+    "cutoff": 9000.0,
+    "decay": 0.35,
+    "crush": 0.6
+  }
+}

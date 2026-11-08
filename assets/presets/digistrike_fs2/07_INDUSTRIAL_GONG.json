@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "Biting Metallic Crash",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 6.0,
+    "lineage": 6.0,
+    "macro_x": 0.85,
+    "macro_y": 0.9,
+    "cutoff": 17000.0,
+    "decay": 0.9,
+    "crush": 0.4
+  }
+}

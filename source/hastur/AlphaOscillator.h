@@ -84,6 +84,24 @@ public:
         prevApf1Core_ = 0.0f;
         prevChopCore_ = 0.0f;
         chopperSpikeState_ = 0.0f;
+        invTanhG_ = 1.0f;
+        satMix_ = 0.0f;
+        g_ = 1.0f;
+        mixerHeadroomGain_ = 1.0f;
+    }
+
+    void resetFeedback() noexcept {
+        prevApf1Core_ = 0.0f;
+        biteDcFilter_.reset();
+        biteHfFilter_.reset();
+    }
+
+    void prepareBlock(float drive) noexcept {
+        g_ = 1.0f + drive * 2.5f;
+        invTanhG_ = 1.0f / std::tanh(g_);
+        satMix_ = std::min(drive * 50.0f, 1.0f); // fade over kSatFadeDrive = 0.02f
+        const float sumWeightSq = coreLevel_ * coreLevel_ + subLevel_ * subLevel_ + noiseLevel_ * noiseLevel_;
+        mixerHeadroomGain_ = (sumWeightSq > 1.0f) ? (1.0f / std::sqrt(sumWeightSq)) : 1.0f;
     }
 
     // --- Configuration & Parameter Controls ---
@@ -984,6 +1002,10 @@ private:
     float apfFeedback_ = 0.55f;
     float prevApf1Core_ = 0.0f;
     float bite_ = 0.0f;
+    float g_{1.0f};
+    float invTanhG_{1.0f};
+    float satMix_{0.0f};
+    float mixerHeadroomGain_{1.0f};
     LeakyDCBlocker biteDcFilter_;
     OnePoleLP biteHfFilter_;
 

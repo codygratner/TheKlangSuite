@@ -1,147 +1,16 @@
 plugin: hastur
 name: Hastur Metamorphic Bass Synthesizer
-version: 1.0.6
+version: 1.3.0
 manufacturer: CrackedChimes
+category: synth
 
 parameters:
-  # ==============================================================================
-  # BAY 1: DCO ENGINE (12 parameters)
-  # ==============================================================================
-  - id: osc1_mult
-    name: Osc 1 Strangle
-    category: dco
-    type: float
-    effect: pitch
-    range: [1.0, 32.0]
-    default: 1.0
-
-  - id: osc1_apf_pitch_track
-    name: Osc 1 Warp
-    category: dco
-    type: float
-    effect: pitch
-    range: [-2.0, 2.0]
-    default: 0.0
-
-  - id: osc1_drive
-    name: Osc 1 Melt
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: dco_bite
-    name: DCO Bite
-    category: dco
-    type: float
-    effect: timbre
-    range: [-1.0, 1.0]
-    default: 0.0
-
-  - id: sub_apf_depth
-    name: Sub Chew
-    category: dco
-    type: float
-    effect: timbre
-    range: [-2.0, 2.0]
-    default: 0.0
-
-  - id: sub_spit
-    name: Sub Spit
-    category: dco
-    type: float
-    effect: timbre
-    range: [-1.0, 1.0]
-    default: 0.0
-
-  - id: dco_morph
-    name: DCO Morph
-    category: dco
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: dco_wave_family
-    name: DCO Wave Family
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Saw', 'Pulse', 'Triangle', 'Sine']
-    default: 'Saw'
-
-  - id: dco_chopper_topo
-    name: Chopper Topology
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Off', '2x', '4x', '8x']
-    default: 'Off'
-
-  - id: sub_octave
-    name: Sub Octave
-    category: dco
-    type: choice
-    effect: pitch
-    choices: ['-2 Oct', '-1 Oct', 'Unison', '+1 Oct']
-    default: '-1 Oct'
-
-  - id: sub_pulse_train
-    name: Sub Pulse Train
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Square', '25% Pulse', '2-Burst', '3-Burst', '4-Burst']
-    default: 'Square'
-
-  - id: sub_apf_tap
-    name: Sub APF Tap
-    category: dco
-    type: choice
-    effect: timbre
-    choices: ['Off', '4-Pole', '8-Pole', '16-Pole']
-    default: 'Off'
-
-  # ==============================================================================
-  # BAY 2: STEM MIXER (4 parameters)
-  # ==============================================================================
-  - id: osc1_level
-    name: Core Level
-    category: mixer
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 1.0
-
-  - id: osc2_level
-    name: Sub Level
-    category: mixer
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.8
-
-  - id: noise_level
-    name: Noise Level
-    category: mixer
-    type: float
-    effect: rms
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: mixer_drive
-    name: Mixer Seethe
-    category: mixer
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
 
   # ==============================================================================
   # BAY 3: DUAL SVF VCF (15 parameters)
   # ==============================================================================
   - id: cutoff
+    automation_tier: 1
     name: Cutoff
     category: filter
     type: float
@@ -151,6 +20,7 @@ parameters:
     default: 1200.0
 
   - id: resonance
+    automation_tier: 1
     name: Resonance
     category: filter
     type: float
@@ -159,6 +29,7 @@ parameters:
     default: 0.0
 
   - id: filter_env_decay
+    automation_tier: 1
     name: Filter Decay
     category: filter
     type: float
@@ -168,6 +39,7 @@ parameters:
     default: 0.4
 
   - id: burble_depth
+    automation_tier: 1
     name: Burble Depth
     category: filter
     type: float
@@ -176,6 +48,7 @@ parameters:
     default: 0.0
 
   - id: laser_drive
+    automation_tier: 1
     name: Laser Slash
     category: filter
     type: float
@@ -184,6 +57,7 @@ parameters:
     default: 0.0
 
   - id: filter_warp
+    automation_tier: 1
     name: Filter Twist
     category: filter
     type: float
@@ -192,6 +66,7 @@ parameters:
     default: 0.0
 
   - id: laser_bite
+    automation_tier: 1
     name: Laser Stab
     category: filter
     type: float
@@ -200,6 +75,7 @@ parameters:
     default: 0.0
 
   - id: filter_orbit
+    automation_tier: 1
     name: Filter Orbit
     category: filter
     type: float
@@ -207,23 +83,8 @@ parameters:
     range: [-1.0, 1.0]
     default: 0.0
 
-  - id: burble_mode
-    name: Burble Mode
-    category: filter
-    type: choice
-    effect: timbre
-    choices: ['XFM', 'LFM']
-    default: 'XFM'
-
-  - id: filter_deck
-    name: Filter Deck
-    category: filter
-    type: choice
-    effect: timbre
-    choices: ['Pre-24dB', 'Dual-48dB', 'Post-24dB']
-    default: 'Pre-24dB'
-
   - id: env_depth
+    automation_tier: 1
     name: Env Depth
     category: filter
     type: float
@@ -232,6 +93,7 @@ parameters:
     default: 0.5
 
   - id: filter_velocity
+    automation_tier: 1
     name: Accent
     category: filter
     type: float
@@ -240,6 +102,7 @@ parameters:
     default: 0.0
 
   - id: keytrack
+    automation_tier: 1
     name: Key Track
     category: filter
     type: float
@@ -248,6 +111,7 @@ parameters:
     default: 0.0
 
   - id: filter_lfo_depth
+    automation_tier: 1
     name: Filter LFO Amount
     category: filter
     type: float
@@ -255,18 +119,125 @@ parameters:
     range: [0.0, 1.0]
     default: 0.0
 
-  - id: filter_lfo_dest
-    name: LFO Dest
+  - id: lfo_shape
+    automation_tier: 1
+    name: LFO Shape
     category: filter
-    type: choice
+    type: float
     effect: timbre
-    choices: ['Cutoff', 'Orbit']
-    default: 'Cutoff'
+    range: [0.0, 1.0]
+    default: 0.5
+
+  # ==============================================================================
+  # BAY 1: DCO ENGINE (12 parameters)
+  # ==============================================================================
+  - id: osc1_mult
+    automation_tier: 2
+    name: Osc 1 Strangle
+    category: dco
+    type: float
+    effect: pitch
+    range: [1.0, 32.0]
+    default: 1.0
+
+  - id: osc1_apf_pitch_track
+    automation_tier: 2
+    name: Osc 1 Warp
+    category: dco
+    type: float
+    effect: pitch
+    range: [-2.0, 2.0]
+    default: 0.0
+
+  - id: osc1_drive
+    automation_tier: 2
+    name: Osc 1 Melt
+    category: dco
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: dco_bite
+    automation_tier: 2
+    name: DCO Bite
+    category: dco
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: sub_apf_depth
+    automation_tier: 2
+    name: Sub Chew
+    category: dco
+    type: float
+    effect: timbre
+    range: [-2.0, 2.0]
+    default: 0.0
+
+  - id: sub_spit
+    automation_tier: 2
+    name: Sub Spit
+    category: dco
+    type: float
+    effect: timbre
+    range: [-1.0, 1.0]
+    default: 0.0
+
+  - id: dco_morph
+    automation_tier: 2
+    name: DCO Morph
+    category: dco
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  # ==============================================================================
+  # BAY 2: STEM MIXER (4 parameters)
+  # ==============================================================================
+  - id: osc1_level
+    automation_tier: 2
+    name: Core Level
+    category: mixer
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 1.0
+
+  - id: osc2_level
+    automation_tier: 2
+    name: Sub Level
+    category: mixer
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.8
+
+  - id: noise_level
+    automation_tier: 2
+    name: Noise Level
+    category: mixer
+    type: float
+    effect: rms
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: mixer_drive
+    automation_tier: 2
+    name: Mixer Seethe
+    category: mixer
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
 
   # ==============================================================================
   # BAY 4: LFO & GLIDE (10 parameters)
   # ==============================================================================
   - id: lfo_rate
+    automation_tier: 2
     name: LFO Rate
     category: mod
     type: float
@@ -276,6 +247,7 @@ parameters:
     default: 2.5
 
   - id: glide_time
+    automation_tier: 2
     name: Glide Time
     category: mod
     type: float
@@ -284,39 +256,8 @@ parameters:
     skew: 0.3
     default: 0.005
 
-  - id: glide_mode
-    name: Glide Mode
-    category: mod
-    type: choice
-    effect: pitch
-    choices: ['On', 'Legato']
-    default: 'On'
-
-  - id: lfo_wave
-    name: LFO Waveform
-    category: filter
-    type: choice
-    effect: timbre
-    choices: ['Saw/Tri', 'Pulse', 'Sine', 'Random']
-    default: 'Saw/Tri'
-
-  - id: lfo_shape
-    name: LFO Shape
-    category: filter
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.5
-
-  - id: lfo_sync
-    name: LFO Sync
-    category: filter
-    type: choice
-    effect: timbre
-    choices: ['Free', 'Reset']
-    default: 'Free'
-
   - id: pw_lfo_amount
+    automation_tier: 2
     name: Morph LFO Amount
     category: mod
     type: float
@@ -325,6 +266,7 @@ parameters:
     default: 0.0
 
   - id: pw_lfo_rate
+    automation_tier: 2
     name: Morph LFO Rate
     category: mod
     type: float
@@ -333,15 +275,8 @@ parameters:
     skew: 0.35
     default: 0.85
 
-  - id: mod_a_source
-    name: FM Source
-    category: matrix
-    type: choice
-    effect: timbre
-    choices: ['Raw', 'Core', 'Noise']
-    default: 'Raw'
-
   - id: mod_a_amount
+    automation_tier: 2
     name: FM Amount
     category: matrix
     type: float
@@ -349,15 +284,8 @@ parameters:
     range: [-1.0, 1.0]
     default: 0.0
 
-  - id: mod_b_source
-    name: AM Source
-    category: matrix
-    type: choice
-    effect: timbre
-    choices: ['Raw', 'Core', 'Sub']
-    default: 'Sub'
-
   - id: mod_b_amount
+    automation_tier: 2
     name: AM Amount
     category: matrix
     type: float
@@ -365,93 +293,8 @@ parameters:
     range: [0.0, 1.0]
     default: 0.0
 
-  # ==============================================================================
-  # ==============================================================================
-  # BAY 4: STEPPED RANDOM MODULATION MATRIX (9 parameters)
-  # ==============================================================================
-  - id: rand_core_warp
-    name: Core Warp
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_core_bite
-    name: Core Bite
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_core_melt
-    name: Core Melt
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_raw_strangle
-    name: Strangle
-    category: random
-    type: float
-    effect: pitch
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_sub_chew
-    name: Sub Chew
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_sub_spit
-    name: Sub Spit
-    category: random
-    type: float
-    effect: timbre
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_filter_twist
-    name: Twist
-    category: random
-    type: float
-    effect: filter
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_filter_stab
-    name: Stab
-    category: random
-    type: float
-    effect: filter
-    range: [0.0, 1.0]
-    default: 0.0
-
-  - id: rand_filter_orbit
-    name: Orbit
-    category: random
-    type: float
-    effect: pan
-    range: [0.0, 1.0]
-    default: 0.0
-
-  # BAY 5: VCA & TRANSIENTS (8 parameters)
-  # ==============================================================================
-  - id: amp_gate_mode
-    name: Gate Mode
-    category: vca
-    type: choice
-    effect: rms
-    choices: ['Envelope', 'Gate', 'Drone']
-    default: 'Envelope'
-
   - id: amp_env_snap
+    automation_tier: 2
     name: Amp Snap
     category: vca
     type: float
@@ -461,6 +304,7 @@ parameters:
     default: 0.0015
 
   - id: amp_env_decay
+    automation_tier: 2
     name: Amp Plunge
     category: vca
     type: float
@@ -470,6 +314,7 @@ parameters:
     default: 0.35
 
   - id: pitch_punch_depth
+    automation_tier: 2
     name: Pitch Punch Depth
     category: vca
     type: float
@@ -478,6 +323,7 @@ parameters:
     default: 0.0
 
   - id: pitch_punch_time
+    automation_tier: 2
     name: Pitch Punch Time
     category: vca
     type: float
@@ -487,6 +333,7 @@ parameters:
     default: 0.02
 
   - id: amp_env_sustain
+    automation_tier: 2
     name: Amp Sustain
     category: vca
     type: float
@@ -495,6 +342,7 @@ parameters:
     default: 0.5
 
   - id: amp_env_release
+    automation_tier: 2
     name: Amp Release
     category: vca
     type: float
@@ -504,6 +352,7 @@ parameters:
     default: 0.1
 
   - id: amp_velocity
+    automation_tier: 2
     name: Amp Velocity
     category: vca
     type: float
@@ -515,6 +364,7 @@ parameters:
   # BAY 6: MASTER OUTPUT (6 parameters)
   # ==============================================================================
   - id: osc_slop
+    automation_tier: 2
     name: Osc Slop
     category: master
     type: float
@@ -523,6 +373,7 @@ parameters:
     default: 0.0
 
   - id: post_amp_drive
+    automation_tier: 2
     name: Post Amp Drive
     category: master
     type: float
@@ -531,6 +382,7 @@ parameters:
     default: 0.0
 
   - id: alpha_chorus
+    automation_tier: 2
     name: Analog Chorus
     category: master
     type: float
@@ -539,6 +391,7 @@ parameters:
     default: 0.0
 
   - id: global_width
+    automation_tier: 2
     name: Stereo Width
     category: master
     type: float
@@ -547,37 +400,29 @@ parameters:
     default: 0.0
 
   - id: output_level
+    automation_tier: 2
     name: Master Volume
+    short: VOLUME
     category: master
     type: float
     effect: rms
     range: [0.0, 1.0]
-    default: 0.80
-
-  - id: life_mode
-    name: Life Mode
-    category: master
-    type: choice
-    effect: timbre
-    choices: ['Synthetic', 'Cyborg', 'Organic']
-    default: 'Organic'
-  - id: trigger_mode
-    name: Voice Trigger Mode
-    category: master
-    type: choice
-    effect: timbre
-    choices: ['Retrig', 'Legato', 'Auto']
-    default: 'Auto'
+    default: 0.5
+    unit: dB
 
   - id: pitch_bend_range
+    automation_tier: 2
     name: Pitch Bend Range
     category: master
     type: float
     effect: pitch
     range: [0.0, 24.0]
+    step: 1.0
     default: 2.0
+    unit: st
 
   - id: vibrato_rate
+    automation_tier: 2
     name: Vibrato Rate
     category: master
     type: float
@@ -587,9 +432,242 @@ parameters:
     default: 5.5
 
   - id: vibrato_depth
+    automation_tier: 2
     name: Vibrato Depth
     category: master
     type: float
     effect: pitch
     range: [0.0, 1.0]
     default: 0.0
+
+  # ==============================================================================
+  # ==============================================================================
+  # BAY 4: STEPPED RANDOM MODULATION MATRIX (9 parameters)
+  # ==============================================================================
+  - id: rand_core_warp
+    automation_tier: 3
+    name: Core Warp
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_core_bite
+    automation_tier: 3
+    name: Core Bite
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_core_melt
+    automation_tier: 3
+    name: Core Melt
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_raw_strangle
+    automation_tier: 3
+    name: Strangle
+    category: random
+    type: float
+    effect: pitch
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_sub_chew
+    automation_tier: 3
+    name: Sub Chew
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_sub_spit
+    automation_tier: 3
+    name: Sub Spit
+    category: random
+    type: float
+    effect: timbre
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_filter_twist
+    automation_tier: 3
+    name: Twist
+    category: random
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_filter_stab
+    automation_tier: 3
+    name: Stab
+    category: random
+    type: float
+    effect: filter
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: rand_filter_orbit
+    automation_tier: 3
+    name: Orbit
+    category: random
+    type: float
+    effect: pan
+    range: [0.0, 1.0]
+    default: 0.0
+
+  - id: dco_wave_family
+    automation_tier: 4
+    name: DCO Wave Family
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Saw', 'Pulse', 'Triangle', 'Sine']
+    default: 'Saw'
+
+  - id: dco_chopper_topo
+    automation_tier: 4
+    name: Chopper Topology
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Off', '2x', '4x', '8x']
+    default: 'Off'
+
+  - id: sub_octave
+    automation_tier: 4
+    name: Sub Octave
+    category: dco
+    type: choice
+    effect: pitch
+    choices: ['-2 Oct', '-1 Oct', 'Unison', '+1 Oct']
+    default: '-1 Oct'
+
+  - id: sub_pulse_train
+    automation_tier: 4
+    name: Sub Pulse Train
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Square', '25% Pulse', '2-Burst', '3-Burst', '4-Burst']
+    default: 'Square'
+
+  - id: sub_apf_tap
+    automation_tier: 4
+    name: Sub APF Tap
+    category: dco
+    type: choice
+    effect: timbre
+    choices: ['Off', '4-Pole', '8-Pole', '16-Pole']
+    default: 'Off'
+
+  - id: burble_mode
+    automation_tier: 4
+    name: Burble Mode
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['XFM', 'LFM']
+    default: 'XFM'
+
+  - id: filter_deck
+    automation_tier: 4
+    name: Filter Deck
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Pre-24dB', 'Dual-48dB', 'Post-24dB']
+    default: 'Pre-24dB'
+
+  - id: filter_lfo_dest
+    automation_tier: 4
+    name: LFO Dest
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Cutoff', 'Orbit']
+    default: 'Cutoff'
+
+  - id: glide_mode
+    automation_tier: 4
+    name: Glide Mode
+    category: mod
+    type: choice
+    effect: pitch
+    choices: ['On', 'Legato']
+    default: 'On'
+
+  - id: lfo_wave
+    automation_tier: 4
+    name: LFO Waveform
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Saw/Tri', 'Pulse', 'Sine', 'Random']
+    default: 'Saw/Tri'
+
+  - id: lfo_sync
+    automation_tier: 4
+    name: LFO Sync
+    category: filter
+    type: choice
+    effect: timbre
+    choices: ['Free', 'Reset']
+    default: 'Free'
+
+  - id: mod_a_source
+    automation_tier: 4
+    name: FM Source
+    category: matrix
+    type: choice
+    effect: timbre
+    choices: ['Raw', 'Core', 'Noise']
+    default: 'Raw'
+
+  - id: mod_b_source
+    automation_tier: 4
+    name: AM Source
+    category: matrix
+    type: choice
+    effect: timbre
+    choices: ['Raw', 'Core', 'Sub']
+    default: 'Sub'
+
+  # BAY 5: VCA & TRANSIENTS (8 parameters)
+  # ==============================================================================
+  - id: amp_gate_mode
+    automation_tier: 4
+    name: Gate Mode
+    category: vca
+    type: choice
+    effect: rms
+    choices: ['Envelope', 'Gate', 'Drone']
+    default: 'Envelope'
+
+  - id: life_mode
+    automation_tier: 4
+    name: Life Mode
+    category: master
+    type: choice
+    effect: timbre
+    choices: ['Synthetic', 'Cyborg', 'Organic']
+    default: 'Organic'
+
+  - id: trigger_mode
+    automation_tier: 4
+    name: Voice Trigger Mode
+    category: master
+    type: choice
+    effect: timbre
+    choices: ['Retrig', 'Legato', 'Auto']
+    default: 'Auto'
+

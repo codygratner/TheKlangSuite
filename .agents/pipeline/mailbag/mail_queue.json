@@ -1,13 +1,13 @@
 {
   "schema_version": "1.0.0",
-  "last_scanned": "2026-11-02T05:42:17.526176",
+  "last_scanned": "2026-11-08T05:36:15.971607",
   "total_items": 38,
   "p0_count": 0,
   "items": [
     {
       "id": "ramble-loop-34_multi-machine_engines_mme_venti_suite-1",
       "title": "🎙️ [TT] # 🥁 LOOP-34: Multi-Machine Engines (MME) Venti 32-Control",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P1",
       "status": "PENDING",
       "tags": [
@@ -58,7 +58,7 @@
     {
       "id": "ramble-loop-34_multi-machine_engines_mme_venti_suite-2",
       "title": "🎙️ [TT] > Status: Tabled on Active Open Loop (SSoT: LOOP-34 in",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P1",
       "status": "PENDING",
       "tags": [
@@ -110,7 +110,7 @@
     {
       "id": "ramble-loop-34_multi-machine_engines_mme_venti_suite-3",
       "title": "🎙️ [TBD-16] Inverts drum synthesis taxonomy from Hardware Chassis",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P1",
       "status": "PENDING",
       "tags": [
@@ -162,7 +162,7 @@
     {
       "id": "ramble-universal_engine__wrapper_architecture_4-tier_sizing__relic_ingestion-1",
       "title": "🎙️ [NK] # ☕ Universal Engine & Wrapper Architecture (TSE / TT / The",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P1",
       "status": "PENDING",
       "tags": [
@@ -214,7 +214,7 @@
     {
       "id": "ramble-universal_engine__wrapper_architecture_4-tier_sizing__relic_ingestion-2",
       "title": "🎙️ [TKS] ## 1.",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P1",
       "status": "PENDING",
       "tags": [
@@ -266,7 +266,7 @@
     {
       "id": "ramble-universal_engine__wrapper_architecture_4-tier_sizing__relic_ingestion-3",
       "title": "🎙️ [TKS] FX & Oscillator Catalog Expansion Wishlist",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P1",
       "status": "PENDING",
       "tags": [
@@ -374,7 +374,7 @@
     {
       "id": "ramble-slivers-1",
       "title": "🎙️ [NK] Not sure how to go about this.",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -424,7 +424,7 @@
     {
       "id": "ramble-slivers-2",
       "title": "🎙️ [TKS] We have TSE and TT that basically share a preset system.",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -475,7 +475,7 @@
     {
       "id": "ramble-slivers-3",
       "title": "🎙️ [TT] - Short - 8 total controls - Probably best for clean room",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -525,7 +525,7 @@
     {
       "id": "ramble-husband_birfday_gift-1",
       "title": "🎙️ [NK] - Stone earplugs.",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -575,7 +575,7 @@
     {
       "id": "ramble-could_tt_run_in_a_browser-1",
       "title": "🎙️ [NK] Like a PWA type thing?",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -625,7 +625,7 @@
     {
       "id": "ramble-user_manuals-1",
       "title": "🎙️ [NK] Can we maintain two different user manuals for each product",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -675,7 +675,7 @@
     {
       "id": "ramble-user_manuals-2",
       "title": "🎙️ [TT] - a user manual that's written in the style of all the user",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -726,7 +726,7 @@
     {
       "id": "ramble-m8_randomness-1",
       "title": "🎙️ [TT] Another response from gemini, this time on m8 randomness:",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -776,7 +776,7 @@
     {
       "id": "ramble-m8_randomness-2",
       "title": "🎙️ [TT] <systemdirective> <objective> Replicate the Dirtywave M8's",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -826,7 +826,7 @@
     {
       "id": "ramble-m8_randomness-3",
       "title": "🎙️ [TT] <m8prnganalysis> <context> The M8 operates on a Teensy 4.1.",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -876,7 +876,7 @@
     {
       "id": "ramble-tracks_to_train_on-1",
       "title": "🎙️ [TT] I asked Gemini for help on what songs to train on for TT",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -926,7 +926,7 @@
     {
       "id": "ramble-tracks_to_train_on-2",
       "title": "🎙️ [TT] <systemdirective> <objective> Establish an exhaustive,",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -976,7 +976,7 @@
     {
       "id": "ramble-tracks_to_train_on-3",
       "title": "🎙️ [TT] <datasetoverview> <description> The Renoise .xrns files are",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -1027,7 +1027,7 @@
     {
       "id": "ramble-gear_scout_alerts-1",
       "title": "🎙️ [NK] # 📡 Gear Scout Radar Alerts Last scanned: 2026-10-19 21:56",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -1077,7 +1077,7 @@
     {
       "id": "ramble-gear_scout_alerts-2",
       "title": "🎙️ [TKS] - Zynthian &rarr; Zynthian Vangelis: open synth platform",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -1128,7 +1128,7 @@
     {
       "id": "ramble-gear_scout_alerts-3",
       "title": "🎙️ [TKS] - Zynthian &rarr; Zynthian Vangelis: open synth platform",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [
@@ -1179,7 +1179,7 @@
     {
       "id": "ramble-drow_chatbots-1",
       "title": "🎙️ [NK] - bari and meero should both have access to the",
-      "created_at": "2026-11-02",
+      "created_at": "2026-11-08",
       "priority": "P2",
       "status": "PENDING",
       "tags": [

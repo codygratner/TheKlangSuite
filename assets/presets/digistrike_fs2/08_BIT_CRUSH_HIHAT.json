@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "12-Bit Stepped Hat",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 7.0,
+    "lineage": 7.0,
+    "macro_x": 0.45,
+    "macro_y": 0.8,
+    "cutoff": 14000.0,
+    "decay": 0.2,
+    "crush": 0.5
+  }
+}

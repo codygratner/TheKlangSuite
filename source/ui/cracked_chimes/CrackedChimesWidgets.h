@@ -18,6 +18,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "CrackedChimesColours.h"
 #include "CrackedChimesModMath.h"
+#include "CrackedChimesFader.h"
 #include <vector>
 #include <array>
 #include <memory>
@@ -237,6 +238,17 @@ namespace WaveUI
 
 // Global compatibility alias
 namespace HasturWaveUI = WaveUI;
+
+// ==============================================================================
+// CrackedChimesFaderItem: Compound Vertical Fader with Top Label & APVTS Binding
+// ==============================================================================
+struct CrackedChimesFaderItem
+{
+    CrackedChimesFader slider;
+    juce::Label label;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
+};
+using FaderItem = CrackedChimesFaderItem;
 
 // ==============================================================================
 // DiscreteParamAttachment: SOTA RAII Discrete Parameter Attachment

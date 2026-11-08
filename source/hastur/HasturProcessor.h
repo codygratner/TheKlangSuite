@@ -6,6 +6,7 @@
 #include "../FastMath.h"
 #include <atomic>
 #include <array>
+#include <bitset>
 
 class HasturAudioProcessor : public juce::AudioProcessor {
 public:
@@ -44,6 +45,13 @@ public:
     [[nodiscard]] float getStepRandAtomic(int i) const noexcept {
         return voice_.getStepRandAtomic(i);
     }
+
+    [[nodiscard]] float getFilterEnvAtomic() const noexcept { return voice_.getFilterEnvAtomic(); }
+    [[nodiscard]] float getGlobalLfoAtomic() const noexcept { return voice_.getGlobalLfoAtomic(); }
+    [[nodiscard]] float getPwLfoAtomic() const noexcept { return voice_.getPwLfoAtomic(); }
+    [[nodiscard]] float getBurbleAtomic() const noexcept { return voice_.getBurbleAtomic(); }
+    [[nodiscard]] float getModAFmAtomic() const noexcept { return voice_.getModAFmAtomic(); }
+    [[nodiscard]] float getModBAmAtomic() const noexcept { return voice_.getModBAmAtomic(); }
 
     std::atomic<int> uiLfoRateMode_{0};
     void setUiLfoRateMode(int mode) noexcept { uiLfoRateMode_.store(mode, std::memory_order_relaxed); }
@@ -147,6 +155,10 @@ private:
     std::atomic<float>* vibratoDepthParam_{nullptr};
 
     float pitchBendNorm_{0.0f};
+    std::bitset<128> sustainedNotes_{0};
+    bool sustainPedalDown_{false};
+    bool sleepActive_{false};
+    int sleepHangoverSamples_{0};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HasturAudioProcessor)
 };

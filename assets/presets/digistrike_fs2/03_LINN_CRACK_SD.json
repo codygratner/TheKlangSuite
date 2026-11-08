@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "LinnDrum Gated Snare",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 2.0,
+    "lineage": 2.0,
+    "macro_x": 0.5,
+    "macro_y": 0.7,
+    "cutoff": 15000.0,
+    "decay": 0.5,
+    "crush": 0.15
+  }
+}

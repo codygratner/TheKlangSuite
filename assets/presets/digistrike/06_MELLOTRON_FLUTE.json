@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "Vintage Tape Transient",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 5.0,
+    "lineage": 5.0,
+    "macro_x": 0.35,
+    "macro_y": 0.5,
+    "cutoff": 12000.0,
+    "decay": 0.8,
+    "crush": 0.1
+  }
+}

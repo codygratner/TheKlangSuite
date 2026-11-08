@@ -15,6 +15,9 @@
 
 namespace tkdsp {
 
+// evalOrganicTube defined in FormlessModMath.h
+using formless::evalOrganicTube;
+
 namespace FastMath = TbdAudio::FastMath;
 
 struct FormlessSpawnParams {
@@ -253,6 +256,8 @@ public:
         kGateRelease10ms_ = FastMath::fastExp(-invSampleRate_ / 0.010f);
         ampSmoothAlpha_ = 1.0f - std::exp(-invSampleRate_ * 16.0f / 0.003f);
         wireBloomAlpha_ = 1.0f - std::exp(-invSampleRate_ / 0.0004f);
+        cyborgChargeDecay_ = std::exp(-invSampleRate_ / 0.000450f); // 450us rail pulse
+        thumpDecay_ = std::exp(-invSampleRate_ / 0.0026f);          // 2.6ms punch thump
 
         reset();
     }
@@ -450,6 +455,16 @@ public:
             masterGainInit_ = true;
         }
 
+        // Zero-CPU Idle Block Bypass: Bit-exact silence when voice is dormant
+        const bool isVoiceIdle = !slotA_.active && !slotB_.active && (fadeRemaining_ <= 0)
+                              && (masterAmpEnv_ <= 0.0f) && (cyborgBleedEnv_ <= 0.0f);
+        if (isVoiceIdle) {
+            masterGain_ = masterGainTarget_;
+            std::fill_n(outL, numSamples, 0.0f);
+            std::fill_n(outR, numSamples, 0.0f);
+            return;
+        }
+
         for (int i = 0; i < numSamples; ++i) {
             ++sampleCounter_;
             if (--blockCounter_ <= 0) {
@@ -548,9 +563,9 @@ private:
 
         // Equal-Power Sinusoidal Pan Law (L^2 + R^2 == 1.0) with Stepped Randomization
         const float effPan = std::clamp(p.pan + (slot.randVal[6] - 0.5f) * 2.0f * slot.randAmt[6], -1.0f, 1.0f);
-        const float initAngle = (effPan + 1.0f) * 0.25f * 3.14159265358979323846f;
-        slot.panL = std::cos(initAngle);
-        slot.panR = std::sin(initAngle);
+        const float normPanPhase = (effPan + 1.0f) * 0.125f;
+        slot.panL = FastMath::fastCosNorm(normPanPhase);
+        slot.panR = FastMath::fastSinNorm(normPanPhase);
 
         // Role-Masked Pitch Sweep & Transient Snap (Knob C isolation)
         switch (slot.role) {
@@ -690,6 +705,7 @@ private:
         const float eB = slot.eB;
         const float eC = slot.eC;
         const float eD = slot.eD;
+        (void)eD;
         const float eE = slot.eE;
         const float eF = slot.eF;
         const float eG = slot.eG;
@@ -832,7 +848,8 @@ private:
 
             case 1: { // SD (Snare Drum)
                 float n = nextRandBipolar();
-                const float shellRatio = (0.85f + eA * 0.30f);
+                // Consistent shellRatio: 0.5 = 1.0x bit-exact unity, +/-12 semitones
+                const float shellRatio = FastMath::fastPow2((eA - 0.5f) * 2.0f);
                 switch (slot.model) {
                     case 0: { // ANLG-9: Dual bridged-T analog tone + snappy noise
                         float t1 = FastMath::fastSinNorm(slot.phase);
@@ -1044,7 +1061,12 @@ private:
             case 4: { // HH (Hi-Hats)
                 constexpr float kRatios[6] = { 1.0f, 1.342f, 1.741f, 2.235f, 2.871f, 3.897f };
                 float metalSum = 0.0f;
-                const float clusterSpread = (0.5f + eA);
+                // Wire Knob C (METRIC): +/- 0.30 cluster skew around noon (0.5 = 0.0 identity)
+                const float metricSkew = (eC - 0.5f) * 0.60f;
+                const float clusterSpread = (0.5f + eA) * (1.0f + metricSkew);
+                // Wire Knob B (CHOKE): 0.5 = 1.0x identity, >0.5 faster choke, <0.5 longer ring
+                const float chokeMult = FastMath::fastPow2((eB - 0.5f) * 3.0f);
+                slot.ampDecayFactor = std::clamp(std::pow(slot.ampDecayFactor, chokeMult), 0.90f, 0.99999f);
                 const float clusterBaseHz = curFreq * (1.8f + eF * 1.4f);
                 for (int m = 0; m < 6; ++m) {
                     slot.clusterPhases[m] += std::clamp(clusterBaseHz * (1.0f + (kRatios[m] - 1.0f) * clusterSpread), 20.0f, nyquist_) * invSampleRate_;
@@ -1122,6 +1144,12 @@ private:
             case 5: { // CY (Cymbals)
                 constexpr float kCyRatios[6] = { 1.0f, 1.34f, 1.71f, 2.22f, 2.87f, 3.45f };
                 float cyMetal = 0.0f;
+                // Wire Knob C (DAMP): 0.5 = 1.0x identity, >0.5 heavy damping, <0.5 extended ring
+                const float dampMult = FastMath::fastPow2((eC - 0.5f) * 2.5f);
+                slot.ampDecayFactor = std::clamp(std::pow(slot.ampDecayFactor, dampMult), 0.90f, 0.99999f);
+                // Wire Knob B (SHIMMER): 0.5 = 0.0 identity, >0.5 adds metallic tremolo shimmer
+                const float shimmerDepth = std::max(0.0f, (eB - 0.5f) * 2.0f);
+                const float shimmerMod = 1.0f + shimmerDepth * 0.25f * FastMath::fastSinNorm(static_cast<float>(sampleCounter_) * invSampleRate_ * 14.0f);
                 const float cySpread = (0.5f + eA);
                 const float cyBaseHz = curFreq * (1.5f + eF * 0.8f);
                 for (int m = 0; m < 6; ++m) {
@@ -1195,6 +1223,7 @@ private:
                         break;
                     }
                 }
+                oscOut *= shimmerMod;
                 break;
             }
 
@@ -1347,16 +1376,23 @@ private:
                 // CYBORG: Radioactive Geiger bitburst + 20us charge-injection spike (calibrated headroom)
                 const float bitBurst = ((slot.exciterRng & 0x01) ? 1.0f : -1.0f) * slot.clickEnv * (eE * 1.35f);
                 exciterImpulse = bitBurst + cyborgChargeSpike_ * (eE * 0.85f);
-                cyborgChargeSpike_ *= 0.95f;
+                cyborgChargeSpike_ *= cyborgChargeDecay_;
             } else if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {
-                // ORGANIC: Felt/Wood beater compliance slew with velocity hardness (Tekno Law)
-                const float cosClick = FastMath::fastCosNorm(slot.clickPhase);
-                slot.clickPhase += 7000.0f * invSampleRate_;
-                if (slot.clickPhase >= 1.0f) slot.clickPhase -= 1.0f;
-                const float rawClick = (0.6f * cosClick + 0.4f * rngFlt) * slot.clickEnv * (eE * 2.5f);
-                const float beaterSlew = std::clamp(0.04f + 0.25f * velForce * velForce, 0.02f, 0.40f);
-                slot.beaterState += beaterSlew * (rawClick - slot.beaterState);
-                exciterImpulse = slot.beaterState * (1.0f + slot.residualMem * 0.25f);
+                // ORGANIC: Role-aware transient exciter (9.5kHz bronze stick strike on metal, felt slew on skins)
+                if (slot.role == 4 || slot.role == 5) {
+                    const float cosClick = FastMath::fastCosNorm(slot.clickPhase);
+                    slot.clickPhase += 9500.0f * invSampleRate_;
+                    if (slot.clickPhase >= 1.0f) slot.clickPhase -= 1.0f;
+                    exciterImpulse = (0.75f * cosClick + 0.25f * rngFlt) * slot.clickEnv * (eE * 2.5f);
+                } else {
+                    const float cosClick = FastMath::fastCosNorm(slot.clickPhase);
+                    slot.clickPhase += 7000.0f * invSampleRate_;
+                    if (slot.clickPhase >= 1.0f) slot.clickPhase -= 1.0f;
+                    const float rawClick = (0.6f * cosClick + 0.4f * rngFlt) * slot.clickEnv * (eE * 2.5f);
+                    const float beaterSlew = std::clamp(0.04f + 0.25f * velForce * velForce, 0.02f, 0.40f);
+                    slot.beaterState += beaterSlew * (rawClick - slot.beaterState);
+                    exciterImpulse = slot.beaterState * (1.0f + slot.residualMem * 0.25f);
+                }
             } else {
                 // SYNTHETIC: Pure PolyBLEP-aligned click & snap
                 const float cosClick = FastMath::fastCosNorm(slot.clickPhase);
@@ -1368,7 +1404,7 @@ private:
 
         // 5. Low-End Resonant Punch Thump (Knob H - Gated to BD, SD, TM, PC)
         float punchThump = 0.0f;
-        const bool allowsThump = (activeRole_ == 0 || activeRole_ == 1 || activeRole_ == 2 || activeRole_ == 6);
+        const bool allowsThump = (slot.role == 0 || slot.role == 1 || slot.role == 2 || slot.role == 6);
         if (allowsThump && eH > 0.01f && slot.thumpEnv > 0.001f) {
             const float thumpFreq = 45.0f + (1.0f - eH) * 35.0f; // 45..80 Hz
             slot.thumpPhase += thumpFreq * invSampleRate_;
@@ -1382,16 +1418,17 @@ private:
                 // 50% pure fundamental sub anchor + 50% aggressive diode edge
                 punchThump = (0.50f * raw + 0.50f * clipped) * 1.20f;
             } else if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {
-                // ORGANIC: 12AX7 triode tube saturation (rich even harmonics)
+                // ORGANIC: 12AX7 monotonic tube saturation (rich even harmonics)
                 const float raw = sinThump * (eH * 1.6f);
-                punchThump = raw + 0.18f * (raw * raw) - 0.05f * (raw * raw * raw);
+                punchThump = evalOrganicTube(raw);
             } else {
-                // SYNTHETIC: Pure sine with 4th-order algebraic headroom
+                // SYNTHETIC: Pure sine with algebraic fastInvSqrt headroom
                 const float raw = sinThump * (eH * 1.5f);
                 const float v4 = raw * raw * raw * raw;
-                punchThump = raw / std::sqrt(std::sqrt(1.0f + 0.3164f * v4));
+                const float w = std::sqrt(1.0f + 0.3164f * v4);
+                punchThump = raw * FastMath::fastInvSqrt(w);
             }
-            slot.thumpEnv *= 0.992f;
+            slot.thumpEnv *= thumpDecay_;
         }
 
         slot.phase = origPhase; // Restore accumulator phase
@@ -1412,9 +1449,8 @@ private:
             // 3. Sub-Bass Defense Anchor: blend 35% solid diode body with 65% toxic folded grit
             saturatedAudio = 0.35f * diodeOut + 0.65f * folded;
         } else if (p.lifeMode == static_cast<int>(LifeMode::Organic)) {
-            // ORGANIC: Safe Bounded Asymmetric Triode Tube Saturation (2nd & 4th harmonics)
-            const float x = saturatedAudio * 1.20f;
-            const float yTube = (x + 0.28f * x * x) / (1.0f + 0.28f * std::abs(x));
+            // ORGANIC: Monotonic Asymmetric Triode Tube Saturation (2nd & 4th harmonics)
+            const float yTube = evalOrganicTube(saturatedAudio * 1.20f);
             const float hp = yTube - slot.organicDcBlock;
             slot.organicDcBlock += 0.00065f * hp; // 5 Hz DC decoupling
             saturatedAudio = hp;
@@ -1516,8 +1552,8 @@ private:
             // Log-Sum-Exp asymptotic split: prevents float overflow when |u| > 16
             auto adaaF1 = [](float u) noexcept -> float {
                 const float absU = std::abs(u);
-                if (absU > 16.0f) {
-                    return absU - 0.69314718f; // Asymptotic ln(cosh(u)) = |u| - ln(2)
+                if (absU > 8.0f) {
+                    return absU - 0.69314718056f; // Asymptotic ln(cosh(u)) = |u| - ln(2) (bit-exact in float32)
                 }
                 return std::log(std::cosh(absU));
             };
@@ -1601,7 +1637,7 @@ private:
             filtered = cyborgBusFilterState_;
         }
 
-        const float masterOut = FastMath::fastTanh(filtered * 0.95f);
+        const float masterOut = filtered * 1.35f; // +3.0 dB clean drum body makeup (unclamped)
 
         // Equal-Power Sinusoidal Panning with Smooth De-Click Crossfade Interpolation
         float gainL = active.panL;
@@ -1629,6 +1665,9 @@ private:
 
         // 4. Master Limiter (Distressor Nuke Mode Brickwall)
         drumLimiter_.process(stL, stR, p.masterLimiter);
+
+        // Transparent emergency guard: pass-through up to +30 dBFS
+        tkdsp::common::applyEmergencyGuardStereo(stL, stR);
 
         outL = stL;
         outR = stR;
@@ -1729,6 +1768,8 @@ private:
     float ampSmoothAlpha_{0.10f};
     float kGateRelease10ms_{0.998f};
     float wireBloomAlpha_{0.05f};
+    float cyborgChargeDecay_{0.96f};
+    float thumpDecay_{0.992f};
     float log2AmpDecayCoeff_{-0.001f};
     float ampDecayCoeff_{0.999f};
     float pitchDecayCoeff_{0.995f};

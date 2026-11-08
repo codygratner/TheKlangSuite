@@ -87,4 +87,41 @@ private:
     float state_{0.0f};
 };
 
+/**
+ * @brief 5 Hz 1-Pole HPF DC Blocker with first-sample priming for Cyborg diode foldback.
+ */
+class CyborgSeamDcBlocker {
+public:
+    void prepare(double sampleRate) noexcept {
+        const float fc = 5.0f;
+        const float dt = static_cast<float>(1.0 / (sampleRate > 1000.0 ? sampleRate : 44100.0));
+        const float w = 6.2831853f * fc * dt;
+        alpha_ = w / (1.0f + w);
+        reset();
+    }
+
+    void reset() noexcept {
+        state_ = 0.0f;
+        primed_ = false;
+    }
+
+    [[nodiscard]] inline float process(float x, bool isCyborg) noexcept {
+        if (!isCyborg) {
+            primed_ = false;
+            return x;
+        }
+        if (!primed_) {
+            state_ = x;
+            primed_ = true;
+        }
+        state_ += alpha_ * (x - state_);
+        return x - state_;
+    }
+
+private:
+    float alpha_{0.0007f};
+    float state_{0.0f};
+    bool primed_{false};
+};
+
 } // namespace CrackedChimes::DSP

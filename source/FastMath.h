@@ -253,6 +253,27 @@ constexpr float DB_TO_LOG2 = 0.16609640474436813f; // log2(10) / 20
 }
 
 /**
+ * @brief Fast reciprocal square root 1.0f / sqrt(x) using branchless SIMD / Newton-Raphson.
+ *        Accurate to single-precision float32 (< 0.01% error across [0.001, 1e6]).
+ */
+[[nodiscard]] inline float fastInvSqrt(float x) noexcept {
+    if (x <= 1e-12f) return 1e6f;
+#if defined(TKF_HAS_SSE)
+    __m128 vx = _mm_set_ss(x);
+    __m128 r = _mm_rsqrt_ss(vx);
+    float r0 = _mm_cvtss_f32(r);
+    return 0.5f * r0 * (3.0f - x * r0 * r0);
+#elif defined(TKF_HAS_NEON)
+    float32x4_t vx = vdupq_n_f32(x);
+    float32x4_t r = vrsqrteq_f32(vx);
+    r = vmulq_f32(r, vrsqrtsq_f32(vmulq_f32(vx, r), r));
+    return vgetq_lane_f32(r, 0);
+#else
+    return 1.0f / std::sqrt(x);
+#endif
+}
+
+/**
  * @brief 32-bit branchless integer phase accumulator for audio oscillators.
  *        Eliminates floor() and branch checks via natural 32-bit unsigned overflow.
  */

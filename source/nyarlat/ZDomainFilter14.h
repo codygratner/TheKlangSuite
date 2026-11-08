@@ -4,6 +4,8 @@
 #include <array>
 #include <algorithm>
 #include <juce_core/juce_core.h>
+#include "ZCubeCorner.h"
+#include "NyarlatZPlaneRom.h"
 #include "../FastMath.h"
 
 namespace Nyarlat {
@@ -102,10 +104,11 @@ struct BiquadTDF2Stereo {
     }
 };
 
-// Branchless Padé soft-knee inter-stage limiter: clamps to [-2.0, +2.0]
+// Branchless Padé rational tanh inter-stage limiter clamped to [-3.0, +3.0]
 static inline float softLimit(float v) noexcept {
-    const float c = std::max(-2.0f, std::min(2.0f, v));
-    return c - (c * c * c) * (1.0f / 12.0f);
+    const float x = juce::jlimit(-3.0f, 3.0f, v);
+    const float x2 = x * x;
+    return x * (27.0f + x2) / (27.0f + 9.0f * x2);
 }
 
 // Exact rational quadratic peak power solver for H(z) = (b0 + b1 z^-1 + b2 z^-2)/(1 + a1 z^-1 + a2 z^-2)
@@ -171,25 +174,6 @@ struct BiquadTDF2 {
     }
 };
 
-// Represents one corner in the 8-vertex 3D parameter cube
-struct ZCubeCorner {
-    struct Section {
-        float pole_rho;   // 0.0 .. 0.995 (strictly < 1.0)
-        float pole_theta; // 0.0 .. pi (frequency in radians)
-        float zero_rho;   // 0.0 .. 1.0
-        float zero_theta; // 0.0 .. pi
-    };
-    std::array<Section, 7> sections;
-    float gain_db = 0.0f; // Passband gain correction
-};
-
-// A complete 14-pole Z-Plane model (8 corners defining 3D parameter cube)
-struct ZFilterModel {
-    const char* name;
-    std::array<ZCubeCorner, 8> corners;
-    float modelNorm = 0.35f; // Headroom normalization factor
-};
-
 class ZDomainFilter14 {
 public:
     static constexpr int kNumSections = 7;
@@ -203,17 +187,34 @@ public:
 
     void reset() noexcept {
         for (auto& s : stages_) s.reset();
+        activeStages_ = kNumSections;
         lastModel_ = -1;
         lastX_ = -1.0f; lastY_ = -1.0f; lastZ_ = -1.0f;
     }
 
+    int getActiveStages() const noexcept { return activeStages_; }
+
     // Evaluate 3D Trilinear interpolation across active model's 8 corners
     // X = Freq (0..1), Y = Morph (0..1), Z = Transform (0..1)
     void updateCube(int modelIdx, float xNorm, float yNorm, float zNorm, float invSteps = (1.0f / 64.0f)) noexcept {
-        modelIdx = juce::jlimit(0, 19, modelIdx);
+        modelIdx = juce::jlimit(0, ZPlaneRom::kNumModels - 1, modelIdx);
         if (modelIdx == lastModel_ && xNorm == lastX_ && yNorm == lastY_ && zNorm == lastZ_) return;
         lastModel_ = modelIdx; lastX_ = xNorm; lastY_ = yNorm; lastZ_ = zNorm;
-        const auto& model = getSharedModels()[modelIdx];
+        const auto& model = ZPlaneRom::getModel(modelIdx);
+
+        const int targetStages = juce::jlimit(1, kNumSections, static_cast<int>(model.activeStages));
+
+        // Zero internal states of deactivated stages to prevent stale resonant clicks (Red Team S1 Defense)
+        if (targetStages < activeStages_) {
+            for (int s = targetStages; s < activeStages_; ++s) {
+                stages_[s].reset();
+            }
+        }
+        // Set bypassed stages to identity pass-through
+        for (int s = targetStages; s < kNumSections; ++s) {
+            stages_[s].setTargetWithRamp(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, invSteps);
+        }
+        activeStages_ = targetStages;
 
         float cx = juce::jlimit(0.0f, 1.0f, xNorm);
         float cy = juce::jlimit(0.0f, 1.0f, yNorm);
@@ -229,7 +230,7 @@ public:
         float w6 = (1.0f - cx) * cy * cz;
         float w7 = cx * cy * cz;
 
-        for (int s = 0; s < kNumSections; ++s) {
+        for (int s = 0; s < activeStages_; ++s) {
             float pr = 0.0f, pt = 0.0f, zr = 0.0f, zt = 0.0f;
             const auto& c = model.corners;
 
@@ -284,7 +285,7 @@ public:
     }
 
     void sanitize() noexcept {
-        for (int s = 0; s < kNumSections; ++s) {
+        for (int s = 0; s < activeStages_; ++s) {
             auto& st = stages_[s];
             if (!std::isfinite(st.s1L + st.s1R + st.s2L + st.s2R) ||
                 std::abs(st.s1L) > 1e4f || std::abs(st.s1R) > 1e4f ||
@@ -297,12 +298,16 @@ public:
     inline void processStereo(float& left, float& right) noexcept {
         float l = left;
         float r = right;
+        const int lim1 = std::min(2, activeStages_ - 1);
+        const int lim2 = activeStages_ - 1;
 
-        for (int s = 0; s < kNumSections; ++s) {
+        for (int s = 0; s < activeStages_; ++s) {
             stages_[s].stepRamp();
             stages_[s].process(l, r);
-            l = softLimit(l);
-            r = softLimit(r);
+            if (s == lim1 || s == lim2) {
+                l = softLimit(l);
+                r = softLimit(r);
+            }
         }
 
         left = l * activeModelNorm_;
@@ -310,44 +315,9 @@ public:
     }
 
 private:
-    static const std::array<ZFilterModel, 20>& getSharedModels() {
-        static const auto sharedModels = []() {
-            std::array<ZFilterModel, 20> mods;
-            for (int m = 0; m < 20; ++m) {
-                auto& mod = mods[m];
-                mod.modelNorm = 0.35f;
-
-                float baseF = 0.05f + static_cast<float>(m) * 0.04f;
-
-                for (int corner = 0; corner < 8; ++corner) {
-                    auto& c = mod.corners[corner];
-                    float cornerX = (corner & 1) ? 1.0f : 0.0f;
-                    float cornerY = (corner & 2) ? 1.0f : 0.0f;
-                    float cornerZ = (corner & 4) ? 1.0f : 0.0f;
-
-                    for (int s = 0; s < 7; ++s) {
-                        float sFactor = 1.0f + static_cast<float>(s) * 0.45f;
-                        float theta = (baseF * sFactor) * (1.0f + cornerX * 1.5f + cornerY * 0.8f);
-                        theta = juce::jlimit(0.01f, 3.10f, theta);
-
-                        float rho = 0.85f + cornerZ * 0.14f - static_cast<float>(s) * 0.015f;
-                        rho = juce::jlimit(0.5f, 0.995f, rho);
-
-                        c.sections[s].pole_rho = rho;
-                        c.sections[s].pole_theta = theta;
-
-                        c.sections[s].zero_rho = 0.90f - cornerZ * 0.2f;
-                        c.sections[s].zero_theta = theta * (0.85f + cornerY * 0.3f);
-                    }
-                }
-            }
-            return mods;
-        }();
-        return sharedModels;
-    }
-
     double sampleRate_ = 44100.0;
     float activeModelNorm_ = 0.35f;
+    int activeStages_ = kNumSections;
 
     int lastModel_ = -1;
     float lastX_ = -1.0f, lastY_ = -1.0f, lastZ_ = -1.0f;

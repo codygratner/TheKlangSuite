@@ -64,10 +64,14 @@ public:
         if (std::abs(widerAmount) <= 0.001f) return; // Clean bypass wire at noon (OFF)
 
         const float mid = 0.5f * (inOutL + inOutR);
-        const float fc = formless::getRoleWiderBassCutoffHz(roleIdx);
 
-        // Update crossover lowpass filter at role cutoff
-        crossoverLp_.setLowpass(fc, 0.7071f, invSampleRate_);
+        // Update crossover lowpass filter at role cutoff (cached to prevent transcendental per-sample recomputation)
+        if (roleIdx != cachedRoleIdx_ || invSampleRate_ != cachedInvSr_) {
+            cachedRoleIdx_ = roleIdx;
+            cachedInvSr_ = invSampleRate_;
+            const float fc = formless::getRoleWiderBassCutoffHz(roleIdx);
+            crossoverLp_.setLowpass(fc, 0.7071f, invSampleRate_);
+        }
         const float lowBand = crossoverLp_.process(mid);
         crossoverLp_.clampState();
 
@@ -173,6 +177,8 @@ private:
     static constexpr int kMaxDelay = 4096;
     float sampleRate_{48000.0f};
     float invSampleRate_{1.0f / 48000.0f};
+    int cachedRoleIdx_{-1};
+    float cachedInvSr_{0.0f};
 
     int delay1_{254};
     int delay2_{427};

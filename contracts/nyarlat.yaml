@@ -1,6 +1,6 @@
 plugin: nyarlat
 name: Nyarlat Additive Timbral Synthesizer
-version: 0.2.0
+version: 1.0.0
 manufacturer: Cracked Chimes
 category: synth
 parameters:

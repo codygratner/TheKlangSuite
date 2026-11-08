@@ -530,95 +530,10 @@ void HasturLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
 }
 
 void HasturLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height,
-                                         float sliderPos, float /*minSliderPos*/, float /*maxSliderPos*/,
+                                         float sliderPos, float minSliderPos, float maxSliderPos,
                                          const juce::Slider::SliderStyle style, juce::Slider& slider) {
-    const bool isBipolar = (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0);
-    const auto trackCol = slider.isColourSpecified(juce::Slider::trackColourId)
-        ? slider.findColour(juce::Slider::trackColourId) : accentColour_;
-    const auto thumbCol = slider.isColourSpecified(juce::Slider::thumbColourId)
-        ? slider.findColour(juce::Slider::thumbColourId) : accentColour_;
-
-    if (style == juce::Slider::LinearHorizontal) {
-        float trackY = static_cast<float>(y) + static_cast<float>(height) * 0.5f;
-
-        // Horizontal Track Groove
-        g.setColour(juce::Colour(0xFF0F131A));
-        g.fillRoundedRectangle(static_cast<float>(x), trackY - 3.0f, static_cast<float>(width), 6.0f, 3.0f);
-        g.setColour(juce::Colour(0xFF262D38));
-        g.drawRoundedRectangle(static_cast<float>(x), trackY - 3.0f, static_cast<float>(width), 6.0f, 3.0f, 1.0f);
-
-        // Active fill (Bipolar from midX, Unipolar from leftX)
-        float leftX = static_cast<float>(x);
-        g.setColour(trackCol.withAlpha(0.75f));
-        if (isBipolar) {
-            float zeroNorm = static_cast<float>(-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
-            float midX = leftX + zeroNorm * static_cast<float>(width);
-            if (sliderPos > midX) {
-                g.fillRoundedRectangle(midX, trackY - 2.0f, sliderPos - midX, 4.0f, 2.0f);
-            } else if (sliderPos < midX) {
-                g.fillRoundedRectangle(sliderPos, trackY - 2.0f, midX - sliderPos, 4.0f, 2.0f);
-            }
-        } else {
-            if (sliderPos > leftX) {
-                g.fillRoundedRectangle(leftX, trackY - 2.0f, sliderPos - leftX, 4.0f, 2.0f);
-            }
-        }
-
-        // Horizontal Fader Cap / Thumb
-        float capW = 12.0f;
-        float capH = static_cast<float>(height) - 4.0f;
-        auto capBounds = juce::Rectangle<float>(sliderPos - capW * 0.5f, trackY - capH * 0.5f, capW, capH);
-
-        g.setColour(juce::Colour(0xFF21262D));
-        g.fillRoundedRectangle(capBounds, 3.0f);
-        g.setColour(juce::Colour(0xFF484F58));
-        g.drawRoundedRectangle(capBounds, 3.0f, 1.0f);
-
-        // Center vertical indicator line on fader cap
-        g.setColour(thumbCol);
-        g.fillRect(sliderPos - 1.0f, capBounds.getY() + 3.0f, 2.0f, capBounds.getHeight() - 6.0f);
-        return;
-    }
-
-    // Vertical Fader (Stem Mixer)
-    auto trackX = x + width * 0.5f;
-
-    // Track Groove
-    g.setColour(juce::Colour(0xFF0F131A));
-    g.fillRoundedRectangle(trackX - 3.0f, static_cast<float>(y), 6.0f, static_cast<float>(height), 3.0f);
-    g.setColour(juce::Colour(0xFF262D38));
-    g.drawRoundedRectangle(trackX - 3.0f, static_cast<float>(y), 6.0f, static_cast<float>(height), 3.0f, 1.0f);
-
-    // Active fill
-    float bottomY = static_cast<float>(y + height);
-    g.setColour(trackCol.withAlpha(0.75f));
-    if (isBipolar) {
-        float zeroNorm = static_cast<float>(-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
-        float midY = static_cast<float>(y) + (1.0f - zeroNorm) * static_cast<float>(height);
-        if (sliderPos < midY) {
-            g.fillRoundedRectangle(trackX - 2.0f, sliderPos, 4.0f, midY - sliderPos, 2.0f);
-        } else if (sliderPos > midY) {
-            g.fillRoundedRectangle(trackX - 2.0f, midY, 4.0f, sliderPos - midY, 2.0f);
-        }
-    } else {
-        if (sliderPos < bottomY) {
-            g.fillRoundedRectangle(trackX - 2.0f, sliderPos, 4.0f, bottomY - sliderPos, 2.0f);
-        }
-    }
-
-    // Vertical Fader Cap
-    float capW = std::clamp(static_cast<float>(width) - 6.0f, 28.0f, 36.0f);
-    float capH = 14.0f;
-    auto capBounds = juce::Rectangle<float>(trackX - capW * 0.5f, sliderPos - capH * 0.5f, capW, capH);
-
-    g.setColour(juce::Colour(0xFF21262D));
-    g.fillRoundedRectangle(capBounds, 3.0f);
-    g.setColour(juce::Colour(0xFF484F58));
-    g.drawRoundedRectangle(capBounds, 3.0f, 1.0f);
-
-    // Center indicator line on fader cap
-    g.setColour(thumbCol);
-    g.fillRect(capBounds.getX() + 3.0f, sliderPos - 1.0f, capBounds.getWidth() - 6.0f, 2.0f);
+    CrackedChimes::UI::CrackedChimesLookAndFeel::drawLinearSlider(
+        g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
 }
 
 void HasturLookAndFeel::drawComboBox(juce::Graphics& g, int width, int height, bool /*isButtonDown*/,
@@ -957,11 +872,8 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     contentContainer.addAndMakeVisible(*subScope);
 
     auto formatTime = [](double sec) -> juce::String {
-        if (sec >= 1.0)
-            return juce::String::formatted("%.2f s", sec);
-        if (sec >= 0.1)
-            return juce::String::formatted("%.0f ms", sec * 1000.0);
-        return juce::String::formatted("%.1f ms", sec * 1000.0);
+        const int ms = (int)std::lround(sec * 1000.0);
+        return ms >= 1000 ? juce::String::formatted("%.1fs", sec) : juce::String::formatted("%dms", ms);
     };
 
     setupRotaryKnob(dcoMorphKnob, "dco_morph", "MORPH", HasturColours::kDco);
@@ -979,9 +891,9 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
 
     setupRotaryKnob(pwLfoRateKnob, "pw_lfo_rate", "RATE", HasturColours::kLfo);
     pwLfoRateKnob.slider.textFromValueFunction = [](double val) {
-        if (val < 1.0)
-            return juce::String::formatted("%.2f Hz", val);
-        return juce::String::formatted("%.1f Hz", val);
+        const int c = (int)std::lround(val * 100.0);
+        if (c >= 100) return juce::String::formatted("%.1fHz", val);
+        return c == 0 ? juce::String("0Hz") : juce::String::formatted(".%02dHz", c);
     };
     pwLfoRateKnob.slider.updateText();
 
@@ -1042,7 +954,8 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     setupRotaryKnob(osc1ApfKnob, "osc1_apf_pitch_track", "WARP", HasturColours::kDco);
     osc1ApfKnob.slider.setDoubleClickReturnValue(true, 0.0f);
     osc1ApfKnob.slider.textFromValueFunction = [](double val) {
-        return juce::String::formatted("%+.2f Oct", val);
+        const int i = (int)std::lround(val * 10.0);
+        return i == 0 ? juce::String("0 o") : juce::String::formatted("%+.1f o", val);
     };
     osc1ApfKnob.slider.updateText();
 
@@ -1055,7 +968,8 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     setupRotaryKnob(subApfDepthKnob, "sub_apf_depth", "CHEW", HasturColours::kSub);
     subApfDepthKnob.slider.setDoubleClickReturnValue(true, 0.0f);
     subApfDepthKnob.slider.textFromValueFunction = [](double val) {
-        return juce::String::formatted("%+.2f Oct", val);
+        const int i = (int)std::lround(val * 10.0);
+        return i == 0 ? juce::String("0 o") : juce::String::formatted("%+.1f o", val);
     };
     subApfDepthKnob.slider.updateText();
 
@@ -1261,7 +1175,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     resKnob.slider.updateText();
 
     setupRotaryKnob(envDepthKnob, "env_depth", "ENV AMT", HasturColours::kVcf);
-    envDepthKnob.slider.setDoubleClickReturnValue(true, 0.0f);
+// envDepthKnob inherits contract default from APVTS
     envDepthKnob.slider.textFromValueFunction = [](double val) {
         return juce::String::formatted("%+.0f%%", val * 100.0);
     };
@@ -1380,18 +1294,15 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
         processor_.setUiLfoRateMode(idx);
         if (idx == 0) {
             lfoRateKnob.slider.textFromValueFunction = [](double val) {
-                return juce::String::formatted("%.2f Hz", val);
+                const int c = (int)std::lround(val * 100.0);
+                return c >= 100 ? juce::String::formatted("%.1fHz", val)
+                                : (c == 0 ? juce::String("0Hz") : juce::String::formatted(".%02dHz", c));
             };
         } else {
             lfoRateKnob.slider.textFromValueFunction = [](double val) {
-                if (val < 0.25) return juce::String("4/1");
-                if (val < 0.5) return juce::String("2/1");
-                if (val < 1.0) return juce::String("1/1");
-                if (val < 2.0) return juce::String("1/2");
-                if (val < 4.0) return juce::String("1/4");
-                if (val < 8.0) return juce::String("1/8");
-                if (val < 16.0) return juce::String("1/16");
-                return juce::String("1/32");
+                const float u = std::clamp((static_cast<float>(val) - 0.05f) / (30.0f - 0.05f), 0.0f, 1.0f);
+                const int n = std::clamp(static_cast<int>(std::lround(64.0f - 63.0f * u)), 1, 64);
+                return juce::String(n) + "/16";
             };
         }
         lfoRateKnob.slider.updateText();
@@ -1500,7 +1411,8 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     setupRotaryKnob(ampPunchKnob, "pitch_punch_depth", "PUNCH", HasturColours::kVca);
     ampPunchKnob.slider.setDoubleClickReturnValue(true, 0.0);
     ampPunchKnob.slider.textFromValueFunction = [](double val) {
-        return juce::String::formatted("%.2f st", val);
+        const int i = (int)std::lround(val);
+        return i == 0 ? juce::String("0 st") : juce::String::formatted("%+d st", i);
     };
     ampPunchKnob.slider.updateText();
 
@@ -1524,7 +1436,7 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     setupRotaryKnob(pitchBendRangeKnob, "pitch_bend_range", "BEND", HasturColours::kOutput);
     pitchBendRangeKnob.slider.setDoubleClickReturnValue(true, 2.0);
     pitchBendRangeKnob.slider.textFromValueFunction = [](double val) {
-        return juce::String::formatted("%.0f st", val);
+        return juce::String::formatted("%d st", (int)std::lround(val));
     };
     pitchBendRangeKnob.slider.updateText();
 
@@ -1568,18 +1480,19 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     globalWidthKnob.slider.setDoubleClickReturnValue(true, 0.0);
     globalWidthKnob.slider.textFromValueFunction = [](double val) {
         if (std::abs(val) < 0.005)
-            return juce::String("STEREO (100%)");
+            return juce::String("Wide");
         if (val < 0.0)
-            return juce::String::formatted("MONO (%.0f%%)", -val * 100.0);
-        return juce::String::formatted("CENTER (%.0f%%)", val * 100.0);
+            return juce::String::formatted("%d%%M", (int)std::lround(-val * 100.0));
+        return juce::String::formatted("%d%%C", (int)std::lround(val * 100.0));
     };
     globalWidthKnob.slider.updateText();
 
     setupRotaryKnob(outputLevelKnob, "output_level", "VOLUME", HasturColours::kOutput);
     outputLevelKnob.slider.textFromValueFunction = [](double val) {
         const float db = tkdsp::common::evalMasterVolumeDb(static_cast<float>(val));
-        if (db <= -60.0f) return juce::String("-inf dB");
-        return juce::String::formatted("%+.1f dB", db);
+        if (db <= -60.0f) return juce::String("-inf");
+        const int d = (int)std::lround(db);
+        return d == 0 ? juce::String("0dB") : juce::String::formatted("%+ddB", d);
     };
     outputLevelKnob.slider.updateText();
 
@@ -1873,24 +1786,24 @@ void HasturAudioProcessorEditor::layoutControls() {
     dcoMorphKnob.slider.setBounds(29, 258, 64, 64);
 
     pwLfoAmountKnob.label.setBounds(99, 244, 56, 12);
-    pwLfoAmountKnob.slider.setBounds(103, 266, 48, 48); // Centered Y=290
+    pwLfoAmountKnob.slider.setBounds(101, 264, 52, 52); // Centered Y=290
 
     osc1MultKnob.label.setBounds(166, 244, 70, 12);
     osc1MultKnob.slider.setBounds(169, 258, 64, 64);
 
     // Shaper Row 2: PW Rate, Warp, Bite, Melt (Centerline Y = 384)
-    // All 4 knobs Secondary (48px)
-    pwLfoRateKnob.label.setBounds(26, 346, 52, 12);
-    pwLfoRateKnob.slider.setBounds(28, 360, 48, 48);
+    // All 4 knobs Scaled to 52px Fleet Standard (8px gaps)
+    pwLfoRateKnob.label.setBounds(26, 344, 52, 12);
+    pwLfoRateKnob.slider.setBounds(26, 358, 52, 52);
 
-    osc1ApfKnob.label.setBounds(86, 346, 52, 12);
-    osc1ApfKnob.slider.setBounds(88, 360, 48, 48);
+    osc1ApfKnob.label.setBounds(86, 344, 52, 12);
+    osc1ApfKnob.slider.setBounds(86, 358, 52, 52);
 
-    heroBiteKnob.label.setBounds(146, 346, 52, 12);
-    heroBiteKnob.slider.setBounds(148, 360, 48, 48);
+    heroBiteKnob.label.setBounds(146, 344, 52, 12);
+    heroBiteKnob.slider.setBounds(146, 358, 52, 52);
 
-    osc1DriveKnob.label.setBounds(206, 346, 52, 12);
-    osc1DriveKnob.slider.setBounds(208, 360, 48, 48);
+    osc1DriveKnob.label.setBounds(206, 344, 52, 12);
+    osc1DriveKnob.slider.setBounds(206, 358, 52, 52);
 
     // 2. Sub-Stator Scope (261x80px)
     if (subScope != nullptr) {
@@ -1987,49 +1900,49 @@ void HasturAudioProcessorEditor::layoutControls() {
     accentKnob.slider.setBounds(1035, 104, 64, 64);
 
     // --- ROW 2: SECONDARY CONTROLS & DECK (Centerline Y = 222.0) ---
-    // Pod C: Track & Orbit (Secondary 48px)
-    keyTrackKnob.label.setBounds(610, 184, 56, 12);
-    keyTrackKnob.slider.setBounds(614, 198, 48, 48);
+    // Pod C: Track & Orbit (Scaled to 52px)
+    keyTrackKnob.label.setBounds(612, 182, 52, 12);
+    keyTrackKnob.slider.setBounds(612, 196, 52, 52);
 
-    filterOrbitKnob.label.setBounds(678, 184, 56, 12);
-    filterOrbitKnob.slider.setBounds(682, 198, 48, 48);
+    filterOrbitKnob.label.setBounds(680, 182, 52, 12);
+    filterOrbitKnob.slider.setBounds(680, 196, 52, 52);
 
     // Pod D: Filter Deck Grid (Format 2: 56px height, 2 rows of 28px)
     filterDeckGrid.setBounds(756, 194, 106, 56);
 
-    // Pod E: Shapers Pod (Secondary 48px: Twist, Stab, Slash)
-    filterWarpKnob.label.setBounds(884, 184, 60, 12);
-    filterWarpKnob.slider.setBounds(890, 198, 48, 48);
+    // Pod E: Shapers Pod (Scaled to 52px: Twist, Stab, Slash)
+    filterWarpKnob.label.setBounds(884, 182, 60, 12);
+    filterWarpKnob.slider.setBounds(888, 196, 52, 52);
 
-    laserBiteKnob.label.setBounds(968, 184, 60, 12);
-    laserBiteKnob.slider.setBounds(974, 198, 48, 48);
+    laserBiteKnob.label.setBounds(968, 182, 60, 12);
+    laserBiteKnob.slider.setBounds(972, 196, 52, 52);
 
-    laserDriveKnob.label.setBounds(1052, 184, 60, 12);
-    laserDriveKnob.slider.setBounds(1058, 198, 48, 48);
+    laserDriveKnob.label.setBounds(1052, 182, 60, 12);
+    laserDriveKnob.slider.setBounds(1056, 196, 52, 52);
 
     // --- ROW 3: LOWER MODULES (y: 258..444) ---
-    // Left: Burble Module (48px Knob + Format 2 56px Vertical Bar)
+    // Left: Burble Module (52px Knob + Format 2 56px Vertical Bar)
     burbleDepthKnob.label.setBounds(610, 266, 82, 12);
-    burbleDepthKnob.slider.setBounds(627, 282, 48, 48);
+    burbleDepthKnob.slider.setBounds(625, 280, 52, 52);
 
     burbleModeLabel.setBounds(610, 348, 82, 12);
     burbleModeButtons.setBounds(615, 364, 72, 56);
 
     // Right: Filter LFO Engine
-    // Row 3A: Amount, Shape, Visualizer, Rate (Secondary 48px, Centerline Y = 306.0)
+    // Row 3A: Amount, Shape, Visualizer, Rate (Scaled to 52px, Centerline Y = 306.0)
     lfoAmountKnob.label.setBounds(712, 266, 56, 12);
-    lfoAmountKnob.slider.setBounds(716, 282, 48, 48);
+    lfoAmountKnob.slider.setBounds(714, 280, 52, 52);
 
     lfoShapeKnob.label.setBounds(784, 266, 56, 12);
-    lfoShapeKnob.slider.setBounds(788, 282, 48, 48);
+    lfoShapeKnob.slider.setBounds(786, 280, 52, 52);
 
     lfoWaveLabel.setBounds(856, 266, 58, 12);
     if (lfoWaveVisualizer != nullptr) {
-        lfoWaveVisualizer->setBounds(856, 282, 58, 48);
+        lfoWaveVisualizer->setBounds(856, 280, 58, 52);
     }
 
     lfoRateKnob.label.setBounds(934, 266, 56, 12);
-    lfoRateKnob.slider.setBounds(938, 282, 48, 48);
+    lfoRateKnob.slider.setBounds(936, 280, 52, 52);
 
     lfoRateModeLabel.setBounds(1014, 266, 72, 12);
     lfoRateModeButtons.setBounds(1014, 282, 72, 56);
@@ -2048,48 +1961,48 @@ void HasturAudioProcessorEditor::layoutControls() {
     }
 
     // Pod 1: ADSR Pod (All 4 Secondary 48px)
-    // Row 2A (Attack & Decay: SNAP & PLUNGE, Centerline Y = 610.0)
-    ampSnapKnob.label.setBounds(610, 572, 100, 12);
-    ampSnapKnob.slider.setBounds(636, 586, 48, 48);
+    // Row 2A (Attack & Decay: SNAP & PLUNGE, Scaled to 52px, Centerline Y = 610.0)
+    ampSnapKnob.label.setBounds(610, 570, 100, 12);
+    ampSnapKnob.slider.setBounds(634, 584, 52, 52);
 
-    ampDecayKnob.label.setBounds(744, 572, 100, 12);
-    ampDecayKnob.slider.setBounds(770, 586, 48, 48);
+    ampDecayKnob.label.setBounds(744, 570, 100, 12);
+    ampDecayKnob.slider.setBounds(768, 584, 52, 52);
 
-    // Row 2B (Sustain & Release: LURK & BLEED, Centerline Y = 680.0)
-    ampSustainKnob.label.setBounds(610, 642, 100, 12);
-    ampSustainKnob.slider.setBounds(636, 656, 48, 48);
+    // Row 2B (Sustain & Release: LURK & BLEED, Scaled to 52px, Centerline Y = 680.0)
+    ampSustainKnob.label.setBounds(610, 640, 100, 12);
+    ampSustainKnob.slider.setBounds(634, 654, 52, 52);
 
-    ampReleaseKnob.label.setBounds(744, 642, 100, 12);
-    ampReleaseKnob.slider.setBounds(770, 656, 48, 48);
+    ampReleaseKnob.label.setBounds(744, 640, 100, 12);
+    ampReleaseKnob.slider.setBounds(768, 654, 52, 52);
 
-    // Pod 2 & 3: Gate Mode (Grid 56px) & Velocity Sensitivity (Secondary 48px)
+    // Pod 2 & 3: Gate Mode (Grid 56px) & Velocity Sensitivity (Scaled to 52px)
     ampGateGrid.setBounds(605, 718, 114, 56);
 
-    ampVelocityKnob.label.setBounds(744, 712, 100, 12);
-    ampVelocityKnob.slider.setBounds(770, 726, 48, 48);
+    ampVelocityKnob.label.setBounds(744, 710, 100, 12);
+    ampVelocityKnob.slider.setBounds(768, 724, 52, 52);
 
-    // Pod 4: Pitch Dynamics (Both Secondary 48px, Centerline Y = 828.0)
-    ampPunchKnob.label.setBounds(610, 790, 100, 12);
-    ampPunchKnob.slider.setBounds(636, 804, 48, 48);
+    // Pod 4: Pitch Dynamics (Both Scaled to 52px, Centerline Y = 828.0)
+    ampPunchKnob.label.setBounds(610, 788, 100, 12);
+    ampPunchKnob.slider.setBounds(634, 802, 52, 52);
 
-    ampTimeKnob.label.setBounds(744, 790, 100, 12);
-    ampTimeKnob.slider.setBounds(770, 804, 48, 48);
+    ampTimeKnob.label.setBounds(744, 788, 100, 12);
+    ampTimeKnob.slider.setBounds(768, 802, 52, 52);
 
     // =========================================================================
     // BAY 6: MAIN MASTER CONTROL PANEL (x: 875, y: 462, w: 271, h: 398)
     // =========================================================================
-    // Tier 1: Dual Pods (Glide & Vibrato, Centerline Y = 542.0)
-    // Glide Pod: Secondary Knob 48px + Format 1 Ribbon 22px
-    glideTimeKnob.label.setBounds(889, 504, 114, 12);
-    glideTimeKnob.slider.setBounds(922, 518, 48, 48);
+    // Tier 1: Dual Pods (Glide & Vibrato, Scaled to 52px, Centerline Y = 542.0)
+    // Glide Pod: Scaled Knob 52px + Format 1 Ribbon 22px
+    glideTimeKnob.label.setBounds(889, 502, 114, 12);
+    glideTimeKnob.slider.setBounds(920, 516, 52, 52);
     glideModeButtons.setBounds(893, 574, 106, 22);
 
-    // Vibrato Pod: Dual Secondary Knobs 48px
-    vibRateKnob.label.setBounds(1015, 504, 58, 12);
-    vibRateKnob.slider.setBounds(1020, 518, 48, 48);
+    // Vibrato Pod: Dual Scaled Knobs 52px (shifted into dead space)
+    vibRateKnob.label.setBounds(1015, 502, 58, 12);
+    vibRateKnob.slider.setBounds(1018, 516, 52, 52);
 
-    vibDepthKnob.label.setBounds(1074, 504, 58, 12);
-    vibDepthKnob.slider.setBounds(1078, 518, 48, 48);
+    vibDepthKnob.label.setBounds(1074, 502, 58, 12);
+    vibDepthKnob.slider.setBounds(1076, 516, 52, 52);
 
     // Tier 2: Row B Pitch & Saturation (Primary 64px, Centerline Y = 660.0)
     // Collinear with Bay 4 Row 1 (Stepped Random Row 1)
@@ -2394,7 +2307,7 @@ void HasturAudioProcessorEditor::setupRotaryKnob(SliderItem& item, const juce::S
     bindInspector({&item.slider, &item.label}, paramId, col, &item.slider);
 }
 
-void HasturAudioProcessorEditor::setupMixerSlider(SliderItem& item, const juce::String& paramId, const juce::String& labelText, juce::Colour col) {
+void HasturAudioProcessorEditor::setupMixerSlider(CrackedChimes::UI::CrackedChimesFaderItem& item, const juce::String& paramId, const juce::String& labelText, juce::Colour col) {
     item.label.setText(labelText, juce::dontSendNotification);
     item.label.setFont(juce::Font(juce::FontOptions(11.0f).withStyle("Bold")));
     item.label.setJustificationType(juce::Justification::centred);
@@ -2402,21 +2315,16 @@ void HasturAudioProcessorEditor::setupMixerSlider(SliderItem& item, const juce::
     item.label.setBorderSize(juce::BorderSize<int>(1, 0, 1, 0));
     contentContainer.addAndMakeVisible(item.label);
 
-    item.slider.setSliderStyle(juce::Slider::LinearVertical);
-    item.slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    item.slider.setColour(juce::Slider::trackColourId, juce::Colour(0xFF21262D));
+    item.slider.setColour(juce::Slider::trackColourId, col);
     item.slider.setColour(juce::Slider::thumbColourId, col);
+    item.slider.setUnit(CrackedChimes::UI::Unit::PercentNormalised);
+    item.slider.setDefaultValue(paramId == "noise_level" ? 0.0 : (paramId == "mixer_drive" ? 0.0 : 0.8));
     contentContainer.addAndMakeVisible(item.slider);
-
-    item.slider.textFromValueFunction = [](double val) {
-        return juce::String::formatted("%.0f%%", val * 100.0);
-    };
 
     if (auto* param = processor_.getAPVTS().getParameter(paramId)) {
         item.attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
             processor_.getAPVTS(), paramId, item.slider);
     }
-
     bindInspector({&item.slider, &item.label}, paramId, col, &item.slider);
 }
 

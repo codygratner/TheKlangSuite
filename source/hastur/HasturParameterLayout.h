@@ -72,74 +72,23 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         );
     };
 
-    // osc1_mult [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::osc1_mult, 1}, hasturParameters::Names::osc1_mult, 1.0000f, 32.0000f, 1.0000f));
-
-    // osc1_apf_pitch_track [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::osc1_apf_pitch_track, 1}, hasturParameters::Names::osc1_apf_pitch_track, -2.0000f, 2.0000f, 0.0000f));
-
-    // osc1_drive [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::osc1_drive, 1}, hasturParameters::Names::osc1_drive, 0.0000f, 1.0000f, 0.0000f));
-
-    // dco_bite [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::dco_bite, 1}, hasturParameters::Names::dco_bite, -1.0000f, 1.0000f, 0.0000f));
-
-    // sub_apf_depth [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::sub_apf_depth, 1}, hasturParameters::Names::sub_apf_depth, -2.0000f, 2.0000f, 0.0000f));
-
-    // sub_spit [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::sub_spit, 1}, hasturParameters::Names::sub_spit, -1.0000f, 1.0000f, 0.0000f));
-
-    // dco_morph [dco]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::dco_morph, 1}, hasturParameters::Names::dco_morph, 0.0000f, 1.0000f, 0.0000f));
-
-    // dco_wave_family [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::dco_wave_family, 1}, hasturParameters::Names::dco_wave_family,
-        juce::StringArray{"Saw", "Pulse", "Triangle", "Sine"}, 0));
-
-    // dco_chopper_topo [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::dco_chopper_topo, 1}, hasturParameters::Names::dco_chopper_topo,
-        juce::StringArray{"Off", "2x", "4x", "8x"}, 0));
-
-    // sub_octave [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::sub_octave, 1}, hasturParameters::Names::sub_octave,
-        juce::StringArray{"-2 Oct", "-1 Oct", "Unison", "+1 Oct"}, 1));
-
-    // sub_pulse_train [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::sub_pulse_train, 1}, hasturParameters::Names::sub_pulse_train,
-        juce::StringArray{"Square", "25% Pulse", "2-Burst", "3-Burst", "4-Burst"}, 0));
-
-    // sub_apf_tap [dco]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::sub_apf_tap, 1}, hasturParameters::Names::sub_apf_tap,
-        juce::StringArray{"Off", "4-Pole", "8-Pole", "16-Pole"}, 0));
-
-    // osc1_level [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::osc1_level, 1}, hasturParameters::Names::osc1_level, 0.0000f, 1.0000f, 1.0000f));
-
-    // osc2_level [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::osc2_level, 1}, hasturParameters::Names::osc2_level, 0.0000f, 1.0000f, 0.8000f));
-
-    // noise_level [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::noise_level, 1}, hasturParameters::Names::noise_level, 0.0000f, 1.0000f, 0.0000f));
-
-    // mixer_drive [mixer]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::mixer_drive, 1}, hasturParameters::Names::mixer_drive, 0.0000f, 1.0000f, 0.0000f));
+    // Asymmetric Bipolar Tilt Detent Lambda (-12..0..+6 dB/oct with 12 o'clock detent at 0.00)
+    auto asymmetricTiltRange = []() {
+        return juce::NormalisableRange<float>(
+            -12.0f, 6.0f,
+            [](float, float, float norm) {
+                return (norm < 0.5f) ? -12.0f * (1.0f - 2.0f * norm)
+                                     :   6.0f * (2.0f * norm - 1.0f);
+            },
+            [](float, float, float val) {
+                return (val < 0.0f) ? 0.5f * (1.0f + val / 12.0f)
+                                    : 0.5f + (val / 12.0f);
+            },
+            [](float, float, float val) {
+                return juce::jlimit(-12.0f, 6.0f, val);
+            }
+        );
+    };
 
     // cutoff [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -175,16 +124,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{hasturParameters::Ids::filter_orbit, 1}, hasturParameters::Names::filter_orbit, -1.0000f, 1.0000f, 0.0000f));
 
-    // burble_mode [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::burble_mode, 1}, hasturParameters::Names::burble_mode,
-        juce::StringArray{"XFM", "LFM"}, 0));
-
-    // filter_deck [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::filter_deck, 1}, hasturParameters::Names::filter_deck,
-        juce::StringArray{"Pre-24dB", "Dual-48dB", "Post-24dB"}, 0));
-
     // env_depth [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{hasturParameters::Ids::env_depth, 1}, hasturParameters::Names::env_depth, 0.0000f, 1.0000f, 0.5000f));
@@ -201,10 +140,53 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{hasturParameters::Ids::filter_lfo_depth, 1}, hasturParameters::Names::filter_lfo_depth, 0.0000f, 1.0000f, 0.0000f));
 
-    // filter_lfo_dest [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::filter_lfo_dest, 1}, hasturParameters::Names::filter_lfo_dest,
-        juce::StringArray{"Cutoff", "Orbit"}, 0));
+    // lfo_shape [filter]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::lfo_shape, 1}, hasturParameters::Names::lfo_shape, 0.0000f, 1.0000f, 0.5000f));
+
+    // osc1_mult [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::osc1_mult, 1}, hasturParameters::Names::osc1_mult, 1.0000f, 32.0000f, 1.0000f));
+
+    // osc1_apf_pitch_track [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::osc1_apf_pitch_track, 1}, hasturParameters::Names::osc1_apf_pitch_track, -2.0000f, 2.0000f, 0.0000f));
+
+    // osc1_drive [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::osc1_drive, 1}, hasturParameters::Names::osc1_drive, 0.0000f, 1.0000f, 0.0000f));
+
+    // dco_bite [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::dco_bite, 1}, hasturParameters::Names::dco_bite, -1.0000f, 1.0000f, 0.0000f));
+
+    // sub_apf_depth [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::sub_apf_depth, 1}, hasturParameters::Names::sub_apf_depth, -2.0000f, 2.0000f, 0.0000f));
+
+    // sub_spit [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::sub_spit, 1}, hasturParameters::Names::sub_spit, -1.0000f, 1.0000f, 0.0000f));
+
+    // dco_morph [dco]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::dco_morph, 1}, hasturParameters::Names::dco_morph, 0.0000f, 1.0000f, 0.0000f));
+
+    // osc1_level [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::osc1_level, 1}, hasturParameters::Names::osc1_level, 0.0000f, 1.0000f, 1.0000f));
+
+    // osc2_level [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::osc2_level, 1}, hasturParameters::Names::osc2_level, 0.0000f, 1.0000f, 0.8000f));
+
+    // noise_level [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::noise_level, 1}, hasturParameters::Names::noise_level, 0.0000f, 1.0000f, 0.0000f));
+
+    // mixer_drive [mixer]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::mixer_drive, 1}, hasturParameters::Names::mixer_drive, 0.0000f, 1.0000f, 0.0000f));
 
     // lfo_rate [mod]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -216,25 +198,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         juce::ParameterID{hasturParameters::Ids::glide_time, 1}, hasturParameters::Names::glide_time,
         juce::NormalisableRange<float>{0.0001f, 2.0000f, 0.0000f, 0.3000f}, 0.0050f));
 
-    // glide_mode [mod]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::glide_mode, 1}, hasturParameters::Names::glide_mode,
-        juce::StringArray{"On", "Legato"}, 0));
-
-    // lfo_wave [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::lfo_wave, 1}, hasturParameters::Names::lfo_wave,
-        juce::StringArray{"Saw/Tri", "Pulse", "Sine", "Random"}, 0));
-
-    // lfo_shape [filter]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::lfo_shape, 1}, hasturParameters::Names::lfo_shape, 0.0000f, 1.0000f, 0.5000f));
-
-    // lfo_sync [filter]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::lfo_sync, 1}, hasturParameters::Names::lfo_sync,
-        juce::StringArray{"Free", "Reset"}, 0));
-
     // pw_lfo_amount [mod]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{hasturParameters::Ids::pw_lfo_amount, 1}, hasturParameters::Names::pw_lfo_amount, 0.0000f, 1.0000f, 0.0000f));
@@ -244,64 +207,13 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         juce::ParameterID{hasturParameters::Ids::pw_lfo_rate, 1}, hasturParameters::Names::pw_lfo_rate,
         juce::NormalisableRange<float>{0.0500f, 20.0000f, 0.0000f, 0.3500f}, 0.8500f));
 
-    // mod_a_source [matrix]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::mod_a_source, 1}, hasturParameters::Names::mod_a_source,
-        juce::StringArray{"Raw", "Core", "Noise"}, 0));
-
     // mod_a_amount [matrix]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{hasturParameters::Ids::mod_a_amount, 1}, hasturParameters::Names::mod_a_amount, -1.0000f, 1.0000f, 0.0000f));
 
-    // mod_b_source [matrix]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::mod_b_source, 1}, hasturParameters::Names::mod_b_source,
-        juce::StringArray{"Raw", "Core", "Sub"}, 2));
-
     // mod_b_amount [matrix]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{hasturParameters::Ids::mod_b_amount, 1}, hasturParameters::Names::mod_b_amount, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_core_warp [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_core_warp, 1}, hasturParameters::Names::rand_core_warp, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_core_bite [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_core_bite, 1}, hasturParameters::Names::rand_core_bite, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_core_melt [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_core_melt, 1}, hasturParameters::Names::rand_core_melt, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_raw_strangle [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_raw_strangle, 1}, hasturParameters::Names::rand_raw_strangle, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_sub_chew [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_sub_chew, 1}, hasturParameters::Names::rand_sub_chew, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_sub_spit [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_sub_spit, 1}, hasturParameters::Names::rand_sub_spit, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_filter_twist [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_filter_twist, 1}, hasturParameters::Names::rand_filter_twist, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_filter_stab [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_filter_stab, 1}, hasturParameters::Names::rand_filter_stab, 0.0000f, 1.0000f, 0.0000f));
-
-    // rand_filter_orbit [random]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::rand_filter_orbit, 1}, hasturParameters::Names::rand_filter_orbit, 0.0000f, 1.0000f, 0.0000f));
-
-    // amp_gate_mode [vca]
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        juce::ParameterID{hasturParameters::Ids::amp_gate_mode, 1}, hasturParameters::Names::amp_gate_mode,
-        juce::StringArray{"Envelope", "Gate", "Drone"}, 0));
 
     // amp_env_snap [vca]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -353,7 +265,127 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // output_level [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::output_level, 1}, hasturParameters::Names::output_level, 0.0000f, 1.0000f, 0.8000f));
+        juce::ParameterID{hasturParameters::Ids::output_level, 1}, hasturParameters::Names::output_level, 0.0000f, 1.0000f, 0.5000f));
+
+    // pitch_bend_range [master]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::pitch_bend_range, 1}, hasturParameters::Names::pitch_bend_range,
+        juce::NormalisableRange<float>{0.0000f, 24.0000f, 1.0000f, 1.0000f}, 2.0000f));
+
+    // vibrato_rate [master]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::vibrato_rate, 1}, hasturParameters::Names::vibrato_rate,
+        juce::NormalisableRange<float>{0.1000f, 12.0000f, 0.0000f, 0.4000f}, 5.5000f));
+
+    // vibrato_depth [master]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::vibrato_depth, 1}, hasturParameters::Names::vibrato_depth, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_core_warp [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_core_warp, 1}, hasturParameters::Names::rand_core_warp, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_core_bite [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_core_bite, 1}, hasturParameters::Names::rand_core_bite, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_core_melt [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_core_melt, 1}, hasturParameters::Names::rand_core_melt, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_raw_strangle [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_raw_strangle, 1}, hasturParameters::Names::rand_raw_strangle, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_sub_chew [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_sub_chew, 1}, hasturParameters::Names::rand_sub_chew, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_sub_spit [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_sub_spit, 1}, hasturParameters::Names::rand_sub_spit, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_filter_twist [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_filter_twist, 1}, hasturParameters::Names::rand_filter_twist, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_filter_stab [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_filter_stab, 1}, hasturParameters::Names::rand_filter_stab, 0.0000f, 1.0000f, 0.0000f));
+
+    // rand_filter_orbit [random]
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{hasturParameters::Ids::rand_filter_orbit, 1}, hasturParameters::Names::rand_filter_orbit, 0.0000f, 1.0000f, 0.0000f));
+
+    // dco_wave_family [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::dco_wave_family, 1}, hasturParameters::Names::dco_wave_family,
+        juce::StringArray{"Saw", "Pulse", "Triangle", "Sine"}, 0));
+
+    // dco_chopper_topo [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::dco_chopper_topo, 1}, hasturParameters::Names::dco_chopper_topo,
+        juce::StringArray{"Off", "2x", "4x", "8x"}, 0));
+
+    // sub_octave [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::sub_octave, 1}, hasturParameters::Names::sub_octave,
+        juce::StringArray{"-2 Oct", "-1 Oct", "Unison", "+1 Oct"}, 1));
+
+    // sub_pulse_train [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::sub_pulse_train, 1}, hasturParameters::Names::sub_pulse_train,
+        juce::StringArray{"Square", "25% Pulse", "2-Burst", "3-Burst", "4-Burst"}, 0));
+
+    // sub_apf_tap [dco]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::sub_apf_tap, 1}, hasturParameters::Names::sub_apf_tap,
+        juce::StringArray{"Off", "4-Pole", "8-Pole", "16-Pole"}, 0));
+
+    // burble_mode [filter]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::burble_mode, 1}, hasturParameters::Names::burble_mode,
+        juce::StringArray{"XFM", "LFM"}, 0));
+
+    // filter_deck [filter]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::filter_deck, 1}, hasturParameters::Names::filter_deck,
+        juce::StringArray{"Pre-24dB", "Dual-48dB", "Post-24dB"}, 0));
+
+    // filter_lfo_dest [filter]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::filter_lfo_dest, 1}, hasturParameters::Names::filter_lfo_dest,
+        juce::StringArray{"Cutoff", "Orbit"}, 0));
+
+    // glide_mode [mod]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::glide_mode, 1}, hasturParameters::Names::glide_mode,
+        juce::StringArray{"On", "Legato"}, 0));
+
+    // lfo_wave [filter]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::lfo_wave, 1}, hasturParameters::Names::lfo_wave,
+        juce::StringArray{"Saw/Tri", "Pulse", "Sine", "Random"}, 0));
+
+    // lfo_sync [filter]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::lfo_sync, 1}, hasturParameters::Names::lfo_sync,
+        juce::StringArray{"Free", "Reset"}, 0));
+
+    // mod_a_source [matrix]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::mod_a_source, 1}, hasturParameters::Names::mod_a_source,
+        juce::StringArray{"Raw", "Core", "Noise"}, 0));
+
+    // mod_b_source [matrix]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::mod_b_source, 1}, hasturParameters::Names::mod_b_source,
+        juce::StringArray{"Raw", "Core", "Sub"}, 2));
+
+    // amp_gate_mode [vca]
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{hasturParameters::Ids::amp_gate_mode, 1}, hasturParameters::Names::amp_gate_mode,
+        juce::StringArray{"Envelope", "Gate", "Drone"}, 0));
 
     // life_mode [master]
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -364,19 +396,6 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{hasturParameters::Ids::trigger_mode, 1}, hasturParameters::Names::trigger_mode,
         juce::StringArray{"Retrig", "Legato", "Auto"}, 2));
-
-    // pitch_bend_range [master]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::pitch_bend_range, 1}, hasturParameters::Names::pitch_bend_range, 0.0000f, 24.0000f, 2.0000f));
-
-    // vibrato_rate [master]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::vibrato_rate, 1}, hasturParameters::Names::vibrato_rate,
-        juce::NormalisableRange<float>{0.1000f, 12.0000f, 0.0000f, 0.4000f}, 5.5000f));
-
-    // vibrato_depth [master]
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{hasturParameters::Ids::vibrato_depth, 1}, hasturParameters::Names::vibrato_depth, 0.0000f, 1.0000f, 0.0000f));
 
     return layout;
 }

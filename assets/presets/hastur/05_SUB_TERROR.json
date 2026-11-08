@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Deep Sub Bass",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 400.0,
+    "resonance": 0.3,
+    "sub_level": 1.0,
+    "dco_shape": 0.0,
+    "sub_octave": 0.0,
+    "laser_drive": 0.2,
+    "amp_decay": 0.6
+  }
+}

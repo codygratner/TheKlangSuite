@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-11-08 04:00:39",
-  "briefing_title": "\ud83e\udde0 PLAN: Nyarlat Harmonic Width & Coupled Spread Overhaul",
-  "briefing_text": "Scheduled 4 AM Black Box Memory Flush and State Integrity Audit",
-  "status_badge": "IDLE \ud83d\udfe2",
-  "pending_decisions_count": 0,
-  "last_flight": "\ud83e\udde0 PLAN: Nyarlat Harmonic Width & Coupled Spread Overhaul",
+  "updated_at": "2026-11-08T05:36:08.576108",
+  "briefing_title": "🌅 Morning Mail Intake: 38 Items Synced (23 Pending / 0 P0)",
+  "briefing_text": "Morning mail intake synchronized for 2026-11-08: 38 total items in queue (0 P0, 7 P1, 30 P2, 1 P3). Active intake: LOOP-34 Multi-Machine Engines (MME) Venti 32-Control Suite (3 P1 cards across TT & TBD-16, acoustic role inversion) + Universal Engine & Wrapper Architecture: 4-Tier Sizing & Relic Ingestion (3 P1 cards across NK & TKS, LOOP-33 decoupled sound core) + 17 P2 ramble decision cards (Slivers engine tiering, M8 Randomness PRNG analysis, Tracks to Train On ground-truth dataset, Gear Scout Radar, Drow Chatbots, User Manuals dual-tier, Could TT run in a browser PWA, etc.) with secondary cards staged to overflow.json. 15 tabled items preserved. 23 pending cards ready for morning triage on the In-Tray board.",
+  "status_badge": "TRIAGE READY 📬",
+  "pending_decisions_count": 23,
+  "last_flight": "feat(nyarlat): calibrate knob ranges, asymmetric tilt detent, and treble tame shelf",
   "git_branch": "0.4.0-dev",
-  "target_pipeline": "NYARLAT"
+  "target_pipeline": "MORNING_TRIAGE"
 }

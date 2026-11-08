@@ -10,7 +10,9 @@
 #include "HalfBandOversampler2x.h"
 #include "CyborgBandLimiter.h"
 #include "ModMatrix.h"
+#include "LifeformFilterEnvShaper.h"
 #include "../FastMath.h"
+#include "../dsp/common/MasterTaper.h"
 #include <cmath>
 #include <algorithm>
 #include <array>
@@ -107,6 +109,11 @@ public:
         decimator_.reset();
         cyborgBusFilterL_.prepare(voiceFilter2xSr);
         cyborgBusFilterR_.prepare(voiceFilter2xSr);
+        filterEnvShaper_.prepare(hostSampleRate_);
+        cyborgSeamDcBlockerL_.prepare(voiceFilter2xSr);
+        cyborgSeamDcBlockerR_.prepare(voiceFilter2xSr);
+        accentCapVoltage_ = 0.0f;
+        isAccentedNote_ = false;
 
         noiseGen_.prepare(hostSampleRate_);
         masterSideHp_.setCutoff(120.0f, static_cast<float>(hostSampleRate_));
@@ -136,6 +143,11 @@ public:
         osc1_.resetSubPhase();
         cyborgBusFilterL_.reset();
         cyborgBusFilterR_.reset();
+        filterEnvShaper_.reset();
+        cyborgSeamDcBlockerL_.reset();
+        cyborgSeamDcBlockerR_.reset();
+        accentCapVoltage_ = 0.0f;
+        isAccentedNote_ = false;
         adaaAmpL_ = 0.0f;
         adaaAmpR_ = 0.0f;
         adaaDiodeL_ = 0.0f;
@@ -204,8 +216,6 @@ public:
         chorusLfoPhase_ = 0.0f;
         subCrossoverLpL_ = 0.0f;
         subCrossoverLpR_ = 0.0f;
-        fbDelayBuffer_.fill(0.0f);
-        fbDelayWriteIdx_ = 0;
         fbFilterState_ = 0.0f;
         fbDcStateX_ = 0.0f;
         fbDcStateY_ = 0.0f;
@@ -299,7 +309,8 @@ public:
     void noteOn(int midiNote, float velocity, float glideSec = 0.005f,
                 LfoTriggerMode lfoTrig = LfoTriggerMode::ALL_NEW_NOTES, bool autoChoke = true,
                 GlideMode glideMode = GlideMode::ALWAYS,
-                TriggerMode trigMode = TriggerMode::AUTO) noexcept {
+                TriggerMode trigMode = TriggerMode::AUTO,
+                float filterVelocity = 0.0f) noexcept {
         const bool isHolding = (activeNoteCount_ > 0);
         activeNoteCount_++;
 
@@ -329,7 +340,7 @@ public:
         currentNote_ = midiNote;
         tgtSemi_ = static_cast<float>(midiNote);
         targetPitchHz_ = 440.0f * FastMath::fastPow2((tgtSemi_ - 69.0f) * (1.0f / 12.0f));
-        bool shouldGlide = (glideSec > 0.0005f);
+        bool shouldGlide = (glideSec > kGlideOffSec);
         if (glideMode == GlideMode::LEGATO && !isLegato) {
             shouldGlide = false; // LGTO mode: only glide if already holding a note
         }
@@ -340,14 +351,24 @@ public:
         velocity_ = std::clamp(velocity, 0.01f, 1.0f);
         gate_ = true;
 
+        const bool wasIdle = ampEnv_.isIdle();
         const auto ampStage = ampEnv_.getStage();
-        const bool envReleased = ampEnv_.isIdle() || ampStage == CodyBassEnvelope::Stage::RELEASE;
+        const bool envReleased = wasIdle || ampStage == CodyBassEnvelope::Stage::RELEASE;
         const bool shouldRetrig = (trigMode == TriggerMode::RETRIG) || !isLegato || (!isHolding && envReleased);
         if (shouldRetrig) {
             vortexEnv_.noteOn(midiNote, velocity_);
             ampEnv_.noteOn(velocity_, autoChoke);
-            if (ampEnv_.isIdle() || ampStage == CodyBassEnvelope::Stage::CHOKE) {
+            if (wasIdle || ampStage == CodyBassEnvelope::Stage::CHOKE) {
                 osc1_.resetSubPhase();
+            }
+
+            // Acid Squelch TB-303 C31 Accumulator Injection
+            if (velocity_ >= (100.0f / 127.0f) && filterVelocity > 0.001f) {
+                const float charge = ((velocity_ - (100.0f / 127.0f)) / (27.0f / 127.0f)) * filterVelocity;
+                accentCapVoltage_ = std::min(1.0f, accentCapVoltage_ + charge);
+                isAccentedNote_ = true;
+            } else {
+                isAccentedNote_ = false;
             }
 
             // Sample fresh 9-element stepped random vector
@@ -474,22 +495,31 @@ public:
         const float effWidth      = widthCv_.process(globalWidth, isOrganic);
         const float effMixerDrive = mixerDriveCv_.process(mixerDrive, isOrganic);
 
-        // 2. Evaluate Vortex Filter Envelope -> Dual-SVF VCF Cutoff
+        // 2. Evaluate Vortex Filter Envelope -> Lifeform Circuit Shaper -> Dual-SVF VCF Cutoff
         const auto loopMode = static_cast<VortexEnvelope::LoopMode>(std::clamp(filterLoop, 0, 2));
-        // Acid Accent Detection & Modulation
-        float accentFactor = 0.0f;
-        if (velocity_ >= (100.0f / 127.0f)) {
-            accentFactor = std::clamp((velocity_ - (100.0f / 127.0f)) / (27.0f / 127.0f), 0.0f, 1.0f);
-        }
-        const float resBump = accentFactor * filterVelocity * 0.15f;
-        const float totalRes = std::clamp(effRes + resBump, 0.0f, 0.985f);
-        const float envAccentBoost = 1.0f + (accentFactor * filterVelocity * 0.70f);
 
-        const float filterEnvVal = vortexEnv_.process(
-            filterAttack, filterSnap, filterDecay, filterBloom,
+        // TB-303 C31 Leaky Accumulator
+        const float tauAcc = 0.120f + 0.080f * std::clamp(resonance, 0.0f, 1.0f);
+        const float leakCoeff = 1.0f - static_cast<float>(invSampleRate_) / tauAcc;
+        accentCapVoltage_ *= leakCoeff;
+
+        const float accentFactor = std::clamp(accentCapVoltage_, 0.0f, 1.0f);
+        const float effFilterDecay = std::lerp(filterDecay, 0.20f, accentFactor);
+
+        const float rawFilterEnvVal = vortexEnv_.process(
+            filterAttack, filterSnap, effFilterDecay, filterBloom,
             filterAftershock, filterSustain, filterRelease, keyTrack, loopMode, filterVelocity);
+
+        const float filterEnvVal = filterEnvShaper_.shapeEnvelope(rawFilterEnvVal, static_cast<int>(lifeMode_));
+        lastFilterEnvVal_.store(filterEnvVal, std::memory_order_relaxed);
+
+        const float resBump = accentFactor * 0.15f;
+        const float totalRes = std::clamp(effRes + resBump, 0.0f, 0.985f);
+        const float envAccentBoost = 1.0f + (accentFactor * 0.70f);
+
         const float effEnvDepth = std::pow(std::clamp(envDepth, 0.0f, 1.0f), 1.25f);
-        const float cutoffModSemitones = filterEnvVal * (effEnvDepth * envAccentBoost) * 96.0f;
+        const float accentCutoffOffsetSemi = 18.0f * accentCapVoltage_;
+        const float cutoffModSemitones = (filterEnvVal * (effEnvDepth * envAccentBoost) * 96.0f) + accentCutoffOffsetSemi;
 
         // 3. Evaluate SubStator Amp Envelope -> Master VCA & Pitch Punch
         float punchPitchSemi = 0.0f;
@@ -498,10 +528,10 @@ public:
             pitchPunchDepth, pitchPunchTime, 0.5f, punchPitchSemi);
 
         // 4. Frequency Glide Slew towards target pitch (integrated in semitone domain)
-        if (glideTimeSec <= 0.0005f || std::abs(tgtSemi_ - curSemi_) < 1e-4f) {
+        if (glideTimeSec <= kGlideOffSec || std::abs(tgtSemi_ - curSemi_) < 1e-4f) {
             curSemi_ = tgtSemi_;
         } else {
-            const float T = std::max(0.0005f, glideTimeSec);
+            const float T = std::max(kGlideOffSec, glideTimeSec);
             const float diffSemi = tgtSemi_ - curSemi_;
             const float glideK = 1.0f - std::exp(-static_cast<float>(invSampleRate_) / (0.25f * T));
             const float maxStepSemi = (12.0f / T) * static_cast<float>(invSampleRate_);
@@ -601,7 +631,7 @@ public:
         osc1_.setSubLevel(subLevel);
         osc1_.setSuperSawLevel(swarmLevel);
         osc1_.setNoiseLevel(noiseLevel);
-        osc1_.setMixerDrive(effMixerDrive);
+        osc1_.setMixerDrive(effMixerDrive * (1.0f + 0.40f * accentCapVoltage_));
         osc1_.setMasterSpread(1.0f); // Pre-filter stereo preserved, Master Spread applied at Card 4
 
         // 10. Filter Frequency Modulation & Keytracking (FastMath Vectorized)
@@ -638,8 +668,10 @@ public:
         float mixL = 0.0f, mixR = 0.0f;
 
         // 11. Multi-Rate Centaur Architecture: 4x DCO Core -> 2x VCF -> 1x Host Output
+        osc1_.prepareBlock(dcoMelt);
+        const float warpMult = std::exp2(dcoWarpOct);
         const float coreNyquist4x = static_cast<float>(hostSampleRate_ * 1.92);
-        const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * std::pow(2.0f, dcoWarpOct), 10.0f, coreNyquist4x);
+        const float effOsc1ApfCutoff = std::clamp(std::abs(f1) * warpMult, 10.0f, coreNyquist4x);
         const float dt1_4x = std::clamp(f1 * static_cast<float>(invSampleRate_ * 0.25), 1e-6f, 0.48f);
 
         // Sub-sample linear interpolation of Amp Gate signal across 2x ticks
@@ -651,7 +683,8 @@ public:
             default: ampGateSig = ampEnvVal; break;
         }
         const float effAmpVelocity = (1.0f - ampVelocity) + ampVelocity * velocity_;
-        ampGateSig *= effAmpVelocity;
+        const float accentVcaBoost = 1.0f + 0.33f * accentCapVoltage_;
+        ampGateSig *= effAmpVelocity * accentVcaBoost;
 
         const float ampGateStep = (ampGateSig - prevAmpGateSig_) * 0.5f;
         const float ampGateTick[2] = { prevAmpGateSig_ + ampGateStep, ampGateSig };
@@ -693,6 +726,13 @@ public:
             pre2xL[0], pre2xL[1], pre2xR[0], pre2xR[1]
         );
 
+        // 5 Hz Cyborg Seam DC Blocker post-decimation before SVF
+        const bool isCyborgMode = (lifeMode_ == LifeMode::CYBORG);
+        pre2xL[0] = cyborgSeamDcBlockerL_.process(pre2xL[0], isCyborgMode);
+        pre2xL[1] = cyborgSeamDcBlockerL_.process(pre2xL[1], isCyborgMode);
+        pre2xR[0] = cyborgSeamDcBlockerR_.process(pre2xR[0], isCyborgMode);
+        pre2xR[1] = cyborgSeamDcBlockerR_.process(pre2xR[1], isCyborgMode);
+
         // Stage 3: Run Dual-SVF VCF, Master LPG, and Post-Amp Saturation at 2x rate (2 ticks)
         const float coreNyquist2x = static_cast<float>(hostSampleRate_ * 0.96);
         float sub2xL[2] = {0.0f, 0.0f};
@@ -701,13 +741,16 @@ public:
         float subFiltTapR[2] = {0.0f, 0.0f};
 
         float lastBurbleMod = 0.0f;
+        const float effBurble = (std::abs(burbleDepth) > 0.0001f)
+            ? std::copysign(std::pow(std::abs(burbleDepth), 2.2f), burbleDepth) : 0.0f;
+        const bool sharedSvf = (std::abs(effOrbit) <= 1.0e-5f);
+
         for (int k = 0; k < 2; ++k) {
             // Sub-tick Burble Mod evaluation
             const float burbleMod = osc1_.getBurbleMod();
             lastBurbleMod = burbleMod;
             float burbleMult = 1.0f;
             if (std::abs(burbleDepth) > 0.0001f) {
-                const float effBurble = std::copysign(std::pow(std::abs(burbleDepth), 2.2f), burbleDepth);
                 switch (burbleMode) {
                     case 0:
                         burbleMult = FastMath::fastPow2(effBurble * 4.0f * burbleMod);
@@ -731,15 +774,18 @@ public:
 
             float subCutoffL = subEffectiveCutoffHz;
             float subCutoffR = subEffectiveCutoffHz;
-            if (std::abs(effOrbit) > 0.001f) {
+            if (!sharedSvf) {
                 const float orbitMult = FastMath::fastPow2(std::clamp(effOrbit, -1.0f, 1.0f) * 2.0f);
                 const float minCutoff = std::min(120.0f, subEffectiveCutoffHz);
                 subCutoffL = std::clamp(subEffectiveCutoffHz / orbitMult, minCutoff, coreNyquist2x);
                 subCutoffR = std::clamp(subEffectiveCutoffHz * orbitMult, minCutoff, coreNyquist2x);
             }
 
-            float subFiltL = filter_.process(pre2xL[k], subCutoffL, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
-            float subFiltR = filterR_.process(pre2xR[k], subCutoffR, totalRes, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
+            const auto coeffsL = filter_.computeCoeffs(subCutoffL, totalRes, filterDeck);
+            const auto& coeffsR = sharedSvf ? coeffsL : filterR_.computeCoeffs(subCutoffR, totalRes, filterDeck);
+
+            float subFiltL = filter_.processWithCoeffs(pre2xL[k], coeffsL, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
+            float subFiltR = filterR_.processWithCoeffs(pre2xR[k], coeffsR, filterDeck, filterWarp, laserBite, laserDrive, hpfMode);
 
             subFiltL *= modRes.postFilterMult;
             subFiltR *= modRes.postFilterMult;
@@ -847,13 +893,18 @@ public:
         float sideDiff = 0.5f * (finalMidL - finalMidR);
         sideDiff = masterSideHp_.process(sideDiff);
 
+        const float masterGain = tkdsp::common::evalMasterVolumeGain(outputLevel);
+        constexpr float kVoicingMakeup = 1.4125f; // +3.0 dB clean bass voicing makeup
+        const float finalGain = masterGain * kVoicingMakeup;
+
         if (spreadS <= 0.00001f) {
-            outLeft  = (monoSub + midSum) * outputLevel;
-            outRight = (monoSub + midSum) * outputLevel;
+            outLeft  = (monoSub + midSum) * finalGain;
+            outRight = (monoSub + midSum) * finalGain;
         } else {
-            outLeft  = (monoSub + midSum + sideDiff * spreadS) * outputLevel;
-            outRight = (monoSub + midSum - sideDiff * spreadS) * outputLevel;
+            outLeft  = (monoSub + midSum + sideDiff * spreadS) * finalGain;
+            outRight = (monoSub + midSum - sideDiff * spreadS) * finalGain;
         }
+        tkdsp::common::applyEmergencyGuardStereo(outLeft, outRight);
 
         // 14. History Buffers
         prevRaw_        = osc1_.getRaw();
@@ -1212,11 +1263,56 @@ public:
         prevPreFilter_ = preFilterMix;
         prevPostFilter_= filtered;
 
-        return outSignal * outputLevel;
+        const float masterGain = tkdsp::common::evalMasterVolumeGain(outputLevel);
+        float outSignalFinal = outSignal * 1.4125f * masterGain;
+        tkdsp::common::applyEmergencyGuard(outSignalFinal);
+        return outSignalFinal;
+    }
+
+    [[nodiscard]] bool isGateActive() const noexcept {
+        return gate_;
+    }
+
+    [[nodiscard]] bool isEnvelopeIdle() const noexcept {
+        return vortexEnv_.isIdle() && ampEnv_.isIdle() && !masterLpg_.isRinging();
     }
 
     [[nodiscard]] bool isActive() const noexcept {
-        return gate_ || !vortexEnv_.isIdle() || !ampEnv_.isIdle() || masterLpg_.isRinging();
+        return gate_ || (ampGateMode_ == AmpGateMode::DRONE) || !vortexEnv_.isIdle() || !ampEnv_.isIdle() || masterLpg_.isRinging();
+    }
+
+    void setAmpGateMode(AmpGateMode mode) noexcept {
+        ampGateMode_ = mode;
+    }
+
+    void flushStates() noexcept {
+        filter_.reset();
+        filterR_.reset();
+        decimator_.reset();
+        decimator4xTo2x_.reset();
+        cyborgBusFilterL_.reset();
+        cyborgBusFilterR_.reset();
+        cyborgSeamDcBlockerL_.reset();
+        cyborgSeamDcBlockerR_.reset();
+        subCrossoverLpL_ = 0.0f;
+        subCrossoverLpR_ = 0.0f;
+        adaaAmpL_ = 0.0f;
+        adaaAmpR_ = 0.0f;
+        adaaDiodeL_ = 0.0f;
+        adaaDiodeR_ = 0.0f;
+        prevAmpGateSig_ = 0.0f;
+        masterSideHp_.reset();
+        osc1_.resetFeedback();
+    }
+
+    void advanceIdle(int numSamples, float lfoRateHz = 1.0f, float pwLfoRateHz = 0.85f) noexcept {
+        const float dt = static_cast<float>(invSampleRate_) * static_cast<float>(numSamples);
+        lfoPhase_ += lfoRateHz * dt;
+        lfoPhase_ -= std::floor(lfoPhase_);
+        pwLfoPhase_ += pwLfoRateHz * dt;
+        pwLfoPhase_ -= std::floor(pwLfoPhase_);
+        curSemi_ = tgtSemi_;
+        currentPitchHz_ = targetPitchHz_;
     }
 
     [[nodiscard]] bool isPllLocked() const noexcept {
@@ -1232,6 +1328,11 @@ private:
     StereoHalfBandDecimator2x decimator_;
     CyborgAnalogBusFilter cyborgBusFilterL_;
     CyborgAnalogBusFilter cyborgBusFilterR_;
+    Hastur::LifeformFilterEnvShaper filterEnvShaper_;
+    CyborgSeamDcBlocker cyborgSeamDcBlockerL_;
+    CyborgSeamDcBlocker cyborgSeamDcBlockerR_;
+    float accentCapVoltage_{0.0f};
+    bool isAccentedNote_{false};
 
     // ADAA1 History States & Sub-Sample Slew
     float adaaAmpL_{0.0f};
@@ -1278,8 +1379,8 @@ private:
 
     // Nonlinear Tuned Resonant Feedback
     static constexpr size_t kFbDelaySize = 4096;
-    std::array<float, kFbDelaySize> fbDelayBuffer_{};
-    size_t fbDelayWriteIdx_ = 0;
+    static constexpr float kGlideOffSec = 0.000101f;
+    AmpGateMode ampGateMode_{AmpGateMode::ENVELOPE};
     float fbFilterState_ = 0.0f;
     float fbDcStateX_ = 0.0f;
     float fbDcStateY_ = 0.0f;
@@ -1399,6 +1500,11 @@ public:
     [[nodiscard]] float getBurbleAtomic() const noexcept { return lastBurbleVal_.load(std::memory_order_relaxed); }
     [[nodiscard]] float getModAFmAtomic() const noexcept { return lastModAFmVal_.load(std::memory_order_relaxed); }
     [[nodiscard]] float getModBAmAtomic() const noexcept { return lastModBAmVal_.load(std::memory_order_relaxed); }
+    void setSyncedLfoPhase(float p) noexcept { lfoPhase_ = std::clamp(p, 0.0f, 1.0f); }
+    [[nodiscard]] bool isEnvIdle() const noexcept { return ampEnv_.isIdle() && vortexEnv_.isIdle(); }
+    [[nodiscard]] bool isRinging() const noexcept {
+        return masterLpg_.isRinging() || masterLpgR_.isRinging() || osc1Lpg_.isRinging() || osc2Lpg_.isRinging() || noiseLpg_.isRinging();
+    }
 };
 
 } // namespace CrackedChimes::DSP

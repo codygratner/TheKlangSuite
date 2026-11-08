@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "Fairlight Orchestral Hit",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 0.0,
+    "lineage": 0.0,
+    "macro_x": 0.6,
+    "macro_y": 0.5,
+    "cutoff": 18000.0,
+    "decay": 0.65,
+    "crush": 0.1
+  }
+}

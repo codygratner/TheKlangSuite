@@ -9,7 +9,7 @@ if (APPLE)
 endif()
 
 # 1. Project definition
-project(TheKlangSuite VERSION 0.6.0 LANGUAGES C CXX)
+project(TheKlangSuite VERSION 0.7.0 LANGUAGES C CXX)
 
 # Feature branch build tag (e.g., "-tooltips"). Stripped upon merge back to master.
 set(TKS_FEATURE_TAG "" CACHE STRING "Prerelease feature tag for development builds")
@@ -96,7 +96,7 @@ juce_add_plugin(FormlessSpawn
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Tfsp
     BUNDLE_ID com.crackedchimes.formlessspawn
-    VERSION "1.1.0"
+    VERSION "1.3.0"
     
     FORMATS ${TKS_FORMATS}
     PRODUCT_NAME "Formless Spawn"
@@ -111,6 +111,7 @@ target_sources(FormlessSpawn PRIVATE
     source/FormlessEditor.cpp
     source/formless_spawn/FormlessControlInfo.h
     source/dsp/drums/FormlessSpawnVoice.h
+    source/PresetManager.cpp
 )
 
 target_include_directories(FormlessSpawn PRIVATE source)
@@ -141,6 +142,7 @@ add_executable(FormlessSpawn_Preview
     source/FormlessSpawn_Preview_main.cpp
     source/FormlessProcessor.cpp
     source/FormlessEditor.cpp
+    source/PresetManager.cpp
 )
 
 target_include_directories(FormlessSpawn_Preview PRIVATE source)
@@ -177,7 +179,7 @@ juce_add_plugin(Hastur
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Hst1
     BUNDLE_ID com.crackedchimes.hastur
-    VERSION "1.1.0"
+    VERSION "1.3.0"
     
     FORMATS ${TKS_FORMATS}
     PRODUCT_NAME "Hastur"
@@ -203,6 +205,7 @@ target_sources(Hastur PRIVATE
     source/hastur/HasturProcessor.cpp
     source/hastur/HasturEditor.h
     source/hastur/HasturEditor.cpp
+    source/PresetManager.cpp
 )
 
 target_include_directories(Hastur PRIVATE source)
@@ -237,6 +240,7 @@ add_executable(Hastur_Preview
     source/hastur/ui_preview_main.cpp
     source/hastur/HasturProcessor.cpp
     source/hastur/HasturEditor.cpp
+    source/PresetManager.cpp
 )
 
 target_include_directories(Hastur_Preview PRIVATE source)
@@ -274,7 +278,7 @@ juce_add_plugin(Nyarlat
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Nyrt
     BUNDLE_ID com.crackedchimes.nyarlat
-    VERSION "0.1.0"
+    VERSION "1.0.0"
     
     FORMATS ${TKS_FORMATS}
     PRODUCT_NAME "Nyarlat"
@@ -465,7 +469,7 @@ juce_add_plugin(DigiStrikeFS2
     PLUGIN_MANUFACTURER_CODE CkCh
     PLUGIN_CODE Dfs2
     BUNDLE_ID com.crackedchimes.digistrikefs2
-    VERSION "1.1.0"
+    VERSION "1.2.0"
     
     FORMATS ${TKS_FORMATS}
     PRODUCT_NAME "DigiStrike FS2"
@@ -483,6 +487,7 @@ target_sources(DigiStrikeFS2 PRIVATE
     source/digistrike_fs2/DigiStrikeFS2Processor.cpp
     source/digistrike_fs2/DigiStrikeFS2Editor.h
     source/digistrike_fs2/DigiStrikeFS2Editor.cpp
+    source/PresetManager.cpp
 )
 
 target_include_directories(DigiStrikeFS2 PRIVATE source source/digistrike_fs2)
@@ -512,6 +517,7 @@ add_executable(DigiStrikeFS2_Preview
     source/digistrike_fs2/DigiStrikeFS2_Preview_main.cpp
     source/digistrike_fs2/DigiStrikeFS2Processor.cpp
     source/digistrike_fs2/DigiStrikeFS2Editor.cpp
+    source/PresetManager.cpp
 )
 
 target_include_directories(DigiStrikeFS2_Preview PRIVATE source source/digistrike_fs2)

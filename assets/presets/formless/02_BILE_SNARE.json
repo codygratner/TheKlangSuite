@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "formless_spawn",
+  "metadata": {
+    "name": "Caustic Bile Snare",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "formless_spawn"
+    ]
+  },
+  "parameters": {
+    "role": 1.0,
+    "model": 2.0,
+    "macro_x": 0.55,
+    "macro_y": 0.8,
+    "pre_drive": 0.5,
+    "decay": 0.35,
+    "crush": 0.25
+  }
+}

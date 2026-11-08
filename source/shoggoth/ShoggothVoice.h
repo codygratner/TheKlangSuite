@@ -388,7 +388,7 @@ public:
             }
 
             // 10. Accumulate into output with calibrated voice scaling & anti-click stealing fade
-            constexpr float kVoiceScale = 0.25f; // Headroom scaling for 64-voice additive sum (-12 dB)
+            constexpr float kVoiceScale = 0.354813f; // Calibrated headroom scaling for additive sum (-9 dB, +3 dB authority)
             for (int i = 0; i < chunkSize; ++i) {
                 float gain = kVoiceScale;
                 if (stealFadeRemaining_ > 0) {

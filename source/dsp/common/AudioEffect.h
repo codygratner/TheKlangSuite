@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <array>
 #include "../../FastMath.h"
-#include "../../DSPBlock.h"
+#include "DSPBlock.h"
 
 namespace TbdAudio {
 

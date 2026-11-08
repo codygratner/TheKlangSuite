@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Acid 303 Lead",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 1800.0,
+    "resonance": 0.75,
+    "laser_drive": 0.65,
+    "burble_depth": 0.45,
+    "laser_bite": 0.5,
+    "filter_env_decay": 0.25,
+    "dco_shape": 0.0,
+    "sub_level": 0.6
+  }
+}

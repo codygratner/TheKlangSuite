@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Punchy Synth Key",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 2800.0,
+    "resonance": 0.35,
+    "amp_decay": 0.35,
+    "amp_sustain": 0.4,
+    "filter_env_decay": 0.22,
+    "laser_bite": 0.3
+  }
+}

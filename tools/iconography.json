@@ -1,0 +1,240 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NkaiIconographySSOT",
+  "description": "Single Source of Truth for unified icons, labels, colors, and action bindings across N'kai cards and Antigravity chat.",
+  "version": "1.0.0",
+  "model_tiers": {
+    "tier1_pro": {
+      "icon": "💎",
+      "label": "Tier 1 Pro",
+      "color": "#a855f7",
+      "desc": "Argon / Frontier Reasoning"
+    },
+    "tier2_flash": {
+      "icon": "⚡",
+      "label": "Tier 2 Flash",
+      "color": "#38bdf8",
+      "desc": "High-velocity Synthesis"
+    },
+    "tier3_lite": {
+      "icon": "🪶",
+      "label": "Tier 3 Lite",
+      "color": "#94a3b8",
+      "desc": "Low-overhead Extraction"
+    }
+  },
+  "ecosystem_pillars": {
+    "TKS": {
+      "icon": "🎹",
+      "name": "The Klang Suite",
+      "color": "#0284c7",
+      "desc": "Audio Plugins & Native C++ DSP"
+    },
+    "TT": {
+      "icon": "🐸",
+      "name": "ToadTracker",
+      "color": "#10b981",
+      "desc": "Tracker Engine & M8 Bridge"
+    },
+    "NK": {
+      "icon": "👁️",
+      "name": "N'kai",
+      "color": "#8b5cf6",
+      "desc": "Sidecar & Triage Lab"
+    },
+    "TKR": {
+      "icon": "🔬",
+      "name": "TheKlangResearch",
+      "color": "#f59e0b",
+      "desc": "RFCs & DSP Math"
+    },
+    "AGY": {
+      "icon": "🧠",
+      "name": "Antigravity",
+      "color": "#f43f5e",
+      "desc": "Skills, Harness & Rules"
+    },
+    "TBD-16": {
+      "icon": "🎛️",
+      "name": "TBD-16 Hardware",
+      "color": "#ea580c",
+      "desc": "Microcontroller Firmware & Embedded Hardware"
+    },
+    "PERSONAL": {
+      "icon": "🏠",
+      "name": "Personal & Life",
+      "color": "#ec4899",
+      "desc": "Personal, Household, Ergonomics & Gear"
+    },
+    "FORGE": {
+      "icon": "🎲",
+      "name": "The Forge",
+      "color": "#a855f7",
+      "desc": "Solo TTRPG, Starforged & Creative Lore"
+    }
+  },
+  "drawer_tabs": {
+    "original": {
+      "icon": "✍️",
+      "label": "Original",
+      "badge": "Raw Note"
+    },
+    "summary": {
+      "icon": "🎯",
+      "label": "Summary",
+      "badge": "Pitch"
+    },
+    "pcda": {
+      "icon": "⚖️",
+      "label": "PCDA",
+      "badge": "Audit"
+    },
+    "research": {
+      "icon": "🔬",
+      "label": "Research",
+      "badge": "Report"
+    }
+  },
+  "terminal_dispatches": {
+    "APPROVE": {
+      "icon": "✅",
+      "label": "Approve",
+      "sublabel": "Runway",
+      "color": "#34d399",
+      "destination": "Runway Board (Today's Build Queue)"
+    },
+    "BACKLOG": {
+      "icon": "📥",
+      "label": "Backlog",
+      "sublabel": "Roadmap",
+      "color": "#38bdf8",
+      "destination": "docs/BACKLOG.md"
+    },
+    "GRAVEYARD": {
+      "icon": "🪦",
+      "label": "Graveyard",
+      "sublabel": "Kill",
+      "color": "#f87171",
+      "destination": "Strategy Graveyard"
+    }
+  },
+  "investigation_gates": {
+    "SUBAGENT": {
+      "icon": "🤖",
+      "label": "Subagent",
+      "sublabel": "Probe",
+      "color": "#c084fc",
+      "action_type": "SUBAGENT_PROBE"
+    },
+    "QUEUE": {
+      "icon": "📋",
+      "label": "Queue",
+      "sublabel": "Session",
+      "color": "#fb923c",
+      "action_type": "QUEUE_SESSION"
+    },
+    "TABLE": {
+      "icon": "⏳",
+      "label": "Table",
+      "sublabel": "Hold",
+      "color": "#94a3b8",
+      "action_type": "TABLE"
+    }
+  },
+  "subagent_probes": {
+    "local": {
+      "icon": "🔬",
+      "label": "Local Code",
+      "color": "#38bdf8",
+      "desc": "Workspace codebase grep, symbols, and AST scan"
+    },
+    "web": {
+      "icon": "🌐",
+      "label": "Web / SOTA",
+      "color": "#60a5fa",
+      "desc": "Online research, documentation, and state of the art"
+    },
+    "pcda": {
+      "icon": "⚖️",
+      "label": "PCDA Audit",
+      "color": "#fbbf24",
+      "desc": "Method B+ 4-Lens dialectic audit"
+    },
+    "prompt": {
+      "icon": "📦",
+      "label": "Ext Prompt",
+      "color": "#c084fc",
+      "desc": "Bundle note into external frontier model prompt"
+    }
+  },
+  "session_queue_modes": {
+    "grill": {
+      "icon": "🔥",
+      "label": "Grill Me",
+      "color": "#e879f9",
+      "desc": "Interactive Socratic design interview"
+    },
+    "workshop": {
+      "icon": "🛠️",
+      "label": "Workshop",
+      "color": "#fb923c",
+      "desc": "Collaborative brainstorming and architecture refinement"
+    },
+    "pcda": {
+      "icon": "⚖️",
+      "label": "PCDA",
+      "color": "#fbbf24",
+      "desc": "Deep dialectic triage"
+    },
+    "discuss": {
+      "icon": "💬",
+      "label": "Discuss",
+      "color": "#38bdf8",
+      "desc": "General discussion and open-ended thought partner"
+    },
+    "plan": {
+      "icon": "📐",
+      "label": "Plan Spec",
+      "color": "#34d399",
+      "desc": "Architectural PLAN.md specification drafting"
+    },
+    "launch": {
+      "icon": "🚀",
+      "label": "Launch Chat Now",
+      "color": "#f43f5e",
+      "desc": "Immediate emergency chat session override"
+    }
+  },
+  "table_gate_presets": {
+    "hold_14d": {
+      "icon": "📅",
+      "label": "14-Day Hold",
+      "color": "#94a3b8",
+      "reason": "14-Day Hold"
+    },
+    "gate_a": {
+      "icon": "🔒",
+      "label": "Gate A: v0.4.1",
+      "color": "#cbd5e1",
+      "reason": "Gate A: v0.4.1 Release"
+    },
+    "custom_note": {
+      "icon": "✍️",
+      "label": "Add Note",
+      "color": "#facc15",
+      "reason": "Custom Context Hold"
+    }
+  },
+  "view_controls": {
+    "compact": {
+      "icon": "🗜️",
+      "label": "Compact",
+      "desc": "All card content drawers collapsed for high-density scan"
+    },
+    "preview": {
+      "icon": "📖",
+      "label": "Previews",
+      "desc": "Card summaries expanded by default"
+    }
+  }
+}

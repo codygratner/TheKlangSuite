@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Sync Growl",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 850.0,
+    "resonance": 0.6,
+    "laser_drive": 0.8,
+    "dco_sync": 1.0,
+    "dco_morph": 0.7,
+    "sub_level": 0.8,
+    "filter_orbit": 0.5
+  }
+}

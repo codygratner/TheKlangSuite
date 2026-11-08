@@ -6,6 +6,7 @@
 #include "CrackedChimesColours.h"
 #include "CrackedChimesModMath.h"
 #include "CrackedChimesKnob.h"
+#include "CrackedChimesFader.h"
 
 namespace CrackedChimes::UI
 {
@@ -75,11 +76,16 @@ public:
 
         // 2. Value arc - skew-true bipolar noon.
         float fromN = 0.0f;
+        const bool hasCenterAtNoon = slider.getProperties().contains("centerAtNoon") && static_cast<bool>(slider.getProperties()["centerAtNoon"]);
         const bool isBipolar = (knob != nullptr && knob->isBipolar())
             || (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0)
             || (slider.getProperties().contains("isBipolar") && static_cast<bool>(slider.getProperties()["isBipolar"]))
-            || (slider.getProperties().contains("centerAtNoon") && static_cast<bool>(slider.getProperties()["centerAtNoon"]));
-        if (isBipolar)
+            || hasCenterAtNoon;
+        if (hasCenterAtNoon)
+        {
+            fromN = 0.5f;
+        }
+        else if (isBipolar)
         {
             const double zero = juce::jlimit (slider.getMinimum(), slider.getMaximum(), 0.0);
             fromN = (float) slider.valueToProportionOfLength (zero);
@@ -166,6 +172,17 @@ public:
     }
 
     // ---- Linear (fader) ---------------------------------------------------
+    juce::Slider::SliderLayout getSliderLayout (juce::Slider& slider) override
+    {
+        auto layout = juce::LookAndFeel_V4::getSliderLayout (slider);
+        if (slider.getSliderStyle() == juce::Slider::LinearVertical)
+        {
+            // Reserve bottom 22px so thumb travel is strictly above the recessed OLED badge
+            layout.sliderBounds = slider.getLocalBounds().withTrimmedBottom (22);
+        }
+        return layout;
+    }
+
     void drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
                            float sliderPos, float minSliderPos, float maxSliderPos,
                            juce::Slider::SliderStyle style, juce::Slider& slider) override
@@ -178,37 +195,148 @@ public:
             return;
         }
 
-        const bool vertical = style == juce::Slider::LinearVertical;
+        const auto* cf = dynamic_cast<const CrackedChimesFader*> (&slider);
+        const bool isBipolar = (cf != nullptr && cf->isBipolar())
+            || (slider.getMinimum() < 0.0 && slider.getMaximum() > 0.0)
+            || (slider.getProperties().contains ("isBipolar") && static_cast<bool> (slider.getProperties()["isBipolar"]));
+
+        const auto trackCol = slider.isColourSpecified (juce::Slider::trackColourId)
+            ? slider.findColour (juce::Slider::trackColourId) : accentColour_;
+        const auto thumbCol = slider.isColourSpecified (juce::Slider::thumbColourId)
+            ? slider.findColour (juce::Slider::thumbColourId) : trackCol;
+
+        if (style == juce::Slider::LinearHorizontal)
+        {
+            const float trackY = static_cast<float> (y) + static_cast<float> (height) * 0.5f;
+            const float groove = 6.0f;
+
+            // Horizontal Track Groove
+            g.setColour (kCavity);
+            g.fillRoundedRectangle (static_cast<float> (x), trackY - 3.0f, static_cast<float> (width), groove, 3.0f);
+            g.setColour (kBadgeBorder);
+            g.drawRoundedRectangle (static_cast<float> (x), trackY - 3.0f, static_cast<float> (width), groove, 3.0f, 1.0f);
+
+            // Active fill
+            const float leftX = static_cast<float> (x);
+            g.setColour (trackCol.withAlpha (0.75f));
+            if (isBipolar)
+            {
+                const float zeroNorm = static_cast<float> (-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
+                const float midX = leftX + zeroNorm * static_cast<float> (width);
+                if (sliderPos > midX)
+                    g.fillRoundedRectangle (midX, trackY - 2.0f, sliderPos - midX, 4.0f, 2.0f);
+                else if (sliderPos < midX)
+                    g.fillRoundedRectangle (sliderPos, trackY - 2.0f, midX - sliderPos, 4.0f, 2.0f);
+            }
+            else
+            {
+                if (sliderPos > leftX)
+                    g.fillRoundedRectangle (leftX, trackY - 2.0f, sliderPos - leftX, 4.0f, 2.0f);
+            }
+
+            // Horizontal Fader Cap
+            const float capW = 12.0f;
+            const float capH = static_cast<float> (height) - 4.0f;
+            const auto capBounds = juce::Rectangle<float> (sliderPos - capW * 0.5f, trackY - capH * 0.5f, capW, capH);
+
+            g.setColour (kChassisDisc);
+            g.fillRoundedRectangle (capBounds, 2.5f);
+            g.setColour (kChassisRim);
+            g.drawRoundedRectangle (capBounds, 2.5f, 1.0f);
+
+            g.setColour (kNeedle);
+            g.drawLine (capBounds.getCentreX(), capBounds.getY() + 3.0f, capBounds.getCentreX(), capBounds.getBottom() - 3.0f, 1.5f);
+            return;
+        }
+
+        // LinearVertical Fader
         const auto area = juce::Rectangle<int> (x, y, width, height).toFloat();
-        const float groove = 6.0f;
 
-        juce::Rectangle<float> track = vertical
-            ? juce::Rectangle<float> (groove, area.getHeight()).withCentre (area.getCentre())
-            : juce::Rectangle<float> (area.getWidth(), groove).withCentre (area.getCentre());
+        // 1. Recessed Bottom Kilohearts Value Badge Bounds
+        const float badgeH = 16.0f;
+        const float badgeW = std::clamp (area.getWidth() - 4.0f, 26.0f, 44.0f);
+        const float badgeX = area.getCentreX() - badgeW * 0.5f;
+        const float badgeY = area.getBottom() - badgeH - 2.0f;
+        const auto badgeRect = juce::Rectangle<float> (badgeX, badgeY, badgeW, badgeH);
 
+        // 2. Fader Track Bounds (restricted to travel above badge)
+        const float trackTop = area.getY() + 4.0f;
+        const float trackBottom = badgeRect.getY() - 4.0f;
+        const float trackHeight = trackBottom - trackTop;
+        const float trackX = area.getCentreX();
+        const float grooveW = 6.0f;
+        const auto track = juce::Rectangle<float> (trackX - grooveW * 0.5f, trackTop, grooveW, trackHeight);
+
+        // Track Cavity & Border
         g.setColour (kCavity);
         g.fillRoundedRectangle (track, 3.0f);
         g.setColour (kBadgeBorder);
         g.drawRoundedRectangle (track, 3.0f, 1.0f);
 
-        juce::Rectangle<float> filled = vertical
-            ? track.withTop (sliderPos)
-            : track.withRight (sliderPos);
-        g.setColour (slider.findColour (juce::Slider::trackColourId));
-        g.fillRoundedRectangle (filled.reduced (1.0f), 2.0f);
-
-        const juce::Rectangle<float> cap = vertical
-            ? juce::Rectangle<float> (22.0f, 12.0f).withCentre ({ area.getCentreX(), sliderPos })
-            : juce::Rectangle<float> (12.0f, 22.0f).withCentre ({ sliderPos, area.getCentreY() });
-        g.setColour (kChassisDisc);
-        g.fillRoundedRectangle (cap, 2.5f);
-        g.setColour (kChassisRim);
-        g.drawRoundedRectangle (cap, 2.5f, 1.0f);
-        g.setColour (kNeedle);
-        if (vertical)
-            g.drawLine (cap.getX() + 3.0f, cap.getCentreY(), cap.getRight() - 3.0f, cap.getCentreY(), 1.5f);
+        // Active fill
+        const float clampedPos = std::clamp (sliderPos, trackTop, trackBottom);
+        g.setColour (trackCol.withAlpha (0.85f));
+        if (isBipolar)
+        {
+            const float zeroNorm = static_cast<float> (-slider.getMinimum() / (slider.getMaximum() - slider.getMinimum()));
+            const float midY = trackTop + (1.0f - zeroNorm) * trackHeight;
+            if (clampedPos < midY)
+                g.fillRoundedRectangle (trackX - 2.0f, clampedPos, 4.0f, midY - clampedPos, 2.0f);
+            else if (clampedPos > midY)
+                g.fillRoundedRectangle (trackX - 2.0f, midY, 4.0f, clampedPos - midY, 2.0f);
+        }
         else
-            g.drawLine (cap.getCentreX(), cap.getY() + 3.0f, cap.getCentreX(), cap.getBottom() - 3.0f, 1.5f);
+        {
+            if (clampedPos < trackBottom)
+            {
+                auto filled = track.withTop (clampedPos);
+                g.fillRoundedRectangle (filled.reduced (1.0f), 2.0f);
+            }
+        }
+
+        // 3. Tactile Fader Cap
+        const float capW = std::clamp (area.getWidth() - 6.0f, 26.0f, 34.0f);
+        const float capH = 13.0f;
+        const auto capBounds = juce::Rectangle<float> (trackX - capW * 0.5f, clampedPos - capH * 0.5f, capW, capH);
+
+        g.setColour (kChassisDisc);
+        g.fillRoundedRectangle (capBounds, 2.5f);
+        g.setColour (kChassisRim);
+        g.drawRoundedRectangle (capBounds, 2.5f, 1.0f);
+        g.setColour (kNeedle);
+        g.drawLine (capBounds.getX() + 3.0f, capBounds.getCentreY(), capBounds.getRight() - 3.0f, capBounds.getCentreY(), 1.5f);
+
+        // 4. Kilohearts Badge Value Rendering
+        juce::String badgeText;
+        bool badgeHot = false;
+
+        if (cf != nullptr)
+        {
+            if (! cf->isEditingValue())
+            {
+                badgeText = cf->getBadgeText();
+                badgeHot = cf->isBadgeHot();
+            }
+        }
+        else
+        {
+            badgeText = slider.textFromValueFunction
+                ? slider.textFromValueFunction (slider.getValue())
+                : slider.getTextFromValue (slider.getValue());
+            badgeHot = slider.isMouseButtonDown();
+        }
+
+        if (badgeText.isNotEmpty())
+        {
+            g.setColour (kBadgeBg);
+            g.fillRoundedRectangle (badgeRect, 3.5f);
+            g.setColour (badgeHot ? thumbCol.withAlpha (0.9f) : kBadgeBorder);
+            g.drawRoundedRectangle (badgeRect, 3.5f, 1.0f);
+
+            g.setFont (Typography::makeFont (Typography::kBadgeCompactSize));
+            g.setColour (kText);
+            g.drawFittedText (badgeText, badgeRect.toNearestInt(), juce::Justification::centred, 1, 0.85f);
+        }
     }
 
     // ---- Combo box / popup -------------------------------------------------

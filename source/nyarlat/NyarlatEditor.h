@@ -163,7 +163,7 @@ public:
 
         d.name = "NYARLAT";
 
-        d.blurb = "16-voice metamorphic Z-domain synthesizer (3 bitmask oscs x 14-pole Z-cube)";
+        d.blurb = "16-voice additive synthesizer: 3 bitmask wavetables & chaos matrix";
 
         d.accent = juce::Colour(0xFF00C8F0);
 
@@ -1529,15 +1529,10 @@ private:
 
 
     struct SliderFader {
-
-        juce::Slider slider;
-
+        CrackedChimes::UI::CrackedChimesFader slider;
         juce::Label label;
-
         juce::String paramId;
-
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
-
     };
 
 

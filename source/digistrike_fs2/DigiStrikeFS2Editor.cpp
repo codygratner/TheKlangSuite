@@ -337,16 +337,11 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
 
     // Row 1: Universal Hardware Mojo Strip (Sorcerous Purple 0xFFBC8CFF)
     const auto purpleCol = juce::Colour(0xFFBC8CFF);
-    setupKnob(filterDriveKnob_,  pre_drive,        "DRIVE",  "%",  "pre-filter analog saturation and drive", purpleCol);
+    setupKnob(filterDriveKnob_,  pre_drive,        "DRIVE",  "dB", "pre-filter analog saturation and drive", purpleCol);
     setupKnob(crushKnob_,        crush,            "CRUSH",  "Hz", "mojo sample rate decimation frequency",  purpleCol);
     setupKnob(shiftKnob_,        shift,            "SHIFT",  "Hz", "bode frequency shifter (+/-1000Hz)",     purpleCol, true);
     setupKnob(squashKnob_,       squash,           "SQUASH", "%",  "bipolar dynamics: snappy vs huge",       purpleCol, true);
     setupKnob(widerKnob_,        wider,            "WIDER",  "%",  "bipolar widener: up=classic comb, down=hilbert phase", purpleCol, true);
-    widerKnob_.slider.textFromValueFunction = [](double val) -> juce::String {
-        if (std::abs(val) < 0.01) return "OFF";
-        const int pct = static_cast<int>(std::round(std::abs(val) * 100.0));
-        return (val > 0.0) ? ("+" + juce::String(pct) + "%") : ("-" + juce::String(pct) + "%");
-    };
 
     // Master Output Bay: Sustain, Amp Decay, Glide Time, Limiter, Volume & Voice Mode (Blistering Red 0xFFFF3B30)
     const auto redCol = juce::Colour(0xFFFF3B30);
@@ -365,8 +360,9 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     setupKnob(glideTimeKnob_, glide_time, "GLIDE", "s", "portamento glide duration for authentic legato synth basslines", redCol);
     glideTimeKnob_.slider.setDoubleClickReturnValue(true, 0.050);
 
-    setupKnob(velocityKnob_, amp_velocity, "VEL", "%", "master velocity response: 0%=flat, 50%=linear, 100%=exponential", redCol);
-    velocityKnob_.slider.setDoubleClickReturnValue(true, 0.0);
+    setupKnob(velocityKnob_, amp_velocity, "VEL", "%", "master velocity response: 0%=flat, 50%=linear, 100%=exponential", redCol, true);
+    velocityKnob_.slider.getProperties().set("centerAtNoon", true);
+    velocityKnob_.slider.setDoubleClickReturnValue(true, 50.0);
 
     voiceModeRocker_.setColours({juce::Colour(0xFFFFAA00), juce::Colour(0xFF00C8FF), juce::Colour(0xFF6BBF59)});
     voiceModeRocker_.onSelect = [&apvts](int idx) {
@@ -563,7 +559,7 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.slider.setColour(juce::Slider::rotarySliderFillColourId, col);
     if (isBipolar) {
         item.slider.getProperties().set("centerAtNoon", true);
-        const double dblVal = (paramId == pan || paramId == decay_curve || paramId == shift || paramId == squash || paramId == wider) ? 0.0 : 0.5;
+        const double dblVal = (paramId == pan || paramId == decay_curve || paramId == shift || paramId == squash || paramId == wider || paramId == klang_morph) ? 0.0 : 0.5;
         item.slider.setDoubleClickReturnValue(true, dblVal);
     }
     contentContainer.addAndMakeVisible(item.slider);
@@ -586,7 +582,7 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
 
     item.slider.textFromValueFunction = [name, unit](double val) -> juce::String {
         if (name.startsWith("X:") || name.startsWith("Y:") || name.startsWith("Z:") || name.startsWith("T:")
-            || name.startsWith("VEL->")) {
+            || name.startsWith("VEL->") || name.startsWith("VEL-")) {
             const float normVal = static_cast<float>(val);
             const float bipPercent = (normVal - 0.5f) * 200.0f;
             return (bipPercent > 0.0f ? "+" : "") + juce::String(juce::roundToInt(bipPercent)) + "%";
@@ -597,10 +593,29 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
             if (p < 0) return juce::String(-p) + "% L";
             return juce::String(p) + "% R";
         }
-        if (name == "DECAY CRV") {
+        if (name == "DECAY CRV" || name == "DECAY-CRV") {
             if (val <= -0.05) return "EXP " + juce::String(val, 2);
             if (val >= 0.05) return "LOG +" + juce::String(val, 2);
             return "LIN 0.00";
+        }
+        if (name == "CUTOFF") {
+            if (val >= 19900.0) return "OPEN";
+            if (val >= 1000.0) return juce::String(val * 0.001, 1) + " kHz";
+            return juce::String(juce::roundToInt(val)) + " Hz";
+        }
+        if (name == "CRUSH") {
+            if (val >= 47900.0) return "OFF";
+            if (val >= 1000.0) return juce::String(val * 0.001, 1) + " kHz";
+            return juce::String(juce::roundToInt(val)) + " Hz";
+        }
+        if (name == "SHIFT") {
+            if (std::abs(val) < 0.5) return "0 Hz";
+            return (val > 0.0 ? "+" : "") + juce::String(juce::roundToInt(val)) + " Hz";
+        }
+        if (name == "DRIVE") {
+            const float db = tkdsp::formless::evalDriveDb(static_cast<float>(val <= 1.0 ? val : val * 0.01));
+            if (val <= 0.001) return "0.0 dB";
+            return "+" + juce::String(db, 1) + " dB";
         }
         if (name == "VOLUME") {
             const float u = static_cast<float>(val);
@@ -614,16 +629,33 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
             return juce::String(juce::roundToInt(val * 1000.0)) + " ms";
         }
         if (name == "TIME") {
-            if (std::abs(val) <= 0.02) return "INSTANT";
-            if (val < 0.0) return "REV " + juce::String(-val, 2) + "x";
-            return "+" + juce::String(val, 2) + "x";
+            return juce::String(val, 2) + "x";
         }
         if (name == "SUSTAIN") {
             if (val <= 2.0) return "1-SHOT";
-            return "GATE " + juce::String(juce::roundToInt(val)) + "%";
+            return "GT " + juce::String(juce::roundToInt(val)) + "%";
+        }
+        if (name == "LENGTH") {
+            if (val <= 2.0) return "FREEZE";
+            return juce::String(juce::roundToInt(val)) + "%";
+        }
+        if (name == "KLANG") {
+            if (std::abs(val) < 1.0) return "PCM";
+            if (val < 0.0) return "RES " + juce::String(juce::roundToInt(-val)) + "%";
+            return "PLT " + juce::String(juce::roundToInt(val)) + "%";
         }
         if (name == "PUNCH") {
             return juce::String(juce::roundToInt(val * 0.36f)) + " st";
+        }
+        if (name == "SQUASH") {
+            if (std::abs(val) < 0.005) return "0%";
+            const int pct = juce::roundToInt(val * 100.0);
+            return (pct > 0 ? "+" : "") + juce::String(pct) + "%";
+        }
+        if (name == "WIDER") {
+            if (std::abs(val) < 0.01) return "OFF";
+            const int pct = juce::roundToInt(std::abs(val) * 100.0);
+            return (val > 0.0 ? "+" : "-") + juce::String(pct) + "%";
         }
         if (name == "FE-AMT") {
             return juce::String(juce::roundToInt(val * 100.0)) + "%";
@@ -634,8 +666,48 @@ void DigiStrikeFS2AudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
         }
         if (unit == "ms") return juce::String(val, 1) + " ms";
         if (unit == "dB") return (val > 0.0 ? "+" : "") + juce::String(val, 1) + " dB";
-        if (unit == "%") return juce::String(juce::roundToInt(val)) + "%";
+        if (unit == "%") {
+            const double pct = (val <= 1.0) ? (val * 100.0) : val;
+            return juce::String(juce::roundToInt(pct)) + "%";
+        }
         return juce::String(val, 2);
+    };
+
+    item.slider.valueFromTextFunction = [name, unit](const juce::String& text) -> double {
+        juce::String t = text.trim().toUpperCase();
+        if (t.isEmpty()) return 0.0;
+        if (name == "CUTOFF" && t.contains("OPEN")) return 20000.0;
+        if (name == "CRUSH" && t.contains("OFF")) return 48000.0;
+        if (name == "WIDER" && t.contains("OFF")) return 0.0;
+        if (name == "SUSTAIN" && t.contains("1-SHOT")) return 0.0;
+        if (name == "LENGTH" && t.contains("FREEZE")) return 0.0;
+        if (name == "KLANG" && t.contains("PCM")) return 0.0;
+        if (name == "VOLUME" && t.contains("-INF")) return 0.0;
+        if (name == "PAN") {
+            if (t == "C") return 0.0;
+            if (t.endsWith("L")) return -t.dropLastCharacters(1).trim().getDoubleValue() * 0.01;
+            if (t.endsWith("R")) return t.dropLastCharacters(1).trim().getDoubleValue() * 0.01;
+        }
+        if (t.endsWith("KHZ") || t.endsWith("K")) {
+            return t.upToFirstOccurrenceOf("K", false, false).getDoubleValue() * 1000.0;
+        }
+        if (t.endsWith("MS")) {
+            double v = t.upToFirstOccurrenceOf("MS", false, false).getDoubleValue();
+            if (unit == "s") return v * 0.001;
+            return v;
+        }
+        if (t.endsWith("S") && !t.endsWith("MS")) {
+            double v = t.upToFirstOccurrenceOf("S", false, false).getDoubleValue();
+            if (unit == "ms") return v * 1000.0;
+            return v;
+        }
+        if (t.endsWith("%")) {
+            double v = t.upToFirstOccurrenceOf("%", false, false).getDoubleValue();
+            if (name == "SQUASH") return v * 0.01;
+            if (name == "WIDER") return v * 0.01;
+            return v;
+        }
+        return t.getDoubleValue();
     };
 
     registerInspector(&item.slider, paramId, col, &item.slider);

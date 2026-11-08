@@ -5,8 +5,18 @@
 #include <limits>
 #include "FastMath.h"
 #include "../common/SteppedRandom.h"
+#include "../common/MasterTaper.h"
 
 namespace tkdsp::formless {
+
+/**
+ * Monotonic 12AX7 Asymmetric Triode Tube Model (Anti-Inversion Standard)
+ * Strictly monotonic: f'(x) >= 0.41 > 0 everywhere. Never inverts for negative inputs.
+ */
+inline float evalOrganicTube(float x) noexcept {
+    const float th = TbdAudio::FastMath::fastTanh(x);
+    return th + 0.22f * (th * th) - 0.05f * (th * th * th);
+}
 
 namespace FastMath = TbdAudio::FastMath;
 
@@ -159,7 +169,8 @@ inline constexpr float evalTuneSemitones(float p) noexcept {
 
 /** Knob B: Pitch envelope decay duration (1.0ms .. 50.0ms noon .. 2500.0ms) */
 inline float evalPitchDecaySec(float p) noexcept {
-    return 0.001f * std::pow(2500.0f, std::clamp(p, 0.0f, 1.0f));
+    const float cp = std::clamp(p, 0.0f, 1.0f);
+    return 0.001f * FastMath::fastPow2(cp * 11.28771238f);
 }
 
 /** Knob C: Pitch envelope sweep depth (0.0st .. +24.0st noon .. +96.0st) */
@@ -186,17 +197,19 @@ inline constexpr float evalPunchGain(float p) noexcept {
 
 /** Cytomic SVF Resonance Q for LP/HP/BP (0.50 .. 3.54 noon .. 25.00) */
 inline float evalCytomicQ(float p) noexcept {
-    return 0.5f * std::pow(50.0f, std::clamp(p, 0.0f, 1.0f));
+    const float cp = std::clamp(p, 0.0f, 1.0f);
+    return 0.5f * FastMath::fastPow2(cp * 5.64385619f);
 }
 
 /** Tanh Pre-Filter Drive Decibels (0.0dB .. +6.0dB noon .. +36.0dB max) */
 inline float evalDriveDb(float p) noexcept {
-    return 36.0f * std::pow(std::clamp(p, 0.0f, 1.0f), 2.585f);
+    const float cp = std::clamp(p, 0.0f, 1.0f);
+    return (cp <= 0.0f) ? 0.0f : 36.0f * FastMath::fastPow2(2.585f * FastMath::fastLog2(cp));
 }
 
 /** Tanh Pre-Filter Drive Linear Voltage Gain (1.00x .. 2.00x noon .. 63.10x max) */
 inline float evalDriveGain(float p) noexcept {
-    return std::pow(10.0f, evalDriveDb(p) / 20.0f);
+    return FastMath::fastDbToGain(evalDriveDb(p));
 }
 
 /** Peaking Filter Bell EQ Gain in dB (-48.0dB .. 0.0dB noon .. +24.0dB) */
@@ -228,51 +241,31 @@ inline constexpr float getRoleWiderBassCutoffHz(int roleIdx) noexcept {
 }
 
 // ==============================================================================
-// MASTER VOLUME TAPER (-inf .. 0 dB (noon) .. +12 dB)
+// MASTER VOLUME TAPER (-inf .. 0 dB (noon) .. +18 dB Canon)
 // ==============================================================================
-inline constexpr float kMasterVolumeMaxDb   = 12.0f;
-inline constexpr float kMasterVolumeMaxGain = 3.98107171f;  // 10^(12/20)
+inline constexpr float kMasterVolumeMaxDb   = tkdsp::common::kMasterMaxDb;
+inline constexpr float kMasterVolumeMaxGain = tkdsp::common::kMasterMaxGain;
 
-/** Master Volume taper: u in [0,1] -> linear gain. 0 = silence, 0.5 = unity (1.0), 1 = +12 dB. NaN -> silence. */
+/** Master Volume taper: u in [0,1] -> linear gain. 0 = silence, 0.5 = unity (1.0), 1 = +18 dB. */
 inline float evalMasterVolumeGain(float u) noexcept {
-    if (!(u > 0.0f)) return 0.0f;
-    const float cu = std::min(u, 1.0f);
-    if (cu <= 0.5f) {
-        const float t = 2.0f * cu;
-        return t * t; // Quadratic fader taper (-inf .. 0 dB)
-    }
-    return std::pow(10.0f, kMasterVolumeMaxDb * (2.0f * cu - 1.0f) * (1.0f / 20.0f));
+    return tkdsp::common::evalMasterVolumeGain(u);
 }
 
-/** Master Volume taper in dB: -inf at u <= 0, 0.0 dB at u == 0.5, +12.0 dB at u == 1.0. */
+/** Master Volume taper in dB: -inf at u <= 0, 0.0 dB at u == 0.5, +18.0 dB at u == 1.0. */
 inline float evalMasterVolumeDb(float u) noexcept {
-    if (!(u > 0.0f)) return -std::numeric_limits<float>::infinity();
-    const float cu = std::min(u, 1.0f);
-    return (cu <= 0.5f) ? 40.0f * std::log10(2.0f * cu) : kMasterVolumeMaxDb * (2.0f * cu - 1.0f);
+    return tkdsp::common::evalMasterVolumeDb(u);
 }
 
-// ==============================================================================
-// DIGISTRIKE FS2 SOVEREIGN LOUDNESS TAPER (-inf .. 0 dB (noon) .. +18 dB)
-// ==============================================================================
-inline constexpr float kDigiStrikeVolumeMaxDb   = 18.0f;
-inline constexpr float kDigiStrikeVolumeMaxGain = 7.94328235f;  // 10^(18/20)
+// Backward compatibility aliases
+inline constexpr float kDigiStrikeVolumeMaxDb   = tkdsp::common::kMasterMaxDb;
+inline constexpr float kDigiStrikeVolumeMaxGain = tkdsp::common::kMasterMaxGain;
 
-/** DigiStrike Master Volume taper: u in [0,1] -> linear gain. 0 = silence, 0.5 = unity (1.0), 1 = +18 dB. */
 inline float evalDigiStrikeMasterVolumeGain(float u) noexcept {
-    if (!(u > 0.0f)) return 0.0f;
-    const float cu = std::min(u, 1.0f);
-    if (cu <= 0.5f) {
-        const float t = 2.0f * cu;
-        return t * t; // Quadratic fader taper (-inf .. 0 dB)
-    }
-    return std::pow(10.0f, kDigiStrikeVolumeMaxDb * (2.0f * cu - 1.0f) * (1.0f / 20.0f));
+    return tkdsp::common::evalMasterVolumeGain(u);
 }
 
-/** DigiStrike Master Volume taper in dB: -inf at u <= 0, 0.0 dB at u == 0.5, +18.0 dB at u == 1.0. */
 inline float evalDigiStrikeMasterVolumeDb(float u) noexcept {
-    if (!(u > 0.0f)) return -std::numeric_limits<float>::infinity();
-    const float cu = std::min(u, 1.0f);
-    return (cu <= 0.5f) ? 40.0f * std::log10(2.0f * cu) : kDigiStrikeVolumeMaxDb * (2.0f * cu - 1.0f);
+    return tkdsp::common::evalMasterVolumeDb(u);
 }
 
 // ==============================================================================
@@ -384,13 +377,13 @@ static constexpr float kRoleDroopFactor[8] = {
 /** Role-masked Organic LPG filter cutoff floor (minimum frequency ratio when optocoupler is fully dark). */
 static constexpr float kRoleLpgCutoffFloor[8] = {
     0.15f, // BD: Full acoustic drumhead damping (15% floor for heavy sub-bass thud)
-    0.20f, // SD: Deep shell damping (20% floor)
+    0.25f, // SD: Snare wire presence (25% floor)
     0.15f, // TM: Deep tom-tom acoustic damping (15% floor)
-    0.35f, // CP: Moderate clap transient air retention (35% floor)
-    0.65f, // HH: Hi-Hat metallic air defense (65% floor preserves crisp 6-12kHz sizzle)
-    0.60f, // CY: Cymbal bronze shimmer defense (60% floor preserves shimmering alloy wash)
-    0.25f, // PC: Conga/bongo acoustic membrane damping (25% floor)
-    0.40f  // FX: Moderate spectral decay (40% floor)
+    0.40f, // CP: Clap transient air retention (40% floor)
+    0.88f, // HH: Hi-Hat metallic air defense (88% floor preserves sparkling 8-16kHz sizzle)
+    0.85f, // CY: Cymbal bronze shimmer defense (85% floor preserves shimmering B20 alloy wash)
+    0.30f, // PC: Conga/bongo acoustic membrane presence (30% floor)
+    0.50f  // FX: Extended spectral retention (50% floor)
 };
 
 /**

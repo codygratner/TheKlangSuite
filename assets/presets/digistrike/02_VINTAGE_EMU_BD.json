@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "SP-12 Gritty Kick",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 1.0,
+    "lineage": 1.0,
+    "macro_x": 0.75,
+    "macro_y": 0.4,
+    "cutoff": 8000.0,
+    "decay": 0.45,
+    "crush": 0.35
+  }
+}

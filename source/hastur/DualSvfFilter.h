@@ -65,57 +65,18 @@ public:
         biteHfFilter_.reset();
     }
 
-    /**
-     * @brief Process audio sample through the Dual-SVF VCF Engine.
-     * 
-     * @param input Raw audio sample from the mixer.
-     * @param cutoffHz Master cutoff frequency (10 Hz to 22000 Hz).
-     * @param resonance Amount of resonance feedback (0.0 to 1.0).
-     * @param deckMode Deck routing (0: Pre-24dB, 1: Dual-48dB, 2: Post-24dB).
-     * @param laserBite 8th-order APF phase dispersion & recirculation depth [0.0, 1.0].
-     * @param laserDrive Normalized Tanh saturation drive [0.0, 1.0].
-     * @param hpfMode 4-position analog HPF (0: Off, 1: 80Hz Bass Bump, 2: 150Hz, 3: 300Hz).
-     * @return Filtered output sample.
-     */
-    [[nodiscard]] float process(
-        float input,
-        float cutoffHz,
-        float resonance,
-        float hpCutoffHz,
-        int deckMode = 1,
-        float midApfCutoff = 1000.0f,
-        bool midApfEnabled = false,
-        float midDrive = 0.0f) noexcept
-    {
-        (void)midApfCutoff;
-        const int hpfMode = (hpCutoffHz > 200.0f) ? 3 : ((hpCutoffHz > 50.0f) ? 2 : 1);
-        const float laserBite = midApfEnabled ? 0.5f : 0.0f;
-        return process(input, cutoffHz, resonance, deckMode, laserBite, midDrive, hpfMode);
+    void flushStates() noexcept {
+        reset();
     }
 
-    // 7-parameter compatibility overload (omitting filterWarp)
-    [[nodiscard]] float process(
-        float input,
-        float cutoffHz,
-        float resonance,
-        int deckMode,
-        float laserBite,
-        float laserDrive,
-        int hpfMode) noexcept
-    {
-        return process(input, cutoffHz, resonance, deckMode, 0.0f, laserBite, laserDrive, hpfMode);
-    }
+    struct SvfCoeffs {
+        float fc{1000.0f};
+        float a1{0.0f};
+        float a2{0.0f};
+        float a3{0.0f};
+    };
 
-    [[nodiscard]] float process(
-        float input,
-        float cutoffHz,
-        float resonance,
-        int deckMode = 1,
-        float filterWarp = 0.0f,
-        float laserBite = 0.0f,
-        float laserDrive = 0.0f,
-        int hpfMode = 1) noexcept
-    {
+    [[nodiscard]] SvfCoeffs computeCoeffs(float cutoffHz, float resonance, int deckMode) const noexcept {
         const float nyquist = static_cast<float>(sampleRate_ * 0.48);
         const float fc = std::clamp(cutoffHz, 10.0f, nyquist);
 
@@ -131,7 +92,7 @@ public:
         // In 24dB mode: kDamp in [0.05, 2.0] (Q up to 20.0, liquid resonance).
         // In Dual-48dB mode: scale damping so 4-stage composite Q^4 <= 36 (+32dB max) to prevent unusable screech cliff.
         const float resNorm = std::clamp(resonance, 0.0f, 1.0f);
-        const float resCurve = std::pow(resNorm, 1.5f);
+        const float resCurve = resNorm * std::sqrt(resNorm);
         const float kDampScale = (deckMode == DECK_DUAL_48) ? 1.58f : 1.78f;
         const float kDamp = 2.0f - kDampScale * resCurve;
 
@@ -140,44 +101,58 @@ public:
         const float a2 = g * a1;
         const float a3 = g * a2;
 
+        return { fc, a1, a2, a3 };
+    }
+
+    [[nodiscard]] float processWithCoeffs(
+        float input,
+        const SvfCoeffs& coeffs,
+        int deckMode = 1,
+        float filterWarp = 0.0f,
+        float laserBite = 0.0f,
+        float laserDrive = 0.0f,
+        int hpfMode = 1) noexcept
+    {
         float out = 0.0f;
         switch (deckMode) {
             case 0: { // Pre-24dB: Laser Sandwich -> Chip A
-                float s = processSandwich(input, fc, filterWarp, laserBite, laserDrive);
-                out = processChipA(s, a1, a2, a3);
+                float s = processSandwich(input, coeffs.fc, filterWarp, laserBite, laserDrive);
+                out = processChipA(s, coeffs.a1, coeffs.a2, coeffs.a3);
                 break;
             }
             case 2: { // Post-24dB: Chip A -> Laser Sandwich
-                float a = processChipA(input, a1, a2, a3);
-                out = processSandwich(a, fc, filterWarp, laserBite, laserDrive);
+                float a = processChipA(input, coeffs.a1, coeffs.a2, coeffs.a3);
+                out = processSandwich(a, coeffs.fc, filterWarp, laserBite, laserDrive);
                 break;
             }
             case 1:
             default: { // Dual-48dB Monolith: Chip A -> Laser Sandwich -> Chip B
-                float a = processChipA(input, a1, a2, a3);
-                float s = processSandwich(a, fc, filterWarp, laserBite, laserDrive);
-                out = processChipB(s, a1, a2, a3);
+                float a = processChipA(input, coeffs.a1, coeffs.a2, coeffs.a3);
+                float s = processSandwich(a, coeffs.fc, filterWarp, laserBite, laserDrive);
+                out = processChipB(s, coeffs.a1, coeffs.a2, coeffs.a3);
                 break;
             }
         }
 
         // Apply 4-position Analog High-Pass Filter
-        out = processHPF(out, hpfMode);
+        return processHPF(out, hpfMode);
+    }
 
-        // Denormal protection
-        if (std::abs(s1_1_) < 1e-9f) s1_1_ = 0.0f;
-        if (std::abs(s2_1_) < 1e-9f) s2_1_ = 0.0f;
-        if (std::abs(s1_2_) < 1e-9f) s1_2_ = 0.0f;
-        if (std::abs(s2_2_) < 1e-9f) s2_2_ = 0.0f;
-        if (std::abs(s1_3_) < 1e-9f) s1_3_ = 0.0f;
-        if (std::abs(s2_3_) < 1e-9f) s2_3_ = 0.0f;
-        if (std::abs(s1_4_) < 1e-9f) s1_4_ = 0.0f;
-        if (std::abs(s2_4_) < 1e-9f) s2_4_ = 0.0f;
-        if (std::abs(invApfState_) < 1e-9f) invApfState_ = 0.0f;
-        if (std::abs(hpS1_) < 1e-9f) hpS1_ = 0.0f;
-        if (std::abs(hpS2_) < 1e-9f) hpS2_ = 0.0f;
-
-        return out;
+    /**
+     * @brief Process audio sample through the Dual-SVF VCF Engine.
+     */
+    [[nodiscard]] float process(
+        float input,
+        float cutoffHz,
+        float resonance,
+        int deckMode = 1,
+        float filterWarp = 0.0f,
+        float laserBite = 0.0f,
+        float laserDrive = 0.0f,
+        int hpfMode = 1) noexcept
+    {
+        const auto coeffs = computeCoeffs(cutoffHz, resonance, deckMode);
+        return processWithCoeffs(input, coeffs, deckMode, filterWarp, laserBite, laserDrive, hpfMode);
     }
 
 private:

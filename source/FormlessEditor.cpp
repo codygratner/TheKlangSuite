@@ -2,11 +2,11 @@
 #include "formless_spawn/FormlessControlInfo.h"
 #include "formless_spawn/formless_spawnParameterIds.h"
 
+using namespace formless_spawnParameters::Ids;
+
 FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpawnAudioProcessor& p)
     : AudioProcessorEditor(&p), processor_(p)
 {
-    using namespace formless_spawnParameters::Ids;
-
     // 1. Mount content container
     addAndMakeVisible(contentContainer);
     contentContainer.setBounds(0, 0, kBaseWidth, kBaseHeight);
@@ -100,12 +100,12 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     // 6-Domain Chromatic Standard: Movie Poster Orange (0xFFFF7B25)
     // =========================================================================
     const auto orangeCol = juce::Colour(0xFFFF7B25);
-    setupKnob(macroXKnob_,     macro_x,     "X: SPECTRAL","%", "macro spectral spread, sweep excursion and harmonics", orangeCol);
-    setupKnob(macroYKnob_,     macro_y,     "Y: PUNCH",   "%", "macro transient attack spike and punch snap",         orangeCol);
-    setupKnob(macroZKnob_,     macro_z,     "Z: TIMBRE",  "%", "macro harmonic waveshaping, fold & overtone",         orangeCol);
-    setupKnob(macroTKnob_,     macro_t,     "T: TIME",    "%", "macro pitch envelope and body decay time",            orangeCol);
-    setupKnob(velAggrKnob_,    vel_aggr,    "VEL->AGGR",  "%", "velocity to synthesis aggression & overdrive",       orangeCol);
-    setupKnob(velTimbKnob_,    vel_timb,    "VEL->TIMB",  "%", "velocity to synthesis brightness & overtones",       orangeCol);
+    setupKnob(macroXKnob_,     macro_x,     "X: SPECTRAL","%", "macro spectral spread, sweep excursion and harmonics", orangeCol, true);
+    setupKnob(macroYKnob_,     macro_y,     "Y: PUNCH",   "%", "macro transient attack spike and punch snap",         orangeCol, true);
+    setupKnob(macroZKnob_,     macro_z,     "Z: TIMBRE",  "%", "macro harmonic waveshaping, fold & overtone",         orangeCol, true);
+    setupKnob(macroTKnob_,     macro_t,     "T: TIME",    "%", "macro pitch envelope and body decay time",            orangeCol, true);
+    setupKnob(velAggrKnob_,    vel_aggr,    "VEL->AGGR",  "%", "velocity to synthesis aggression & overdrive",       orangeCol, true);
+    setupKnob(velTimbKnob_,    vel_timb,    "VEL->TIMB",  "%", "velocity to synthesis brightness & overtones",       orangeCol, true);
     setupKnob(panKnob_,        pan,         "PAN",        "%", "stereo panorama positioning",                        orangeCol, true);
     setupKnob(decayCurveKnob_, decay_curve, "DECAY CRV",  "",  "envelope discharge curve (exp to log)",              orangeCol, true);
 
@@ -185,11 +185,6 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     setupKnob(shiftKnob_,        shift,           "SHIFT",     "Hz", "bode frequency shifter (+/-1000Hz)",         purpleCol, true);
     setupKnob(squashKnob_,       squash,          "SQUASH",    "%",  "bipolar dynamics: thin/snappy vs thick/huge",purpleCol, true);
     setupKnob(widerKnob_,        wider,           "WIDER",     "%",  "bipolar widener: up=classic comb, down=hilbert phase",     purpleCol, true);
-    widerKnob_.slider.textFromValueFunction = [](double val) -> juce::String {
-        if (std::abs(val) < 0.01) return "OFF";
-        const int pct = static_cast<int>(std::round(std::abs(val) * 100.0));
-        return (val > 0.0) ? ("+" + juce::String(pct) + "%") : ("-" + juce::String(pct) + "%");
-    };
 
     // Row 3: Master Output VCA & Distressor Limiter (Blistering Red 0xFFFF3B30)
     const auto redCol = juce::Colour(0xFFFF3B30);
@@ -203,8 +198,9 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     setupKnob(ampDecayKnob_,     amp_decay,       "AMP-DEC",   "s",  "master dynamic amp decay [5ms .. engine length]", redCol);
     ampDecayKnob_.slider.setDoubleClickReturnValue(true, 1.0);
 
-    setupKnob(velocityKnob_,     amp_velocity,    "VEL",       "%",  "master velocity response: 0%=flat, 50%=linear, 100%=exponential", redCol);
-    velocityKnob_.slider.setDoubleClickReturnValue(true, 0.0);
+    setupKnob(velocityKnob_,     amp_velocity,    "VEL",       "%",  "master velocity response: 0%=flat, 50%=linear, 100%=exponential", redCol, true);
+    velocityKnob_.slider.getProperties().set("centerAtNoon", true);
+    velocityKnob_.slider.setDoubleClickReturnValue(true, 50.0);
 
     layoutControls();
 }
@@ -223,7 +219,9 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
     item.slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     item.slider.setColour(juce::Slider::rotarySliderFillColourId, col);
     if (isBipolar) {
-        item.slider.setDoubleClickReturnValue(true, 0.0);
+        item.slider.getProperties().set("centerAtNoon", true);
+        const double dblVal = (paramId == pan || paramId == decay_curve || paramId == shift || paramId == squash || paramId == wider) ? 0.0 : 0.5;
+        item.slider.setDoubleClickReturnValue(true, dblVal);
     }
     contentContainer.addAndMakeVisible(item.slider);
     rotarySliders_.push_back(&item.slider);
@@ -244,8 +242,9 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
         processor_.getAPVTS(), paramId, item.slider);
 
     // Concise metric value formatter for In-Dial Kilohearts badge (<= 8 chars)
-    item.slider.textFromValueFunction = [this, name, unit](double val) -> juce::String {
-        if (name == "RES" || name == "GAIN") {
+    item.slider.textFromValueFunction = [this, &item, name, unit](double val) -> juce::String {
+        const juce::String curLabel = item.label.getText();
+        if (curLabel == "RES" || curLabel == "GAIN" || name == "RES" || name == "GAIN") {
             const int fType = filterTypeBar_.getState();
             if (fType == 3) {
                 const float gainDb = tkdsp::formless::evalPeakingGainDb(static_cast<float>(val));
@@ -253,6 +252,20 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
             }
             const float q = tkdsp::formless::evalCytomicQ(static_cast<float>(val));
             return "Q " + juce::String(q, 2);
+        }
+        if (name == "CUTOFF" || curLabel == "CUTOFF") {
+            if (val >= 19900.0) return "OPEN";
+            if (val >= 1000.0) return juce::String(val * 0.001, 1) + " kHz";
+            return juce::String(juce::roundToInt(val)) + " Hz";
+        }
+        if (name == "CRUSH" || curLabel == "CRUSH") {
+            if (val >= 47900.0) return "OFF";
+            if (val >= 1000.0) return juce::String(val * 0.001, 1) + " kHz";
+            return juce::String(juce::roundToInt(val)) + " Hz";
+        }
+        if (name == "SHIFT" || curLabel == "SHIFT") {
+            if (std::abs(val) < 0.5) return "0 Hz";
+            return (val > 0.0 ? "+" : "") + juce::String(juce::roundToInt(val)) + " Hz";
         }
         if (name == "VOLUME") {
             const float u = static_cast<float>(val);
@@ -287,10 +300,26 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
             if (val >= 1.0) return juce::String(val, 2) + " s";
             return juce::String(juce::roundToInt(val * 1000.0)) + " ms";
         }
-        if (name == "DRIVE") {
+        if (name == "DRIVE" || curLabel == "DRIVE") {
             const float db = tkdsp::formless::evalDriveDb(static_cast<float>(val));
             if (val <= 0.001f) return "0.0 dB";
             return "+" + juce::String(db, 1) + " dB";
+        }
+        if (curLabel == "P.DEC" || curLabel == "BEND.T" || curLabel == "S.DECAY") {
+            const float sec = tkdsp::formless::evalPitchDecaySec(static_cast<float>(val));
+            if (sec >= 1.0f) return juce::String(sec, 2) + " s";
+            return juce::String(juce::roundToInt(sec * 1000.0f)) + " ms";
+        }
+        if (curLabel == "SWEEP.D") {
+            const float semis = tkdsp::formless::evalPitchDepthSemis(static_cast<float>(val));
+            return "+" + juce::String(juce::roundToInt(semis)) + " st";
+        }
+        if (curLabel == "INTERVAL") {
+            return "+" + juce::String(juce::roundToInt(val * 36.0)) + " st";
+        }
+        if (curLabel == "PRE-TIME") {
+            const float ms = 1.0f + static_cast<float>(val) * 29.0f;
+            return juce::String(ms, 1) + " ms";
         }
         if (name == "SQUASH") {
             if (std::abs(val) < 0.005) return "0%";
@@ -308,12 +337,12 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
             if (p < 0) return juce::String(-p) + "% L";
             return juce::String(p) + "% R";
         }
-        if (name == "DECAY-CRV") {
+        if (name == "DECAY-CRV" || name == "DECAY CRV") {
             if (std::abs(val) < 0.01) return "LIN 0.00";
             if (val < 0.0) return "EXP " + juce::String(val, 2);
             return "LOG +" + juce::String(val, 2);
         }
-        if (name.startsWith("MACRO") || name.startsWith("VEL-")) {
+        if (name.startsWith("MACRO") || name.startsWith("VEL-") || name.startsWith("VEL->") || name.startsWith("X:") || name.startsWith("Y:") || name.startsWith("Z:") || name.startsWith("T:")) {
             const float normVal = static_cast<float>(val);
             const float bipPercent = (normVal - 0.5f) * 200.0f;
             return (bipPercent > 0.0f ? "+" : "") + juce::String(juce::roundToInt(bipPercent)) + "%";
@@ -325,8 +354,46 @@ void FormlessSpawnAudioProcessorEditor::setupKnob(KnobItem& item, const juce::St
         if (unit == "ms") return juce::String(val, 1) + " ms";
         if (unit == "st") return (val > 0.0 ? "+" : "") + juce::String(val, 1) + " st";
         if (unit == "dB") return juce::String(val, 1) + " dB";
-        if (unit == "%") return juce::String(juce::roundToInt(val * 100.0)) + "%";
+        if (unit == "%") {
+            const double pct = (val <= 1.0) ? (val * 100.0) : val;
+            return juce::String(juce::roundToInt(pct)) + "%";
+        }
         return juce::String(val, 2);
+    };
+
+    item.slider.valueFromTextFunction = [name, unit](const juce::String& text) -> double {
+        juce::String t = text.trim().toUpperCase();
+        if (t.isEmpty()) return 0.0;
+        if (name == "CUTOFF" && t.contains("OPEN")) return 20000.0;
+        if (name == "CRUSH" && t.contains("OFF")) return 48000.0;
+        if (name == "WIDER" && t.contains("OFF")) return 0.0;
+        if (name == "VOLUME" && t.contains("-INF")) return 0.0;
+        if (name == "PAN") {
+            if (t == "C") return 0.0;
+            if (t.endsWith("L")) return -t.dropLastCharacters(1).trim().getDoubleValue() * 0.01;
+            if (t.endsWith("R")) return t.dropLastCharacters(1).trim().getDoubleValue() * 0.01;
+        }
+        if (t.endsWith("KHZ") || t.endsWith("K")) {
+            return t.upToFirstOccurrenceOf("K", false, false).getDoubleValue() * 1000.0;
+        }
+        if (t.endsWith("MS")) {
+            double v = t.upToFirstOccurrenceOf("MS", false, false).getDoubleValue();
+            if (unit == "s") return v * 0.001;
+            return v;
+        }
+        if (t.endsWith("S") && !t.endsWith("MS")) {
+            double v = t.upToFirstOccurrenceOf("S", false, false).getDoubleValue();
+            if (unit == "ms") return v * 1000.0;
+            return v;
+        }
+        if (t.endsWith("%")) {
+            double v = t.upToFirstOccurrenceOf("%", false, false).getDoubleValue();
+            if (unit == "%" && (name.startsWith("MACRO") || name.startsWith("VEL") || name.startsWith("X:") || name.startsWith("Y:") || name.startsWith("Z:") || name.startsWith("T:") || name == "FE-AMT" || name == "SQUASH" || name == "WIDER" || name == "DRIVE")) {
+                return (v * 0.5 / 100.0) + 0.5;
+            }
+            return (v <= 100.0 && unit == "%" && name.startsWith("param_")) ? v * 0.01 : v;
+        }
+        return t.getDoubleValue();
     };
 
     // Live Streaming Telemetry to HeaderInspector
@@ -563,6 +630,17 @@ void FormlessSpawnAudioProcessorEditor::timerCallback() {
         lifeformRocker_.setState(static_cast<int>(param->load()));
     }
 
+    if (auto* rParam = processor_.getAPVTS().getRawParameterValue(role)) {
+        const int curRole = std::clamp(static_cast<int>(rParam->load()), 0, tkdsp::FormlessSpawnVoice::kTotalRoles - 1);
+        const int curModel = processor_.getAPVTS().getRawParameterValue(model) ?
+            std::clamp(static_cast<int>(processor_.getAPVTS().getRawParameterValue(model)->load()), 0, tkdsp::FormlessSpawnVoice::kModelsPerRole - 1) : 0;
+        if (roleGrid_.getState() != curRole || modelGrid_.getModel() != curModel) {
+            roleGrid_.setState(curRole);
+            modelGrid_.setRoleAndModel(curRole, curModel);
+            updateRoleParamLabels(curRole);
+        }
+    }
+
     // =========================================================================
     // 1. Tier 2: Stepped Random Halos on Macro Dials (Caustic Hastur Yellow)
     // =========================================================================
@@ -778,6 +856,15 @@ void FormlessSpawnAudioProcessorEditor::updateRoleParamLabels(int roleIdx) {
     paramFKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][5], juce::dontSendNotification);
     paramGKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][6], juce::dontSendNotification);
     paramHKnob_.label.setText(tkdsp::FormlessSpawnVoice::kRoleParamNames[roleIdx][7], juce::dontSendNotification);
+
+    paramAKnob_.slider.repaint();
+    paramBKnob_.slider.repaint();
+    paramCKnob_.slider.repaint();
+    paramDKnob_.slider.repaint();
+    paramEKnob_.slider.repaint();
+    paramFKnob_.slider.repaint();
+    paramGKnob_.slider.repaint();
+    paramHKnob_.slider.repaint();
 }
 
 void FormlessSpawnAudioProcessorEditor::updateFilterTypeUI(int filterIdx) {

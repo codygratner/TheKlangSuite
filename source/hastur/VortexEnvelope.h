@@ -160,7 +160,14 @@ public:
                     stagePhase_ = 0.0;
                 } else {
                     const float p = static_cast<float>(stagePhase_);
-                    val_ = L1 + (L2 - L1) * p;
+                    if (b < -0.01f) {
+                        const float kExp = std::exp(2.5f * b * p);
+                        const float kLin = 1.0f - p;
+                        const float blend = (1.0f + 0.35f * b) * kExp - (0.35f * b) * kLin;
+                        val_ = L2 + (L1 - L2) * std::clamp(blend, 0.0f, 1.0f);
+                    } else {
+                        val_ = L1 + (L2 - L1) * p;
+                    }
                 }
                 break;
             }
@@ -183,7 +190,14 @@ public:
                     stagePhase_ = 0.0;
                 } else {
                     const float p = static_cast<float>(stagePhase_);
-                    val_ = L2 + (L3 - L2) * p;
+                    if (b < -0.01f) {
+                        const float kExp = std::exp(2.0f * b * p);
+                        const float kLin = 1.0f - p;
+                        const float blend = (1.0f + 0.35f * b) * kExp - (0.35f * b) * kLin;
+                        val_ = L3 + (L2 - L3) * std::clamp(blend, 0.0f, 1.0f);
+                    } else {
+                        val_ = L2 + (L3 - L2) * p;
+                    }
                 }
                 break;
             }

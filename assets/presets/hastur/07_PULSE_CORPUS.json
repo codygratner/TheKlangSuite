@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Industrial Square",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 1500.0,
+    "resonance": 0.55,
+    "dco_shape": 1.0,
+    "dco_pw": 0.35,
+    "laser_drive": 0.75,
+    "filter_warp": 0.4
+  }
+}

@@ -48,6 +48,7 @@ jobs:
             Hastur_VST3 Hastur_AU Hastur_Standalone \
             FormlessSpawn_VST3 FormlessSpawn_AU FormlessSpawn_Standalone \
             DigiStrikeFS2_VST3 DigiStrikeFS2_AU DigiStrikeFS2_Standalone \
+            Nyarlat_VST3 Nyarlat_AU Nyarlat_Standalone \
             dsp_tests
 
       - name: Run DSP Unit Tests
@@ -61,7 +62,7 @@ jobs:
       - name: Package macOS Distribution Archives
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
-          mkdir -p dist_mac/hastur dist_mac/formless dist_mac/digistrike dist_mac/suite
+          mkdir -p dist_mac/hastur dist_mac/formless dist_mac/digistrike dist_mac/nyarlat dist_mac/suite
 
           # Copy Hastur bundles
           find build -name "Hastur.vst3" -type d -exec cp -R -P {} dist_mac/hastur/ \;
@@ -84,6 +85,17 @@ jobs:
             cp assets/digistrike_fs2_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
           done
 
+          # Copy Nyarlat bundles
+          find build -name "Nyarlat.vst3" -type d -exec cp -R -P {} dist_mac/nyarlat/ \;
+          find build -name "Nyarlat.component" -type d -exec cp -R -P {} dist_mac/nyarlat/ \;
+          find build -name "Nyarlat.app" -type d -exec cp -R -P {} dist_mac/nyarlat/ \;
+
+          # Ensure ROM is in all Nyarlat bundles
+          find dist_mac/nyarlat -name "Nyarlat.vst3" -o -name "Nyarlat.component" -o -name "Nyarlat.app" | while read -r item; do
+            mkdir -p "$item/Contents/Resources"
+            cp assets/nyarlat_akwf_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
+          done
+
           # Ad-hoc codesign all binaries
           find dist_mac -name "*.vst3" -o -name "*.component" -o -name "*.app" | while read -r item; do
             codesign --force --deep -s - "$item" 2>/dev/null || true
@@ -93,11 +105,13 @@ jobs:
           cp -R -P dist_mac/hastur/* dist_mac/suite/
           cp -R -P dist_mac/formless/* dist_mac/suite/
           cp -R -P dist_mac/digistrike/* dist_mac/suite/
+          cp -R -P dist_mac/nyarlat/* dist_mac/suite/
 
           # Create zip archives (preserving symlinks)
-          cd dist_mac/hastur && zip -r -y "../../Hastur-v1.0.6-macOS.zip" * && cd ../..
-          cd dist_mac/formless && zip -r -y "../../Formless_Spawn-v1.0.1-macOS.zip" * && cd ../..
-          cd dist_mac/digistrike && zip -r -y "../../DigiStrike_FS2-v1.0.0-macOS.zip" * && cd ../..
+          cd dist_mac/hastur && zip -r -y "../../Hastur-v1.3.0-macOS.zip" * && cd ../..
+          cd dist_mac/formless && zip -r -y "../../Formless_Spawn-v1.3.0-macOS.zip" * && cd ../..
+          cd dist_mac/digistrike && zip -r -y "../../DigiStrike_FS2-v1.2.0-macOS.zip" * && cd ../..
+          cd dist_mac/nyarlat && zip -r -y "../../Nyarlat-v1.0.0-macOS.zip" * && cd ../..
           cd dist_mac/suite && zip -r -y "../../TheKlangSuite-${TAG}-macOS.zip" * && cd ../..
 
           ls -lh *-macOS.zip
@@ -111,6 +125,7 @@ jobs:
             Hastur-*-macOS.zip
             Formless_Spawn-*-macOS.zip
             DigiStrike_FS2-*-macOS.zip
+            Nyarlat-*-macOS.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -163,6 +178,7 @@ jobs:
             Hastur_VST3 Hastur_Standalone \
             FormlessSpawn_VST3 FormlessSpawn_Standalone \
             DigiStrikeFS2_VST3 DigiStrikeFS2_Standalone \
+            Nyarlat_VST3 Nyarlat_Standalone \
             dsp_tests
 
       - name: Run DSP Unit Tests
@@ -176,7 +192,7 @@ jobs:
       - name: Package Linux Binaries
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
-          mkdir -p dist_linux/hastur dist_linux/formless dist_linux/digistrike dist_linux/suite
+          mkdir -p dist_linux/hastur dist_linux/formless dist_linux/digistrike dist_linux/nyarlat dist_linux/suite
 
           # Copy Hastur
           find build -name "Hastur.vst3" -type d -exec cp -R -P {} dist_linux/hastur/ \;
@@ -196,15 +212,27 @@ jobs:
             cp assets/digistrike_fs2_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
           done
 
+          # Copy Nyarlat
+          find build -name "Nyarlat.vst3" -type d -exec cp -R -P {} dist_linux/nyarlat/ \;
+          find build -path "*Nyarlat_artefacts*Standalone/Nyarlat" -type f -exec cp {} dist_linux/nyarlat/ \;
+
+          # Ensure ROM is in Nyarlat VST3
+          find dist_linux/nyarlat -name "Nyarlat.vst3" | while read -r item; do
+            mkdir -p "$item/Contents/Resources"
+            cp assets/nyarlat_akwf_rom.bin "$item/Contents/Resources/" 2>/dev/null || true
+          done
+
           # Assemble Suite
           cp -R -P dist_linux/hastur/* dist_linux/suite/
           cp -R -P dist_linux/formless/* dist_linux/suite/
           cp -R -P dist_linux/digistrike/* dist_linux/suite/
+          cp -R -P dist_linux/nyarlat/* dist_linux/suite/
 
           # Create zip archives
-          cd dist_linux/hastur && zip -r "../../Hastur-v1.0.6-Linux.zip" * && cd ../..
-          cd dist_linux/formless && zip -r "../../Formless_Spawn-v1.0.1-Linux.zip" * && cd ../..
-          cd dist_linux/digistrike && zip -r "../../DigiStrike_FS2-v1.0.0-Linux.zip" * && cd ../..
+          cd dist_linux/hastur && zip -r "../../Hastur-v1.3.0-Linux.zip" * && cd ../..
+          cd dist_linux/formless && zip -r "../../Formless_Spawn-v1.3.0-Linux.zip" * && cd ../..
+          cd dist_linux/digistrike && zip -r "../../DigiStrike_FS2-v1.2.0-Linux.zip" * && cd ../..
+          cd dist_linux/nyarlat && zip -r "../../Nyarlat-v1.0.0-Linux.zip" * && cd ../..
           cd dist_linux/suite && zip -r "../../TheKlangSuite-${TAG}-Linux.zip" * && cd ../..
 
           ls -lh *-Linux.zip
@@ -218,6 +246,7 @@ jobs:
             Hastur-*-Linux.zip
             Formless_Spawn-*-Linux.zip
             DigiStrike_FS2-*-Linux.zip
+            Nyarlat-*-Linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -251,6 +280,7 @@ jobs:
             Hastur_VST3 Hastur_Standalone `
             FormlessSpawn_VST3 FormlessSpawn_Standalone `
             DigiStrikeFS2_VST3 DigiStrikeFS2_Standalone `
+            Nyarlat_VST3 Nyarlat_Standalone `
             dsp_tests
 
       - name: Run DSP Unit Tests
@@ -260,7 +290,7 @@ jobs:
         shell: pwsh
         run: |
           $TAG = "${{ steps.tag.outputs.tag }}"
-          New-Item -ItemType Directory -Path dist_win/hastur, dist_win/formless, dist_win/digistrike, dist_win/suite -Force
+          New-Item -ItemType Directory -Path dist_win/hastur, dist_win/formless, dist_win/digistrike, dist_win/nyarlat, dist_win/suite -Force
 
           # Hastur
           $hasturVst3 = (Get-ChildItem -Path "build/Hastur_artefacts" -Filter "Hastur.vst3" -Recurse -Directory | Select-Object -First 1).FullName
@@ -284,15 +314,27 @@ jobs:
           New-Item -ItemType Directory -Path "dist_win/digistrike/DigiStrike FS2.vst3/Contents/Resources" -Force
           Copy-Item "assets/digistrike_fs2_rom.bin" "dist_win/digistrike/DigiStrike FS2.vst3/Contents/Resources/" -Force
 
+          # Nyarlat
+          $nyarlatVst3 = (Get-ChildItem -Path "build/Nyarlat_artefacts" -Filter "Nyarlat.vst3" -Recurse -Directory | Select-Object -First 1).FullName
+          $nyarlatExe = (Get-ChildItem -Path "build/Nyarlat_artefacts" -Filter "Nyarlat.exe" -Recurse -File | Select-Object -First 1).FullName
+          Copy-Item -Recurse $nyarlatVst3 dist_win/nyarlat/
+          Copy-Item $nyarlatExe dist_win/nyarlat/
+
+          # Ensure ROM in Nyarlat VST3
+          New-Item -ItemType Directory -Path "dist_win/nyarlat/Nyarlat.vst3/Contents/Resources" -Force
+          Copy-Item "assets/nyarlat_akwf_rom.bin" "dist_win/nyarlat/Nyarlat.vst3/Contents/Resources/" -Force
+
           # Suite
           Copy-Item -Recurse dist_win/hastur/* dist_win/suite/
           Copy-Item -Recurse dist_win/formless/* dist_win/suite/
           Copy-Item -Recurse dist_win/digistrike/* dist_win/suite/
+          Copy-Item -Recurse dist_win/nyarlat/* dist_win/suite/
 
           # Compress
-          Compress-Archive -Path dist_win/hastur/* -DestinationPath "Hastur-v1.0.6-Windows.zip" -Force
-          Compress-Archive -Path dist_win/formless/* -DestinationPath "Formless_Spawn-v1.0.1-Windows.zip" -Force
-          Compress-Archive -Path dist_win/digistrike/* -DestinationPath "DigiStrike_FS2-v1.0.0-Windows.zip" -Force
+          Compress-Archive -Path dist_win/hastur/* -DestinationPath "Hastur-v1.3.0-Windows.zip" -Force
+          Compress-Archive -Path dist_win/formless/* -DestinationPath "Formless_Spawn-v1.3.0-Windows.zip" -Force
+          Compress-Archive -Path dist_win/digistrike/* -DestinationPath "DigiStrike_FS2-v1.2.0-Windows.zip" -Force
+          Compress-Archive -Path dist_win/nyarlat/* -DestinationPath "Nyarlat-v1.0.0-Windows.zip" -Force
           Compress-Archive -Path dist_win/suite/* -DestinationPath "TheKlangSuite-$TAG-Windows.zip" -Force
 
           Get-ChildItem *-Windows.zip
@@ -306,5 +348,6 @@ jobs:
             Hastur-*-Windows.zip
             Formless_Spawn-*-Windows.zip
             DigiStrike_FS2-*-Windows.zip
+            Nyarlat-*-Windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

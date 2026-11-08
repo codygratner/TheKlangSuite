@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "Retro Analog Cowbell",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 8.0,
+    "lineage": 8.0,
+    "macro_x": 0.55,
+    "macro_y": 0.45,
+    "cutoff": 11000.0,
+    "decay": 0.3,
+    "crush": 0.1
+  }
+}

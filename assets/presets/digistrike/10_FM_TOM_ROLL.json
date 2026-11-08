@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "digistrike_fs2",
+  "metadata": {
+    "name": "Round DX FM Tom",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "digistrike_fs2"
+    ]
+  },
+  "parameters": {
+    "slot": 9.0,
+    "lineage": 9.0,
+    "macro_x": 0.65,
+    "macro_y": 0.55,
+    "cutoff": 13000.0,
+    "decay": 0.48,
+    "crush": 0.15
+  }
+}

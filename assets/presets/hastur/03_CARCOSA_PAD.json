@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Warm Unison Pad",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 3200.0,
+    "resonance": 0.2,
+    "amp_attack": 0.35,
+    "amp_decay": 0.8,
+    "amp_sustain": 0.85,
+    "amp_release": 0.75,
+    "lfo1_rate": 0.4,
+    "laser_drive": 0.1
+  }
+}

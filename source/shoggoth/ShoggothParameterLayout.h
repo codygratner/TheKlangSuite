@@ -72,6 +72,24 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         );
     };
 
+    // Asymmetric Bipolar Tilt Detent Lambda (-12..0..+6 dB/oct with 12 o'clock detent at 0.00)
+    auto asymmetricTiltRange = []() {
+        return juce::NormalisableRange<float>(
+            -12.0f, 6.0f,
+            [](float, float, float norm) {
+                return (norm < 0.5f) ? -12.0f * (1.0f - 2.0f * norm)
+                                     :   6.0f * (2.0f * norm - 1.0f);
+            },
+            [](float, float, float val) {
+                return (val < 0.0f) ? 0.5f * (1.0f + val / 12.0f)
+                                    : 0.5f + (val / 12.0f);
+            },
+            [](float, float, float val) {
+                return juce::jlimit(-12.0f, 6.0f, val);
+            }
+        );
+    };
+
     // filter_cutoff [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{ShoggothParameters::Ids::filter_cutoff, 1}, ShoggothParameters::Names::filter_cutoff,
@@ -167,7 +185,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // master_gain_db [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{ShoggothParameters::Ids::master_gain_db, 1}, ShoggothParameters::Names::master_gain_db, -36.0000f, 12.0000f, 0.0000f));
+        juce::ParameterID{ShoggothParameters::Ids::master_gain_db, 1}, ShoggothParameters::Names::master_gain_db, -36.0000f, 18.0000f, 0.0000f));
 
     // mpe_slide_depth [mpe]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

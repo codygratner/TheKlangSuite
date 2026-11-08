@@ -80,6 +80,10 @@ public:
         return lastMidiVelocity_.load(std::memory_order_relaxed);
     }
 
+    float exchangeLimiterGrMin(float resetVal = 1.0f) noexcept {
+        return limiterGrMin_.exchange(resetVal, std::memory_order_relaxed);
+    }
+
     void triggerVoice(int noteNumber, float velocity, float noteHz) noexcept;
 
 private:
@@ -159,6 +163,8 @@ private:
     bool telemetryDirty_{false};
     float pendingTelemetryVel_{100.0f / 127.0f};
     int pendingTelemetryNote_{60};
+
+    std::atomic<float> limiterGrMin_{1.0f};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DigiStrikeFS2AudioProcessor)
 };

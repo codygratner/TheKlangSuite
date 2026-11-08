@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "formless_spawn",
+  "metadata": {
+    "name": "Subterranean Pitch Dive",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "formless_spawn"
+    ]
+  },
+  "parameters": {
+    "role": 7.0,
+    "model": 0.0,
+    "macro_x": 0.9,
+    "macro_y": 0.85,
+    "decay": 0.9,
+    "crush": 0.6,
+    "pre_drive": 0.8
+  }
+}

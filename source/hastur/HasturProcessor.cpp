@@ -111,6 +111,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout HasturAudioProcessor::create
 
 void HasturAudioProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/) {
     voice_.prepare(sampleRate);
+    sleepActive_ = false;
+    sleepHangoverSamples_ = static_cast<int>(sampleRate * 0.015);
+    sustainedNotes_.reset();
+    sustainPedalDown_ = false;
+    pitchBendNorm_ = 0.0f;
 }
 
 void HasturAudioProcessor::releaseResources() {
@@ -128,15 +133,88 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     juce::ScopedNoDenormals noDenormals;
     const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
+
+    const float bendRange = pitchBendRangeParam_ ? pitchBendRangeParam_->load(std::memory_order_relaxed) : 2.0f;
+    const float glideSec  = glideTimeParam_ ? glideTimeParam_->load(std::memory_order_relaxed) : 0.005f;
+    const auto lfoTrig    = static_cast<CrackedChimes::DSP::HasturVoice::LfoTriggerMode>(
+        std::clamp(static_cast<int>(lfoSyncParam_ ? lfoSyncParam_->load(std::memory_order_relaxed) : 0), 0, 3));
+    const auto glideMode  = static_cast<CrackedChimes::DSP::HasturVoice::GlideMode>(
+        std::clamp(static_cast<int>(glideModeParam_ ? glideModeParam_->load(std::memory_order_relaxed) : 0), 0, 1));
+    const auto trigMode   = static_cast<CrackedChimes::DSP::HasturVoice::TriggerMode>(
+        std::clamp(static_cast<int>(triggerModeParam_ ? triggerModeParam_->load(std::memory_order_relaxed) : 0), 0, 2));
+    const float filterVelocity = filterVelocityParam_ ? filterVelocityParam_->load(std::memory_order_relaxed) : 0.0f;
+
+    auto handleMidi = [&](const juce::MidiMessage& msg) noexcept {
+        if (msg.isNoteOn()) {
+            sleepActive_ = false;
+            sleepHangoverSamples_ = static_cast<int>(getSampleRate() * 0.015);
+            sustainedNotes_.reset(msg.getNoteNumber());
+            voice_.noteOn(msg.getNoteNumber(), msg.getFloatVelocity(), glideSec, lfoTrig, true, glideMode, trigMode, filterVelocity);
+        } else if (msg.isNoteOff()) {
+            if (sustainPedalDown_) {
+                sustainedNotes_.set(msg.getNoteNumber());
+            } else {
+                voice_.noteOff(msg.getNoteNumber());
+            }
+        } else if (msg.isAllSoundOff()) {
+            voice_.reset();
+            sustainedNotes_.reset();
+            pitchBendNorm_ = 0.0f;
+            voice_.setPitchBend(0.0f, bendRange);
+        } else if (msg.isAllNotesOff()) {
+            voice_.releaseAll();
+            sustainedNotes_.reset();
+        } else if (msg.isPitchWheel()) {
+            const int v = msg.getPitchWheelValue();
+            pitchBendNorm_ = (v >= 8192) ? static_cast<float>(v - 8192) / 8191.0f : static_cast<float>(v - 8192) / 8192.0f;
+            voice_.setPitchBend(pitchBendNorm_, bendRange);
+        } else if (msg.isController()) {
+            const int cc = msg.getControllerNumber();
+            const int val = msg.getControllerValue();
+            if (cc == 64) {
+                sustainPedalDown_ = (val >= 64);
+                if (!sustainPedalDown_) {
+                    for (int n = 0; n < 128; ++n) {
+                        if (sustainedNotes_.test(n)) {
+                            voice_.noteOff(n);
+                        }
+                    }
+                    sustainedNotes_.reset();
+                }
+            } else if (cc == 120 || cc == 123) {
+                voice_.reset();
+                sustainedNotes_.reset();
+            } else if (cc == 121) {
+                sustainPedalDown_ = false;
+                sustainedNotes_.reset();
+                pitchBendNorm_ = 0.0f;
+                voice_.setPitchBend(0.0f, bendRange);
+            }
+        }
+    };
+
+    if (numSamples <= 0) {
+        for (const auto metadata : midiMessages) {
+            handleMidi(metadata.getMessage());
+        }
+        return;
+    }
+
     auto* left = (numChannels > 0) ? buffer.getWritePointer(0) : nullptr;
     auto* right = (numChannels > 1) ? buffer.getWritePointer(1) : nullptr;
+
+    // Zero-CPU Sleep Check when idle
+    if (sleepActive_ && midiMessages.isEmpty()) {
+        buffer.clear();
+        voice_.advanceIdle(numSamples);
+        return;
+    }
 
     // 1. Fetch Parameters once at block start
     const auto lifeMode = static_cast<CrackedChimes::DSP::HasturVoice::LifeMode>(
         std::clamp(static_cast<int>(lifeModeParam_ ? lifeModeParam_->load(std::memory_order_relaxed) : 2), 0, 2));
     voice_.setLifeMode(lifeMode);
 
-    const float bendRange = pitchBendRangeParam_ ? pitchBendRangeParam_->load(std::memory_order_relaxed) : 2.0f;
     const float vibRate   = vibratoRateParam_  ? vibratoRateParam_->load(std::memory_order_relaxed)  : 5.5f;
     const float vibDepth  = vibratoDepthParam_ ? vibratoDepthParam_->load(std::memory_order_relaxed) : 0.0f;
     voice_.setVibrato(vibRate, vibDepth);
@@ -180,7 +258,6 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const float filterOrbit      = filterOrbitParam_ ? filterOrbitParam_->load(std::memory_order_relaxed) : 0.0f;
     const int   filterDeck       = filterDeckParam_ ? static_cast<int>(filterDeckParam_->load(std::memory_order_relaxed)) : 0;
     const float envDepth         = envDepthParam_ ? envDepthParam_->load(std::memory_order_relaxed) : 0.5f;
-    const float filterVelocity   = filterVelocityParam_ ? filterVelocityParam_->load(std::memory_order_relaxed) : 0.0f;
     const float keyTrack         = keyTrackParam_ ? keyTrackParam_->load(std::memory_order_relaxed) : 0.0f;
     const float filterLfoDepth   = filterLfoDepthParam_ ? filterLfoDepthParam_->load(std::memory_order_relaxed) : 0.0f;
     const float lfoShape         = lfoShapeParam_ ? lfoShapeParam_->load(std::memory_order_relaxed) : 0.5f;
@@ -198,40 +275,46 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const float globalWidth      = masterSpread;
     const float pwLfoRate        = pwLfoRateParam_ ? pwLfoRateParam_->load(std::memory_order_relaxed) : 0.85f;
     const float pwLfoAmount      = pwLfoAmountParam_ ? pwLfoAmountParam_->load(std::memory_order_relaxed) : 0.0f;
-    const float widthEnv         = 0.0f;
-    const float ampVelocity      = ampVelocityParam_ ? ampVelocityParam_->load(std::memory_order_relaxed) : 0.0f;
-    const int   filterLfoDest    = filterLfoDestParam_ ? static_cast<int>(filterLfoDestParam_->load(std::memory_order_relaxed)) : 0;
-    const float lfoRate          = lfoRateParam_ ? lfoRateParam_->load(std::memory_order_relaxed) : 2.5f;
+    const float lfoRate          = lfoRateParam_ ? lfoRateParam_->load(std::memory_order_relaxed) : 1.0f;
     const auto  lfoWave          = static_cast<CrackedChimes::DSP::HasturVoice::LfoWave>(
         std::clamp(static_cast<int>(lfoWaveParam_ ? lfoWaveParam_->load(std::memory_order_relaxed) : 0), 0, 3));
-    const auto  lfoTrig          = (lfoSync > 0)
-        ? CrackedChimes::DSP::HasturVoice::LfoTriggerMode::ALL_NEW_NOTES
-        : CrackedChimes::DSP::HasturVoice::LfoTriggerMode::FREE_RUNNING;
-    const float glideSec         = glideTimeParam_ ? glideTimeParam_->load(std::memory_order_relaxed) : 0.005f;
-    const auto  glideMode        = (glideModeParam_ && glideModeParam_->load(std::memory_order_relaxed) > 0.5f)
-        ? CrackedChimes::DSP::HasturVoice::GlideMode::LEGATO
-        : CrackedChimes::DSP::HasturVoice::GlideMode::ALWAYS;
+    const int   filterLfoDest    = filterLfoDestParam_ ? static_cast<int>(filterLfoDestParam_->load(std::memory_order_relaxed)) : 0;
+    const float ampVelocity      = ampVelocityParam_ ? ampVelocityParam_->load(std::memory_order_relaxed) : 0.5f;
 
-    const int tmIdx = triggerModeParam_ ? static_cast<int>(std::round(triggerModeParam_->load(std::memory_order_relaxed))) : 2;
-    CrackedChimes::DSP::HasturVoice::TriggerMode trigMode = (tmIdx == 0) ? CrackedChimes::DSP::HasturVoice::TriggerMode::RETRIG
-                                                         : (tmIdx == 1) ? CrackedChimes::DSP::HasturVoice::TriggerMode::LEGATO
-                                                                        : CrackedChimes::DSP::HasturVoice::TriggerMode::AUTO;
+    // Host Transport BPM & PPQ Polling
+    double hostBpm = 120.0;
+    double ppqPosition = 0.0;
+    bool isPlaying = false;
+    if (auto* ph = getPlayHead()) {
+        if (auto pos = ph->getPosition()) {
+            if (pos->getBpm()) hostBpm = *pos->getBpm();
+            if (pos->getPpqPosition()) ppqPosition = *pos->getPpqPosition();
+            isPlaying = pos->getIsPlaying();
+        }
+    }
 
-    int modASrc = modASourceParam_ ? juce::roundToInt(modASourceParam_->load(std::memory_order_relaxed)) : 0;
+    const int uiLfoMode = getUiLfoRateMode();
+    float effLfoRate = lfoRate;
+    if (uiLfoMode == 1 || lfoSync != 0) {
+        const float u = std::clamp((lfoRate - 0.05f) / (30.0f - 0.05f), 0.0f, 1.0f);
+        const int n16 = std::clamp(static_cast<int>(std::lround(64.0f - 63.0f * u)), 1, 64);
+        effLfoRate = static_cast<float>(hostBpm / (15.0 * static_cast<double>(n16)));
+        if (isPlaying) {
+            const double periodQuarterNotes = static_cast<double>(n16) * 0.25;
+            const double ppqPhase = std::fmod(ppqPosition, periodQuarterNotes) / periodQuarterNotes;
+            voice_.setSyncedLfoPhase(static_cast<float>(ppqPhase));
+        }
+    }
+
     CrackedChimes::DSP::ModMatrix::ChannelConfig modA;
-    modA.source      = (modASrc == 2) ? CrackedChimes::DSP::ModMatrix::Source::NOISE
-                     : (modASrc == 1) ? CrackedChimes::DSP::ModMatrix::Source::CORE
-                                      : CrackedChimes::DSP::ModMatrix::Source::RAW;
-    modA.type        = CrackedChimes::DSP::ModMatrix::Type::LINEAR_FM;
+    modA.source      = static_cast<CrackedChimes::DSP::ModMatrix::Source>(
+        std::clamp(static_cast<int>(modASourceParam_ ? modASourceParam_->load(std::memory_order_relaxed) : 0), 0, 3));
     modA.amount      = modAAmountParam_ ? modAAmountParam_->load(std::memory_order_relaxed) : 0.0f;
     modA.destination = CrackedChimes::DSP::ModMatrix::Destination::FILTER_CUTOFF;
 
-    int modBSrc = modBSourceParam_ ? juce::roundToInt(modBSourceParam_->load(std::memory_order_relaxed)) : 2;
     CrackedChimes::DSP::ModMatrix::ChannelConfig modB;
-    modB.source      = (modBSrc == 2) ? CrackedChimes::DSP::ModMatrix::Source::SUB
-                     : (modBSrc == 1) ? CrackedChimes::DSP::ModMatrix::Source::CORE
-                                      : CrackedChimes::DSP::ModMatrix::Source::RAW;
-    modB.type        = CrackedChimes::DSP::ModMatrix::Type::AM;
+    modB.source      = static_cast<CrackedChimes::DSP::ModMatrix::Source>(
+        std::clamp(static_cast<int>(modBSourceParam_ ? modBSourceParam_->load(std::memory_order_relaxed) : 0), 0, 3));
     modB.amount      = modBAmountParam_ ? modBAmountParam_->load(std::memory_order_relaxed) : 0.0f;
     modB.destination = CrackedChimes::DSP::ModMatrix::Destination::POST_FILTER_LEVEL;
 
@@ -256,26 +339,7 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const float mStab      = stepRandomRange(laserBite,   -1.0f,  1.0f, amt(randFilterStabParam_),  voice_.getStepRand(7));
     const float mOrbit     = stepRandomRange(filterOrbit, -1.0f,  1.0f, amt(randFilterOrbitParam_), voice_.getStepRand(8));
 
-    // 2. Factor out MIDI message handling (Sample-Accurate Slicing)
-    auto handleMidi = [&](const juce::MidiMessage& msg) noexcept {
-        if (msg.isNoteOn()) {
-            voice_.noteOn(msg.getNoteNumber(), msg.getFloatVelocity(), glideSec, lfoTrig, true, glideMode, trigMode);
-        } else if (msg.isNoteOff()) {
-            voice_.noteOff(msg.getNoteNumber());
-        } else if (msg.isAllSoundOff()) {
-            voice_.reset();
-            pitchBendNorm_ = 0.0f;
-            voice_.setPitchBend(0.0f, bendRange);
-        } else if (msg.isAllNotesOff()) {
-            voice_.releaseAll();
-        } else if (msg.isPitchWheel()) {
-            const int v = msg.getPitchWheelValue();
-            pitchBendNorm_ = (v >= 8192) ? static_cast<float>(v - 8192) / 8191.0f : static_cast<float>(v - 8192) / 8192.0f;
-            voice_.setPitchBend(pitchBendNorm_, bendRange);
-        }
-    };
-
-    // 3. Render sub-blocks up to MIDI timestamps
+    // 2. Render sub-blocks up to MIDI timestamps
     int samplePos = 0;
     auto renderTo = [&](int targetSample) noexcept {
         for (; samplePos < targetSample; ++samplePos) {
@@ -287,8 +351,8 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
                 0.0f,
                 subOctave, subPulseTrain,
                 osc1Level, osc2Level, 0.0f, noiseLevel, mixerDrive,
-                globalWidth, pwLfoRate, pwLfoAmount, widthEnv,
-                lfoRate, lfoWave, lfoTrig, glideSec, oscSlop,
+                globalWidth, pwLfoRate, pwLfoAmount, 0.0f,
+                effLfoRate, lfoWave, lfoTrig, glideSec, oscSlop,
                 modA, modB,
                 cutoff, resonance, filterDeck, mTwist, mStab, laserDrive,
                 mOrbit, 0, envDepth, filterVelocity, keyTrack, filterLfoDepth, 0.0f,
@@ -306,8 +370,12 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
                 lfoSync
             );
 
-            if (left != nullptr) left[samplePos] = sL;
-            if (right != nullptr) right[samplePos] = sR;
+            if (numChannels == 1 && left != nullptr) {
+                left[samplePos] = 0.5f * (sL + sR);
+            } else {
+                if (left != nullptr) left[samplePos] = sL;
+                if (right != nullptr) right[samplePos] = sR;
+            }
         }
     };
 
@@ -318,11 +386,34 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     }
     renderTo(numSamples);
 
-    // 4. Sanitize both output channels and auto-heal voice state from NaN blowup
+    // 3. Sanitize output buffers
     const bool badL = (left != nullptr) && TbdAudio::FastMath::sanitizeBuffer(left, numSamples);
     const bool badR = (right != nullptr) && TbdAudio::FastMath::sanitizeBuffer(right, numSamples);
     if (badL || badR) {
         voice_.reset();
+    }
+
+    // 4. Level-Gated & Envelope-Gated Sleep Detector (-110 dBFS)
+    float blockPeak = 0.0f;
+    if (left != nullptr) {
+        for (int i = 0; i < numSamples; ++i) blockPeak = std::max(blockPeak, std::abs(left[i]));
+    }
+    if (right != nullptr) {
+        for (int i = 0; i < numSamples; ++i) blockPeak = std::max(blockPeak, std::abs(right[i]));
+    }
+
+    const bool canSleep = !voice_.isGateActive() && (ampGateMode != CrackedChimes::DSP::HasturVoice::AmpGateMode::DRONE)
+                          && voice_.isEnvIdle() && !voice_.isRinging() && (blockPeak < 3.2e-6f);
+    if (canSleep) {
+        if (sleepHangoverSamples_ > 0) {
+            sleepHangoverSamples_ -= numSamples;
+        } else {
+            sleepActive_ = true;
+            voice_.flushStates();
+        }
+    } else {
+        sleepActive_ = false;
+        sleepHangoverSamples_ = static_cast<int>(getSampleRate() * 0.015);
     }
 }
 

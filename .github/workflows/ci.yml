@@ -56,12 +56,13 @@ jobs:
             ./build/Release/dsp_tests
           fi
 
-      - name: Build Plugins (The Active Triad)
+      - name: Build Plugins (Cracked Chimes Fleet)
         run: |
           cmake --build build --config Release --parallel --target \
             Hastur_VST3 Hastur_AU \
             FormlessSpawn_VST3 FormlessSpawn_AU \
-            DigiStrikeFS2_VST3 DigiStrikeFS2_AU
+            DigiStrikeFS2_VST3 DigiStrikeFS2_AU \
+            Nyarlat_VST3 Nyarlat_AU
 
       - name: Codesign macOS Plugins (Ad-hoc)
         run: |
@@ -81,13 +82,15 @@ jobs:
           auval -v aumu Tfsp CkCh || true
           echo "Running auval on DigiStrike FS2..."
           auval -v aumu Dfs2 CkCh || true
+          echo "Running auval on Nyarlat..."
+          auval -v aumu Nyrt CkCh || true
 
       - name: Download & Run Tracktion pluginval
         run: |
           curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_macOS.zip
           unzip -q pluginval.zip
           chmod +x pluginval.app/Contents/MacOS/pluginval
-          for p in "Hastur.vst3" "Formless Spawn.vst3" "DigiStrike FS2.vst3"; do
+          for p in "Hastur.vst3" "Formless Spawn.vst3" "DigiStrike FS2.vst3" "Nyarlat.vst3"; do
             TARGET=$(find build -name "$p" | head -n 1)
             echo "Validating $TARGET with pluginval..."
             pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --validate-in-process --timeout-ms 60000 "$TARGET"
@@ -142,17 +145,17 @@ jobs:
             ./build/Release/dsp_tests
           fi
 
-      - name: Build Plugins (The Active Triad)
+      - name: Build Plugins (Cracked Chimes Fleet)
         run: |
           cmake --build build --config Release --parallel --target \
-            Hastur_VST3 FormlessSpawn_VST3 DigiStrikeFS2_VST3
+            Hastur_VST3 FormlessSpawn_VST3 DigiStrikeFS2_VST3 Nyarlat_VST3
 
       - name: Download & Run Tracktion pluginval
         run: |
           curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Linux.zip
           unzip -q pluginval.zip
           chmod +x pluginval
-          for p in "Hastur.vst3" "Formless Spawn.vst3" "DigiStrike FS2.vst3"; do
+          for p in "Hastur.vst3" "Formless Spawn.vst3" "DigiStrike FS2.vst3" "Nyarlat.vst3"; do
             TARGET=$(find build -name "$p" | head -n 1)
             echo "Validating $TARGET under Xvfb..."
             xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" \
@@ -179,17 +182,17 @@ jobs:
       - name: Run DSP Unit Tests
         run: .\build\Release\dsp_tests.exe
 
-      - name: Build Plugins (The Active Triad)
+      - name: Build Plugins (Cracked Chimes Fleet)
         run: |
           cmake --build build --config Release --parallel --target `
-            Hastur_VST3 FormlessSpawn_VST3 DigiStrikeFS2_VST3
+            Hastur_VST3 FormlessSpawn_VST3 DigiStrikeFS2_VST3 Nyarlat_VST3
 
       - name: Download & Run Tracktion pluginval
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip" -OutFile "pluginval.zip"
           Expand-Archive -Path "pluginval.zip" -DestinationPath "."
-          $targets = @("Hastur.vst3", "Formless Spawn.vst3", "DigiStrike FS2.vst3")
+          $targets = @("Hastur.vst3", "Formless Spawn.vst3", "DigiStrike FS2.vst3", "Nyarlat.vst3")
           foreach ($t in $targets) {
             $p = (Get-ChildItem -Path build -Filter $t -Recurse | Select-Object -First 1).FullName
             echo "Validating $p with pluginval..."

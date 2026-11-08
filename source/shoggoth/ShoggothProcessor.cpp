@@ -1,6 +1,7 @@
 #include "ShoggothProcessor.h"
 #include "ShoggothEditor.h"
 #include "FastMath.h"
+#include "../dsp/common/MasterTaper.h"
 
 namespace Shoggoth {
 
@@ -300,8 +301,11 @@ void ShoggothProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
             r = (r * drive) - 0.15f * (r * r * drive * drive) - 0.05f * (r * r * r);
         }
 
-        leftChannel[i]  = l * masterGain;
-        rightChannel[i] = r * masterGain;
+        float outL = l * masterGain;
+        float outR = r * masterGain;
+        tkdsp::common::applyEmergencyGuardStereo(outL, outR);
+        leftChannel[i]  = outL;
+        rightChannel[i] = outR;
     }
 
     for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {

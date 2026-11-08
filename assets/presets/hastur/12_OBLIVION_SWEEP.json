@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Filter Riser Texture",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 350.0,
+    "resonance": 0.9,
+    "filter_warp": 0.85,
+    "laser_drive": 0.9,
+    "filter_orbit": 0.75,
+    "amp_release": 0.9
+  }
+}

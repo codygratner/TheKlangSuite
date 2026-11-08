@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Vintage Brass",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 2200.0,
+    "resonance": 0.4,
+    "filter_attack": 0.08,
+    "filter_env_decay": 0.5,
+    "amp_attack": 0.06,
+    "amp_sustain": 0.7
+  }
+}

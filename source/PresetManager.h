@@ -4,7 +4,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <unordered_map>
 #include <vector>
-#include "StateMigrator.h"
+#include <functional>
 
 namespace RlyehSound {
 
@@ -12,6 +12,7 @@ struct PresetMetadataInfo {
     juce::String name;
     juce::String author;
     juce::String category;
+    juce::String bank;
     juce::StringArray tags;
     juce::String targetPlugin;
     juce::File file;
@@ -19,10 +20,14 @@ struct PresetMetadataInfo {
 
 class PresetManager {
 public:
-    static PresetManager& getInstance() {
-        static PresetManager instance;
-        return instance;
-    }
+    // NOTE: the old static getInstance() singleton (hard-coded to "Hastur") was
+    // removed in CCUI Wave 2-P. Each processor owns PresetManager(pluginName).
+
+    explicit PresetManager(const juce::String& pluginName = "TheKlangFarmer");
+    ~PresetManager() = default;
+
+    void setTargetPlugin(const juce::String& pluginName);
+    juce::String getTargetPlugin() const { return targetPlugin; }
 
     // Preset loading
     bool loadPreset(const juce::File& file, juce::AudioProcessorValueTreeState& apvts);
@@ -33,7 +38,7 @@ public:
                     const juce::AudioProcessorValueTreeState& apvts,
                     const juce::String& name,
                     const juce::String& author = "Cody Gratner",
-                    const juce::String& category = "Bass",
+                    const juce::String& category = "General",
                     const juce::StringArray& tags = {});
 
     // Preset location queries
@@ -42,20 +47,36 @@ public:
     juce::Array<juce::File> getAvailablePresetFiles() const;
     juce::Array<PresetMetadataInfo> getAvailablePresets() const;
 
+    // Linear navigation & fast switching
+    void refreshPresetList();
+    int getNumPresets() const;
+    int getCurrentIndex() const { return currentIndex; }
+    bool loadPresetByIndex(int index, juce::AudioProcessorValueTreeState& apvts);
+    bool nextPreset(juce::AudioProcessorValueTreeState& apvts);
+    bool prevPreset(juce::AudioProcessorValueTreeState& apvts);
+
+    // 'Init' entry: resets every parameter to its default (gesture-wrapped).
+    void loadInit(juce::AudioProcessorValueTreeState& apvts);
+
+    // Applies one value (engineering units) by string ID, gesture-wrapped.
+    // Returns false (and does nothing) for unknown IDs.
+    static bool applyParameterValue(juce::AudioProcessorValueTreeState& apvts,
+                                    const juce::String& paramId, float engineeringValue);
+
     // Active preset tracking
     juce::String getActivePresetName() const { return activePresetName; }
     void setActivePresetName(const juce::String& name) { activePresetName = name; }
 
+    // Callbacks & Custom State Hooks
     std::function<void(const juce::String&)> onPresetLoaded;
+    std::function<void(const juce::var&)> onCustomStateLoad;
+    std::function<juce::var()> onCustomStateSave;
 
 private:
-    PresetManager();
-    ~PresetManager() = default;
-
-    PresetManager(const PresetManager&) = delete;
-    PresetManager& operator=(const PresetManager&) = delete;
-
-    juce::String activePresetName { "Default" };
+    juce::String targetPlugin{"TheKlangFarmer"};
+    juce::String activePresetName{"Default"};
+    mutable juce::Array<PresetMetadataInfo> cachedPresets_;
+    int currentIndex{-1};
 };
 
 } // namespace RlyehSound

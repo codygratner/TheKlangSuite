@@ -84,11 +84,6 @@ public:
             g.setColour(juce::Colour(0xFFFF7A1A));
             g.fillEllipse(pt.x - 3.5f, pt.y - 3.5f, 7.0f, 7.0f);
         }
-
-        // Radar Header Tag
-        g.setFont(juce::Font(juce::FontOptions(10.0f).withStyle("Bold")));
-        g.setColour(juce::Colour(0xFF8B949E));
-        g.drawText("Z-CUBE 3D RADAR", bounds.reduced(6), juce::Justification::topLeft);
     }
 
 private:

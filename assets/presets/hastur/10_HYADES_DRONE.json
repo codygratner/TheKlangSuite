@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Cinematic Dark Drone",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 600.0,
+    "resonance": 0.6,
+    "laser_drive": 0.4,
+    "lfo1_rate": 0.1,
+    "filter_orbit": 0.8,
+    "amp_attack": 0.8,
+    "amp_release": 1.2
+  }
+}

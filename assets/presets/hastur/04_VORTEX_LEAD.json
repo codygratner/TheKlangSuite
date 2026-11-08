@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "target_plugin": "hastur",
+  "metadata": {
+    "name": "Resonant Lead",
+    "author": "Cracked Chimes",
+    "category": "Factory Starter",
+    "tags": [
+      "Factory",
+      "Starter",
+      "hastur"
+    ]
+  },
+  "parameters": {
+    "cutoff": 2400.0,
+    "resonance": 0.82,
+    "filter_orbit": 0.65,
+    "laser_bite": 0.7,
+    "post_filter_drive": 0.4,
+    "amp_decay": 0.45
+  }
+}
