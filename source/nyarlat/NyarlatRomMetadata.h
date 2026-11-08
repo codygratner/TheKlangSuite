@@ -7,10 +7,11 @@
 
 namespace NyarlatRom {
     constexpr uint32_t kMagic = 0x5452594E; // 'NYRT'
-    constexpr uint32_t kVersion = 1;
+    constexpr uint32_t kVersion = 2;
     constexpr uint32_t kNumBanks = 65;
     constexpr uint32_t kTotalWaves = 4358;
     constexpr uint32_t kTableSize = 512;
+    constexpr uint32_t kNumPartials = 64;
 
     struct BankInfo {
         const char* name;

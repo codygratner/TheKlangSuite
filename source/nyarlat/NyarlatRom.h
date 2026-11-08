@@ -108,6 +108,59 @@ public:
         }
     }
 
+    // Interpolates 64 partial spectral seeds (magnitudes & shortest-arc phases) within a bank
+    void interpolateSpectralSeed(uint32_t bankIdx, float waveMorphNorm,
+                                 float* outMags64, float* outPhases64) const noexcept {
+        if (bankIdx >= NyarlatRom::kNumBanks || spectralMags_.empty()) {
+            std::fill(outMags64, outMags64 + 64, 0.0f);
+            std::fill(outPhases64, outPhases64 + 64, 0.0f);
+            outMags64[0] = 1.0f; // Pure fundamental sine fallback
+            return;
+        }
+
+        const auto& bank = NyarlatRom::kBanks[bankIdx];
+        if (bank.count == 0) {
+            std::fill(outMags64, outMags64 + 64, 0.0f);
+            std::fill(outPhases64, outPhases64 + 64, 0.0f);
+            outMags64[0] = 1.0f;
+            return;
+        }
+
+        float clampedMorph = juce::jlimit(0.0f, 1.0f, waveMorphNorm);
+        if (bank.count <= 1) {
+            const float* mag = &spectralMags_[bank.offset * 64];
+            const float* ph = &spectralPhases_[bank.offset * 64];
+            std::memcpy(outMags64, mag, 64 * sizeof(float));
+            std::memcpy(outPhases64, ph, 64 * sizeof(float));
+            return;
+        }
+
+        float pos = clampedMorph * static_cast<float>(bank.count - 1);
+        uint32_t idxA = static_cast<uint32_t>(pos);
+        uint32_t idxB = idxA + 1;
+        if (idxB >= bank.count) idxB = bank.count - 1;
+        float alpha = pos - static_cast<float>(idxA);
+
+        const float* magA = &spectralMags_[(bank.offset + idxA) * 64];
+        const float* magB = &spectralMags_[(bank.offset + idxB) * 64];
+        const float* phA = &spectralPhases_[(bank.offset + idxA) * 64];
+        const float* phB = &spectralPhases_[(bank.offset + idxB) * 64];
+
+        constexpr float kPi = 3.14159265358979323846f;
+        constexpr float kTwoPi = 6.28318530717958647692f;
+
+        for (int k = 0; k < 64; ++k) {
+            // Linear magnitude interpolation
+            outMags64[k] = (1.0f - alpha) * magA[k] + alpha * magB[k];
+
+            // Shortest-arc phase interpolation
+            float diff = phB[k] - phA[k];
+            while (diff > kPi) diff -= kTwoPi;
+            while (diff < -kPi) diff += kTwoPi;
+            outPhases64[k] = phA[k] + alpha * diff;
+        }
+    }
+
 private:
     AkwfRom() {
         fallbackSine_.resize(NyarlatRom::kTableSize);
@@ -137,12 +190,32 @@ private:
             return false;
         }
 
+        uint32_t version = header[0];
         uint32_t numBanks = header[1];
         uint32_t totalWaves = header[2];
         uint32_t tableSize = header[3];
+        uint32_t numPartials = 64;
+
+        if (version >= 2) {
+            if (std::fread(&numPartials, sizeof(uint32_t), 1, fp) != 1) {
+                std::fclose(fp);
+                return false;
+            }
+        }
 
         // Skip bank directory
         std::fseek(fp, numBanks * (32 + 8), SEEK_CUR);
+
+        if (version >= 2) {
+            size_t totalPartials = static_cast<size_t>(totalWaves) * numPartials;
+            spectralMags_.resize(totalPartials);
+            spectralPhases_.resize(totalPartials);
+            if (std::fread(spectralMags_.data(), sizeof(float), totalPartials, fp) != totalPartials ||
+                std::fread(spectralPhases_.data(), sizeof(float), totalPartials, fp) != totalPartials) {
+                std::fclose(fp);
+                return false;
+            }
+        }
 
         size_t totalSamples = static_cast<size_t>(totalWaves) * tableSize;
         samples_.resize(totalSamples);
@@ -155,9 +228,14 @@ private:
     void createFallbackTables() {
         samples_.resize(NyarlatRom::kTableSize);
         std::memcpy(samples_.data(), fallbackSine_.data(), NyarlatRom::kTableSize * sizeof(float));
+        spectralMags_.assign(64, 0.0f);
+        spectralPhases_.assign(64, 0.0f);
+        spectralMags_[0] = 1.0f;
     }
 
     std::vector<float> samples_;
+    std::vector<float> spectralMags_;
+    std::vector<float> spectralPhases_;
     std::vector<float> fallbackSine_;
     std::atomic<bool> isLoaded_{ false };
 
