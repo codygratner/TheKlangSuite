@@ -1039,7 +1039,12 @@ private:
     juce::int64 activeBadgeExpiry_{0};
 
     // Header Row
-    PresetStubComponent presetStub_;
+    CrackedChimes::HeaderTitleBlock headerTitleBlock_{"DIGISTRIKE", juce::Colour(0xFFE08C00)};
+    CrackedChimes::StepperAuditionBar stepperAuditionBar_;
+    std::unique_ptr<CrackedChimes::AboutOverlay> aboutOverlay_;
+    std::unique_ptr<CrackedChimes::PresetBrowserOverlay> presetBrowserOverlay_;
+    void showAboutOverlay();
+    void showPresetBrowser();
     DigiStrikeHeaderInspector headerInspector_;
     DigiStrikeRocker3 lifeformRocker_{{"SYNTHETIC", "CYBORG", "ORGANIC"}};
 

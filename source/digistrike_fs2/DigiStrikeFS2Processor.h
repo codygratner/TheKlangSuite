@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "../dsp/drums/DigiStrikeFS2Voice.h"
+#include "../PresetManager.h"
 #include "DigiStrikeFS2ControlInfo.h"
 #include <atomic>
 #include <array>
@@ -46,6 +47,8 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     tkdsp::DigiStrikeFS2Voice& getVoice() { return voice_; }
+    RlyehSound::PresetManager& getPresetManager() noexcept { return presetManager_; }
+    [[nodiscard]] bool isSleeping() const noexcept { return false; }
 
     std::atomic<float> storedEditorScale_{0.0f};
     void setStoredEditorScale(float s) noexcept { storedEditorScale_.store(s, std::memory_order_relaxed); }
@@ -165,6 +168,7 @@ private:
     int pendingTelemetryNote_{60};
 
     std::atomic<float> limiterGrMin_{1.0f};
+    RlyehSound::PresetManager presetManager_{"DigiStrike FS2"};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DigiStrikeFS2AudioProcessor)
 };

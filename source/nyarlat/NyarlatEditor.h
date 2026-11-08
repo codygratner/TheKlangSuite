@@ -719,11 +719,11 @@ private:
 
 // ==============================================================================
 
-class StepperAuditionBar : public juce::Component {
+class ParameterStepperBar : public juce::Component {
 
 public:
 
-    StepperAuditionBar() {
+    ParameterStepperBar() {
 
         prevBtn_.setButtonText("<");
 
@@ -863,7 +863,7 @@ private:
 
 
 
-        juce::Component::SafePointer<StepperAuditionBar> safeThis(this);
+        juce::Component::SafePointer<ParameterStepperBar> safeThis(this);
 
         menu.showMenuAsync(opts,
 
@@ -1577,7 +1577,7 @@ private:
 
     struct StepperItem {
 
-        StepperAuditionBar bar;
+        ParameterStepperBar bar;
 
         juce::Label label;
 
@@ -1652,12 +1652,12 @@ private:
 
 
     // Master Header Components
-
-    juce::Label titleLabel;
-
-    juce::Label subtitleLabel;
-
-    StepperAuditionBar stepperAuditionBar_;
+    CrackedChimes::HeaderTitleBlock headerTitleBlock_{"NYARLAT", juce::Colour(0xFF00C8FF)};
+    CrackedChimes::StepperAuditionBar stepperAuditionBar_;
+    std::unique_ptr<CrackedChimes::AboutOverlay> aboutOverlay_;
+    std::unique_ptr<CrackedChimes::PresetBrowserOverlay> presetBrowserOverlay_;
+    void showAboutOverlay();
+    void showPresetBrowser();
 
     HeaderInspector headerInspector_;
 

@@ -20,7 +20,8 @@ void NyarlatLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int w
 
 NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
-    : AudioProcessorEditor(proc), processor_(proc)
+    : AudioProcessorEditor(proc), processor_(proc),
+      stepperAuditionBar_(proc.getPresetManager(), proc.getAPVTS())
 
 {
 
@@ -68,103 +69,14 @@ NyarlatEditor::NyarlatEditor(NyarlatProcessor& proc)
 
 
 
-    // Header Labels (Position A: x=14, y=4, w=140)
+    // Header Row 1: HeaderTitleBlock (About overlay trigger) & StepperAuditionBar
+    headerTitleBlock_.onClick = [this] { showAboutOverlay(); };
+    contentContainer.addAndMakeVisible(headerTitleBlock_);
 
-    titleLabel.setText("NYARLAT", juce::dontSendNotification);
-
-    titleLabel.setFont(juce::Font(juce::FontOptions(20.0f).withStyle("Bold")));
-
-    titleLabel.setColour(juce::Label::textColourId, Colours::kOsc);
-
-    contentContainer.addAndMakeVisible(titleLabel);
-
-
-
-    subtitleLabel.setText("CRACKED CHIMES", juce::dontSendNotification);
-
-    subtitleLabel.setFont(juce::Font(juce::FontOptions(9.5f).withStyle("Bold")));
-
-    subtitleLabel.setColour(juce::Label::textColourId, juce::Colour(0xFF8B949E));
-
-    contentContainer.addAndMakeVisible(subtitleLabel);
-
-
-
-    // Header Capsules: Universal StepperAuditionBar (replaces stub), Inspector, Lifeform Toggle
-
-    stepperAuditionBar_.setAccentColour(Colours::kOsc);
-
+    stepperAuditionBar_.setOnOpenBrowser([this] { showPresetBrowser(); });
     contentContainer.addAndMakeVisible(stepperAuditionBar_);
-
     contentContainer.addAndMakeVisible(headerInspector_);
-
     contentContainer.addAndMakeVisible(lifeModeToggle_);
-
-
-
-    auto updatePresetDisplay = [this]() {
-
-        auto& pm = processor_.getPresetManager();
-
-        auto presets = pm.getAvailablePresets();
-
-        int idx = pm.getCurrentIndex();
-
-        juce::String name = pm.getActivePresetName();
-
-        if (name.isEmpty()) name = (idx >= 0 && idx < presets.size()) ? presets[idx].name : "INIT VOID";
-
-        stepperAuditionBar_.setItem(idx, name, presets.size());
-
-    };
-
-
-
-    stepperAuditionBar_.onSelectIndex = [this, updatePresetDisplay](int idx) {
-
-        processor_.getPresetManager().loadPresetByIndex(idx, processor_.getAPVTS());
-
-        updatePresetDisplay();
-
-    };
-
-
-
-    stepperAuditionBar_.onBuildMenu = [this](juce::PopupMenu& menu) {
-
-        auto& pm = processor_.getPresetManager();
-
-        auto presets = pm.getAvailablePresets();
-
-        std::map<juce::String, juce::Array<std::pair<int, juce::String>>> bankMap;
-
-        for (int i = 0; i < presets.size(); ++i) {
-
-            juce::String b = presets[i].bank.isNotEmpty() ? presets[i].bank : "General";
-
-            bankMap[b].add({i, presets[i].name});
-
-        }
-
-        for (const auto& [bName, list] : bankMap) {
-
-            juce::PopupMenu sub;
-
-            for (const auto& [pIdx, pName] : list) {
-
-                sub.addItem(pIdx + 1, pName, true, pIdx == pm.getCurrentIndex());
-
-            }
-
-            menu.addSubMenu(bName, sub);
-
-        }
-
-    };
-
-
-
-    updatePresetDisplay();
 
 
 
@@ -1179,8 +1091,7 @@ void NyarlatEditor::resized() {
 
 void NyarlatEditor::layoutControls() {
     // Header Strip Geometry
-    titleLabel.setBounds          (14,  4, 140, 20);
-    subtitleLabel.setBounds       (14, 24, 140, 12);
+    headerTitleBlock_.setBounds   (14,  4, 140, 36);
     stepperAuditionBar_.setBounds  (162, 8, 288, 28);
     headerInspector_.setBounds    (458, 8, 446, 28);
     lifeModeToggle_.setBounds     (912, 8, 234, 28);
@@ -1780,5 +1691,51 @@ void NyarlatEditor::mouseDrag(const juce::MouseEvent& e) {
 
 
 
-} // namespace Nyarlat
+void NyarlatEditor::showAboutOverlay() {
+    if (aboutOverlay_ == nullptr) {
+        juce::Array<CrackedChimes::AboutOverlay::Attribution> attrs;
+        attrs.add({"JUCE Framework (v9.0.3) - Cross-platform Audio Engine", "https://juce.com"});
+        attrs.add({"Adventure Kid Waveforms (AKWF) - Wave Cycle Vault", "https://adventurekid.se"});
+        attrs.add({"16-Voice Additive Chaos Synthesis - The Klang Suite", "https://github.com/codygratner/TheKlangSuite"});
+        aboutOverlay_ = std::make_unique<CrackedChimes::AboutOverlay>(
+            "NYARLAT",
+            "16-Voice Additive Synthesizer: 3 Bitmask Wavetables & Chaos Matrix",
+            juce::Colour(0xFF00C8FF),
+            attrs
+        );
+        aboutOverlay_->setOnClose([this] {
+            aboutOverlay_->setVisible(false);
+            aboutOverlay_.reset();
+        });
+        contentContainer.addAndMakeVisible(aboutOverlay_.get());
+        aboutOverlay_->setBounds(contentContainer.getLocalBounds());
+        aboutOverlay_->toFront(true);
+    } else {
+        aboutOverlay_->setVisible(false);
+        aboutOverlay_.reset();
+    }
+}
 
+void NyarlatEditor::showPresetBrowser() {
+    if (presetBrowserOverlay_ == nullptr) {
+        presetBrowserOverlay_ = std::make_unique<CrackedChimes::PresetBrowserOverlay>(
+            processor_.getPresetManager(),
+            processor_.getAPVTS(),
+            juce::Colour(0xFF00C8FF)
+        );
+        presetBrowserOverlay_->setOnClose([this] {
+            presetBrowserOverlay_->setVisible(false);
+            presetBrowserOverlay_.reset();
+            stepperAuditionBar_.updateDisplay();
+        });
+        contentContainer.addAndMakeVisible(presetBrowserOverlay_.get());
+        presetBrowserOverlay_->setBounds(contentContainer.getLocalBounds());
+        presetBrowserOverlay_->toFront(true);
+    } else {
+        presetBrowserOverlay_->setVisible(false);
+        presetBrowserOverlay_.reset();
+        stepperAuditionBar_.updateDisplay();
+    }
+}
+
+} // namespace Nyarlat

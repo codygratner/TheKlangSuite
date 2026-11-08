@@ -4,6 +4,7 @@
 #include <juce_core/juce_core.h>
 #include "HasturVoice.h"
 #include "../FastMath.h"
+#include "../PresetManager.h"
 #include <atomic>
 #include <array>
 #include <bitset>
@@ -39,6 +40,8 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
     juce::AudioProcessorValueTreeState& getAPVTS() noexcept { return apvts_; }
+    RlyehSound::PresetManager& getPresetManager() noexcept { return presetManager_; }
+    [[nodiscard]] bool isSleeping() const noexcept { return sleepActive_; }
 
     [[nodiscard]] bool isPllLocked() const noexcept { return voice_.isPllLocked(); }
 
@@ -66,6 +69,7 @@ private:
 
     juce::UndoManager undoManager_;
     juce::AudioProcessorValueTreeState apvts_;
+    RlyehSound::PresetManager presetManager_{"Hastur"};
 
     CrackedChimes::DSP::HasturVoice voice_;
 

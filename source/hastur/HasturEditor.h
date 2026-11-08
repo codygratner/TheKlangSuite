@@ -1560,9 +1560,12 @@ private:
     float fitScale();
 
     // Master Header & Backend Toggle
-    juce::Label headerLabel;
-    juce::Label subheaderLabel;
-    PresetStubComponent presetStub;
+    CrackedChimes::HeaderTitleBlock headerTitleBlock_{"HASTUR", juce::Colour(0xFFF2E10F)};
+    CrackedChimes::StepperAuditionBar stepperAuditionBar_;
+    std::unique_ptr<CrackedChimes::AboutOverlay> aboutOverlay_;
+    std::unique_ptr<CrackedChimes::PresetBrowserOverlay> presetBrowserOverlay_;
+    void showAboutOverlay();
+    void showPresetBrowser();
     RockerToggle3 lifeModeToggle{{"Synthetic", "Cyborg", "Organic"}};
 
     struct SliderItem {

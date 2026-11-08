@@ -609,6 +609,10 @@ set(ARTIFACT_DIR "${CMAKE_SOURCE_DIR}/current_build")
 add_custom_command(TARGET FormlessSpawn_VST3 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/Formless Spawn.vst3"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/FormlessSpawn_artefacts/$<CONFIG>/VST3/Formless Spawn.vst3" "${ARTIFACT_DIR}/VST3/Formless Spawn.vst3"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/FormlessSpawn_artefacts/$<CONFIG>/VST3/Formless Spawn.vst3/Contents/Resources/presets/formless_spawn"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/presets/formless_spawn" "${CMAKE_CURRENT_BINARY_DIR}/FormlessSpawn_artefacts/$<CONFIG>/VST3/Formless Spawn.vst3/Contents/Resources/presets/formless_spawn"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/Formless Spawn.vst3/Contents/Resources/presets/formless_spawn"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/presets/formless_spawn" "${ARTIFACT_DIR}/VST3/Formless Spawn.vst3/Contents/Resources/presets/formless_spawn"
 )
 
 # Hastur
@@ -619,6 +623,10 @@ add_custom_command(TARGET Hastur_Standalone POST_BUILD
 add_custom_command(TARGET Hastur_VST3 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/Hastur.vst3"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/Hastur_artefacts/$<CONFIG>/VST3/Hastur.vst3" "${ARTIFACT_DIR}/VST3/Hastur.vst3"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/Hastur_artefacts/$<CONFIG>/VST3/Hastur.vst3/Contents/Resources/presets/hastur"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/presets/hastur" "${CMAKE_CURRENT_BINARY_DIR}/Hastur_artefacts/$<CONFIG>/VST3/Hastur.vst3/Contents/Resources/presets/hastur"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/Hastur.vst3/Contents/Resources/presets/hastur"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/presets/hastur" "${ARTIFACT_DIR}/VST3/Hastur.vst3/Contents/Resources/presets/hastur"
 )
 
 # DigiStrike FS2
@@ -627,6 +635,10 @@ add_custom_command(TARGET DigiStrikeFS2_VST3 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_BINARY_DIR}/DigiStrikeFS2_artefacts/$<CONFIG>/VST3/DigiStrike FS2.vst3" "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/digistrike_fs2_rom.bin" "${CMAKE_CURRENT_BINARY_DIR}/DigiStrikeFS2_artefacts/$<CONFIG>/VST3/DigiStrike FS2.vst3/Contents/Resources/"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/digistrike_fs2_rom.bin" "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3/Contents/Resources/"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/DigiStrikeFS2_artefacts/$<CONFIG>/VST3/DigiStrike FS2.vst3/Contents/Resources/presets/digistrike_fs2"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/presets/digistrike_fs2" "${CMAKE_CURRENT_BINARY_DIR}/DigiStrikeFS2_artefacts/$<CONFIG>/VST3/DigiStrike FS2.vst3/Contents/Resources/presets/digistrike_fs2"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3/Contents/Resources/presets/digistrike_fs2"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/presets/digistrike_fs2" "${ARTIFACT_DIR}/VST3/DigiStrike FS2.vst3/Contents/Resources/presets/digistrike_fs2"
 )
 
 # Nyarlat

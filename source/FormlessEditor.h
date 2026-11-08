@@ -804,7 +804,12 @@ private:
     juce::int64 activeBadgeExpiry_{0};
 
     // Header Row 1
-    PresetStubComponent presetStub_;
+    CrackedChimes::HeaderTitleBlock headerTitleBlock_{"FORMLESS", juce::Colour(0xFFBC8CFF)};
+    CrackedChimes::StepperAuditionBar stepperAuditionBar_;
+    std::unique_ptr<CrackedChimes::AboutOverlay> aboutOverlay_;
+    std::unique_ptr<CrackedChimes::PresetBrowserOverlay> presetBrowserOverlay_;
+    void showAboutOverlay();
+    void showPresetBrowser();
     HeaderInspector     headerInspector_;
     FormlessRocker3     lifeformRocker_{{"SYNTHETIC", "CYBORG", "ORGANIC"}};
 

@@ -5,7 +5,9 @@
 using namespace formless_spawnParameters::Ids;
 
 FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpawnAudioProcessor& p)
-    : AudioProcessorEditor(&p), processor_(p)
+    : AudioProcessorEditor(&p),
+      processor_(p),
+      stepperAuditionBar_(p.getPresetManager(), p.getAPVTS())
 {
     // 1. Mount content container
     addAndMakeVisible(contentContainer);
@@ -38,7 +40,11 @@ FormlessSpawnAudioProcessorEditor::FormlessSpawnAudioProcessorEditor(FormlessSpa
     // =========================================================================
     // 1. Setup Header Row 1
     // =========================================================================
-    contentContainer.addAndMakeVisible(presetStub_);
+    headerTitleBlock_.onClick = [this] { showAboutOverlay(); };
+    contentContainer.addAndMakeVisible(headerTitleBlock_);
+
+    stepperAuditionBar_.setOnOpenBrowser([this] { showPresetBrowser(); });
+    contentContainer.addAndMakeVisible(stepperAuditionBar_);
     contentContainer.addAndMakeVisible(headerInspector_);
 
     lifeformRocker_.onSelect = [&apvts](int idx) {
@@ -514,9 +520,15 @@ void FormlessSpawnAudioProcessorEditor::paintCanvas(juce::Graphics& g) {
 
 void FormlessSpawnAudioProcessorEditor::layoutControls() {
     // Header
-    presetStub_.setBounds(162, 8, 288, 28);
+    headerTitleBlock_.setBounds(14, 4, 140, 36);
+    stepperAuditionBar_.setBounds(162, 8, 288, 28);
     headerInspector_.setBounds(458, 8, 446, 28);
     lifeformRocker_.setBounds(912, 8, 228, 28);
+
+    if (aboutOverlay_ != nullptr)
+        aboutOverlay_->setBounds(contentContainer.getLocalBounds());
+    if (presetBrowserOverlay_ != nullptr)
+        presetBrowserOverlay_->setBounds(contentContainer.getLocalBounds());
 
     // Card 0: Voice Navigator
     roleGrid_.setBounds(28, 49, 360, 58);
@@ -1004,4 +1016,50 @@ void FormlessSpawnAudioProcessorEditor::requestRefit() {
             safe->applyEffectiveScale(target);
         }
     });
+}
+
+void FormlessSpawnAudioProcessorEditor::showAboutOverlay() {
+    if (aboutOverlay_ == nullptr) {
+        juce::Array<CrackedChimes::AboutOverlay::Attribution> attrs;
+        attrs.add({"JUCE Framework (v9.0.3) - Cross-platform Audio Engine", "https://juce.com"});
+        attrs.add({"Nonlinear Drum Synthesizer Topology - The Klang Suite", "https://github.com/codygratner/TheKlangSuite"});
+        aboutOverlay_ = std::make_unique<CrackedChimes::AboutOverlay>(
+            "FORMLESS SPAWN",
+            "Poly-Morphing Macro Percussion & Drum Synthesizer",
+            juce::Colour(0xFFBC8CFF),
+            attrs
+        );
+        aboutOverlay_->setOnClose([this] {
+            aboutOverlay_->setVisible(false);
+            aboutOverlay_.reset();
+        });
+        contentContainer.addAndMakeVisible(aboutOverlay_.get());
+        aboutOverlay_->setBounds(contentContainer.getLocalBounds());
+        aboutOverlay_->toFront(true);
+    } else {
+        aboutOverlay_->setVisible(false);
+        aboutOverlay_.reset();
+    }
+}
+
+void FormlessSpawnAudioProcessorEditor::showPresetBrowser() {
+    if (presetBrowserOverlay_ == nullptr) {
+        presetBrowserOverlay_ = std::make_unique<CrackedChimes::PresetBrowserOverlay>(
+            processor_.getPresetManager(),
+            processor_.getAPVTS(),
+            juce::Colour(0xFFBC8CFF)
+        );
+        presetBrowserOverlay_->setOnClose([this] {
+            presetBrowserOverlay_->setVisible(false);
+            presetBrowserOverlay_.reset();
+            stepperAuditionBar_.updateDisplay();
+        });
+        contentContainer.addAndMakeVisible(presetBrowserOverlay_.get());
+        presetBrowserOverlay_->setBounds(contentContainer.getLocalBounds());
+        presetBrowserOverlay_->toFront(true);
+    } else {
+        presetBrowserOverlay_->setVisible(false);
+        presetBrowserOverlay_.reset();
+        stepperAuditionBar_.updateDisplay();
+    }
 }

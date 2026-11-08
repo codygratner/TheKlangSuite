@@ -55,6 +55,11 @@ FormlessSpawnAudioProcessor::FormlessSpawnAudioProcessor()
     roleParam_       = apvts_.getRawParameterValue(role);
     modelParam_      = apvts_.getRawParameterValue(model);
     lifeModeParam_   = apvts_.getRawParameterValue(life_mode);
+
+    auto presets = presetManager_.getAvailablePresets();
+    if (!presets.isEmpty()) {
+        presetManager_.loadPresetByIndex(0, apvts_);
+    }
 }
 
 void FormlessSpawnAudioProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/) {
@@ -185,6 +190,8 @@ void FormlessSpawnAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     voice_.processBlockStereo(channelL, channelR, numSamples, p);
     limiterGR_.store(voice_.getLimiterGainReduction(), std::memory_order_relaxed);
+
+    presetManager_.getDuckGate().tickAudio(buffer.getArrayOfWritePointers(), buffer.getNumChannels(), numSamples, false);
 }
 
 juce::AudioProcessorEditor* FormlessSpawnAudioProcessor::createEditor() {

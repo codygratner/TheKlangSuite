@@ -31,6 +31,7 @@ static_assert(sizeof("\u00e9") == 3, "Source file must be compiled as UTF-8 (/ut
 #include "cracked_chimes/CrackedChimesPresets.h"
 #include "cracked_chimes/CrackedChimesHeaderTitle.h"
 #include "cracked_chimes/AboutOverlay.h"
+#include "cracked_chimes/PresetBrowserOverlay.h"
 #include "cracked_chimes/CrackedChimesEditorHarness.h"
 
 namespace CrackedChimes::PropIds

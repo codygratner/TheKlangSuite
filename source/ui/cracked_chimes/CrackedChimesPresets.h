@@ -86,8 +86,10 @@ public:
             bankMap[bank].add(i);
         }
 
-        constexpr int kInitId = 1, kSaveId = 2, kPresetBase = 100;
+        constexpr int kInitId = 1, kSaveId = 2, kBrowseId = 3, kPresetBase = 100;
         juce::PopupMenu m;
+        m.addItem(kBrowseId, "Open Preset Vault...");
+        m.addSeparator();
         m.addItem(kInitId, "Init", true, pm_.getCurrentIndex() < 0
                                          && pm_.getActivePresetName() == "Init");
         m.addSeparator();
@@ -110,7 +112,8 @@ public:
         juce::Component::SafePointer<StepperAuditionBar> safe(this);
         m.showMenuAsync(opts, [safe](int result) {
             if (safe == nullptr || result == 0) return;
-            if (result == kInitId) { safe->pm_.loadInit(safe->apvts_); safe->changed(); }
+            if (result == kBrowseId) { if (safe->onOpenBrowser) safe->onOpenBrowser(); }
+            else if (result == kInitId) { safe->pm_.loadInit(safe->apvts_); safe->changed(); }
             else if (result == kSaveId) safe->showSaveAs();
             else if (result >= kPresetBase) {
                 safe->pm_.loadPresetByIndex(result - kPresetBase, safe->apvts_);
@@ -138,6 +141,9 @@ public:
                     safe->changed();
             });
     }
+
+    void setOnOpenBrowser(std::function<void()> cb) { onOpenBrowser = std::move(cb); }
+    std::function<void()> onOpenBrowser;
 
 private:
     static juce::PopupMenu mergeInto(juce::PopupMenu dst, const juce::PopupMenu& src) {

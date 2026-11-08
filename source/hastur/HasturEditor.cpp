@@ -818,7 +818,8 @@ void WaveformGridModal::paint(juce::Graphics& g) {
 
 HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
     : AudioProcessorEditor(&p),
-      processor_(p)
+      processor_(p),
+      stepperAuditionBar_(p.getPresetManager(), p.getAPVTS())
 {
     setLookAndFeel(&lnf_);
 
@@ -848,17 +849,16 @@ HasturAudioProcessorEditor::HasturAudioProcessorEditor(HasturAudioProcessor& p)
         paintCanvas(g);
     };
 
-    headerLabel.setText("HASTUR", juce::dontSendNotification);
-    headerLabel.setFont(juce::Font(juce::FontOptions(28.0f).withStyle("Bold")));
-    headerLabel.setJustificationType(juce::Justification::centredLeft);
-    contentContainer.addAndMakeVisible(headerLabel);
-    contentContainer.addAndMakeVisible(presetStub);
+    headerTitleBlock_.onClick = [this] { showAboutOverlay(); };
+    contentContainer.addAndMakeVisible(headerTitleBlock_);
+
+    stepperAuditionBar_.setOnOpenBrowser([this] { showPresetBrowser(); });
+    contentContainer.addAndMakeVisible(stepperAuditionBar_);
     contentContainer.addAndMakeVisible(headerInspector);
     contentContainer.addMouseListener(this, true);
 
     contentContainer.addAndMakeVisible(lifeModeToggle);
-    headerLabel.setColour(juce::Label::textColourId, getAccentColour());
-    presetStub.setAccentColour(getAccentColour());
+    headerTitleBlock_.setAccentColour(getAccentColour());
 
     // =========================================================================
     // BAY 1: DCO & SUB-STATOR (x: 14, y: 44, w: 364, h: 490)
@@ -1758,11 +1758,16 @@ void HasturAudioProcessorEditor::bindDiscreteControls() {
 }
 
 void HasturAudioProcessorEditor::layoutControls() {
-    // Header (Position A: Title -> Preset Stub -> Unified Inspector -> Lifeform Toggle)
-    headerLabel.setBounds(14, 4, 140, 36);
-    presetStub.setBounds(162, 8, 288, 28);
+    // Header (Position A: Title -> Stepper Audition Bar -> Unified Inspector -> Lifeform Toggle)
+    headerTitleBlock_.setBounds(14, 4, 140, 36);
+    stepperAuditionBar_.setBounds(162, 8, 288, 28);
     headerInspector.setBounds(458, 8, 446, 28);
     lifeModeToggle.setBounds(912, 8, 234, 28);
+
+    if (aboutOverlay_ != nullptr)
+        aboutOverlay_->setBounds(contentContainer.getLocalBounds());
+    if (presetBrowserOverlay_ != nullptr)
+        presetBrowserOverlay_->setBounds(contentContainer.getLocalBounds());
 
     // =========================================================================
     // BAY 1: DCO FULL-HEIGHT MONOLITH TOWER (x: 14, y: 44, w: 277, h: 816)
@@ -2280,9 +2285,56 @@ void HasturAudioProcessorEditor::timerCallback() {
 }
 
 void HasturAudioProcessorEditor::updateColours() {
-    headerLabel.setColour(juce::Label::textColourId, getAccentColour());
-    presetStub.setAccentColour(getAccentColour());
+    headerTitleBlock_.setAccentColour(getAccentColour());
+    stepperAuditionBar_.repaint();
     contentContainer.repaint();
+}
+
+void HasturAudioProcessorEditor::showAboutOverlay() {
+    if (aboutOverlay_ == nullptr) {
+        juce::Array<CrackedChimes::AboutOverlay::Attribution> attrs;
+        attrs.add({"JUCE Framework (v9.0.3) - Cross-platform Audio Engine", "https://juce.com"});
+        attrs.add({"Alpha Juno-2 & MKS-50 Service Manuals - Core Circuit Model", "https://archive.org"});
+        attrs.add({"Zero-Delay Feedback (ZDF) Topology - Vadim Zavalishin", "https://www.native-instruments.com"});
+        aboutOverlay_ = std::make_unique<CrackedChimes::AboutOverlay>(
+            "HASTUR",
+            "Monophonic Analog-Modeling Acid & Bass Synthesizer",
+            getAccentColour(),
+            attrs
+        );
+        aboutOverlay_->setOnClose([this] {
+            aboutOverlay_->setVisible(false);
+            aboutOverlay_.reset();
+        });
+        contentContainer.addAndMakeVisible(aboutOverlay_.get());
+        aboutOverlay_->setBounds(contentContainer.getLocalBounds());
+        aboutOverlay_->toFront(true);
+    } else {
+        aboutOverlay_->setVisible(false);
+        aboutOverlay_.reset();
+    }
+}
+
+void HasturAudioProcessorEditor::showPresetBrowser() {
+    if (presetBrowserOverlay_ == nullptr) {
+        presetBrowserOverlay_ = std::make_unique<CrackedChimes::PresetBrowserOverlay>(
+            processor_.getPresetManager(),
+            processor_.getAPVTS(),
+            getAccentColour()
+        );
+        presetBrowserOverlay_->setOnClose([this] {
+            presetBrowserOverlay_->setVisible(false);
+            presetBrowserOverlay_.reset();
+            stepperAuditionBar_.updateDisplay();
+        });
+        contentContainer.addAndMakeVisible(presetBrowserOverlay_.get());
+        presetBrowserOverlay_->setBounds(contentContainer.getLocalBounds());
+        presetBrowserOverlay_->toFront(true);
+    } else {
+        presetBrowserOverlay_->setVisible(false);
+        presetBrowserOverlay_.reset();
+        stepperAuditionBar_.updateDisplay();
+    }
 }
 
 void HasturAudioProcessorEditor::setupRotaryKnob(SliderItem& item, const juce::String& paramId, const juce::String& labelText, juce::Colour col) {

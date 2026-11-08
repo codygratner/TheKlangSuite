@@ -4,7 +4,9 @@
 using namespace digistrike_fs2Parameters::Ids;
 
 DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeFS2AudioProcessor& p)
-    : AudioProcessorEditor(&p), processor_(p)
+    : AudioProcessorEditor(&p),
+      processor_(p),
+      stepperAuditionBar_(p.getPresetManager(), p.getAPVTS())
 {
 
     // 1. Mount content container
@@ -38,8 +40,11 @@ DigiStrikeFS2AudioProcessorEditor::DigiStrikeFS2AudioProcessorEditor(DigiStrikeF
     // =========================================================================
     // 1. Header Row
     // =========================================================================
-    presetStub_.setAccentColour(juce::Colour(0xFFFFAA00));
-    contentContainer.addAndMakeVisible(presetStub_);
+    headerTitleBlock_.onClick = [this] { showAboutOverlay(); };
+    contentContainer.addAndMakeVisible(headerTitleBlock_);
+
+    stepperAuditionBar_.setOnOpenBrowser([this] { showPresetBrowser(); });
+    contentContainer.addAndMakeVisible(stepperAuditionBar_);
 
     contentContainer.addAndMakeVisible(headerInspector_);
 
@@ -1093,10 +1098,16 @@ void DigiStrikeFS2AudioProcessorEditor::paintCanvas(juce::Graphics& g) {
 
 void DigiStrikeFS2AudioProcessorEditor::layoutControls() {
     // 1. Header Layout
-    presetStub_.setBounds(162, 8, 220, 28);
+    headerTitleBlock_.setBounds(14, 4, 140, 36);
+    stepperAuditionBar_.setBounds(162, 8, 220, 28);
     headerInspector_.setBounds(390, 8, 380, 28);
     lifeformRocker_.setBounds(780, 8, 210, 28);
     voiceModeRocker_.setBounds(1000, 8, 140, 28);
+
+    if (aboutOverlay_ != nullptr)
+        aboutOverlay_->setBounds(contentContainer.getLocalBounds());
+    if (presetBrowserOverlay_ != nullptr)
+        presetBrowserOverlay_->setBounds(contentContainer.getLocalBounds());
 
     // Helper: place label directly above slider (label h=18, centred on cx)
     auto place = [](KnobItem& k, int cx, int labelY, int labelW, int size, int sliderY) {
@@ -1267,4 +1278,50 @@ void DigiStrikeFS2AudioProcessorEditor::requestRefit() {
             safe->applyEffectiveScale(target);
         }
     });
+}
+
+void DigiStrikeFS2AudioProcessorEditor::showAboutOverlay() {
+    if (aboutOverlay_ == nullptr) {
+        juce::Array<CrackedChimes::AboutOverlay::Attribution> attrs;
+        attrs.add({"JUCE Framework (v9.0.3) - Cross-platform Audio Engine", "https://juce.com"});
+        attrs.add({"Tactical Combat Drum Synthesis Architecture - The Klang Suite", "https://github.com/codygratner/TheKlangSuite"});
+        aboutOverlay_ = std::make_unique<CrackedChimes::AboutOverlay>(
+            "DIGISTRIKE FS2",
+            "16-Control Tactical Combat Drum Synthesizer",
+            juce::Colour(0xFFE08C00),
+            attrs
+        );
+        aboutOverlay_->setOnClose([this] {
+            aboutOverlay_->setVisible(false);
+            aboutOverlay_.reset();
+        });
+        contentContainer.addAndMakeVisible(aboutOverlay_.get());
+        aboutOverlay_->setBounds(contentContainer.getLocalBounds());
+        aboutOverlay_->toFront(true);
+    } else {
+        aboutOverlay_->setVisible(false);
+        aboutOverlay_.reset();
+    }
+}
+
+void DigiStrikeFS2AudioProcessorEditor::showPresetBrowser() {
+    if (presetBrowserOverlay_ == nullptr) {
+        presetBrowserOverlay_ = std::make_unique<CrackedChimes::PresetBrowserOverlay>(
+            processor_.getPresetManager(),
+            processor_.getAPVTS(),
+            juce::Colour(0xFFE08C00)
+        );
+        presetBrowserOverlay_->setOnClose([this] {
+            presetBrowserOverlay_->setVisible(false);
+            presetBrowserOverlay_.reset();
+            stepperAuditionBar_.updateDisplay();
+        });
+        contentContainer.addAndMakeVisible(presetBrowserOverlay_.get());
+        presetBrowserOverlay_->setBounds(contentContainer.getLocalBounds());
+        presetBrowserOverlay_->toFront(true);
+    } else {
+        presetBrowserOverlay_->setVisible(false);
+        presetBrowserOverlay_.reset();
+        stepperAuditionBar_.updateDisplay();
+    }
 }

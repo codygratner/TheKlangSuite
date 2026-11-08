@@ -919,6 +919,8 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
             }
 
+            presetManager_.getDuckGate().tickAudio(buffer.getArrayOfWritePointers(), buffer.getNumChannels(), numSamples, true);
+
             return;
 
         }
@@ -1195,6 +1197,8 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
         envTap_.store(0, std::memory_order_relaxed);
     }
 
+    // DuckGate Audio-Thread Watchdog
+    presetManager_.getDuckGate().tickAudio(buffer.getArrayOfWritePointers(), buffer.getNumChannels(), numSamples, masterSleeping_);
 }
 
 

@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "dsp/drums/FormlessSpawnVoice.h"
+#include "PresetManager.h"
 
 class FormlessSpawnAudioProcessor : public juce::AudioProcessor {
 public:
@@ -36,6 +37,8 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts_; }
     tkdsp::FormlessSpawnVoice& getVoice() { return voice_; }
+    RlyehSound::PresetManager& getPresetManager() noexcept { return presetManager_; }
+    [[nodiscard]] bool isSleeping() const noexcept { return false; }
 
     std::atomic<float> storedEditorScale_{0.0f};
     void setStoredEditorScale(float s) noexcept { storedEditorScale_.store(s, std::memory_order_relaxed); }
@@ -134,6 +137,8 @@ private:
     std::atomic<float>* roleParam_{nullptr};
     std::atomic<float>* modelParam_{nullptr};
     std::atomic<float>* lifeModeParam_{nullptr};
+
+    RlyehSound::PresetManager presetManager_{"Formless Spawn"};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FormlessSpawnAudioProcessor)
 };

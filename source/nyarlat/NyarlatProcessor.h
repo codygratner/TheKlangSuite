@@ -202,6 +202,8 @@ public:
 
     RlyehSound::PresetManager& getPresetManager() noexcept { return presetManager_; }
 
+    [[nodiscard]] bool isSleeping() const noexcept { return masterSleeping_; }
+
 
 
     std::atomic<float> storedEditorScale_{0.0f};

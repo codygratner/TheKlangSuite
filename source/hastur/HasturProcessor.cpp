@@ -101,6 +101,11 @@ HasturAudioProcessor::HasturAudioProcessor()
     pitchBendRangeParam_    = apvts_.getRawParameterValue("pitch_bend_range");
     vibratoRateParam_       = apvts_.getRawParameterValue("vibrato_rate");
     vibratoDepthParam_      = apvts_.getRawParameterValue("vibrato_depth");
+
+    auto presets = presetManager_.getAvailablePresets();
+    if (!presets.isEmpty()) {
+        presetManager_.loadPresetByIndex(0, apvts_);
+    }
 }
 
 HasturAudioProcessor::~HasturAudioProcessor() = default;
@@ -415,6 +420,9 @@ void HasturAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         sleepActive_ = false;
         sleepHangoverSamples_ = static_cast<int>(getSampleRate() * 0.015);
     }
+
+    // 5. DuckGate Audio-Thread Watchdog
+    presetManager_.getDuckGate().tickAudio(buffer.getArrayOfWritePointers(), buffer.getNumChannels(), numSamples, sleepActive_);
 }
 
 juce::AudioProcessorEditor* HasturAudioProcessor::createEditor() {
