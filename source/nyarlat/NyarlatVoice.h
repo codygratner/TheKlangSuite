@@ -276,7 +276,7 @@ public:
 
                         level = sustainLevel;
 
-                        stage = EnvStage::Sustain;
+                        stage = (sustainLevel <= 0.0001f) ? EnvStage::Idle : EnvStage::Sustain;
 
                     }
 
@@ -285,6 +285,14 @@ public:
                 case EnvStage::Sustain:
 
                     level = sustainLevel;
+
+                    if (sustainLevel <= 0.0001f) {
+
+                        level = 0.0f;
+
+                        stage = EnvStage::Idle;
+
+                    }
 
                     break;
 
@@ -323,6 +331,10 @@ public:
 
 
         bool shouldCull(int activeCount) const noexcept {
+
+            if (stage == EnvStage::Idle) return false;
+
+            if (stage == EnvStage::Sustain && level <= 0.0001f) return true;
 
             if (stage != EnvStage::Release) return false;
 
@@ -429,6 +441,8 @@ public:
 
         hammerSnapEnv_ = 0.0f;
 
+        noteOnTimestamp_ = 0;
+
         ctrlCounter_ = 0;
 
         cachedOctMult_[0] = 1.0f; cachedOctMult_[1] = 1.0f; cachedOctMult_[2] = 1.0f;
@@ -460,12 +474,14 @@ public:
 
 
 
-    void noteOn(int midiNote, float velocity, float glideTimeSec, float hammerSnap = 0.0f, float targetHz = -1.0f, float oscSlop = 0.0f) noexcept {
+    void noteOn(int midiNote, float velocity, float glideTimeSec, float hammerSnap = 0.0f, float targetHz = -1.0f, float oscSlop = 0.0f, uint64_t timestamp = 0) noexcept {
+        const bool wasActive = ampEnv_.isActive();
         midiNote_ = midiNote;
         velocity_ = velocity;
+        noteOnTimestamp_ = timestamp;
         targetPitchHz_ = (targetHz > 0.0f) ? targetHz : 440.0f * std::pow(2.0f, (midiNote - 69.0f) / 12.0f);
 
-        if (glideTimeSec <= 0.001f || !ampEnv_.isActive()) {
+        if (glideTimeSec <= 0.001f || !wasActive) {
             currentPitchHz_ = targetPitchHz_;
         }
         glideSpeed_ = (glideTimeSec > 0.001f)
@@ -477,6 +493,16 @@ public:
         ampEnv_.noteOn();
         filterEnv_.noteOn();
         ctrlCounter_ = 0;
+
+        if (wasActive) {
+            // Stolen active voice: soft-reset filter integrators and DC blockers to eliminate audio pops
+            filter_.reset();
+            postFilterDcBlockerL_.reset();
+            postFilterDcBlockerR_.reset();
+        } else {
+            // Clean wake-up from sleep: reset opto leveller target so gain starts nominal
+            optoLeveller_.reset();
+        }
 
         // Static voice card component tolerance + note-to-note junction temperature:
         if (oscSlop > 0.001f) {
@@ -950,7 +976,13 @@ public:
 
     Envelope& getAmpEnv() noexcept { return ampEnv_; }
 
+    const Envelope& getAmpEnv() const noexcept { return ampEnv_; }
+
     Envelope& getFilterEnv() noexcept { return filterEnv_; }
+
+    const Envelope& getFilterEnv() const noexcept { return filterEnv_; }
+
+    uint64_t getNoteOnTimestamp() const noexcept { return noteOnTimestamp_; }
 
     float getEffSpread() const noexcept { return lastEffSpread_; }
 
@@ -1039,6 +1071,8 @@ private:
     Envelope ampEnv_;
 
     Envelope filterEnv_;
+
+    uint64_t noteOnTimestamp_ = 0;
 
     float lastEffSpread_ = 0.0f;
     float currentEffCutoff_ = 1000.0f;

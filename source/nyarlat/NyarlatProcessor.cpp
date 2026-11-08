@@ -92,6 +92,10 @@ void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
 
     heldNotes_.clear();
 
+    masterSilenceSamples_ = 0;
+
+    masterSleeping_ = false;
+
 }
 
 
@@ -100,6 +104,10 @@ void NyarlatProcessor::releaseResources() {
 
     for (auto& v : voices_) v.reset();
 
+
+    masterSilenceSamples_ = 0;
+
+    masterSleeping_ = false;
 
     bassBpL_.reset();
 
@@ -177,10 +185,11 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
     if (voiceMode == 0) {
 
-        // Poly 16: Dynamic Voice Stealing
+        // Poly 16: Intelligent 4-Tier Voice Allocation & Stealing
 
         int bestIdx = -1;
 
+        // Tier 0: Search for first inactive (sleeping) voice
         for (int i = 0; i < kNumVoices; ++i) {
 
             int idx = (nextVoiceIndex_ + i) % kNumVoices;
@@ -195,9 +204,78 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         }
 
+        // Tier 1: Search for active voice already playing this exact MIDI note (retrigger voice-leading)
         if (bestIdx == -1) {
 
-            bestIdx = nextVoiceIndex_;
+            for (int i = 0; i < kNumVoices; ++i) {
+
+                if (voices_[i].getMidiNote() == midiNote) {
+
+                    bestIdx = i;
+
+                    break;
+
+                }
+
+            }
+
+        }
+
+        // Tier 2: Steal releasing voice with lowest envelope level
+        if (bestIdx == -1) {
+
+            float minReleaseLvl = 1e9f;
+
+            int quietestReleaseIdx = -1;
+
+            for (int i = 0; i < kNumVoices; ++i) {
+
+                if (voices_[i].getAmpEnv().stage == NyarlatVoice::EnvStage::Release) {
+
+                    const float lvl = voices_[i].getAmpEnv().level;
+
+                    if (lvl < minReleaseLvl) {
+
+                        minReleaseLvl = lvl;
+
+                        quietestReleaseIdx = i;
+
+                    }
+
+                }
+
+            }
+
+            if (quietestReleaseIdx != -1) {
+
+                bestIdx = quietestReleaseIdx;
+
+            }
+
+        }
+
+        // Tier 3: Fallback - steal oldest active voice (longest elapsed duration)
+        if (bestIdx == -1) {
+
+            uint64_t oldestTs = std::numeric_limits<uint64_t>::max();
+
+            int oldestIdx = nextVoiceIndex_;
+
+            for (int i = 0; i < kNumVoices; ++i) {
+
+                const uint64_t ts = voices_[i].getNoteOnTimestamp();
+
+                if (ts < oldestTs) {
+
+                    oldestTs = ts;
+
+                    oldestIdx = i;
+
+                }
+
+            }
+
+            bestIdx = oldestIdx;
 
         }
 
@@ -205,7 +283,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         newestVoice_.store(bestIdx, std::memory_order_relaxed);
 
-        voices_[bestIdx].noteOn(midiNote, velocity, glide, hammerSnap, -1.0f, oscSlop);
+        voices_[bestIdx].noteOn(midiNote, velocity, glide, hammerSnap, -1.0f, oscSlop, ++noteCounter_);
 
     }
 
@@ -215,7 +293,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         heldNotes_.push_back({midiNote, velocity});
 
-        voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, -1.0f, oscSlop);
+        voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, -1.0f, oscSlop, ++noteCounter_);
 
         newestVoice_.store(0, std::memory_order_relaxed);
 
@@ -233,7 +311,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         } else {
 
-            voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, targetHz, oscSlop);
+            voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, targetHz, oscSlop, ++noteCounter_);
 
         }
 
@@ -257,7 +335,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
             const float targetHz = 440.0f * std::pow(2.0f, (midiNote + detuneSemi - 69.0f) / 12.0f);
 
-            voices_[v].noteOn(midiNote, velocity, glide, hammerSnap, targetHz, oscSlop);
+            voices_[v].noteOn(midiNote, velocity, glide, hammerSnap, targetHz, oscSlop, ++noteCounter_);
 
             voices_[v].setPolyChaosSpread(polySpread * (static_cast<float>(v) / 7.0f));
 
@@ -766,6 +844,81 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 
 
+    // Master Silence Gate: count remaining active voices after all segment rendering
+    int remainingActiveVoices = 0;
+
+    for (int v = 0; v < kNumVoices; ++v) {
+
+        if (voices_[v].isActive()) {
+
+            remainingActiveVoices++;
+
+        }
+
+    }
+
+
+
+    if (remainingActiveVoices == 0) {
+
+        masterSilenceSamples_ += numSamples;
+
+        constexpr int kTailSamples = 24000; // ~0.5s at 48kHz (more than enough for master SVF & DC blockers to ring out past -140 dBFS)
+
+        if (masterSilenceSamples_ >= kTailSamples) {
+
+            if (!masterSleeping_) {
+
+                // One-time flush of master filters upon entering deep sleep
+
+                bassBpL_.reset();
+
+                bassBpR_.reset();
+
+                trebleStateL_ = trebleStateR_ = 0.0f;
+
+                hilbertL_.reset();
+
+                hilbertR_.reset();
+
+                masterDcBlockerL_.reset();
+
+                masterDcBlockerR_.reset();
+
+                postDcBlockerL_.reset();
+
+                postDcBlockerR_.reset();
+
+                masterSleeping_ = true;
+
+            }
+
+
+
+            // Buffer is already cleared to 0.0f. Fast UI telemetry update and early return (0.00% CPU!)
+
+            newestVoice_.store(-1, std::memory_order_relaxed);
+
+            for (int v = 0; v < kNumVoices; ++v) {
+
+                telemetry_[v].active = false;
+
+            }
+
+            return;
+
+        }
+
+    } else {
+
+        masterSilenceSamples_ = 0;
+
+        masterSleeping_ = false;
+
+    }
+
+
+
     // Master Stage Effects
 
     const float bassBoost = *apvts_.getRawParameterValue(Ids::bass_boost);
@@ -957,13 +1110,21 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 
 
+    const float normCutoff = std::log10(params.filterCutoff / 20.0f) / 3.0f;
+
     for (int v = 0; v < kNumVoices; ++v) {
 
-        telemetry_[v].active = voices_[v].isActive();
+        const bool active = voices_[v].isActive();
+
+        telemetry_[v].active = active;
+
+        if (!active) continue;
+
+
 
         telemetry_[v].note = voices_[v].getMidiNote();
 
-        telemetry_[v].x = std::log10(params.filterCutoff / 20.0f) / 3.0f;
+        telemetry_[v].x = normCutoff;
 
         telemetry_[v].y = params.filterResonance;
 

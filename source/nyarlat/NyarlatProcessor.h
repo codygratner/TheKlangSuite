@@ -396,6 +396,12 @@ private:
 
     int nextVoiceIndex_ = 0;
 
+    uint64_t noteCounter_ = 0;
+
+    int masterSilenceSamples_ = 0;
+
+    bool masterSleeping_ = false;
+
 
 
     std::array<VoiceTelemetry, kNumVoices> telemetry_;

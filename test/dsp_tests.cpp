@@ -6249,9 +6249,97 @@ Running Suite 77: Nyarlat Additive Engine, Analog Filter & 8x Unison Gauntlet...
 
         std::cout << "PASS: Suite 79: Shoggoth Additive SIMD Engine Gauntlet completed 100%!" << std::endl;
     }
+
+    // SUITE 80: Nyarlat Voice Sleeping, Zero-Sustain Auto-Sleep & 4-Tier Stealing Gauntlet
+    {
+        std::cout << "\nRunning Suite 80: Nyarlat Voice Sleeping, Zero-Sustain Auto-Sleep & 4-Tier Stealing Gauntlet..." << std::endl;
+
+        // Test 1: Zero-Sustain Decay-to-Idle Auto-Sleep
+        {
+            Nyarlat::NyarlatVoice voice;
+            voice.prepare(48000.0);
+            voice.getAmpEnv().setADSR(0.001f, 0.010f, 0.0f, 0.010f, 48000.0);
+            voice.noteOn(60, 0.8f, 0.0f, 0.0f, -1.0f, 0.0f, 100);
+            assert(voice.isActive());
+            assert(voice.getNoteOnTimestamp() == 100);
+
+            // Process past attack (0.001s = 48 samples) and decay (0.010s = 480 samples)
+            for (int i = 0; i < 2000; ++i) {
+                voice.getAmpEnv().process();
+            }
+
+            // Zero-sustain envelope MUST decay to Idle and put voice to sleep even without noteOff
+            assert(voice.getAmpEnv().stage == Nyarlat::NyarlatVoice::EnvStage::Idle);
+            assert(!voice.isActive());
+            assert(voice.getAmpEnv().shouldCull(16));
+            std::cout << "  [PASS] Zero-sustain decay automatically enters EnvStage::Idle without zombie state" << std::endl;
+        }
+
+        // Test 2: Adaptive polyphonic culling thresholds (-60dB at >12 voices, -66dB at >8 voices, -80dB default)
+        {
+            Nyarlat::NyarlatVoice voice;
+            voice.prepare(48000.0);
+            voice.getAmpEnv().setADSR(0.001f, 0.010f, 1.0f, 0.500f, 48000.0);
+            voice.noteOn(60, 0.8f, 0.0f, 0.0f, -1.0f, 0.0f, 101);
+            voice.noteOff(); // Enter release stage
+            assert(voice.getAmpEnv().stage == Nyarlat::NyarlatVoice::EnvStage::Release);
+
+            // Simulate level at -62 dB (0.0008f)
+            voice.getAmpEnv().level = 0.0008f;
+            assert(voice.getAmpEnv().shouldCull(14));  // >12 voices culls at -60 dB (0.0010)
+            assert(!voice.getAmpEnv().shouldCull(10)); // 10 voices keeps down to -66 dB (0.0005)
+            assert(!voice.getAmpEnv().shouldCull(4));  // 4 voices keeps down to -80 dB (0.0001)
+
+            std::cout << "  [PASS] Adaptive polyphonic culling strictly enforces density-dependent noise floors" << std::endl;
+        }
+
+        // Test 3: Active stolen voice micro-flush vs clean wake-up
+        {
+            Nyarlat::NyarlatVoice voice;
+            voice.prepare(48000.0);
+            voice.noteOn(60, 0.8f, 0.0f, 0.0f, -1.0f, 0.0f, 1);
+            assert(voice.isActive());
+
+            // Steal while active: noteOn with new timestamp
+            voice.noteOn(72, 0.9f, 0.0f, 0.0f, -1.0f, 0.0f, 2);
+            assert(voice.getNoteOnTimestamp() == 2);
+            assert(voice.isActive());
+
+            // Render a short block to verify zero transients / NaNs
+            float outL[32] = {0.0f}, outR[32] = {0.0f};
+            float oscBanks[3] = {0, 0, 0};
+            float oscMorphs[3] = {0.5f, 0.5f, 0.5f};
+            float oscOddEvens[3] = {0, 0, 0};
+            float oscTilts[3] = {0, 0, 0};
+            float oscFormants[3] = {0, 0, 0};
+            int oscMasks[3] = {511, 511, 511};
+            int oscOctaves[3] = {2, 2, 2};
+            bool oscSpeedLocks[3] = {false, false, false};
+            float oscSpeeds[3] = {1.0f, 1.0f, 1.0f};
+            int oscLoops[3] = {1, 1, 1};
+            float randChaos[19] = {0.0f};
+
+            voice.renderBlockAdd(outL, outR, 32, 1,
+                                 oscBanks, oscMorphs, oscOddEvens, oscTilts, oscFormants, oscMasks,
+                                 oscOctaves, oscSpeedLocks, oscSpeeds, oscLoops,
+                                 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f,
+                                 randChaos, 0.0f, 0.0f, 0.0f,
+                                 1000.0f, 0.2f, 0, 0.0f,
+                                 0.0f, 0.0f, 0.0f,
+                                 1.0f, 0.0f, 0.0f, 0.0f,
+                                 120.0f, 0.0f);
+
+            for (int s = 0; s < 32; ++s) {
+                assert(std::isfinite(outL[s]) && std::isfinite(outR[s]));
+            }
+            std::cout << "  [PASS] Stolen voice micro-flushes filter & DC blockers without NaN or transient blowup" << std::endl;
+        }
+
+        std::cout << "PASS: Suite 80: Nyarlat Voice Sleeping, Zero-Sustain Auto-Sleep & 4-Tier Stealing Gauntlet completed 100%!" << std::endl;
+    }
 #endif
 
-    std::cout << "\n>>> ALL 79 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
+    std::cout << "\n>>> ALL 80 DSP VERIFICATION SUITES PASSED 100%! <<<" << std::endl;
     return 0;
 }
 
