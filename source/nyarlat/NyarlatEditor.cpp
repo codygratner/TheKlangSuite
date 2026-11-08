@@ -1409,12 +1409,26 @@ void NyarlatEditor::timerCallback() {
 
 
 
-    // 2. Repaint Vector ADSR Preview
+    // 2. Repaint Vector ADSR Previews with lead voice state
+    {
+        using Stage = NyarlatVoice::EnvStage;
+        const uint64_t tap = processor_.getEnvTap();
+        const uint32_t aPack = static_cast<uint32_t>(tap & 0xFFFFFu);
+        const uint32_t fPack = static_cast<uint32_t>((tap >> 20) & 0xFFFFFu);
 
-    if (vcaAdsrView_ != nullptr) {
+        const float aLvl = static_cast<float>(aPack & 0xFFFFu) / 65535.0f;
+        const auto aStage = static_cast<Stage>((aPack >> 16) & 7u);
+        const bool aLive = ((aPack >> 19) & 1u) != 0 && aStage != Stage::Idle;
 
-        vcaAdsrView_->repaint();
+        const float fLvl = static_cast<float>(fPack & 0xFFFFu) / 65535.0f;
+        const auto fStage = static_cast<Stage>((fPack >> 16) & 7u);
+        const bool fLive = ((fPack >> 19) & 1u) != 0 && fStage != Stage::Idle;
 
+        if (vcaAdsrView_ != nullptr)
+            vcaAdsrView_->setLive(aLive, aLvl, aStage);
+
+        if (filterAdsrView_ != nullptr)
+            filterAdsrView_->setLive(fLive, fLvl, fStage);
     }
 
 

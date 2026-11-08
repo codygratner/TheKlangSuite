@@ -7,6 +7,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "NyarlatProcessor.h"
+#include "NyarlatEnvelopeMath.h"
 
 #include "NyarlatAdditiveOscillator.h"
 
@@ -1227,135 +1228,204 @@ private:
 // ==============================================================================
 
 // VectorAdsrVisualizer: Glowing Vector ADSR Envelope Curve Display
-
 // ==============================================================================
-
 class VectorAdsrVisualizer : public juce::Component {
-
 public:
-
     enum class Target { Filter, Amp };
+    using Stage = NyarlatVoice::EnvStage;
 
     VectorAdsrVisualizer(NyarlatProcessor& proc, Target target = Target::Amp)
         : proc_(proc), target_(target) {
-
         setInterceptsMouseClicks(false, false);
-
+        namespace Ids = nyarlatParameters::Ids;
+        auto& apvts = proc.getAPVTS();
+        const bool isFilter = (target_ == Target::Filter);
+        prm_[0] = apvts.getRawParameterValue(isFilter ? Ids::filter_attack  : Ids::amp_attack);
+        prm_[1] = apvts.getRawParameterValue(isFilter ? Ids::filter_decay   : Ids::amp_decay);
+        prm_[2] = apvts.getRawParameterValue(isFilter ? Ids::filter_sustain : Ids::amp_sustain);
+        prm_[3] = apvts.getRawParameterValue(isFilter ? Ids::filter_release : Ids::amp_release);
     }
 
+    void setLive(bool on, float level, Stage st) {
+        level = juce::jlimit(0.0f, 1.0f, level);
+        const bool paramsChanged = pullParams();
+        if (!paramsChanged && !on && !live_)
+            return;
+        if (!paramsChanged && on == live_ && st == stage_ && std::abs(level - level_) < 0.002f)
+            return;
 
+        live_ = on;
+        level_ = level;
+        stage_ = st;
+        repaint();
+    }
 
     void paint(juce::Graphics& g) override {
-
-        auto bounds = getLocalBounds().toFloat();
-
+        const auto bounds = getLocalBounds().toFloat();
         g.setColour(juce::Colour(0xFF0D1117));
-
         g.fillRoundedRectangle(bounds, 4.0f);
-
         g.setColour(juce::Colour(0xFF262D38));
-
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
+        pullParams();
+        const float a = std::max(0.0005f, val_[0]);
+        const float d = std::max(0.005f,  val_[1]);
+        const float s = juce::jlimit(0.0f, 1.0f, val_[2]);
+        const float r = std::max(0.005f,  val_[3]);
+        const juce::Colour accent = (target_ == Target::Filter) ? Colours::kFilter : Colours::kVca;
 
+        constexpr float padX = 8.0f;
+        constexpr float padY = 6.0f;
+        const auto plot = bounds.reduced(padX, padY);
+        const float plotW = plot.getWidth();
+        const float plotH = plot.getHeight();
+        const float x0 = plot.getX();
+        const float y0 = plot.getBottom();
 
-        namespace Ids = nyarlatParameters::Ids;
-        float a = 0.01f, d = 0.4f, s = 0.3f, r = 0.5f;
-        juce::Colour accent = (target_ == Target::Filter) ? Colours::kFilter : Colours::kVca;
+        // Proportional power-law layout (t^0.45) with dedicated 20% sustain shelf
+        constexpr float kExp = 0.45f;
+        constexpr float kShelf = 0.20f;
+        constexpr float kFloor = 0.04f;
 
-        if (target_ == Target::Filter) {
-            a = *proc_.getAPVTS().getRawParameterValue(Ids::filter_attack);
-            d = *proc_.getAPVTS().getRawParameterValue(Ids::filter_decay);
-            s = *proc_.getAPVTS().getRawParameterValue(Ids::filter_sustain);
-            r = *proc_.getAPVTS().getRawParameterValue(Ids::filter_release);
-        } else {
-            a = *proc_.getAPVTS().getRawParameterValue(Ids::amp_attack);
-            d = *proc_.getAPVTS().getRawParameterValue(Ids::amp_decay);
-            s = *proc_.getAPVTS().getRawParameterValue(Ids::amp_sustain);
-            r = *proc_.getAPVTS().getRawParameterValue(Ids::amp_release);
-        }
+        const float wA = std::pow(a, kExp);
+        const float wD = std::pow(d, kExp);
+        const float wR = std::pow(r, kExp);
+        const float wS = (wA + wD + wR) * (kShelf / (1.0f - kShelf));
+        const float totalW = wA + wD + wS + wR;
 
+        float fA = std::max(wA / totalW, kFloor);
+        float fD = std::max(wD / totalW, kFloor);
+        float fS = std::max(wS / totalW, kFloor);
+        float fR = std::max(wR / totalW, kFloor);
+        const float renorm = fA + fD + fS + fR;
+        fA /= renorm; fD /= renorm; fS /= renorm; fR /= renorm;
 
+        auto X = [&](float frac) { return x0 + frac * plotW; };
+        auto Y = [&](float lvl)  { return y0 - lvl * plotH * 0.90f; };
 
-        float pad = 6.0f;
-
-        float w = bounds.getWidth() - pad * 2.0f;
-
-        float h = bounds.getHeight() - pad * 2.0f;
-
-        float x0 = bounds.getX() + pad;
-
-        float y0 = bounds.getBottom() - pad;
-
-
-
-        float aW = std::clamp(a / 1.5f, 0.05f, 1.0f) * (w * 0.25f);
-
-        float dW = std::clamp(d / 2.5f, 0.05f, 1.0f) * (w * 0.25f);
-
-        float sW = w * 0.25f;
-
-        float rW = std::clamp(r / 4.0f, 0.05f, 1.0f) * (w * 0.25f);
-
-
-
-        float susY = y0 - (s * h * 0.88f);
-
-        float peakY = y0 - (h * 0.88f);
-
-
+        const float pPeakX = X(fA);
+        const float pDecX  = X(fA + fD);
+        const float pSusX  = X(fA + fD + fS);
+        const float pRelX  = X(1.0f);
+        const float peakY  = Y(1.0f);
+        const float susY   = Y(s);
 
         juce::Path curve;
+        curve.startNewSubPath(X(0.0f), y0);
 
-        curve.startNewSubPath(x0, y0);
+        // Attack: convex RC curve targeting 4/3 rail
+        constexpr int kAtkSteps = 12;
+        for (int i = 1; i <= kAtkSteps; ++i) {
+            const float u = static_cast<float>(i) / static_cast<float>(kAtkSteps);
+            const float lvl = (1.0f + static_cast<float>(Nyarlat::EnvMath::kRail))
+                            * (1.0f - std::exp(-static_cast<float>(Nyarlat::EnvMath::kLn4) * u));
+            curve.lineTo(X(fA * u), Y(std::min(1.0f, lvl)));
+        }
 
-        curve.lineTo(x0 + aW, peakY);
+        // Decay: concave exponential drop targeting s - (1-s)/3
+        constexpr int kDecSteps = 14;
+        const float decTgt = s - (1.0f - s) * static_cast<float>(Nyarlat::EnvMath::kRail);
+        for (int i = 1; i <= kDecSteps; ++i) {
+            const float u = static_cast<float>(i) / static_cast<float>(kDecSteps);
+            const float lvl = decTgt + (1.0f - decTgt) * std::exp(-static_cast<float>(Nyarlat::EnvMath::kLn4) * u);
+            curve.lineTo(X(fA + fD * u), Y(std::max(s, lvl)));
+        }
 
-        curve.lineTo(x0 + aW + dW, susY);
+        // Sustain plateau
+        curve.lineTo(pSusX, susY);
 
-        curve.lineTo(x0 + aW + dW + sW, susY);
+        // Release: exponential drop to baseline
+        constexpr int kRelSteps = 16;
+        for (int i = 1; i <= kRelSteps; ++i) {
+            const float u = static_cast<float>(i) / static_cast<float>(kRelSteps);
+            const float lvl = s * std::exp(-static_cast<float>(Nyarlat::EnvMath::kReleaseK) * u);
+            curve.lineTo(X(fA + fD + fS + fR * u), Y(lvl));
+        }
 
-        curve.lineTo(x0 + aW + dW + sW + rW, y0);
-
-
-
+        // Fill Path
         juce::Path fillPath(curve);
-
-        fillPath.lineTo(x0, y0);
-
+        fillPath.lineTo(pRelX, y0);
+        fillPath.lineTo(X(0.0f), y0);
         fillPath.closeSubPath();
 
-
-
-        juce::ColourGradient grad(accent.withAlpha(0.28f), x0, peakY,
-
+        juce::ColourGradient grad(accent.withAlpha(0.24f), x0, peakY,
                                   accent.withAlpha(0.02f), x0, y0, false);
-
         g.setGradientFill(grad);
-
         g.fillPath(fillPath);
 
-
-
         g.setColour(accent);
-
         g.strokePath(curve, juce::PathStrokeType(1.8f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
+        // Real-Time Lead Voice Tracer Pip & Drop Cursor
+        if (live_) {
+            float xNorm = 0.0f;
+            float pipLvl = level_;
+
+            switch (stage_) {
+                case Stage::Attack: {
+                    const float u = Nyarlat::EnvMath::attackProgress(pipLvl);
+                    xNorm = fA * std::clamp(u, 0.0f, 1.0f);
+                    break;
+                }
+                case Stage::Decay: {
+                    const float u = Nyarlat::EnvMath::decayProgress(pipLvl, s);
+                    xNorm = fA + fD * std::clamp(u, 0.0f, 1.0f);
+                    pipLvl = std::max(pipLvl, s);
+                    break;
+                }
+                case Stage::Sustain: {
+                    xNorm = fA + fD + fS * 0.5f;
+                    pipLvl = s;
+                    break;
+                }
+                case Stage::Release: {
+                    const float u = Nyarlat::EnvMath::releaseProgress(pipLvl, s);
+                    xNorm = fA + fD + fS + fR * std::clamp(u, 0.0f, 1.0f);
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            const float pipX = X(std::clamp(xNorm, 0.0f, 1.0f));
+            const float pipY = Y(std::clamp(pipLvl, 0.0f, 1.0f));
+
+            // 1. Subtle drop-line cursor
+            g.setColour(accent.withAlpha(0.25f));
+            g.drawVerticalLine(static_cast<int>(pipX), pipY, y0);
+
+            // 2. High-contrast luminous pip
+            g.setColour(accent.withAlpha(0.35f));
+            g.fillEllipse(pipX - 4.5f, pipY - 4.5f, 9.0f, 9.0f);
+
+            g.setColour(juce::Colour(0xFFF0F6FC)); // Fleet kNeedle
+            g.fillEllipse(pipX - 2.0f, pipY - 2.0f, 4.0f, 4.0f);
+        }
     }
 
-
-
 private:
+    bool pullParams() noexcept {
+        bool changed = false;
+        for (size_t i = 0; i < 4; ++i) {
+            const float v = prm_[i] ? prm_[i]->load(std::memory_order_relaxed) : 0.0f;
+            if (std::abs(v - val_[i]) > 1e-4f) {
+                val_[i] = v;
+                changed = true;
+            }
+        }
+        return changed;
+    }
 
     NyarlatProcessor& proc_;
     Target target_{Target::Amp};
-
+    std::array<std::atomic<float>*, 4> prm_{};
+    std::array<float, 4> val_{-1.0f, -1.0f, -1.0f, -1.0f};
+    bool live_ = false;
+    float level_ = 0.0f;
+    Stage stage_ = Stage::Idle;
 };
 
-
-
 // ==============================================================================
-
 // NyarlatLookAndFeel: Crackchimes Fleet Standard LookAndFeel via CrackedChimesUI
 
 // ==============================================================================

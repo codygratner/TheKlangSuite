@@ -17,6 +17,7 @@
 #include "../hastur/HasturFilterUtils.h"
 
 #include "../FastMath.h"
+#include "NyarlatEnvelopeMath.h"
 
 
 
@@ -187,144 +188,81 @@ public:
 
 
     struct Envelope {
-
         EnvStage stage = EnvStage::Idle;
-
-        float level = 0.0f;
-
-        float rate = 0.0f;
-
-        float attackRate = 0.01f;
-
-        float decayRate = 0.005f;
-
+        float level = 0.0f; // float mirror for telemetry/shouldCull
+        double lvl = 0.0;   // authoritative state (float stall immune)
+        float attackCoeff = 0.01f;
+        float decayCoeff = 0.005f;
         float sustainLevel = 0.7f;
-
         float releaseRate = 0.005f;
 
-
-
         void setADSR(float aSec, float dSec, float sNorm, float rSec, double sampleRate, float rateScale = 1.0f) noexcept {
-
             sustainLevel = juce::jlimit(0.0f, 1.0f, sNorm);
-
             double sr = sampleRate > 0.0 ? sampleRate : 44100.0;
 
             // Scale attack/decay by rateScale for acoustic clavinet keytrack
-
             double scaledA = std::max(0.0005, static_cast<double>(aSec) * rateScale);
-
             double scaledD = std::max(0.005, static_cast<double>(dSec) * rateScale);
-
             double scaledR = std::max(0.005, static_cast<double>(rSec));
 
-
-
-            attackRate = static_cast<float>(1.0 / (scaledA * sr));
-
-            decayRate = static_cast<float>(1.0 / (scaledD * sr));
-
-            // Exact one-pole coefficient: level falls 1.0 -> 1e-4 (-80 dB, the idle cutoff) in scaledR seconds
-
-            releaseRate = static_cast<float>(-std::expm1(-9.210340371976184 / (scaledR * sr)));
-
+            attackCoeff = static_cast<float>(-std::expm1(-Nyarlat::EnvMath::kLn4 / (scaledA * sr)));
+            decayCoeff  = static_cast<float>(-std::expm1(-Nyarlat::EnvMath::kLn4 / (scaledD * sr)));
+            releaseRate = static_cast<float>(-std::expm1(-Nyarlat::EnvMath::kReleaseK / (scaledR * sr)));
         }
-
-
 
         void noteOn() noexcept {
-
             stage = EnvStage::Attack;
-
+            // Retain current capacitor charge for clickless retriggering
+            lvl = std::clamp(static_cast<double>(level), 0.0, 1.0);
         }
-
-
 
         void noteOff() noexcept {
-
             if (stage != EnvStage::Idle)
-
                 stage = EnvStage::Release;
-
         }
-
-
 
         inline float process() noexcept {
-
             switch (stage) {
-
-                case EnvStage::Attack:
-
-                    level += attackRate;
-
-                    if (level >= 1.0f) {
-
-                        level = 1.0f;
-
+                case EnvStage::Attack: {
+                    constexpr double kAtkTarget = 1.0 + Nyarlat::EnvMath::kRail; // 4/3 overshoot rail
+                    lvl += (kAtkTarget - lvl) * attackCoeff;
+                    if (lvl >= 1.0) {
+                        lvl = 1.0;
                         stage = EnvStage::Decay;
-
                     }
-
                     break;
-
-                case EnvStage::Decay:
-
-                    level -= (level - sustainLevel) * decayRate;
-
-                    if (level <= sustainLevel + 0.001f) {
-
-                        level = sustainLevel;
-
+                }
+                case EnvStage::Decay: {
+                    const double decTgt = sustainLevel - (1.0 - sustainLevel) * Nyarlat::EnvMath::kRail;
+                    lvl += (decTgt - lvl) * decayCoeff;
+                    if (lvl <= sustainLevel) {
+                        lvl = sustainLevel;
                         stage = (sustainLevel <= 0.0001f) ? EnvStage::Idle : EnvStage::Sustain;
-
                     }
-
                     break;
-
+                }
                 case EnvStage::Sustain:
-
-                    level = sustainLevel;
-
+                    lvl = sustainLevel;
                     if (sustainLevel <= 0.0001f) {
-
-                        level = 0.0f;
-
+                        lvl = 0.0;
                         stage = EnvStage::Idle;
-
                     }
-
                     break;
-
                 case EnvStage::Release:
-
-                    level -= level * releaseRate;
-
-                    if (level <= 0.0001f) {
-
-                        level = 0.0f;
-
+                    lvl -= lvl * releaseRate;
+                    if (lvl <= 0.0001) {
+                        lvl = 0.0;
                         stage = EnvStage::Idle;
-
                     }
-
                     break;
-
                 case EnvStage::Idle:
-
                 default:
-
-                    level = 0.0f;
-
+                    lvl = 0.0;
                     break;
-
             }
-
+            level = static_cast<float>(lvl);
             return level;
-
         }
-
-
 
         bool isActive() const noexcept { return stage != EnvStage::Idle; }
 
@@ -494,12 +432,13 @@ public:
         filterEnv_.noteOn();
         ctrlCounter_ = 0;
 
-        if (wasActive) {
-            // Stolen active voice: soft-reset filter integrators and DC blockers to eliminate audio pops
+        if (!wasActive || ampEnv_.level < 0.01f) {
+            // Only reset integrators on cold wake-up or quiet tails to prevent transient snaps
             filter_.reset();
             postFilterDcBlockerL_.reset();
             postFilterDcBlockerR_.reset();
-        } else {
+        }
+        if (!wasActive) {
             // Clean wake-up from sleep: reset opto leveller target so gain starts nominal
             optoLeveller_.reset();
         }

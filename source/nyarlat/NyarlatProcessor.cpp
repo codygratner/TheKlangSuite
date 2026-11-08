@@ -1152,6 +1152,25 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
     }
 
+    // Lead Voice Resolution for Lock-Free Envelope Tap
+    int lead = -1;
+    uint64_t bestTs = 0;
+    for (int v = 0; v < kNumVoices; ++v) {
+        if (voices_[v].isActive() && (lead < 0 || voices_[v].getNoteOnTimestamp() >= bestTs)) {
+            lead = v;
+            bestTs = voices_[v].getNoteOnTimestamp();
+        }
+    }
+    if (lead >= 0) {
+        const auto& a = voices_[lead].getAmpEnv();
+        const auto& f = voices_[lead].getFilterEnv();
+        const uint64_t packed = static_cast<uint64_t>(packEnv(a.level, static_cast<int>(a.stage), true))
+                              | (static_cast<uint64_t>(packEnv(f.level, static_cast<int>(f.stage), true)) << 20);
+        envTap_.store(packed, std::memory_order_relaxed);
+    } else {
+        envTap_.store(0, std::memory_order_relaxed);
+    }
+
 }
 
 

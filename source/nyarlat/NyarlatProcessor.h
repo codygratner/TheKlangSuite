@@ -247,6 +247,19 @@ public:
 
     }
 
+    // Dedicated 64-bit lock-free Lead Voice Envelope Tap
+    std::atomic<uint64_t> envTap_{0};
+    static_assert(std::atomic<uint64_t>::is_always_lock_free);
+
+    static uint32_t packEnv(float lvl, int stage, bool on) noexcept {
+        const uint32_t q = static_cast<uint32_t>(juce::jlimit(0, 65535, static_cast<int>(lvl * 65535.0f + 0.5f)));
+        return q | ((static_cast<uint32_t>(stage) & 7u) << 16) | (on ? (1u << 19) : 0u);
+    }
+
+    uint64_t getEnvTap() const noexcept {
+        return envTap_.load(std::memory_order_relaxed);
+    }
+
     int getNewestVoice() const noexcept {
 
         return newestVoice_.load(std::memory_order_relaxed);
