@@ -210,7 +210,7 @@ public:
 
         // 7. Fast Real IFFT Synthesis (Order 9 = 512 samples)
         // Left Channel IFFT
-        alignas(64) std::array<float, 1024> fftBufferL{};
+        std::array<float, 1024> fftBufferL{};
         for (int k = 1; k <= kNumPartials; ++k) {
             const float aL = ampL[k - 1];
             if (aL < 1e-6f) continue;
@@ -225,7 +225,7 @@ public:
         if (isPureMono) {
             std::memcpy(outCycleR512, outCycleL512, kTableSize * sizeof(float));
         } else {
-            alignas(64) std::array<float, 1024> fftBufferR{};
+            std::array<float, 1024> fftBufferR{};
             for (int k = 1; k <= kNumPartials; ++k) {
                 const float aR = ampR[k - 1];
                 if (aR < 1e-6f) continue;
@@ -305,7 +305,7 @@ public:
                          uint32_t seedBank, float morph,
                          float oddEven, float tiltDb, float formantNorm,
                          int lifeMode) const noexcept {
-        alignas(64) std::array<float, kTableSize> dummyR;
+        std::array<float, kTableSize> dummyR;
         synthesizeCycleStereo(outCycle512, dummyR.data(), seedBank, morph, oddEven, tiltDb, formantNorm, lifeMode, 0.0f, 0.0f);
     }
 
@@ -315,8 +315,8 @@ private:
     struct CacheSlot {
         uint64_t key{0xFFFFFFFFFFFFFFFFull};
         uint32_t lastUsed{0};
-        alignas(64) std::array<float, kTableSize> tableL{};
-        alignas(64) std::array<float, kTableSize> tableR{};
+        std::array<float, kTableSize> tableL{};
+        std::array<float, kTableSize> tableR{};
     };
     mutable std::array<CacheSlot, 64> cache_{};
     mutable uint32_t lruCounter_{0};

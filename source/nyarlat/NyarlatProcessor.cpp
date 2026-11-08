@@ -30,7 +30,8 @@ NyarlatProcessor::NyarlatProcessor()
 
     }
 
-    heldNotes_.reserve(16);
+    // heldNotes_.reserve(16); -- fixed stack
+    monoScratchBuffer_.assign(16384, 0.0f);
 
 
 
@@ -56,7 +57,7 @@ void NyarlatProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
 
 
 
-    monoScratchBuffer_.assign(std::max(samplesPerBlock, 4096), 0.0f);
+    monoScratchBuffer_.assign(std::max(samplesPerBlock * 4, 16384), 0.0f);
 
     for (auto& v : voices_) {
 
@@ -300,7 +301,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         // Mono: Single Voice with Re-trigger
 
-        heldNotes_.push_back({midiNote, velocity});
+        heldNotes_.push(midiNote, velocity);
 
         voices_[0].noteOn(midiNote, velocity, glide, hammerSnap, -1.0f, oscSlop, ++noteCounter_);
 
@@ -324,7 +325,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         }
 
-        heldNotes_.push_back({midiNote, velocity});
+        heldNotes_.push(midiNote, velocity);
 
         newestVoice_.store(0, std::memory_order_relaxed);
 
@@ -334,7 +335,7 @@ void NyarlatProcessor::allocateVoice(int midiNote, float velocity) noexcept {
 
         // 8x Unison Swarm: 24 additive oscillators with golden-ratio detune & chaos decorrelation
 
-        heldNotes_.push_back({midiNote, velocity});
+        heldNotes_.push(midiNote, velocity);
 
         for (int v = 0; v < 8; ++v) {
 
@@ -392,9 +393,7 @@ void NyarlatProcessor::releaseVoice(int midiNote) noexcept {
 
         // Mono
 
-        heldNotes_.erase(std::remove_if(heldNotes_.begin(), heldNotes_.end(),
-
-            [midiNote](const auto& p) { return p.first == midiNote; }), heldNotes_.end());
+        heldNotes_.erase(midiNote);
 
         if (heldNotes_.empty()) {
 
@@ -414,9 +413,7 @@ void NyarlatProcessor::releaseVoice(int midiNote) noexcept {
 
         // Legato
 
-        heldNotes_.erase(std::remove_if(heldNotes_.begin(), heldNotes_.end(),
-
-            [midiNote](const auto& p) { return p.first == midiNote; }), heldNotes_.end());
+        heldNotes_.erase(midiNote);
 
         if (heldNotes_.empty()) {
 
@@ -438,9 +435,7 @@ void NyarlatProcessor::releaseVoice(int midiNote) noexcept {
 
         // 8x Unison
 
-        heldNotes_.erase(std::remove_if(heldNotes_.begin(), heldNotes_.end(),
-
-            [midiNote](const auto& p) { return p.first == midiNote; }), heldNotes_.end());
+        heldNotes_.erase(midiNote);
 
         if (heldNotes_.empty()) {
 
@@ -833,17 +828,17 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
     for (const auto metadata : midiMessages) {
 
-        const int eventPos = metadata.samplePosition;
+        const int eventPos = std::clamp(metadata.samplePosition, 0, numSamples);
 
         if (eventPos > currentSample) {
 
-            const int segLen = std::min(eventPos - currentSample, numSamples - currentSample);
+            const int segLen = eventPos - currentSample;
 
             if (segLen > 0) {
 
                 renderSegment(leftChannel + currentSample, rightChannel + currentSample, segLen, params, activeVoiceCount);
 
-                currentSample += segLen;
+                currentSample = eventPos;
 
             }
 

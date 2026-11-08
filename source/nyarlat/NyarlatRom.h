@@ -4,11 +4,25 @@
 #include <string>
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
 #include <atomic>
 #include <cmath>
+#include <algorithm>
 #include <juce_core/juce_core.h>
 #include "NyarlatRomMetadata.h"
 #include "../FastMath.h"
+
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
 
 namespace Nyarlat {
 
@@ -29,21 +43,64 @@ public:
 
         std::vector<std::string> paths;
 
-        // 1. Binary directory / VST3 contents
+        // 1. Explicit Environment Variable Override
+        if (const char* env = std::getenv("NYARLAT_ROM_PATH")) {
+            if (env[0] != '\0') paths.emplace_back(env);
+        }
+
+        // 2. Binary directory / VST3 contents bundle discovery
+#if defined(_WIN32)
+        char modulePath[MAX_PATH] = {0};
+        HMODULE hMod = nullptr;
+        GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                           GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                           reinterpret_cast<LPCSTR>(&AkwfRom::getInstance),
+                           &hMod);
+        if (hMod && GetModuleFileNameA(hMod, modulePath, MAX_PATH) > 0) {
+            std::string mp(modulePath);
+            for (char& c : mp) if (c == '\\') c = '/';
+            auto lastSlash = mp.rfind('/');
+            if (lastSlash != std::string::npos) {
+                auto binDir = mp.substr(0, lastSlash);
+                auto secondSlash = binDir.rfind('/');
+                if (secondSlash != std::string::npos) {
+                    auto contentsDir = binDir.substr(0, secondSlash);
+                    paths.push_back(contentsDir + "/Resources/nyarlat_akwf_rom.bin");
+                }
+            }
+        }
+#else
+        Dl_info info;
+        if (dladdr(reinterpret_cast<const void*>(&AkwfRom::getInstance), &info) && info.dli_fname != nullptr) {
+            std::string mp(info.dli_fname);
+            for (char& c : mp) if (c == '\\') c = '/';
+            auto lastSlash = mp.rfind('/');
+            if (lastSlash != std::string::npos) {
+                auto binDir = mp.substr(0, lastSlash);
+                auto secondSlash = binDir.rfind('/');
+                if (secondSlash != std::string::npos) {
+                    auto contentsDir = binDir.substr(0, secondSlash);
+                    paths.push_back(contentsDir + "/Resources/nyarlat_akwf_rom.bin");
+                }
+            }
+        }
+#endif
+
         auto appFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
         auto contentsDir = appFile.getParentDirectory().getFullPathName().toStdString();
         paths.push_back(contentsDir + "/Resources/nyarlat_akwf_rom.bin");
         paths.push_back(contentsDir + "/nyarlat_akwf_rom.bin");
 
-        // 2. Installed VST3 Common Files
+        // 3. Installed VST3 Common Files
 #if defined(_WIN32)
         paths.push_back("C:/Program Files/Common Files/VST3/Nyarlat.vst3/Contents/Resources/nyarlat_akwf_rom.bin");
 #endif
 
-        // 3. Local Development Source Paths
+        // 4. Local Development Source Paths
         paths.push_back("C:/Dev/TheKlangSuite/assets/nyarlat_akwf_rom.bin");
         paths.push_back("assets/nyarlat_akwf_rom.bin");
         paths.push_back("../assets/nyarlat_akwf_rom.bin");
+        paths.push_back("nyarlat_akwf_rom.bin");
 
         for (const auto& p : paths) {
             if (tryLoadFile(p.c_str())) {
@@ -128,10 +185,17 @@ public:
 
         float clampedMorph = juce::jlimit(0.0f, 1.0f, waveMorphNorm);
         if (bank.count <= 1) {
-            const float* mag = &spectralMags_[bank.offset * 64];
-            const float* ph = &spectralPhases_[bank.offset * 64];
-            std::memcpy(outMags64, mag, 64 * sizeof(float));
-            std::memcpy(outPhases64, ph, 64 * sizeof(float));
+            const size_t offset = static_cast<size_t>(bank.offset) * 64;
+            if (offset + 64 <= spectralMags_.size() && offset + 64 <= spectralPhases_.size()) {
+                const float* mag = &spectralMags_[offset];
+                const float* ph = &spectralPhases_[offset];
+                std::memcpy(outMags64, mag, 64 * sizeof(float));
+                std::memcpy(outPhases64, ph, 64 * sizeof(float));
+            } else {
+                std::fill(outMags64, outMags64 + 64, 0.0f);
+                std::fill(outPhases64, outPhases64 + 64, 0.0f);
+                outMags64[0] = 1.0f;
+            }
             return;
         }
 
@@ -141,10 +205,21 @@ public:
         if (idxB >= bank.count) idxB = bank.count - 1;
         float alpha = pos - static_cast<float>(idxA);
 
-        const float* magA = &spectralMags_[(bank.offset + idxA) * 64];
-        const float* magB = &spectralMags_[(bank.offset + idxB) * 64];
-        const float* phA = &spectralPhases_[(bank.offset + idxA) * 64];
-        const float* phB = &spectralPhases_[(bank.offset + idxB) * 64];
+        const size_t offsetA = static_cast<size_t>(bank.offset + idxA) * 64;
+        const size_t offsetB = static_cast<size_t>(bank.offset + idxB) * 64;
+
+        if (offsetA + 64 > spectralMags_.size() || offsetB + 64 > spectralMags_.size() ||
+            offsetA + 64 > spectralPhases_.size() || offsetB + 64 > spectralPhases_.size()) {
+            std::fill(outMags64, outMags64 + 64, 0.0f);
+            std::fill(outPhases64, outPhases64 + 64, 0.0f);
+            outMags64[0] = 1.0f;
+            return;
+        }
+
+        const float* magA = &spectralMags_[offsetA];
+        const float* magB = &spectralMags_[offsetB];
+        const float* phA = &spectralPhases_[offsetA];
+        const float* phB = &spectralPhases_[offsetB];
 
         constexpr float kPi = 3.14159265358979323846f;
         constexpr float kTwoPi = 6.28318530717958647692f;
@@ -155,8 +230,11 @@ public:
 
             // Shortest-arc phase interpolation
             float diff = phB[k] - phA[k];
-            while (diff > kPi) diff -= kTwoPi;
-            while (diff < -kPi) diff += kTwoPi;
+            if (!std::isfinite(diff)) {
+                diff = 0.0f;
+            } else {
+                diff -= kTwoPi * std::round(diff / kTwoPi);
+            }
             outPhases64[k] = phA[k] + alpha * diff;
         }
     }
@@ -226,11 +304,20 @@ private:
     }
 
     void createFallbackTables() {
-        samples_.resize(NyarlatRom::kTableSize);
-        std::memcpy(samples_.data(), fallbackSine_.data(), NyarlatRom::kTableSize * sizeof(float));
-        spectralMags_.assign(64, 0.0f);
-        spectralPhases_.assign(64, 0.0f);
-        spectralMags_[0] = 1.0f;
+        samples_.assign(NyarlatRom::kTableSize, 0.0f);
+        if (!fallbackSine_.empty()) {
+            std::memcpy(samples_.data(), fallbackSine_.data(), NyarlatRom::kTableSize * sizeof(float));
+        } else {
+            for (uint32_t i = 0; i < NyarlatRom::kTableSize; ++i) {
+                samples_[i] = std::sin(2.0f * 3.1415926535f * static_cast<float>(i) / static_cast<float>(NyarlatRom::kTableSize));
+            }
+        }
+        constexpr size_t kFallbackPartials = NyarlatRom::kNumBanks * 64 * 32;
+        spectralMags_.assign(kFallbackPartials, 0.0f);
+        spectralPhases_.assign(kFallbackPartials, 0.0f);
+        for (size_t b = 0; b < NyarlatRom::kNumBanks; ++b) {
+            spectralMags_[b * 64 * 32] = 1.0f;
+        }
     }
 
     std::vector<float> samples_;

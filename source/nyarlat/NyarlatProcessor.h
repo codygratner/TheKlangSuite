@@ -395,9 +395,42 @@ private:
 
 
 
-    // Note stack for Mono / Legato / Unison modes
+    // Zero-heap lock-free Note Stack for Mono / Legato / Unison modes
+    struct HeldNoteStack {
+        static constexpr int kMaxHeld = 32;
+        std::array<std::pair<int, float>, kMaxHeld> notes{};
+        int count = 0;
 
-    std::vector<std::pair<int, float>> heldNotes_;
+        void clear() noexcept { count = 0; }
+        bool empty() const noexcept { return count == 0; }
+        int size() const noexcept { return count; }
+
+        void push(int note, float vel) noexcept {
+            erase(note);
+            if (count < kMaxHeld) {
+                notes[count++] = { note, vel };
+            } else {
+                for (int i = 0; i < kMaxHeld - 1; ++i) notes[i] = notes[i + 1];
+                notes[kMaxHeld - 1] = { note, vel };
+            }
+        }
+
+        void erase(int note) noexcept {
+            int dst = 0;
+            for (int i = 0; i < count; ++i) {
+                if (notes[i].first != note) {
+                    notes[dst++] = notes[i];
+                }
+            }
+            count = dst;
+        }
+
+        std::pair<int, float> back() const noexcept {
+            return count > 0 ? notes[count - 1] : std::pair<int, float>{ -1, 0.0f };
+        }
+    };
+
+    HeldNoteStack heldNotes_;
 
 
 

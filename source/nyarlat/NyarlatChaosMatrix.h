@@ -59,8 +59,9 @@ public:
 
         for (int i = 0; i < kNumChannels; ++i) {
             channelPhase_[i] += stepSpeed;
-            while (channelPhase_[i] >= 1.0f) {
-                channelPhase_[i] -= 1.0f;
+            if (!std::isfinite(channelPhase_[i])) channelPhase_[i] = 0.0f;
+            if (channelPhase_[i] >= 1.0f) {
+                channelPhase_[i] -= std::floor(channelPhase_[i]);
                 knotA_[i] = knotB_[i];
                 knotB_[i] = nextRandomFloat();
             }

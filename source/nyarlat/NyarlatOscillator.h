@@ -190,7 +190,7 @@ public:
 
         float subsL[4], subsR[4];
         for (int k = 0; k < nPre; ++k) {
-            const uint32_t idx0 = ph >> 15;
+            const uint32_t idx0 = (ph >> 15) & 0x1FFu;
             const uint32_t idx1 = (idx0 + 1) & 0x1FFu;
             const float frac = static_cast<float>((ph >> 6) & 0x1FFu) * (1.0f / 512.0f);
             subsL[k] = cL[idx0] + frac * (cL[idx1] - cL[idx0]);
@@ -400,8 +400,8 @@ private:
     float dcPole_ = 0.998692f;
     float syncFade_ = 0.0f;
 
-    alignas(64) std::array<std::array<float, kTableSize>, kNumStatorSlices> statorCacheL_{};
-    alignas(64) std::array<std::array<float, kTableSize>, kNumStatorSlices> statorCacheR_{};
+    std::array<std::array<float, kTableSize>, kNumStatorSlices> statorCacheL_{};
+    std::array<std::array<float, kTableSize>, kNumStatorSlices> statorCacheR_{};
     std::array<uint32_t, kNumStatorSlices> sliceKeys_{};
     const float* activeCycleL_ = nullptr;
     const float* activeCycleR_ = nullptr;
