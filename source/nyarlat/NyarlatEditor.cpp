@@ -685,6 +685,9 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
         };
 
     }
+    else if (paramId == Ids::filter_cutoff) {
+        item.slider.getProperties().set("isCutoffDial", true);
+    }
 
 
 
@@ -1226,13 +1229,13 @@ void NyarlatEditor::layoutControls() {
         }
 
         // Row 3: Wave Deck (Morph, OLED, Speed, 2x2 Icon Grid)
-        placeKnob(oPrefix + "morph", 30, by + 62, 52, 56, 11);
+        placeKnob(oPrefix + "morph", 26, by + 60, 56, 60, 11);
 
         if (oscWaveViews_[o] != nullptr) {
             oscWaveViews_[o]->setBounds(88, by + 62, 136, 64);
         }
 
-        placeKnob(oPrefix + "speed", 230, by + 62, 52, 56, 11);
+        placeKnob(oPrefix + "speed", 228, by + 60, 56, 60, 11);
 
         constexpr int cell = 30;
         constexpr int gap = 4;
@@ -1260,9 +1263,9 @@ void NyarlatEditor::layoutControls() {
     placeFader(Ids::osc3_level,  534, 72, 46, 210, 12);
     placeFader(Ids::noise_level, 598, 72, 46, 210, 12);
 
-    placeKnob(Ids::noise_tone,   684, 74,  52, 56, 11);
-    placeKnob(Ids::osc_spread,   684, 155, 52, 56, 11);
-    placeKnob(Ids::mixer_seethe, 684, 236, 52, 56, 11);
+    placeKnob(Ids::noise_tone,   680, 66,  60, 64, 11);
+    placeKnob(Ids::osc_spread,   680, 146, 60, 64, 11);
+    placeKnob(Ids::mixer_seethe, 680, 226, 60, 64, 11);
 
     // ==============================================================================
     // Column 1, Row 1: Oscillator Chaos Matrix (x=394, y=320, w=368, h=264)
@@ -1281,15 +1284,15 @@ void NyarlatEditor::layoutControls() {
     // ==============================================================================
     // Column 1, Row 2: Master Chaos & Space (x=394, y=596, w=368, h=264)
     // ==============================================================================
-    // Row 1: Master Chaos Engine
+    // Row 1: Master Chaos Engine (All 64px Primary dials)
     placeKnob(Ids::chaos_rate,        424, 631, 64, 68, 11); // Primary 64px
-    placeKnob(Ids::chaos_drift,       552, 637, 52, 56, 11); // Secondary 52px
-    placeKnob(Ids::chaos_poly_spread, 674, 637, 52, 56, 11); // Secondary 52px
+    placeKnob(Ids::chaos_drift,       546, 631, 64, 68, 11); // Primary 64px
+    placeKnob(Ids::chaos_poly_spread, 668, 631, 64, 68, 11); // Primary 64px
 
-    // Row 2: Space & Detune Modulators
-    placeKnob(Ids::rand_tune,        430, 741, 52, 56, 11);
-    placeKnob(Ids::rand_chorus_rate, 552, 741, 52, 56, 11);
-    placeKnob(Ids::rand_spread,      674, 741, 52, 56, 11);
+    // Row 2: Space & Detune Modulators (All 64px Primary dials)
+    placeKnob(Ids::rand_tune,        424, 735, 64, 68, 11);
+    placeKnob(Ids::rand_chorus_rate, 546, 735, 64, 68, 11);
+    placeKnob(Ids::rand_spread,      668, 735, 64, 68, 11);
 
     // ==============================================================================
     // Column 2, Row 0: Silky ZDF Filter (x=774, y=44, w=372, h=264)
@@ -1299,11 +1302,11 @@ void NyarlatEditor::layoutControls() {
         r->setBounds(974, 48, 160, 18);
     }
 
-    // Zone 1: Filter Core Acoustics
-    placeKnob(Ids::filter_cutoff,     784, 66,  72, 80, 11); // Hero Dial!
-    placeKnob(Ids::filter_resonance,  872, 70,  64, 72, 11); // Primary 64px
-    placeKnob(Ids::filter_drive,      954, 76,  52, 60, 11); // Secondary 52px
-    placeKnob(Ids::noise_hammer_snap, 1024, 76, 52, 60, 11); // Secondary 52px
+    // Zone 1: Filter Core Acoustics (80px Cutoff Hero Dial!)
+    placeKnob(Ids::filter_cutoff,     784, 58,  80, 84, 11); // Hero Dial 80px!
+    placeKnob(Ids::filter_resonance,  874, 66,  64, 70, 11); // Primary 64px
+    placeKnob(Ids::filter_drive,      950, 72,  52, 60, 11); // Secondary 52px
+    placeKnob(Ids::noise_hammer_snap, 1018, 72, 52, 60, 11); // Secondary 52px
 
     // Zone 2: Filter ADSR Visualizer + Tracking
     if (filterAdsrView_ != nullptr) {
@@ -1330,36 +1333,36 @@ void NyarlatEditor::layoutControls() {
         vcaAdsrView_->setBounds(786, 352, 348, 56);
     }
 
-    // Row 1: Amp Envelope Quad (52px)
-    placeKnob(Ids::amp_attack,  808,  416, 52, 56, 11);
-    placeKnob(Ids::amp_decay,   892,  416, 52, 56, 11);
-    placeKnob(Ids::amp_sustain, 976,  416, 52, 56, 11);
-    placeKnob(Ids::amp_release, 1060, 416, 52, 56, 11);
+    // Row 1: Amp Envelope Quad (64px Primary dials)
+    placeKnob(Ids::amp_attack,  794,  414, 64, 68, 11);
+    placeKnob(Ids::amp_decay,   882,  414, 64, 68, 11);
+    placeKnob(Ids::amp_sustain, 970,  414, 64, 68, 11);
+    placeKnob(Ids::amp_release, 1058, 414, 64, 68, 11);
 
     // Row 2: Dynamics & Keytrack (64px Primary)
-    placeKnob(Ids::amp_velocity, 850, 494, 64, 68, 11);
-    placeKnob(Ids::keytrack_rate, 990, 494, 64, 68, 11);
+    placeKnob(Ids::amp_velocity, 850, 498, 64, 68, 11);
+    placeKnob(Ids::keytrack_rate, 990, 498, 64, 68, 11);
 
     // ==============================================================================
     // Column 2, Row 2: Output & Expression (x=774, y=596, w=372, h=264)
     // Strictly NOT "Master"
     // ==============================================================================
-    // Row 1: Expression & Glide (52px)
-    placeKnob(Ids::glide_time,         808,  620, 52, 56, 11);
-    placeKnob(Ids::pitch_bend_range,    892,  620, 52, 56, 11);
-    placeKnob(Ids::mpe_slide_depth,     976,  620, 52, 56, 11);
-    placeKnob(Ids::mpe_pressure_depth,  1060, 620, 52, 56, 11);
+    // Row 1: Expression & Glide (56px)
+    placeKnob(Ids::glide_time,         800,  614, 56, 60, 11);
+    placeKnob(Ids::pitch_bend_range,    886,  614, 56, 60, 11);
+    placeKnob(Ids::mpe_slide_depth,     972,  614, 56, 60, 11);
+    placeKnob(Ids::mpe_pressure_depth,  1058, 614, 56, 60, 11);
 
-    // Row 2: Analog Chorus & Slop (52px)
-    placeKnob(Ids::alpha_chorus, 808,  692, 52, 56, 11);
-    placeKnob(Ids::chorus_rate,  892,  692, 52, 56, 11); // live chaos arc halo!
-    placeKnob(Ids::osc_slop,     976,  692, 52, 56, 11);
-    placeKnob(Ids::global_width, 1060, 692, 52, 56, 11);
+    // Row 2: Analog Chorus & Slop (56px)
+    placeKnob(Ids::alpha_chorus, 800,  686, 56, 60, 11);
+    placeKnob(Ids::chorus_rate,  886,  686, 56, 60, 11); // live chaos arc halo!
+    placeKnob(Ids::osc_slop,     972,  686, 56, 60, 11);
+    placeKnob(Ids::global_width, 1058, 686, 56, 60, 11);
 
     // Row 3: Master Tone & Output Level
-    placeKnob(Ids::bass_boost,   808,  768, 52, 56, 11);
-    placeKnob(Ids::treble_tame,  892,  768, 52, 56, 11);
-    placeKnob(Ids::output_level, 1008, 762, 64, 72, 11); // Primary 64px
+    placeKnob(Ids::bass_boost,   800,  762, 56, 60, 11);
+    placeKnob(Ids::treble_tame,  886,  762, 56, 60, 11);
+    placeKnob(Ids::output_level, 1008, 756, 64, 72, 11); // Primary 64px
 
 #if JUCE_DEBUG
     // Regression Safety Guards

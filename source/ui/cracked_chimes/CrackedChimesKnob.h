@@ -65,20 +65,20 @@ struct DialGeometry
 };
 
 /** Single source of truth for dial layout (LookAndFeel + knob hit-test). */
-inline DialGeometry computeDialGeometry (juce::Rectangle<float> area) noexcept
+inline DialGeometry computeDialGeometry (juce::Rectangle<float> area, float outwardExtent = 2.0f) noexcept
 {
     DialGeometry g;
     g.diameter = juce::jmin (area.getWidth(), area.getHeight());
     g.centre   = area.getCentre();
-    g.rCore    = juce::jmax (10.0f, g.diameter * 0.5f - kRingOutwardExtent);
+    g.rCore    = juce::jmax (10.0f, g.diameter * 0.5f - outwardExtent);
     g.rTrack   = g.rCore - 4.0f;
     g.rDisc    = juce::jmax (2.0f, g.rCore - 8.0f);
     g.compact  = g.diameter < kHeroDialMin;
 
-    const float badgeH = g.compact ? 15.5f : 19.0f;
-    const float badgeW = g.diameter * 0.72f;
-    const float badgeCy = g.centre.y + g.rCore * 0.86f;
-    g.badge = juce::Rectangle<float> (badgeW, badgeH).withCentre ({ g.centre.x, badgeCy });
+    const float badgeH = g.compact ? 13.5f : 15.0f;
+    const float badgeW = std::clamp(g.diameter * 0.72f, 26.0f, g.diameter - 4.0f);
+    const float badgeY = area.getBottom() - badgeH - 1.5f;
+    g.badge = juce::Rectangle<float> (g.centre.x - badgeW * 0.5f, badgeY, badgeW, badgeH);
     return g;
 }
 
@@ -153,6 +153,16 @@ public:
     const ModRingState& getRing (int slot) const noexcept { return rings[(size_t) juce::jlimit (0, kMaxRings - 1, slot)]; }
     const std::array<ModRingState, kMaxRings>& getRings() const noexcept { return rings; }
 
+    float getRingExtent() const noexcept
+    {
+        int activeRings = 0;
+        for (int i = 0; i < kMaxRings; ++i)
+            if (rings[(size_t) i].active)
+                activeRings = i + 1;
+        if (activeRings == 0) return 2.0f;
+        return 2.0f + 3.0f * static_cast<float>(activeRings - 1) + 2.0f;
+    }
+
     // ---- Presentation -----------------------------------------------------
     void setBipolar (bool b)            { if (bipolar != b) { bipolar = b; repaint(); } }
     bool isBipolar() const noexcept     { return bipolar; }
@@ -183,7 +193,7 @@ public:
                                   : formatEngineeringValue (getValue(), unit);
     }
 
-    juce::Rectangle<float> getBadgeBounds() const { return computeDialGeometry (getLocalBounds().toFloat()).badge; }
+    juce::Rectangle<float> getBadgeBounds() const { return computeDialGeometry (getLocalBounds().toFloat(), getRingExtent()).badge; }
     bool isEditingValue() const noexcept { return editing; }
 
     /** Parses '440 Hz', '1.2k', '1.2 kHz', '-12 dB', '250 ms', '1.5 s', '50 %',
@@ -260,7 +270,7 @@ public:
             addChildComponent (*editor);
         }
 
-        const auto geo = computeDialGeometry (getLocalBounds().toFloat());
+        const auto geo = computeDialGeometry (getLocalBounds().toFloat(), getRingExtent());
         editor->setFont (Typography::makeFont (geo.compact ? Typography::kBadgeCompactSize : Typography::kBadgeSize));
         editor->setBounds (geo.badge.expanded (4.0f, 1.0f).toNearestInt().getIntersection (getLocalBounds()));
         editor->setText (getBadgeText(), false);

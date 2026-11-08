@@ -41,8 +41,19 @@ public:
                            juce::Slider& slider) override
     {
         using namespace Colours;
-        const auto geo = computeDialGeometry (juce::Rectangle<int> (x, y, width, height).toFloat());
         const auto* knob = dynamic_cast<const CrackedChimesKnob*> (&slider);
+
+        float outwardExtent = 2.0f;
+        if (slider.getProperties().contains("ringExtent"))
+            outwardExtent = static_cast<float>(slider.getProperties()["ringExtent"]);
+        else if (knob != nullptr)
+            outwardExtent = knob->getRingExtent();
+        else if (slider.getProperties().contains("isCutoffDial"))
+            outwardExtent = 6.0f; // Leaves headroom for live envelope arc & pips (Hastur R=34 parity @ 80px)
+        else if (slider.getProperties().contains("modLo") || slider.getProperties().contains("randLo"))
+            outwardExtent = 4.0f; // Single outward modulation ring
+
+        const auto geo = computeDialGeometry (juce::Rectangle<int> (x, y, width, height).toFloat(), outwardExtent);
         const float cx = geo.centre.x;
         const float cy = geo.centre.y;
         const float a0 = rotaryStartAngle;
