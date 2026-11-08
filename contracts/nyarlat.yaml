@@ -152,6 +152,7 @@ parameters:
   range:
   - -12.0
   - 6.0
+  custom_range: asymmetricTiltRange
   default: 0.0
   unit: dB/oct
 - id: osc1_formant
@@ -195,6 +196,7 @@ parameters:
   range:
   - 0.0
   - 1.0
+  skew: 0.5
   default: 0.8
 - id: osc2_morph
   automation_tier: 2
@@ -225,6 +227,7 @@ parameters:
   range:
   - -12.0
   - 6.0
+  custom_range: asymmetricTiltRange
   default: 0.0
   unit: dB/oct
 - id: osc2_formant
@@ -268,6 +271,7 @@ parameters:
   range:
   - 0.0
   - 1.0
+  skew: 0.5
   default: 0.7
 - id: osc3_morph
   automation_tier: 2
@@ -298,6 +302,7 @@ parameters:
   range:
   - -12.0
   - 6.0
+  custom_range: asymmetricTiltRange
   default: 0.0
   unit: dB/oct
 - id: osc3_formant
@@ -341,6 +346,7 @@ parameters:
   range:
   - 0.0
   - 1.0
+  skew: 0.5
   default: 0.6
 - id: noise_level
   automation_tier: 2
@@ -351,6 +357,7 @@ parameters:
   range:
   - 0.0
   - 1.0
+  skew: 0.5
   default: 0.0
 - id: noise_tone
   automation_tier: 2
@@ -499,6 +506,7 @@ parameters:
   range:
   - 0.0
   - 24.0
+  step: 1.0
   default: 2.0
   unit: st
 - id: bass_boost
@@ -574,7 +582,7 @@ parameters:
   range:
   - 0.0
   - 1.0
-  default: 0.8
+  default: 0.5
 - id: chaos_rate
   automation_tier: 3
   name: Chaos Rate

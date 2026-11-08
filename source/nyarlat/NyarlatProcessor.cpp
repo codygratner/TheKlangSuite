@@ -942,6 +942,12 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     smoothedChorusRate_ += slewCoeff * (targetRateHz - smoothedChorusRate_);
     const float chorusStep = static_cast<float>(6.28318530717958647692 * smoothedChorusRate_ / std::max(1000.0, sr));
 
+    // TPT 1-Pole High-Shelf Treble Tame (fc = 3000 Hz, 0.0 = bit-exact bypass, 1.0 = -12 dB shelf)
+    const float shelfGain = (trebleTame > 0.001f) ? std::pow(10.0f, -12.0f * trebleTame * 0.05f) : 1.0f;
+    const float shelfK = std::tan(3.14159265358979323846f * 3000.0f / static_cast<float>(std::max(1000.0, sr)));
+    const float shelfGc = shelfK / (1.0f + shelfK);
+    const float shelfHf = 1.0f - shelfGain;
+
     for (int i = 0; i < numSamples; ++i) {
 
         float l = leftChannel[i];
@@ -960,18 +966,16 @@ void NyarlatProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 
 
-        if (trebleTame > 0.01f) {
+        if (trebleTame > 0.001f) {
+            const float vL = (l - trebleStateL_) * shelfGc;
+            const float lpL = vL + trebleStateL_;
+            trebleStateL_ = lpL + vL;
+            l = shelfGain * l + shelfHf * lpL;
 
-            const float coeff = 0.2f * trebleTame;
-
-            trebleStateL_ = (1.0f - coeff) * trebleStateL_ + coeff * l;
-
-            trebleStateR_ = (1.0f - coeff) * trebleStateR_ + coeff * r;
-
-            l = trebleStateL_;
-
-            r = trebleStateR_;
-
+            const float vR = (r - trebleStateR_) * shelfGc;
+            const float lpR = vR + trebleStateR_;
+            trebleStateR_ = lpR + vR;
+            r = shelfGain * r + shelfHf * lpR;
         }
 
 

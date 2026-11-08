@@ -72,6 +72,24 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         );
     };
 
+    // Asymmetric Bipolar Tilt Detent Lambda (-12..0..+6 dB/oct with 12 o'clock detent at 0.00)
+    auto asymmetricTiltRange = []() {
+        return juce::NormalisableRange<float>(
+            -12.0f, 6.0f,
+            [](float, float, float norm) {
+                return (norm < 0.5f) ? -12.0f * (1.0f - 2.0f * norm)
+                                     :   6.0f * (2.0f * norm - 1.0f);
+            },
+            [](float, float, float val) {
+                return (val < 0.0f) ? 0.5f * (1.0f + val / 12.0f)
+                                    : 0.5f + (val / 12.0f);
+            },
+            [](float, float, float val) {
+                return juce::jlimit(-12.0f, 6.0f, val);
+            }
+        );
+    };
+
     // filter_cutoff [filter]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{nyarlatParameters::Ids::filter_cutoff, 1}, nyarlatParameters::Names::filter_cutoff,
@@ -131,7 +149,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc1_tilt [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_tilt, 1}, nyarlatParameters::Names::osc1_tilt, -12.0000f, 6.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc1_tilt, 1}, nyarlatParameters::Names::osc1_tilt, asymmetricTiltRange(), 0.0000f));
 
     // osc1_formant [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -148,7 +166,8 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc1_level [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc1_level, 1}, nyarlatParameters::Names::osc1_level, 0.0000f, 1.0000f, 0.8000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc1_level, 1}, nyarlatParameters::Names::osc1_level,
+        juce::NormalisableRange<float>{0.0000f, 1.0000f, 0.0000f, 0.5000f}, 0.8000f));
 
     // osc2_morph [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -160,7 +179,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc2_tilt [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_tilt, 1}, nyarlatParameters::Names::osc2_tilt, -12.0000f, 6.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc2_tilt, 1}, nyarlatParameters::Names::osc2_tilt, asymmetricTiltRange(), 0.0000f));
 
     // osc2_formant [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -177,7 +196,8 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc2_level [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc2_level, 1}, nyarlatParameters::Names::osc2_level, 0.0000f, 1.0000f, 0.7000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc2_level, 1}, nyarlatParameters::Names::osc2_level,
+        juce::NormalisableRange<float>{0.0000f, 1.0000f, 0.0000f, 0.5000f}, 0.7000f));
 
     // osc3_morph [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -189,7 +209,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc3_tilt [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_tilt, 1}, nyarlatParameters::Names::osc3_tilt, -12.0000f, 6.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc3_tilt, 1}, nyarlatParameters::Names::osc3_tilt, asymmetricTiltRange(), 0.0000f));
 
     // osc3_formant [dco]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -206,11 +226,13 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // osc3_level [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::osc3_level, 1}, nyarlatParameters::Names::osc3_level, 0.0000f, 1.0000f, 0.6000f));
+        juce::ParameterID{nyarlatParameters::Ids::osc3_level, 1}, nyarlatParameters::Names::osc3_level,
+        juce::NormalisableRange<float>{0.0000f, 1.0000f, 0.0000f, 0.5000f}, 0.6000f));
 
     // noise_level [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::noise_level, 1}, nyarlatParameters::Names::noise_level, 0.0000f, 1.0000f, 0.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::noise_level, 1}, nyarlatParameters::Names::noise_level,
+        juce::NormalisableRange<float>{0.0000f, 1.0000f, 0.0000f, 0.5000f}, 0.0000f));
 
     // noise_tone [mixer]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -270,7 +292,8 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // pitch_bend_range [vca]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::pitch_bend_range, 1}, nyarlatParameters::Names::pitch_bend_range, 0.0000f, 24.0000f, 2.0000f));
+        juce::ParameterID{nyarlatParameters::Ids::pitch_bend_range, 1}, nyarlatParameters::Names::pitch_bend_range,
+        juce::NormalisableRange<float>{0.0000f, 24.0000f, 1.0000f, 1.0000f}, 2.0000f));
 
     // bass_boost [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -299,7 +322,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
 
     // output_level [master]
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{nyarlatParameters::Ids::output_level, 1}, nyarlatParameters::Names::output_level, 0.0000f, 1.0000f, 0.8000f));
+        juce::ParameterID{nyarlatParameters::Ids::output_level, 1}, nyarlatParameters::Names::output_level, 0.0000f, 1.0000f, 0.5000f));
 
     // chaos_rate [random]
     layout.add(std::make_unique<juce::AudioParameterFloat>(

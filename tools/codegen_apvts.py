@@ -29,7 +29,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 ROOT_VAULT = Path(r"C:\_\Vault")
-ROOT_TKS = Path(__file__).resolve().parent.parent
+ROOT_TKS = Path(r"C:\Dev\TheKlangSuite")
 
 
 def load_contract(plugin_name: str) -> dict:
@@ -46,14 +46,9 @@ def load_contract(plugin_name: str) -> dict:
 
 def resolve_plugin_prefix(plugin: str) -> str:
     target_dir = ROOT_TKS / "source" / plugin.lower()
-    if not target_dir.exists():
-        return plugin
     pascal = plugin[:1].upper() + plugin[1:]
-    target_filename = f"{pascal}ParameterIds.h"
-    # Case-sensitive check to prevent Windows NTFS false positive
-    for item in target_dir.iterdir():
-        if item.name == target_filename:
-            return pascal
+    if (target_dir / f"{pascal}ParameterIds.h").exists():
+        return pascal
     return plugin
 
 def generate_ids_header(contract: dict) -> str:
@@ -181,6 +176,24 @@ def generate_layout_header(contract: dict) -> str:
         "            }",
         "        );",
         "    };",
+        "",
+        "    // Asymmetric Bipolar Tilt Detent Lambda (-12..0..+6 dB/oct with 12 o'clock detent at 0.00)",
+        "    auto asymmetricTiltRange = []() {",
+        "        return juce::NormalisableRange<float>(",
+        "            -12.0f, 6.0f,",
+        "            [](float, float, float norm) {",
+        "                return (norm < 0.5f) ? -12.0f * (1.0f - 2.0f * norm)",
+        "                                     :   6.0f * (2.0f * norm - 1.0f);",
+        "            },",
+        "            [](float, float, float val) {",
+        "                return (val < 0.0f) ? 0.5f * (1.0f + val / 12.0f)",
+        "                                    : 0.5f + (val / 12.0f);",
+        "            },",
+        "            [](float, float, float val) {",
+        "                return juce::jlimit(-12.0f, 6.0f, val);",
+        "            }",
+        "        );",
+        "    };",
         ""
     ]
 
@@ -222,6 +235,9 @@ def generate_layout_header(contract: dict) -> str:
             elif p.get("custom_range") == "symmetricQuadraticTimeRange":
                 lines.append(f"    layout.add(std::make_unique<juce::AudioParameterFloat>(")
                 lines.append(f"        juce::ParameterID{{{ns}::Ids::{pid}, 1}}, {ns}::Names::{pid}, symmetricQuadraticTimeRange(), {float(pdef):.4f}f));")
+            elif p.get("custom_range") == "asymmetricTiltRange":
+                lines.append(f"    layout.add(std::make_unique<juce::AudioParameterFloat>(")
+                lines.append(f"        juce::ParameterID{{{ns}::Ids::{pid}, 1}}, {ns}::Names::{pid}, asymmetricTiltRange(), {float(pdef):.4f}f));")
             elif "skew_center" in p or "skew_mid" in p:
                 rng = p.get("range", [0.0, 1.0])
                 sk = p.get("skew_center", p.get("skew_mid"))

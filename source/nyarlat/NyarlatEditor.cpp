@@ -613,49 +613,63 @@ NyarlatEditor::~NyarlatEditor() {
 
 
 void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, const juce::String& label, juce::Colour col) {
-
     item.paramId = paramId;
-
     item.slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-
     item.slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-
     item.slider.setColour(juce::Slider::rotarySliderFillColourId, col);
-
     item.slider.setColour(juce::Slider::thumbColourId, col);
-
-
-
-    // In-Dial Custom Value Badge Formatters
 
     namespace Ids = nyarlatParameters::Ids;
 
+    // 1. Bipolar Visual Fill Arcs & Double-Click Return Values
+    if (paramId == Ids::osc1_odd_even || paramId == Ids::osc2_odd_even || paramId == Ids::osc3_odd_even ||
+        paramId == Ids::osc1_tilt || paramId == Ids::osc2_tilt || paramId == Ids::osc3_tilt ||
+        paramId == Ids::osc_spread) {
+        item.slider.getProperties().set("isBipolar", true);
+        item.slider.setDoubleClickReturnValue(true, 0.0f);
+    } else if (paramId == Ids::filter_env_depth) {
+        item.slider.getProperties().set("isBipolar", true);
+        item.slider.setDoubleClickReturnValue(true, 0.5f);
+    } else if (paramId == Ids::global_width) {
+        item.slider.setDoubleClickReturnValue(true, 0.5f);
+    } else if (paramId == Ids::output_level) {
+        item.slider.setDoubleClickReturnValue(true, 0.5f);
+    } else if (paramId == Ids::filter_cutoff) {
+        item.slider.setDoubleClickReturnValue(true, 3500.0f);
+    } else if (paramId == Ids::filter_resonance) {
+        item.slider.setDoubleClickReturnValue(true, 0.15f);
+    } else if (paramId == Ids::filter_decay || paramId == Ids::amp_decay) {
+        item.slider.setDoubleClickReturnValue(true, 0.4f);
+    } else if (paramId == Ids::filter_release || paramId == Ids::amp_release) {
+        item.slider.setDoubleClickReturnValue(true, 0.5f);
+    } else if (paramId == Ids::filter_sustain || paramId == Ids::amp_sustain) {
+        item.slider.setDoubleClickReturnValue(true, 0.7f);
+    } else if (paramId == Ids::pitch_bend_range) {
+        item.slider.setDoubleClickReturnValue(true, 2.0f);
+    } else if (paramId == Ids::chorus_rate) {
+        item.slider.setDoubleClickReturnValue(true, 1.2f);
+    } else if (paramId == Ids::bass_boost) {
+        item.slider.setDoubleClickReturnValue(true, 0.5f);
+    } else if (paramId == Ids::treble_tame) {
+        item.slider.setDoubleClickReturnValue(true, 0.3f);
+    } else {
+        item.slider.setDoubleClickReturnValue(true, 0.0f);
+    }
+
+    // 2. In-Dial Custom Value Badge Formatters
     if (paramId == Ids::chaos_rate) {
-
         item.slider.textFromValueFunction = [](double v) {
-
             if (v <= 0.0) return juce::String("0 Hz");
-
             double periodSec = 1.0 / v;
-
             if (periodSec >= 60.0) {
-
                 int mins = static_cast<int>(periodSec / 60.0);
-
                 int secs = static_cast<int>(periodSec) % 60;
-
                 return juce::String::formatted("%dm %02ds", mins, secs);
-
             } else if (periodSec >= 1.0) {
-
                 return juce::String(periodSec, 1) + " s";
-
             }
-
             return juce::String(v, 1) + " Hz";
-
         };
-
     } else if (paramId == Ids::alpha_chorus) {
         item.slider.textFromValueFunction = [](double v) {
             if (v <= 0.001) return juce::String("OFF");
@@ -673,23 +687,76 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
             return juce::String(juce::roundToInt(v * 100.0)) + " %";
         };
     } else if (paramId == Ids::output_level) {
-
         item.slider.textFromValueFunction = [](double v) {
-
             float gain = tkdsp::common::evalMasterVolumeGain(static_cast<float>(v));
-
             float db = (gain > 1e-4f) ? 20.0f * std::log10(gain) : -60.0f;
-
             return juce::String(db, 1) + " dB";
-
         };
-
-    }
-    else if (paramId == Ids::filter_cutoff) {
+    } else if (paramId == Ids::filter_cutoff) {
         item.slider.getProperties().set("isCutoffDial", true);
+        item.slider.textFromValueFunction = [](double v) {
+            if (v < 1000.0) return juce::String(juce::roundToInt(v)) + " Hz";
+            return juce::String(v * 0.001, 2) + " kHz";
+        };
+    } else if (paramId == Ids::filter_attack || paramId == Ids::amp_attack) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (v < 1.0) return juce::String(v * 1000.0, 1) + " ms";
+            return juce::String(v, 2) + " s";
+        };
+    } else if (paramId == Ids::filter_decay || paramId == Ids::amp_decay ||
+               paramId == Ids::filter_release || paramId == Ids::amp_release) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (v < 1.0) return juce::String(v * 1000.0, 0) + " ms";
+            return juce::String(v, 2) + " s";
+        };
+    } else if (paramId == Ids::glide_time) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (v < 0.001) return juce::String("OFF");
+            if (v < 1.0) return juce::String(v * 1000.0, 0) + " ms";
+            return juce::String(v, 2) + " s";
+        };
+    } else if (paramId == Ids::pitch_bend_range) {
+        item.slider.textFromValueFunction = [](double v) {
+            return juce::String::formatted("±%d st", juce::roundToInt(v));
+        };
+    } else if (paramId == Ids::osc1_odd_even || paramId == Ids::osc2_odd_even || paramId == Ids::osc3_odd_even) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (std::abs(v) < 0.02) return juce::String("SAW");
+            if (v < 0.0) return juce::String("ODD ") + juce::String(juce::roundToInt(-v * 100.0)) + "%";
+            return juce::String("EVN ") + juce::String(juce::roundToInt(v * 100.0)) + "%";
+        };
+    } else if (paramId == Ids::osc1_tilt || paramId == Ids::osc2_tilt || paramId == Ids::osc3_tilt) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (std::abs(v) < 0.05) return juce::String("FLAT");
+            return juce::String::formatted("%+.1f dB", v);
+        };
+    } else if (paramId == Ids::osc1_speed || paramId == Ids::osc2_speed || paramId == Ids::osc3_speed) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (v < 0.01) return juce::String("STATIC");
+            return juce::String(v, 2) + " Hz";
+        };
+    } else if (paramId == Ids::osc_spread) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (std::abs(v) < 0.02) return juce::String("CENTER");
+            if (v < 0.0) return juce::String("INV ") + juce::String(juce::roundToInt(-v * 100.0)) + "%";
+            return juce::String("WIDE ") + juce::String(juce::roundToInt(v * 100.0)) + "%";
+        };
+    } else if (paramId == Ids::treble_tame) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (v < 0.005) return juce::String("FLAT");
+            return juce::String::formatted("-%.1f dB", v * 12.0);
+        };
+    } else if (paramId == Ids::rand_tune) {
+        item.slider.textFromValueFunction = [](double v) {
+            if (v < 0.005) return juce::String("0 ct");
+            return juce::String::formatted("±%d ct", juce::roundToInt(v * 100.0));
+        };
+    } else {
+        // Universal fallback for percentage-based dials (resonance, drive, env depth, velocity, keytrack, slop, seethe, etc.)
+        item.slider.textFromValueFunction = [](double v) {
+            return juce::String(juce::roundToInt(v * 100.0)) + " %";
+        };
     }
-
-
 
     item.label.setText(label, juce::dontSendNotification);
 
@@ -730,16 +797,18 @@ void NyarlatEditor::setupKnob(RotaryKnob& item, const juce::String& paramId, con
 
 
 void NyarlatEditor::setupFader(SliderFader& item, const juce::String& paramId, const juce::String& label, juce::Colour col) {
-
+    namespace Ids = nyarlatParameters::Ids;
     item.paramId = paramId;
-
     item.slider.setSliderStyle(juce::Slider::LinearVertical);
-
     item.slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-
     item.slider.setColour(juce::Slider::thumbColourId, col);
-
     item.slider.setColour(juce::Slider::trackColourId, juce::Colour(0xFF262D38));
+
+    if (paramId == Ids::osc1_level) item.slider.setDoubleClickReturnValue(true, 0.8f);
+    else if (paramId == Ids::osc2_level) item.slider.setDoubleClickReturnValue(true, 0.7f);
+    else if (paramId == Ids::osc3_level) item.slider.setDoubleClickReturnValue(true, 0.6f);
+    else if (paramId == Ids::noise_level) item.slider.setDoubleClickReturnValue(true, 0.0f);
+    else item.slider.setDoubleClickReturnValue(true, 0.7f);
 
     item.slider.textFromValueFunction = [](double val) {
         if (val <= 0.0001) return juce::String("-inf dB");
